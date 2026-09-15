@@ -1,15 +1,17 @@
-import { query, getDefaultUserId } from "@/lib/db";
-import { ok, notFound, serverError } from "@/lib/http";
+import { query } from "@/lib/db";
+import { ok, notFound, unauthorized, serverError } from "@/lib/http";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/courses/:id — one track with its units (+ per-unit mastery rollup) and objectives.
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
+    const userId = user.id;
     const tracks = await query(
       `select * from subject_tracks where id = $1`,
       [params.id]
@@ -47,6 +49,7 @@ export async function GET(
 
     return ok({ track: tracks[0], units: unitsWithObjectives });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

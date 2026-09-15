@@ -10,26 +10,20 @@
 // (or set DATABASE_URL / DEFAULT_USER_EMAIL in a .env.local — this script loads it if present)
 
 import { Pool } from "pg";
-import fs from "node:fs";
-import path from "node:path";
-import { MSCS_TRACK, SECPLUS_TRACK, SEED_USER_EMAIL, type SeedTrack } from "./data";
-
-// Minimal .env.local loader so `npm run seed` works without extra tooling.
-function loadDotEnvLocal() {
-  const envPath = path.resolve(__dirname, "../../.env.local");
-  if (!fs.existsSync(envPath)) return;
-  const contents = fs.readFileSync(envPath, "utf8");
-  for (const line of contents.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const idx = trimmed.indexOf("=");
-    if (idx === -1) continue;
-    const key = trimmed.slice(0, idx).trim();
-    const value = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
-loadDotEnvLocal();
+import "./env-local"; // must run before ./data so DEFAULT_USER_EMAIL is already set
+import {
+  MSCS_TRACK,
+  SECPLUS_TRACK,
+  PYTHON_TRACK,
+  JAVASCRIPT_TRACK,
+  LINUXPLUS_TRACK,
+  CYSAPLUS_TRACK,
+  PENTESTPLUS_TRACK,
+  SECURITYX_TRACK,
+  CMPCBS_TRACK,
+  SEED_USER_EMAIL,
+  type SeedTrack,
+} from "./data";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -51,6 +45,13 @@ async function main() {
 
     await seedTrack(pool, userId, MSCS_TRACK);
     await seedTrack(pool, userId, SECPLUS_TRACK);
+    await seedTrack(pool, userId, PYTHON_TRACK);
+    await seedTrack(pool, userId, JAVASCRIPT_TRACK);
+    await seedTrack(pool, userId, LINUXPLUS_TRACK);
+    await seedTrack(pool, userId, CYSAPLUS_TRACK);
+    await seedTrack(pool, userId, PENTESTPLUS_TRACK);
+    await seedTrack(pool, userId, SECURITYX_TRACK);
+    await seedTrack(pool, userId, CMPCBS_TRACK);
 
     console.log("Seed complete.");
   } finally {

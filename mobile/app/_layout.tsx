@@ -1,27 +1,46 @@
-import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as SplashScreen from "expo-splash-screen";
+import { AuthProvider, useAuth } from "@/auth/AuthContext";
+
+// Held until AuthProvider resolves whether a session exists, so the user
+// never sees a flash of the wrong screen (login vs. course list).
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+function RootNavigator() {
+  const { status } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+    SplashScreen.hideAsync().catch(() => undefined);
+
+    const inAuthGroup = segments[0] === "(auth)";
+    if (status === "signedOut" && !inAuthGroup) {
+      router.replace("/login");
+    } else if (status === "signedIn" && inAuthGroup) {
+      router.replace("/");
+    }
+  }, [status, segments, router]);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(app)" />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: "#0f172a" },
-          headerTintColor: "#f8fafc",
-          contentStyle: { backgroundColor: "#0f172a" },
-        }}
-      >
-        <Stack.Screen name="index" options={{ title: "Prep LMS" }} />
-        <Stack.Screen name="settings" options={{ title: "Settings" }} />
-        <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
-        <Stack.Screen name="course/[trackId]/lesson/[objectiveId]" options={{ title: "Lesson" }} />
-        <Stack.Screen name="course/[trackId]/pbq" options={{ title: "PBQ Simulator" }} />
-        <Stack.Screen name="course/[trackId]/chat" options={{ title: "Ask the coach" }} />
-        <Stack.Screen name="course/[trackId]/progress" options={{ title: "Progress" }} />
-        <Stack.Screen name="course/[trackId]/history" options={{ title: "History" }} />
-      </Stack>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

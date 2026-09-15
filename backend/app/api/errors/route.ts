@@ -1,6 +1,7 @@
-import { query, getDefaultUserId } from "@/lib/db";
-import { ok, badRequest, serverError } from "@/lib/http";
+import { query } from "@/lib/db";
+import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { toDateOnlyString } from "@/lib/mastery";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const due = searchParams.get("due") === "1";
     const trackId = searchParams.get("trackId");
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
+    const userId = user.id;
 
     const conditions: string[] = ["e.user_id = $1", "e.resolved = false"];
     const values: unknown[] = [userId];
@@ -32,6 +34,7 @@ export async function GET(req: Request) {
     );
     return ok({ errors: rows });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
@@ -43,7 +46,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { unitId, objectiveId, topic, errorText, why, classification } = body ?? {};
     if (!topic || !errorText) return badRequest("topic and errorText are required");
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
+    const userId = user.id;
     const next = new Date();
     next.setDate(next.getDate() + 1);
     const rows = await query(
@@ -53,6 +57,7 @@ export async function POST(req: Request) {
     );
     return ok({ error: rows[0] }, 201);
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

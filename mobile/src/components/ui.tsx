@@ -5,7 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
+  type TextInputProps,
   type ViewStyle,
 } from "react-native";
 import { colors, masteryColor } from "@/lib/theme";
@@ -57,7 +59,7 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  variant?: "primary" | "ghost" | "danger";
+  variant?: "primary" | "ghost" | "danger" | "link";
   disabled?: boolean;
 }) {
   return (
@@ -65,7 +67,7 @@ export function Button({
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
-        styles.button,
+        variant === "link" ? styles.linkButton : styles.button,
         variant === "primary" && { backgroundColor: colors.accent },
         variant === "ghost" && { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.border },
         variant === "danger" && { backgroundColor: colors.bad },
@@ -75,7 +77,7 @@ export function Button({
     >
       <Text
         style={[
-          styles.buttonText,
+          variant === "link" ? styles.linkText : styles.buttonText,
           variant === "ghost" && { color: colors.text },
           variant === "primary" && { color: "#02131f" },
         ]}
@@ -83,6 +85,51 @@ export function Button({
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  error,
+  autoCapitalize = "none",
+  keyboardType,
+  ...rest
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  error?: string | null;
+} & Pick<TextInputProps, "autoCapitalize" | "keyboardType" | "textContentType" | "maxLength">) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.muted}
+        secureTextEntry={secureTextEntry}
+        autoCapitalize={autoCapitalize}
+        style={[styles.input, error ? { borderColor: colors.bad } : null]}
+        {...rest}
+      />
+      {error ? <Text style={{ color: colors.bad, fontSize: 12 }}>{error}</Text> : null}
+    </View>
+  );
+}
+
+export function ProgressBar({ percent }: { percent: number }) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  return (
+    <View style={styles.progressTrack}>
+      <View style={[styles.progressFill, { width: `${clamped}%` }]} />
+    </View>
   );
 }
 
@@ -131,4 +178,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: { fontWeight: "600", fontSize: 14 },
+  linkButton: { paddingVertical: 8, alignItems: "center" },
+  linkText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+  fieldLabel: { color: colors.muted, fontSize: 13, fontWeight: "600" },
+  input: {
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.text,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 15,
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.cardAlt,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
 });

@@ -1,5 +1,6 @@
-import { query, getDefaultUserId } from "@/lib/db";
-import { ok, badRequest, serverError } from "@/lib/http";
+import { query } from "@/lib/db";
+import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -8,9 +9,9 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const trackId = searchParams.get("trackId");
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
     const conditions = ["user_id = $1"];
-    const values: unknown[] = [userId];
+    const values: unknown[] = [user.id];
     if (trackId) {
       conditions.push(`track_id = $${values.length + 1}`);
       values.push(trackId);
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
     );
     return ok({ sessions: rows });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
@@ -31,13 +33,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { trackId } = body ?? {};
     if (!trackId) return badRequest("trackId is required");
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
     const rows = await query(
       `insert into study_sessions (user_id, track_id) values ($1,$2) returning *`,
-      [userId, trackId]
+      [user.id, trackId]
     );
     return ok({ session: rows[0] }, 201);
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

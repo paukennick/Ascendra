@@ -1,3 +1,9 @@
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+}
+
 export type MasteryStatus =
   | "Not started"
   | "Introduced"
@@ -16,6 +22,7 @@ export interface Track {
   total_objectives?: number;
   mastered_objectives?: number;
   percent_complete?: number;
+  last_studied_at?: string | null;
 }
 
 export interface Unit {

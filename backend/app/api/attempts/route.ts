@@ -1,5 +1,6 @@
-import { query, getDefaultUserId } from "@/lib/db";
-import { ok, serverError } from "@/lib/http";
+import { query } from "@/lib/db";
+import { ok, unauthorized, serverError } from "@/lib/http";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,8 @@ export async function GET(req: Request) {
     const kind = searchParams.get("kind");
     const limit = Math.min(Number(searchParams.get("limit") ?? 200), 500);
 
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
+    const userId = user.id;
     const conditions: string[] = ["a.user_id = $1"];
     const values: unknown[] = [userId];
 
@@ -47,6 +49,7 @@ export async function GET(req: Request) {
     );
     return ok({ attempts: rows });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
