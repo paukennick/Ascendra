@@ -24,9 +24,10 @@ async function verifyToken(token: string | undefined): Promise<{ ok: boolean; me
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }) {
-  const result = await verifyToken(searchParams.token);
+  const { token } = await searchParams;
+  const result = await verifyToken(token);
   return (
     <main style={{ fontFamily: "sans-serif", padding: 24, maxWidth: 480 }}>
       <h1>Ascendra</h1>

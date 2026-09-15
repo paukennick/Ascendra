@@ -8,16 +8,17 @@ export const dynamic = "force-dynamic";
 // GET /api/objectives/:id/mastery — current mastery row for this objective (or defaults).
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await requireUser(req);
     const row = await queryOne(
       `select * from mastery where user_id = $1 and objective_id = $2`,
-      [user.id, params.id]
+      [user.id, id]
     );
     return ok({
-      mastery: row ?? { objective_id: params.id, status: "Not started", score_0_4: 0, evidence: null },
+      mastery: row ?? { objective_id: id, status: "Not started", score_0_4: 0, evidence: null },
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
@@ -30,9 +31,10 @@ export async function GET(
 // Body: { status, evidence? }
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const status = body?.status as MasteryStatus;
     if (!MASTERY_LABELS.includes(status)) {
@@ -46,7 +48,7 @@ export async function PUT(
        on conflict (user_id, objective_id) do update set
          status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()
        returning *`,
-      [user.id, params.id, status, score, body?.evidence ?? null]
+      [user.id, id, status, score, body?.evidence ?? null]
     );
     return ok({ mastery: rows[0] });
   } catch (err) {

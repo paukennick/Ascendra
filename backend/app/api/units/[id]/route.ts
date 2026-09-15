@@ -7,11 +7,12 @@ export const dynamic = "force-dynamic";
 // GET /api/units/:id — one unit with its objectives and mastery.
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await requireUser(req);
-    const units = await query(`select * from course_units where id = $1`, [params.id]);
+    const units = await query(`select * from course_units where id = $1`, [id]);
     if (!units[0]) return notFound("Unit not found");
 
     const objectives = await query(
@@ -20,7 +21,7 @@ export async function GET(
        left join mastery m on m.objective_id = o.id and m.user_id = $2
        where o.unit_id = $1
        order by o.sort_order asc`,
-      [params.id, user.id]
+      [id, user.id]
     );
 
     return ok({ unit: units[0], objectives });
