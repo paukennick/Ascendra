@@ -106,16 +106,17 @@ async function generateAndCache(objectiveId: string) {
 // caching) it on first visit. Never re-spends an Anthropic call on repeat visits.
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const existing = await queryOne<LessonRow>(
       `select * from lesson_content where objective_id = $1`,
-      [params.id]
+      [id]
     );
     if (existing) return ok({ lesson: rowToLesson(existing), cached: true });
 
-    const generated = await generateAndCache(params.id);
+    const generated = await generateAndCache(id);
     if (!generated) return notFound("Objective not found");
     return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
   } catch (err) {
@@ -126,10 +127,11 @@ export async function GET(
 // POST /api/objectives/:id/lesson — force-regenerate lesson content (overwrites cache).
 export async function POST(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const generated = await generateAndCache(params.id);
+    const { id } = await params;
+    const generated = await generateAndCache(id);
     if (!generated) return notFound("Objective not found");
     return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
   } catch (err) {

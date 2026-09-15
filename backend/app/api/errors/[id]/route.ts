@@ -9,22 +9,23 @@ export const dynamic = "force-dynamic";
 //       { action: "resolve" } marks resolved immediately (e.g. dismissed as understood)
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const action = body?.action;
 
     const current = await queryOne<{ review_stage: number }>(
       `select review_stage from error_log where id = $1`,
-      [params.id]
+      [id]
     );
     if (!current) return notFound("Error log entry not found");
 
     if (action === "resolve") {
       const row = await queryOne(
         `update error_log set resolved = true, next_review_at = null where id = $1 returning *`,
-        [params.id]
+        [id]
       );
       return ok({ error: row });
     }
@@ -34,7 +35,7 @@ export async function PATCH(
       const next = nextReviewDate(new Date(), newStage);
       const row = await queryOne(
         `update error_log set review_stage = $2, next_review_at = $3, resolved = $4 where id = $1 returning *`,
-        [params.id, newStage, next ? toDateOnlyString(next) : null, next === null]
+        [id, newStage, next ? toDateOnlyString(next) : null, next === null]
       );
       return ok({ error: row });
     }

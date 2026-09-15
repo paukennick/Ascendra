@@ -7,14 +7,15 @@ export const dynamic = "force-dynamic";
 // GET /api/courses/:id — one track with its units (+ per-unit mastery rollup) and objectives.
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const user = await requireUser(req);
     const userId = user.id;
     const tracks = await query(
       `select * from subject_tracks where id = $1`,
-      [params.id]
+      [id]
     );
     if (!tracks[0]) return notFound("Track not found");
 
@@ -24,7 +25,7 @@ export async function GET(
        left join view_unit_mastery vm on vm.unit_id = cu.id
        where cu.track_id = $1
        order by cu.sort_order asc`,
-      [params.id]
+      [id]
     );
 
     const objectives = await query(
@@ -34,7 +35,7 @@ export async function GET(
        left join mastery m on m.objective_id = o.id and m.user_id = $2
        where cu.track_id = $1
        order by cu.sort_order asc, o.sort_order asc`,
-      [params.id, userId]
+      [id, userId]
     );
 
     const objectivesByUnit: Record<string, unknown[]> = {};
