@@ -1,24 +1,26 @@
-import { query, queryOne, getDefaultUserId } from "@/lib/db";
-import { ok, serverError, badRequest } from "@/lib/http";
+import { query, queryOne } from "@/lib/db";
+import { ok, serverError, badRequest, unauthorized } from "@/lib/http";
 import { MASTERY_LABELS, statusToScore, type MasteryStatus } from "@/lib/mastery";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/objectives/:id/mastery — current mastery row for this objective (or defaults).
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
     const row = await queryOne(
       `select * from mastery where user_id = $1 and objective_id = $2`,
-      [userId, params.id]
+      [user.id, params.id]
     );
     return ok({
       mastery: row ?? { objective_id: params.id, status: "Not started", score_0_4: 0, evidence: null },
     });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
@@ -36,7 +38,7 @@ export async function PUT(
     if (!MASTERY_LABELS.includes(status)) {
       return badRequest(`status must be one of: ${MASTERY_LABELS.join(", ")}`);
     }
-    const userId = await getDefaultUserId();
+    const user = await requireUser(req);
     const score = statusToScore(status);
     const rows = await query(
       `insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
@@ -44,10 +46,11 @@ export async function PUT(
        on conflict (user_id, objective_id) do update set
          status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()
        returning *`,
-      [userId, params.id, status, score, body?.evidence ?? null]
+      [user.id, params.id, status, score, body?.evidence ?? null]
     );
     return ok({ mastery: rows[0] });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

@@ -22,14 +22,63 @@ export function getModel(): string {
   return process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
 }
 
+// Local-dev-only alternate provider: a self-hosted Ollama instance (elsewhere
+// on the network) speaking its OpenAI-compatible /v1/chat/completions API.
+// Never used unless AI_PROVIDER=local is explicitly set — production always
+// uses Anthropic. Quality is noticeably rougher than Claude; this exists for
+// free local iteration, not as a production substitute.
+function isLocalProvider(): boolean {
+  return process.env.AI_PROVIDER === "local";
+}
+
+function getOllamaBaseUrl(): string {
+  return (process.env.OLLAMA_BASE_URL || "http://localhost:11434").replace(/\/$/, "");
+}
+
+function getOllamaModel(): string {
+  return process.env.OLLAMA_MODEL || "qwen2.5:7b-instruct";
+}
+
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
 }
 
+async function callOllama(opts: {
+  system: string;
+  messages: ChatTurn[];
+  maxTokens?: number;
+  temperature?: number;
+}): Promise<string> {
+  const baseUrl = getOllamaBaseUrl();
+  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: getOllamaModel(),
+      temperature: opts.temperature ?? 0.4,
+      max_tokens: opts.maxTokens ?? 2000,
+      messages: [{ role: "system", content: opts.system }, ...opts.messages],
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(
+      `Ollama request to ${baseUrl} failed (${res.status}). Is it running and reachable from this machine, with OLLAMA_HOST=0.0.0.0 set on the host if it's on another workstation? ${body.slice(0, 300)}`
+    );
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== "string") {
+    throw new Error("Ollama response had no message content.");
+  }
+  return text;
+}
+
 /**
- * Calls the Anthropic Messages API and returns the raw text of the first
- * text content block. Throws on API error (routes should catch and 500).
+ * Calls the configured AI provider (Anthropic by default, or a local Ollama
+ * instance when AI_PROVIDER=local) and returns the raw reply text. Throws on
+ * API error (routes should catch and 500).
  */
 export async function callClaude(opts: {
   system: string;
@@ -37,6 +86,9 @@ export async function callClaude(opts: {
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
+  if (isLocalProvider()) {
+    return callOllama(opts);
+  }
   const anthropic = getClient();
   const res = await anthropic.messages.create({
     model: getModel(),
