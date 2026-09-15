@@ -1,0 +1,650 @@
+{
+  "version": "1.0.0",
+  "requirement_id_prefix": "REQ",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "category": "AI workspace ruleset",
+      "title": "Add universal engineering ruleset",
+      "description": "Create the controlling OmniContext engineering ruleset and align the workspace instructions to it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".ai/core-context.md",
+        ".ai/rules/universal-engineering-ruleset.json",
+        ".ai/rules/controlled-implementation.md",
+        ".ai/rules/completion-workflow.md",
+        ".ai/project-configuration.md",
+        "make_ai.py",
+        "CLAUDE.md",
+        ".cursorrules",
+        ".github/copilot-instructions.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "The global ruleset exists as a framework-agnostic source of truth.",
+        "Assistant entrypoint shims point to the .ai entrypoint sources.",
+        "Completion workflow requires validation, documentation, changelog, and reporting."
+      ],
+      "validation_required": [
+        "json",
+        "python_compile",
+        "bootstrap"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Project-specific placeholders must be filled before use in a target repository."
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "category": "Documentation",
+      "title": "Create OmniContext README and visual",
+      "description": "Build the public-facing README around OmniContext and include an architecture diagram.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "assets/omni-context.svg",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "README explains the OmniContext problem, pattern, setup, daily use, and validation workflow.",
+        "README includes an SVG architecture diagram.",
+        "Changelog records the documentation update."
+      ],
+      "validation_required": [
+        "svg_xml_parse",
+        "json",
+        "python_compile",
+        "bootstrap"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "License text remains project-specific and should be filled before publication."
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "category": "Executable validation",
+      "title": "Add OmniContext doctor and requirement registry",
+      "description": "Make the workspace more powerful by adding a dependency-free CLI doctor, requirement registry, and schema-backed validation documents.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        ".ai/requirements/requirements.json",
+        ".ai/schemas/requirements.schema.json",
+        ".ai/schemas/universal-engineering-ruleset.schema.json",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "CLI supports sync, doctor, and validate commands.",
+        "Doctor validates required files, JSON parsing, ruleset keys, requirements structure, assistant pointer drift, README architecture reference, and changelog presence.",
+        "Requirements registry tracks completed project requirements.",
+        "README documents the new CLI workflow."
+      ],
+      "validation_required": [
+        "doctor",
+        "json",
+        "python_compile",
+        "bootstrap"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Doctor currently implements lightweight schema checks with the Python standard library rather than a full JSON Schema engine."
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "category": "Assistant fallback rules",
+      "title": "Centralize fallback rules for LLM entrypoints",
+      "description": "Add explicit fallback operating rules for assistant entrypoints in case an assistant skips or cannot follow the primary .ai configuration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".ai/entrypoints/fallback-contract.md",
+        ".ai/rules/fallback-llm-rules.json",
+        ".ai/entrypoints/",
+        "CLAUDE.md",
+        ".cursorrules",
+        ".github/copilot-instructions.md",
+        "make_ai.py",
+        ".ai/requirements/requirements.json",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A shared fallback contract exists inside .ai/entrypoints.",
+        "A structured fallback rulepack exists inside .ai/rules.",
+        "All assistant entrypoint shims point to .ai entrypoint sources and the centralized fallback contract.",
+        "The sync command regenerates .ai entrypoint sources and assistant shims.",
+        "The sync command skips existing non-Omni files unless --force is used.",
+        "Doctor validates the fallback contract and fallback rulepack as required source-of-truth files.",
+        "README and changelog document the fallback behavior."
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "sync",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Fallback rules intentionally duplicate core constraints in a centralized fallback contract to reduce skipped-context risk without bloating root shims."
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "category": "Documentation clarity",
+      "title": "Clarify OmniContext purpose and make_ai role",
+      "description": "Update README positioning to explain the unique context-drift use case and clarify that make_ai.py is optional maintenance tooling, not required for normal cloned-repo usage.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "make_ai.py",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "README explains OmniContext as a repo-local control plane for AI coding assistants.",
+        "README explicitly states the unique problem is AI context drift across tools.",
+        "README explains that cloned repositories do not require make_ai.py for normal usage.",
+        "make_ai.py help text describes the script as maintenance tooling.",
+        "Changelog records the documentation clarification."
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Clarification avoids presenting the maintenance script as mandatory setup for users who clone a complete repository."
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "category": "Ruleset refinement",
+      "title": "Replace Python data rules with data governance rules",
+      "description": "Rename the Python-specific data rule file and refocus it on bounded, framework-agnostic data governance.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".ai/rules/python-data.md",
+        ".ai/rules/data-governance.md",
+        "make_ai.py",
+        "README.md",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Python-specific data rules are removed from the universal ruleset surface.",
+        "A data-governance rule file covers data boundaries, contracts, validation, transformations, privacy, persistence, migrations, and testing.",
+        "Doctor validates the renamed rule file as required.",
+        "README references the new data governance rule name.",
+        "Changelog records the ruleset refinement."
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "The rule is intentionally bounded to data behavior and avoids language-specific implementation guidance."
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "category": "Structured rulepacks",
+      "title": "Convert enforceable rule files to JSON",
+      "description": "Replace Markdown rule implementations with schema-backed JSON rulepacks so doctor can validate rule IDs, severities, scopes, and statements.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".ai/rules/controlled-implementation.md",
+        ".ai/rules/controlled-implementation.json",
+        ".ai/rules/completion-workflow.md",
+        ".ai/rules/completion-workflow.json",
+        ".ai/rules/data-governance.md",
+        ".ai/rules/data-governance.json",
+        ".ai/rules/fallback-llm-rules.md",
+        ".ai/rules/fallback-llm-rules.json",
+        ".ai/rules/hci-ui-rules.md",
+        ".ai/rules/hci-ui-rules.json",
+        ".ai/rules/oop-design.md",
+        ".ai/rules/oop-design.json",
+        ".ai/schemas/rulepack.schema.json",
+        "make_ai.py",
+        "README.md",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Enforceable companion rule files are represented as JSON rulepacks.",
+        "Old Markdown rule implementation files are removed from .ai/rules.",
+        "Each JSON rulepack contains stable rule IDs, severities, scopes, and statements.",
+        "A rulepack schema documents the structured rule format.",
+        "Doctor validates structured rulepacks.",
+        "README documents JSON rulepacks instead of Markdown rule implementations."
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "sync",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Markdown remains appropriate for README and core human-facing overview files; enforceable policy is now JSON."
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "category": "Authoring interface",
+      "title": "Add low-friction rule and requirement editing",
+      "description": "Create an easy CLI interface for adding requirements and rulepack rules without manually editing long JSON files.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        "README.md",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "CLI can add requirements with defaults",
+        "CLI can add rules to rulepacks with defaults",
+        "README documents the authoring interface",
+        "Doctor validates the resulting JSON"
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "CLI intentionally stays lightweight and flag-based to avoid adding dependencies"
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "category": "CLI ergonomics",
+      "title": "Add omni command entrypoint",
+      "description": "Provide an easy omni command so users can run omni doctor and omni sync instead of python3 make_ai.py doctor and python3 make_ai.py sync.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "omni",
+        "pyproject.toml",
+        "make_ai.py",
+        "README.md",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md",
+        "CLAUDE.md",
+        ".cursorrules",
+        ".github/copilot-instructions.md"
+      ],
+      "acceptance_criteria": [
+        "Repo-local ./omni command works",
+        "Editable install can expose an optional omni console script",
+        "Doctor validates the repo-local command entrypoint and warns, rather than fails, when the optional console script is absent",
+        "README documents omni doctor and omni sync",
+        "Fallback instructions use omni commands"
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "sync",
+        "json",
+        "python_compile",
+        "omni_doctor",
+        "omni_sync"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Exact omni command without ./ requires installing the package or adding the repo root to PATH; existing projects do not need to modify pyproject.toml to use ./omni"
+      ]
+    },
+    {
+      "id": "REQ-010",
+      "category": "Compatibility",
+      "title": "Remove tomllib dependency",
+      "description": "Remove the Python 3.11-only tomllib import so editors using Python 3.10 do not report unresolved imports.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        "pyproject.toml",
+        "README.md",
+        ".ai/requirements/requirements.json",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "make_ai.py has no tomllib import",
+        "Doctor treats the pyproject console script as optional",
+        "Package metadata supports Python 3.10 or newer",
+        "Validation passes"
+      ],
+      "validation_required": [
+        "doctor",
+        "validate",
+        "json",
+        "python_compile"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "pyproject validation is intentionally lightweight and checks the expected console script line rather than fully parsing TOML"
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "category": "Doctor / drift detection",
+      "title": "Add project-map freshness and changelog-drift checks to omni doctor",
+      "description": "Two generic omni doctor checks, developed while auditing an adopter project (STEP) for OmniEngineering alignment and ported back here so every adopter benefits: validate_project_map_freshness warns when a top-level directory that exists on disk is missing from .ai/project-map.md's tree (catches a map that was never regenerated after a structural change); validate_recent_commits_tracked warns when commits postdate -- by commit timestamp, not git log X..HEAD DAG reachability, which squash-merge PR histories make misleading -- the last commit that touched CHANGELOG.md, naming each one so untracked work is caught automatically instead of by manual audit.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py"
+      ],
+      "acceptance_criteria": [
+        "omni doctor warns when an ALLOWED_ROOT_DIRS directory present on disk is absent from the generated project map's directory tree.",
+        "omni doctor warns, listing each commit, when commits postdate (by commit date) the last commit that touched CHANGELOG.md.",
+        "Both checks are no-ops (skip silently) when git or the relevant files are unavailable, so they never turn into false errors on a non-git or freshly-adopted workspace."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "The commit-date comparison intentionally avoids `git log <hash>..HEAD` because squash-merge PR workflows make already-integrated side-branch commits appear \"after\" the changelog commit in DAG-reachability terms even though they landed chronologically earlier; using commit timestamps instead avoids that false positive."
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "category": "CI / repo hygiene",
+      "title": "Wire omni doctor into CI and stop future line-ending drift",
+      "description": "Two efficiency/maintainability fixes identified while discussing how to make OmniEngineering easier to integrate and keep aligned over time: (1) added .github/workflows/ci.yml running `python3 omni doctor` (full-history checkout) on every push/PR to main, so workspace-health drift is caught automatically instead of relying on someone manually running the command or an LLM session auditing on request; (2) added .gitattributes (`* text=auto eol=lf`) so a Windows/WSL checkout stops silently diverging from committed line endings -- this repo's entire working tree had drifted to CRLF against an LF-committed history, which was masking real diffs behind whole-file noise.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        ".gitattributes"
+      ],
+      "acceptance_criteria": [
+        "omni doctor runs automatically on every push and pull request to main and fails the build only on real errors, not warnings.",
+        ".gitattributes normalizes text files to LF so future checkouts don't silently drift from committed line endings.",
+        "Existing committed content is left untouched -- .gitattributes affects future checkouts/commits, not a retroactive rewrite."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "This repo's existing tracked files are still CRLF in the working tree as of this change; .gitattributes stops new drift but does not retroactively renormalize what's already committed. A follow-up `git add --renormalize .` commit would fix that but was intentionally left out of scope here since it would touch every file in the repo."
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "category": "CLI / template maintainability",
+      "title": "Add omni update: 3-way-merge template improvements into adopted workspaces",
+      "description": "The single biggest 'clunky' gap raised this session: once a project adopts OmniEngineering and customizes its rules/playbooks/checklists, there was no way to pull later template improvements in except a manual hand-diff-and-port (done twice by hand earlier this session). Adds .ai/omni-version.json (written by omni adopt, recording the source path and git ref at last sync) and a new 'omni update --source <checkout>' command that 3-way-merges every template-managed file via git merge-file: files the adopter never touched are fast-path overwritten, files only the template changed are left alone, files both sides changed are merged (or left with conflict markers on a genuine collision), and .ai/project-configuration.md, .ai/project-map.md, .ai/requirements/requirements.json, and CHANGELOG.md are never touched since those are adopter-owned. If make_ai.py itself changes, update automatically re-runs sync in a fresh process so entrypoint/pointer/ignore files regenerate from the new templates. omni doctor gained a matching check warning when .ai/omni-version.json is missing. Also adds `--bootstrap` to `omni update` (records --source's current ref as the starting point without merging anything, for a workspace adopted before update-tracking existed) and a README Quick Start section covering the adopt/doctor/update loop end to end, including the bootstrap path, since a working feature nobody can find or follow doesn't solve the 'clunky to integrate' complaint either.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        "README.md"
+      ],
+      "acceptance_criteria": [
+        "omni adopt writes .ai/omni-version.json on success.",
+        "omni update fast-path-overwrites adopter-untouched files, no-ops on adopter-only changes, cleanly merges non-overlapping changes on both sides, and leaves conflict markers on overlapping changes -- verified end to end in a scratch adopter workspace covering all four cases plus confirming requirements.json/project-map.md/project-configuration.md/CHANGELOG.md are never touched.",
+        "omni update --bootstrap writes .ai/omni-version.json against --source's current ref and merges nothing, verified end to end.",
+        "omni doctor warns when .ai/omni-version.json is missing.",
+        "README Quick Start section documents adopt, doctor, update, and the bootstrap path for pre-existing adopters."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Requires --source to be a real git checkout (needed to reconstruct the 3-way-merge base via git show); a plain folder copy as source is explicitly rejected with a clear message rather than guessing.",
+        "Fetching a template source directly from a remote git URL is an intentional follow-up, not included here -- v1 matches omni adopt's existing local-checkout-path convention."
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "category": "CLI / template maintainability",
+      "title": "Fix: omni update must not re-run sync when make_ai.py itself has an unresolved conflict",
+      "description": "Found live while dogfooding REQ-013 against STEP_App's genuinely diverged make_ai.py: when make_ai.py's own merge produced a conflict, the file was written with unresolved <<<<<<< markers (correct), but run_update still treated that as make_ai.py having 'changed' and re-ran sync in a fresh subprocess against the now-syntactically-invalid file, producing a raw Python SyntaxError traceback instead of a clean message. Excluded the conflict outcome from the make_ai_changed re-sync trigger, and added an explicit message telling the user sync was skipped and why, and to run it themselves once the conflict is resolved.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py"
+      ],
+      "acceptance_criteria": [
+        "omni update no longer attempts to re-run sync when make_ai.py itself has an unresolved conflict; prints a clear explanatory message instead of a raw traceback. Verified by reproducing the original crash against STEP_App before the fix and confirming a clean message after."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-015",
+      "category": "Code understanding",
+      "title": "Add omni graph: a deterministic tree-sitter AST code graph, not a vector index",
+      "description": "Adds `omni graph build/trace/show`, a new omni_graph.py module holding a local, deterministic code graph parsed from source with tree-sitter -- no embeddings, no vector store. Every node is a code entity read straight from a syntax tree (module/class/function/method); every edge is tagged EXTRACTED (a fact read directly from a single source site: an import statement, a call site, a base class) or INFERRED (resolved by traversing the graph across files/scopes, or by an optional configured semantic API pass). `omni graph trace <a> <b>` answers 'how are these connected' with an actual shortest path of tagged hops instead of a similarity score; `omni graph show <node>` lists a symbol's direct EXTRACTED/INFERRED edges. Covers Python, JavaScript, and TypeScript in v1. tree-sitter and the per-language grammars are an optional `[graph]` extra so the workspace stays dependency-free by default: `omni graph build` fails with an actionable install message if the extra is missing, while `trace`/`show` only read the JSON `build` wrote and need nothing beyond the standard library. The semantic pass is opt-in via `--semantic` and only calls out to a network API if OMNI_GRAPH_SEMANTIC_API_URL is explicitly configured; its findings are still validated against known graph symbol names before being added as INFERRED edges, so a hallucinated relation can't be written into the graph silently. The CLI surface (subcommand-per-verb, a --json mode on every command) is intentionally 1:1 wrappable by an MCP relay the same way omni_map/omni_doctor/omni_sync already are.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "omni_graph.py",
+        "make_ai.py",
+        "pyproject.toml",
+        "README.md"
+      ],
+      "acceptance_criteria": [
+        "omni graph build parses Python, JavaScript, and TypeScript source with tree-sitter and writes a JSON graph whose edges are each tagged provenance EXTRACTED or INFERRED, with a resolver field distinguishing syntax / graph-traversal / semantic-api.",
+        "omni graph build fails with a clear install message (not a traceback) when tree-sitter or a language grammar is missing, verified by running it against the system Python with no [graph] extra installed.",
+        "omni graph trace <a> <b> resolves symbol names (preferring real symbols over unresolved external placeholders on a name collision) and prints the shortest path between them as a sequence of tagged hops; ambiguous or missing names are reported, not guessed.",
+        "omni graph show <node> lists a symbol's direct outgoing and incoming edges with provenance tags.",
+        "Cross-file call/import/inheritance resolution (INFERRED edges) verified against this repository's own make_ai.py plus a scratch TypeScript fixture with a cross-file import, confirming resolved edges are correct and that common built-ins (e.g. print) are excluded from the ambiguous unique-name fallback.",
+        "omni graph build/trace/show and the graph JSON never require network access unless --semantic is passed and OMNI_GRAPH_SEMANTIC_API_URL is set.",
+        "omni doctor gained a non-blocking check that only validates the graph file's JSON shape when one is present, since building the graph is opt-in.",
+        "pyproject.toml exposes tree-sitter + grammars as an optional [graph] extra rather than a hard dependency."
+      ],
+      "validation_required": [
+        "doctor",
+        "python_compile",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Call/inheritance resolution uses deterministic heuristics (same-module lookup, import-alias resolution, unique-name-in-graph fallback) rather than full type inference; ambiguous or dynamically-dispatched references are correctly left EXTRACTED-only rather than guessed, which is intentional but means some real connections will not surface as INFERRED edges in v1.",
+        "Nested function/class definitions declared inside another function's body are attributed to the enclosing function rather than modeled as their own node, to keep v1's traversal bounded.",
+        "The semantic pass sends a symbol's name, qualified name, and the full list of known symbol qualified_names to the configured API; it is opt-in (--semantic flag plus an explicitly set OMNI_GRAPH_SEMANTIC_API_URL) so nothing leaves the machine by default."
+      ]
+    },
+    {
+      "id": "REQ-016",
+      "category": "Presentation / brand identity",
+      "title": "Restyle OmniEngineering's brand assets to match the ctxrelay/PathBox family",
+      "description": "OmniEngineering's presentation assets (assets/banners/omniengineering-*.svg, assets/identity/omniengineering-*.svg) used an unrelated warm-gradient/forged-OE-monogram visual system, while the two sibling projects in the same account (context-relay-mcp's CtxRelay, PathBox) share one visual family: a dark #0f0f12 ground, single #e0475c accent, monospace wordmark, a 48x48 panel-plus-corner-nodes-plus-beacon mark shape, and a matching 820x180 grid/mesh/scanline banner, all under assets/brand/. Replaced OmniEngineering's assets with a new set in that same family -- assets/brand/omni-mark.svg, omni-wordmark.svg, omni-banner.svg -- keeping the shared chrome (panel, corner nodes, beacon, banner grid/mesh/scanline/signature) pixel-identical to the siblings and giving OmniEngineering its own mark content: a central hub fanned out to five small nodes, representing the actual product (one repo-local .ai/ control plane synced out to many AI assistant entrypoints), distinct from CtxRelay's two-endpoint relay and PathBox's chat panel. The wordmark uses the literal `omni` CLI name rather than the full 'OmniEngineering' repo name, matching how the sibling brands use their short product/command name.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        "assets/brand/omni-mark.svg",
+        "assets/brand/omni-wordmark.svg",
+        "assets/brand/omni-banner.svg",
+        "README.md",
+        "make_ai.py",
+        ".gitignore"
+      ],
+      "acceptance_criteria": [
+        "New assets/brand/omni-{mark,wordmark,banner}.svg exist, are well-formed XML, and reuse the exact shared chrome (colors, panel/corner-node/beacon geometry, banner grid/mesh/scanline/signature) from context-relay-mcp's and PathBox's own assets/brand/*.svg, verified by diffing the shared elements against both sibling repos.",
+        "The old assets/banners/ and assets/identity/ directories and their omniengineering-*.svg files are removed.",
+        "README.md's top banner and its 'optional presentation assets' listing point at assets/brand/ instead of the removed directories.",
+        "make_ai.py's ADOPTION_PRESENTATION_FILES points at assets/brand instead of the removed assets/identity and assets/banners paths, so omni adopt --include-presentation still works.",
+        ".gitignore no longer excludes assets/brand/ (it silently ignored this exact directory since a June 2026 commit, which would have made the new canonical brand assets untrackable).",
+        "omni doctor and omni map both run clean after the change (the architecture diagram at assets/omni-context.svg, which doctor validates by name, is untouched)."
+      ],
+      "validation_required": [
+        "doctor",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "This only restyles presentation/brand assets (logo, banner). The functional architecture diagrams under design/diagrams/ and assets/omni-context.svg were intentionally left in their existing style since they illustrate mechanism, not brand identity, and the request was scoped to 'the look', not every diagram in the repo.",
+        "Verified the new SVGs render correctly (matching structure/behavior to the already-shipped sibling files) via a local cairosvg render; a font-fallback rendering artifact on the monospace wordmark text appeared identically on PathBox's own shipped wordmark under the same renderer, confirming it is a local missing-font rendering quirk and not a defect introduced here."
+      ]
+    },
+    {
+      "id": "REQ-017",
+      "category": "CLI / template maintainability",
+      "title": "Fix: adopting or updating omni_graph.py must not be able to break every other command",
+      "description": "Found by end-to-end testing REQ-015 against a simulated pre-existing application: (1) ADOPTION_CLI_FILES only listed omni/make_ai.py, so `omni adopt --include-cli` copied a make_ai.py that unconditionally imports omni_graph without ever copying omni_graph.py itself, crashing every single omni command (not just `graph`) in the adopted project with a raw ModuleNotFoundError. (2) Testing the upgrade path (a project adopted before omni_graph.py existed, running `omni update` against a source that now has it) surfaced a deeper, structural gap: `omni update`'s file list (TEMPLATE_MANAGED_FILES) is evaluated by the OLD make_ai.py that is currently running the update, not by the newer --source -- so a target can never discover a brand-new template-managed file on the very first update after it's introduced, no matter what that file list contains by the time of a *later* update. Fixed both: added omni_graph.py to ADOPTION_CLI_FILES (fixes fresh `omni adopt --include-cli` immediately, and fixes `omni update` from the second update onward once a target is running post-fix code), and made make_ai.py's own `import omni_graph` defensive (try/except, falls back to None) with a shared require_omni_graph() guard on every `omni graph ...` subcommand and a doctor warning -- so a target still missing omni_graph.py (the unavoidable one-time gap on that very first update, or any other reason the file might be absent) degrades to 'omni graph is unavailable' instead of taking down doctor/sync/map/every other command.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py"
+      ],
+      "acceptance_criteria": [
+        "omni adopt --target <dir> --include-cli copies omni_graph.py alongside make_ai.py, verified against a scratch pre-existing application directory whose own pre-existing files (README, source, .gitignore) are confirmed byte-for-byte unchanged after adoption.",
+        "A project simulated as adopted before omni_graph.py existed (sourced from OmniEngineering@523c47b) that runs `omni update` against a current source no longer crashes: omni doctor, omni sync, and every non-graph command work immediately after that update even though omni_graph.py is still absent on that specific first pass, with a clear doctor warning naming the gap and the fix (re-run omni adopt --include-cli or omni update).",
+        "The same project's second `omni update` (now running the fixed make_ai.py) reports 'added: omni_graph.py', after which omni graph build/trace/show all work against the adopted project's own source files.",
+        "Adopter-owned files (.ai/project-configuration.md, .ai/project-map.md, .ai/requirements/requirements.json, CHANGELOG.md) verified untouched by both update passes in this test, including a deliberately added custom note/entry in each.",
+        "omni doctor and omni graph both continue to work correctly in this repo's own working copy (which always has omni_graph.py) after these changes."
+      ],
+      "validation_required": [
+        "doctor",
+        "python_compile",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "The structural update-mechanism gap (a target's own running code decides what files it looks for) is not fully eliminated -- it is closed for every template file added from this point forward (once a target has updated past this fix, it will correctly discover any future new template file on the very next update), but a project that adopted before omni_graph.py existed will still see one warning-but-not-broken update before omni_graph.py actually arrives. A fully general fix would have run_update ask --source's own make_ai.py for its current file manifest via subprocess instead of trusting its own constant; deferred as a larger structural change beyond this fix's scope.",
+        "The defensive import is the durable half of this fix: it guarantees a missing omni_graph.py (for this reason or any other -- a bad copy, manual deletion) degrades to one feature being unavailable rather than the whole CLI being unusable, independent of whether the file-list gap above is ever fully closed."
+      ]
+    },
+    {
+      "id": "REQ-018",
+      "category": "Presentation / documentation",
+      "title": "Replace the hierarchical code-map diagram with a real node-link graph",
+      "description": "The first design/diagrams/omni-code-map.svg (REQ-015 follow-up) was a hierarchical org-chart-style diagram (boxes, arrows, a text-list panel for doctor checks) built from omni graph build's own output. User feedback: it didn't read as 'a graph' in the conventional sense. Replaced it with design/diagrams/omni-code-graph.svg -- a real force-directed node-link layout (networkx spring_layout) over all 106 real (non-external) symbols and 277 resolved calls/defines edges from the same .ai/project-graph.json, rendered as circles (sized by kind, colored by source module) and lines (calls vs. defines distinguished). No fabricated structure: same underlying data, different -- and correctly graph-shaped -- visual form.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        "design/diagrams/omni-code-graph.svg",
+        "README.md"
+      ],
+      "acceptance_criteria": [
+        "design/diagrams/omni-code-map.svg (the org-chart version) is removed.",
+        "design/diagrams/omni-code-graph.svg exists, is well-formed XML, and renders as a force-directed node-link graph (verified via a local cairosvg render) rather than a hierarchical chart.",
+        "README's Design Documents list points at the new file with an accurate description."
+      ],
+      "validation_required": [
+        "doctor",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Generating this diagram required networkx + numpy for the spring layout; these are one-off diagram-authoring tools, not a runtime dependency of omni_graph.py or the [graph] extra, so nothing was added to pyproject.toml."
+      ]
+    },
+    {
+      "id": "REQ-019",
+      "category": "Code understanding",
+      "title": "Add omni graph render: a permanent, stdlib-only SVG visualization command",
+      "description": "REQ-018's node-link graph was a one-off script requiring networkx+numpy, run by hand and copied into the repo. User ask: this should be a permanent feature of omni itself that updates as the user's project updates, not a one-off artifact. Added `omni graph render` (and the underlying omni_graph.render()/_spring_layout()/_render_svg()/_ego_network() functions): renders .ai/project-graph.json as a force-directed node-link SVG using a small pure-Python Fruchterman-Reingold layout -- no numpy/networkx dependency, so render works with just the standard library exactly like trace/show (only build needs the [graph] extra). Nodes are colored by source language (python/javascript/typescript) and sized by kind (module > class > function/method); edges distinguish calls/imports/inherits (colored, per edge style) from defines (faint, de-emphasized) from related_to (dashed, semantic-pass edges). --max-nodes caps large graphs to the highest-degree nodes to keep the O(n^2) layout fast; --focus/--depth renders just one symbol's neighborhood instead of the whole codebase. design/diagrams/omni-code-graph.svg was regenerated using this actual shipped command (replacing the prior one-off script's output) so the committed diagram is proof the feature works, not just a description of it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "omni_graph.py",
+        "make_ai.py",
+        "README.md",
+        "design/diagrams/omni-code-graph.svg",
+        ".gitignore"
+      ],
+      "acceptance_criteria": [
+        "omni graph render writes a well-formed SVG node-link graph from .ai/project-graph.json, verified by parsing the output as XML and rendering it to PNG for visual review.",
+        "render works via plain system Python with no tree-sitter or third-party layout library installed, verified by running it without the [graph] extra present.",
+        "Layout performance verified empirically: 112 real nodes rendered in ~0.2s, 300 nodes (max-nodes cap, including external references) in ~1.3s against this repo's own graph -- fast enough for normal CLI use.",
+        "--focus <symbol> --depth N renders only that symbol's N-hop neighborhood, verified against run_doctor at depth 1 producing a correct, legible ego-network.",
+        "--max-nodes correctly truncates to the highest-degree nodes and reports truncated:true, verified by rendering with include_external=True against a cap below the real node count.",
+        "The project's own root label in the rendered title resolves to a real folder name instead of a literal '.', verified before and after the fix.",
+        "design/diagrams/omni-code-graph.svg in this repo is the literal output of running `omni graph render` against this repo, not a hand-tuned or separately-scripted render.",
+        "omni doctor and omni graph build/trace/show continue to pass after these changes; .ai/project-graph.svg (the default output path) is gitignored the same way .ai/project-graph.json is, since it's a heavy, regeneratable, opt-in artifact, not a committed navigation aid."
+      ],
+      "validation_required": [
+        "doctor",
+        "python_compile",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "The layout is O(n^2) per iteration (a deliberate simplicity/dependency tradeoff over numpy-vectorized force-directed algorithms), which is why --max-nodes defaults to 300 and truncates by degree rather than rendering arbitrarily large graphs unbounded.",
+        "Dense, highly-connected clusters (e.g. this repo's own doctor-validator cluster) still show some label overlap at default settings -- an inherent characteristic of force-directed layouts at this node density, not something --max-nodes or --focus fully eliminates; --focus on a smaller neighborhood is the escape hatch for a specific area."
+      ]
+    }
+  ]
+}
