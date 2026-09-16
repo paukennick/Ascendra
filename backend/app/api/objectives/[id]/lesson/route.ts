@@ -61,7 +61,10 @@ async function generateAndCache(objectiveId: string) {
   const content = await callClaudeJSON<LessonContent>({
     system,
     messages: [{ role: "user", content: user }],
-    maxTokens: 2200,
+    // Cached once per objective, not per user, so a generous budget is cheap
+    // in aggregate — Sonnet 5 was hitting this ceiling mid-JSON on the full
+    // teach/fadeProblem/soloCheck structure and getting truncated.
+    maxTokens: 6000,
   });
 
   const model = getModel();

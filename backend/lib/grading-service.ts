@@ -1,4 +1,4 @@
-import { query, getDefaultUserId } from "@/lib/db";
+import { query } from "@/lib/db";
 import {
   accuracyFromAttempts,
   suggestStatus,
@@ -7,6 +7,7 @@ import {
 } from "@/lib/mastery";
 
 export interface AttemptInput {
+  userId: string;
   unitId?: string | null;
   objectiveId?: string | null;
   pbqScenarioId?: string | null;
@@ -23,7 +24,7 @@ export interface AttemptInput {
 }
 
 export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
-  const userId = await getDefaultUserId();
+  const userId = input.userId;
 
   const attemptRows = await query(
     `insert into attempts

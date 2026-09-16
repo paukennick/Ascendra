@@ -1,7 +1,8 @@
-import { ok, badRequest, serverError } from "@/lib/http";
-import { callClaudeJSON } from "@/lib/anthropic";
+import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
 import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export async function POST(req: Request) {
       return badRequest("format, kind, and question are required");
     }
 
+    const authUser = await requireUser(req);
+
     if (format === "mc") {
       const { chosenIndex, correctIndex, chosenText, why } = body;
       if (typeof chosenIndex !== "number" || typeof correctIndex !== "number") {
@@ -35,6 +38,7 @@ export async function POST(req: Request) {
       const verdict = correct ? "correct" : "incorrect";
       const feedback = `${correct ? "That's right." : "Not quite."} ${why ?? ""}`.trim();
       const attempt = await recordAttemptAndUpdateMastery({
+        userId: authUser.id,
         unitId,
         objectiveId,
         kind,
@@ -60,8 +64,10 @@ export async function POST(req: Request) {
         system,
         messages: [{ role: "user", content: user }],
         maxTokens: 800,
+        model: getFastModel(),
       });
       const attempt = await recordAttemptAndUpdateMastery({
+        userId: authUser.id,
         unitId,
         objectiveId,
         kind,
@@ -80,6 +86,7 @@ export async function POST(req: Request) {
 
     return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

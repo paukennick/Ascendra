@@ -1,8 +1,9 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, serverError } from "@/lib/http";
-import { callClaudeJSON } from "@/lib/anthropic";
+import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, type PBQScenario, type GradeResult } from "@/lib/prompts";
 import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
       system,
       messages: [{ role: "user", content: user }],
       maxTokens: 1200,
+      model: getFastModel(),
     });
 
     const rows = await query(
@@ -67,6 +69,8 @@ export async function POST(req: Request) {
     const { scenarioId, unitId, answer, confidence } = body ?? {};
     if (!scenarioId || !answer) return badRequest("scenarioId and answer are required");
 
+    const authUser = await requireUser(req);
+
     const scenario = await queryOne<{ scenario: string; sub_parts: string[]; title: string }>(
       `select scenario, sub_parts, title from pbq_scenarios where id = $1`,
       [scenarioId]
@@ -82,9 +86,11 @@ export async function POST(req: Request) {
       system,
       messages: [{ role: "user", content: user }],
       maxTokens: 900,
+      model: getFastModel(),
     });
 
     const attempt = await recordAttemptAndUpdateMastery({
+      userId: authUser.id,
       unitId,
       pbqScenarioId: scenarioId,
       kind: "pbq",
@@ -100,6 +106,7 @@ export async function POST(req: Request) {
 
     return ok({ ...graded, attempt });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
