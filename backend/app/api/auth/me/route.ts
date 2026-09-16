@@ -9,12 +9,14 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const authUser = await requireUser(req);
-    const row = await queryOne<{ id: string; email: string; display_name: string | null }>(
-      "select id, email, display_name from app_users where id = $1",
+    const row = await queryOne<{ id: string; email: string; display_name: string | null; mfa_enabled: boolean }>(
+      "select id, email, display_name, mfa_enabled from app_users where id = $1",
       [authUser.id]
     );
     if (!row) return notFound("Account no longer exists.");
-    return ok({ user: { id: row.id, email: row.email, displayName: row.display_name } });
+    return ok({
+      user: { id: row.id, email: row.email, displayName: row.display_name, mfaEnabled: row.mfa_enabled },
+    });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
