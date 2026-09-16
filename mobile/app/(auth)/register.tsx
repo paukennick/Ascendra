@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Screen, Card, H1, Muted, TextField, Button, ErrorBanner, Loading } from "@/components/ui";
+import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
 
@@ -41,8 +41,11 @@ export default function Register() {
 
   return (
     <Screen>
-      <H1>Create your account</H1>
-      <Muted>Two-factor login isn't set up yet in this build — coming in the next update.</Muted>
+      <BrandMark />
+      <H1 style={{ textAlign: "center" }}>Create your account</H1>
+      <Muted style={{ textAlign: "center", marginBottom: 4 }}>
+        Two-factor login isn't set up yet in this build — coming in the next update.
+      </Muted>
       {error ? <ErrorBanner message={error} /> : null}
       <Card>
         <TextField
@@ -51,6 +54,7 @@ export default function Register() {
           onChangeText={setDisplayName}
           placeholder="Your name"
           autoCapitalize="words"
+          icon="user"
         />
         <TextField
           label="Email"
@@ -59,6 +63,7 @@ export default function Register() {
           placeholder="you@example.com"
           keyboardType="email-address"
           textContentType="emailAddress"
+          icon="mail"
         />
         <TextField
           label="Password"
@@ -67,6 +72,7 @@ export default function Register() {
           placeholder="At least 8 characters"
           secureTextEntry
           textContentType="newPassword"
+          icon="lock"
         />
         <TextField
           label="Confirm password"
@@ -75,8 +81,9 @@ export default function Register() {
           placeholder="Re-enter password"
           secureTextEntry
           textContentType="newPassword"
+          icon="lock"
         />
-        {submitting ? <Loading /> : <Button label="Create account" onPress={onSubmit} />}
+        <Button label="Create account" onPress={onSubmit} loading={submitting} icon="user-plus" />
       </Card>
       <Button label="Already have an account? Log in" variant="link" onPress={() => router.replace("/login")} />
     </Screen>

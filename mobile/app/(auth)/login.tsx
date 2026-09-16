@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Screen, Card, H1, Muted, TextField, Button, ErrorBanner, Loading } from "@/components/ui";
+import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
 
@@ -35,8 +35,9 @@ export default function Login() {
 
   return (
     <Screen>
-      <H1>Welcome back</H1>
-      <Muted>Log in to continue studying.</Muted>
+      <BrandMark />
+      <H1 style={{ textAlign: "center" }}>Welcome back</H1>
+      <Muted style={{ textAlign: "center", marginBottom: 4 }}>Log in to continue studying.</Muted>
       {error ? <ErrorBanner message={error} /> : null}
       <Card>
         <TextField
@@ -46,6 +47,7 @@ export default function Login() {
           placeholder="you@example.com"
           keyboardType="email-address"
           textContentType="emailAddress"
+          icon="mail"
         />
         <TextField
           label="Password"
@@ -54,8 +56,9 @@ export default function Login() {
           placeholder="••••••••"
           secureTextEntry
           textContentType="password"
+          icon="lock"
         />
-        {submitting ? <Loading /> : <Button label="Log in" onPress={onSubmit} />}
+        <Button label="Log in" onPress={onSubmit} loading={submitting} icon="log-in" />
       </Card>
       <Button label="Forgot password?" variant="link" onPress={() => router.push("/forgot-password")} />
       <Button label="Don't have an account? Sign up" variant="link" onPress={() => router.push("/register")} />

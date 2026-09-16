@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Screen, Card, H1, Muted, TextField, Button, ErrorBanner, Loading } from "@/components/ui";
+import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner, EmptyState } from "@/components/ui";
 import { api, ApiError } from "@/api/client";
 
 export default function ForgotPassword() {
@@ -28,11 +28,13 @@ export default function ForgotPassword() {
   if (status === "sent") {
     return (
       <Screen>
-        <H1>Check your email</H1>
-        <Muted>
-          If that email is registered, a password reset link is on its way. Open it on this device or any
-          browser to finish resetting your password.
-        </Muted>
+        <Card elevated>
+          <EmptyState
+            icon="mail"
+            title="Check your email"
+            message="If that email is registered, a password reset link is on its way. Open it on this device or any browser to finish resetting your password."
+          />
+        </Card>
         <Button label="Back to log in" variant="link" onPress={() => router.replace("/login")} />
       </Screen>
     );
@@ -40,8 +42,9 @@ export default function ForgotPassword() {
 
   return (
     <Screen>
-      <H1>Reset your password</H1>
-      <Muted>We'll email you a link to set a new password.</Muted>
+      <BrandMark />
+      <H1 style={{ textAlign: "center" }}>Reset your password</H1>
+      <Muted style={{ textAlign: "center", marginBottom: 4 }}>We'll email you a link to set a new password.</Muted>
       {error ? <ErrorBanner message={error} /> : null}
       <Card>
         <TextField
@@ -51,8 +54,9 @@ export default function ForgotPassword() {
           placeholder="you@example.com"
           keyboardType="email-address"
           textContentType="emailAddress"
+          icon="mail"
         />
-        {status === "submitting" ? <Loading /> : <Button label="Send reset link" onPress={onSubmit} />}
+        <Button label="Send reset link" onPress={onSubmit} loading={status === "submitting"} icon="send" />
       </Card>
       <Button label="Back to log in" variant="link" onPress={() => router.replace("/login")} />
     </Screen>

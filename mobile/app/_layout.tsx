@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { colors } from "@/lib/theme";
 
 // Held until AuthProvider resolves whether a session exists, so the user
 // never sees a flash of the wrong screen (login vs. course list).
@@ -27,7 +28,7 @@ function RootNavigator() {
   }, [status, segments, router]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(app)" />
     </Stack>

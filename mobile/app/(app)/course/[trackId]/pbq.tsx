@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { GradeResult, PBQScenario } from "@/types";
-import { Screen, Card, H1, H2, Body, Muted, Button, Loading, ErrorBanner, Badge } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Muted, Screen, Tag, VerdictBadge } from "@/components/ui";
+import { colors, radius } from "@/lib/theme";
 
 export default function PBQScreen() {
   const { unitId } = useLocalSearchParams<{ unitId?: string }>();
@@ -64,15 +65,23 @@ export default function PBQScreen() {
       {error ? <ErrorBanner message={error} /> : null}
 
       {!scenario ? (
-        <Card>
-          <Button label={busy ? "Generating..." : "Generate a PBQ scenario"} onPress={() => generate(false)} disabled={busy} />
+        <Card elevated>
+          <EmptyState icon="layers" title="Ready when you are" message="Generate a realistic performance-based scenario for this unit." />
+          <Button label="Generate a PBQ scenario" icon="zap" loading={busy} onPress={() => generate(false)} />
         </Card>
       ) : (
         <>
-          <Card>
-            <H2>{scenario.title}</H2>
+          <Card elevated>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Feather name="layers" size={18} color={colors.accent} />
+              <H2>{scenario.title}</H2>
+            </View>
             <Body>{scenario.scenario}</Body>
-            <Muted>Sub-parts: {scenario.sub_parts.join(" · ")}</Muted>
+            <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+              {scenario.sub_parts.map((part, i) => (
+                <Tag key={i} label={part} />
+              ))}
+            </View>
           </Card>
 
           {!result ? (
@@ -80,32 +89,28 @@ export default function PBQScreen() {
               <TextInput
                 multiline
                 placeholder="Address every sub-part above in your answer"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={colors.mutedDim}
                 value={answer}
                 onChangeText={setAnswer}
                 style={{
                   borderWidth: 1,
                   borderColor: colors.border,
-                  borderRadius: 8,
-                  padding: 10,
+                  borderRadius: radius.md,
+                  padding: 12,
                   color: colors.text,
+                  backgroundColor: colors.cardAlt,
                   minHeight: 120,
                   textAlignVertical: "top",
                 }}
               />
-              <Button label={busy ? "Grading..." : "Submit answer"} onPress={submit} disabled={busy || !answer.trim()} />
+              <Button label="Submit answer" icon="send" loading={busy} onPress={submit} disabled={!answer.trim()} />
             </Card>
           ) : (
-            <Card>
-              <Badge
-                label={result.verdict}
-                color={result.verdict === "correct" ? colors.good : result.verdict === "partial" ? colors.warn : colors.bad}
-              />
+            <Card elevated>
+              <VerdictBadge verdict={result.verdict} />
               <Body>{result.feedback}</Body>
               {result.missedParts?.length ? <Muted>Missed: {result.missedParts.join(", ")}</Muted> : null}
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button label="Try another scenario" onPress={() => generate(true)} />
-              </View>
+              <Button label="Try another scenario" icon="refresh-cw" onPress={() => generate(true)} />
             </Card>
           )}
         </>

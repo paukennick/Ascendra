@@ -1,6 +1,7 @@
 import React from "react";
+import { View } from "react-native";
 import Constants from "expo-constants";
-import { Screen, Card, H1, H2, Muted, Button } from "@/components/ui";
+import { Avatar, Card, Divider, H2, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Settings() {
@@ -8,20 +9,30 @@ export default function Settings() {
 
   return (
     <Screen>
-      <H1>Settings</H1>
-      <Card>
-        <H2>Account</H2>
-        <Muted>{user?.email ?? "Signed in"}</Muted>
-        <Button label="Log out" variant="ghost" onPress={() => logout()} />
-        <Button label="Log out of all devices" variant="link" onPress={() => logoutAll()} />
+      <Card style={{ alignItems: "center", gap: 4, paddingVertical: 24 }}>
+        <Avatar name={user?.displayName ?? user?.email} size={64} />
+        <H2 style={{ marginTop: 8 }}>{user?.displayName ?? "Signed in"}</H2>
+        <Muted>{user?.email}</Muted>
       </Card>
+
+      <SectionHeader label="Account" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="log-out" label="Log out" onPress={() => logout()} />
+        <Divider />
+        <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
+      </Card>
+
+      <SectionHeader label="About" />
       <Card>
-        <H2>App</H2>
-        <Muted>Ascendra mobile companion, version {Constants.expoConfig?.version ?? "1.0.0"}</Muted>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Muted>Version</Muted>
+          <Muted>{Constants.expoConfig?.version ?? "1.0.0"}</Muted>
+        </View>
+        <Divider />
         <Muted>
-          This app is a companion to Pak's existing Claude Artifact study coaches — it does not
-          replace them, it adds an offline-friendly mobile front end backed by its own database and
-          its own Anthropic API calls.
+          Ascendra mobile companion — it does not replace Pak's existing Claude Artifact study
+          coaches, it adds an offline-friendly mobile front end backed by its own database and its
+          own Anthropic API calls.
         </Muted>
       </Card>
     </Screen>
