@@ -958,9 +958,13 @@ export const SECURITYX_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 // Liberty University BS, Computational Mathematics: Computer Science
 // (2026-2027 Degree Completion Plan, CMPC-BS-D). Every course code, elective
-// list, and credit count mirrored directly from the official degree plan PDF --
-// units follow the plan's own section breakdown; "Major Courses" is split into
-// two units (Mathematics core / CS Cognate) purely for pacing.
+// list, and credit count mirrored directly from the official degree plan PDF.
+// Gen-ed units follow the plan's own section breakdown. Major Foundational,
+// Mathematics core, and CS Cognate courses are each their own unit (one per
+// course) with real sub-topic objectives grounded in Liberty's official
+// course descriptions (catalog.liberty.edu, cross-checked against course
+// syllabi where the catalog blurb was too thin) -- a single objective per
+// whole course was too broad for the guess/teach/fade/solo lesson format.
 // ---------------------------------------------------------------------------
 export const CMPCBS_TRACK: SeedTrack = {
   code: "CMPCBS",
@@ -1024,45 +1028,253 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Introduction to Theology Survey (THEO 104)",
       ],
     },
+    // Below: every Major Foundational, Mathematics core, and CS Cognate course
+    // broken into its own unit with real sub-topic objectives grounded in
+    // Liberty's official course descriptions (catalog.liberty.edu) rather than
+    // one vague "objective" per whole course -- a single "Multivariable
+    // Calculus (MATH 430)" line was too broad for the guess/teach/fade/solo
+    // lesson format, which needs a narrow concept per objective the way the
+    // certification tracks already do.
     {
-      title: "Major Foundational Courses",
-      rangeLabel: "7 credits",
-      gate: "Earn a C or higher in both -- Liberty requires it for every major foundational course, and CSIS 110 plus MATH 131 are prerequisites the entire major sequence is built on.",
+      title: "CSIS 110: Introduction to Computer Science",
+      rangeLabel: "3 credits",
+      gate: "Earn a C or higher -- Liberty requires it for every major foundational course, and this is a prerequisite the entire CS cognate sequence is built on.",
       objectives: [
-        "Introduction to Computer Science (CSIS 110)",
-        "Calculus and Analytic Geometry I (MATH 131)",
+        "Computer architecture and system organization",
+        "Algorithm design and problem-solving strategies",
+        "Programming languages and how compilers translate code",
+        "Operating systems and how applications run on them",
+        "Networking and database fundamentals",
+        "Computing ethics: intellectual property, privacy, and computer crime",
       ],
     },
     {
-      title: "Major Courses -- Mathematics core",
-      rangeLabel: "40 credits",
-      gate: "Maintain a C or higher in every upper-level math course -- Liberty requires it for major courses, and this sequence is load-bearing: Linear Algebra underpins Numerical Methods and Multivariable Calculus, and Probability feeds directly into Regression and Forecasting.",
+      title: "MATH 131: Calculus and Analytic Geometry I",
+      rangeLabel: "4 credits",
+      gate: "Earn a C or higher -- Liberty requires it for every major foundational course, and this is a prerequisite the entire math core sequence is built on.",
       objectives: [
-        "Calculus and Analytic Geometry II (MATH 132)",
-        "Introduction to Statistical Analysis (MATH 211)",
-        "Introduction to Discrete Mathematics (MATH 250)",
-        "Introduction to the History of Mathematics (MATH 345)",
-        "Matrix and Linear Algebra (MATH 410)",
-        "Numerical Methods (MATH 412)",
-        "Abstract Algebraic Structures (MATH 423)",
-        "Multivariable Calculus (MATH 430)",
-        "Applied Differential Equations (MATH 432)",
-        "Probability I (MATH 441)",
-        "Mathematical Modeling and Simulation (MATH 460)",
-        "Computational Mathematics Capstone (MATH 491)",
-        "Regression and Forecasting I (STAT 420)",
+        "Functions and graphs, including exponential, logarithmic, and inverse trig forms",
+        "Limits and continuity",
+        "The derivative: formal definition and differentiation rules",
+        "Applications of derivatives, including L'Hopital's Rule",
+        "Introduction to integrals",
       ],
     },
     {
-      title: "Major Courses -- Computer Science Cognate",
-      rangeLabel: "15 credits",
-      gate: "Write and debug real C++ programs, not just read about syntax -- CSIS 112 and CSIS 215 both assume the fluency CSIS 111 is supposed to build, not just a passing grade in it.",
+      title: "MATH 132: Calculus and Analytic Geometry II",
+      rangeLabel: "4 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this feeds directly into Discrete Mathematics and Multivariable Calculus.",
       objectives: [
-        "Introduction to Information Sciences and Systems (CSIS 100)",
-        "Introduction to Programming Using C++ (CSIS 111)",
-        "Advanced Programming Using C++ (CSIS 112)",
-        "Algorithms and Data Structures (CSIS 215)",
-        "Studies in Information Security (CSIS 340)",
+        "Integration techniques beyond basic antiderivatives",
+        "Improper integrals",
+        "Applications of integration: area, volume, and arc length",
+        "Sequences, infinite series, and convergence tests",
+        "Parametric curves and polar coordinates",
+        "Introduction to differential equations",
+      ],
+    },
+    {
+      title: "MATH 211: Introduction to Statistical Analysis",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      objectives: [
+        "Probability theory foundations for calculus-trained students",
+        "Common probability distribution models",
+        "Expected value and variance",
+        "Statistical inference: estimation and hypothesis testing",
+        "Regression and correlation between data sets",
+      ],
+    },
+    {
+      title: "MATH 250: Introduction to Discrete Mathematics",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Linear Algebra, Multivariable Calculus, and CSIS 215.",
+      objectives: [
+        "Logic and formal proof techniques",
+        "Set theory fundamentals",
+        "Boolean algebra",
+        "Functions, sequences, and relations",
+        "Matrices and algorithmic thinking",
+        "Mathematical induction and combinatorics",
+      ],
+    },
+    {
+      title: "MATH 345: Introduction to the History of Mathematics",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. This one has a heavy upper-level-math prerequisite list, so schedule it after several 300/400-level math courses, not early.",
+      objectives: [
+        "Ancient mathematics: Egyptian, Babylonian, and early number systems",
+        "Greek geometry: Euclid, Pythagoras, and Archimedes",
+        "The development of algebra and algebraic notation",
+        "The invention of calculus: Newton and Leibniz",
+        "Non-Euclidean geometry and 19th-century developments",
+        "Foundations of set theory and modern mathematics",
+      ],
+    },
+    {
+      title: "MATH 410: Matrix and Linear Algebra",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it underpins Numerical Methods and Abstract Algebraic Structures.",
+      objectives: [
+        "Vector spaces and subspaces",
+        "Systems of linear equations and Gaussian elimination",
+        "Matrix algebra and operations",
+        "Linear transformations",
+        "Eigenvalues and eigenvectors",
+      ],
+    },
+    {
+      title: "MATH 412: Numerical Methods",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      objectives: [
+        "Interpolation techniques",
+        "Numerical differentiation and integration",
+        "Numerical solutions to differential equations",
+        "Root-finding methods",
+        "Solving linear systems numerically",
+        "Error analysis",
+      ],
+    },
+    {
+      title: "MATH 423: Abstract Algebraic Structures",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      objectives: [
+        "Groups and their properties",
+        "Rings and fields",
+        "Homomorphisms and structure-preserving maps",
+        "Formal proof-writing in algebra",
+      ],
+    },
+    {
+      title: "MATH 430: Multivariable Calculus",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it's a prerequisite for both Applied Differential Equations and Mathematical Modeling and Simulation.",
+      objectives: [
+        "Limits, continuity, and differentiation for functions of several variables",
+        "Integration and power series in several variables",
+        "Optimization in several variables",
+        "Analytic geometry of curves and surfaces",
+        "Vector fields and integration along curves and surfaces",
+        "The major theorems of vector calculus: Green's, Stokes', and the Divergence Theorem",
+      ],
+    },
+    {
+      title: "MATH 432: Applied Differential Equations",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Mathematical Modeling and Simulation and the Capstone.",
+      objectives: [
+        "First-order differential equations",
+        "Second-order linear differential equations",
+        "Systems of differential equations",
+        "Laplace transforms",
+        "Applications: population growth, mechanical vibrations, and circuits",
+      ],
+    },
+    {
+      title: "MATH 441: Probability I",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      objectives: [
+        "Set notation and operations applied to probability",
+        "Axioms and properties of probability",
+        "Expected value and discrete probability distributions",
+        "Continuous probability distributions",
+      ],
+    },
+    {
+      title: "MATH 460: Mathematical Modeling and Simulation",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Applied Differential Equations as a prerequisite.",
+      objectives: [
+        "Formulating mathematical models from real-world scenarios",
+        "Analytical techniques for evaluating model behavior",
+        "Critiquing model assumptions and limitations",
+        "Simulation-based methods",
+      ],
+    },
+    {
+      title: "STAT 420: Regression and Forecasting I",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. Calculus-based, not just applied stats -- it leans on Calculus I and Intro to Statistical Analysis.",
+      objectives: [
+        "Simple and multiple linear regression",
+        "Model diagnostics and checking regression assumptions",
+        "Time series forecasting basics",
+        "Applying regression to a real dataset",
+      ],
+    },
+    {
+      title: "MATH 491: Computational Mathematics Capstone",
+      rangeLabel: "3 credits",
+      gate: "Senior standing required -- this is the last math course in the sequence, sitting after Applied Differential Equations.",
+      objectives: [
+        "Independent capstone project synthesizing the computational math major",
+        "Applying computational techniques to a substantial problem",
+        "Written and oral presentation of results",
+      ],
+    },
+    {
+      title: "CSIS 100: Introduction to Information Sciences and Systems",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      objectives: [
+        "Evaluating and choosing business technology solutions",
+        "Mapping business processes to where technology adds value",
+        "Aligning IT strategy with organizational goals",
+        "Business process management concepts",
+        "Technical writing for information systems documentation",
+      ],
+    },
+    {
+      title: "CSIS 111: Introduction to Programming Using C++",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and CSIS 112 and CSIS 215 both assume the fluency this course is supposed to build, not just a passing grade in it.",
+      objectives: [
+        "Structured programming fundamentals in C++",
+        "Object-oriented programming basics",
+        "Input and output operations",
+        "Control flow: loops and conditionals",
+        "Writing and using functions",
+      ],
+    },
+    {
+      title: "CSIS 112: Advanced Programming Using C++",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Algorithms and Data Structures.",
+      objectives: [
+        "Pointers and memory referencing",
+        "Introductory data structures: arrays and lists",
+        "Recursive programming",
+        "Internal sorting algorithms",
+        "Internal searching algorithms",
+      ],
+    },
+    {
+      title: "CSIS 215: Algorithms and Data Structures",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires both Advanced Programming Using C++ and Introduction to Discrete Mathematics as prerequisites.",
+      objectives: [
+        "Linked lists, stacks, and queues",
+        "Trees and graphs",
+        "Static and dynamic memory allocation",
+        "Hashing and tree-based searching",
+        "Sorting, searching, and table access algorithms",
+        "Recursion as a problem-solving technique",
+        "Implementing abstract data types with C++ classes",
+      ],
+    },
+    {
+      title: "CSIS 340: Studies in Information Security",
+      rangeLabel: "3 credits",
+      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      objectives: [
+        "Fundamental principles of information system security",
+        "Security policy development and application",
+        "Mechanisms for implementing security protections",
+        "Common attacker tactics and how controls get bypassed",
+        "Defensive strategies and countermeasures",
       ],
     },
     {
