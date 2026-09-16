@@ -30,6 +30,8 @@ export function useGoogleAuthRequest() {
       clientId: clientId ?? "unset",
       redirectUri,
       responseType: AuthSession.ResponseType.IdToken,
+      usePKCE: false, // PKCE only applies to the code grant; Google 400s ("Parameter not
+      // allowed: code_challenge_method") if it's sent alongside response_type=id_token.
       scopes: ["openid", "profile", "email"],
       extraParams: { nonce: Math.random().toString(36).slice(2) },
     },
