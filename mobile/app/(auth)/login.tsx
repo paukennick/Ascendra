@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, Divider, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
-import { useGoogleAuthRequest, extractIdToken } from "@/auth/googleSignIn";
+import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 
 export default function Login() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
-  const { clientId, request, response, promptAsync } = useGoogleAuthRequest();
+  const { clientId, request, signInAsync } = useGoogleAuthRequest();
 
   const onSubmit = async () => {
     setError(null);
@@ -37,26 +37,22 @@ export default function Login() {
     }
   };
 
-  useEffect(() => {
-    if (response?.type !== "success") return;
-    const idToken = extractIdToken(response);
-    if (!idToken) return;
-    (async () => {
-      setError(null);
-      setGoogleSubmitting(true);
-      try {
-        const result = await loginWithGoogle(idToken);
-        if (result.mfaRequired && result.challengeToken) {
-          router.push({ pathname: "/mfa-challenge", params: { challengeToken: result.challengeToken } });
-        }
-      } catch (err) {
-        setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
-      } finally {
-        setGoogleSubmitting(false);
+  const onGooglePress = async () => {
+    setError(null);
+    setGoogleSubmitting(true);
+    try {
+      const idToken = await signInAsync();
+      if (!idToken) return;
+      const result = await loginWithGoogle(idToken);
+      if (result.mfaRequired && result.challengeToken) {
+        router.push({ pathname: "/mfa-challenge", params: { challengeToken: result.challengeToken } });
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  };
 
   return (
     <Screen>
@@ -93,7 +89,7 @@ export default function Login() {
               icon="chrome"
               loading={googleSubmitting}
               disabled={!request}
-              onPress={() => promptAsync()}
+              onPress={onGooglePress}
             />
           </>
         ) : null}
