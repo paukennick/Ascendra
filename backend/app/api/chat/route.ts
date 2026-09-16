@@ -1,6 +1,6 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
-import { callClaude, type ChatTurn } from "@/lib/anthropic";
+import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     const messages: ChatTurn[] = [...history.map((h) => ({ role: h.role, content: h.content })), { role: "user", content: message }];
     const system = chatSystemPrompt({ trackTitle: track.title, unitTitle });
-    const reply = await callClaude({ system, messages, maxTokens: 1200 });
+    const reply = await callClaude({ system, messages, maxTokens: 1200, model: getFastModel() });
 
     await query(
       `insert into chat_messages (user_id, track_id, unit_id, role, content) values
