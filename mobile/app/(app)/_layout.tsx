@@ -14,6 +14,7 @@ export default function AppLayout() {
     >
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
       <Stack.Screen name="course/[trackId]/lesson/[objectiveId]" options={{ title: "Lesson" }} />
       <Stack.Screen name="course/[trackId]/pbq" options={{ title: "PBQ Simulator" }} />

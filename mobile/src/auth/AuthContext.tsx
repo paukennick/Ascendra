@@ -9,6 +9,8 @@ export type AuthStatus = "loading" | "signedOut" | "signedIn";
 
 export interface LoginResult {
   emailVerificationRequired?: boolean;
+  mfaRequired?: boolean;
+  challengeToken?: string;
 }
 
 interface AuthContextValue {
@@ -18,6 +20,9 @@ interface AuthContextValue {
   register: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
+  completeMfaLogin: (challengeToken: string, code: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<LoginResult>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -99,16 +104,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Shared by login, Google sign-in, and the MFA challenge -- all three end
+  // the same way once a real session comes back from the backend.
+  const applySession = useCallback(async (res: { accessToken: string; refreshToken: string; user: AuthUser }) => {
+    accessTokenRef.current = res.accessToken;
+    await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
+    setUser(res.user);
+    setStatus("signedIn");
+  }, []);
+
+  type LoginResponse =
+    | { accessToken: string; refreshToken: string; user: AuthUser; mfaRequired?: undefined }
+    | { mfaRequired: true; challengeToken: string };
+
   const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
     try {
-      const res = await api.post<{ accessToken: string; refreshToken: string; user: AuthUser }>(
-        "/api/auth/login",
-        { email, password }
-      );
-      accessTokenRef.current = res.accessToken;
-      await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
-      setUser(res.user);
-      setStatus("signedIn");
+      const res = await api.post<LoginResponse>("/api/auth/login", { email, password });
+      if (res.mfaRequired) {
+        return { mfaRequired: true, challengeToken: res.challengeToken };
+      }
+      await applySession(res);
       return {};
     } catch (err) {
       if (err instanceof ApiError && err.status === 403 && (err.data as { emailVerificationRequired?: boolean })?.emailVerificationRequired) {
@@ -116,6 +131,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       throw err;
     }
+  }, [applySession]);
+
+  const completeMfaLogin = useCallback(async (challengeToken: string, code: string) => {
+    const res = await api.post<{ accessToken: string; refreshToken: string; user: AuthUser }>(
+      "/api/auth/mfa/verify",
+      { challengeToken, code }
+    );
+    await applySession(res);
+  }, [applySession]);
+
+  const loginWithGoogle = useCallback(async (idToken: string): Promise<LoginResult> => {
+    const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken });
+    if (res.mfaRequired) {
+      return { mfaRequired: true, challengeToken: res.challengeToken };
+    }
+    await applySession(res);
+    return {};
+  }, [applySession]);
+
+  const refreshUser = useCallback(async () => {
+    const res = await api.get<{ user: AuthUser }>("/api/auth/me");
+    setUser(res.user);
   }, []);
 
   const register = useCallback(async (email: string, password: string, displayName?: string) => {
@@ -136,7 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearAuth]);
 
   return (
-    <AuthContext.Provider value={{ status, user, login, register, logout, logoutAll }}>
+    <AuthContext.Provider
+      value={{ status, user, login, register, logout, logoutAll, completeMfaLogin, loginWithGoogle, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

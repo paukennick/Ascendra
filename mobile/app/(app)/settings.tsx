@@ -1,10 +1,12 @@
 import React from "react";
 import { View } from "react-native";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import { Avatar, Card, Divider, H2, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Settings() {
+  const router = useRouter();
   const { user, logout, logoutAll } = useAuth();
 
   return (
@@ -13,6 +15,16 @@ export default function Settings() {
         <Avatar name={user?.displayName ?? user?.email} size={64} />
         <H2 style={{ marginTop: 8 }}>{user?.displayName ?? "Signed in"}</H2>
         <Muted>{user?.email}</Muted>
+      </Card>
+
+      <SectionHeader label="Security" />
+      <Card style={{ gap: 0 }}>
+        <ListRow
+          icon="shield"
+          label="Two-factor authentication"
+          value={user?.mfaEnabled ? "Enabled" : "Disabled"}
+          onPress={() => router.push("/settings/mfa")}
+        />
       </Card>
 
       <SectionHeader label="Account" />
