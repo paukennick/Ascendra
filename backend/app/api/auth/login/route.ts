@@ -1,9 +1,10 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { verifyPassword } from "@/lib/auth/passwords";
-import { signAccessToken, createRefreshToken } from "@/lib/auth/tokens";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
+import { completeLogin } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ interface UserRow {
   email_verified_at: string | null;
   failed_login_count: number;
   locked_until: string | null;
+  mfa_enabled: boolean;
 }
 
 // POST /api/auth/login — { email, password, deviceLabel? }
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     const userAgent = getUserAgent(req);
 
     const user = await queryOne<UserRow>(
-      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until
+      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until, mfa_enabled
        from app_users where email = $1`,
       [normalizedEmail]
     );
@@ -75,24 +77,17 @@ export async function POST(req: Request) {
       );
     }
 
-    await query(
-      `update app_users set failed_login_count = 0, locked_until = null, last_login_at = now() where id = $1`,
-      [user.id]
-    );
+    const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent, ip };
+
+    if (user.mfa_enabled) {
+      await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
+      const challengeToken = await createLoginChallenge(user.id, meta);
+      return ok({ mfaRequired: true, challengeToken });
+    }
+
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });
-
-    const accessToken = signAccessToken({ sub: user.id, email: user.email });
-    const refresh = await createRefreshToken(user.id, {
-      deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null,
-      userAgent,
-      ip,
-    });
-
-    return ok({
-      accessToken,
-      refreshToken: refresh.raw,
-      user: { id: user.id, email: user.email, displayName: user.display_name },
-    });
+    const session = await completeLogin(user, meta);
+    return ok(session);
   } catch (err) {
     return serverError(err);
   }
