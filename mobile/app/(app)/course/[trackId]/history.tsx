@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { Attempt } from "@/types";
-import { Screen, Card, H1, Body, Muted, Badge, Button, Loading, ErrorBanner } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import { Body, Card, Chip, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
+import { spacing } from "@/lib/theme";
 
 const KINDS = ["all", "lesson", "quiz", "pbq", "unitcheck", "lab"] as const;
 
@@ -29,26 +29,23 @@ export default function HistoryScreen() {
   return (
     <Screen>
       <H1>Answer history</H1>
-      <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
         {KINDS.map((k) => (
-          <Button key={k} label={k} variant={k === kind ? "primary" : "ghost"} onPress={() => setKind(k)} />
+          <Chip key={k} label={k} active={k === kind} onPress={() => setKind(k)} />
         ))}
-      </View>
+      </ScrollView>
 
       {error ? <ErrorBanner message={error} /> : null}
       {!attempts && !error ? <Loading /> : null}
 
       {attempts?.map((a) => (
         <Card key={a.id}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Muted>
               {a.kind}
               {a.stage ? ` / ${a.stage}` : ""} · {a.format}
             </Muted>
-            <Badge
-              label={a.verdict ?? "ungraded"}
-              color={a.verdict === "correct" ? colors.good : a.verdict === "partial" ? colors.warn : colors.bad}
-            />
+            <VerdictBadge verdict={a.verdict ?? "ungraded"} />
           </View>
           <Muted>{a.unit_title ?? a.objective_title ?? ""}</Muted>
           <Body>{a.question}</Body>
@@ -59,7 +56,7 @@ export default function HistoryScreen() {
 
       {attempts && attempts.length === 0 ? (
         <Card>
-          <Muted>No attempts logged yet for this filter.</Muted>
+          <EmptyState icon="clock" title="No attempts yet" message="Answers you submit for this filter will show up here." />
         </Card>
       ) : null}
     </Screen>

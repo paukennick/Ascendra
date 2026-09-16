@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { Track, Unit } from "@/types";
-import { Screen, Card, H1, H2, Body, Muted, Badge, Loading, ErrorBanner } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import { Badge, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
+import { colors, masteryColor, masteryIcon, spacing } from "@/lib/theme";
 
 export default function ProgressScreen() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
@@ -33,8 +34,9 @@ export default function ProgressScreen() {
       {!track && !error ? <Loading /> : null}
 
       {track ? (
-        <Card>
+        <Card elevated style={{ borderColor: colors.accent }}>
           <H2>{track.title}</H2>
+          <ProgressBar percent={track.percent_complete ?? 0} />
           <Muted>
             {track.mastered_objectives ?? 0} / {track.total_objectives ?? 0} objectives at
             Independent or Transfer-ready ({track.percent_complete ?? 0}% complete)
@@ -42,22 +44,33 @@ export default function ProgressScreen() {
         </Card>
       ) : null}
 
-      {units?.map((u) => (
-        <Card key={u.id}>
-          <Body>{u.title}</Body>
-          <Muted>
-            avg score {u.avg_score_0_4 ?? 0}/4 · {u.mastered_objectives ?? 0}/{u.total_objectives ?? 0} mastered
-          </Muted>
-          <View style={{ gap: 6 }}>
-            {u.objectives?.map((o) => (
-              <View key={o.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Body style={{ flex: 1 }}>{o.title}</Body>
-                <Badge label={o.mastery_status ?? "Not started"} />
-              </View>
-            ))}
-          </View>
-        </Card>
-      ))}
+      {units?.map((u) => {
+        const unitPercent = u.total_objectives
+          ? Math.round(((u.mastered_objectives ?? 0) / u.total_objectives) * 100)
+          : 0;
+        return (
+          <Card key={u.id}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <H2 style={{ flex: 1 }}>{u.title}</H2>
+              <Badge label={`${u.avg_score_0_4 ?? 0}/4 avg`} />
+            </View>
+            <ProgressBar percent={unitPercent} />
+            <Muted>{u.mastered_objectives ?? 0}/{u.total_objectives ?? 0} mastered</Muted>
+            <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+              {u.objectives?.map((o) => {
+                const status = o.mastery_status ?? "Not started";
+                const c = masteryColor[status] ?? colors.mutedDim;
+                return (
+                  <View key={o.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}>
+                    <Muted style={{ flex: 1, color: colors.text }} numberOfLines={2}>{o.title}</Muted>
+                    <Badge label={status} color={c} icon={(masteryIcon[status] ?? "circle") as React.ComponentProps<typeof Feather>["name"]} />
+                  </View>
+                );
+              })}
+            </View>
+          </Card>
+        );
+      })}
     </Screen>
   );
 }

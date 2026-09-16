@@ -1,11 +1,25 @@
 import React, { useCallback, useState } from "react";
 import { RefreshControl, SectionList, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import type { Track } from "@/types";
-import { Card, H1, H2, Body, Muted, Button, Loading, ErrorBanner, ProgressBar } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ErrorBanner,
+  H1,
+  H2,
+  IconButton,
+  Loading,
+  Muted,
+  ProgressBar,
+  SectionHeader,
+} from "@/components/ui";
+import { colors, spacing, trackTypeIcon } from "@/lib/theme";
 
 interface Section {
   title: string;
@@ -29,8 +43,16 @@ function groupTracks(tracks: Track[]): Section[] {
   return sections;
 }
 
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function Home() {
   const router = useRouter();
+  const { user } = useAuth();
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,50 +79,83 @@ export default function Home() {
     ?.filter((t) => t.last_studied_at)
     .slice()
     .sort(byLastStudied)[0]?.id;
+  const mostRecent = tracks?.find((t) => t.id === mostRecentId);
+  const firstName = user?.displayName?.split(" ")[0];
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <IconButton icon="settings" onPress={() => router.push("/settings")} size={34} />
+          ),
+        }}
+      />
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
+        stickySectionHeadersEnabled={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />
         }
         ListHeaderComponent={
           <View style={{ gap: 4, marginBottom: 4 }}>
-            <H1>Your courses</H1>
-            <Muted>Pick a course to continue studying.</Muted>
+            <H1>{greeting()}{firstName ? `, ${firstName}` : ""}</H1>
+            <Muted style={{ marginBottom: 8 }}>Pick a course to continue studying.</Muted>
             {error ? <ErrorBanner message={error} /> : null}
             {!tracks && !error ? <Loading label="Loading courses..." /> : null}
+
+            {mostRecent ? (
+              <Card style={styles.heroCard} elevated>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Feather name="zap" size={14} color={colors.accent} />
+                  <Muted style={{ color: colors.accent, fontWeight: "700" }}>Continue studying</Muted>
+                </View>
+                <H2>{mostRecent.title}</H2>
+                <ProgressBar percent={mostRecent.percent_complete ?? 0} />
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Muted>
+                    {mostRecent.mastered_objectives ?? 0}/{mostRecent.total_objectives ?? 0} objectives ·{" "}
+                    {mostRecent.percent_complete ?? 0}%
+                  </Muted>
+                  <IconButton icon="arrow-right" variant="solid" size={36} onPress={() => router.push(`/course/${mostRecent.id}`)} />
+                </View>
+              </Card>
+            ) : null}
           </View>
         }
-        renderSectionHeader={({ section }) => <Body style={styles.sectionHeader}>{section.title}</Body>}
+        renderSectionHeader={({ section }) => <SectionHeader label={section.title} />}
         renderItem={({ item }) => (
-          <Card style={item.id === mostRecentId ? styles.highlighted : undefined}>
-            <H2>{item.title}</H2>
-            <Muted>{item.code}</Muted>
-            <Muted>
-              {item.mastered_objectives ?? 0} / {item.total_objectives ?? 0} objectives at Independent+
-            </Muted>
+          <Card onPress={() => router.push(`/course/${item.id}`)}>
+            <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
+              <View style={styles.trackIconWrap}>
+                <Feather name={(trackTypeIcon[item.track_type] ?? "book") as any} size={18} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <H2>{item.title}</H2>
+                <Muted>{item.code}</Muted>
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+            </View>
             <ProgressBar percent={item.percent_complete ?? 0} />
-            <Muted>
-              {item.percent_complete != null ? `${item.percent_complete}% complete` : "Not started"}
-            </Muted>
-            <Button label="Open course" onPress={() => router.push(`/course/${item.id}`)} />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Muted>
+                {item.mastered_objectives ?? 0}/{item.total_objectives ?? 0} objectives at Independent+
+              </Muted>
+              <Badge
+                label={item.percent_complete != null ? `${item.percent_complete}%` : "Not started"}
+                color={item.percent_complete ? colors.good : colors.mutedDim}
+              />
+            </View>
           </Card>
         )}
         ListEmptyComponent={
           tracks && tracks.length === 0 ? (
             <Card>
-              <Muted>No courses found yet. Check back soon.</Muted>
+              <EmptyState icon="book-open" title="No courses yet" message="Check back soon — new courses show up here automatically." />
             </Card>
           ) : null
-        }
-        ListFooterComponent={
-          <View style={{ marginTop: 8 }}>
-            <Button label="Settings" variant="ghost" onPress={() => router.push("/settings")} />
-          </View>
         }
       />
     </SafeAreaView>
@@ -109,15 +164,14 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 16, paddingBottom: 40, gap: 12 },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: colors.muted,
-    marginTop: 8,
-    marginBottom: 4,
+  content: { padding: spacing.lg, paddingBottom: 48, gap: spacing.md },
+  heroCard: { borderColor: colors.accent, marginTop: spacing.md, gap: spacing.sm },
+  trackIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.accentDim,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  highlighted: { borderColor: colors.accent, borderWidth: 2 },
 });

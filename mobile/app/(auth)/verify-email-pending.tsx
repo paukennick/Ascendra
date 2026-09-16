@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Screen, Card, H1, Body, Button, ErrorBanner, Loading } from "@/components/ui";
+import { BrandMark, Screen, Card, H1, Body, Button, ErrorBanner, EmptyState } from "@/components/ui";
 import { api, ApiError } from "@/api/client";
 
 export default function VerifyEmailPending() {
@@ -24,22 +24,23 @@ export default function VerifyEmailPending() {
 
   return (
     <Screen>
-      <H1>Check your email</H1>
-      <Card>
-        <Body>
-          We sent a verification link to {email ? <Body style={{ fontWeight: "700" }}>{email}</Body> : "your email"}.
-          Open it, then come back and log in.
+      <BrandMark />
+      <H1 style={{ textAlign: "center" }}>Check your email</H1>
+      <Card elevated>
+        <EmptyState icon="mail" title="Verification link sent" />
+        <Body style={{ textAlign: "center" }}>
+          We sent a verification link to{" "}
+          <Body style={{ fontWeight: "700" }}>{email ?? "your email"}</Body>. Open it, then come
+          back and log in.
         </Body>
         {error ? <ErrorBanner message={error} /> : null}
-        {status === "sending" ? (
-          <Loading />
-        ) : (
-          <Button
-            label={status === "sent" ? "Link sent — resend again" : "Resend verification email"}
-            variant="ghost"
-            onPress={resend}
-          />
-        )}
+        <Button
+          label={status === "sent" ? "Link sent — resend again" : "Resend verification email"}
+          variant="ghost"
+          icon="refresh-cw"
+          loading={status === "sending"}
+          onPress={resend}
+        />
       </Card>
       <Button label="Back to log in" variant="link" onPress={() => router.replace("/login")} />
     </Screen>

@@ -1,15 +1,31 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { GradeResult, LessonContent } from "@/types";
-import { Screen, Card, H1, H2, Body, Muted, Button, Loading, ErrorBanner, Badge } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import {
+  Body,
+  Button,
+  Card,
+  ErrorBanner,
+  H2,
+  Loading,
+  Muted,
+  Screen,
+  VerdictBadge,
+} from "@/components/ui";
+import { colors, radius, spacing } from "@/lib/theme";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
+const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
 
 export default function LessonFlow() {
-  const { trackId, objectiveId } = useLocalSearchParams<{ trackId: string; objectiveId: string }>();
+  const { trackId, objectiveId, unitId } = useLocalSearchParams<{
+    trackId: string;
+    objectiveId: string;
+    unitId?: string;
+  }>();
   const router = useRouter();
 
   const [lesson, setLesson] = useState<LessonContent | null>(null);
@@ -51,8 +67,11 @@ export default function LessonFlow() {
       )}
 
       {step === "teach" && (
-        <Card>
-          <H2>Teaching</H2>
+        <Card elevated>
+          <View style={styles.cardHeadingRow}>
+            <Feather name="book-open" size={18} color={colors.accent} />
+            <H2>Teaching</H2>
+          </View>
           {guess ? (
             <>
               <Muted>Your guess</Muted>
@@ -61,7 +80,7 @@ export default function LessonFlow() {
           ) : null}
           <Muted>Explanation</Muted>
           <Body>{lesson.teach}</Body>
-          <Button label="Next: guided practice" onPress={() => setStep("fade")} />
+          <Button label="Next: guided practice" icon="arrow-right" onPress={() => setStep("fade")} />
         </Card>
       )}
 
@@ -74,6 +93,7 @@ export default function LessonFlow() {
           why={lesson.fadeWhy}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
+          unitId={unitId}
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
@@ -90,6 +110,7 @@ export default function LessonFlow() {
           why={lesson.soloWhy}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
+          unitId={unitId}
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
@@ -98,16 +119,27 @@ export default function LessonFlow() {
       )}
 
       {step === "done" && (
-        <Card>
+        <Card elevated style={{ alignItems: "center", gap: spacing.sm }}>
+          <View style={styles.doneIcon}>
+            <Feather name="check" size={28} color={colors.good} />
+          </View>
           <H2>Objective complete</H2>
-          <Muted>Head back to the course dashboard to pick the next objective, or revisit this one.</Muted>
+          <Muted style={{ textAlign: "center" }}>
+            Head back to the course dashboard to pick the next objective, or revisit this one.
+          </Muted>
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button label="Back to course" onPress={() => router.push(`/course/${trackId}`)} />
-            <Button label="Regenerate lesson" variant="ghost" onPress={async () => {
-              await api.post(`/api/objectives/${objectiveId}/lesson`);
-              loadLesson();
-              setStep("guess");
-            }} />
+            <Button label="Back to course" icon="arrow-left" fullWidth={false} onPress={() => router.push(`/course/${trackId}`)} />
+            <Button
+              label="Regenerate lesson"
+              variant="ghost"
+              fullWidth={false}
+              icon="refresh-cw"
+              onPress={async () => {
+                await api.post(`/api/objectives/${objectiveId}/lesson`);
+                loadLesson();
+                setStep("guess");
+              }}
+            />
           </View>
         </Card>
       )}
@@ -115,19 +147,42 @@ export default function LessonFlow() {
   );
 }
 
+const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof Feather>["name"] }> = {
+  guess: { label: "Guess", icon: "help-circle" },
+  teach: { label: "Teach", icon: "book-open" },
+  fade: { label: "Guided", icon: "compass" },
+  solo: { label: "Solo", icon: "check-circle" },
+  done: { label: "Done", icon: "flag" },
+};
+
 function StepHeader({ step }: { step: Step }) {
-  const labels: Record<Step, string> = {
-    guess: "1. Guess",
-    teach: "2. Teach",
-    fade: "3. Guided practice",
-    solo: "4. Solo check",
-    done: "Done",
-  };
+  const activeIndex = STEPS.indexOf(step);
   return (
-    <View style={{ flexDirection: "row", gap: 6 }}>
-      {(["guess", "teach", "fade", "solo"] as Step[]).map((s) => (
-        <Badge key={s} label={labels[s]} color={s === step ? colors.accent : colors.border} />
-      ))}
+    <View style={styles.stepper}>
+      {STEPS.map((s, i) => {
+        const meta = STEP_META[s];
+        const isActive = s === step;
+        const isPast = activeIndex > i;
+        const color = isActive ? colors.accent : isPast ? colors.good : colors.mutedDim;
+        return (
+          <React.Fragment key={s}>
+            <View style={styles.stepItem}>
+              <View
+                style={[
+                  styles.stepDot,
+                  { borderColor: color, backgroundColor: isActive || isPast ? color : "transparent" },
+                ]}
+              >
+                <Feather name={isPast ? "check" : meta.icon} size={13} color={isActive || isPast ? colors.accentText : color} />
+              </View>
+              <Muted style={{ color, fontSize: 11 }}>{meta.label}</Muted>
+            </View>
+            {i < STEPS.length - 1 ? (
+              <View style={[styles.stepLine, { backgroundColor: isPast ? colors.good : colors.border }]} />
+            ) : null}
+          </React.Fragment>
+        );
+      })}
     </View>
   );
 }
@@ -144,20 +199,23 @@ function GuessStep({
   onSubmit: () => void;
 }) {
   return (
-    <Card>
-      <H2>Before we teach this — take a guess</H2>
+    <Card elevated>
+      <View style={styles.cardHeadingRow}>
+        <Feather name="help-circle" size={18} color={colors.accent} />
+        <H2>Before we teach this — take a guess</H2>
+      </View>
       <Body>{prompt}</Body>
       <TextInput
         multiline
         placeholder="Your guess (or leave blank if you don't know)"
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={colors.mutedDim}
         value={value}
         onChangeText={onChange}
         style={styles.input}
       />
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <Button label="Submit my guess" onPress={onSubmit} />
-        <Button label="I don't know — just teach me" variant="ghost" onPress={onSubmit} />
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        <Button label="Submit my guess" fullWidth={false} icon="send" onPress={onSubmit} />
+        <Button label="I don't know — just teach me" variant="ghost" fullWidth={false} onPress={onSubmit} />
       </View>
     </Card>
   );
@@ -175,6 +233,7 @@ function CheckStep({
   why,
   taughtText,
   objectiveId,
+  unitId,
   trackId,
   confidence,
   setConfidence,
@@ -187,6 +246,7 @@ function CheckStep({
   why: string;
   taughtText: string;
   objectiveId: string;
+  unitId?: string;
   trackId: string;
   confidence: number | null;
   setConfidence: (n: number) => void;
@@ -210,7 +270,7 @@ function CheckStep({
         kind: "lesson",
         stage: kind,
         objectiveId,
-        unitId: undefined,
+        unitId,
         question: promptText,
         chosenIndex: picked,
         correctIndex,
@@ -236,6 +296,7 @@ function CheckStep({
         kind: "lesson",
         stage: kind,
         objectiveId,
+        unitId,
         question: promptText,
         answer: openAnswer,
         taughtText,
@@ -261,15 +322,18 @@ function CheckStep({
   }
 
   return (
-    <Card>
-      <H2>{kind === "fade" ? "Guided practice" : "Solo check"}</H2>
+    <Card elevated>
+      <View style={styles.cardHeadingRow}>
+        <Feather name={kind === "fade" ? "compass" : "check-circle"} size={18} color={colors.accent} />
+        <H2>{kind === "fade" ? "Guided practice" : "Solo check"}</H2>
+      </View>
       <Body>{promptText}</Body>
 
       {!result && (
         <>
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button label="Multiple choice" variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
-            <Button label="Free response" variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
+            <Button label="Multiple choice" size="sm" fullWidth={false} variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
+            <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
           </View>
 
           {mode === "mc" ? (
@@ -278,38 +342,45 @@ function CheckStep({
                 <Pressable
                   key={i}
                   onPress={() => setPicked(i)}
-                  style={[styles.choice, picked === i && { borderColor: colors.accent }]}
+                  style={[styles.choice, picked === i && styles.choiceActive]}
                 >
-                  <Body>{c}</Body>
+                  <View style={[styles.radio, picked === i && styles.radioActive]}>
+                    {picked === i ? <View style={styles.radioDot} /> : null}
+                  </View>
+                  <Body style={{ flex: 1 }}>{c}</Body>
                 </Pressable>
               ))}
-              <Button label="Submit" onPress={submitMC} disabled={busy || picked == null} />
+              <Button label="Submit" icon="send" onPress={submitMC} disabled={busy || picked == null} />
             </View>
           ) : (
             <View style={{ gap: 8 }}>
               <TextInput
                 multiline
                 placeholder="Your answer"
-                placeholderTextColor={colors.muted}
+                placeholderTextColor={colors.mutedDim}
                 value={openAnswer}
                 onChangeText={setOpenAnswer}
                 style={styles.input}
               />
-              <Button label="Submit" onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
+              <Button label="Submit" icon="send" onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
             </View>
           )}
 
           <Muted>How confident are you?</Muted>
           <View style={{ flexDirection: "row", gap: 6 }}>
-            {["1 — guessing", "2", "3 — unsure", "4", "5 — certain"].map((label, idx) => (
+            {["1", "2", "3", "4", "5"].map((label, idx) => (
               <Pressable
                 key={label}
                 onPress={() => setConfidence(idx + 1)}
-                style={[styles.confidence, confidence === idx + 1 && { borderColor: colors.accent }]}
+                style={[styles.confidence, confidence === idx + 1 && styles.confidenceActive]}
               >
-                <Body>{idx + 1}</Body>
+                <Body style={confidence === idx + 1 ? { color: colors.accentText, fontWeight: "700" } : undefined}>{label}</Body>
               </Pressable>
             ))}
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Muted style={{ fontSize: 11 }}>guessing</Muted>
+            <Muted style={{ fontSize: 11 }}>certain</Muted>
           </View>
 
           {error ? <ErrorBanner message={error} /> : null}
@@ -318,10 +389,7 @@ function CheckStep({
 
       {result && (
         <View style={{ gap: 8 }}>
-          <Badge
-            label={result.verdict}
-            color={result.verdict === "correct" ? colors.good : result.verdict === "partial" ? colors.warn : colors.bad}
-          />
+          <VerdictBadge verdict={result.verdict} />
           <Body>{result.feedback}</Body>
           {result.missedParts && result.missedParts.length > 0 ? (
             <Muted>Missed: {result.missedParts.join(", ")}</Muted>
@@ -330,14 +398,14 @@ function CheckStep({
           <Muted>Send follow-up (dispute or ask about this verdict)</Muted>
           <TextInput
             placeholder="e.g. I think my answer covered that — here's why..."
-            placeholderTextColor={colors.muted}
+            placeholderTextColor={colors.mutedDim}
             value={followUp}
             onChangeText={setFollowUp}
             style={styles.input}
           />
-          <Button label="Send follow-up" variant="ghost" onPress={sendFollowUp} disabled={busy} />
+          <Button label="Send follow-up" variant="ghost" icon="corner-up-right" onPress={sendFollowUp} disabled={busy} />
 
-          <Button label="Continue" onPress={onDone} />
+          <Button label="Continue" icon="arrow-right" onPress={onDone} />
         </View>
       )}
     </Card>
@@ -345,26 +413,64 @@ function CheckStep({
 }
 
 const styles = StyleSheet.create({
+  cardHeadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  stepper: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 4 },
+  stepItem: { alignItems: "center", gap: 4, width: 56 },
+  stepDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepLine: { flex: 1, height: 2, marginTop: 13 },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: radius.md,
     padding: 10,
     color: colors.text,
+    backgroundColor: colors.cardAlt,
     minHeight: 70,
     textAlignVertical: "top",
   },
   choice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: radius.md,
+    padding: 12,
   },
+  choiceActive: { borderColor: colors.accent, backgroundColor: colors.accentDim },
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.mutedDim,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioActive: { borderColor: colors.accent },
+  radioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.accent },
   confidence: {
+    flex: 1,
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+  },
+  confidenceActive: { borderColor: colors.accent, backgroundColor: colors.accent },
+  doneIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.goodDim,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

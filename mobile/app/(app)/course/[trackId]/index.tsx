@@ -1,9 +1,32 @@
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Track, Unit } from "@/types";
-import { Screen, Card, H1, H2, Body, Muted, Badge, Button, Loading, ErrorBanner } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorBanner,
+  H1,
+  H2,
+  IconButton,
+  Loading,
+  Muted,
+  ProgressBar,
+  Screen,
+  SectionHeader,
+} from "@/components/ui";
+import { colors, spacing } from "@/lib/theme";
+
+const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
+  { icon: "message-circle", label: "Ask the coach", path: "chat" },
+  { icon: "bar-chart-2", label: "Progress", path: "progress" },
+  { icon: "clock", label: "History", path: "history" },
+  { icon: "layers", label: "PBQ sim", path: "pbq" },
+];
 
 export default function CourseDashboard() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
@@ -44,62 +67,97 @@ export default function CourseDashboard() {
           <H1>{track.title}</H1>
           <Muted>{track.description}</Muted>
 
-          <Card>
-            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              <Button
-                label="Continue"
-                onPress={() => {
-                  const nextObjective =
-                    continueUnit?.objectives?.find(
-                      (o) => o.mastery_status !== "Independent" && o.mastery_status !== "Transfer-ready"
-                    ) ?? continueUnit?.objectives?.[0];
-                  if (nextObjective) router.push(`/course/${trackId}/lesson/${nextObjective.id}`);
-                }}
-              />
-              <Button label="Ask the coach" variant="ghost" onPress={() => router.push(`/course/${trackId}/chat`)} />
+          <Card elevated style={{ borderColor: colors.accent }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Muted>Overall progress</Muted>
+              <Muted style={{ color: colors.accent, fontWeight: "700" }}>{track.percent_complete ?? 0}%</Muted>
             </View>
-            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
-              <Button label="Progress" variant="ghost" onPress={() => router.push(`/course/${trackId}/progress`)} />
-              <Button label="History" variant="ghost" onPress={() => router.push(`/course/${trackId}/history`)} />
-              <Button label="PBQ simulator" variant="ghost" onPress={() => router.push(`/course/${trackId}/pbq`)} />
+            <ProgressBar percent={track.percent_complete ?? 0} />
+
+            <Button
+              label="Continue studying"
+              icon="play"
+              onPress={() => {
+                const nextObjective =
+                  continueUnit?.objectives?.find(
+                    (o) => o.mastery_status !== "Independent" && o.mastery_status !== "Transfer-ready"
+                  ) ?? continueUnit?.objectives?.[0];
+                if (nextObjective)
+                  router.push({
+                    pathname: `/course/${trackId}/lesson/${nextObjective.id}`,
+                    params: { unitId: continueUnit?.id },
+                  });
+              }}
+            />
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
+              {QUICK_ACTIONS.map((a) => (
+                <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>
+                  <IconButton icon={a.icon} onPress={() => router.push(`/course/${trackId}/${a.path}`)} />
+                  <Muted style={{ textAlign: "center", fontSize: 11 }}>{a.label}</Muted>
+                </View>
+              ))}
             </View>
           </Card>
 
-          <H2>Units</H2>
-          {units?.map((u) => (
-            <Card key={u.id}>
-              <Body>{u.title}</Body>
-              <Muted>
-                {u.range_label ?? (u.weight != null ? `${u.weight}% of exam` : "")}
-                {"  "}· {u.mastered_objectives ?? 0}/{u.total_objectives ?? 0} objectives at Independent+
-                {(u.needs_review_objectives ?? 0) > 0 ? ` · ${u.needs_review_objectives} need review` : ""}
-              </Muted>
-              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                {u.objectives?.slice(0, 1).map((o) => (
-                  <Button
-                    key={o.id}
-                    label={(u.mastered_objectives ?? 0) < (u.total_objectives ?? 0) ? "Continue unit" : "Review unit"}
-                    onPress={() => {
-                      const next = u.objectives?.find((ob) => ob.mastery_status !== "Independent" && ob.mastery_status !== "Transfer-ready") ?? o;
-                      router.push(`/course/${trackId}/lesson/${next.id}`);
-                    }}
-                  />
-                ))}
-                {u.weight != null || u.range_label == null ? (
-                  <Button
-                    label="PBQ from this unit"
-                    variant="ghost"
-                    onPress={() => router.push({ pathname: `/course/${trackId}/pbq`, params: { unitId: u.id } })}
-                  />
-                ) : null}
-              </View>
-              <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-                {u.objectives?.map((o) => (
-                  <Badge key={o.id} label={o.mastery_status ?? "Not started"} />
-                ))}
-              </View>
+          <SectionHeader label="Units" />
+          {units?.map((u) => {
+            const complete = (u.mastered_objectives ?? 0) >= (u.total_objectives ?? 0) && (u.total_objectives ?? 0) > 0;
+            const unitPercent = u.total_objectives
+              ? Math.round(((u.mastered_objectives ?? 0) / u.total_objectives) * 100)
+              : 0;
+            return (
+              <Card key={u.id}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <H2>{u.title}</H2>
+                    <Muted>
+                      {u.range_label ?? (u.weight != null ? `${u.weight}% of exam` : "")}
+                      {"  "}· {u.mastered_objectives ?? 0}/{u.total_objectives ?? 0} objectives at Independent+
+                    </Muted>
+                  </View>
+                  {(u.needs_review_objectives ?? 0) > 0 ? (
+                    <Badge label={`${u.needs_review_objectives} to review`} color={colors.bad} icon="alert-triangle" />
+                  ) : null}
+                </View>
+                <ProgressBar percent={unitPercent} />
+                <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+                  {u.objectives?.slice(0, 1).map((o) => (
+                    <Button
+                      key={o.id}
+                      label={complete ? "Review unit" : "Continue unit"}
+                      size="sm"
+                      fullWidth={false}
+                      icon={complete ? "rotate-cw" : "arrow-right"}
+                      onPress={() => {
+                        const next = u.objectives?.find((ob) => ob.mastery_status !== "Independent" && ob.mastery_status !== "Transfer-ready") ?? o;
+                        router.push({
+                          pathname: `/course/${trackId}/lesson/${next.id}`,
+                          params: { unitId: u.id },
+                        });
+                      }}
+                    />
+                  ))}
+                  {u.weight != null || u.range_label == null ? (
+                    <Button
+                      label="PBQ from this unit"
+                      variant="ghost"
+                      size="sm"
+                      fullWidth={false}
+                      icon="layers"
+                      onPress={() => router.push({ pathname: `/course/${trackId}/pbq`, params: { unitId: u.id } })}
+                    />
+                  ) : null}
+                </View>
+              </Card>
+            );
+          })}
+
+          {units && units.length === 0 ? (
+            <Card>
+              <EmptyState icon="folder" title="No units yet" />
             </Card>
-          ))}
+          ) : null}
         </>
       ) : null}
     </Screen>

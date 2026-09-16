@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, TextInput, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { ChatMessage } from "@/types";
-import { Body, Button, Card, H1, Muted, Loading } from "@/components/ui";
-import { colors } from "@/lib/theme";
+import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
+import { colors, radius, spacing } from "@/lib/theme";
 
 export default function ChatScreen() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
@@ -47,55 +48,119 @@ export default function ChatScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={{ padding: 16, gap: 8, flex: 1 }}>
-        <H1>Ask the coach</H1>
-        <Muted>Open Q&A — not graded, doesn't touch mastery or the error log.</Muted>
+      <View style={{ padding: spacing.lg, gap: spacing.xs, flex: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={styles.headerIcon}>
+            <Feather name="message-circle" size={16} color={colors.accent} />
+          </View>
+          <View>
+            <H1 style={{ fontSize: 19 }}>Ask the coach</H1>
+            <Muted>Open Q&A — not graded, doesn't touch mastery</Muted>
+          </View>
+        </View>
 
         {!messages ? (
           <Loading />
+        ) : messages.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <EmptyState icon="message-square" title="No messages yet" message="Ask anything about this course — concepts, exam strategy, or a concept you're stuck on." />
+          </View>
         ) : (
           <FlatList
             ref={listRef}
             data={messages}
             keyExtractor={(_, i) => String(i)}
             style={{ flex: 1 }}
-            contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
+            contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.sm }}
             onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
             renderItem={({ item }) => (
-              <Card
-                style={{
-                  backgroundColor: item.role === "user" ? colors.cardAlt : colors.card,
-                  alignSelf: item.role === "user" ? "flex-end" : "flex-start",
-                  maxWidth: "90%",
-                }}
+              <View
+                style={[
+                  styles.bubble,
+                  item.role === "user" ? styles.bubbleUser : styles.bubbleAssistant,
+                ]}
               >
-                <Body>{item.content}</Body>
-              </Card>
+                <Body style={item.role === "user" ? { color: colors.accentText } : undefined}>{item.content}</Body>
+              </View>
             )}
           />
         )}
 
-        <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-end" }}>
+        <View style={styles.inputBar}>
           <TextInput
-            style={{
-              flex: 1,
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderRadius: 8,
-              padding: 10,
-              color: colors.text,
-              maxHeight: 100,
-            }}
+            style={styles.input}
             multiline
             placeholder="Ask anything about this track..."
-            placeholderTextColor={colors.muted}
+            placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}
           />
-          <Button label={busy ? "..." : "Send"} onPress={send} disabled={busy || !input.trim()} />
+          <Pressable
+            onPress={send}
+            disabled={busy || !input.trim()}
+            style={[styles.sendButton, (busy || !input.trim()) && { opacity: 0.4 }]}
+          >
+            <Feather name="send" size={17} color={colors.accentText} />
+          </Pressable>
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: colors.accentDim,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bubble: {
+    borderRadius: radius.lg,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    maxWidth: "88%",
+  },
+  bubbleUser: {
+    backgroundColor: colors.accent,
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
+  },
+  bubbleAssistant: {
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+  inputBar: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    alignItems: "flex-end",
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    padding: 6,
+    paddingLeft: 14,
+  },
+  input: {
+    flex: 1,
+    color: colors.text,
+    paddingVertical: 8,
+    maxHeight: 100,
+    fontSize: 15,
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

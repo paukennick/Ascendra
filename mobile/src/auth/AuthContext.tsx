@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import * as SecureStore from "expo-secure-store";
+import { secureStorage } from "@/lib/secureStorage";
 import { api, ApiError, registerAuthHooks } from "@/api/client";
 import type { AuthUser } from "@/types";
 
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     accessTokenRef.current = null;
     setUser(null);
     setStatus("signedOut");
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
   }, []);
 
   // Dedupes concurrent refresh attempts (e.g. several screens' requests all
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async (): Promise<boolean> => {
     if (inFlightRefresh.current) return inFlightRefresh.current;
     const attempt = (async () => {
-      const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const storedRefreshToken = await secureStorage.getItem(REFRESH_TOKEN_KEY);
       if (!storedRefreshToken) {
         await clearAuth();
         return false;
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           refreshToken: storedRefreshToken,
         });
         accessTokenRef.current = res.accessToken;
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, res.refreshToken);
+        await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
         return true;
       } catch {
         await clearAuth();
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         { email, password }
       );
       accessTokenRef.current = res.accessToken;
-      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, res.refreshToken);
+      await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
       setUser(res.user);
       setStatus("signedIn");
       return {};
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    const storedRefreshToken = await secureStorage.getItem(REFRESH_TOKEN_KEY);
     if (storedRefreshToken) {
       await api.post("/api/auth/logout", { refreshToken: storedRefreshToken }).catch(() => undefined);
     }

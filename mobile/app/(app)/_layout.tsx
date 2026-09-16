@@ -1,15 +1,18 @@
 import { Stack } from "expo-router";
+import { colors } from "@/lib/theme";
 
 export default function AppLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#0f172a" },
-        headerTintColor: "#f8fafc",
-        contentStyle: { backgroundColor: "#0f172a" },
+        headerStyle: { backgroundColor: colors.bgAlt },
+        headerTintColor: colors.accent,
+        headerTitleStyle: { color: colors.text, fontWeight: "700", fontSize: 17 },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Ascendra" }} />
+      <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
       <Stack.Screen name="course/[trackId]/lesson/[objectiveId]" options={{ title: "Lesson" }} />
