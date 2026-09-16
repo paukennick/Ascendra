@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Platform } from "react-native";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 
@@ -10,38 +11,59 @@ const discovery = {
   tokenEndpoint: "https://oauth2.googleapis.com/token",
 };
 
-// Set once a client ID is registered in Google Cloud Console and added to
-// mobile/.env.local as EXPO_PUBLIC_GOOGLE_CLIENT_ID -- see backend/.env.example
-// for the matching server-side GOOGLE_OAUTH_CLIENT_IDS. Until then the sign-in
-// button stays hidden rather than shipping a broken one.
+// Google requires a separate OAuth client per platform for an installed app
+// (Android is keyed on package name + signing cert SHA-1, iOS on bundle ID --
+// see backend/.env.example for the matching server-side
+// GOOGLE_OAUTH_CLIENT_IDS, which accepts both as valid audiences). Until the
+// current platform's ID is set, the sign-in button stays hidden rather than
+// shipping a broken one.
+//
+// Must be "Android"/"iOS" OAuth client types, not "Web application" --
+// Google's OAuth 2.0 policy blocks the implicit grant once it detects the
+// request is coming from an installed native app, and only installed-app
+// client types support the custom-scheme redirect the authorization-code+PKCE
+// grant below relies on.
 export function getGoogleClientId(): string | null {
-  return process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || null;
+  const id =
+    Platform.OS === "ios"
+      ? process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS
+      : process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID;
+  return id || null;
 }
 
-// Requests response_type "id_token" (OpenID Connect implicit flow) rather
-// than an authorization code -- Google supports this specifically so a
-// public client (no secret, as a mobile app must be) can get a verifiable
-// identity token directly, without a code-exchange step that would need one.
+// Requests response_type "code" with PKCE (S256) -- Google's supported flow
+// for installed apps. Android/iOS client types are public clients (no
+// secret), so the code is exchanged for tokens right here on-device rather
+// than through a backend step, yielding the id_token that
+// /api/auth/oauth/google verifies.
 export function useGoogleAuthRequest() {
   const clientId = getGoogleClientId();
-  const redirectUri = useMemo(() => AuthSession.makeRedirectUri(), []);
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+  const redirectUri = useMemo(() => AuthSession.makeRedirectUri({ scheme: "preplms" }), []);
+  const [request, , promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: clientId ?? "unset",
       redirectUri,
-      responseType: AuthSession.ResponseType.IdToken,
-      usePKCE: false, // PKCE only applies to the code grant; Google 400s ("Parameter not
-      // allowed: code_challenge_method") if it's sent alongside response_type=id_token.
+      responseType: AuthSession.ResponseType.Code,
+      usePKCE: true,
       scopes: ["openid", "profile", "email"],
-      extraParams: { nonce: Math.random().toString(36).slice(2) },
     },
     discovery
   );
-  return { clientId, request, response, promptAsync };
-}
 
-export function extractIdToken(response: AuthSession.AuthSessionResult | null): string | null {
-  if (response?.type !== "success") return null;
-  const idToken = response.params?.id_token;
-  return typeof idToken === "string" ? idToken : null;
+  async function signInAsync(): Promise<string | null> {
+    const result = await promptAsync();
+    if (result.type !== "success" || !request?.codeVerifier) return null;
+    const tokenResponse = await AuthSession.exchangeCodeAsync(
+      {
+        clientId: clientId ?? "unset",
+        code: result.params.code,
+        redirectUri,
+        extraParams: { code_verifier: request.codeVerifier },
+      },
+      discovery
+    );
+    return tokenResponse.idToken ?? null;
+  }
+
+  return { clientId, request, signInAsync };
 }
