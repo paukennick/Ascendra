@@ -2,6 +2,7 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { verifyPassword } from "@/lib/auth/passwords";
+import { sendSecurityAlertEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,12 @@ export async function POST(req: Request) {
       [user.id]
     );
     await query(`delete from mfa_backup_codes where user_id = $1`, [user.id]);
+
+    await sendSecurityAlertEmail(
+      user.email,
+      "Two-factor authentication was turned off",
+      "Two-factor authentication was just disabled on your Ascendra account."
+    ).catch(() => undefined);
 
     return ok({ enabled: false });
   } catch (err) {
