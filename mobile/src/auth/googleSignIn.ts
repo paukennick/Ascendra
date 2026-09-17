@@ -24,6 +24,12 @@ const discovery = {
 // request is coming from an installed native app, and only installed-app
 // client types support a custom-scheme redirect at all.
 export function getGoogleClientId(): string | null {
+  // The Android/iOS client IDs below are installed-app client types tied to
+  // a custom-scheme redirect (see the redirect-URI comment further down) --
+  // that flow doesn't apply in an ordinary browser tab, so web needs its own
+  // "Web application" client type and a different redirect entirely. Until
+  // that's set up, hide the button on web rather than show one that fails.
+  if (Platform.OS === "web") return null;
   const id =
     Platform.OS === "ios"
       ? process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS
