@@ -14,8 +14,8 @@ export async function GET(
     const user = await requireUser(req);
     const userId = user.id;
     const tracks = await query(
-      `select * from subject_tracks where id = $1`,
-      [id]
+      `select * from subject_tracks where id = $1 and user_id = $2`,
+      [id, userId]
     );
     if (!tracks[0]) return notFound("Track not found");
 
