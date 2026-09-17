@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 
@@ -30,13 +31,25 @@ export function getGoogleClientId(): string | null {
   return id || null;
 }
 
-// Google deprecated arbitrary custom-scheme redirects (like our own
-// "preplms://") for Android/iOS OAuth clients -- the *only* custom scheme it
-// still honors is this reserved one, derived from the client ID itself, which
-// is why it must also be registered as an extra scheme in app.json so the OS
-// routes it back to this app.
-function reversedClientIdScheme(clientId: string): string {
-  return `com.googleusercontent.apps.${clientId.replace(".apps.googleusercontent.com", "")}`;
+// Google's native-app redirect convention differs by platform (see "OAuth
+// 2.0 for Mobile & Desktop Apps" in Google's docs) -- sending the wrong one
+// for a given client fails with redirect_uri_mismatch even though the client
+// itself is configured correctly:
+//  - iOS has no OS-level app-identity check, so Google ties the redirect
+//    scheme to the client ID itself (the reversed-client-id form), which is
+//    why it must also be registered as an extra scheme in app.json.
+//  - Android already proves app identity via package name + signing cert, so
+//    Google expects the redirect scheme to just be the app's own package
+//    name -- the reversed-client-id form is not valid there.
+// Both use a single slash before the path (scheme:/path), not the
+// double-slash deep-link form makeRedirectUri's generic joining produces.
+function nativeRedirectUri(clientId: string): string {
+  if (Platform.OS === "ios") {
+    const reversedClientId = `com.googleusercontent.apps.${clientId.replace(".apps.googleusercontent.com", "")}`;
+    return `${reversedClientId}:/oauth2redirect`;
+  }
+  const androidPackage = Constants.expoConfig?.android?.package ?? "com.hel1x.ascendra";
+  return `${androidPackage}:/oauth2redirect`;
 }
 
 // Requests response_type "code" with PKCE (S256) -- Google's supported flow
@@ -47,7 +60,7 @@ function reversedClientIdScheme(clientId: string): string {
 export function useGoogleAuthRequest() {
   const clientId = getGoogleClientId();
   const redirectUri = useMemo(
-    () => AuthSession.makeRedirectUri({ scheme: clientId ? reversedClientIdScheme(clientId) : "preplms", path: "oauth2redirect" }),
+    () => (clientId ? nativeRedirectUri(clientId) : AuthSession.makeRedirectUri({ scheme: "preplms", path: "oauth2redirect" })),
     [clientId]
   );
   const [request, , promptAsync] = AuthSession.useAuthRequest(
