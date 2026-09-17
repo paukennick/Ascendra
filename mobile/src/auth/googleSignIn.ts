@@ -4,7 +4,15 @@ import Constants from "expo-constants";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 
-WebBrowser.maybeCompleteAuthSession();
+// Native-only: completes a pending in-app-browser auth session. Google
+// sign-in itself is hidden on web (see getGoogleClientId below), so this
+// has nothing to do there -- and web is exactly where this app is now
+// served from an https:// origin for the first time (native builds only
+// ever hit http://<lan-ip> during dev), so it's the prime suspect for
+// anything that behaves differently only under https.
+if (Platform.OS !== "web") {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 // Google's own discovery document -- avoids hardcoding its OAuth endpoints.
 const discovery = {
