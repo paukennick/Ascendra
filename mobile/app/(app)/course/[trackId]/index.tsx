@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -37,6 +37,15 @@ export default function CourseDashboard() {
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Marks this as a "studied" course once per visit (not per refocus --
+  // that's what drives Home's "Continue studying" hero and the sidebar's
+  // Recent Courses; nothing was calling this before, so neither could ever
+  // populate). Fire-and-forget: this is background bookkeeping, not
+  // something the user needs to see succeed or fail.
+  useEffect(() => {
+    api.post("/api/sessions", { trackId }).catch(() => undefined);
+  }, [trackId]);
 
   const toggleFavorite = useCallback(() => {
     setTrack((prev) => (prev ? { ...prev, is_favorite: !prev.is_favorite } : prev));
