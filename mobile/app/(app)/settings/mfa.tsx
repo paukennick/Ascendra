@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Image, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
@@ -10,6 +11,7 @@ import {
   EmptyState,
   ErrorBanner,
   H2,
+  IconButton,
   Muted,
   Screen,
   Tag,
@@ -31,6 +33,14 @@ export default function MfaSettings() {
   const [code, setCode] = useState("");
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [password, setPassword] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function copySecret() {
+    if (!manualSecret) return;
+    await Clipboard.setStringAsync(manualSecret);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   async function startSetup() {
     setError(null);
@@ -135,10 +145,12 @@ export default function MfaSettings() {
           {qrDataUrl ? (
             <Image source={{ uri: qrDataUrl }} style={{ width: 220, height: 220, borderRadius: radius.md }} />
           ) : null}
-          <Muted style={{ textAlign: "center" }}>Can't scan? Enter this code manually:</Muted>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
+          <Muted style={{ textAlign: "center" }}>Can't scan? Copy this code into your authenticator app:</Muted>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Tag label={manualSecret ?? ""} />
+            <IconButton icon={copied ? "check" : "copy"} size={32} onPress={copySecret} />
           </View>
+          {copied ? <Muted style={{ color: colors.good }}>Copied to clipboard</Muted> : null}
         </Card>
         <Card>
           <TextField

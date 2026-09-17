@@ -121,23 +121,31 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 
           <NavRow icon="home" label="All courses" onPress={() => go("/")} />
 
-          {favorites.length ? (
+          {tracks ? (
             <>
               <View style={styles.divider} />
               <Text style={styles.groupLabel}>FAVORITES</Text>
-              {favorites.map((t) => (
-                <CourseRow key={t.id} track={t} busy={enteringId === t.id} onPress={() => chooseEntry(t)} />
-              ))}
+              {favorites.length ? (
+                favorites.map((t) => (
+                  <CourseRow key={t.id} track={t} busy={enteringId === t.id} onPress={() => chooseEntry(t)} />
+                ))
+              ) : (
+                <Text style={styles.emptyHint}>Tap the star on a course to pin it here.</Text>
+              )}
             </>
           ) : null}
 
-          {recent.length ? (
+          {tracks ? (
             <>
               <View style={styles.divider} />
               <Text style={styles.groupLabel}>RECENT COURSES</Text>
-              {recent.map((t) => (
-                <CourseRow key={t.id} track={t} busy={enteringId === t.id} onPress={() => chooseEntry(t)} />
-              ))}
+              {recent.length ? (
+                recent.map((t) => (
+                  <CourseRow key={t.id} track={t} busy={enteringId === t.id} onPress={() => chooseEntry(t)} />
+                ))
+              ) : (
+                <Text style={styles.emptyHint}>Courses you study will show up here.</Text>
+              )}
             </>
           ) : null}
 
@@ -252,6 +260,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.monoMedium,
     fontSize: 10,
     letterSpacing: 1,
+    color: colors.mutedDim,
+    paddingHorizontal: 10,
+    paddingBottom: 4,
+  },
+  emptyHint: {
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.mutedDim,
     paddingHorizontal: 10,
     paddingBottom: 4,
