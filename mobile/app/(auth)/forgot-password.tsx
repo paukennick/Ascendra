@@ -54,6 +54,7 @@ export default function ForgotPassword() {
           placeholder="you@example.com"
           keyboardType="email-address"
           textContentType="emailAddress"
+          autoComplete="email"
           icon="mail"
         />
         <Button label="Send reset link" onPress={onSubmit} loading={status === "submitting"} icon="send" />

@@ -20,6 +20,8 @@ interface UserRow {
   failed_login_count: number;
   locked_until: string | null;
   mfa_enabled: boolean;
+  totp_secret_enc: string | null;
+  email_mfa_enabled: boolean;
 }
 
 // POST /api/auth/login — { email, password, deviceLabel? }
@@ -35,7 +37,8 @@ export async function POST(req: Request) {
     const userAgent = getUserAgent(req);
 
     const user = await queryOne<UserRow>(
-      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until, mfa_enabled
+      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until,
+              mfa_enabled, totp_secret_enc, email_mfa_enabled
        from app_users where email = $1`,
       [normalizedEmail]
     );
@@ -82,7 +85,11 @@ export async function POST(req: Request) {
     if (user.mfa_enabled) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
       const challengeToken = await createLoginChallenge(user.id, meta);
-      return ok({ mfaRequired: true, challengeToken });
+      return ok({
+        mfaRequired: true,
+        challengeToken,
+        mfaMethods: { totp: !!user.totp_secret_enc, email: user.email_mfa_enabled },
+      });
     }
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });

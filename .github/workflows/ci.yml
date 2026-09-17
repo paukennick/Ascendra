@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  backend:
+    name: Backend (typecheck, build, audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm run typecheck
+        working-directory: backend
+      # Real secrets are never needed at build time (every server module reads
+      # process.env lazily, inside request handlers -- see lib/db.ts,
+      # lib/email.ts), but Next.js still needs the names present so nothing
+      # throws while it traces/bundles routes.
+      - run: npm run build
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://user:pass@localhost:5432/ci_placeholder
+          AUTH_JWT_SECRET: ci-placeholder-jwt-secret
+          AUTH_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000=
+          APP_BASE_URL: http://localhost:3000
+          GOOGLE_OAUTH_CLIENT_IDS: ci-placeholder.apps.googleusercontent.com
+          RESEND_API_KEY: re_ci_placeholder
+          ANTHROPIC_API_KEY: sk-ant-ci-placeholder
+      # Blocking: this package is currently clean, so a newly introduced
+      # high/critical advisory should fail CI rather than go unnoticed.
+      - run: npm audit --audit-level=high
+        working-directory: backend
+
+  mobile:
+    name: Mobile (typecheck, audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        working-directory: mobile
+      - run: npm run typecheck
+        working-directory: mobile
+      # Report-only, not blocking: Expo's own CLI toolchain currently ships
+      # transitive advisories (uuid/bunyan/xcode, build-time only, not in the
+      # shipped app bundle) with no non-breaking fix available. Gating on
+      # this would make the check permanently red instead of meaningful --
+      # revisit turning this blocking once `npm audit fix` (or an Expo SDK
+      # bump) actually clears it.
+      - run: npm audit --audit-level=high || true
+        working-directory: mobile
+
+  omni-workspace:
+    name: OmniEngineering workspace freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Blocking: regenerates the same files `./omni sync` / `./omni map`
+      # produce locally and fails if that's not what's committed -- catches
+      # the exact drift this workspace had (project-map.md describing the
+      # wrong repo) automatically, since nothing else runs these on a
+      # schedule or on commit.
+      - run: python omni sync
+      - run: python omni map
+      - run: git diff --exit-code -- .ai .cursorignore .cursorrules AGENTS.md CLAUDE.md LLM_CONTEXT.md .github/copilot-instructions.md .kiro/steering/omnicontext.md
+      # Report-only: omni doctor also fails on checks that assume this repo
+      # IS OmniEngineering's own project (a LICENSE/NOTICE/TRADEMARKS.md for
+      # OmniEngineering itself, backend/ and mobile/ flagged as "unexpected
+      # paths"). Those don't apply to an adopted repo like this one and
+      # there's no flag to scope them off, so this step is visibility only --
+      # read its output in the job log rather than relying on its exit code.
+      - run: python omni doctor || true

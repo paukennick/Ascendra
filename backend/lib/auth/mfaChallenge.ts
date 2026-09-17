@@ -51,3 +51,27 @@ export async function getLoginChallenge(rawToken: string): Promise<{ id: string;
 export async function markChallengeConsumed(id: string): Promise<void> {
   await query(`update login_challenges set consumed_at = now() where id = $1`, [id]);
 }
+
+// Called by /api/auth/mfa/challenge/send-email-code once a fresh code is
+// generated and emailed -- overwrites any earlier code for this same
+// challenge, so only the most recently sent one still works.
+export async function setChallengeEmailCode(id: string, codeHash: string, expiresAt: Date): Promise<void> {
+  await query(`update login_challenges set email_code_hash = $1, email_code_expires_at = $2 where id = $3`, [
+    codeHash,
+    expiresAt,
+    id,
+  ]);
+}
+
+// Read by /api/auth/mfa/verify as a fallback once TOTP/backup-code checks
+// fail -- null if no email code was ever sent for this challenge, or it
+// already expired.
+export async function getChallengeEmailCode(id: string): Promise<{ hash: string } | null> {
+  const row = await queryOne<{ email_code_hash: string | null; email_code_expires_at: string | null }>(
+    `select email_code_hash, email_code_expires_at from login_challenges where id = $1`,
+    [id]
+  );
+  if (!row?.email_code_hash || !row.email_code_expires_at) return null;
+  if (new Date(row.email_code_expires_at).getTime() < Date.now()) return null;
+  return { hash: row.email_code_hash };
+}

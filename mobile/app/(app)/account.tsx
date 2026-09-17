@@ -290,6 +290,15 @@ export default function Account() {
         <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
       </Card>
 
+      <SectionHeader label="Legal" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="file-text" label="Terms & Disclaimer" onPress={() => router.push("/terms")} />
+        <Divider />
+        <ListRow icon="shield" label="Privacy Policy" onPress={() => router.push("/privacy")} />
+        <Divider />
+        <ListRow icon="database" label="Cookies & Storage" onPress={() => router.push("/cookies")} />
+      </Card>
+
       <SectionHeader label="Danger zone" />
       <Card>
         {deleting ? (

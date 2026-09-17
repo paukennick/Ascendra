@@ -56,14 +56,26 @@ export default function ChangePassword() {
           value={currentPassword}
           onChangeText={setCurrentPassword}
           secureTextEntry
+          textContentType="password"
+          autoComplete="current-password"
           icon="lock"
         />
-        <TextField label="New password" value={newPassword} onChangeText={setNewPassword} secureTextEntry icon="lock" />
+        <TextField
+          label="New password"
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry
+          textContentType="newPassword"
+          autoComplete="new-password"
+          icon="lock"
+        />
         <TextField
           label="Confirm new password"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
+          textContentType="newPassword"
+          autoComplete="new-password"
           icon="lock"
         />
         <Button label="Change password" onPress={submit} loading={busy} disabled={!currentPassword || !newPassword} />

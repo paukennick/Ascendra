@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { AppState, Platform } from "react-native";
 import { secureStorage } from "@/lib/secureStorage";
 import { isBiometricAvailable, confirmBiometric, getBiometricLabel } from "@/lib/biometric";
 import { api, ApiError, registerAuthHooks } from "@/api/client";
@@ -20,6 +21,7 @@ export interface LoginResult {
   emailVerificationRequired?: boolean;
   mfaRequired?: boolean;
   challengeToken?: string;
+  mfaMethods?: { totp: boolean; email: boolean };
 }
 
 interface AuthContextValue {
@@ -42,6 +44,10 @@ interface AuthContextValue {
   disableBiometric: () => Promise<void>;
   unlockWithBiometric: () => Promise<boolean>;
   useFallbackSignIn: () => Promise<void>;
+  // Web only -- seconds until the 30-minute idle timeout signs the user out,
+  // once inside its warning window; null the rest of the time. See the
+  // idle-timeout effect below.
+  webIdleWarningSecondsLeft: number | null;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -58,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState("Biometric unlock");
+  const [webIdleWarningSecondsLeft, setWebIdleWarningSecondsLeft] = useState<number | null>(null);
 
   // Access token lives only in memory, never persisted. The refresh token is
   // cached in memory too once known for this app launch, so a biometric
@@ -188,13 +195,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   type LoginResponse =
     | { accessToken: string; refreshToken: string; user: AuthUser; mfaRequired?: undefined }
-    | { mfaRequired: true; challengeToken: string };
+    | { mfaRequired: true; challengeToken: string; mfaMethods: { totp: boolean; email: boolean } };
 
   const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
     try {
       const res = await api.post<LoginResponse>("/api/auth/login", { email, password });
       if (res.mfaRequired) {
-        return { mfaRequired: true, challengeToken: res.challengeToken };
+        return { mfaRequired: true, challengeToken: res.challengeToken, mfaMethods: res.mfaMethods };
       }
       await applySession(res);
       return {};
@@ -217,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = useCallback(async (idToken: string): Promise<LoginResult> => {
     const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken });
     if (res.mfaRequired) {
-      return { mfaRequired: true, challengeToken: res.challengeToken };
+      return { mfaRequired: true, challengeToken: res.challengeToken, mfaMethods: res.mfaMethods };
     }
     await applySession(res);
     return {};
@@ -246,6 +253,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await clearBiometricEnrollment();
     await clearAuth();
   }, [clearAuth, clearBiometricEnrollment]);
+
+  // Backgrounding covers both "app closed" (swiped away/switched from) and
+  // "phone screen lock engaged" -- the OS doesn't hand JS a separate signal
+  // for the two, they both surface as the same active -> background
+  // transition. A biometric-enrolled device re-locks (the next foreground
+  // shows /lock, same as a cold start); everyone else is signed out
+  // outright, same as tapping "Log out". Only "background" triggers this,
+  // not the transient "inactive" state iOS reports for things like an
+  // incoming call banner or the control center -- treating those as a full
+  // background would sign people out for interruptions that never actually
+  // left the app.
+  useEffect(() => {
+    if (Platform.OS === "web") return; // web has its own idle-timeout sign-out, below
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next === "background" && status === "signedIn") {
+        if (biometricEnabledRef.current) {
+          setStatus("locked");
+        } else {
+          logout();
+        }
+      }
+    });
+    return () => sub.remove();
+  }, [status, logout]);
+
+  // Web's counterpart to the native background lock/logout above: there's no
+  // "app closed" or "screen lock" event in a browser tab, so idle time is
+  // the proxy signal instead. No biometric re-lock option here either
+  // (isBiometricAvailable() is hard-`false` on web -- see lib/biometric.ts),
+  // so this always fully signs out, matching a device with biometrics off.
+  // The last WEB_IDLE_WARNING_LEAD_MS of that window surfaces a countdown
+  // (see webIdleWarningSecondsLeft, rendered by the root layout) instead of
+  // signing out with no notice -- any activity, including dismissing that
+  // warning, resets the clock via the same listeners below.
+  const WEB_IDLE_LIMIT_MS = 30 * 60 * 1000;
+  const WEB_IDLE_WARNING_LEAD_MS = 60 * 1000;
+  useEffect(() => {
+    if (Platform.OS !== "web" || status !== "signedIn") {
+      setWebIdleWarningSecondsLeft(null);
+      return;
+    }
+    let lastActivityAt = Date.now();
+    const markActive = () => {
+      lastActivityAt = Date.now();
+    };
+    const activityEvents = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+    activityEvents.forEach((evt) => window.addEventListener(evt, markActive, { passive: true }));
+    const interval = setInterval(() => {
+      const idleFor = Date.now() - lastActivityAt;
+      if (idleFor >= WEB_IDLE_LIMIT_MS) {
+        logout();
+        return;
+      }
+      const remaining = WEB_IDLE_LIMIT_MS - idleFor;
+      setWebIdleWarningSecondsLeft(remaining <= WEB_IDLE_WARNING_LEAD_MS ? Math.ceil(remaining / 1000) : null);
+    }, 1000);
+    return () => {
+      activityEvents.forEach((evt) => window.removeEventListener(evt, markActive));
+      clearInterval(interval);
+      setWebIdleWarningSecondsLeft(null);
+    };
+  }, [status, logout]);
 
   // Enrollment: confirm the device can actually authenticate *before*
   // Ascendra starts relying on it, then move the refresh token to the
@@ -343,6 +412,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         disableBiometric,
         unlockWithBiometric,
         useFallbackSignIn,
+        webIdleWarningSecondsLeft,
       }}
     >
       {children}

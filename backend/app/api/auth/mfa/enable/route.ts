@@ -8,8 +8,10 @@ export const dynamic = "force-dynamic";
 
 // POST /api/auth/mfa/enable — { code } — proves the user's authenticator app
 // actually has the secret from /api/auth/mfa/setup by requiring one valid
-// code from it, then activates MFA and issues one-time backup codes (shown
-// exactly once in this response -- only their hashes are ever stored).
+// code from it, then activates TOTP and issues its own set of one-time
+// backup codes (shown exactly once in this response -- only their hashes
+// are ever stored). These are TOTP-scoped -- email-code MFA (see
+// /api/auth/mfa/email/enable) has its own independent set.
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
@@ -44,11 +46,13 @@ export async function POST(req: Request) {
        where id = $2`,
       [encrypt(pendingSecret), user.id]
     );
-    // Enabling replaces any previous backup codes -- old ones from a prior
-    // enrollment shouldn't keep working against a new secret.
-    await query(`delete from mfa_backup_codes where user_id = $1`, [user.id]);
+    // Enabling replaces any previous TOTP backup codes -- old ones from a
+    // prior enrollment shouldn't keep working against a new secret. Only
+    // this method's codes are touched; email-code MFA's own codes (if any)
+    // are untouched.
+    await query(`delete from mfa_backup_codes where user_id = $1 and method = 'totp'`, [user.id]);
     await query(
-      `insert into mfa_backup_codes (user_id, code_hash) select $1, unnest($2::text[])`,
+      `insert into mfa_backup_codes (user_id, method, code_hash) select $1, 'totp', unnest($2::text[])`,
       [user.id, hashed]
     );
 
