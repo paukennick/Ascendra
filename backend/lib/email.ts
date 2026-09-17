@@ -42,3 +42,25 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
     html: `<p>Someone (hopefully you) requested a password reset.</p><p><a href="${url}">Reset password</a></p><p>This link expires in 1 hour. If you didn't request this, ignore this email — your password won't change.</p>`,
   });
 }
+
+export async function sendEmailChangeConfirmation(newEmail: string, token: string): Promise<void> {
+  const url = `${getAppBaseUrl()}/confirm-email-change?token=${encodeURIComponent(token)}`;
+  await getClient().emails.send({
+    from: getFrom(),
+    to: newEmail,
+    subject: "Confirm your new Ascendra email address",
+    html: `<p>Confirm this is your new email address for Ascendra.</p><p><a href="${url}">Confirm email change</a></p><p>This link expires in 1 hour. If you didn't request this, ignore this email — your address won't change.</p>`,
+  });
+}
+
+// Best-effort security notifications (new sign-in, password changed, MFA
+// disabled). Never let a failure here break the action that triggered it --
+// callers should catch/ignore rejections from this function.
+export async function sendSecurityAlertEmail(to: string, subject: string, message: string): Promise<void> {
+  await getClient().emails.send({
+    from: getFrom(),
+    to,
+    subject,
+    html: `<p>${message}</p><p>If this wasn't you, change your password immediately and review your active sessions in Ascendra's Account settings.</p>`,
+  });
+}
