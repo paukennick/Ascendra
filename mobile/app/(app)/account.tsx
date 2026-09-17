@@ -1,19 +1,41 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, Share, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { api } from "@/api/client";
-import { Avatar, Button, Card, Divider, H2, ListRow, Muted, Screen, SectionHeader, TextField } from "@/components/ui";
+import { useGoogleAuthRequest } from "@/auth/googleSignIn";
+import {
+  Avatar,
+  Button,
+  Card,
+  Divider,
+  ErrorBanner,
+  H2,
+  ListRow,
+  Muted,
+  Screen,
+  SectionHeader,
+  TextField,
+} from "@/components/ui";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Account() {
+  const router = useRouter();
   const { user, logout, logoutAll, refreshUser } = useAuth();
+  const { clientId, signInAsync } = useGoogleAuthRequest();
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.displayName ?? "");
   const [nameBusy, setNameBusy] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   async function uploadAvatar(asset: ImagePicker.ImagePickerAsset) {
     if (!asset.base64) return;
@@ -102,6 +124,70 @@ export default function Account() {
     }
   }
 
+  async function connectGoogle() {
+    setGoogleBusy(true);
+    try {
+      const idToken = await signInAsync();
+      if (!idToken) return;
+      await api.post("/api/auth/oauth/google/link", { idToken });
+      await refreshUser();
+    } catch (err) {
+      Alert.alert("Couldn't connect Google", (err as Error).message);
+    } finally {
+      setGoogleBusy(false);
+    }
+  }
+
+  function disconnectGoogle() {
+    Alert.alert("Disconnect Google?", "You'll only be able to sign in with your password afterward.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Disconnect",
+        style: "destructive",
+        onPress: async () => {
+          setGoogleBusy(true);
+          try {
+            await api.delete("/api/auth/oauth/google/link");
+            await refreshUser();
+          } catch (err) {
+            Alert.alert("Couldn't disconnect Google", (err as Error).message);
+          } finally {
+            setGoogleBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  async function exportData() {
+    setExportBusy(true);
+    try {
+      const data = await api.get<Record<string, unknown>>("/api/account/export");
+      await Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" });
+    } catch (err) {
+      Alert.alert("Couldn't export data", (err as Error).message);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (user?.hasPassword && !deletePassword) {
+      setDeleteError("Enter your password to confirm.");
+      return;
+    }
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      await api.delete("/api/account", user?.hasPassword ? { password: deletePassword } : undefined);
+      await logout();
+    } catch (err) {
+      setDeleteError((err as Error).message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
   return (
     <Screen>
       <Card style={{ alignItems: "center", gap: 4, paddingVertical: 24 }}>
@@ -152,11 +238,84 @@ export default function Account() {
         <Muted>{user?.email}</Muted>
       </Card>
 
+      <SectionHeader label="Sign-in" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="mail" label="Change email" onPress={() => router.push("/account/change-email")} />
+        {user?.hasPassword ? (
+          <>
+            <Divider />
+            <ListRow icon="lock" label="Change password" onPress={() => router.push("/account/change-password")} />
+          </>
+        ) : null}
+        <Divider />
+        {googleBusy ? (
+          <ListRow icon="globe" label="Google" value="Working..." />
+        ) : user?.googleLinked ? (
+          <ListRow
+            icon="globe"
+            label="Google"
+            value={user?.hasPassword ? "Connected · Disconnect" : "Connected"}
+            onPress={user?.hasPassword ? disconnectGoogle : undefined}
+          />
+        ) : (
+          <ListRow icon="globe" label="Google" value={clientId ? "Connect" : "Unavailable"} onPress={clientId ? connectGoogle : undefined} />
+        )}
+      </Card>
+
+      <SectionHeader label="Devices" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="smartphone" label="Active sessions" onPress={() => router.push("/account/sessions")} />
+      </Card>
+      <Card>
+        <Muted>
+          Using a new phone or computer? Just sign in there with your email and password (or Google) — your
+          courses and progress are saved to your account, not this device.
+        </Muted>
+      </Card>
+
+      <SectionHeader label="Your data" />
+      <Card style={{ gap: 0 }}>
+        <ListRow
+          icon="download"
+          label="Export my data"
+          onPress={exportData}
+          right={exportBusy ? <ActivityIndicator size="small" color={colors.accent} /> : undefined}
+        />
+      </Card>
+
       <SectionHeader label="Session" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="log-out" label="Log out" onPress={() => logout()} />
         <Divider />
         <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
+      </Card>
+
+      <SectionHeader label="Danger zone" />
+      <Card>
+        {deleting ? (
+          <>
+            <Muted>
+              This permanently deletes your account and everything in it — courses, progress, history, chat. This
+              can't be undone.
+            </Muted>
+            {deleteError ? <ErrorBanner message={deleteError} /> : null}
+            {user?.hasPassword ? (
+              <TextField
+                label="Password"
+                value={deletePassword}
+                onChangeText={setDeletePassword}
+                secureTextEntry
+                icon="lock"
+              />
+            ) : null}
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button label="Permanently delete" variant="danger" onPress={confirmDelete} loading={deleteBusy} size="sm" />
+              <Button label="Cancel" variant="ghost" size="sm" onPress={() => { setDeleting(false); setDeletePassword(""); setDeleteError(null); }} />
+            </View>
+          </>
+        ) : (
+          <ListRow icon="trash-2" label="Delete account" onPress={() => setDeleting(true)} danger />
+        )}
       </Card>
     </Screen>
   );
