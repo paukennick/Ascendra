@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,7 +13,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { colors, radius, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
+import { colors, fonts, radius, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
 
 type IconName = React.ComponentProps<typeof Feather>["name"];
 type TextStyleProp = React.ComponentProps<typeof Text>["style"];
@@ -114,13 +115,31 @@ export function Divider({ style }: { style?: ViewStyle }) {
   return <View style={[styles.divider, style]} />;
 }
 
-export function Avatar({ name, size = 40 }: { name?: string | null; size?: number }) {
+export function Avatar({
+  name,
+  size = 40,
+  imageUri,
+}: {
+  name?: string | null;
+  size?: number;
+  imageUri?: string | null;
+}) {
   const initials = (name ?? "?")
     .trim()
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "?";
+
+  if (imageUri) {
+    return (
+      <Image
+        source={{ uri: imageUri }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+      />
+    );
+  }
+
   return (
     <View
       style={[
@@ -128,7 +147,7 @@ export function Avatar({ name, size = 40 }: { name?: string | null; size?: numbe
         { width: size, height: size, borderRadius: size / 2 },
       ]}
     >
-      <Text style={{ color: colors.accent, fontWeight: "700", fontSize: size * 0.38 }}>{initials}</Text>
+      <Text style={{ color: colors.accent, fontFamily: fonts.displayBold, fontSize: size * 0.38 }}>{initials}</Text>
     </View>
   );
 }
@@ -288,6 +307,40 @@ export function IconButton({
   );
 }
 
+// Star toggle used on course cards. Deliberately its own small component
+// rather than a generic IconButton variant -- filled/outline plus color
+// swap on toggle is specific enough to this one interaction to keep separate.
+export function FavoriteButton({
+  active,
+  onPress,
+  size = 36,
+}: {
+  active: boolean;
+  onPress: () => void;
+  size?: number;
+}) {
+  const { scale, onPressIn, onPressOut } = useScalePress(0.85);
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        hitSlop={8}
+        style={[
+          { width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center" },
+          active && { backgroundColor: withAlpha(colors.warn, 0.16) },
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={active ? "Remove from favorites" : "Add to favorites"}
+        accessibilityState={{ selected: active }}
+      >
+        <Feather name="star" size={size * 0.5} color={active ? colors.warn : colors.mutedDim} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function TextField({
   label,
   value,
@@ -389,7 +442,7 @@ export function EmptyState({
       <View style={styles.emptyIconWrap}>
         <Feather name={icon} size={24} color={colors.mutedDim} />
       </View>
-      <Body style={{ fontWeight: "600" }}>{title}</Body>
+      <Body style={{ fontFamily: fonts.bodySemiBold }}>{title}</Body>
       {message ? <Muted style={{ textAlign: "center" }}>{message}</Muted> : null}
     </View>
   );
@@ -401,12 +454,16 @@ export function ListRow({
   value,
   onPress,
   danger,
+  right,
 }: {
   icon: IconName;
   label: string;
   value?: string;
   onPress?: () => void;
   danger?: boolean;
+  // Replaces the value text + chevron with a custom control (e.g. a Switch)
+  // for rows that toggle a setting rather than navigate somewhere.
+  right?: React.ReactNode;
 }) {
   const content = (
     <View style={styles.listRow}>
@@ -414,11 +471,17 @@ export function ListRow({
         <Feather name={icon} size={16} color={danger ? colors.bad : colors.accent} />
       </View>
       <Text style={[styles.listRowLabel, danger && { color: colors.bad }]}>{label}</Text>
-      {value ? <Muted numberOfLines={1} style={{ maxWidth: 140 }}>{value}</Muted> : null}
-      {onPress ? <Feather name="chevron-right" size={18} color={colors.mutedDim} /> : null}
+      {right ? (
+        right
+      ) : (
+        <>
+          {value ? <Muted numberOfLines={1} style={{ maxWidth: 140 }}>{value}</Muted> : null}
+          {onPress ? <Feather name="chevron-right" size={18} color={colors.mutedDim} /> : null}
+        </>
+      )}
     </View>
   );
-  if (!onPress) return content;
+  if (!onPress || right) return content;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => pressed && { opacity: 0.7 }}>
       {content}
@@ -445,16 +508,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: spacing.sm,
   },
-  h1: { color: colors.text, fontSize: 26, fontWeight: "800", letterSpacing: -0.4 },
-  h2: { color: colors.text, fontSize: 18, fontWeight: "700" },
-  h3: { color: colors.text, fontSize: 15, fontWeight: "700" },
-  body: { color: colors.text, fontSize: 14, lineHeight: 21 },
-  muted: { color: colors.muted, fontSize: 13, lineHeight: 18 },
+  h1: { color: colors.text, fontFamily: fonts.displayBold, fontSize: 26 },
+  h2: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 19 },
+  h3: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 16 },
+  body: { color: colors.text, fontFamily: fonts.body, fontSize: 15, lineHeight: 23 },
+  muted: { color: colors.muted, fontFamily: fonts.body, fontSize: 13, lineHeight: 19 },
   sectionHeader: {
-    fontSize: 12,
-    fontWeight: "800",
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     color: colors.mutedDim,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
@@ -467,7 +530,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     ...shadow.sm,
   },
-  brandName: { color: colors.text, fontSize: 20, fontWeight: "800", letterSpacing: -0.3 },
+  brandName: { color: colors.text, fontFamily: fonts.displayBold, fontSize: 20 },
   avatar: {
     backgroundColor: colors.accentDim,
     alignItems: "center",
@@ -484,7 +547,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     alignSelf: "flex-start",
   },
-  badgeText: { fontSize: 12, fontWeight: "700" },
+  badgeText: { fontFamily: fonts.monoMedium, fontSize: 11 },
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -496,7 +559,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { color: colors.muted, fontWeight: "600", fontSize: 13 },
+  chipText: { color: colors.muted, fontFamily: fonts.bodySemiBold, fontSize: 13 },
   chipTextActive: { color: colors.accentText },
   button: {
     flexDirection: "row",
@@ -507,9 +570,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonSm: { paddingVertical: 9, paddingHorizontal: 14 },
-  buttonText: { fontWeight: "700", fontSize: 14 },
+  buttonText: { fontFamily: fonts.bodySemiBold, fontSize: 14 },
   linkButton: { paddingVertical: 10, alignItems: "center", flexDirection: "row", justifyContent: "center" },
-  linkText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+  linkText: { color: colors.accent, fontFamily: fonts.bodySemiBold, fontSize: 14 },
   iconButton: {
     alignItems: "center",
     justifyContent: "center",
@@ -517,7 +580,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  fieldLabel: { color: colors.muted, fontSize: 13, fontWeight: "600" },
+  fieldLabel: { color: colors.muted, fontFamily: fonts.bodySemiBold, fontSize: 13 },
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -531,6 +594,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.text,
     paddingVertical: 13,
+    fontFamily: fonts.body,
     fontSize: 15,
   },
   progressTrack: {
@@ -577,5 +641,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  listRowLabel: { color: colors.text, fontSize: 14, fontWeight: "600", flex: 1 },
+  listRowLabel: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 14, flex: 1 },
 });

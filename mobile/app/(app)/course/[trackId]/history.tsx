@@ -9,7 +9,7 @@ import { spacing } from "@/lib/theme";
 const KINDS = ["all", "lesson", "quiz", "pbq", "unitcheck", "lab"] as const;
 
 export default function HistoryScreen() {
-  const { trackId } = useLocalSearchParams<{ trackId: string }>();
+  const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const [attempts, setAttempts] = useState<Attempt[] | null>(null);
   const [kind, setKind] = useState<typeof KINDS[number]>("all");
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +29,7 @@ export default function HistoryScreen() {
   return (
     <Screen>
       <H1>Answer history</H1>
+      {trackTitle ? <Muted>{trackTitle}</Muted> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
         {KINDS.map((k) => (
           <Chip key={k} label={k} active={k === kind} onPress={() => setKind(k)} />

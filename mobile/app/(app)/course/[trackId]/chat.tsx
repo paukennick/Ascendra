@@ -8,7 +8,7 @@ import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
 
 export default function ChatScreen() {
-  const { trackId } = useLocalSearchParams<{ trackId: string }>();
+  const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,7 +57,7 @@ export default function ChatScreen() {
           </View>
           <View>
             <H1 style={{ fontSize: 19 }}>Ask the coach</H1>
-            <Muted>Open Q&A — not graded, doesn't touch mastery</Muted>
+            <Muted>{trackTitle ? `${trackTitle} · ` : ""}Open Q&A — not graded, doesn't touch mastery</Muted>
           </View>
         </View>
 

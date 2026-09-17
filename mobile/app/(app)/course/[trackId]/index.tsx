@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Track, Unit } from "@/types";
 import {
@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   ErrorBanner,
+  FavoriteButton,
   H1,
   H2,
   IconButton,
@@ -19,7 +20,8 @@ import {
   Screen,
   SectionHeader,
 } from "@/components/ui";
-import { colors, spacing } from "@/lib/theme";
+import { Sidebar } from "@/components/Sidebar";
+import { colors, fonts, spacing } from "@/lib/theme";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -34,6 +36,14 @@ export default function CourseDashboard() {
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleFavorite = useCallback(() => {
+    setTrack((prev) => (prev ? { ...prev, is_favorite: !prev.is_favorite } : prev));
+    api.patch(`/api/courses/${trackId}/favorite`, { favorite: !track?.is_favorite }).catch(() => {
+      setTrack((prev) => (prev ? { ...prev, is_favorite: !prev.is_favorite } : prev));
+    });
+  }, [trackId, track?.is_favorite]);
 
   const load = useCallback(() => {
     setError(null);
@@ -59,18 +69,35 @@ export default function CourseDashboard() {
 
   return (
     <Screen>
+      <Stack.Screen
+        options={{
+          title: track?.title ?? "Course",
+          headerLeft: () => (
+            <View style={{ flexDirection: "row" }}>
+              <IconButton icon="chevron-left" onPress={() => router.back()} size={34} />
+              <IconButton icon="menu" onPress={() => setSidebarOpen(true)} size={34} />
+            </View>
+          ),
+        }}
+      />
+      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} trackId={trackId} track={track} units={units} />
       {error ? <ErrorBanner message={error} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
       {track ? (
         <>
-          <H1>{track.title}</H1>
-          <Muted>{track.description}</Muted>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <View style={{ flex: 1 }}>
+              <H1>{track.title}</H1>
+              <Muted>{track.description}</Muted>
+            </View>
+            <FavoriteButton active={!!track.is_favorite} onPress={toggleFavorite} />
+          </View>
 
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Muted>Overall progress</Muted>
-              <Muted style={{ color: colors.accent, fontWeight: "700" }}>{track.percent_complete ?? 0}%</Muted>
+              <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{track.percent_complete ?? 0}%</Muted>
             </View>
             <ProgressBar percent={track.percent_complete ?? 0} />
 
@@ -85,7 +112,7 @@ export default function CourseDashboard() {
                 if (nextObjective)
                   router.push({
                     pathname: `/course/${trackId}/lesson/${nextObjective.id}`,
-                    params: { unitId: continueUnit?.id },
+                    params: { unitId: continueUnit?.id, objectiveTitle: nextObjective.title },
                   });
               }}
             />
@@ -93,7 +120,15 @@ export default function CourseDashboard() {
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
               {QUICK_ACTIONS.map((a) => (
                 <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>
-                  <IconButton icon={a.icon} onPress={() => router.push(`/course/${trackId}/${a.path}`)} />
+                  <IconButton
+                    icon={a.icon}
+                    onPress={() =>
+                      router.push({
+                        pathname: `/course/${trackId}/${a.path}`,
+                        params: { trackTitle: track.title },
+                      })
+                    }
+                  />
                   <Muted style={{ textAlign: "center", fontSize: 11 }}>{a.label}</Muted>
                 </View>
               ))}
@@ -133,7 +168,7 @@ export default function CourseDashboard() {
                         const next = u.objectives?.find((ob) => ob.mastery_status !== "Independent" && ob.mastery_status !== "Transfer-ready") ?? o;
                         router.push({
                           pathname: `/course/${trackId}/lesson/${next.id}`,
-                          params: { unitId: u.id },
+                          params: { unitId: u.id, objectiveTitle: next.title },
                         });
                       }}
                     />
@@ -145,7 +180,12 @@ export default function CourseDashboard() {
                       size="sm"
                       fullWidth={false}
                       icon="layers"
-                      onPress={() => router.push({ pathname: `/course/${trackId}/pbq`, params: { unitId: u.id } })}
+                      onPress={() =>
+                        router.push({
+                          pathname: `/course/${trackId}/pbq`,
+                          params: { unitId: u.id, trackTitle: track.title },
+                        })
+                      }
                     />
                   ) : null}
                 </View>

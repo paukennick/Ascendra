@@ -5,10 +5,10 @@ import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { GradeResult, PBQScenario } from "@/types";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Muted, Screen, Tag, VerdictBadge } from "@/components/ui";
-import { colors, radius } from "@/lib/theme";
+import { colors, fonts, radius } from "@/lib/theme";
 
 export default function PBQScreen() {
-  const { unitId } = useLocalSearchParams<{ unitId?: string }>();
+  const { unitId, trackTitle } = useLocalSearchParams<{ unitId?: string; trackTitle?: string }>();
   const [scenario, setScenario] = useState<PBQScenario | null>(null);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
@@ -57,6 +57,7 @@ export default function PBQScreen() {
   return (
     <Screen>
       <H1>PBQ simulator</H1>
+      {trackTitle ? <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{trackTitle}</Muted> : null}
       <Muted>
         A realistic scenario with 2-4 named sub-tasks. Graded holistically but explicitly per
         sub-part — if you miss one, the feedback names exactly which.
