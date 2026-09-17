@@ -24,8 +24,9 @@ Follow the steps below in order — each one unblocks the next.
    region close to you; note the database password you set — you'll need it for the
    connection string in step 2).
 2. Once the project is ready, open **SQL Editor** in the left sidebar, click **New query**,
-   paste in the entire contents of `backend/supabase/migrations/001_init.sql`, and click
-   **Run**. This creates every table, enum, view, and index the app needs.
+   run every SQL file in `backend/supabase/migrations/` in numeric filename order, and click
+   **Run** after each file. This creates the complete schema, authentication additions, user
+   features, and the version-aware education taxonomy.
 3. Get your connection string: **Project Settings -> Database -> Connection string -> URI**.
    Use the **Transaction pooler** string (port `6543`) — it's the one meant for serverless
    platforms like Vercel. It looks like:
@@ -144,11 +145,14 @@ page). Key files:
   `pbq` (scenario generation + grading), `chat`, `attempts`, `errors`, `sessions`, `health`.
 
 ### `backend/supabase/`
-- `migrations/001_init.sql` — full schema: `app_users`, `subject_tracks`, `course_units`,
+- `migrations/001_init.sql` — core schema: `app_users`, `subject_tracks`, `course_units`,
   `objectives`, `lesson_content` (per-objective cache), `pbq_scenarios`, `mastery`,
   `attempts`, `error_log` (with `review_stage`/`next_review_at` for spaced review),
   `chat_messages`, `study_sessions`, plus rollup views (`view_unit_mastery`,
   `view_track_progress`, `view_due_reviews`).
+- `migrations/002_*.sql` through `007_education_taxonomy.sql` — authentication and account
+  additions, convenience features, and the complete 13-category/130-subcategory education
+  taxonomy with certification-, technology-, and academic-freshness metadata.
 - `seed/data.ts` — the real MSCS week titles/objectives and Security+ domain
   titles/weights/objectives, ported from the two Artifact apps.
 - `seed/seed.ts` — idempotent seed script (`npm run seed`).
