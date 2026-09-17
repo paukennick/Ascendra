@@ -6,7 +6,7 @@
 -- /api/auth/mfa/verify) -- this only changes how codes are scoped for
 -- generation/invalidation, not which ones are accepted while signing in.
 -- Existing rows (all issued by the TOTP flow, the only method that existed
--- before 007_email_mfa.sql) backfill as 'totp'. Additive only.
+-- before 008_email_mfa.sql) backfill as 'totp'. Additive only.
 
 alter table mfa_backup_codes
     add column if not exists method varchar(10) not null default 'totp'
