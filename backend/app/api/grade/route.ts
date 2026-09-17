@@ -1,8 +1,9 @@
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
 import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,13 @@ export async function POST(req: Request) {
       if (!answer || !taughtText) {
         return badRequest("answer and taughtText are required for format 'open'");
       }
+      try {
+        await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
+      await recordAuthEvent("grade_open", authUser.id);
       const { system, user } = gradeFreeResponsePrompt({ taughtText, question, answer });
       const graded = await callClaudeJSON<GradeResult>({
         system,

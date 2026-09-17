@@ -1,8 +1,9 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, serverError } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,18 @@ export async function POST(req: Request) {
 
     const user = await requireUser(req);
     const userId = user.id;
+
+    try {
+      await checkRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
+    } catch (err) {
+      if (err instanceof RateLimitError) return tooManyRequests(err.message);
+      throw err;
+    }
+    await recordAuthEvent("chat_message", userId);
+
     const track = await queryOne<{ title: string }>(
-      `select title from subject_tracks where id = $1`,
-      [trackId]
+      `select title from subject_tracks where id = $1 and user_id = $2`,
+      [trackId, userId]
     );
     if (!track) return notFound("Track not found");
 

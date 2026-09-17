@@ -12,7 +12,12 @@ export async function GET(
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const units = await query(`select * from course_units where id = $1`, [id]);
+    const units = await query(
+      `select cu.* from course_units cu
+       join subject_tracks st on st.id = cu.track_id
+       where cu.id = $1 and st.user_id = $2`,
+      [id, user.id]
+    );
     if (!units[0]) return notFound("Unit not found");
 
     const objectives = await query(

@@ -19,6 +19,7 @@ export async function GET(req: Request) {
          where user_id = $1
          group by track_id
        ) ss on ss.track_id = st.id
+       where st.user_id = $1
        order by st.created_at asc`,
       [user.id]
     );
