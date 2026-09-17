@@ -5,18 +5,18 @@ settings correspond to `.ai/rules/universal-engineering-ruleset.json`.
 
 ## Required Project Values
 
-- `project_name`: `<PROJECT_NAME>`
-- `repository_type`: `<web_app | api | mobile_app | desktop_app | data_pipeline | infrastructure | mixed>`
-- `primary_language_or_stack`: `<STACK_OR_LANGUAGE>`
-- `package_manager`: `<npm | yarn | pnpm | pip | poetry | maven | gradle | cargo | go | other>`
-- `build_command`: `<BUILD_COMMAND>`
-- `test_command`: `<TEST_COMMAND>`
-- `lint_command`: `<LINT_COMMAND>`
-- `typecheck_command`: `<TYPECHECK_COMMAND>`
-- `changelog_location`: `<CHANGELOG_PATH>`
-- `documentation_locations`: `<README_PATH>, <ARCHITECTURE_DOC_PATH>, <API_DOC_PATH>, <ERD_OR_DATA_MODEL_PATH>, <OTHER_DOC_PATHS>`
-- `branching_or_pr_standard`: `<BRANCH_AND_PR_STANDARD>`
-- `comment_style`: `<COMMENT_STYLE_REQUIREMENT>`
+- `project_name`: `prep-lms (Ascendra)`
+- `repository_type`: `mixed` -- Next.js API+web backend (`backend/`) plus an Expo/React Native mobile app (`mobile/`) that also exports to web and is served same-origin by the backend.
+- `primary_language_or_stack`: `TypeScript -- Next.js 16 App Router (backend/) and Expo Router (mobile/)`
+- `package_manager`: `npm`
+- `build_command`: `backend: npm run build --prefix backend. mobile: no local build script -- native ships via eas build, web via mobile's export step copied into backend/public (see backend/scripts/build-webapp.sh).`
+- `test_command`: `none configured -- no test runner or test files exist yet in either package.`
+- `lint_command`: `none configured -- no ESLint config exists yet in either package.`
+- `typecheck_command`: `npm run typecheck --prefix backend && npm run typecheck --prefix mobile (both tsc --noEmit)`
+- `changelog_location`: `none -- no CHANGELOG.md exists in this repo`
+- `documentation_locations`: `README.md; backend/supabase/migrations/ (data model of record); no formalized architecture or API doc -- API routes are self-documented under backend/app/api/**/route.ts`
+- `branching_or_pr_standard`: `trunk-based -- commits go directly to master, no PR workflow observed in history`
+- `comment_style`: `Minimal by default -- only non-obvious WHY (constraint, invariant, workaround), never restating WHAT the code does; no JSDoc/docstring blocks`
 - `requirement_id_prefix`: `REQ`
 
 ## Default Safety Flags

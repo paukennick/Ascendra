@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
-import { getLoginChallenge, markChallengeConsumed, ChallengeError } from "@/lib/auth/mfaChallenge";
-import { verifyTotpCode, verifyBackupCode } from "@/lib/auth/mfa";
+import { getLoginChallenge, getChallengeEmailCode, markChallengeConsumed, ChallengeError } from "@/lib/auth/mfaChallenge";
+import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
@@ -11,8 +11,10 @@ import { getClientIp, getUserAgent } from "@/lib/auth/util";
 export const dynamic = "force-dynamic";
 
 // POST /api/auth/mfa/verify — { challengeToken, code, deviceLabel? } — the
-// second step of login for an mfa_enabled account. `code` can be either a
-// 6-digit TOTP code or one of the account's unused backup codes.
+// second step of login for an mfa_enabled account. `code` can be a 6-digit
+// TOTP code, a 6-digit code emailed via
+// /api/auth/mfa/challenge/send-email-code, or one of the account's unused
+// backup codes -- whichever method(s) the account has enabled.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -47,12 +49,20 @@ export async function POST(req: Request) {
       email: string;
       display_name: string | null;
       totp_secret_enc: string | null;
-    }>(`select id, email, display_name, totp_secret_enc from app_users where id = $1`, [challenge.userId]);
-    if (!user || !user.totp_secret_enc) {
+      email_mfa_enabled: boolean;
+    }>(`select id, email, display_name, totp_secret_enc, email_mfa_enabled from app_users where id = $1`, [
+      challenge.userId,
+    ]);
+    if (!user || (!user.totp_secret_enc && !user.email_mfa_enabled)) {
       return unauthorized("MFA is not configured for this account.");
     }
 
-    let matched = await verifyTotpCode(decrypt(user.totp_secret_enc), code);
+    let matched = user.totp_secret_enc ? await verifyTotpCode(decrypt(user.totp_secret_enc), code) : false;
+
+    if (!matched && user.email_mfa_enabled) {
+      const emailCode = await getChallengeEmailCode(challenge.id);
+      if (emailCode) matched = await verifyEmailCode(code, emailCode.hash);
+    }
 
     if (!matched) {
       const backupCodes = await query<{ id: string; code_hash: string }>(

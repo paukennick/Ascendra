@@ -13,6 +13,8 @@ interface UserRow {
   email: string;
   display_name: string | null;
   mfa_enabled: boolean;
+  totp_secret_enc: string | null;
+  email_mfa_enabled: boolean;
 }
 
 // POST /api/auth/oauth/google — { idToken, deviceLabel? }. The mobile app
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
     const meta = { deviceLabel: typeof deviceLabel === "string" ? deviceLabel : null, userAgent: getUserAgent(req), ip };
 
     const linked = await queryOne<UserRow>(
-      `select u.id, u.email, u.display_name, u.mfa_enabled
+      `select u.id, u.email, u.display_name, u.mfa_enabled, u.totp_secret_enc, u.email_mfa_enabled
        from oauth_accounts oa join app_users u on u.id = oa.user_id
        where oa.provider = 'google' and oa.provider_account_id = $1`,
       [identity.providerAccountId]
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
       user = linked;
     } else {
       const existing = await queryOne<UserRow>(
-        `select id, email, display_name, mfa_enabled from app_users where email = $1`,
+        `select id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled from app_users where email = $1`,
         [normalizedEmail]
       );
       if (existing) {
@@ -63,7 +65,7 @@ export async function POST(req: Request) {
         const created = await queryOne<UserRow>(
           `insert into app_users (email, display_name, email_verified_at)
            values ($1, $2, now())
-           returning id, email, display_name, mfa_enabled`,
+           returning id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled`,
           [normalizedEmail, identity.name]
         );
         if (!created) throw new Error("Failed to create account.");
@@ -80,7 +82,11 @@ export async function POST(req: Request) {
     if (user.mfa_enabled) {
       await recordAuthEvent("login_mfa_challenge", normalizedEmail, { ip, userId: user.id });
       const challengeToken = await createLoginChallenge(user.id, meta);
-      return ok({ mfaRequired: true, challengeToken });
+      return ok({
+        mfaRequired: true,
+        challengeToken,
+        mfaMethods: { totp: !!user.totp_secret_enc, email: user.email_mfa_enabled },
+      });
     }
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });

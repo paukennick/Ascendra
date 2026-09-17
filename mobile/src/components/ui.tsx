@@ -103,9 +103,10 @@ export function SectionHeader({ label, style }: { label: string; style?: ViewSty
 export function BrandMark({ size = 56 }: { size?: number }) {
   return (
     <View style={styles.brandWrap}>
-      <View style={[styles.brandMark, { width: size, height: size, borderRadius: size * 0.28 }]}>
-        <Feather name="trending-up" size={size * 0.5} color={colors.accentText} />
-      </View>
+      <Image
+        source={require("../../assets/icon.png")}
+        style={[styles.brandMark, { width: size, height: size, borderRadius: size * 0.28 }]}
+      />
       <Text style={styles.brandName}>Ascendra</Text>
     </View>
   );
@@ -360,7 +361,7 @@ export function TextField({
   secureTextEntry?: boolean;
   error?: string | null;
   icon?: IconName;
-} & Pick<TextInputProps, "autoCapitalize" | "keyboardType" | "textContentType" | "maxLength" | "multiline">) {
+} & Pick<TextInputProps, "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "maxLength" | "multiline">) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -525,9 +526,6 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border },
   brandWrap: { alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   brandMark: {
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
     ...shadow.sm,
   },
   brandName: { color: colors.text, fontFamily: fonts.displayBold, fontSize: 20 },

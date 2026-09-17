@@ -41,6 +41,8 @@ export default function ChangeEmail() {
               onChangeText={setNewEmail}
               placeholder="you@example.com"
               keyboardType="email-address"
+              textContentType="emailAddress"
+              autoComplete="email"
               icon="mail"
             />
             <Button label="Send confirmation link" onPress={submit} loading={busy} disabled={!newEmail} />

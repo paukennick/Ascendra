@@ -9,6 +9,8 @@ interface ProfileRow {
   email: string;
   display_name: string | null;
   mfa_enabled: boolean;
+  totp_enabled: boolean;
+  email_mfa_enabled: boolean;
   avatar_image: Buffer | null;
   avatar_content_type: string | null;
   has_password: boolean;
@@ -18,6 +20,8 @@ interface ProfileRow {
 const PROFILE_SELECT = `
   select
     u.id, u.email, u.display_name, u.mfa_enabled, u.avatar_image, u.avatar_content_type,
+    (u.totp_secret_enc is not null) as totp_enabled,
+    u.email_mfa_enabled,
     (u.password_hash is not null) as has_password,
     exists(select 1 from oauth_accounts oa where oa.user_id = u.id and oa.provider = 'google') as google_linked
   from app_users u
@@ -30,6 +34,8 @@ function toUserResponse(row: ProfileRow) {
     email: row.email,
     displayName: row.display_name,
     mfaEnabled: row.mfa_enabled,
+    totpEnabled: row.totp_enabled,
+    emailMfaEnabled: row.email_mfa_enabled,
     hasPassword: row.has_password,
     googleLinked: row.google_linked,
     avatarDataUrl:

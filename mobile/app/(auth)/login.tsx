@@ -7,13 +7,22 @@ import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 
 export default function Login() {
   const router = useRouter();
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, biometricAvailable, biometricEnabled, biometricLabel, unlockWithBiometric } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
+  const [biometricSubmitting, setBiometricSubmitting] = useState(false);
   const { clientId, request, signInAsync } = useGoogleAuthRequest();
+
+  const onBiometricPress = async () => {
+    setError(null);
+    setBiometricSubmitting(true);
+    const ok = await unlockWithBiometric();
+    setBiometricSubmitting(false);
+    if (!ok) setError("Couldn't unlock with " + biometricLabel + ". Sign in with your password instead.");
+  };
 
   const onSubmit = async () => {
     setError(null);
@@ -27,7 +36,14 @@ export default function Login() {
       if (result.emailVerificationRequired) {
         router.replace({ pathname: "/verify-email-pending", params: { email: email.trim() } });
       } else if (result.mfaRequired && result.challengeToken) {
-        router.push({ pathname: "/mfa-challenge", params: { challengeToken: result.challengeToken } });
+        router.push({
+          pathname: "/mfa-challenge",
+          params: {
+            challengeToken: result.challengeToken,
+            totp: result.mfaMethods?.totp ? "1" : "0",
+            email: result.mfaMethods?.email ? "1" : "0",
+          },
+        });
       }
       // Otherwise the root layout's own redirect effect (driven by auth status) handles navigation.
     } catch (err) {
@@ -45,7 +61,14 @@ export default function Login() {
       if (!idToken) return;
       const result = await loginWithGoogle(idToken);
       if (result.mfaRequired && result.challengeToken) {
-        router.push({ pathname: "/mfa-challenge", params: { challengeToken: result.challengeToken } });
+        router.push({
+          pathname: "/mfa-challenge",
+          params: {
+            challengeToken: result.challengeToken,
+            totp: result.mfaMethods?.totp ? "1" : "0",
+            email: result.mfaMethods?.email ? "1" : "0",
+          },
+        });
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
@@ -67,7 +90,8 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           keyboardType="email-address"
-          textContentType="emailAddress"
+          textContentType="none"
+          autoComplete="off"
           icon="mail"
         />
         <TextField
@@ -76,9 +100,19 @@ export default function Login() {
           onChangeText={setPassword}
           placeholder="••••••••"
           secureTextEntry
-          textContentType="password"
+          textContentType="none"
+          autoComplete="new-password"
           icon="lock"
         />
+        {biometricAvailable && biometricEnabled ? (
+          <Button
+            label={`Use ${biometricLabel}`}
+            variant="ghost"
+            icon="unlock"
+            loading={biometricSubmitting}
+            onPress={onBiometricPress}
+          />
+        ) : null}
         <Button label="Log in" onPress={onSubmit} loading={submitting} icon="log-in" />
         {clientId ? (
           <>
