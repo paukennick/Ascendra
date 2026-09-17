@@ -645,6 +645,42 @@
         "The layout is O(n^2) per iteration (a deliberate simplicity/dependency tradeoff over numpy-vectorized force-directed algorithms), which is why --max-nodes defaults to 300 and truncates by degree rather than rendering arbitrarily large graphs unbounded.",
         "Dense, highly-connected clusters (e.g. this repo's own doctor-validator cluster) still show some label overlap at default settings -- an inherent characteristic of force-directed layouts at this node density, not something --max-nodes or --focus fully eliminates; --focus on a smaller neighborhood is the escape hatch for a specific area."
       ]
+    },
+    {
+      "id": "REQ-020",
+      "category": "Education taxonomy and content freshness",
+      "title": "Implement complete version-aware education taxonomy",
+      "description": "Represent all 13 education categories and every taxonomy subcategory, classify courses by the appropriate freshness model, and store certification exams separately from curricula so current testing versions can be verified and retired safely.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/007_education_taxonomy.sql",
+        "backend/app/api/taxonomy/route.ts",
+        "backend/app/api/courses/route.ts",
+        "mobile/src/types/index.ts",
+        "docs/education-taxonomy.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "All 13 primary categories and 130 subcategories are seeded idempotently.",
+        "Certification-, technology-, and academic-aligned content use distinct freshness metadata.",
+        "Non-draft exam records require an official objectives source and vendor-verification timestamp.",
+        "Authenticated clients can retrieve the ordered taxonomy.",
+        "Existing learner tracks and progress remain intact."
+      ],
+      "validation_required": [
+        "taxonomy_count",
+        "typescript_format",
+        "migration_review"
+      ],
+      "documentation_required": [
+        "data_model",
+        "changelog"
+      ],
+      "risk_notes": [
+        "The migration must be applied before the new taxonomy and course-creation endpoints are deployed.",
+        "Vendor exam records are intentionally not labeled active until verified against official sources."
+      ]
     }
   ]
 }
