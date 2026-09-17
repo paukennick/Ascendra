@@ -3,6 +3,8 @@ export interface AuthUser {
   email: string;
   displayName: string | null;
   mfaEnabled?: boolean;
+  hasPassword?: boolean;
+  googleLinked?: boolean;
   avatarDataUrl?: string | null;
 }
 

@@ -14,6 +14,9 @@ export default function AppLayout() {
     >
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
       <Stack.Screen name="account" options={{ title: "Account" }} />
+      <Stack.Screen name="account/sessions" options={{ title: "Active sessions" }} />
+      <Stack.Screen name="account/change-password" options={{ title: "Change password" }} />
+      <Stack.Screen name="account/change-email" options={{ title: "Change email" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
