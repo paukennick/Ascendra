@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Body, Button, ErrorBanner, EmptyState } from "@/components/ui";
 import { api, ApiError } from "@/api/client";
+import { fonts } from "@/lib/theme";
 
 export default function VerifyEmailPending() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function VerifyEmailPending() {
         <EmptyState icon="mail" title="Verification link sent" />
         <Body style={{ textAlign: "center" }}>
           We sent a verification link to{" "}
-          <Body style={{ fontWeight: "700" }}>{email ?? "your email"}</Body>. Open it, then come
+          <Body style={{ fontFamily: fonts.bodyBold }}>{email ?? "your email"}</Body>. Open it, then come
           back and log in.
         </Body>
         {error ? <ErrorBanner message={error} /> : null}

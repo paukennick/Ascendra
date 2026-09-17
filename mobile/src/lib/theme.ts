@@ -1,24 +1,31 @@
+// Color tokens, exactly, from the Ascendra design reference artifact's dark
+// palette (claude.ai/artifact/SeaodNous5p8xRgW8tGGLo) -- adopted wholesale
+// rather than approximated, since contrast there was already validated.
+// That artifact also defines a light palette under the same variable names;
+// this app is dark-only today, so only the dark set is carried over.
 export const colors = {
-  bg: "#0b1220",
-  bgAlt: "#0d1526",
-  card: "#141c2e",
-  cardAlt: "#1a2338",
-  cardPressed: "#202a42",
-  border: "#243044",
-  borderLight: "#2f3c54",
-  text: "#f1f5f9",
-  muted: "#8b96ab",
-  mutedDim: "#5f6b81",
-  accent: "#38bdf8",
-  accentDim: "#0c4a6e",
-  accentText: "#04202f",
-  secondary: "#818cf8",
-  good: "#34d399",
-  goodDim: "#052e21",
-  warn: "#fbbf24",
-  warnDim: "#3a2a05",
-  bad: "#fb7185",
-  badDim: "#3a0d17",
+  bg: "#14151B",
+  bgAlt: "#1B1D26",
+  card: "#1B1D26",
+  cardAlt: "#21232E",
+  cardPressed: "#242733",
+  border: "#2E3040",
+  borderLight: "#3B3E52",
+  text: "#E9E8F1",
+  muted: "#9EA1B0",
+  mutedDim: "#767A89",
+  accent: "#9698F5",
+  accentDim: "#2A2B49",
+  accentText: "#14151B",
+  accentHover: "#ABADF7",
+  secondary: "#ABADF7",
+  good: "#5BC998",
+  goodStrong: "#5BC998",
+  goodDim: "#1D3227",
+  warn: "#E3AC56",
+  warnDim: "#3A2F18",
+  bad: "#E38484",
+  badDim: "#3A2323",
 };
 
 export const spacing = {
@@ -56,12 +63,30 @@ export const shadow = {
   },
 };
 
+// Font families, matching the artifact: Fraunces (display/headings), Source
+// Sans 3 (body/UI text), IBM Plex Mono (labels, chips, badges, eyebrows).
+// The exact strings below are what @expo-google-fonts packages register the
+// typefaces under once loaded (see App root's useFonts call) -- falls back
+// to the system font automatically until loading finishes.
+export const fonts = {
+  displayMedium: "Fraunces_500Medium",
+  displaySemiBold: "Fraunces_600SemiBold",
+  displayBold: "Fraunces_700Bold",
+  body: "SourceSans3_400Regular",
+  bodyMedium: "SourceSans3_500Medium",
+  bodySemiBold: "SourceSans3_600SemiBold",
+  bodyBold: "SourceSans3_700Bold",
+  mono: "IBMPlexMono_400Regular",
+  monoMedium: "IBMPlexMono_500Medium",
+  monoSemiBold: "IBMPlexMono_600SemiBold",
+};
+
 export const masteryColor: Record<string, string> = {
   "Not started": colors.mutedDim,
-  Introduced: colors.secondary,
-  Guided: colors.accent,
+  Introduced: colors.warn,
+  Guided: colors.warn,
   Independent: colors.good,
-  "Transfer-ready": "#22c55e",
+  "Transfer-ready": colors.good,
   "Needs review": colors.bad,
 };
 
@@ -91,4 +116,33 @@ export const verdictIcon: Record<string, string> = {
 export const trackTypeIcon: Record<string, string> = {
   certification: "award",
   graduate: "book",
+};
+
+// Per-course emoji + accent, matching the design reference's COURSES
+// registry exactly (keyed by the same course codes seeded in
+// backend/supabase/seed/data.ts). A track code not in this map (a
+// user-created custom course) falls back to a plain Feather icon via
+// trackTypeIcon above instead of a guessed emoji.
+export const courseEmoji: Record<string, string> = {
+  MSCS: "🎓",
+  SECPLUS: "🔐",
+  PYTHON: "🐍",
+  JAVASCRIPT: "⚡",
+  LINUXPLUS: "🐧",
+  CYSAPLUS: "🛰️",
+  PENTESTPLUS: "🎯",
+  SECURITYX: "🏛️",
+  CMPCBS: "📘",
+};
+
+export const courseAccent: Record<string, string> = {
+  MSCS: "#4B4CBE",
+  SECPLUS: "#B14A3D",
+  PYTHON: "#2E7D5B",
+  JAVASCRIPT: "#A5760B",
+  LINUXPLUS: "#3D5A73",
+  CYSAPLUS: "#5B4A8A",
+  PENTESTPLUS: "#7A2E2E",
+  SECURITYX: "#2E4A6B",
+  CMPCBS: "#3D5A80",
 };

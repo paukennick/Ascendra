@@ -1,20 +1,35 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Alert, Switch, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { Avatar, Card, Divider, H2, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Settings() {
   const router = useRouter();
-  const { user, logout, logoutAll } = useAuth();
+  const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
+  const [biometricBusy, setBiometricBusy] = useState(false);
+
+  async function toggleBiometric(next: boolean) {
+    setBiometricBusy(true);
+    try {
+      if (next) {
+        const res = await enableBiometric();
+        if (!res.ok) Alert.alert("Couldn't enable", res.error ?? "Something went wrong.");
+      } else {
+        await disableBiometric();
+      }
+    } finally {
+      setBiometricBusy(false);
+    }
+  }
 
   return (
     <Screen>
-      <Card style={{ alignItems: "center", gap: 4, paddingVertical: 24 }}>
-        <Avatar name={user?.displayName ?? user?.email} size={64} />
-        <H2 style={{ marginTop: 8 }}>{user?.displayName ?? "Signed in"}</H2>
-        <Muted>{user?.email}</Muted>
+      <SectionHeader label="Account" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="user" label="Profile & sign-in" value={user?.displayName ?? user?.email} onPress={() => router.push("/account")} />
       </Card>
 
       <SectionHeader label="Security" />
@@ -25,13 +40,26 @@ export default function Settings() {
           value={user?.mfaEnabled ? "Enabled" : "Disabled"}
           onPress={() => router.push("/settings/mfa")}
         />
-      </Card>
-
-      <SectionHeader label="Account" />
-      <Card style={{ gap: 0 }}>
-        <ListRow icon="log-out" label="Log out" onPress={() => logout()} />
-        <Divider />
-        <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
+        {biometricAvailable ? (
+          <>
+            <Divider />
+            <ListRow
+              icon="unlock"
+              label={`Use ${biometricLabel}`}
+              right={
+                biometricBusy ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
+                  <Switch
+                    value={biometricEnabled}
+                    onValueChange={toggleBiometric}
+                    trackColor={{ true: colors.accent, false: colors.border }}
+                  />
+                )
+              }
+            />
+          </>
+        ) : null}
       </Card>
 
       <SectionHeader label="About" />
@@ -42,9 +70,8 @@ export default function Settings() {
         </View>
         <Divider />
         <Muted>
-          Ascendra mobile companion — it does not replace Pak's existing Claude Artifact study
-          coaches, it adds an offline-friendly mobile front end backed by its own database and its
-          own Anthropic API calls.
+          Ascendra tracks your course progress, generates lessons and practice questions, and
+          keeps everything in sync across devices.
         </Muted>
       </Card>
     </Screen>

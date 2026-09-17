@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { RefreshControl, SectionList, StyleSheet, View } from "react-native";
+import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
@@ -11,6 +11,7 @@ import {
   Card,
   EmptyState,
   ErrorBanner,
+  FavoriteButton,
   H1,
   H2,
   IconButton,
@@ -19,7 +20,8 @@ import {
   ProgressBar,
   SectionHeader,
 } from "@/components/ui";
-import { colors, spacing, trackTypeIcon } from "@/lib/theme";
+import { Sidebar } from "@/components/Sidebar";
+import { colors, courseEmoji, fonts, spacing, trackTypeIcon } from "@/lib/theme";
 
 interface Section {
   title: string;
@@ -33,11 +35,16 @@ function byLastStudied(a: Track, b: Track): number {
 }
 
 // Groups by the existing track_type field -- the natural split this schema
-// already has (certification vs. graduate/language courses).
+// already has (certification vs. graduate/language courses) -- with
+// favorited tracks pulled into their own section up top instead of also
+// appearing in their normal section, so there's no duplication to scan past.
 function groupTracks(tracks: Track[]): Section[] {
-  const certification = tracks.filter((t) => t.track_type === "certification").sort(byLastStudied);
-  const graduate = tracks.filter((t) => t.track_type === "graduate").sort(byLastStudied);
+  const favorites = tracks.filter((t) => t.is_favorite).sort(byLastStudied);
+  const rest = tracks.filter((t) => !t.is_favorite);
+  const certification = rest.filter((t) => t.track_type === "certification").sort(byLastStudied);
+  const graduate = rest.filter((t) => t.track_type === "graduate").sort(byLastStudied);
   const sections: Section[] = [];
+  if (favorites.length) sections.push({ title: "Favorites", data: favorites });
   if (certification.length) sections.push({ title: "Certifications", data: certification });
   if (graduate.length) sections.push({ title: "Degree & Language Tracks", data: graduate });
   return sections;
@@ -56,6 +63,15 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleFavorite = useCallback((track: Track) => {
+    const next = !track.is_favorite;
+    setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: next } : t)) ?? prev);
+    api.patch(`/api/courses/${track.id}/favorite`, { favorite: next }).catch(() => {
+      setTracks((prev) => prev?.map((t) => (t.id === track.id ? { ...t, is_favorite: !next } : t)) ?? prev);
+    });
+  }, []);
 
   const load = useCallback((isPullToRefresh = false) => {
     if (isPullToRefresh) setRefreshing(true);
@@ -86,11 +102,13 @@ export default function Home() {
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <Stack.Screen
         options={{
+          headerLeft: () => <IconButton icon="menu" onPress={() => setSidebarOpen(true)} size={34} />,
           headerRight: () => (
             <IconButton icon="settings" onPress={() => router.push("/settings")} size={34} />
           ),
         }}
       />
+      <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} tracks={tracks} />
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
@@ -108,9 +126,12 @@ export default function Home() {
 
             {mostRecent ? (
               <Card style={styles.heroCard} elevated>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Feather name="zap" size={14} color={colors.accent} />
-                  <Muted style={{ color: colors.accent, fontWeight: "700" }}>Continue studying</Muted>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Feather name="zap" size={14} color={colors.accent} />
+                    <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>Continue studying</Muted>
+                  </View>
+                  <FavoriteButton active={!!mostRecent.is_favorite} onPress={() => toggleFavorite(mostRecent)} />
                 </View>
                 <H2>{mostRecent.title}</H2>
                 <ProgressBar percent={mostRecent.percent_complete ?? 0} />
@@ -130,12 +151,17 @@ export default function Home() {
           <Card onPress={() => router.push(`/course/${item.id}`)}>
             <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
               <View style={styles.trackIconWrap}>
-                <Feather name={(trackTypeIcon[item.track_type] ?? "book") as any} size={18} color={colors.accent} />
+                {courseEmoji[item.code] ? (
+                  <Text style={{ fontSize: 20 }}>{courseEmoji[item.code]}</Text>
+                ) : (
+                  <Feather name={(trackTypeIcon[item.track_type] ?? "book") as any} size={18} color={colors.accent} />
+                )}
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <H2>{item.title}</H2>
                 <Muted>{item.code}</Muted>
               </View>
+              <FavoriteButton active={!!item.is_favorite} onPress={() => toggleFavorite(item)} size={32} />
               <Feather name="chevron-right" size={20} color={colors.mutedDim} />
             </View>
             <ProgressBar percent={item.percent_complete ?? 0} />

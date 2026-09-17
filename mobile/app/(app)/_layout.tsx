@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { colors } from "@/lib/theme";
+import { colors, fonts } from "@/lib/theme";
 
 export default function AppLayout() {
   return (
@@ -7,12 +7,13 @@ export default function AppLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bgAlt },
         headerTintColor: colors.accent,
-        headerTitleStyle: { color: colors.text, fontWeight: "700", fontSize: 17 },
+        headerTitleStyle: { color: colors.text, fontFamily: fonts.displaySemiBold, fontSize: 18 },
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
+      <Stack.Screen name="account" options={{ title: "Account" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />

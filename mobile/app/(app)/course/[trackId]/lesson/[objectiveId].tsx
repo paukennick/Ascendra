@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { GradeResult, LessonContent } from "@/types";
 import {
@@ -15,16 +15,17 @@ import {
   Screen,
   VerdictBadge,
 } from "@/components/ui";
-import { colors, radius, spacing } from "@/lib/theme";
+import { colors, fonts, radius, spacing } from "@/lib/theme";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
 
 export default function LessonFlow() {
-  const { trackId, objectiveId, unitId } = useLocalSearchParams<{
+  const { trackId, objectiveId, unitId, objectiveTitle } = useLocalSearchParams<{
     trackId: string;
     objectiveId: string;
     unitId?: string;
+    objectiveTitle?: string;
   }>();
   const router = useRouter();
 
@@ -50,11 +51,28 @@ export default function LessonFlow() {
     setConfidence(null);
   }, [loadLesson]);
 
-  if (error) return <Screen><ErrorBanner message={error} /></Screen>;
-  if (!lesson) return <Screen><Loading label="Generating lesson (first visit only)..." /></Screen>;
+  const headerTitle = objectiveTitle ?? "Lesson";
+
+  if (error) {
+    return (
+      <Screen>
+        <Stack.Screen options={{ title: headerTitle }} />
+        <ErrorBanner message={error} />
+      </Screen>
+    );
+  }
+  if (!lesson) {
+    return (
+      <Screen>
+        <Stack.Screen options={{ title: headerTitle }} />
+        <Loading label="Generating lesson (first visit only)..." />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
+      <Stack.Screen options={{ title: headerTitle }} />
       <StepHeader step={step} />
 
       {step === "guess" && (
@@ -374,7 +392,7 @@ function CheckStep({
                 onPress={() => setConfidence(idx + 1)}
                 style={[styles.confidence, confidence === idx + 1 && styles.confidenceActive]}
               >
-                <Body style={confidence === idx + 1 ? { color: colors.accentText, fontWeight: "700" } : undefined}>{label}</Body>
+                <Body style={confidence === idx + 1 ? { color: colors.accentText, fontFamily: fonts.bodyBold } : undefined}>{label}</Body>
               </Pressable>
             ))}
           </View>

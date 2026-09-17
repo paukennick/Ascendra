@@ -3,6 +3,7 @@ export interface AuthUser {
   email: string;
   displayName: string | null;
   mfaEnabled?: boolean;
+  avatarDataUrl?: string | null;
 }
 
 export type MasteryStatus =
@@ -24,6 +25,7 @@ export interface Track {
   mastered_objectives?: number;
   percent_complete?: number;
   last_studied_at?: string | null;
+  is_favorite?: boolean;
 }
 
 export interface Unit {
