@@ -23,7 +23,7 @@ export interface Track {
   code: string;
   title: string;
   description: string | null;
-  track_type: "graduate" | "certification";
+  track_type: "graduate" | "certification" | "academic" | "professional" | "skills";
   total_units?: number;
   total_objectives?: number;
   mastered_objectives?: number;
@@ -129,4 +129,25 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   created_at?: string;
+}
+
+export type ContentFreshnessModel =
+  | "certification_aligned"
+  | "technology_aligned"
+  | "academic_foundational";
+
+export interface EducationSubcategory {
+  id: string;
+  slug: string;
+  name: string;
+  freshnessModel: ContentFreshnessModel;
+  sortOrder: number;
+}
+
+export interface EducationCategory {
+  id: string;
+  slug: string;
+  name: string;
+  sortOrder: number;
+  subcategories: EducationSubcategory[];
 }
