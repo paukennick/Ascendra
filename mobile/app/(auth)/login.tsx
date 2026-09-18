@@ -90,8 +90,17 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           keyboardType="email-address"
+          // "username", not "email" -- this is the login identifier, and it
+          // has to carry the same hint family as the password field below
+          // for the OS to treat the two as one saved credential. "email" is
+          // a plain-data hint (street address, phone number, email, same
+          // bucket used for shipping forms); a value tapped from that
+          // suggestion list on Android isn't a saved credential at all, so
+          // no password rides along with it. See register.tsx, which
+          // already paired this correctly.
           textContentType="username"
-          autoComplete="email"
+          autoComplete="username"
+          importantForAutofill="yes"
           icon="mail"
         />
         <TextField
@@ -102,6 +111,7 @@ export default function Login() {
           secureTextEntry
           textContentType="password"
           autoComplete="current-password"
+          importantForAutofill="yes"
           icon="lock"
         />
         {biometricAvailable && biometricEnabled ? (

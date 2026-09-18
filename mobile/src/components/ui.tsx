@@ -366,7 +366,10 @@ export function TextField({
   // For multiline fields -- a bare `multiline` still renders one line tall,
   // which reads as a single-line box the text scrolls inside of.
   minHeight?: number;
-} & Pick<TextInputProps, "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "maxLength" | "multiline">) {
+} & Pick<
+  TextInputProps,
+  "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "importantForAutofill" | "maxLength" | "multiline"
+>) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>

@@ -797,6 +797,36 @@
         "Verified by static code review and `tsc --noEmit` only -- this environment has no iOS/Android simulator or device, so the actual background/foreground timing (photo picker, camera, Google sign-in browser handoff) still needs a manual pass on a real device or simulator before release.",
         "The 1500ms grace window is a judgment call, not a spec'd value -- long enough to absorb a permission-dialog or picker hand-off, short enough that a real screen-lock or app-switch away still locks/signs out promptly. Worth revisiting if real-device testing shows it too short (a slow Android photo-library launch) or unnecessarily long."
       ]
+    },
+    {
+      "id": "REQ-024",
+      "category": "Mobile authentication",
+      "title": "Fix login-screen autofill: password did not follow a tapped email suggestion",
+      "description": "Reported: on the mobile login screen, tapping a suggested email did not also fill in the saved password. The email field carried textContentType=\"username\" (correct) but autoComplete=\"email\" (mismatched) -- \"email\" is a plain-data autofill hint (the same bucket used for shipping/contact forms), not the credential-identifier hint the OS pairs with a saved login's password. A value picked from that suggestion list is therefore just an email address, with no password attached to bring along. register.tsx already paired its equivalent field correctly (textContentType=\"username\" + autoComplete=\"username\"); login.tsx did not match it. Changed login's email field to autoComplete=\"username\" and added importantForAutofill=\"yes\" to both the email and password fields (the explicit Android autofill opt-in some providers key off of). Widened the shared TextField component's prop passthrough (mobile/src/components/ui.tsx) to allow importantForAutofill, which it did not previously forward.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(auth)/login.tsx",
+        "mobile/src/components/ui.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Login's email field uses textContentType=\"username\" and autoComplete=\"username\", matching register.tsx's already-correct pairing for the same semantic field.",
+        "Both the email and password fields on the login screen pass importantForAutofill=\"yes\" through to the native TextInput.",
+        "TextField's prop type accepts importantForAutofill without a TypeScript error.",
+        "mobile typecheck (tsc --noEmit) passes with no new errors."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by static code review and `tsc --noEmit` only -- this environment has no iOS/Android device or simulator, so the actual OS autofill/credential-pairing behavior still needs a manual pass on a real device before release. Autofill/credential-pairing heuristics are OS- and provider-specific (Google Password Manager, iOS Keychain, third-party password managers) and not fully under this app's control even with correct hints.",
+        "forgot-password.tsx's email field intentionally keeps autoComplete=\"email\" -- it is a plain email field with no paired password on that screen, so the mismatch that caused this bug does not apply there."
+      ]
     }
   ]
 }
