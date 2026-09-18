@@ -90,16 +90,23 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           keyboardType="email-address"
-          // "username", not "email" -- this is the login identifier, and it
-          // has to carry the same hint family as the password field below
-          // for the OS to treat the two as one saved credential. "email" is
-          // a plain-data hint (street address, phone number, email, same
-          // bucket used for shipping forms); a value tapped from that
-          // suggestion list on Android isn't a saved credential at all, so
-          // no password rides along with it. See register.tsx, which
-          // already paired this correctly.
+          // Temporarily back to "email" (REQ-024 had changed this to
+          // "username"). The reasoning for "username" is still right --
+          // it is the credential identifier that pairs with the password
+          // field, where "email" is a plain-data hint in the same bucket as
+          // street address, so a tapped suggestion brings no password with
+          // it. But "username" makes Android look for a credential saved
+          // against *this app*, and there is none: the credential lives
+          // against the website, and nothing yet tells Android the two are
+          // the same product. The result was no suggestions at all, which
+          // is worse than a half-working one.
+          //
+          // Switch this back to "username" once /.well-known/assetlinks.json
+          // is live on the site and Google has re-crawled it -- at that
+          // point the saved web credential becomes offerable here, with the
+          // password attached, which is the outcome REQ-024 was after.
           textContentType="username"
-          autoComplete="username"
+          autoComplete="email"
           importantForAutofill="yes"
           icon="mail"
         />
