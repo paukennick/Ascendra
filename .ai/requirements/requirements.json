@@ -762,6 +762,41 @@
         "Unit weights on CNA, LPN/LVN, ADN and BSN are our own judgment about study emphasis, not a published blueprint -- no authority apportions those hours. They must never be shown to a learner as exam weightings, unlike the NCLEX percentages which are vendor facts.",
         "AACN revised the Essentials in 2026; the featured concept 'Diversity, Equity, and Inclusion' from the 2021 edition is now 'Access, Connection, and Engagement'. The BSN track carries contentReviewDueAt 2027-09-18 because that document is actively changing."
       ]
+    },
+    {
+      "id": "REQ-023",
+      "category": "Mobile authentication",
+      "title": "Fix mobile app-close/lock session handling: stop the AppState background listener from over-firing",
+      "description": "The login screen, biometric unlock, and the sign-out-on-close behavior in mobile/src/auth/AuthContext.tsx were reported as not working properly. Code review (not a device reproduction, since this environment has no simulator/device) found the AppState 'background' listener that locks or fully logs out a signed-in user was reacting to the raw 'background' event with no debounce. Android has no 'inactive' state, so the account screen's own photo-library/camera picker (mobile/app/(app)/account.tsx, via expo-image-picker) and the Google sign-in browser tab (mobile/src/auth/googleSignIn.ts, via expo-web-browser on both iOS and Android) all report as 'background' too, even though the user never left the app. That immediately locked or logged out a signed-in user mid-task on those flows. Added a short grace period (1500ms) that cancels itself if 'active' returns before it fires, so a transient system-UI interruption is absorbed while a genuine app close or screen lock -- which lasts far longer than the window -- still locks/logs out exactly as before. Login, biometric enrollment/unlock, and the cold-start session-resolution logic were also read closely; no other functional defect was found there.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/app/lock.tsx",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/src/lib/biometric.ts",
+        "mobile/src/lib/secureStorage.ts",
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/auth/googleSignIn.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Backgrounding the app for longer than the grace window still locks a biometric-enrolled device or signs out a non-biometric one, unchanged from prior behavior.",
+        "Returning to 'active' before the grace window elapses (the shape of a permission dialog, the in-app photo/camera picker, or the Google sign-in browser tab) does not lock or sign out a previously signed-in user.",
+        "A hard OS kill during the grace window is still caught on next launch by the existing cold-start session-resolution branch, so no session survives a real close.",
+        "mobile typecheck (tsc --noEmit) passes with no new errors."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by static code review and `tsc --noEmit` only -- this environment has no iOS/Android simulator or device, so the actual background/foreground timing (photo picker, camera, Google sign-in browser handoff) still needs a manual pass on a real device or simulator before release.",
+        "The 1500ms grace window is a judgment call, not a spec'd value -- long enough to absorb a permission-dialog or picker hand-off, short enough that a real screen-lock or app-switch away still locks/signs out promptly. Worth revisiting if real-device testing shows it too short (a slow Android photo-library launch) or unnecessarily long."
+      ]
     }
   ]
 }

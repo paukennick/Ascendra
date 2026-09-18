@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshTokenRef = useRef<string | null>(null);
   const biometricEnabledRef = useRef(false);
   const inFlightRefresh = useRef<Promise<boolean> | null>(null);
+  const backgroundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     isBiometricAvailable().then(setBiometricAvailable);
@@ -283,18 +284,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // incoming call banner or the control center -- treating those as a full
   // background would sign people out for interruptions that never actually
   // left the app.
+  //
+  // "background" itself is not as clean a signal as that comment implies,
+  // though: Android has no "inactive" state at all, so a permission dialog,
+  // the account screen's own photo/camera picker (see (app)/account.tsx),
+  // or the Google sign-in browser tab (see auth/googleSignIn.ts, opened via
+  // expo-web-browser on *both* platforms) all report as "background" too,
+  // even though the user never left Ascendra. Reacting immediately made
+  // those flows sign the user out mid-task. A short grace period -- cancel
+  // and start over if "active" comes back before it fires -- absorbs those
+  // without weakening the real case: a genuine close/lock lasts far longer
+  // than this window, and a hard OS kill mid-window still ends up caught by
+  // the cold-start branch above rather than sneaking through.
   useEffect(() => {
     if (Platform.OS === "web") return; // web has its own idle-timeout sign-out, below
+    const BACKGROUND_GRACE_MS = 1500;
     const sub = AppState.addEventListener("change", (next) => {
       if (next === "background" && status === "signedIn") {
-        if (biometricEnabledRef.current) {
-          setStatus("locked");
-        } else {
-          logout();
-        }
+        if (backgroundTimerRef.current) clearTimeout(backgroundTimerRef.current);
+        backgroundTimerRef.current = setTimeout(() => {
+          backgroundTimerRef.current = null;
+          if (biometricEnabledRef.current) {
+            setStatus("locked");
+          } else {
+            logout();
+          }
+        }, BACKGROUND_GRACE_MS);
+      } else if (next === "active" && backgroundTimerRef.current) {
+        clearTimeout(backgroundTimerRef.current);
+        backgroundTimerRef.current = null;
       }
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      if (backgroundTimerRef.current) {
+        clearTimeout(backgroundTimerRef.current);
+        backgroundTimerRef.current = null;
+      }
+    };
   }, [status, logout]);
 
   // Web's counterpart to the native background lock/logout above: there's no
