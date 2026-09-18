@@ -31,6 +31,7 @@ import {
   type SeedCredential,
 } from "./data";
 import { AWS_TRACKS } from "./tracks/aws";
+import { AZURE_TRACKS } from "./tracks/azure";
 import { NURSING_TRACKS } from "./tracks/nursing";
 
 async function main() {
@@ -62,6 +63,10 @@ async function main() {
     await seedTrack(pool, userId, CMPCBS_TRACK);
 
     for (const track of AWS_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    for (const track of AZURE_TRACKS) {
       await seedTrack(pool, userId, track);
     }
 
