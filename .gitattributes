@@ -1,0 +1,11 @@
+# Shell scripts must keep LF endings even when checked out on Windows.
+# bash reads a CRLF script literally: `set -euo pipefail\r` parses as the
+# option name "pipefail\r", which fails with "invalid option name" and
+# takes the whole build down. This only surfaced on `vercel --prod` from a
+# Windows machine (which uploads the local working copy); git-triggered
+# builds were fine because the repo itself stores LF.
+*.sh text eol=lf
+
+# SQL migrations are pasted into Supabase's SQL editor and read on Linux
+# hosts; no reason to carry CRLF into either.
+*.sql text eol=lf
