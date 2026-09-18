@@ -681,6 +681,42 @@
         "The migration must be applied before the new taxonomy and course-creation endpoints are deployed.",
         "Vendor exam records are intentionally not labeled active until verified against official sources."
       ]
+    },
+    {
+      "id": "REQ-021",
+      "category": "Catalog expansion",
+      "title": "Seed the complete AWS certification catalog, aligned to the live exam guides",
+      "description": "Add a track for every currently offered AWS certification, with domains, weightings, and objectives taken from the official AWS exam guides rather than from memory, and link each track to the education taxonomy and to a versioned credential exam record so exam version changes and retirements can be tracked.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/seed.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every currently offered AWS certification has a track: CLF-C02, AIF-C01, SAA-C03, DVA-C02, SOA-C03, DEA-C01, MLA-C02, SAP-C02, DOP-C02, SCS-C03, ANS-C01.",
+        "Each track's domain weightings match the official exam guide and sum to 100.",
+        "Each track records the official objectives URL and the date the guide was last verified against the vendor.",
+        "Exams in transition or retirement carry the vendor's dates: DVA-C02 to 2026-12-01, SAP-C02 to 2026-11-17, ANS-C01 to 2026-12-31.",
+        "Seeding stays idempotent, including for exam records whose exam_revision is null.",
+        "The nine pre-existing tracks seed unchanged."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "domain_weight_sum",
+        "seed_idempotency"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Exam guides change without notice. Three of the eleven exams are already in a version transition, so contentReviewDueAt is set on those tracks and lastVendorVerifiedAt must be re-checked before each release.",
+        "MLA-C02 is a beta exam; AWS has not published its general-availability date, and the AWS certification page shows a conflicting exam code (ME1-C02) in one table cell.",
+        "Objectives are paraphrased from the vendor guides rather than copied, so they need a subject-matter review pass for accuracy, not just currency.",
+        "Hands-on lab prompts are not yet authored for these tracks; the labs field is left empty pending the interactive-labs work."
+      ]
     }
   ]
 }

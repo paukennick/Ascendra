@@ -12,12 +12,51 @@ export interface SeedUnit {
   labs?: (string | null)[]; // parallel to objectives, Security+ only
 }
 
+// Vendor exam a certification track is aligned to. Mirrors the credential_*
+// tables added by migration 007 so a seeded certification track can say which
+// exam revision it teaches, where the official objectives live, and when a
+// human last checked them against the vendor -- the tables enforce that any
+// exam not marked 'draft' carries both an objectives URL and a verified date.
+export interface SeedCredential {
+  providerSlug: string;
+  providerName: string;
+  providerUrl?: string;
+  subcategorySlug: string; // education_subcategories.slug
+  credentialSlug: string;
+  credentialName: string;
+  credentialType: string; // e.g. "certification"
+  credentialUrl?: string;
+  examCode: string;
+  examRevision?: string;
+  objectivesRevision?: string;
+  status: "draft" | "active" | "transitioning" | "beta" | "retired" | "archived";
+  effectiveDate?: string; // ISO date
+  retirementDate?: string; // ISO date
+  officialObjectivesUrl: string;
+  lastVendorVerifiedAt: string; // ISO timestamp
+  recommendedExperience?: string;
+  durationMinutes?: number;
+  questionFormat?: string;
+  passingScorePolicy?: string;
+}
+
 export interface SeedTrack {
   code: string;
   title: string;
   description: string;
   trackType: "graduate" | "certification";
   units: SeedUnit[];
+  // Taxonomy alignment (migration 007). Optional so the original nine tracks
+  // keep seeding unchanged; certification tracks added from here on set it.
+  subcategorySlug?: string;
+  freshnessModel?:
+    | "certification_aligned"
+    | "technology_aligned"
+    | "academic_foundational";
+  credential?: SeedCredential;
+  sourceUrl?: string;
+  sourceVerifiedAt?: string; // ISO timestamp
+  contentReviewDueAt?: string; // ISO timestamp
 }
 
 export const MSCS_TRACK: SeedTrack = {
