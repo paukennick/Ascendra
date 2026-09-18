@@ -15,6 +15,8 @@ import {
 } from "@expo-google-fonts/source-sans-3";
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { UpdateBanner } from "@/components/UpdateBanner";
+import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
@@ -67,6 +69,7 @@ function RootNavigator() {
   const { status, webIdleWarningSecondsLeft } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { updateReady, applyUpdate, dismiss } = useAppUpdates();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -99,6 +102,11 @@ function RootNavigator() {
         <IdleWarningBanner secondsLeft={webIdleWarningSecondsLeft} />
       ) : null}
       {Platform.OS === "web" ? <AlertHost /> : null}
+      {/* Sits below the idle warning in priority: that one is about to take
+          something away from the user, this one is only an offer. */}
+      {updateReady && webIdleWarningSecondsLeft === null ? (
+        <UpdateBanner onApply={applyUpdate} onDismiss={dismiss} />
+      ) : null}
     </>
   );
 }
