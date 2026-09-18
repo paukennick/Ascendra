@@ -15,6 +15,7 @@ import {
 } from "@expo-google-fonts/source-sans-3";
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { AlertHost } from "@/lib/alert";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
 // Held until AuthProvider resolves whether a session exists AND fonts finish
@@ -94,6 +95,7 @@ function RootNavigator() {
       {Platform.OS === "web" && webIdleWarningSecondsLeft !== null ? (
         <IdleWarningBanner secondsLeft={webIdleWarningSecondsLeft} />
       ) : null}
+      {Platform.OS === "web" ? <AlertHost /> : null}
     </>
   );
 }

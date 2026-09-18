@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Animated,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -490,6 +491,56 @@ export function ListRow({
   );
 }
 
+// Alert.alert with a button array doesn't work on web -- react-native-web
+// ships it as a hard no-op (`static alert() {}`), so any onPress passed to
+// it silently never fires there. This is the cross-platform replacement
+// for that specific pattern (title + message + a list of buttons).
+export interface ChoiceOption {
+  label: string;
+  onPress: () => void;
+  variant?: "primary" | "ghost" | "danger";
+}
+
+export function ChoiceSheet({
+  visible,
+  title,
+  message,
+  options,
+  onCancel,
+}: {
+  visible: boolean;
+  title: string;
+  message?: string;
+  options: ChoiceOption[];
+  onCancel: () => void;
+}) {
+  if (!visible) return null;
+  return (
+    <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
+      <Pressable style={styles.choiceBackdrop} onPress={onCancel} accessibilityLabel="Dismiss">
+        <Pressable style={styles.choiceSheet} onPress={(e) => e.stopPropagation()}>
+          <H3 style={{ marginBottom: message ? spacing.xs : spacing.md }}>{title}</H3>
+          {message ? <Body style={{ marginBottom: spacing.md }}>{message}</Body> : null}
+          <View style={{ gap: spacing.sm }}>
+            {options.map((opt) => (
+              <Button
+                key={opt.label}
+                label={opt.label}
+                variant={opt.variant ?? "ghost"}
+                fullWidth
+                onPress={() => {
+                  onCancel();
+                  opt.onPress();
+                }}
+              />
+            ))}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 function withAlpha(hex: string, alpha: number): string {
   const clean = hex.replace("#", "");
   if (clean.length !== 6) return hex;
@@ -500,6 +551,21 @@ function withAlpha(hex: string, alpha: number): string {
 }
 
 const styles = StyleSheet.create({
+  choiceBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  choiceSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderBottomWidth: 0,
+  },
   screenContent: { padding: spacing.lg, paddingBottom: 48, gap: spacing.md },
   card: {
     backgroundColor: colors.card,
