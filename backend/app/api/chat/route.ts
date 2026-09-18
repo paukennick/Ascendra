@@ -1,8 +1,12 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import {
+  requireAcknowledgementForTrack,
+  AcknowledgementError,
+} from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +18,7 @@ export async function GET(req: Request) {
     const trackId = searchParams.get("trackId");
     if (!trackId) return badRequest("trackId query param is required");
     const user = await requireUser(req);
+    await requireAcknowledgementForTrack(trackId, user.id);
     const rows = await query(
       `select * from chat_messages where user_id = $1 and track_id = $2 order by created_at asc`,
       [user.id, trackId]
@@ -21,6 +26,7 @@ export async function GET(req: Request) {
     return ok({ messages: rows });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }
@@ -38,6 +44,7 @@ export async function POST(req: Request) {
 
     const user = await requireUser(req);
     const userId = user.id;
+    await requireAcknowledgementForTrack(trackId, userId);
 
     try {
       await checkRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
@@ -78,6 +85,7 @@ export async function POST(req: Request) {
     return ok({ reply });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }

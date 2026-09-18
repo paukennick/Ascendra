@@ -48,7 +48,28 @@ export async function GET(
       objectives: objectivesByUnit[u.id] ?? [],
     }));
 
-    return ok({ track: tracks[0], units: unitsWithObjectives });
+    // Tracks carrying a required disclaimer (nursing) report whether this
+    // user has accepted the current version, so the client can gate entry.
+    // The real enforcement is in requireAcknowledgement() on the endpoints
+    // that actually teach or grade -- this flag only drives the UI.
+    const track = tracks[0] as {
+      requires_acknowledgement?: boolean;
+      disclaimer_version?: number;
+    };
+    let acknowledgement: { required: boolean; acknowledged: boolean } = {
+      required: false,
+      acknowledged: true,
+    };
+    if (track.requires_acknowledgement) {
+      const existing = await query(
+        `select 1 from track_acknowledgements
+          where user_id = $1 and track_id = $2 and disclaimer_version = $3`,
+        [userId, id, track.disclaimer_version ?? 1]
+      );
+      acknowledgement = { required: true, acknowledged: existing.length > 0 };
+    }
+
+    return ok({ track: tracks[0], units: unitsWithObjectives, acknowledgement });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

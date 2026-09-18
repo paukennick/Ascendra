@@ -16,6 +16,13 @@ export function unauthorized(message = "Unauthorized") {
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
+// Authenticated, but not allowed to do this yet -- currently a course whose
+// disclaimer the user hasn't accepted. Distinct from 401 so the client can
+// tell "sign in" apart from "accept the disclaimer first".
+export function forbidden(message = "Forbidden") {
+  return NextResponse.json({ error: message, acknowledgementRequired: true }, { status: 403 });
+}
+
 export function tooManyRequests(message = "Too many requests") {
   return NextResponse.json({ error: message }, { status: 429 });
 }

@@ -1,8 +1,12 @@
-import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
 import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import {
+  requireAcknowledgementForObjective,
+  AcknowledgementError,
+} from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +33,7 @@ export async function POST(req: Request) {
     }
 
     const authUser = await requireUser(req);
+    if (objectiveId) await requireAcknowledgementForObjective(objectiveId, authUser.id);
 
     if (format === "mc") {
       const { chosenIndex, correctIndex, chosenText, why } = body;
@@ -95,6 +100,7 @@ export async function POST(req: Request) {
     return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }
