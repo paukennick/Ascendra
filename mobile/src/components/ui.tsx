@@ -353,6 +353,7 @@ export function TextField({
   icon,
   autoCapitalize = "none",
   keyboardType,
+  minHeight,
   ...rest
 }: {
   label: string;
@@ -362,12 +363,21 @@ export function TextField({
   secureTextEntry?: boolean;
   error?: string | null;
   icon?: IconName;
+  // For multiline fields -- a bare `multiline` still renders one line tall,
+  // which reads as a single-line box the text scrolls inside of.
+  minHeight?: number;
 } & Pick<TextInputProps, "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "maxLength" | "multiline">) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.inputWrap, error ? { borderColor: colors.bad } : null]}>
-        {icon ? <Feather name={icon} size={16} color={colors.mutedDim} style={{ marginRight: 8 }} /> : null}
+      <View
+        style={[
+          styles.inputWrap,
+          error ? { borderColor: colors.bad } : null,
+          minHeight ? { alignItems: "flex-start" } : null,
+        ]}
+      >
+        {icon ? <Feather name={icon} size={16} color={colors.mutedDim} style={{ marginRight: 8, marginTop: minHeight ? 14 : 0 }} /> : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -375,7 +385,7 @@ export function TextField({
           placeholderTextColor={colors.mutedDim}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
-          style={styles.input}
+          style={[styles.input, minHeight ? { minHeight, textAlignVertical: "top" } : null]}
           {...rest}
         />
       </View>

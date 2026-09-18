@@ -151,3 +151,20 @@ export interface EducationCategory {
   sortOrder: number;
   subcategories: EducationSubcategory[];
 }
+
+export type SupportRequestKind = "ticket" | "course_request";
+export type SupportRequestStatus = "open" | "in_review" | "resolved" | "declined";
+
+export interface SupportRequest {
+  id: string;
+  kind: SupportRequestKind;
+  subject: string;
+  body: string;
+  status: SupportRequestStatus;
+  track_id: string | null;
+  course_name: string | null;
+  course_source_url: string | null;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+}

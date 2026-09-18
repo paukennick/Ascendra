@@ -71,6 +71,48 @@ export async function sendMfaDisableConfirmationEmail(to: string, code: string, 
   });
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// Notifies whoever works the support queue that something new landed, so
+// submissions don't sit unseen in the table. Best-effort: the request is
+// already stored by the time this runs, so a mail failure must not fail the
+// submission -- callers catch/ignore rejections. Falls back to EMAIL_FROM
+// when SUPPORT_EMAIL isn't configured, so a missing env var means the mail
+// goes somewhere reachable rather than throwing.
+//
+// User-supplied text is escaped: subject/body/course name come straight
+// from a form field, and they're being interpolated into an HTML email.
+export async function sendSupportRequestNotification(params: {
+  kind: "ticket" | "course_request";
+  subject: string;
+  body: string;
+  fromEmail: string;
+  courseName?: string | null;
+  courseSourceUrl?: string | null;
+}): Promise<void> {
+  const to = process.env.SUPPORT_EMAIL || getFrom();
+  const label = params.kind === "course_request" ? "Course request" : "Support ticket";
+  const rows = [
+    `<p><strong>From:</strong> ${escapeHtml(params.fromEmail)}</p>`,
+    params.courseName ? `<p><strong>Course:</strong> ${escapeHtml(params.courseName)}</p>` : "",
+    params.courseSourceUrl ? `<p><strong>Source:</strong> ${escapeHtml(params.courseSourceUrl)}</p>` : "",
+    `<p style="white-space:pre-wrap">${escapeHtml(params.body)}</p>`,
+  ].join("");
+  await getClient().emails.send({
+    from: getFrom(),
+    to,
+    replyTo: params.fromEmail,
+    subject: `[${label}] ${params.subject}`,
+    html: rows,
+  });
+}
+
 // Best-effort security notifications (new sign-in, password changed, MFA
 // disabled). Never let a failure here break the action that triggered it --
 // callers should catch/ignore rejections from this function.
