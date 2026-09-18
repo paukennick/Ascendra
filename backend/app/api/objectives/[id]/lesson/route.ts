@@ -1,6 +1,11 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, notFound, serverError } from "@/lib/http";
+import { ok, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { callClaudeJSON, getModel } from "@/lib/anthropic";
+import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import {
+  requireAcknowledgementForObjective,
+  AcknowledgementError,
+} from "@/lib/auth/requireAcknowledgement";
 import { lessonGenerationPrompt, type LessonContent } from "@/lib/prompts";
 
 export const dynamic = "force-dynamic";
@@ -108,11 +113,16 @@ async function generateAndCache(objectiveId: string) {
 // GET /api/objectives/:id/lesson — returns cached lesson content, generating (and
 // caching) it on first visit. Never re-spends an Anthropic call on repeat visits.
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    // Was previously unauthenticated: any objective id would return its
+    // lesson, and a cache miss would spend an Anthropic call doing it.
+    const user = await requireUser(req);
+    await requireAcknowledgementForObjective(id, user.id);
+
     const existing = await queryOne<LessonRow>(
       `select * from lesson_content where objective_id = $1`,
       [id]
@@ -123,21 +133,30 @@ export async function GET(
     if (!generated) return notFound("Objective not found");
     return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }
 
 // POST /api/objectives/:id/lesson — force-regenerate lesson content (overwrites cache).
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    // Regeneration always spends an Anthropic call and overwrites the
+    // cache, so this needs auth at least as much as the GET does.
+    const user = await requireUser(req);
+    await requireAcknowledgementForObjective(id, user.id);
+
     const generated = await generateAndCache(id);
     if (!generated) return notFound("Objective not found");
     return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }

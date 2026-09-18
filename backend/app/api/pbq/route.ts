@@ -1,9 +1,13 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, type PBQScenario, type GradeResult } from "@/lib/prompts";
 import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import {
+  requireAcknowledgementForUnit,
+  AcknowledgementError,
+} from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +31,7 @@ export async function GET(req: Request) {
       [unitId, authUser.id]
     );
     if (!unit) return notFound("Unit not found");
+    await requireAcknowledgementForUnit(unitId, authUser.id);
 
     if (!fresh) {
       const existing = await queryOne(
@@ -69,6 +74,7 @@ export async function GET(req: Request) {
     return ok({ scenario: rows[0], cached: false });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }
@@ -81,6 +87,7 @@ export async function POST(req: Request) {
     if (!scenarioId || !answer) return badRequest("scenarioId and answer are required");
 
     const authUser = await requireUser(req);
+    if (unitId) await requireAcknowledgementForUnit(unitId, authUser.id);
 
     try {
       await checkRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
@@ -126,6 +133,7 @@ export async function POST(req: Request) {
     return ok({ ...graded, attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
 }
