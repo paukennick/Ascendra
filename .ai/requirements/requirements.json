@@ -717,6 +717,49 @@
         "Objectives are paraphrased from the vendor guides rather than copied, so they need a subject-matter review pass for accuracy, not just currency.",
         "Hands-on lab prompts are not yet authored for these tracks; the labs field is left empty pending the interactive-labs work."
       ]
+    },
+    {
+      "id": "REQ-022",
+      "category": "Catalog expansion",
+      "title": "Open the nursing strand: Healthcare & Nursing taxonomy, non-exam credentials, and the NCLEX-RN course behind its disclaimer gate",
+      "description": "Give nursing a home in the taxonomy as a fourteenth top-level category, widen the credential model so degrees and state licences can be recorded alongside vendor exams, seed the NCLEX-RN course from the NCSBN 2026 test plan, and build the app-side accept screen that lets a learner clear the per-course disclaimer gate the backend already enforces.",
+      "priority": "high",
+      "status": "in_progress",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/013_healthcare_nursing_taxonomy.sql",
+        "backend/supabase/migrations/014_credential_non_exam_basis.sql",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/seed.ts",
+        "mobile/src/content/disclaimers.ts",
+        "mobile/src/components/DisclaimerGate.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Healthcare & Nursing exists as a top-level category with subcategories for licensure, NCLEX preparation, degrees, specialty and advanced practice, allied health, coding, administration and fundamentals.",
+        "credential_exams accepts a row with no exam code, identified instead by the standard it follows, and stays idempotent across re-seeds.",
+        "The NCLEX-RN track carries the eight Client Needs subcategories at the NCSBN planning midpoints, summing to 100, with the published range shown to the learner.",
+        "Seed data can turn the disclaimer gate on, and the NCLEX-RN track does.",
+        "A learner opening a gated course sees the disclaimer and can accept it; acceptance is recorded against the account and the course then opens.",
+        "The eleven AWS tracks and nine original tracks seed unchanged."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "domain_weight_sum",
+        "seed_idempotency",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "NCSBN grants reproduction of the test plan to boards of nursing and nonprofit education programs only and prohibits commercial use. The category structure and percentages are followed as fact; all objective phrasing is written fresh rather than copied. A legal read before release is worth having.",
+        "Objectives are paraphrased from the test plan's content areas and need a subject-matter review by a licensed nurse, not just a currency check.",
+        "The 2026 RN test plan runs to 2029-03-31; the retirement date is recorded so freshness reporting flags it.",
+        "Remaining nursing ladder tracks -- NCLEX-PN, CNA, LPN/LVN, ADN and BSN -- are not authored yet, so the strand is incomplete.",
+        "New track codes have no per-course emoji or accent colour in the mobile theme, so AWS and nursing courses fall back to a plain icon."
+      ]
     }
   ]
 }

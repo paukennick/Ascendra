@@ -31,6 +31,7 @@ import {
   type SeedCredential,
 } from "./data";
 import { AWS_TRACKS } from "./tracks/aws";
+import { NURSING_TRACKS } from "./tracks/nursing";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -61,6 +62,10 @@ async function main() {
     await seedTrack(pool, userId, CMPCBS_TRACK);
 
     for (const track of AWS_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    for (const track of NURSING_TRACKS) {
       await seedTrack(pool, userId, track);
     }
 
@@ -145,12 +150,17 @@ async function seedCredentialExam(
 
   // exam_revision is nullable, and NULLs count as distinct in a unique index,
   // so ON CONFLICT would insert a duplicate on every re-run. Look it up first.
+  // Matches the identity index added in migration 014: a vendor exam is
+  // identified by its code, a degree or licence by the standard it follows,
+  // and absent values compare as the empty string so a re-run updates the
+  // existing row instead of inserting a second one.
   const existingExam = await pool.query(
     `select id from credential_exams
       where credential_id = $1
-        and exam_code = $2
-        and exam_revision is not distinct from $3`,
-    [credentialId, cred.examCode, cred.examRevision ?? null]
+        and coalesce(exam_code, '') = coalesce($2, '')
+        and coalesce(exam_revision, '') = coalesce($3, '')
+        and coalesce(standard_name, '') = coalesce($4, '')`,
+    [credentialId, cred.examCode ?? null, cred.examRevision ?? null, cred.standardName ?? null]
   );
 
   const examValues = [
@@ -164,6 +174,9 @@ async function seedCredentialExam(
     cred.durationMinutes ?? null,
     cred.questionFormat ?? null,
     cred.passingScorePolicy ?? null,
+    cred.basis ?? "vendor_exam",
+    cred.standardName ?? null,
+    cred.standardRevision ?? null,
   ];
 
   let examId: string;
@@ -181,8 +194,11 @@ async function seedCredentialExam(
               duration_minutes = $8,
               question_format = $9,
               passing_score_policy = $10,
+              basis = $11,
+              standard_name = $12,
+              standard_revision = $13,
               updated_at = now()
-        where id = $11`,
+        where id = $14`,
       [...examValues, examId]
     );
   } else {
@@ -191,10 +207,11 @@ async function seedCredentialExam(
          (credential_id, exam_code, exam_revision, objectives_revision, status,
           effective_date, retirement_date, last_vendor_verified_at,
           official_objectives_url, recommended_experience, duration_minutes,
-          question_format, passing_score_policy)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+          question_format, passing_score_policy, basis, standard_name,
+          standard_revision)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        returning id`,
-      [credentialId, cred.examCode, cred.examRevision ?? null, ...examValues]
+      [credentialId, cred.examCode ?? null, cred.examRevision ?? null, ...examValues]
     );
     examId = inserted.rows[0].id as string;
   }
@@ -233,6 +250,9 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
     track.sourceUrl ?? null,
     track.sourceVerifiedAt ?? null,
     track.contentReviewDueAt ?? null,
+    track.requiresAcknowledgement ?? false,
+    track.disclaimerKey ?? null,
+    track.disclaimerVersion ?? 1,
   ];
 
   const existing = await pool.query(
@@ -253,7 +273,13 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
               credential_exam_id = coalesce($7, credential_exam_id),
               source_url = coalesce($8, source_url),
               source_verified_at = coalesce($9::timestamptz, source_verified_at),
-              content_review_due_at = coalesce($10::timestamptz, content_review_due_at)
+              content_review_due_at = coalesce($10::timestamptz, content_review_due_at),
+              -- Assigned outright rather than coalesced: the seed file is the
+              -- authority on whether a course is gated, so removing the flag
+              -- there has to actually turn the gate off.
+              requires_acknowledgement = $11,
+              disclaimer_key = $12,
+              disclaimer_version = $13
         where id = $4`,
       [track.title, track.description, track.trackType, trackId, ...alignment]
     );
@@ -263,8 +289,9 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
       `insert into subject_tracks
          (user_id, code, title, description, track_type,
           subcategory_id, freshness_model, credential_exam_id,
-          source_url, source_verified_at, content_review_due_at)
-       values ($1,$2,$3,$4,$5,$6,$7::content_freshness_model,$8,$9,$10::timestamptz,$11::timestamptz)
+          source_url, source_verified_at, content_review_due_at,
+          requires_acknowledgement, disclaimer_key, disclaimer_version)
+       values ($1,$2,$3,$4,$5,$6,$7::content_freshness_model,$8,$9,$10::timestamptz,$11::timestamptz,$12,$13,$14)
        returning id`,
       [userId, track.code, track.title, track.description, track.trackType, ...alignment]
     );

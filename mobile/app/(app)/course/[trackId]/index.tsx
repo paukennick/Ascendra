@@ -21,7 +21,16 @@ import {
   SectionHeader,
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
+import { DisclaimerGate } from "@/components/DisclaimerGate";
+import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, spacing } from "@/lib/theme";
+
+interface AcknowledgementState {
+  required: boolean;
+  acknowledged: boolean;
+  disclaimerKey?: string | null;
+  disclaimerVersion?: number;
+}
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -37,6 +46,7 @@ export default function CourseDashboard() {
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [ack, setAck] = useState<AcknowledgementState | null>(null);
 
   // Marks this as a "studied" course once per visit (not per refocus --
   // that's what drives Home's "Continue studying" hero and the sidebar's
@@ -63,6 +73,14 @@ export default function CourseDashboard() {
         setUnits(res.units);
       })
       .catch((err) => setError(err.message));
+    // Asked for separately so a course that needs no disclaimer -- which is
+    // most of them -- renders without waiting on this, and so a failure here
+    // cannot blank the dashboard. If it fails we show the course; the server
+    // still refuses to teach a gated one.
+    api
+      .get<AcknowledgementState>(`/api/courses/${trackId}/acknowledgement`)
+      .then(setAck)
+      .catch(() => setAck(null));
   }, [trackId]);
 
   useFocusEffect(
@@ -75,6 +93,12 @@ export default function CourseDashboard() {
   const continueUnit = units?.find(
     (u) => (u.mastered_objectives ?? 0) < (u.total_objectives ?? 0)
   );
+
+  // The gate stands in for the whole dashboard rather than sitting above it:
+  // every action below would be refused by the server anyway, and offering
+  // buttons that 403 is worse than not offering them.
+  const pendingDisclaimer =
+    ack?.required && !ack.acknowledged ? getDisclaimer(ack.disclaimerKey) : null;
 
   return (
     <Screen>
@@ -93,7 +117,18 @@ export default function CourseDashboard() {
       {error ? <ErrorBanner message={error} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
-      {track ? (
+      {track && pendingDisclaimer ? (
+        <>
+          <H1>{track.title}</H1>
+          <DisclaimerGate
+            trackId={trackId}
+            disclaimer={pendingDisclaimer}
+            onAccepted={() => setAck({ required: true, acknowledged: true })}
+          />
+        </>
+      ) : null}
+
+      {track && !pendingDisclaimer ? (
         <>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>

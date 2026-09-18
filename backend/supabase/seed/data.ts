@@ -26,8 +26,17 @@ export interface SeedCredential {
   credentialName: string;
   credentialType: string; // e.g. "certification"
   credentialUrl?: string;
-  examCode: string;
+  // What kind of authority governs this qualification (migration 014).
+  // Defaults to a vendor exam, which is what every AWS/CompTIA track is.
+  basis?: "vendor_exam" | "accreditation_standard" | "regulatory_licensure";
+  // Required for a vendor exam, absent for a degree or a state licence --
+  // those are identified by standardName instead.
+  examCode?: string;
   examRevision?: string;
+  // The governing document when there is no exam blueprint: the AACN
+  // Essentials, a federal regulation, a state nurse practice act.
+  standardName?: string;
+  standardRevision?: string;
   objectivesRevision?: string;
   status: "draft" | "active" | "transitioning" | "beta" | "retired" | "archived";
   effectiveDate?: string; // ISO date
@@ -57,6 +66,16 @@ export interface SeedTrack {
   sourceUrl?: string;
   sourceVerifiedAt?: string; // ISO timestamp
   contentReviewDueAt?: string; // ISO timestamp
+
+  // Disclaimer gate (migration 012). Set on tracks where acting on wrong
+  // content has real-world consequences -- the nursing tracks -- so the
+  // learner has to accept a course-specific disclaimer before any lesson is
+  // taught. disclaimerKey names wording that lives in the app; bump
+  // disclaimerVersion when that wording materially changes and everyone is
+  // asked again rather than being treated as having agreed to new text.
+  requiresAcknowledgement?: boolean;
+  disclaimerKey?: string;
+  disclaimerVersion?: number;
 }
 
 export const MSCS_TRACK: SeedTrack = {
