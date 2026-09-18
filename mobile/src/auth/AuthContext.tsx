@@ -152,6 +152,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Cold-start: resolve an existing session before rendering the app. If
   // biometric unlock is on, stop at "locked" instead of silently resuming --
   // the whole point is that opening the app requires the OS prompt first.
+  //
+  // With biometrics OFF, a cold start must NOT resume: closing the app is
+  // meant to sign you out (see the AppState listener below). That listener
+  // alone can't guarantee it -- a swipe-away or an OS kill terminates the
+  // process without ever delivering a "background" event, so logout() never
+  // runs and the token survives in SecureStore, which is what let a closed
+  // app reopen still signed in. Reaching this branch means a session
+  // outlived the process, so revoke it server-side and clear it rather than
+  // trusting the background event fired. (Web's equivalent is sessionStorage
+  // in lib/secureStorage.ts, where the browser drops the token for us; on
+  // native nothing does, so it's done explicitly here.)
   useEffect(() => {
     (async () => {
       const biometricOn = (await secureStorage.getItem(BIOMETRIC_ENABLED_KEY)) === "1";
@@ -159,6 +170,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setBiometricEnabled(biometricOn);
       if (biometricOn) {
         setStatus("locked");
+        return;
+      }
+      if (Platform.OS !== "web") {
+        const stale = await secureStorage.getItem(REFRESH_TOKEN_KEY);
+        if (stale) {
+          await api.post("/api/auth/logout", { refreshToken: stale }).catch(() => undefined);
+        }
+        await clearAuth();
         return;
       }
       const refreshed = await refresh();
