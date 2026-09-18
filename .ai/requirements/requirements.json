@@ -827,6 +827,35 @@
         "Verified by static code review and `tsc --noEmit` only -- this environment has no iOS/Android device or simulator, so the actual OS autofill/credential-pairing behavior still needs a manual pass on a real device before release. Autofill/credential-pairing heuristics are OS- and provider-specific (Google Password Manager, iOS Keychain, third-party password managers) and not fully under this app's control even with correct hints.",
         "forgot-password.tsx's email field intentionally keeps autoComplete=\"email\" -- it is a plain email field with no paired password on that screen, so the mismatch that caused this bug does not apply there."
       ]
+    },
+    {
+      "id": "REQ-025",
+      "category": "AWS certification catalog",
+      "title": "Accuracy pass: verify all eleven AWS course objectives against official exam guides",
+      "description": "Checked every AWS track in backend/supabase/seed/tracks/aws.ts against its current official AWS exam guide (fetched from docs.aws.amazon.com) domain by domain, and fixed only genuine gaps -- an entire task or skill statement the guide names that had no corresponding bullet anywhere in that unit, not a trimmed example inside an already-covered bullet. Cloud Practitioner (CLF-C02), Solutions Architect Associate (SAA-C03), AI Practitioner (AIF-C01), Developer Associate (DVA-C02), and Advanced Networking Specialty (ANS-C01) needed real additions. CloudOps Engineer Associate (SOA-C03), Data Engineer Associate (DEA-C01), Machine Learning Engineer Associate (MLA-C02), Solutions Architect Professional (SAP-C02), DevOps Engineer Professional (DOP-C02), and Security Specialty (SCS-C03, checked against the current SCS-C03 exam code rather than the retired SCS-C02) required no changes. No unit weights, gates, or credential metadata changed -- objectives bullets only.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "All eleven AWS tracks' objectives have been compared domain by domain against their official AWS exam guides as fetched on 2026-09-18.",
+        "Every added objective corresponds to a task or skill statement the official guide names that had no corresponding bullet anywhere in that unit.",
+        "No fix removes or alters an existing accurate objective -- additions only.",
+        "backend typecheck (tsc --noEmit) passes with no new errors."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Security Specialty has two current-ish exam codes -- SCS-C02, retired 2025-12-01, and SCS-C03, current since 2025-12-02 -- with different domain weightings; confirmed the seed models SCS-C03 before comparing, rather than trusting training-data recall of the exam code.",
+        "A sub-bullet example list that dropped one item from an official enumerated list (e.g. one example service named among several) was judged not a real gap, consistent with how earlier tracks in this pass were handled."
+      ]
     }
   ]
 }
