@@ -20,7 +20,8 @@
 
 const OAUTH_REDIRECT_PATHS = ["oauth2redirect", "oauthredirect"];
 
-function isOAuthCallback(path: string): boolean {
+function isOAuthCallback(path: string | null): boolean {
+  if (!path) return false;
   // The path arrives in several shapes depending on how the OS and the
   // scheme joined it: "oauth2redirect", "/oauth2redirect", or a full
   // "com.hel1x.ascendra:/oauth2redirect?code=...". Match on the segment
@@ -31,12 +32,15 @@ function isOAuthCallback(path: string): boolean {
   return !!last && OAUTH_REDIRECT_PATHS.includes(last);
 }
 
+// expo-router types `path` as string | null and accepts null back, so both
+// are handled rather than assumed away -- a null path here would otherwise
+// throw inside the matcher and take the app's cold start with it.
 export function redirectSystemPath({
   path,
 }: {
-  path: string;
+  path: string | null;
   initial: boolean;
-}): string {
+}): string | null {
   if (isOAuthCallback(path)) {
     // Back to the screen the sign-in was started from. If the session is
     // still alive, promptAsync resolves and AuthContext flips to signedIn,
