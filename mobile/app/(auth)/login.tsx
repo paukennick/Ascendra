@@ -90,8 +90,8 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           keyboardType="email-address"
-          textContentType="none"
-          autoComplete="off"
+          textContentType="username"
+          autoComplete="email"
           icon="mail"
         />
         <TextField
@@ -100,8 +100,8 @@ export default function Login() {
           onChangeText={setPassword}
           placeholder="••••••••"
           secureTextEntry
-          textContentType="none"
-          autoComplete="new-password"
+          textContentType="password"
+          autoComplete="current-password"
           icon="lock"
         />
         {biometricAvailable && biometricEnabled ? (
