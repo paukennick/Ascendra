@@ -3,6 +3,7 @@ import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, 
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import { ChoiceSheet } from "@/components/ui";
 import { colors, courseEmoji, fonts, radius, spacing, trackTypeIcon } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
@@ -36,6 +37,7 @@ function byLastStudied(a: Track, b: Track): number {
 
 export function Sidebar({ visible, onClose, tracks, trackId, track, units }: SidebarProps) {
   const router = useRouter();
+  const { logout } = useAuth();
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const [rendered, setRendered] = useState(visible);
   const [enteringId, setEnteringId] = useState<string | null>(null);
@@ -206,6 +208,18 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <View style={styles.divider} />
           <NavRow icon="user" label="Account" onPress={() => go("/account")} />
           <NavRow icon="settings" label="Settings" onPress={() => go("/settings")} />
+          <View style={styles.divider} />
+          <NavRow icon="help-circle" label="FAQ" onPress={() => go("/faq")} />
+          <NavRow icon="alert-circle" label="Disclaimer" onPress={() => go("/disclaimer")} />
+          <View style={styles.divider} />
+          <NavRow
+            icon="log-out"
+            label="Log out"
+            onPress={() => {
+              onClose();
+              logout();
+            }}
+          />
         </ScrollView>
       </Animated.View>
     </Modal>

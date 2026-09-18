@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
@@ -183,12 +183,44 @@ export default function Home() {
             </Card>
           ) : null
         }
+        ListFooterComponent={<Footer />}
       />
     </SafeAreaView>
   );
 }
 
+function Footer() {
+  const router = useRouter();
+  const links: [string, string][] = [
+    ["FAQ", "/faq"],
+    ["Disclaimer", "/disclaimer"],
+    ["Privacy Policy", "/privacy"],
+    ["Cookies & Storage", "/cookies"],
+    ["Terms", "/terms"],
+  ];
+  return (
+    <View style={styles.footer}>
+      <View style={styles.footerLinks}>
+        {links.map(([label, path], i) => (
+          <React.Fragment key={path}>
+            {i > 0 ? <Text style={styles.footerDot}>·</Text> : null}
+            <Pressable onPress={() => router.push(path)}>
+              <Text style={styles.footerLink}>{label}</Text>
+            </Pressable>
+          </React.Fragment>
+        ))}
+      </View>
+      <Muted style={styles.footerCopy}>Ascendra</Muted>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  footer: { marginTop: spacing.xl, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm },
+  footerLinks: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: spacing.sm },
+  footerLink: { color: colors.muted, fontFamily: fonts.body, fontSize: 13 },
+  footerDot: { color: colors.mutedDim, fontFamily: fonts.body, fontSize: 13 },
+  footerCopy: { textAlign: "center", fontSize: 12 },
   safeArea: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, paddingBottom: 48, gap: spacing.md },
   heroCard: { borderColor: colors.accent, marginTop: spacing.md, gap: spacing.sm },

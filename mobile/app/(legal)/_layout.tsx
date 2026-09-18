@@ -15,6 +15,8 @@ export default function LegalLayout() {
       <Stack.Screen name="terms" options={{ title: "Terms & Disclaimer" }} />
       <Stack.Screen name="privacy" options={{ title: "Privacy Policy" }} />
       <Stack.Screen name="cookies" options={{ title: "Cookies & Storage" }} />
+      <Stack.Screen name="faq" options={{ title: "FAQ" }} />
+      <Stack.Screen name="disclaimer" options={{ title: "Disclaimer" }} />
     </Stack>
   );
 }
