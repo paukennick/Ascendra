@@ -917,6 +917,42 @@
         "The fingerprint is the EAS-managed keystore used by the preview and production profiles, read from the signed APK. Shipping through Play with Play App Signing means Google re-signs the app and that fingerprint must be added alongside, not substituted.",
         "Serving from backend/public assumes Next.js serves dotfolders; verify with curl after the deploy rather than assuming."
       ]
+    },
+    {
+      "id": "REQ-028",
+      "category": "Mobile reliability",
+      "title": "Surface over-the-air updates in the app instead of applying them an open late",
+      "description": "With stock configuration the app downloads an update in the background and applies it on the next cold start, with no signal to the user -- so a fix lands one open late and nobody knows it is waiting. Prompt when an update is ready, and apply silently only when the user has been away long enough that a reload costs them nothing.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/updates/useAppUpdates.ts",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/app/_layout.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A downloaded, pending update surfaces a prompt the user can act on.",
+        "An update fetched by the stock on-launch check also surfaces, not just one this code fetched.",
+        "Returning after five minutes away applies a pending update without asking.",
+        "A lesson, PBQ or chat route is never silently reloaded, however long the user was away.",
+        "Dismissing hides the prompt for the session and it returns on the next foreground.",
+        "Nothing runs in development or Expo Go, where there is no update channel.",
+        "Ships over the air: JavaScript only, no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not observed on a device: no Android SDK here, and expo-updates is inert in development, so the paths that matter cannot run locally at all.",
+        "AuthContext runs its own AppState listener with a 1500ms lock/sign-out grace timer. The update check acts on the foreground transition to stay clear of it, but the two listeners are independent and their ordering is not guaranteed.",
+        "The five-minute threshold and the protected-route list are judgment calls, not measured.",
+        "Like any update mechanism, this only takes effect from the bundle after the one that introduces it."
+      ]
     }
   ]
 }
