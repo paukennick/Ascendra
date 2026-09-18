@@ -856,6 +856,67 @@
         "Security Specialty has two current-ish exam codes -- SCS-C02, retired 2025-12-01, and SCS-C03, current since 2025-12-02 -- with different domain weightings; confirmed the seed models SCS-C03 before comparing, rather than trusting training-data recall of the exam code.",
         "A sub-bullet example list that dropped one item from an official enumerated list (e.g. one example service named among several) was judged not a real gap, consistent with how earlier tracks in this pass were handled."
       ]
+    },
+    {
+      "id": "REQ-026",
+      "category": "Mobile reliability",
+      "title": "Stop Google sign-in dead-ending on an unmatched route",
+      "description": "On Android the Google OAuth callback returns to com.hel1x.ascendra:/oauth2redirect. Expo Router owns deep linking, finds no route by that name, and renders its built-in unmatched screen, so the user lands on a dead end after choosing their account. Intercept the callback before routing, and give every other unmatched route a way out.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/+native-intent.tsx",
+        "mobile/app/+not-found.tsx"
+      ],
+      "acceptance_criteria": [
+        "An OAuth callback deep link no longer renders the unmatched-route screen.",
+        "Real routes are unaffected by the intercept.",
+        "An unmatched route shows a usable screen with a destination that respects auth status.",
+        "The fix is JavaScript only, so it ships over the air without a new native build."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not reproducible on this machine: Google sign-in is hidden on web, and there is no Android SDK here. The path matcher is unit-tested against the URL shapes Android delivers, but the end-to-end flow has not been observed.",
+        "If the app is cold-started by the callback the in-flight promise is gone and the user lands on the login screen to tap again -- correct, but not seamless.",
+        "+native-intent.tsx is native-only and changes deep-link handling; Fast Refresh does not reliably pick it up, so testing needs a full restart."
+      ]
+    },
+    {
+      "id": "REQ-027",
+      "category": "Mobile reliability",
+      "title": "Restore saved-credential suggestions on the login screen, and associate the app with the website",
+      "description": "REQ-024 changed the email field's autofill hint from 'email' to 'username' so a tapped suggestion would bring its password along. The reasoning was right but the association it depends on did not exist, so Android offered nothing at all -- worse than before. Revert the hint for now and publish Digital Asset Links so the saved web credential becomes offerable in the app.",
+      "priority": "high",
+      "status": "in_progress",
+      "minimum_access_scope": [
+        "mobile/app/(auth)/login.tsx",
+        "backend/public/.well-known/assetlinks.json",
+        "backend/public/.well-known/README.md"
+      ],
+      "acceptance_criteria": [
+        "Tapping the email field offers saved suggestions again.",
+        "https://www.ascendra-learn.com/.well-known/assetlinks.json serves the JSON over https with no redirect.",
+        "The fingerprint listed matches the certificate the installed app is actually signed with.",
+        "Once Google has re-crawled, the hint goes back to 'username' and a tapped suggestion carries its password."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "The reverted hint restores suggestions but not password pairing; that only arrives once the association is live and re-crawled, and Google's crawl timing is not under our control.",
+        "The fingerprint is the EAS-managed keystore used by the preview and production profiles, read from the signed APK. Shipping through Play with Play App Signing means Google re-signs the app and that fingerprint must be added alongside, not substituted.",
+        "Serving from backend/public assumes Next.js serves dotfolders; verify with curl after the deploy rather than assuming."
+      ]
     }
   ]
 }
