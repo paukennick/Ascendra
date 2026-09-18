@@ -16,7 +16,10 @@ import {
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { AlertHost } from "@/lib/alert";
+import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
+
+installWebAutofillStyles();
 
 // Held until AuthProvider resolves whether a session exists AND fonts finish
 // loading, so the user never sees a flash of the wrong screen or a
