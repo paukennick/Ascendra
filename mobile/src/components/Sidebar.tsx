@@ -209,6 +209,12 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <NavRow icon="user" label="Account" onPress={() => go("/account")} />
           <NavRow icon="settings" label="Settings" onPress={() => go("/settings")} />
           <View style={styles.divider} />
+          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support")} />
+          <NavRow
+            icon="plus-circle"
+            label="Request a course"
+            onPress={() => go("/support", { kind: "course_request" })}
+          />
           <NavRow icon="help-circle" label="FAQ" onPress={() => go("/faq")} />
           <NavRow icon="alert-circle" label="Disclaimer" onPress={() => go("/disclaimer")} />
           <View style={styles.divider} />
