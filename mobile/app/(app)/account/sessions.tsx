@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { api } from "@/api/client";
 import { Card, Divider, EmptyState, ErrorBanner, IconButton, Loading, Muted, Screen, SectionHeader } from "@/components/ui";
+import { Alert } from "@/lib/alert";
 import { colors, spacing } from "@/lib/theme";
 
 interface Session {

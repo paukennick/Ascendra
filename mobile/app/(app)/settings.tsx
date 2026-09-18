@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Switch, View } from "react-native";
+import { ActivityIndicator, Switch, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
 

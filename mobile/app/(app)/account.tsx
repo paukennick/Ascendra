@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, Share, View } from "react-native";
+import { ActivityIndicator, Pressable, Share, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -18,6 +18,7 @@ import {
   SectionHeader,
   TextField,
 } from "@/components/ui";
+import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
 

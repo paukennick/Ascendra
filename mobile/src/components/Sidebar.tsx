@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { api } from "@/api/client";
+import { ChoiceSheet } from "@/components/ui";
 import { colors, courseEmoji, fonts, radius, spacing, trackTypeIcon } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
 
@@ -38,6 +39,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const [rendered, setRendered] = useState(visible);
   const [enteringId, setEnteringId] = useState<string | null>(null);
+  const [choiceTrack, setChoiceTrack] = useState<Track | null>(null);
 
   useEffect(() => {
     if (visible) setRendered(true);
@@ -88,11 +90,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   }
 
   function chooseEntry(t: Track) {
-    Alert.alert(t.title, "Pick up where you left off, or start from the beginning?", [
-      { text: "Continue where I left off", onPress: () => enterCourse(t, "continue") },
-      { text: "Start from the beginning", onPress: () => enterCourse(t, "beginning") },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    setChoiceTrack(t);
   }
 
   if (!rendered) return null;
@@ -107,6 +105,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
       .slice(0, 5) ?? [];
 
   return (
+    <>
     <Modal transparent visible statusBarTranslucent animationType="none" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close menu" />
       <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
@@ -210,6 +209,22 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
         </ScrollView>
       </Animated.View>
     </Modal>
+    <ChoiceSheet
+      visible={!!choiceTrack}
+      title={choiceTrack?.title ?? ""}
+      message="Pick up where you left off, or start from the beginning?"
+      onCancel={() => setChoiceTrack(null)}
+      options={
+        choiceTrack
+          ? [
+              { label: "Continue where I left off", onPress: () => enterCourse(choiceTrack, "continue") },
+              { label: "Start from the beginning", onPress: () => enterCourse(choiceTrack, "beginning") },
+              { label: "Cancel", onPress: () => {} },
+            ]
+          : []
+      }
+    />
+    </>
   );
 }
 
