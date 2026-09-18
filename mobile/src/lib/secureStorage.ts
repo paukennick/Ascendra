@@ -11,26 +11,34 @@ export interface SecureItemOptions {
 }
 
 // expo-secure-store has no web implementation (the native module is simply
-// absent there), so route web through localStorage instead. The refresh
-// token is the only thing stored here, and it's already short-lived and
-// server-revocable, so localStorage's weaker guarantees are an acceptable
-// trade for the web preview target working at all. `requireAuthentication`
-// is silently ignored on web -- there's no biometric gate to offer there.
+// absent there), so route web through sessionStorage instead of
+// localStorage. This is deliberate, not a fallback of convenience:
+// sessionStorage is cleared when the browser session ends (tab/window/
+// browser closed), which is what makes a closed browser actually sign the
+// user out on web -- localStorage would instead survive a full browser
+// restart or computer reboot, which is exactly the bug this replaced.
+// Native's equivalent "closed app" signal is the AppState listener in
+// AuthContext.tsx; web has no matching event, so the storage lifetime
+// itself has to be the mechanism. This is separate from (and doesn't
+// replace) web's 30-minute idle-timeout sign-out just below in
+// AuthContext.tsx, which handles a tab left open but inactive.
+// `requireAuthentication` is silently ignored on web -- there's no
+// biometric gate to offer there.
 export const secureStorage = {
   async getItem(key: string, options?: SecureItemOptions): Promise<string | null> {
-    if (Platform.OS === "web") return window.localStorage.getItem(key);
+    if (Platform.OS === "web") return window.sessionStorage.getItem(key);
     return SecureStore.getItemAsync(key, options);
   },
   async setItem(key: string, value: string, options?: SecureItemOptions): Promise<void> {
     if (Platform.OS === "web") {
-      window.localStorage.setItem(key, value);
+      window.sessionStorage.setItem(key, value);
       return;
     }
     await SecureStore.setItemAsync(key, value, options);
   },
   async deleteItem(key: string, options?: SecureItemOptions): Promise<void> {
     if (Platform.OS === "web") {
-      window.localStorage.removeItem(key);
+      window.sessionStorage.removeItem(key);
       return;
     }
     await SecureStore.deleteItemAsync(key, options);
