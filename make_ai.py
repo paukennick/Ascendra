@@ -609,6 +609,56 @@ def git_current_ref(repo_root: Path) -> str | None:
     return result.stdout.strip() or None
 
 
+def git_repo_name(repo_root: Path) -> str | None:
+    """The repo's name per its `origin` remote, not the local checkout's
+    folder name -- a clone can sit in a differently-named directory (as it
+    does here: `prep-lms` locally vs. `Ascendra` on GitHub's own runners),
+    which would otherwise make a committed map's Root line permanently
+    disagree with what any other checkout regenerates.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    url = result.stdout.strip()
+    if not url:
+        return None
+    name = url.rstrip("/").rsplit("/", 1)[-1]
+    if name.endswith(".git"):
+        name = name[: -len(".git")]
+    return name or None
+
+
+def git_ignored_relpaths(repo_root: Path) -> set[str]:
+    """Every path `.gitignore` (root or nested, e.g. `backend/.gitignore`)
+    currently hides, as git itself resolves them -- not a hand-rolled
+    fnmatch reader that only ever saw the root file and missed anything a
+    subproject's own `.gitignore` declared.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "git", "-C", str(repo_root), "ls-files",
+                "--others", "--ignored", "--exclude-standard", "--directory",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except OSError:
+        return set()
+    if result.returncode != 0:
+        return set()
+    return {line.rstrip("/") for line in result.stdout.splitlines() if line.strip()}
+
+
 def git_show_file(repo_root: Path, ref: str, relative_path: str) -> str | None:
     try:
         result = subprocess.run(
@@ -700,7 +750,13 @@ def path_matches_pattern(path: Path, pattern: str, is_dir: bool) -> bool:
     )
 
 
-def should_skip_map_path(path: Path, is_dir: bool, ignore_patterns: list[str], include_ai: bool) -> bool:
+def should_skip_map_path(
+    path: Path,
+    is_dir: bool,
+    ignore_patterns: list[str],
+    include_ai: bool,
+    git_ignored: set[str] | None = None,
+) -> bool:
     if path == Path("."):
         return False
     if is_dir and path.name in DEFAULT_MAP_EXCLUDED_DIRS:
@@ -709,6 +765,12 @@ def should_skip_map_path(path: Path, is_dir: bool, ignore_patterns: list[str], i
         return True
     if not is_dir and path.name in DEFAULT_MAP_EXCLUDED_FILES:
         return True
+    if git_ignored:
+        normalized = path.as_posix()
+        if normalized in git_ignored or any(
+            normalized == entry or normalized.startswith(f"{entry}/") for entry in git_ignored
+        ):
+            return True
     return any(path_matches_pattern(path, pattern, is_dir) for pattern in ignore_patterns)
 
 
@@ -1341,6 +1403,7 @@ def collect_map_entries(
     ignore_patterns: list[str],
     include_ai: bool,
     entries: list[tuple[Path, bool, int]],
+    git_ignored: set[str] | None = None,
 ) -> bool:
     if len(entries) >= max_entries:
         return True
@@ -1358,7 +1421,7 @@ def collect_map_entries(
     for child in children:
         relative = child.relative_to(root)
         is_dir = child.is_dir()
-        if should_skip_map_path(relative, is_dir, ignore_patterns, include_ai):
+        if should_skip_map_path(relative, is_dir, ignore_patterns, include_ai, git_ignored):
             continue
         entries.append((relative, is_dir, depth + 1))
         if len(entries) >= max_entries:
@@ -1373,6 +1436,7 @@ def collect_map_entries(
                 ignore_patterns,
                 include_ai,
                 entries,
+                git_ignored,
             )
             if truncated:
                 return True
@@ -1383,6 +1447,7 @@ def render_project_map(args: argparse.Namespace) -> str:
     root = Path(args.root).resolve()
     output = Path(args.output)
     ignore_patterns = read_ignore_patterns()
+    git_ignored = git_ignored_relpaths(root)
     entries: list[tuple[Path, bool, int]] = []
     truncated = collect_map_entries(
         root,
@@ -1393,9 +1458,11 @@ def render_project_map(args: argparse.Namespace) -> str:
         ignore_patterns,
         args.include_ai,
         entries,
+        git_ignored,
     )
 
     generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    root_name = git_repo_name(root) or root.name or str(root)
     lines = [
         "# Project Map",
         "",
@@ -1404,7 +1471,7 @@ def render_project_map(args: argparse.Namespace) -> str:
         "to inspect next without reading the whole repository.",
         "",
         f"- Generated at: `{generated_at}`",
-        f"- Root: `{root.name or root}`",
+        f"- Root: `{root_name}`",
         f"- Max depth: `{args.max_depth}`",
         f"- Max entries: `{args.max_entries}`",
         f"- Includes `.ai/`: `{str(args.include_ai).lower()}`",

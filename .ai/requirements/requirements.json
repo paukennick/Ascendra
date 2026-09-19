@@ -1081,6 +1081,31 @@
       "risk_notes": [
         "This was the actual reason CI kept failing on master even after the prior commit's real content fix -- the timestamp alone guaranteed a diff on every run. No other omni-generated file (handled by run_sync's write_generated_file) had this problem, since that path already normalizes to write-if-changed."
       ]
+    },
+    {
+      "id": "REQ-034",
+      "category": "CI reliability",
+      "title": "Fix the workspace map so a clean CI checkout actually agrees with what is committed",
+      "description": "The omni-workspace CI job kept failing even after REQ-033 made map generation itself idempotent, because two other parts of the generated .ai/project-map.md were environment-dependent rather than a property of the repository: the \"Root\" line read the literal name of whatever folder the tool happened to run from (\"prep-lms\" on this machine, \"Ascendra\" on a GitHub Actions checkout), and the directory walk only ever read the repo-root .gitignore by hand, missing patterns declared in backend/.gitignore and mobile/.gitignore (build/typecheck leftovers like a stale tsconfig.tsbuildinfo or an exported web bundle sitting in backend/public/ on a developer machine that a clean CI checkout never has). Root now comes from the git remote instead of the checkout folder name, and the ignore check asks git itself (git ls-files --others --ignored --exclude-standard) which correctly resolves every nested .gitignore instead of re-parsing just the top-level file.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        ".ai/project-map.md"
+      ],
+      "acceptance_criteria": [
+        "A fresh clone of the repository (no local build artifacts, no leftover node_modules/tsbuildinfo output) regenerates .ai/project-map.md identical to what is committed, regardless of the folder name it was cloned into.",
+        "git diff --exit-code against the paths the CI workspace-freshness check watches is clean after running omni sync and omni map from a clean checkout."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by cloning the repository to a scratch directory with a different name, pointing its origin remote at the real GitHub URL, and running the exact three commands the CI job runs -- not verified inside an actual GitHub Actions runner."
+      ]
     }
   ]
 }
