@@ -90,9 +90,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
   }, []);
 
-  // Full sign-out: also drops biometric enrollment on this device. Simpler
-  // and safer than trying to decide when a stale enrollment is still valid
-  // (e.g. a different account signing in on a shared device next).
+  // Drops biometric enrollment on this device -- for logoutAll (revoking
+  // every session makes this device's local shortcut stale too) and for an
+  // explicit "use password instead" (useFallbackSignIn). A plain logout no
+  // longer calls this: see the comment on logout below.
   const clearBiometricEnrollment = useCallback(async () => {
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
@@ -252,14 +253,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await api.post("/api/auth/register", { email, password, displayName });
   }, []);
 
+  // A plain "Log out" ends this session but leaves the device's own
+  // settings alone -- biometric unlock stays on, same as it would if the
+  // user had just changed their password, so logging back in doesn't also
+  // mean re-enabling it. (Contrast logoutAll below, and useFallbackSignIn,
+  // which are both an explicit choice to drop this device's enrollment.)
   const logout = useCallback(async () => {
     const storedRefreshToken = refreshTokenRef.current ?? (await secureStorage.getItem(REFRESH_TOKEN_KEY));
     if (storedRefreshToken) {
       await api.post("/api/auth/logout", { refreshToken: storedRefreshToken }).catch(() => undefined);
     }
-    await clearBiometricEnrollment();
     await clearAuth();
-  }, [clearAuth, clearBiometricEnrollment]);
+  }, [clearAuth]);
 
   const logoutAll = useCallback(async () => {
     await api.post("/api/auth/logout-all").catch(() => undefined);
