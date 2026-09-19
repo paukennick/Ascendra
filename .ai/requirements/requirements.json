@@ -1056,6 +1056,31 @@
       "risk_notes": [
         "Not verified on a physical device in this environment -- confirmed by reading the logout/logoutAll/useFallbackSignIn code paths and mobile tsc --noEmit, not a live before/after toggle check."
       ]
+    },
+    {
+      "id": "REQ-033",
+      "category": "CI reliability",
+      "title": "Make omni map idempotent so the workspace-freshness CI check can pass",
+      "description": "The CI job that regenerates .ai/project-map.md and fails the build on any diff (added to catch real drift, see REQ-001-era history) could never actually pass: run_map() in make_ai.py stamped a fresh wall-clock \"Generated at\" line and rewrote the file unconditionally on every invocation, so a fresh CI run's regenerated file always differed from the committed one by at least that timestamp, even with zero structural changes. This was masked while the file also had genuine content drift (fixed in a prior commit today), then surfaced again immediately -- re-running `omni map` right after committing a fully up-to-date map still showed a diff. run_map() now compares the freshly rendered content against the existing file with the \"Generated at\" line normalized out first, and only rewrites (bumping the timestamp) when something else actually changed; otherwise it reports Unchanged and leaves the file alone, matching the write-if-changed pattern run_sync() already uses elsewhere in this file.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        ".ai/project-map.md"
+      ],
+      "acceptance_criteria": [
+        "Running `python3 omni map` twice in a row with no repository changes between the two runs reports \"Unchanged\" both times and does not modify .ai/project-map.md.",
+        "Running `python3 omni map` after a real structural change (a file added or removed under a tracked path) still reports \"Updated\" and regenerates the file with a fresh timestamp."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "This was the actual reason CI kept failing on master even after the prior commit's real content fix -- the timestamp alone guaranteed a diff on every run. No other omni-generated file (handled by run_sync's write_generated_file) had this problem, since that path already normalizes to write-if-changed."
+      ]
     }
   ]
 }

@@ -1461,8 +1461,23 @@ def run_map(args: argparse.Namespace) -> int:
         return 1
 
     output = Path(args.output)
+    content = render_project_map(args)
+
+    # "Generated at" is the one line that's expected to differ on every run
+    # regardless of whether anything about the workspace actually changed.
+    # Ignore it when deciding whether to rewrite the file, so a plain re-run
+    # (e.g. CI's freshness check, which regenerates this file and diffs it
+    # against what's committed) doesn't fail forever just because the clock
+    # moved -- only real structural drift should redirty it.
+    def normalize(text: str) -> str:
+        return re.sub(r"^- Generated at: `.*`$", "- Generated at: `PINNED`", text, count=1, flags=re.MULTILINE)
+
+    if output.exists() and normalize(output.read_text(encoding="utf-8")) == normalize(content):
+        print(f"Unchanged: {output}")
+        return 0
+
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(render_project_map(args), encoding="utf-8")
+    output.write_text(content, encoding="utf-8")
     print(f"Updated: {output}")
     return 0
 
