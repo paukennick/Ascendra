@@ -1008,6 +1008,29 @@
         "Not observed on a device in this environment; needs a manual Android pass before relying on it.",
         "Ships over the air: JavaScript only, no native change."
       ]
+    },
+    {
+      "id": "REQ-031",
+      "category": "Mobile reliability",
+      "title": "Stop eas update from shipping the dev-machine LAN API URL",
+      "description": "The REQ-029/030 OTA update published to the preview channel on 2026-09-18 was exported with EXPO_PUBLIC_API_URL still resolved from mobile/.env.local (http://10.0.0.85:3000, the dev machine LAN address used for local expo start testing) instead of the production backend baked into the real preview/production native builds via eas.json. @expo/env loads .env.local unconditionally ahead of any NODE_ENV-specific file, and eas update runs its export locally using whatever is in the shell/dotenv at the time -- it does not read eas.json build profiles' env blocks the way eas build does. Every network call in that update (password login, the Google sign-in code-for-token exchange against our own backend, anything server-backed) would have silently failed for any device off that LAN. Republished immediately with EXPO_PUBLIC_API_URL explicitly set on the command line to override it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "A fresh eas update publish to the preview channel embeds the production backend URL, verified by exporting locally with the same working directory and .env.local present and confirming the export log's \"env: export\" line does not include EXPO_PUBLIC_API_URL when it is set explicitly on the command line.",
+        "Publishing an update this way is documented so it is not repeated from memory alone."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "No code changed -- this is a publishing-process fix, not an app-code fix. The underlying eas.json / .env.local layout is unchanged, so the same mistake is possible again on any future eas update run from this machine unless EXPO_PUBLIC_API_URL is set explicitly each time.",
+        "Not verified against the actual installed app on a physical device in this environment; the fix is confirmed at the export/bundle level (matching manifest permalink query and a local re-export using the same working directory and .env.local), not by a live device check."
+      ]
     }
   ]
 }
