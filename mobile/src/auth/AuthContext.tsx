@@ -154,16 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // biometric unlock is on, stop at "locked" instead of silently resuming --
   // the whole point is that opening the app requires the OS prompt first.
   //
-  // With biometrics OFF, a cold start must NOT resume: closing the app is
-  // meant to sign you out (see the AppState listener below). That listener
-  // alone can't guarantee it -- a swipe-away or an OS kill terminates the
-  // process without ever delivering a "background" event, so logout() never
-  // runs and the token survives in SecureStore, which is what let a closed
-  // app reopen still signed in. Reaching this branch means a session
-  // outlived the process, so revoke it server-side and clear it rather than
-  // trusting the background event fired. (Web's equivalent is sessionStorage
-  // in lib/secureStorage.ts, where the browser drops the token for us; on
-  // native nothing does, so it's done explicitly here.)
+  // Without biometrics, a cold start resumes the session via refresh(), the
+  // same as web: a plain login is meant to survive a full app close, like a
+  // "remember me" checkbox. (An earlier version treated every native cold
+  // start as stale and revoked the token on sight, on the theory that a
+  // swipe-away or OS kill skips the AppState "background" handler below and
+  // so shouldn't count as an intentional close -- but that meant a plain
+  // login never actually persisted on Android, which is the opposite of
+  // what "remember me" is supposed to do. The background handler's own
+  // intentional-close logout still runs first when it gets the chance, so
+  // by the time a killed app reaches this effect again there is usually
+  // nothing left in SecureStore for refresh() to find anyway.)
   useEffect(() => {
     (async () => {
       const biometricOn = (await secureStorage.getItem(BIOMETRIC_ENABLED_KEY)) === "1";
@@ -171,14 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setBiometricEnabled(biometricOn);
       if (biometricOn) {
         setStatus("locked");
-        return;
-      }
-      if (Platform.OS !== "web") {
-        const stale = await secureStorage.getItem(REFRESH_TOKEN_KEY);
-        if (stale) {
-          await api.post("/api/auth/logout", { refreshToken: stale }).catch(() => undefined);
-        }
-        await clearAuth();
         return;
       }
       const refreshed = await refresh();

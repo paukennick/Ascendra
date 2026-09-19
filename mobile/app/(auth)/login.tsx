@@ -90,23 +90,16 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="you@example.com"
           keyboardType="email-address"
-          // Temporarily back to "email" (REQ-024 had changed this to
-          // "username"). The reasoning for "username" is still right --
-          // it is the credential identifier that pairs with the password
-          // field, where "email" is a plain-data hint in the same bucket as
-          // street address, so a tapped suggestion brings no password with
-          // it. But "username" makes Android look for a credential saved
-          // against *this app*, and there is none: the credential lives
-          // against the website, and nothing yet tells Android the two are
-          // the same product. The result was no suggestions at all, which
-          // is worse than a half-working one.
-          //
-          // Switch this back to "username" once /.well-known/assetlinks.json
-          // is live on the site and Google has re-crawled it -- at that
-          // point the saved web credential becomes offerable here, with the
-          // password attached, which is the outcome REQ-024 was after.
+          // "username" is the credential identifier that pairs with the
+          // password field, where "email" is a plain-data hint in the same
+          // bucket as street address and brings no password with it.
+          // "username" only works once Android can verify this app and
+          // ascendra-learn.com are the same product, via
+          // /.well-known/assetlinks.json (REQ-027) -- confirmed live via
+          // https://digitalassetlinks.googleapis.com/v1/statements:list, so
+          // the saved web credential is now offerable here with its password.
           textContentType="username"
-          autoComplete="email"
+          autoComplete="username"
           importantForAutofill="yes"
           icon="mail"
         />
