@@ -1031,6 +1031,31 @@
         "No code changed -- this is a publishing-process fix, not an app-code fix. The underlying eas.json / .env.local layout is unchanged, so the same mistake is possible again on any future eas update run from this machine unless EXPO_PUBLIC_API_URL is set explicitly each time.",
         "Not verified against the actual installed app on a physical device in this environment; the fix is confirmed at the export/bundle level (matching manifest permalink query and a local re-export using the same working directory and .env.local), not by a live device check."
       ]
+    },
+    {
+      "id": "REQ-032",
+      "category": "Mobile reliability",
+      "title": "Stop a plain logout from disabling biometric unlock",
+      "description": "mobile/src/auth/AuthContext.tsx's logout() called clearBiometricEnrollment() unconditionally, the same full device-enrollment wipe used by logoutAll() (sign out of every session) and useFallbackSignIn() (explicit \"use password instead\"). That meant a user who turned biometric unlock on, then just logged out normally, found it silently switched back off the next time they signed in -- a device setting resetting itself without the user ever touching it. logout() no longer calls clearBiometricEnrollment(); it only clears the current session (in-memory tokens, plain refresh-token key, revokes the token server-side). logoutAll() and useFallbackSignIn() are unchanged, since both are an explicit choice to drop this device's local shortcut, and unlockWithBiometric() still clears the enrollment if the stored token turns out to be missing or invalid.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "acceptance_criteria": [
+        "Enabling biometric unlock in Settings, then using the regular \"Log out\" action, leaves biometric unlock enabled the next time the app is opened.",
+        "logoutAll() and \"use password instead\" from the lock screen still fully drop this device's biometric enrollment, same as before."
+      ],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not verified on a physical device in this environment -- confirmed by reading the logout/logoutAll/useFallbackSignIn code paths and mobile tsc --noEmit, not a live before/after toggle check."
+      ]
     }
   ]
 }
