@@ -953,6 +953,61 @@
         "The five-minute threshold and the protected-route list are judgment calls, not measured.",
         "Like any update mechanism, this only takes effect from the bundle after the one that introduces it."
       ]
+    },
+    {
+      "id": "REQ-029",
+      "category": "Mobile reliability",
+      "title": "Re-pair login autofill with its saved password now the app-site association is live",
+      "description": "REQ-027 restored autofill suggestions on the login email field by reverting its autoComplete hint from \"username\" back to \"email\", since Android had no way yet to know the app and ascendra-learn.com were the same product and so offered nothing at all. That reversion was explicitly temporary: \"email\" is a plain-data hint that carries no password, so a tapped suggestion still required typing the password by hand. The two blocking conditions REQ-027 named -- assetlinks.json live, and Google's association verifiable -- are now both confirmed directly rather than assumed.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(auth)/login.tsx"
+      ],
+      "acceptance_criteria": [
+        "The login email field's autoComplete hint is \"username\", matching its textContentType and register.tsx's existing pairing.",
+        "A suggestion tapped from Google Password Manager fills in its saved password as well as the email.",
+        "https://digitalassetlinks.googleapis.com/v1/statements:list confirms the delegate_permission/common.get_login_creds relation for ascendra-learn.com and com.hel1x.ascendra before this change ships."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified live via curl against the production assetlinks.json and Google's own statements:list API in this session, not assumed from REQ-027's original plan -- but Google can still take time to re-crawl and offer suggestions on a given device even once the association is correct.",
+        "Ships over the air: JavaScript only, no native change."
+      ]
+    },
+    {
+      "id": "REQ-030",
+      "category": "Mobile reliability",
+      "title": "Persist a plain native login across a full app close",
+      "description": "The cold-start effect in AuthContext.tsx only attempted to resume a session via refresh() on web. On native, with biometric unlock off, it unconditionally treated any stored refresh token as stale, revoked it server-side, and signed the user out -- so a plain login never survived closing and reopening the app on Android, regardless of any \"remember me\" expectation. The original intent was to catch a swipe-away or OS kill that skips the AppState background handler's own sign-out, but the effect applied that treatment to every native cold start, not just ones following a real close.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "acceptance_criteria": [
+        "With biometric unlock off, force-closing and reopening the app on Android resumes the previous session instead of returning to the login screen.",
+        "With biometric unlock on, a cold start still stops at the lock screen rather than silently resuming.",
+        "Web's existing resume-via-refresh behavior on cold start is unchanged.",
+        "The AppState background listener's own intentional-close sign-out (REQ-023) is unchanged."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not observed on a device in this environment; needs a manual Android pass before relying on it.",
+        "Ships over the air: JavaScript only, no native change."
+      ]
     }
   ]
 }
