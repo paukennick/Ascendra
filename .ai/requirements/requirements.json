@@ -1106,6 +1106,31 @@
       "risk_notes": [
         "Verified by cloning the repository to a scratch directory with a different name, pointing its origin remote at the real GitHub URL, and running the exact three commands the CI job runs -- not verified inside an actual GitHub Actions runner."
       ]
+    },
+    {
+      "id": "REQ-035",
+      "category": "Mobile reliability",
+      "title": "Stop OTA updates from being offered to native builds they are not actually compatible with",
+      "description": "mobile/app.json pinned runtimeVersion to policy \"appVersion\", so EAS decided whether an OTA update was safe for an installed build purely by the version string (\"2.0.0\"), which never changed across the 2026-09-18 Expo SDK 51 -> SDK 57 upgrade even though that upgrade changed real native code (React Native itself and other native modules). Any OTA update published after that upgrade would have been offered as compatible to a device still running an SDK-51 native build, where a JS bundle expecting SDK-57 native APIs could crash or misbehave. Confirmed via Run this command inside a project directory. that no update has ever been published to the production channel (the live Play Store build, still SDK 51, was not exposed to this), but the preview channel did receive an update on this policy (REQ-032, group bb44bbd4) before the fix. Switched to policy \"fingerprint\", which derives compatibility from the actual native project contents so a change like this is caught automatically instead of depending on someone remembering to bump a version number.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app.json"
+      ],
+      "acceptance_criteria": [
+        "mobile/app.json runtimeVersion policy is \"fingerprint\".",
+        "npx expo-doctor and npx eas-cli fingerprint:generate both succeed against the current project.",
+        "A new native build is produced before any further OTA update is published, so devices are running a build whose fingerprint matches what future updates will target."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
+      ]
     }
   ]
 }
