@@ -1163,6 +1163,38 @@
         "applySession writes the refresh token to the ungated key without checking biometric enrolment, so a logout-then-password-login can leave a live token outside the biometric gate. Not fixed here.",
         "Not observed on a device: this repo has no test suite, and expo-updates is inert in development."
       ]
+    },
+    {
+      "id": "REQ-037",
+      "category": "Mobile authentication",
+      "title": "Stop a dropped connection signing the user out mid-session",
+      "description": "refresh() wrapped its network call and its storage write in one catch that treated every failure alike: a dropped connection, a 502 and a malformed body ended the session exactly as a real 401 did. Access tokens last 15 minutes so this path runs throughout ordinary use, which meant losing signal in a lift or a tunnel during a routine renewal silently signed the user out and deleted their stored token. Only a 401 now ends the session. Everything else leaves it intact for the next call to retry. Cold start still resolves its status either way so the router never waits on a session that will not arrive.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A refresh that fails on network error or 5xx leaves the session and the stored token intact.",
+        "A refresh that returns 401 still ends the session and clears the stored token.",
+        "A cold start whose refresh fails transiently leaves status at signedOut with the token still stored so a later launch can resume.",
+        "A cold start never leaves status at loading; the router waits on it and would otherwise park on the splash screen.",
+        "A failed durable write after a successful rotation keeps the session rather than discarding a token the server just renewed.",
+        "Ships over the air as JavaScript only with no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Found by review rather than a bug report. The lift/tunnel sequence is traced through the code but was not reproduced on a device.",
+        "Not observed on a device: this repo has no test suite, and expo-updates is inert in development.",
+        "A session kept alive through a transient failure will still fail its in-flight request. The user sees that one request fail rather than being signed out."
+      ]
     }
   ]
 }
