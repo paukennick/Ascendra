@@ -947,6 +947,18 @@ def read_omni_version_file(target_root: Path = Path(".")) -> dict[str, Any] | No
         return None
 
 
+def is_adopted_workspace(target_root: Path = Path(".")) -> bool:
+    """True when this repository adopted OmniEngineering rather than being it.
+
+    `omni adopt` writes .ai/omni-version.json recording the source and ref it
+    copied from; OmniEngineering's own repository has nothing to record. That
+    file is therefore the only honest signal for which checks apply -- several
+    of them describe OmniEngineering's own distribution (its LICENSE, its root
+    layout) and are meaningless, and unfixable, anywhere else.
+    """
+    return read_omni_version_file(target_root) is not None
+
+
 def read_ignore_patterns(paths: list[Path] | None = None) -> list[str]:
     ignore_files = paths or [Path(".ai/.ignore"), Path(".gitignore")]
     patterns: list[str] = []
@@ -1327,19 +1339,26 @@ def validate_workspace_placement(report: DoctorReport) -> None:
     root_clutter: list[str] = []
     oversized_shims: list[str] = []
 
+    # ALLOWED_ROOT_DIRS describes OmniEngineering's own root, so in an adopted
+    # repository every application directory -- backend/, mobile/, whatever
+    # the project actually is -- reads as misplaced. Clutter and oversized
+    # shims still apply everywhere; those are about hygiene, not identity.
+    own_repository = not is_adopted_workspace()
+
     for item in Path(".").iterdir():
         name = item.name
         if item.is_dir():
             if name in ROOT_CLUTTER_DIRS:
                 root_clutter.append(name)
-            elif name not in ALLOWED_ROOT_DIRS:
+            elif own_repository and name not in ALLOWED_ROOT_DIRS:
                 misplaced.append(name + "/")
-        elif item.is_file() and name not in ALLOWED_ROOT_FILES:
+        elif own_repository and item.is_file() and name not in ALLOWED_ROOT_FILES:
             misplaced.append(name)
 
-    for file_path in LOCAL_ONLY_PUBLIC_PATHS:
-        if Path(file_path).exists():
-            misplaced.append(file_path)
+    if own_repository:
+        for file_path in LOCAL_ONLY_PUBLIC_PATHS:
+            if Path(file_path).exists():
+                misplaced.append(file_path)
 
     for file_path in ASSISTANT_POINTERS:
         path = Path(file_path)
@@ -1382,12 +1401,20 @@ def validate_markdown_assets(report: DoctorReport) -> None:
     else:
         report.warning("CHANGELOG.md is missing")
 
-    missing_legal_files = [path for path in required_legal_files if not Path(path).is_file()]
-    if missing_legal_files:
-        for path in missing_legal_files:
-            report.error(f"Missing required license file: {path}")
+    # These are OmniEngineering's own distribution files. An adopter licenses
+    # its own repository however it likes, and demanding them everywhere gave
+    # every adopted workspace three permanent errors it could not fix -- which
+    # is how `omni doctor` ended up wired into CI as `|| true`, taking its
+    # real findings down with it.
+    if is_adopted_workspace():
+        report.pass_check("Licensing left to this repository; adopted workspaces own their own terms")
     else:
-        report.pass_check("License, notice, and trademark policy exist")
+        missing_legal_files = [path for path in required_legal_files if not Path(path).is_file()]
+        if missing_legal_files:
+            for path in missing_legal_files:
+                report.error(f"Missing required license file: {path}")
+        else:
+            report.pass_check("License, notice, and trademark policy exist")
 
 
 def validate_project_map(report: DoctorReport) -> None:
