@@ -113,12 +113,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await clearAuth();
         return false;
       }
+      let res: { accessToken: string; refreshToken: string };
       try {
-        const res = await api.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", {
+        res = await api.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", {
           refreshToken: storedRefreshToken,
         });
-        accessTokenRef.current = res.accessToken;
-        refreshTokenRef.current = res.refreshToken;
+      } catch (err) {
+        // Only a 401 means the server actually rejected this token. A dropped
+        // connection, a 502 or a malformed body says nothing about whether the
+        // session is still good -- and because access tokens last 15 minutes,
+        // this path runs throughout ordinary use, so treating a lift or a
+        // tunnel as a sign-out logs people out simply for moving. On anything
+        // other than a 401, keep the session and let the next call retry.
+        if (err instanceof ApiError && err.status === 401) {
+          await clearAuth();
+        }
+        return false;
+      }
+      accessTokenRef.current = res.accessToken;
+      refreshTokenRef.current = res.refreshToken;
+      // The rotation already happened server-side, so the old token is spent
+      // whatever happens next. If the durable write fails, the in-memory copy
+      // still carries this launch; discarding a live session over a storage
+      // error would be the same mistake as above.
+      try {
         if (biometricEnabledRef.current) {
           await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, res.refreshToken, {
             requireAuthentication: true,
@@ -127,11 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
         }
-        return true;
       } catch {
-        await clearAuth();
-        return false;
+        // Nothing to undo; see above.
       }
+      return true;
     })();
     inFlightRefresh.current = attempt;
     try {
@@ -176,13 +193,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const refreshed = await refresh();
-      if (!refreshed) return;
+      if (!refreshed) {
+        // refresh() only ends the session on a definitive 401; a transient
+        // failure leaves the stored token alone so a later launch can still
+        // resume. Either way, status has to leave "loading" here -- the
+        // router waits on it, so returning without setting it would park the
+        // app on the splash screen until it is force-quit.
+        setStatus("signedOut");
+        return;
+      }
       try {
         const res = await api.get<{ user: AuthUser }>("/api/auth/me");
         setUser(res.user);
         setStatus("signedIn");
-      } catch {
-        await clearAuth();
+      } catch (err) {
+        // Same rule as refresh(): only a rejection ends the session. Losing
+        // the network between the refresh and this call must not discard a
+        // token the server just renewed.
+        if (err instanceof ApiError && err.status === 401) {
+          await clearAuth();
+        } else {
+          setStatus("signedOut");
+        }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -261,9 +293,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // With biometric unlock on, the token we would revoke here is the very one
   // the biometric-gated store still holds -- revoking it leaves unlockWithBiometric
   // replaying a dead token, which the server reads as theft and answers by
-  // revoking the whole family, killing this device's other sessions too. So
-  // leave it live: it is already sealed behind the OS keystore and only opens
-  // to the user's own face. logoutAll is still the way to revoke for real.
+  // revoking that token family -- one login chain, so this device is kicked
+  // to a password sign-in while its other devices carry on. So leave it live:
+  // it is already sealed behind the OS keystore and only opens to the user's
+  // own face. logoutAll is still the way to revoke for real.
   const logout = useCallback(async () => {
     if (biometricEnabledRef.current) {
       await clearAuth();

@@ -919,6 +919,42 @@
       ]
     },
     {
+      "id": "REQ-028",
+      "category": "Mobile reliability",
+      "title": "Surface over-the-air updates in the app instead of applying them an open late",
+      "description": "With stock configuration the app downloads an update in the background and applies it on the next cold start, with no signal to the user -- so a fix lands one open late and nobody knows it is waiting. Prompt when an update is ready, and apply silently only when the user has been away long enough that a reload costs them nothing.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/updates/useAppUpdates.ts",
+        "mobile/src/components/UpdateBanner.tsx",
+        "mobile/app/_layout.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A downloaded, pending update surfaces a prompt the user can act on.",
+        "An update fetched by the stock on-launch check also surfaces, not just one this code fetched.",
+        "Returning after five minutes away applies a pending update without asking.",
+        "A lesson, PBQ or chat route is never silently reloaded, however long the user was away.",
+        "Dismissing hides the prompt for the session and it returns on the next foreground.",
+        "Nothing runs in development or Expo Go, where there is no update channel.",
+        "Ships over the air: JavaScript only, no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not observed on a device: no Android SDK here, and expo-updates is inert in development, so the paths that matter cannot run locally at all.",
+        "AuthContext runs its own AppState listener with a 1500ms lock/sign-out grace timer. The update check acts on the foreground transition to stay clear of it, but the two listeners are independent and their ordering is not guaranteed.",
+        "The five-minute threshold and the protected-route list are judgment calls, not measured.",
+        "Like any update mechanism, this only takes effect from the bundle after the one that introduces it."
+      ]
+    },
+    {
       "id": "REQ-029",
       "category": "Mobile reliability",
       "title": "Re-pair login autofill with its saved password now the app-site association is live",
@@ -1019,6 +1055,145 @@
       ],
       "risk_notes": [
         "Not verified on a physical device in this environment -- confirmed by reading the logout/logoutAll/useFallbackSignIn code paths and mobile tsc --noEmit, not a live before/after toggle check."
+      ]
+    },
+    {
+      "id": "REQ-033",
+      "category": "CI reliability",
+      "title": "Make omni map idempotent so the workspace-freshness CI check can pass",
+      "description": "The CI job that regenerates .ai/project-map.md and fails the build on any diff (added to catch real drift, see REQ-001-era history) could never actually pass: run_map() in make_ai.py stamped a fresh wall-clock \"Generated at\" line and rewrote the file unconditionally on every invocation, so a fresh CI run's regenerated file always differed from the committed one by at least that timestamp, even with zero structural changes. This was masked while the file also had genuine content drift (fixed in a prior commit today), then surfaced again immediately -- re-running `omni map` right after committing a fully up-to-date map still showed a diff. run_map() now compares the freshly rendered content against the existing file with the \"Generated at\" line normalized out first, and only rewrites (bumping the timestamp) when something else actually changed; otherwise it reports Unchanged and leaves the file alone, matching the write-if-changed pattern run_sync() already uses elsewhere in this file.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        ".ai/project-map.md"
+      ],
+      "acceptance_criteria": [
+        "Running `python3 omni map` twice in a row with no repository changes between the two runs reports \"Unchanged\" both times and does not modify .ai/project-map.md.",
+        "Running `python3 omni map` after a real structural change (a file added or removed under a tracked path) still reports \"Updated\" and regenerates the file with a fresh timestamp."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "This was the actual reason CI kept failing on master even after the prior commit's real content fix -- the timestamp alone guaranteed a diff on every run. No other omni-generated file (handled by run_sync's write_generated_file) had this problem, since that path already normalizes to write-if-changed."
+      ]
+    },
+    {
+      "id": "REQ-034",
+      "category": "CI reliability",
+      "title": "Fix the workspace map so a clean CI checkout actually agrees with what is committed",
+      "description": "The omni-workspace CI job kept failing even after REQ-033 made map generation itself idempotent, because two other parts of the generated .ai/project-map.md were environment-dependent rather than a property of the repository: the \"Root\" line read the literal name of whatever folder the tool happened to run from (\"prep-lms\" on this machine, \"Ascendra\" on a GitHub Actions checkout), and the directory walk only ever read the repo-root .gitignore by hand, missing patterns declared in backend/.gitignore and mobile/.gitignore (build/typecheck leftovers like a stale tsconfig.tsbuildinfo or an exported web bundle sitting in backend/public/ on a developer machine that a clean CI checkout never has). Root now comes from the git remote instead of the checkout folder name, and the ignore check asks git itself (git ls-files --others --ignored --exclude-standard) which correctly resolves every nested .gitignore instead of re-parsing just the top-level file.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        ".ai/project-map.md"
+      ],
+      "acceptance_criteria": [
+        "A fresh clone of the repository (no local build artifacts, no leftover node_modules/tsbuildinfo output) regenerates .ai/project-map.md identical to what is committed, regardless of the folder name it was cloned into.",
+        "git diff --exit-code against the paths the CI workspace-freshness check watches is clean after running omni sync and omni map from a clean checkout."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by cloning the repository to a scratch directory with a different name, pointing its origin remote at the real GitHub URL, and running the exact three commands the CI job runs -- not verified inside an actual GitHub Actions runner."
+      ]
+    },
+    {
+      "id": "REQ-035",
+      "category": "Mobile reliability",
+      "title": "Stop OTA updates from being offered to native builds they are not actually compatible with",
+      "description": "mobile/app.json pinned runtimeVersion to policy \"appVersion\", so EAS decided whether an OTA update was safe for an installed build purely by the version string (\"2.0.0\"), which never changed across the 2026-09-18 Expo SDK 51 -> SDK 57 upgrade even though that upgrade changed real native code (React Native itself and other native modules). Any OTA update published after that upgrade would have been offered as compatible to a device still running an SDK-51 native build, where a JS bundle expecting SDK-57 native APIs could crash or misbehave. Confirmed via Run this command inside a project directory. that no update has ever been published to the production channel (the live Play Store build, still SDK 51, was not exposed to this), but the preview channel did receive an update on this policy (REQ-032, group bb44bbd4) before the fix. Switched to policy \"fingerprint\", which derives compatibility from the actual native project contents so a change like this is caught automatically instead of depending on someone remembering to bump a version number.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app.json"
+      ],
+      "acceptance_criteria": [
+        "mobile/app.json runtimeVersion policy is \"fingerprint\".",
+        "npx expo-doctor and npx eas-cli fingerprint:generate both succeed against the current project.",
+        "A new native build is produced before any further OTA update is published, so devices are running a build whose fingerprint matches what future updates will target."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
+      ]
+    },
+    {
+      "id": "REQ-036",
+      "category": "Mobile authentication",
+      "title": "Stop a plain logout revoking the token biometric unlock needs",
+      "description": "REQ-032 kept biometric enrolment alive across a plain logout but left no usable credential behind it. With biometrics on the refresh token lives only in the OS-gated store; logout still sent that same live token to /api/auth/logout which revoked it. The next unlock replayed a revoked token at /api/auth/refresh; rotateRefreshToken reads a replay as theft and revokes that token family. A bare catch turned the resulting 401 into silence so the user saw an unlock that simply did nothing. Skip the revoke while biometric unlock is enrolled and handle the 401 instead of swallowing it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A plain logout with biometric unlock enrolled leaves the stored refresh token valid, so the next unlock succeeds.",
+        "A 401 from /api/auth/refresh during unlock clears the enrolment rather than replaying a spent token.",
+        "A cancelled prompt or a failed network leaves enrolment intact, so a retry still works.",
+        "logoutAll still revokes server-side, and still clears the biometric enrolment before it does.",
+        "Ships over the air: JavaScript only, no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Blast radius of the original defect was one device's login chain, not the user's other devices. createRefreshToken mints a fresh family_id per login (backend/lib/auth/tokens.ts:65) and the theft response is scoped by family_id (:102). The commit messages first written for this change overstated it as account-wide.",
+        "A plain logout now leaves a refresh token valid server-side for up to REFRESH_TOKEN_TTL_DAYS (30), and the session stays listed in the in-app session view. Revoking it there kills the token the biometric store holds and forces a password sign-in.",
+        "applySession writes the refresh token to the ungated key without checking biometric enrolment, so a logout-then-password-login can leave a live token outside the biometric gate. Not fixed here.",
+        "Not observed on a device: this repo has no test suite, and expo-updates is inert in development."
+      ]
+    },
+    {
+      "id": "REQ-037",
+      "category": "Mobile authentication",
+      "title": "Stop a dropped connection signing the user out mid-session",
+      "description": "refresh() wrapped its network call and its storage write in one catch that treated every failure alike: a dropped connection, a 502 and a malformed body ended the session exactly as a real 401 did. Access tokens last 15 minutes so this path runs throughout ordinary use, which meant losing signal in a lift or a tunnel during a routine renewal silently signed the user out and deleted their stored token. Only a 401 now ends the session. Everything else leaves it intact for the next call to retry. Cold start still resolves its status either way so the router never waits on a session that will not arrive.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A refresh that fails on network error or 5xx leaves the session and the stored token intact.",
+        "A refresh that returns 401 still ends the session and clears the stored token.",
+        "A cold start whose refresh fails transiently leaves status at signedOut with the token still stored so a later launch can resume.",
+        "A cold start never leaves status at loading; the router waits on it and would otherwise park on the splash screen.",
+        "A failed durable write after a successful rotation keeps the session rather than discarding a token the server just renewed.",
+        "Ships over the air as JavaScript only with no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Found by review rather than a bug report. The lift/tunnel sequence is traced through the code but was not reproduced on a device.",
+        "Not observed on a device: this repo has no test suite, and expo-updates is inert in development.",
+        "A session kept alive through a transient failure will still fail its in-flight request. The user sees that one request fail rather than being signed out."
       ]
     }
   ]
