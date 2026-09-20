@@ -548,6 +548,60 @@ AGENT_PACKAGE_DIR = Path("managed-agents/agents")
 CLAUDE_AGENTS_DIR = Path(".claude/agents")
 AGENT_PACKAGE_NAME = "senior-engineering-agent"
 
+# The `ant` CLI is what applies the managed-agents edition to Anthropic's
+# servers. Only that edition needs it; the Claude Code edition is read
+# straight off disk. omni reports whether it is present and can install it
+# when asked, but never installs it as a side effect of sync or adopt --
+# adopt runs in repositories omni does not own, and acquiring sudo to put a
+# binary on someone's PATH is not a thing a workspace sync should do quietly.
+ANT_CLI_RELEASES = "https://github.com/anthropics/anthropic-cli/releases"
+ANT_CLI_LATEST_API = "https://api.github.com/repos/anthropics/anthropic-cli/releases/latest"
+
+
+def ant_cli_path() -> str | None:
+    """Absolute path to `ant` on PATH, or None."""
+    return shutil.which("ant")
+
+
+def ant_cli_version(executable: str) -> str | None:
+    try:
+        result = subprocess.run(
+            [executable, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    output = (result.stdout or result.stderr).strip().splitlines()
+    return output[0].strip() if output else None
+
+
+def ant_install_instructions() -> list[str]:
+    """Per-platform install steps for `ant`, most appropriate first."""
+    if sys.platform == "darwin":
+        return [
+            "brew install anthropics/tap/ant",
+            'xattr -d com.apple.quarantine "$(brew --prefix)/bin/ant"',
+        ]
+    if sys.platform == "win32":
+        return [
+            f"Download ant_<version>_windows_amd64.zip from {ANT_CLI_RELEASES}/latest",
+            "Extract ant.exe into a directory on your PATH, e.g. %USERPROFILE%\\bin",
+            "Verify with: ant --version",
+        ]
+    return [
+        "# Debian/Ubuntu -- pick the .deb for your architecture:",
+        f"curl -fsSLO {ANT_CLI_RELEASES}/latest/download/ant_<version>_linux_amd64.deb",
+        "sudo dpkg -i ant_<version>_linux_amd64.deb",
+        "",
+        "# Fedora/RHEL: the matching .rpm, Arch: the .pkg.tar.zst, Alpine: the .apk",
+        "",
+        "# Or the plain tarball, no package manager and no root beyond the copy:",
+        "curl -fsSL \"$URL\" | tar -xz ant && install -m 0755 ant ~/.local/bin/ant",
+    ]
+
 
 def _frontmatter_scalar(raw: str) -> Any:
     text = raw.strip()
@@ -2010,6 +2064,32 @@ def validate_agents(report: DoctorReport) -> None:
             )
 
 
+def validate_ant_cli(report: DoctorReport) -> None:
+    """Report whether the managed-agents edition can actually be applied.
+
+    Only warns, and only when a managed-agents edition is present: a project
+    that uses the Claude Code edition alone has no use for `ant`, and a
+    missing tool is not a broken workspace. The point is to say so here
+    rather than let it surface as "command not found" later.
+    """
+    if not AGENT_PACKAGE_DIR.is_dir():
+        return
+
+    executable = ant_cli_path()
+    if executable is None:
+        report.warning(
+            "ant CLI not on PATH; the managed-agents edition in "
+            f"{AGENT_PACKAGE_DIR} cannot be applied without it. "
+            "Run `omni agents install-cli` for the steps."
+        )
+        return
+
+    version = ant_cli_version(executable)
+    report.pass_check(
+        f"ant CLI available for the managed-agents edition ({version or 'version unknown'})"
+    )
+
+
 def run_doctor() -> int:
     report = DoctorReport()
     verify_required_ai_files(report)
@@ -2030,6 +2110,7 @@ def run_doctor() -> int:
     validate_cli_entrypoints(report)
     validate_omni_version_present(report)
     validate_agents(report)
+    validate_ant_cli(report)
     report.print()
     return 0 if report.ok else 1
 
@@ -2062,8 +2143,42 @@ def run_agents_list(args: argparse.Namespace) -> int:
 def run_agents_doctor(args: argparse.Namespace) -> int:
     report = DoctorReport()
     validate_agents(report)
+    validate_ant_cli(report)
     report.print()
     return 0 if report.ok else 1
+
+
+def run_agents_install_cli(args: argparse.Namespace) -> int:
+    """Print how to install `ant`, or confirm it is already there.
+
+    Deliberately does not run the installer. Every documented route either
+    takes sudo or writes a binary onto PATH, and omni is invoked inside
+    repositories it does not own. Printing the exact commands leaves the
+    decision -- and the audit trail -- with the person at the keyboard.
+    """
+    executable = ant_cli_path()
+    if executable is not None and not args.force:
+        version = ant_cli_version(executable)
+        print(f"ant is already installed: {executable}")
+        if version:
+            print(f"  {version}")
+        print("Re-run with --force to print the install steps anyway.")
+        return 0
+
+    if executable is None:
+        print("ant is not on PATH.")
+    print()
+    print(f"Install steps for {sys.platform}:")
+    print()
+    for line in ant_install_instructions():
+        print(f"  {line}" if line else "")
+    print()
+    print(f"All published builds: {ANT_CLI_RELEASES}")
+    print(f"Latest release metadata: {ANT_CLI_LATEST_API}")
+    print()
+    print("Then authenticate with: ant auth login")
+    print("Check which credential won with: ant auth status")
+    return 0
 
 
 def run_sync(args: argparse.Namespace) -> int:
@@ -2722,6 +2837,15 @@ def build_parser() -> argparse.ArgumentParser:
     agents_subparsers = agents_parser.add_subparsers(dest="agents_command")
     agents_subparsers.add_parser("list", help="List agents, models, and delegation edges.")
     agents_subparsers.add_parser("doctor", help="Check the agent package for drift and broken delegation.")
+    agents_install_cli = agents_subparsers.add_parser(
+        "install-cli",
+        help="Show how to install the ant CLI, which applies the managed-agents edition.",
+    )
+    agents_install_cli.add_argument(
+        "--force",
+        action="store_true",
+        help="Print the install steps even when ant is already on PATH.",
+    )
 
     rule_parser = subparsers.add_parser("rule", help="Manage structured rulepacks.")
     rule_subparsers = rule_parser.add_subparsers(dest="rule_command")
@@ -2786,7 +2910,9 @@ def main(argv: list[str] | None = None) -> int:
             return run_agents_list(args)
         if args.agents_command == "doctor":
             return run_agents_doctor(args)
-        parser.error("agents requires a subcommand (list, doctor)")
+        if args.agents_command == "install-cli":
+            return run_agents_install_cli(args)
+        parser.error("agents requires a subcommand (list, doctor, install-cli)")
     if command == "rule":
         if args.rule_command == "add":
             return run_rule_add(args)
