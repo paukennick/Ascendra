@@ -1131,6 +1131,38 @@
       "risk_notes": [
         "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
       ]
+    },
+    {
+      "id": "REQ-036",
+      "category": "Mobile authentication",
+      "title": "Stop a plain logout revoking the token biometric unlock needs",
+      "description": "REQ-032 kept biometric enrolment alive across a plain logout but left no usable credential behind it. With biometrics on the refresh token lives only in the OS-gated store; logout still sent that same live token to /api/auth/logout which revoked it. The next unlock replayed a revoked token at /api/auth/refresh; rotateRefreshToken reads a replay as theft and revokes that token family. A bare catch turned the resulting 401 into silence so the user saw an unlock that simply did nothing. Skip the revoke while biometric unlock is enrolled and handle the 401 instead of swallowing it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A plain logout with biometric unlock enrolled leaves the stored refresh token valid, so the next unlock succeeds.",
+        "A 401 from /api/auth/refresh during unlock clears the enrolment rather than replaying a spent token.",
+        "A cancelled prompt or a failed network leaves enrolment intact, so a retry still works.",
+        "logoutAll still revokes server-side, and still clears the biometric enrolment before it does.",
+        "Ships over the air: JavaScript only, no native change."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Blast radius of the original defect was one device's login chain, not the user's other devices. createRefreshToken mints a fresh family_id per login (backend/lib/auth/tokens.ts:65) and the theft response is scoped by family_id (:102). The commit messages first written for this change overstated it as account-wide.",
+        "A plain logout now leaves a refresh token valid server-side for up to REFRESH_TOKEN_TTL_DAYS (30), and the session stays listed in the in-app session view. Revoking it there kills the token the biometric store holds and forces a password sign-in.",
+        "applySession writes the refresh token to the ungated key without checking biometric enrolment, so a logout-then-password-login can leave a live token outside the biometric gate. Not fixed here.",
+        "Not observed on a device: this repo has no test suite, and expo-updates is inert in development."
+      ]
     }
   ]
 }
