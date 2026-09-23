@@ -34,21 +34,56 @@ function byLastStudied(a: Track, b: Track): number {
   return bTime - aTime;
 }
 
-// Groups by the existing track_type field -- the natural split this schema
-// already has (certification vs. graduate/language courses) -- with
-// favorited tracks pulled into their own section up top instead of also
-// appearing in their normal section, so there's no duplication to scan past.
+// REQ-036: groups by education category instead of the old two-bucket
+// certification/graduate split. track_type only ever gave two sections no
+// matter how many courses landed; category comes from the taxonomy the
+// database already carries (education_categories, migration 007) and stays
+// scannable as the catalog grows because category count is bounded (14
+// today) even as courses within a category multiply. Favorited tracks are
+// still pulled into their own section on top. Tracks without a category
+// (none exist today, but subcategory_id is nullable) land in "Other" instead
+// of silently disappearing.
 function groupTracks(tracks: Track[]): Section[] {
   const favorites = tracks.filter((t) => t.is_favorite).sort(byLastStudied);
   const rest = tracks.filter((t) => !t.is_favorite);
-  const certification = rest.filter((t) => t.track_type === "certification").sort(byLastStudied);
-  const graduate = rest.filter((t) => t.track_type === "graduate").sort(byLastStudied);
+
+  const byCategory = new Map<string, { title: string; sortOrder: number; data: Track[] }>();
+  const other: Track[] = [];
+  for (const track of rest) {
+    if (!track.category_id || !track.category_name) {
+      other.push(track);
+      continue;
+    }
+    const group = byCategory.get(track.category_id) ?? {
+      title: track.category_name,
+      sortOrder: track.category_sort_order ?? 999,
+      data: [],
+    };
+    group.data.push(track);
+    byCategory.set(track.category_id, group);
+  }
+
   const sections: Section[] = [];
   if (favorites.length) sections.push({ title: "Favorites", data: favorites });
-  if (certification.length) sections.push({ title: "Certifications", data: certification });
-  if (graduate.length) sections.push({ title: "Degree & Language Tracks", data: graduate });
+  for (const group of Array.from(byCategory.values()).sort((a, b) => a.sortOrder - b.sortOrder)) {
+    sections.push({ title: group.title, data: group.data.sort(byLastStudied) });
+  }
+  if (other.length) sections.push({ title: "Other", data: other.sort(byLastStudied) });
   return sections;
 }
+
+// REQ-036: freshness badge shown on each course card, mirroring
+// view_content_freshness's own status labels rather than inventing new ones.
+const freshnessLabel: Record<string, string> = {
+  current: "Verified",
+  review_due: "Review due",
+  unverified: "Unverified",
+};
+const freshnessColor: Record<string, string> = {
+  current: colors.good,
+  review_due: colors.warn,
+  unverified: colors.mutedDim,
+};
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -159,7 +194,10 @@ export default function Home() {
               </View>
               <View style={{ flex: 1, gap: 4 }}>
                 <H2>{item.title}</H2>
-                <Muted>{item.code}</Muted>
+                <Muted>
+                  {item.code}
+                  {item.subcategory_name ? ` · ${item.subcategory_name}` : ""}
+                </Muted>
               </View>
               <FavoriteButton active={!!item.is_favorite} onPress={() => toggleFavorite(item)} size={32} />
               <Feather name="chevron-right" size={20} color={colors.mutedDim} />
@@ -169,10 +207,18 @@ export default function Home() {
               <Muted>
                 {item.mastered_objectives ?? 0}/{item.total_objectives ?? 0} objectives at Independent+
               </Muted>
-              <Badge
-                label={item.percent_complete != null ? `${item.percent_complete}%` : "Not started"}
-                color={item.percent_complete ? colors.good : colors.mutedDim}
-              />
+              <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                {item.freshness_status ? (
+                  <Badge
+                    label={freshnessLabel[item.freshness_status] ?? item.freshness_status}
+                    color={freshnessColor[item.freshness_status] ?? colors.mutedDim}
+                  />
+                ) : null}
+                <Badge
+                  label={item.percent_complete != null ? `${item.percent_complete}%` : "Not started"}
+                  color={item.percent_complete ? colors.good : colors.mutedDim}
+                />
+              </View>
             </View>
           </Card>
         )}

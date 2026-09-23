@@ -1131,6 +1131,64 @@
       "risk_notes": [
         "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
       ]
+    },
+    {
+      "id": "REQ-036",
+      "category": "Catalog navigation",
+      "title": "Group the course list by education category and surface content freshness",
+      "description": "mobile/app/(app)/index.tsx grouped tracks only by track_type (certification vs graduate) into two flat sections, even though the database already has a full 13-category (14 with Healthcare & Nursing, REQ-022)/140-subcategory taxonomy (education_categories/education_subcategories, migration 007) with a per-track freshness status (view_content_freshness) that nothing in the client ever read. GET /api/courses now joins subcategory/category and freshness status onto each track; the home screen groups tracks by category (bounded, currently 14, instead of an ever-growing flat list) with subcategory shown per card, and each card shows a freshness badge (current/review due/unverified) driven by source_verified_at and content_review_due_at.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/courses/route.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/index.tsx"
+      ],
+      "acceptance_criteria": [
+        "GET /api/courses returns each track's subcategory id/name, category id/name, and freshness status alongside existing fields.",
+        "Home screen sections tracks by education category (Favorites section stays on top), not by track_type.",
+        "Each course card shows a freshness badge reflecting current/review_due/unverified, matching view_content_freshness's logic.",
+        "Tracks without a subcategory_id (none exist today, but the column is nullable) still render, in an Other section, rather than being dropped.",
+        "npm run typecheck passes in both backend and mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Purely additive read-path change; no schema change, no write-path behavior change."
+      ]
+    },
+    {
+      "id": "REQ-037",
+      "category": "Catalog data model",
+      "title": "Decouple learning format from track_type so new learning types do not overload it",
+      "description": "subject_tracks.track_type (graduate, certification, academic, professional, skills) mixes two different axes: pedigree/audience and delivery format. Every one of the 27 live tracks is a full guided course (objectives, units, mastery grading, PBQ, chat) -- there is no format variation yet, but AWS/Azure/nursing catalog expansion and future learning types (practice-exam-only tracks, flashcard decks, short readings) are coming soon and would otherwise have to be jammed into track_type. Added a separate content_format column (new enum, single value 'full_course' today) on subject_tracks, decoupled from track_type, so future formats are additive there instead of a retrofit against live rows.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/015_content_format.sql",
+        "backend/app/api/courses/route.ts",
+        "mobile/src/types/index.ts"
+      ],
+      "acceptance_criteria": [
+        "subject_tracks has a not-null content_format column, defaulted and backfilled to 'full_course' for all 27 existing rows.",
+        "POST /api/courses accepts an optional contentFormat, validated against a whitelist, defaulting to 'full_course'.",
+        "Migration is additive only (new column/type, no drop or rename of track_type or its values).",
+        "npm run typecheck passes in both backend and mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Schema change against the live Supabase project (project_ref mihgkfxefpqwvvrmlpyj) -- additive and reversible (drop column), applied via the supabase MCP the same way REQ-020/REQ-022's migrations were.",
+        "Does not itself ship any new learning-type UI -- it only makes room; building flashcards/practice-exam-only/etc. experiences is separate future work."
+      ]
     }
   ]
 }
