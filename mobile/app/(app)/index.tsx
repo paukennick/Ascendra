@@ -9,6 +9,7 @@ import type { Track } from "@/types";
 import {
   Badge,
   Card,
+  Chip,
   EmptyState,
   ErrorBanner,
   FavoriteButton,
@@ -85,6 +86,18 @@ const freshnessColor: Record<string, string> = {
   unverified: colors.mutedDim,
 };
 
+// REQ-038: filter chips fold review_due into the same bucket as unverified --
+// both mean "don't treat this as confirmed current" -- so the filter is a
+// plain two-way choice instead of a third option most people won't need to
+// tell apart. The badge above still shows review_due distinctly.
+type FreshnessFilter = "all" | "current" | "needs_attention";
+
+function matchesFreshnessFilter(track: Track, filter: FreshnessFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "current") return track.freshness_status === "current";
+  return track.freshness_status !== "current";
+}
+
 function greeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -99,6 +112,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [freshnessFilter, setFreshnessFilter] = useState<FreshnessFilter>("all");
 
   const toggleFavorite = useCallback((track: Track) => {
     const next = !track.is_favorite;
@@ -125,7 +139,9 @@ export default function Home() {
     }, [])
   );
 
-  const sections = tracks ? groupTracks(tracks) : [];
+  const sections = tracks
+    ? groupTracks(tracks.filter((t) => matchesFreshnessFilter(t, freshnessFilter)))
+    : [];
   const mostRecentId = tracks
     ?.filter((t) => t.last_studied_at)
     .slice()
@@ -179,6 +195,22 @@ export default function Home() {
                 </View>
               </Card>
             ) : null}
+
+            {tracks && tracks.length ? (
+              <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                <Chip label="All" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
+                <Chip
+                  label="Verified"
+                  active={freshnessFilter === "current"}
+                  onPress={() => setFreshnessFilter("current")}
+                />
+                <Chip
+                  label="Unverified"
+                  active={freshnessFilter === "needs_attention"}
+                  onPress={() => setFreshnessFilter("needs_attention")}
+                />
+              </View>
+            ) : null}
           </View>
         }
         renderSectionHeader={({ section }) => <SectionHeader label={section.title} />}
@@ -226,6 +258,14 @@ export default function Home() {
           tracks && tracks.length === 0 ? (
             <Card>
               <EmptyState icon="book-open" title="No courses yet" message="Check back soon — new courses show up here automatically." />
+            </Card>
+          ) : tracks && tracks.length > 0 && sections.length === 0 ? (
+            <Card>
+              <EmptyState
+                icon="filter"
+                title="No courses match this filter"
+                message="Try switching back to All."
+              />
             </Card>
           ) : null
         }
