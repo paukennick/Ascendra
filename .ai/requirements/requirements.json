@@ -1189,6 +1189,33 @@
         "Schema change against the live Supabase project (project_ref mihgkfxefpqwvvrmlpyj) -- additive and reversible (drop column), applied via the supabase MCP the same way REQ-020/REQ-022's migrations were.",
         "Does not itself ship any new learning-type UI -- it only makes room; building flashcards/practice-exam-only/etc. experiences is separate future work."
       ]
+    },
+    {
+      "id": "REQ-038",
+      "category": "Catalog navigation",
+      "title": "Add a freshness filter to the home screen course list",
+      "description": "REQ-036 added a Verified/Review due/Unverified badge per course card, computed from GET /api/courses's freshness_status join, but gave no way to filter by it. Added three client-side chips (All/Verified/Unverified) above the course sections on mobile/app/(app)/index.tsx. Review due is folded into the Unverified chip -- both mean 'do not treat this as confirmed current' -- while the badge on each card still shows review_due distinctly. Filtering is client-side against the already-loaded track list (27 tracks today); the hero 'Continue studying' card is computed from the unfiltered list so switching chips never hides what you were mid-lesson on.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/index.tsx"
+      ],
+      "acceptance_criteria": [
+        "Three chips (All, Verified, Unverified) appear above the course sections whenever at least one course is loaded.",
+        "Verified chip shows only tracks with freshness_status === 'current'; Unverified chip shows both 'unverified' and 'review_due'.",
+        "The hero 'Continue studying' card ignores the active filter.",
+        "A filter that matches zero courses shows a distinct empty state from having zero courses at all.",
+        "npm run typecheck passes in mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Client-side filtering only; revisit if the per-user track count grows enough that this should move server-side."
+      ]
     }
   ]
 }
