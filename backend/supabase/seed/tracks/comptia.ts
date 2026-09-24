@@ -739,6 +739,122 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA Tech+ (FC0-U71, V6) -- the backlog listed this item as "ITF+", but
+// ITF+ (FC0-U61) was renamed and relaunched as Tech+ on 2024-07-16; ITF+ no
+// longer appears anywhere in CompTIA's current catalog. Confirmed via
+// CompTIA's own support article (help.comptia.org, "Tech+ FC0-U71 vs.
+// FC0-U71-CE") rather than assumed from the name change alone. A second
+// exam code, FC0-U71-CE, covers the same content under a 5-year renewal
+// model instead of good-for-life -- this track teaches the objectives both
+// codes share, credentialed under FC0-U71.
+//
+// 60 minutes, up to 70 questions, passing score 650/900. Launched
+// 2024-07-16. No prior experience required. Domains: 13% / 24% / 18% / 13%
+// / 13% / 19%.
+// ---------------------------------------------------------------------------
+export const TECHPLUS_TRACK: SeedTrack = {
+  code: "TECHPLUS",
+  title: "Tech+ Coach",
+  description:
+    "CompTIA Tech+ (FC0-U71) exam prep across 6 weighted domains -- tech concepts and terminology, infrastructure, applications software, software development concepts, data and database fundamentals, and security. Tech+ is CompTIA's 2024 relaunch of ITF+ (IT Fundamentals+).",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/tech/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "tech-plus",
+    credentialName: "CompTIA Tech+",
+    credentialUrl: "https://www.comptia.org/certifications/tech",
+    examCode: "FC0-U71",
+    examRevision: "V6",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2024-07-16",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/tech/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prior experience required.",
+    durationMinutes: 60,
+    questionFormat: "Maximum 70 questions; multiple choice",
+    passingScorePolicy: "650 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Tech Concepts and Terminology",
+      weight: 13,
+      gate: "Given a computing scenario, name the specific notational system, unit of measure, or troubleshooting step it calls for -- not a vague 'it's a computer thing' answer.",
+      objectives: [
+        "Computing basics: input, processing, output, and storage",
+        "Notational systems: binary, hexadecimal, decimal, and octal",
+        "Units of measure: storage (bit, byte, KB, GB, TB), speed (MHz, GHz), and throughput (bps, Mbps, Gbps)",
+        "Troubleshooting methodology: identifying problems, testing theories, implementing solutions, and documenting findings",
+      ],
+    },
+    {
+      title: "Infrastructure",
+      weight: 24,
+      gate: "Given a device or network to set up, identify the specific component, interface, or deployment model involved -- not a generic 'plug it in' answer.",
+      objectives: [
+        "Computing devices: smartphones, tablets, laptops, servers, IoT devices, and gaming consoles",
+        "Internal components: motherboard, CPU, RAM, storage (HDD, SSD, NVMe), NIC, and GPU",
+        "Storage types: volatile vs. non-volatile, local, network, and cloud storage",
+        "Peripheral setup: printers, scanners, monitors, and driver installation",
+        "Device interfaces: USB, HDMI, Ethernet, Bluetooth, and NFC",
+        "Virtualization and cloud: hypervisors, SaaS, PaaS, IaaS, hybrid, and on-premises models",
+        "Networking basics: LAN vs. WAN, IP/MAC addresses, routers, switches, and firewalls",
+        "Wireless networks: 802.11 standards, speed, and interference considerations",
+      ],
+    },
+    {
+      title: "Applications Software",
+      weight: 18,
+      gate: "Given a software task, name the specific OS component, application type, or browser feature that handles it -- not a generic 'use an app' answer.",
+      objectives: [
+        "Operating systems: mobile, desktop, server, and embedded",
+        "OS components: file systems (NTFS, FAT32), interfaces (GUI, command line), utilities, and drivers",
+        "Software types: productivity tools, collaboration apps, web browsers, and remote support",
+        "Web browser features: private browsing, add-ons, password management, and cache clearing",
+        "Artificial intelligence basics: chatbots, assistants, and generative AI content prediction",
+      ],
+    },
+    {
+      title: "Software Development Concepts",
+      weight: 13,
+      gate: "Given a coding problem, identify the specific data type, programming concept, or organizational technique it needs -- not a vague 'write some code' answer.",
+      objectives: [
+        "Programming languages: interpreted, compiled, scripting, markup, and assembly",
+        "Data types: char, strings, numbers (integers, floats), and Boolean",
+        "Programming concepts: variables, constants, arrays, functions, and objects",
+        "Organizational techniques: pseudocode, flowcharts, object-oriented methods, branching, and looping",
+      ],
+    },
+    {
+      title: "Data and Database Fundamentals",
+      weight: 13,
+      gate: "Given a dataset, name the specific database concept -- relational vs. non-relational, a key type, a query -- or the specific backup approach it calls for.",
+      objectives: [
+        "The value of data: data-driven decisions, reporting, and monetization",
+        "Database concepts: relational vs. non-relational, tables, rows, fields, and primary/foreign keys",
+        "Database use: queries, reports, scalability, and cloud vs. local storage",
+        "Backup concepts: file system backups and local vs. other storage targets",
+      ],
+    },
+    {
+      title: "Security",
+      weight: 19,
+      gate: "Given a device or account to protect, apply the specific control -- a password practice, encryption in the right state, or a named security concept -- rather than a generic 'be secure' answer.",
+      objectives: [
+        "Security concepts: confidentiality, integrity, availability, authentication, and authorization",
+        "Device security: anti-malware, firewalls, patching, physical security, and safe browsing",
+        "Password practices: length, complexity, privacy, reuse, and password managers",
+        "Encryption: data at rest, data in transit, HTTPS, VPNs, and mobile devices",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
@@ -747,4 +863,5 @@ export const COMPTIA_TRACKS: SeedTrack[] = [
   DATAPLUS_TRACK,
   SERVERPLUS_TRACK,
   PROJECTPLUS_TRACK,
+  TECHPLUS_TRACK,
 ];

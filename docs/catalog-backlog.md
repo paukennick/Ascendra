@@ -52,7 +52,7 @@ data and may be stale the same way AWS's were:
 - [x] Server+ (confirmed current: SK0-005, V5, launched 2021-05-18 -- older revision but checked for a retirement banner/successor, found none, still purchasable -- built as a single track, SERVERPLUS)
 - [x] Project+ (confirmed current: PK0-005, V5, launched 2022-11-08, no retirement banner/successor -- built as a single track, PROJECTPLUS)
 - [ ] Cloud Essentials+ -- BLOCKED: no longer a proctored vendor exam. CompTIA's current catalog lists it as "Cloud Essentials+ CompCert" (comptia.org/en-us/certifications/cloud-essentials/), a self-paced ~8-hour course ending in a "CompCert assessment" that awards a downloadable Competency Certificate -- no exam code, no duration, no passing score, no proctoring found anywhere on the page. None of this repo's four credential_basis values (vendor_exam, accreditation_standard, regulatory_licensure, vendor_exam_unpublished_code) represent a non-proctored competency certificate, so building this as a certification track would mean fabricating exam mechanics that don't exist. Needs a product/schema decision (new content_format or credential_basis for CompCert-style badges) before this can be built -- flagging for Nick rather than guessing.
-- [ ] ITF+ (IT Fundamentals) -- confirm not superseded/retired
+- [x] ITF+ (IT Fundamentals) -- confirmed superseded: ITF+ (FC0-U61) was renamed and relaunched as CompTIA Tech+ (FC0-U71, V6, launched 2024-07-16); ITF+ no longer appears in CompTIA's catalog. Built under the current name, TECHPLUS.
 - [ ] CTT+ (Certified Technical Trainer) -- confirm still offered
 - [ ] Any other current CompTIA cert not listed above, found while checking the vendor's own certification page
 
@@ -119,3 +119,4 @@ opened #N / blocked, see note above>`.
 2026-09-24 22:27 UTC -- Server+ -- seeded live, in-session by Claude Code.
 2026-09-24 22:42 UTC -- Project+ -- seeded live, in-session by Claude Code.
 2026-09-24 22:48 UTC -- Cloud Essentials+ -- BLOCKED, see note above; not built. Moving on to ITF+.
+2026-09-24 23:00 UTC -- ITF+ -- confirmed renamed to Tech+ (FC0-U71); seeded live as TECHPLUS, in-session by Claude Code.

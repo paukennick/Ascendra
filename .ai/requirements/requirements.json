@@ -1631,6 +1631,35 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-054",
+      "category": "Catalog content",
+      "title": "Continue the CompTIA-remainder strand: Tech+ (formerly ITF+), block Cloud Essentials+",
+      "description": "Authored and seeded live the item docs/catalog-backlog.md listed as 'ITF+.' CompTIA's current catalog has no trace of ITF+ (FC0-U61); confirmed via CompTIA's own support article (help.comptia.org, 'Tech+ FC0-U71 vs. FC0-U71-CE') that it was renamed and relaunched as CompTIA Tech+ (FC0-U71, V6, launched 2024-07-16) rather than assumed from search results alone. Added TECHPLUS to backend/supabase/seed/tracks/comptia.ts, following the same credential-block pattern as the other CompTIA tracks: 6 domains, 29 objectives, weights 13/24/18/13/13/19 (Tech Concepts and Terminology/Infrastructure/Applications Software/Software Development Concepts/Data and Database Fundamentals/Security). Also checked Cloud Essentials+ (the next item) and flagged it BLOCKED instead of building it: CompTIA's catalog now lists it as a self-paced 'CompCert' competency-certificate product with no exam code, duration, or passing score, which doesn't fit any of this repo's four credential_basis values -- left in docs/catalog-backlog.md for a product/schema decision rather than fabricated as a normal vendor exam. Seeded live: subject_tracks 55 -> 56.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/seed.ts",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "TECHPLUS exists in backend/supabase/seed/tracks/comptia.ts with units/objectives matching this description.",
+        "npm run typecheck passes in backend.",
+        "Track confirmed live with a tech-plus credential and one credential_exams row (FC0-U71).",
+        "docs/catalog-backlog.md's ITF+ item checked off with the rename explained, Cloud Essentials+ left unchecked with a BLOCKED note, and the Session log updated for both."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Cloud Essentials+ is deliberately not built -- it needs a product/schema decision (a new content_format or credential_basis for CompCert-style non-proctored badges) before it can be represented without fabricating exam mechanics that don't exist."
+      ]
     }
   ]
 }
