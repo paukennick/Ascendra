@@ -458,9 +458,106 @@ export const CLOUDPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA Data+ (DA0-002, V2). Confirmed current and active as of this
+// fetch, not beta -- a very recent revision (launched 2025-10-14), so
+// training data's exam code was almost certainly already stale here.
+//
+// 90 minutes, up to 90 questions (multiple choice and performance-based),
+// passing score 675/900. Estimated retirement ~2028. Recommended
+// experience: 18-24 months in a data-analyst-like role, with exposure to
+// databases, analytical tools, basic statistics, and data visualization.
+// Domains: 20% / 22% / 24% / 20% / 14%.
+// ---------------------------------------------------------------------------
+export const DATAPLUS_TRACK: SeedTrack = {
+  code: "DATAPLUS",
+  title: "Data+ Coach",
+  description:
+    "CompTIA Data+ (DA0-002) exam prep across 5 weighted domains -- data concepts and environments, acquisition and preparation, analysis, visualization and reporting, and governance.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/data/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "data-plus",
+    credentialName: "CompTIA Data+",
+    credentialUrl: "https://www.comptia.org/certifications/data",
+    examCode: "DA0-002",
+    examRevision: "V2",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2025-10-14",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/data/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "18-24 months in a data-analyst-like role, with exposure to databases, analytical tools, basic statistics, and data visualization.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "675 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Data Concepts and Environments",
+      weight: 20,
+      gate: "Given a dataset and its storage environment, name the specific database type, infrastructure, and tooling in play -- not a generic 'it's data' answer.",
+      objectives: [
+        "Data concepts: database types, data structures, file extensions, and data types",
+        "Data sources: databases, APIs, website data, files, logs, and repositories",
+        "Infrastructure: cloud, on-premise, storage, and containerization",
+        "Data tools: coding environments, BI software, and analysis platforms",
+        "AI concepts: identifying AI models, natural language processing, and robotic process automation",
+      ],
+    },
+    {
+      title: "Data Acquisition and Preparation",
+      weight: 22,
+      gate: "Given a raw, messy dataset, apply the specific exploration and transformation step that fixes it -- finding the missing values or duplicates before cleansing and merging -- not jump straight to analysis.",
+      objectives: [
+        "Acquisition methods: data integration and queries to gather and combine data",
+        "Exploration: finding missing values, duplication, redundancy, and outliers",
+        "Transformation: cleansing, merging, parsing, and formatting data",
+      ],
+    },
+    {
+      title: "Data Analysis",
+      weight: 24,
+      gate: "Given a dataset and an audience, choose the specific statistical method and communication approach that fits both -- not a one-size-fits-all summary.",
+      objectives: [
+        "Selecting communication methods appropriate to different audiences",
+        "Applying basic statistical techniques to data",
+        "Using tools and resources to troubleshoot data analysis problems",
+      ],
+    },
+    {
+      title: "Visualization and Reporting",
+      weight: 20,
+      gate: "Given analysis results, choose the specific chart, table, or dashboard element that best conveys them, and validate the finished report before shipping it.",
+      objectives: [
+        "Choosing visuals: charts, maps, tables, and design elements",
+        "Producing reports: dashboards and summaries using appropriate methods",
+        "Applying validation and review to catch reporting issues",
+      ],
+    },
+    {
+      title: "Data Governance",
+      weight: 14,
+      gate: "Given a dataset that needs to be managed responsibly, apply the specific governance control -- documentation, a retention rule, an access control, or a quality check -- rather than a vague 'handle it carefully' answer.",
+      objectives: [
+        "Management practices: documentation, versioning, and data lineage",
+        "Compliance: retention, audits, and regulations",
+        "Privacy strategies: access control, encryption, and masking",
+        "Quality assurance: profiling, monitoring, and testing data quality",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
   NETWORKPLUS_TRACK,
   CLOUDPLUS_TRACK,
+  DATAPLUS_TRACK,
 ];
