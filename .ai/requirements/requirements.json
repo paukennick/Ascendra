@@ -1330,6 +1330,34 @@
         "New secret (CATALOG_REVIEW_AGENT_TOKEN) generated and stored in backend/.env.local; still needs to be set in Vercel env and registered as an Anthropic vault environment_variable credential before the agent can actually reach it.",
         "Endpoints are live now but nothing calls them yet -- inert until the Anthropic-side deployment (REQ-043) is created."
       ]
+    },
+    {
+      "id": "REQ-043",
+      "category": "Catalog content ops",
+      "title": "Provision the Anthropic-side scheduled deployment for the catalog-review agent",
+      "description": "Created the Managed Agents infrastructure referencing Nick's Console-built agent (agent_01K6FP985aEw1qMgX1TKaUFd): environment env_01LuC4FM8aaexBpeNCxuKKqA (cloud, unrestricted networking -- needs to reach many vendor doc sites), vault vlt_011CfMk3LNq3poLiKm5LE4dD, and scheduled deployment depl_01JTkJYuDrNUsWCAUNZXoodc (cron 0 6 1 1,4,7,10 * UTC -- Jan/Apr/Jul/Oct 1st, quarterly; outcome-based kickoff with a rubric requiring every checked track to get a real evidenceUrl and specific summary, and forbidding direct catalog edits outside the findings endpoint). The one step deliberately not automated: adding CATALOG_REVIEW_AGENT_TOKEN as the vault's environment_variable credential. The sandbox classifier blocked a script that would have sent the raw secret value through an API call; per its own guidance this was left for Nick to do by hand in the Console rather than routed around. Also still open: setting CATALOG_REVIEW_AGENT_TOKEN in Vercel's production env (only exists in backend/.env.local so far) -- no Vercel CLI/auth available this session.",
+      "priority": "high",
+      "status": "blocked",
+      "minimum_access_scope": [
+        "Anthropic Console (Vaults)",
+        "Vercel project env vars"
+      ],
+      "acceptance_criteria": [
+        "Vault vlt_011CfMk3LNq3poLiKm5LE4dD has an environment_variable credential named CATALOG_REVIEW_AGENT_TOKEN, scoped to backend-mauve-mu-18.vercel.app.",
+        "CATALOG_REVIEW_AGENT_TOKEN is set in Vercel's production project env vars, matching backend/.env.local's value.",
+        "A manual deployment run (POST /v1/deployments/depl_01JTkJYuDrNUsWCAUNZXoodc/run) completes with real findings recorded in content_review_findings.",
+        "First scheduled run (2026-10-01T06:00:00Z) succeeds without an auth failure."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Two real Anthropic API keys were pasted into this chat session during provisioning -- flagged to Nick to revoke/rotate both.",
+        "Blocked, not completed: the deployment exists and is active but cannot actually authenticate to this backend until the vault credential is added."
+      ]
     }
   ]
 }
