@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- REQ-047: Provisioned a second Managed Agent (`agent_01CWRrp4MkHfMzCAdPrLtSBQ`), separate from the quarterly review agent, to work through `docs/catalog-backlog.md` one course per session on an hourly schedule (`depl_01EizV77ytLtbHGNTy5yw2rP`, $1.00/session budget against a $14.74 balance, first run 2026-09-24T09:00:00Z). No GitHub write credential granted -- each firing commits locally only and writes a recoverable patch file, since this session's GitHub tool set has no branch-protection API to enforce PR-only at the platform level. Blocked on one manual step: the vault needs a `DATABASE_URL` credential added by hand before any firing can actually seed data. See `docs/catalog-builder-agent.md`.
+
 - REQ-046: Authored and seeded live the remaining 8 GCP tracks (Professional Data Engineer, DevOps Engineer, Security Engineer, Network Engineer, Database Engineer, Cloud Developer, Machine Learning Engineer, and Generative AI Leader), closing out every stable GCP certification -- 11 of 11 tracks, from Google's own official material read 2026-09-24. Professional Agentic Architect checked and confirmed still beta; deliberately not built. GCP strand is now complete; catalog stands at 48 tracks.
 
 - REQ-045: Added the 2nd and 3rd GCP tracks -- Associate Cloud Engineer (4 sections, 86 objectives) and Professional Cloud Architect (6 sections, 101 objectives, including the exam's 4 recurring case studies) -- to `backend/supabase/seed/tracks/gcp.ts`, from Google's own official material read 2026-09-24. Both confirmed active with no retirement banner before authoring. Seeded live: `subject_tracks` 38 -> 40. GCP strand is now 3 of an estimated 8-9 stable certifications.
