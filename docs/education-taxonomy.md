@@ -18,7 +18,9 @@ The subcategory selects the default model. An individual track may override it w
 
 Non-draft certification exams cannot be stored without both an official objectives URL and a vendor-verification timestamp. Exam lifecycle states are `draft`, `active`, `transitioning`, `beta`, `retired`, and `archived`.
 
-The `view_content_freshness` view reports each course as `unverified`, `review_due`, or `current`. A course is never labeled current merely because its title matches a current technology or credential.
+A credential is identified by an `exam_code` (AWS, Azure), a `standard_name` (accreditation/licensure credentials with no exam at all -- nursing), or, since REQ-040, the `basis` value `vendor_exam_unpublished_code` alone -- for a real vendor exam whose vendor simply never publishes a code (Google Cloud). `credential_exams_identified` requires at least one of the three; no credential row can exist unidentified.
+
+The `view_content_freshness` view reports each course as `unverified`, `review_due`, or `current`. A course is never labeled current merely because its title matches a current technology or credential. Since REQ-042, most of that reporting is kept current by an automated quarterly agent rather than only by manual re-authoring passes -- see [catalog-review-agent.md](catalog-review-agent.md).
 
 ## API
 
