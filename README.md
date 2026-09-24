@@ -1,244 +1,146 @@
-# Prep LMS — local companion app
+# Ascendra
 
-A mobile companion to Pak's existing Claude Artifact study coaches (`mscs-coach.html`,
-`security-plus-coach.html`). It does **not** replace those — it adds a real backend (Next.js
-+ Postgres/Supabase + the Anthropic API directly) and a standalone Android app (Expo) so the
-same adaptive guess -> teach -> fade -> solo teaching loop, mastery tracking, spaced review,
-and PBQ simulator work outside of claude.ai, on its own database.
+**Adaptive AI-tutored exam prep · Real certification catalog · Mastery tracking, spaced review, PBQ practice**
 
-```
-prep-lms/
-  backend/     Next.js API (App Router, /app/api/*) — deploys to Vercel
-  backend/supabase/   SQL migration + seed script
-  mobile/      Expo app (expo-router) — builds to a standalone Android APK via EAS
-  README.md    this file
-```
-
-Follow the steps below in order — each one unblocks the next.
+A cross-platform (iOS · Android · Web) study coach. Every course runs the same adaptive **guess → teach → fade → solo** lesson loop, a 0–4 mastery rubric with 1/7/21-day spaced review, a performance-based-question simulator, and an ask-the-coach chat — over a real, continuously-verified certification and academic catalog, not a static course library.
 
 ---
 
-## 1. Create the Supabase project and load the schema
+## Tech Stack
 
-1. Go to [supabase.com](https://supabase.com), sign in, and create a new project (pick any
-   region close to you; note the database password you set — you'll need it for the
-   connection string in step 2).
-2. Once the project is ready, open **SQL Editor** in the left sidebar, click **New query**,
-   run every SQL file in `backend/supabase/migrations/` in numeric filename order, and click
-   **Run** after each file. This creates the complete schema, authentication additions, user
-   features, and the version-aware education taxonomy.
-3. Get your connection string: **Project Settings -> Database -> Connection string -> URI**.
-   Use the **Transaction pooler** string (port `6543`) — it's the one meant for serverless
-   platforms like Vercel. It looks like:
-   `postgres://postgres.xxxxx:[YOUR-PASSWORD]@aws-0-region.pooler.supabase.com:6543/postgres`
-4. Run the seed script locally to load the starting dataset (two courses: MSCS Foundations
-   Coach with 15 weeks, Security+ Coach with 5 domains and ~36 objectives):
-   ```
-   cd backend
-   npm install
-   cp .env.example .env.local
-   # edit .env.local: paste your DATABASE_URL from step 3, leave DEFAULT_USER_EMAIL as-is
-   # (or set it to your own address — it's just a lookup key, not sent anywhere)
-   npm run seed
-   ```
-   You should see log lines like `subject_tracks: created MSCS -> <uuid>` and
-   `seeded 15 units for MSCS`. The seed script is safe to re-run.
+| Layer | Tool | Why |
+|---|---|---|
+| Mobile / Web client | Expo Router (React Native, SDK 57) | One codebase → iOS, Android, and a same-origin web export |
+| Backend | Next.js 16 (App Router, `/app/api/*`) | API routes only, deploys to Vercel |
+| Database | Supabase (PostgreSQL) | SQL migrations, no ORM |
+| Auth | Custom JWT + MFA (TOTP, email code, backup codes) + Google OAuth | `backend/lib/auth/*` — no third-party auth platform |
+| AI | Anthropic Claude API | Per-objective lesson generation (cached), grading, chat, PBQ generation/grading |
+| Content ops | Claude API Managed Agent (scheduled) | Quarterly sweep of every course's official source for outdated material |
+| Native builds | EAS | `eas build` → installable `.apk` / TestFlight-ready `.ipa` |
+| Deploy | Vercel | Backend + the mobile app's web export, same origin |
 
-## 2. Deploy the backend to Vercel
+---
 
-1. Push this repo to GitHub from VS Code (or however you normally push).
-2. In the [Vercel dashboard](https://vercel.com/new), import that GitHub repo.
-3. When Vercel asks for the **Root Directory**, set it to `backend` (this repo has both
-   `backend/` and `mobile/` at the top level — only `backend/` is the Vercel project).
-4. Before the first deploy (or right after, then redeploy), go to
-   **Project Settings -> Environment Variables** and add:
-   | Name | Value |
-   |---|---|
-   | `ANTHROPIC_API_KEY` | your key from console.anthropic.com — see step 3 below |
-   | `ANTHROPIC_MODEL` | `claude-sonnet-4-5` (confirm this is still current — see the note in step 3) |
-   | `DATABASE_URL` | the same Supabase pooler connection string from step 1.3 |
-   | `DEFAULT_USER_EMAIL` | whatever you set in `.env.local` when you ran the seed script |
+## Features
 
-   Set these for all three environments (Production, Preview, Development) unless you want
-   different Supabase projects per environment.
-5. Deploy. Once it's live, note the deployment URL, e.g. `https://prep-lms-xyz.vercel.app`
-   — you'll need it in step 4.
-6. Sanity check: open `https://<your-url>.vercel.app/api/health` in a browser — it should
-   return `{"status":"ok"}`. If it errors, re-check `DATABASE_URL`.
+| Capability | Description |
+|---|---|
+| **Adaptive lessons** | Guess → teach → fade → solo, one Claude-generated lesson per objective, cached after first generation so cost doesn't scale with users |
+| **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/7/21-day spaced review scheduler |
+| **PBQ simulator** | Multi-part performance-based-question scenarios, graded per sub-part |
+| **Ask the coach** | Multi-turn chat, persisted per course |
+| **Catalog navigation** | Home screen groups courses by education category (bounded, currently 14) instead of a flat list; per-course Verified / Review due / Unverified freshness badge and filter |
+| **Full account system** | Email/password, TOTP + email-code MFA with per-method backup codes, Google OAuth linking, active-session management, account export/delete |
+| **Per-course disclaimers** | Tracks where acting on wrong content has real consequences (nursing) require an explicit, per-account acknowledgement before the first lesson |
+| **Automated freshness review** | A quarterly scheduled agent checks every course's recorded source against the vendor's current page and files a findings record — see [Catalog content ops](#catalog-content-ops) below |
 
-## 3. Get an Anthropic API key
+**Catalog today:** 38 courses across 14 categories / 140 subcategories — 9 core (graduate CS + language/security foundations), 11 AWS certifications, 10 Azure certifications, 1 Google Cloud certification (strand in progress), 6 nursing tracks (CNA → BSN-RN + NCLEX-RN/PN), 226 units, 3,083 objectives, 28 tracked credential exams.
 
-1. Go to [console.anthropic.com](https://console.anthropic.com/settings/keys), sign in, and
-   create a new API key.
-2. Paste it **only** into Vercel's environment variable UI (step 2.4 above) — never into any
-   file in this repo, never into a commit, and never into a chat with Claude.
-3. **Model name note:** `backend/.env.example` and `backend/lib/anthropic.ts` default to
-   `claude-sonnet-4-5`. This was chosen without live access to Anthropic's current model
-   catalog at the time this app was built, so **confirm the exact current model ID** at
-   [docs.anthropic.com/en/docs/about-claude/models](https://docs.anthropic.com/en/docs/about-claude/models)
-   before relying on this in daily use, and update the `ANTHROPIC_MODEL` env var in Vercel
-   if it's changed.
+---
 
-## 4. Point the mobile app at your deployed backend
-
-Edit `mobile/eas.json` and replace the placeholder URL with your real Vercel URL from step 2.5:
-
-```json
-"production": {
-  "android": { "buildType": "apk" },
-  "env": { "EXPO_PUBLIC_API_URL": "https://prep-lms-xyz.vercel.app" }
-}
-```
-
-(For running the app locally with `expo start` instead of a built APK, copy
-`mobile/.env.example` to `mobile/.env.local` and set `EXPO_PUBLIC_API_URL` there too.)
-
-## 5. Build the Android APK with EAS
-
-From the `mobile/` folder:
+## Project Structure
 
 ```
-cd mobile
+ascendra/
+├── backend/                     Next.js API (App Router) — deploys to Vercel
+│   ├── app/api/                 One route group per resource
+│   │   ├── auth/                 Login, register, MFA (TOTP/email/backup codes), Google OAuth, sessions
+│   │   ├── courses/               List/create tracks, favorite, acknowledgement
+│   │   ├── catalog/               review-context / review-findings — the quarterly agent's only surface
+│   │   ├── taxonomy/              Category/subcategory tree
+│   │   └── objectives/ grade/ pbq/ chat/ ...  Lesson, grading, PBQ, chat
+│   ├── lib/
+│   │   ├── auth/                 requireUser, requireReviewAgent (machine credential, separate from user auth), MFA, OAuth, tokens, crypto
+│   │   ├── anthropic.ts          Claude Messages API wrapper
+│   │   ├── prompts.ts            Lesson/grading/PBQ/chat prompt builders
+│   │   └── mastery.ts            0–4 rubric, proficiency check, spaced-review scheduler
+│   └── supabase/
+│       ├── migrations/           18 migrations, additive-only — see below
+│       └── seed/                 Catalog content: data.ts (core tracks) + tracks/{aws,azure,gcp,nursing}.ts
+├── mobile/                      Expo Router app — iOS, Android (EAS), and web export
+│   └── app/(app)/, (auth)/, (legal)/   Screens, grouped by auth state; legal = FAQ/disclaimer/privacy/cookies/terms
+├── docs/                        education-taxonomy.md and other standing references
+├── .ai/                         AI-assistant working rules (entrypoints, playbooks, requirements registry) — see CLAUDE.md
+├── CHANGELOG.md                 One entry per requirement, newest first
+└── README.md                    This file
+```
+
+### Database migrations (`backend/supabase/migrations/`)
+
+Additive-only — nothing has ever been dropped or destructively rewritten.
+
+`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target.
+
+---
+
+## Getting Started
+
+### 1. Supabase project + schema
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. **SQL Editor → New query** — run every file in `backend/supabase/migrations/` in numeric order.
+3. **Project Settings → Database → Connection string → URI**, using the **Transaction pooler** (port `6543`).
+
+### 2. Seed the catalog
+
+```bash
+cd backend
+cp .env.example .env.local   # fill in DATABASE_URL, DEFAULT_USER_EMAIL
 npm install
-npx eas login
-npx eas build -p android --profile production
-```
-
-- `eas login` asks for your Expo account (create one free at expo.dev if you don't have one).
-- The first time you run `eas build` in this project, it will ask to link/create an EAS
-  project — accept the defaults.
-- The build runs on Expo's servers (a few minutes). When it finishes, the CLI prints a URL
-  like `https://expo.dev/artifacts/eas/...` — that's your APK download link. It also shows
-  up under **your project -> Builds** on [expo.dev](https://expo.dev).
-
-## 6. Install the APK on your Pixel 9
-
-1. On the Pixel 9, open the build link from step 5 (in Chrome, or whichever browser/file
-   manager you used to download it) and download the `.apk` file.
-2. Android will likely block the install the first time. When prompted, tap **Settings** on
-   the warning, then enable **Allow from this source** for the browser or file manager you
-   used to download it (Settings path: **Settings -> Apps -> [Chrome / Files] -> Install
-   unknown apps -> Allow from this source**).
-3. Go back and tap the downloaded APK again — it should now install normally. Open **Prep LMS**
-   from the app drawer.
-
----
-
-## What's in each part
-
-### `backend/`
-Next.js 14 App Router project, API routes only (no rendered pages beyond a placeholder home
-page). Key files:
-- `lib/db.ts` — pg Pool + `getDefaultUserId()` (single-user lookup by seeded email).
-- `lib/anthropic.ts` — Anthropic Messages API wrapper (`callClaude`, `callClaudeJSON`), model
-  id from `ANTHROPIC_MODEL` env var.
-- `lib/prompts.ts` — prompt builders for lesson generation, free-response grading, PBQ
-  generation/grading, and chat — ported from the governing rules in `mscs-coach.html` /
-  `security-plus-coach.html` (define every term, grade every sub-part by name, never grade
-  past a gap, MC-until-proficient, etc).
-- `lib/mastery.ts` — the 0-4 mastery rubric, `isProficient()` (>=2 attempts, >=85% accuracy),
-  mastery-status suggestion logic, and the 1/7/21-day spaced-review scheduler.
-- `lib/grading-service.ts` — shared "record an attempt, update mastery, log an error if not
-  correct" logic used by both `/api/grade` and `/api/pbq`.
-- `app/api/*` — one route per resource: `courses`, `units`, `objectives/:id/lesson` (cached
-  lesson generation), `objectives/:id/mastery`, `grade` (MC + free-response grading),
-  `pbq` (scenario generation + grading), `chat`, `attempts`, `errors`, `sessions`, `health`.
-
-### `backend/supabase/`
-- `migrations/001_init.sql` — core schema: `app_users`, `subject_tracks`, `course_units`,
-  `objectives`, `lesson_content` (per-objective cache), `pbq_scenarios`, `mastery`,
-  `attempts`, `error_log` (with `review_stage`/`next_review_at` for spaced review),
-  `chat_messages`, `study_sessions`, plus rollup views (`view_unit_mastery`,
-  `view_track_progress`, `view_due_reviews`).
-- `migrations/002_*.sql` through `007_education_taxonomy.sql` — authentication and account
-  additions, convenience features, and the complete 13-category/130-subcategory education
-  taxonomy with certification-, technology-, and academic-freshness metadata.
-- `seed/data.ts` — the real MSCS week titles/objectives and Security+ domain
-  titles/weights/objectives, ported from the two Artifact apps.
-- `seed/seed.ts` — idempotent seed script (`npm run seed`).
-
-### `mobile/`
-Expo (managed workflow) app using **expo-router** (file-based routing) rather than plain
-React Navigation, since it maps cleanly onto this app's URL-shaped screens
-(`/course/[trackId]/lesson/[objectiveId]`, etc) and needs less boilerplate.
-
-Screens:
-- `app/index.tsx` — Home / course switcher.
-- `app/course/[trackId]/index.tsx` — Course dashboard (units, mastery badges, continue CTA).
-- `app/course/[trackId]/lesson/[objectiveId].tsx` — the guess -> teach -> fade -> solo lesson
-  flow: MC or free-response at each check step, a 1-5 confidence rating, and a "send
-  follow-up" box under a graded verdict.
-- `app/course/[trackId]/pbq.tsx` — PBQ scenario simulator (multi-part, graded per sub-part).
-- `app/course/[trackId]/chat.tsx` — Ask the coach (multi-turn, persisted).
-- `app/course/[trackId]/progress.tsx` — Mastery matrix.
-- `app/course/[trackId]/history.tsx` — Filterable answer history.
-- `app/settings.tsx` — shows the configured API URL.
-
-`eas.json` has a `production` profile with `android.buildType: "apk"` so `eas build` produces
-a directly installable `.apk` rather than an `.aab` (which would need Play Store submission).
-
----
-
-## Verification performed on this build (and its limits)
-
-- **Backend**: `npm install`, `npx tsc --noEmit`, and `npm run build` (a real Next.js
-  production build) all completed with no errors, in this sandbox, against the actual
-  `next@14.2.35` / `@anthropic-ai/sdk` / `pg` versions pinned in `package.json`. Every
-  `/api/*` route is correctly detected as dynamic (server-rendered per request, not
-  statically cached) because they read `request.url` or use runtime env vars.
-- **Backend seed script**: typechecked cleanly on its own (it's a standalone `tsx` script,
-  not part of the Next.js build).
-- **Mobile**: `npm install` and `npx tsc --noEmit` both completed cleanly; `npx expo config`
-  resolved `app.json`/`eas.json` without error. **Not verified**: an actual `expo start`
-  session, a Metro bundle, or a real EAS cloud build — those need a device/simulator and an
-  Expo account this sandbox doesn't have. Fix anything Metro flags the first time you run
-  `npx expo start` the same way you'd fix any new project's first-run issues.
-- **Not verified at all** (no credentials in this sandbox, and none were sought): an actual
-  Supabase project, a live Anthropic API call, a Vercel deployment, or an EAS cloud build.
-  Everything above is code/config-level verification only.
-
-## Judgment calls made while building this
-
-- **Schema**: extended the pasted blueprint's `subject_tracks`/`course_modules` shape rather
-  than reusing `quiz_questions`/`quiz_attempts` as-is, since those assumed a static
-  pre-authored question bank with string-equality grading — incompatible with per-objective
-  AI-generated content and Claude-graded free-response/PBQ answers. Kept the blueprint's
-  naming spirit (`subject_tracks` survives) but renamed `course_modules` -> `course_units`
-  to read naturally for both "week" and "domain", and replaced the static tables with
-  `lesson_content` (cache), `mastery`, `attempts`, `error_log`, `pbq_scenarios`.
-- **Model string**: defaulted to `claude-sonnet-4-5` in `.env.example` / `lib/anthropic.ts`.
-  Confirm this against Anthropic's current model list before relying on it (see step 3 above)
-  — the model catalog moves and this was picked without checking it live.
-- **Expo Router vs React Navigation**: chose expo-router for the file-based routes matching
-  this app's natural URL shape and less setup code; React Navigation would work equally well
-  if preferred later.
-- **MC-vs-free-response gating**: the lesson-flow screen always offers a mode toggle (MC or
-  free response) rather than fully hiding free-response until proficiency is reached, since
-  enforcing that gate purely client-side would need an extra round-trip to
-  `/api/objectives/:id/mastery` before rendering each check step. The backend's
-  `isProficient()` / accuracy logic in `lib/mastery.ts` is there and used to drive the mastery
-  *status* suggestion after each attempt — wiring it into a hard UI gate (hiding the MC
-  toggle once proficient) is a small follow-up if you want the exact same "MC evaporates"
-  behavior as the Artifact apps.
-- **PBQ scope**: PBQ scenarios are generated per **unit** (not per objective), matching how
-  `security-plus-coach.html` scopes them, and are cached but not deduplicated — each "try
-  another scenario" call generates and stores a new one, so a unit accumulates a history of
-  scenarios over time rather than caching exactly one.
-- **Single-user**: every table carries a `user_id`, and one `app_users` row is seeded from
-  `DEFAULT_USER_EMAIL`; no login screen exists since this is single-user by design, but the
-  schema doesn't need a migration if a real auth layer gets added later.
-
-## The exact next 3 commands to run
-
-```
-cd backend && npm install
-```
-then set up Supabase (step 1) and paste `DATABASE_URL` into `backend/.env.local`, then:
-```
 npm run seed
 ```
-then, once you've deployed `backend/` to Vercel and set `EXPO_PUBLIC_API_URL` in
-`mobile/eas.json` (steps 2 and 4):
+
+Idempotent — safe to re-run; existing rows update in place rather than duplicating.
+
+### 3. Backend env vars + deploy
+
+Set these in Vercel (**Project Settings → Environment Variables**, all three environments) as well as `.env.local` for local dev — full list and explanations in `backend/.env.example`:
+
+| Variable | For |
+|---|---|
+| `DATABASE_URL` | Supabase pooler connection string |
+| `ANTHROPIC_API_KEY` (or Workload Identity Federation vars) | Lesson generation, grading, chat, PBQ |
+| `AUTH_JWT_SECRET`, `AUTH_ENCRYPTION_KEY` | Session tokens, MFA secret encryption |
+| `GOOGLE_OAUTH_CLIENT_IDS`, `RESEND_API_KEY` | Google sign-in, transactional email |
+| `CATALOG_REVIEW_AGENT_TOKEN` | The quarterly catalog-review agent's machine credential |
+
+Import the repo in Vercel with **Root Directory** set to `backend`. Sanity check after deploy: `GET /api/health` → `{"status":"ok"}`.
+
+### 4. Mobile app
+
+```bash
+cd mobile
+cp .env.example .env.local   # EXPO_PUBLIC_API_URL -> your deployed backend
+npm install
+npx expo start                       # local dev
+npx eas build -p android --profile production   # or ios
 ```
-cd ../mobile && npm install && npx eas login
-```
+
+---
+
+## Catalog Content Ops
+
+The catalog isn't static: courses are added strand-by-strand (one certification vendor finished completely before the next — AWS, then Azure, then the GCP strand now in progress), each authored from the vendor's own official exam guide, never from training-data memory or copied third-party course text.
+
+Staying current is the harder, ongoing half. A **Claude API Managed Agent** runs quarterly (`backend/app/api/catalog/review-context` / `review-findings`), re-checks every course's recorded source against the vendor's page today, and records a finding either way. Only a confirmed-current finding advances the live freshness fields the app's Verified/Unverified badges read — a flagged one pulls a course into "Review due" immediately without ever claiming a verification that didn't happen.
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [CHANGELOG.md](CHANGELOG.md) | Every requirement (`REQ-###`), newest first, with the reasoning behind it |
+| [docs/education-taxonomy.md](docs/education-taxonomy.md) | Category/subcategory model, freshness models, publication rules |
+| [docs/catalog-review-agent.md](docs/catalog-review-agent.md) | The quarterly agent's resources, credential rotation, manual testing, troubleshooting |
+| [`.ai/`](.ai/context-brief.md) | AI-assistant working rules — requirement tracking, playbooks, project map |
+| `backend/AGENTS.md`, `backend/CLAUDE.md` | Backend-specific notes for AI coding assistants (this Next.js version has its own quirks) |
+
+---
+
+## Legal
+
+- Practice content is written to resemble real exam style and coverage but is **not sourced from, and is not a copy of, any live exam** (`mobile/app/(legal)/terms.tsx`).
+- Course objective trees are authored from publicly published exam guides, accreditation standards, and licensure requirements — never copied from paid course platforms; those are used only as evidence a topic is industry-recognized.
+- Nursing and other real-consequence tracks require an explicit, per-account disclaimer acknowledgement before the first lesson.
+- Not affiliated with, and not endorsed by, AWS, Microsoft Azure, Google Cloud, CompTIA, NCSBN, or any other credentialing body named in the catalog.

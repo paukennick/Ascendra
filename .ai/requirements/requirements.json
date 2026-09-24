@@ -1358,6 +1358,33 @@
         "Two real Anthropic API keys were pasted into this chat session during provisioning -- flagged to Nick to revoke/rotate both.",
         "Blocked, not completed: the deployment exists and is active but cannot actually authenticate to this backend until the vault credential is added."
       ]
+    },
+    {
+      "id": "REQ-044",
+      "category": "Documentation",
+      "title": "Rewrite the README and fill the catalog-review-agent documentation gap",
+      "description": "README.md was badly stale -- described a single-user prototype (9 core tracks, no auth system, wrong Next.js version, no mobile-app framing) that predated most of the product as it exists now (38 tracks, full auth/MFA/OAuth, iOS+Android+web, the catalog taxonomy work, the quarterly review agent). Rewrote it following the house format used across Nick's other repos (PropMatch/arbiter/STEP_App: title+tagline, tabular tech stack and features, project structure as a file tree, a compact per-migration inventory in STEP_App's style, a Documentation table linking out rather than inlining everything, closing Legal section). Also created docs/catalog-review-agent.md -- the one genuine documentation gap found: the quarterly agent's resource IDs, credential rotation steps, manual-run testing, and troubleshooting existed only in project memory and CHANGELOG entries, not anywhere in the repo itself. Regenerated the stale .ai/project-map.md (omni map) and ran omni doctor (20 passed, 4 warnings -- all pre-existing/benign: template placeholders in the ruleset scaffold, no architecture SVG asset [none exists, not fabricated], and a merge-commit false positive on the changelog-coverage check).",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "docs/",
+        ".ai/project-map.md"
+      ],
+      "acceptance_criteria": [
+        "README accurately reflects current tech stack, feature set, catalog size, and project structure.",
+        "Every migration has a one-line summary in the README's migration inventory.",
+        "docs/catalog-review-agent.md exists and covers resource IDs, credential rotation, manual testing, and troubleshooting.",
+        "docs/education-taxonomy.md links to the new doc and documents vendor_exam_unpublished_code.",
+        "omni doctor passes with no new errors."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
