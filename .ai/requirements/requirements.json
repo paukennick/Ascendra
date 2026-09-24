@@ -1244,6 +1244,60 @@
         "Live data change via a script that upserts on conflict; re-run verification is the safeguard against silent duplication.",
         "seed.ts's per-track console.log prints 'credential_exams: undefined (active)' for the 4 nursing tracks with an accreditation/licensure basis (they carry standard_name, not exam_code) -- cosmetic logging gap, not a data issue; not fixed as part of this REQ."
       ]
+    },
+    {
+      "id": "REQ-040",
+      "category": "Catalog data model",
+      "title": "Model vendor certifications that publish no exam code at all",
+      "description": "credential_exams' identity constraint (migration 014) requires exam_code or standard_name on any non-draft row -- exam_code for a normal vendor exam (AWS/Azure), standard_name for an accreditation/licensure credential that isn't an exam at all (nursing). Google Cloud is a third case the constraint didn't anticipate: a real, proctored vendor exam (same structure as AWS/Azure -- administered, scored, time-limited) that Google simply never assigns a published SKU-style code to, confirmed across the Cloud Digital Leader guide page, overview page, and official PDF. Forcing a standard_name onto it would misrepresent basis as accreditation/licensure; inventing an exam_code would be fabricated data. Added a new credential_basis value, vendor_exam_unpublished_code, and widened the identity check to also accept a row with that basis and no code.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/016_vendor_exam_unpublished_code.sql"
+      ],
+      "acceptance_criteria": [
+        "credential_basis has a new value vendor_exam_unpublished_code, additive only (no existing value removed or renamed).",
+        "credential_exams_identified constraint accepts a row with basis = 'vendor_exam_unpublished_code' and exam_code null, as long as standard_name is also null (still requires at least one real identifying fact, per row's basis).",
+        "Existing AWS/Azure (exam_code) and nursing (standard_name) rows are unaffected.",
+        "Migration applied to the live Supabase project."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Schema change against the live project -- additive only (new enum value, widened check), reversible."
+      ]
+    },
+    {
+      "id": "REQ-041",
+      "category": "Catalog content",
+      "title": "Start the GCP certification strand: author and seed Google Cloud Digital Leader",
+      "description": "First track of the GCP strand (third certification vendor after AWS and Azure). Authored in backend/supabase/seed/tracks/gcp.ts from Google's own official material read 2026-09-23 (exam guide page, certification overview page, and the official PDF exam guide extracted locally with pymupdf after pypdf mangled its text) -- not from memory. 6 sections/units, 65 objectives, weights 18/18/18/18/18/10. Uses the new vendor_exam_unpublished_code basis (REQ-040) since Google publishes no exam code. Seeded live: subject_tracks went from 37 to 38, with GCPCDL the only 'created' row in the log (all pre-existing tracks upserted unchanged). Google's certification catalog is confirmed to be mid-overhaul in 2026 (Pearson VUE delivery switch, several exams being actively rebuilt); remaining GCP tracks are deferred pending a per-cert status check against each one's own official page, tracked in project memory (gcp_catalog_progress.md), not assumed continuous the way AWS's exam-code version bumps were.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/seed.ts"
+      ],
+      "acceptance_criteria": [
+        "GCPCDL track exists live with 6 units and 65 objectives matching the authored file.",
+        "Credential row uses basis vendor_exam_unpublished_code with examCode unset.",
+        "No pre-existing track lost data or was duplicated by the seed run.",
+        "npm run typecheck passes in backend."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Only 1 of an estimated 8-9 stable GCP certifications built so far; continuing across future sessions per the multi-session pattern used for AWS/Azure."
+      ]
     }
   ]
 }

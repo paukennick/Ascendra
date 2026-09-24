@@ -1,0 +1,22 @@
+-- REQ-040: a third reason a credential_exams row can lack exam_code.
+--
+-- Migration 014 widened credential_exams for credentials that aren't a
+-- vendor exam at all (accreditation_standard, regulatory_licensure) --
+-- nursing's case, identified by standard_name instead of exam_code.
+--
+-- Google Cloud is a different case: a real, proctored, scored vendor exam --
+-- structurally the same as AWS/Azure -- that the vendor simply never
+-- assigns a published SKU-style code to. Confirmed against the Cloud
+-- Digital Leader exam guide page, its certification overview page, and its
+-- official PDF guide: none print a code, only the full certification name.
+-- Forcing standard_name onto it would misrepresent basis as
+-- accreditation/licensure; inventing an exam_code would be fabricated data
+-- attributed to Google.
+--
+-- Split into its own migration (rather than combined with the constraint
+-- change in 017) because Postgres refuses to reference a new enum value in
+-- the same transaction that added it -- "unsafe use of new value ... New
+-- enum values must be committed before they can be used" -- confirmed live
+-- against this project on 2026-09-23.
+
+alter type credential_basis add value if not exists 'vendor_exam_unpublished_code';
