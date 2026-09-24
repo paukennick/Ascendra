@@ -344,8 +344,123 @@ export const NETWORKPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA Cloud+ (CV0-004, V4). Confirmed current and active as of this
+// fetch, not beta.
+//
+// 90 minutes, up to 90 questions (multiple choice and performance-based),
+// passing score 750/900. Launched 2024-09-24, estimated retirement ~2027.
+// Recommended experience: 2-3 years hands-on as a systems administrator or
+// cloud engineer. Domains: 23% / 19% / 19% / 17% / 12% / 10%.
+// ---------------------------------------------------------------------------
+export const CLOUDPLUS_TRACK: SeedTrack = {
+  code: "CLOUDPLUS",
+  title: "Cloud+ Coach",
+  description:
+    "CompTIA Cloud+ (CV0-004) exam prep across 6 weighted domains -- cloud architecture, deployment, security, operations, troubleshooting, and DevOps fundamentals.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/cloud/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "cloud-plus",
+    credentialName: "CompTIA Cloud+",
+    credentialUrl: "https://www.comptia.org/certifications/cloud",
+    examCode: "CV0-004",
+    examRevision: "V4",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2024-09-24",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/cloud/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "2-3 years of hands-on experience as a systems administrator or cloud engineer.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Cloud Architecture",
+      weight: 23,
+      gate: "Given a workload description, recommend the specific cloud model, networking approach, and resource-optimization move that fits it -- not a generic 'move it to the cloud' answer.",
+      objectives: [
+        "Comparing public, private, hybrid, and multi-cloud deployment models against a business need",
+        "The role of virtualization technologies in a cloud environment",
+        "Cloud networking: VPNs and virtual network design",
+        "The role of containerization in cloud environments",
+        "Managing containers with orchestration techniques",
+        "Database concepts as used by cloud applications",
+        "Optimizing cloud resources for performance and cost efficiency",
+        "Billing management and usage-cost considerations",
+      ],
+    },
+    {
+      title: "Deployment",
+      weight: 19,
+      gate: "Given a workload to move to the cloud, plan and execute the migration -- analyzing requirements, provisioning resources, and automating the build -- rather than clicking through the console ad hoc.",
+      objectives: [
+        "Analyzing system requirements ahead of a workload migration",
+        "Implementing infrastructure as code (IaC) techniques for automation",
+        "Planning and executing workload migrations to a cloud environment",
+        "Provisioning and configuring cloud resources effectively",
+      ],
+    },
+    {
+      title: "Security",
+      weight: 19,
+      gate: "Given a cloud environment to secure, apply the specific control -- IAM, container hardening, or a named compliance standard -- that matches the risk, not a generic 'add security' answer.",
+      objectives: [
+        "Identifying and addressing vulnerabilities in cloud environments",
+        "Implementing identity and access management (IAM) to control resource access",
+        "Safeguarding containerized applications and resources",
+        "Ensuring compliance with standards such as PCI DSS, SOC 2, and ISO 27001",
+        "Deploying security controls to protect cloud environments",
+      ],
+    },
+    {
+      title: "Operations",
+      weight: 17,
+      gate: "Given a cloud resource already in production, manage its lifecycle and monitor it -- scaling, updating, backing up, and observing it -- rather than treating deployment as the finish line.",
+      objectives: [
+        "Managing the lifecycle of cloud resources, including scaling and updates",
+        "Implementing backup and recovery strategies to ensure data integrity",
+        "Monitoring and analyzing cloud environments for performance optimization",
+      ],
+    },
+    {
+      title: "Troubleshooting",
+      weight: 12,
+      gate: "Given a broken cloud deployment, diagnose the specific fault -- connectivity, a leaked credential, a misconfiguration, or a disrupted service -- rather than guessing at a fix.",
+      objectives: [
+        "Diagnosing and resolving deployment problems",
+        "Troubleshooting network connectivity issues in cloud environments",
+        "Addressing security incidents such as leaked credentials and privilege escalation",
+        "Resolving service disruptions in DNS, DHCP, and NTP",
+        "Identifying and fixing cloud misconfigurations",
+      ],
+    },
+    {
+      title: "DevOps Fundamentals",
+      weight: 10,
+      gate: "Given a repetitive cloud operations task, automate it with the right tool -- source control, a CI/CD pipeline, or an orchestration tool like Kubernetes/Ansible/Jenkins -- rather than doing it by hand again.",
+      objectives: [
+        "Using automation tools to streamline cloud operations",
+        "Managing code with source control techniques",
+        "Building and managing CI/CD pipelines",
+        "Integrating systems for seamless cloud operations",
+        "Working with common DevOps tools: Kubernetes, Ansible, and Jenkins",
+        "Event-driven architectures in cloud applications",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
   NETWORKPLUS_TRACK,
+  CLOUDPLUS_TRACK,
 ];
