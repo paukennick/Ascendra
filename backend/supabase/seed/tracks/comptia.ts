@@ -646,6 +646,99 @@ export const SERVERPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA Project+ (PK0-005, V5). Launched 2022-11-08 -- past the usual
+// ~3-year window, checked the same way as Server+: confirmed live
+// 2026-09-24, no retirement banner, no successor version mentioned.
+//
+// 90 minutes, up to 90 questions (multiple choice and performance-based),
+// passing score 710/900. Recommended experience: 6-12 months hands-on
+// managing projects in a tech environment. Domains: 33% / 30% / 19% / 18%.
+// ---------------------------------------------------------------------------
+export const PROJECTPLUS_TRACK: SeedTrack = {
+  code: "PROJECTPLUS",
+  title: "Project+ Coach",
+  description:
+    "CompTIA Project+ (PK0-005) exam prep across 4 weighted domains -- project management concepts, project life cycle phases, tools and documentation, and the basics of IT governance.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/project/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "project-plus",
+    credentialName: "CompTIA Project+",
+    credentialUrl: "https://www.comptia.org/certifications/project",
+    examCode: "PK0-005",
+    examRevision: "V5",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2022-11-08",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/project/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "6-12 months of hands-on experience managing projects in a technology environment.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "710 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Project Management Concepts",
+      weight: 33,
+      gate: "Given a project scenario, apply the specific concept it calls for -- agile vs. waterfall, a change-control step, a risk response -- rather than generic project-management advice.",
+      objectives: [
+        "Project characteristics and methodologies",
+        "Agile vs. waterfall approaches",
+        "Change control processes",
+        "Risk management",
+        "Issue management",
+        "Schedule management",
+        "Quality and performance management",
+        "Communication management",
+        "Meeting management",
+        "Team and resource management",
+        "Procurement and vendor selection",
+      ],
+    },
+    {
+      title: "Project Life Cycle Phases",
+      weight: 30,
+      gate: "Given a project at a given stage, name the phase it's in and the artifact that phase produces -- from discovery through closing -- not a generic 'plan then execute' answer.",
+      objectives: [
+        "Discovery phase artifacts",
+        "Project initiation",
+        "Project planning",
+        "Project execution",
+        "Project closing",
+      ],
+    },
+    {
+      title: "Tools and Documentation",
+      weight: 19,
+      gate: "Given a project status to communicate, pick the specific tool or chart that fits -- a quality chart, a productivity tool -- rather than defaulting to a status email.",
+      objectives: [
+        "Common project management tools",
+        "Productivity tools",
+        "Quality and performance charts",
+      ],
+    },
+    {
+      title: "Basics of IT Governance",
+      weight: 18,
+      gate: "Given an IT project with compliance or ESG implications, apply the specific governance concept -- information security, privacy compliance, or IT-specific change control -- that applies.",
+      objectives: [
+        "Environmental, social, and governance (ESG) considerations",
+        "Information security basics for project managers",
+        "Compliance and privacy requirements",
+        "IT concepts relevant to project management",
+        "Change control specific to IT and software projects",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
@@ -653,4 +746,5 @@ export const COMPTIA_TRACKS: SeedTrack[] = [
   CLOUDPLUS_TRACK,
   DATAPLUS_TRACK,
   SERVERPLUS_TRACK,
+  PROJECTPLUS_TRACK,
 ];
