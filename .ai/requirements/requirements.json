@@ -1216,6 +1216,34 @@
       "risk_notes": [
         "Client-side filtering only; revisit if the per-user track count grows enough that this should move server-side."
       ]
+    },
+    {
+      "id": "REQ-039",
+      "category": "Catalog content",
+      "title": "Seed the Azure certification strand to the live database",
+      "description": "The Azure strand (10 tracks: AZ-900, AZ-104, AZ-305, AI-901, DP-900, AZ-700, AZ-140, DP-300, AZ-400, AZ-120) was fully authored in backend/supabase/seed/tracks/azure.ts and wired into backend/supabase/seed/seed.ts's AZURE_TRACKS loop on 2026-09-18, but had never been run against the live Supabase project -- only AWS and nursing were live. Ran npm run seed; all 10 tracks inserted as new rows (log showed 'created AZ### -> uuid' for each, vs 'already exists ... updated' for the 26 pre-existing tracks), with credential_exams/exam_domains rows for each. Re-ran the seed a second time to verify idempotency (the same check the AWS strand's REQ-021 used): tracks/units/objectives/credential_exams/exam_domains row counts were identical before and after the second run.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/seed.ts"
+      ],
+      "acceptance_criteria": [
+        "All 10 Azure tracks exist in subject_tracks on the live project with matching course_units and objectives rows.",
+        "Each Azure track has a credential_exams row with the correct exam code and domain count.",
+        "Re-running the seed script changes no row counts (idempotency verified, not assumed).",
+        "No pre-existing track (core, AWS, nursing) lost data or was duplicated."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Live data change via a script that upserts on conflict; re-run verification is the safeguard against silent duplication.",
+        "seed.ts's per-track console.log prints 'credential_exams: undefined (active)' for the 4 nursing tracks with an accreditation/licensure basis (they carry standard_name, not exam_code) -- cosmetic logging gap, not a data issue; not fixed as part of this REQ."
+      ]
     }
   ]
 }
