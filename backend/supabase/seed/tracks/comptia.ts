@@ -234,4 +234,118 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
   ],
 };
 
-export const COMPTIA_TRACKS: SeedTrack[] = [APLUS_CORE1_TRACK, APLUS_CORE2_TRACK];
+// ---------------------------------------------------------------------------
+// CompTIA Network+ (N10-009, V9). Confirmed current and active as of this
+// fetch, not beta -- training data's exam code is not stale here (V9 has
+// been current since 2024-06-20), unlike A+'s pairing.
+//
+// 90 minutes, up to 90 questions (multiple choice and performance-based),
+// passing score 720/900. Launched 2024-06-20, estimated retirement ~2027.
+// Recommended experience: CompTIA A+ plus 9-12 months as a junior network
+// admin or support tech. Domains: 23% / 20% / 19% / 14% / 24%.
+// ---------------------------------------------------------------------------
+export const NETWORKPLUS_TRACK: SeedTrack = {
+  code: "NETWORKPLUS",
+  title: "Network+ Coach",
+  description:
+    "CompTIA Network+ (N10-009) exam prep across 5 weighted domains -- networking concepts, implementation, operations, security, and troubleshooting.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/network/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "network-plus",
+    credentialName: "CompTIA Network+",
+    credentialUrl: "https://www.comptia.org/certifications/network",
+    examCode: "N10-009",
+    examRevision: "V9",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2024-06-20",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/network/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "CompTIA A+ certification recommended, plus 9-12 months of hands-on experience as a junior network administrator or support technician.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "720 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Networking Concepts",
+      weight: 23,
+      gate: "Given a network diagram or a described topology, name the OSI layer, appliance, and address type actually in play -- not a generic 'it's networking' answer.",
+      objectives: [
+        "The OSI model layers, from physical through application, and which device or protocol operates at each",
+        "Networking appliance roles: routers, switches, firewalls, IDS/IPS, load balancers, proxies, NAS, and SAN",
+        "Cloud networking concepts: NFV, VPCs, network security groups, and cloud deployment/service models",
+        "Common ports and protocols: FTP, SSH, DNS, DHCP, HTTP/S, SNMP, LDAP, RDP, and SIP",
+        "Traffic types: unicast, multicast, anycast, and broadcast",
+        "Transmission media: wireless standards and wired cable types by use case",
+        "Transceivers and connectors: SC, LC, ST, MPO, RJ11, RJ45, F-type, and BNC",
+        "Network topologies: mesh, star, spine-and-leaf, and three-tier designs",
+        "IPv4 addressing: public vs. private ranges, subnetting, and address classes",
+      ],
+    },
+    {
+      title: "Network Implementation",
+      weight: 20,
+      gate: "Given a routing, switching, or wireless requirement, configure the specific technology that satisfies it and explain why a near-miss alternative would not.",
+      objectives: [
+        "Routing technologies: static vs. dynamic routing, NAT, PAT, and first-hop redundancy protocols (FHRP, VIP)",
+        "Switching technologies: VLANs, spanning tree, MTU, and jumbo frames",
+        "Wireless device configuration: channels, SSIDs, encryption, authentication, and antenna types",
+        "Physical installation considerations: power redundancy and environmental controls",
+      ],
+    },
+    {
+      title: "Network Operations",
+      weight: 19,
+      gate: "Given an ongoing network to run, produce or update the specific documentation, monitoring, or recovery artifact the situation calls for -- not a vague 'monitor it' answer.",
+      objectives: [
+        "Documentation practices: network diagrams, rack layouts, asset inventory, IPAM, and SLAs",
+        "Life-cycle management: end-of-life, end-of-support, and decommissioning procedures",
+        "Change and configuration management processes",
+        "Network monitoring: SNMP, flow data, packet capture, and log aggregation",
+        "Disaster recovery concepts: RPO, RTO, MTTR, MTBF, and site types",
+        "Network services: DHCP, SLAAC, DNS, NTP, PTP, and NTS",
+        "Remote access and management methods: VPNs, SSH, GUI, API, and console access",
+      ],
+    },
+    {
+      title: "Network Security",
+      weight: 14,
+      gate: "Given a network to harden or an incident to classify, apply the specific security control or terminology that matches the threat -- not a generic 'lock it down' response.",
+      objectives: [
+        "Logical security concepts: encryption, PKI, IAM, MFA, SSO, RADIUS, and RBAC",
+        "Physical security controls: cameras and locks",
+        "Deception technologies: honeypots and honeynets",
+        "Core security terminology: risk, vulnerability, exploit, threat, and the CIA triad",
+        "Audits and compliance: PCI DSS, GDPR, and data locality requirements",
+        "Network segmentation: IoT, SCADA, ICS, guest, and BYOD networks",
+        "Common attack types: DoS/DDoS, VLAN hopping, and ARP/DNS poisoning",
+        "Security features: NAC, ACLs, content filtering, and screened subnets",
+      ],
+    },
+    {
+      title: "Network Troubleshooting",
+      weight: 24,
+      gate: "Given symptoms of a broken network link or service, apply the troubleshooting methodology in order and name the specific tool that isolates the fault -- not jump straight to a guess.",
+      objectives: [
+        "Applying a consistent troubleshooting methodology from problem identification through documentation",
+        "Diagnosing cabling and physical interface issues",
+        "Diagnosing network service issues: switching, routing, and address pool exhaustion",
+        "Diagnosing performance issues: congestion, latency, packet loss, and wireless interference",
+        "Using troubleshooting tools and protocols: protocol analyzers, CLI tools, cable testers, and Wi-Fi analyzers",
+      ],
+    },
+  ],
+};
+
+export const COMPTIA_TRACKS: SeedTrack[] = [
+  APLUS_CORE1_TRACK,
+  APLUS_CORE2_TRACK,
+  NETWORKPLUS_TRACK,
+];

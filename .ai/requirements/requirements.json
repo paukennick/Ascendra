@@ -1496,6 +1496,33 @@
       "risk_notes": [
         "First run of npm run seed for this change was killed mid-way through the nursing tracks on a mistaken read of stdout silence as a hang -- its output only flushes to the log file on process exit when redirected, not per line. Re-run completed cleanly; idempotent upserts meant the partial first run left nothing to clean up."
       ]
+    },
+    {
+      "id": "REQ-049",
+      "category": "Catalog content",
+      "title": "Continue the CompTIA-remainder strand: Network+",
+      "description": "Authored and seeded live the second item on docs/catalog-backlog.md's CompTIA-remainder strand, done in-session by Claude Code rather than waiting on the still-blocked overnight builder agent (REQ-047). Confirmed directly against CompTIA's own certification page (comptia.org/en-us/certifications/network) that N10-009 (V9, launched 2024-06-20) is the current, active exam, not beta -- unlike A+ (REQ-048), training data's exam code was not stale here. Added NETWORKPLUS to backend/supabase/seed/tracks/comptia.ts, following the same credential-block pattern as APLUS_CORE1/APLUS_CORE2: 5 domains, 33 objectives, weights 23/20/19/14/24 (Networking Concepts/Network Implementation/Network Operations/Network Security/Network Troubleshooting). Seeded live: subject_tracks 50 -> 51.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/seed.ts",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "NETWORKPLUS exists in backend/supabase/seed/tracks/comptia.ts with units/objectives matching this description.",
+        "npm run typecheck passes in backend.",
+        "Track confirmed live with a network-plus credential and one credential_exams row (N10-009).",
+        "docs/catalog-backlog.md's Network+ item checked off and its Session log updated."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
