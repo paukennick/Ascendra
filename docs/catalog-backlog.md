@@ -50,7 +50,7 @@ data and may be stale the same way AWS's were:
 - [x] Cloud+ (confirmed current: CV0-004, V4, launched 2024-09-24, not beta -- built as a single track, CLOUDPLUS)
 - [x] Data+ (confirmed current: DA0-002, V2, launched 2025-10-14, not beta -- built as a single track, DATAPLUS)
 - [x] Server+ (confirmed current: SK0-005, V5, launched 2021-05-18 -- older revision but checked for a retirement banner/successor, found none, still purchasable -- built as a single track, SERVERPLUS)
-- [ ] Project+
+- [x] Project+ (confirmed current: PK0-005, V5, launched 2022-11-08, no retirement banner/successor -- built as a single track, PROJECTPLUS)
 - [ ] Cloud Essentials+
 - [ ] ITF+ (IT Fundamentals) -- confirm not superseded/retired
 - [ ] CTT+ (Certified Technical Trainer) -- confirm still offered
@@ -117,3 +117,4 @@ opened #N / blocked, see note above>`.
 2026-09-24 21:57 UTC -- Cloud+ -- seeded live, in-session by Claude Code.
 2026-09-24 22:12 UTC -- Data+ -- seeded live, in-session by Claude Code.
 2026-09-24 22:27 UTC -- Server+ -- seeded live, in-session by Claude Code.
+2026-09-24 22:42 UTC -- Project+ -- seeded live, in-session by Claude Code.
