@@ -1298,6 +1298,38 @@
       "risk_notes": [
         "Only 1 of an estimated 8-9 stable GCP certifications built so far; continuing across future sessions per the multi-session pattern used for AWS/Azure."
       ]
+    },
+    {
+      "id": "REQ-042",
+      "category": "Catalog content ops",
+      "title": "Give the quarterly catalog-review Managed Agent a place to read and write",
+      "description": "Nick built a Claude API Managed Agent (agent_01K6FP985aEw1qMgX1TKaUFd) in the Anthropic Console to sweep the catalog quarterly for outdated educational material. Added the two endpoints it needs, authenticated by a static machine credential (CATALOG_REVIEW_AGENT_TOKEN, separate from user session auth): GET /api/catalog/review-context (each track's code, source URL, credential exam status/objectives URL, last-verified date) and POST /api/catalog/review-findings (records a finding in the new content_review_findings table; a 'current' conclusion also advances subject_tracks.source_verified_at/content_review_due_at -- the same fields the Verified/Unverified badges and filter from REQ-036/038 read -- while a 'flagged' conclusion only pulls content_review_due_at to now, never claiming a fresh verification). Both queries verified directly against the live schema, including a real write for GCPCDL (checked earlier this session, so the finding is accurate, not test data). Anthropic-side wiring (environment, vault credential, scheduled deployment) is a separate follow-up requirement pending Nick's API key.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/018_content_review_findings.sql",
+        "backend/lib/auth/requireReviewAgent.ts",
+        "backend/app/api/catalog/review-context/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts"
+      ],
+      "acceptance_criteria": [
+        "content_review_findings table exists live and records every call, current or flagged.",
+        "A 'current' conclusion updates source_verified_at and content_review_due_at (+4 months) on the target track.",
+        "A 'flagged' conclusion updates only content_review_due_at (to now), never source_verified_at.",
+        "Both endpoints reject requests without a valid CATALOG_REVIEW_AGENT_TOKEN bearer token.",
+        "npm run typecheck passes in backend."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "New secret (CATALOG_REVIEW_AGENT_TOKEN) generated and stored in backend/.env.local; still needs to be set in Vercel env and registered as an Anthropic vault environment_variable credential before the agent can actually reach it.",
+        "Endpoints are live now but nothing calls them yet -- inert until the Anthropic-side deployment (REQ-043) is created."
+      ]
     }
   ]
 }
