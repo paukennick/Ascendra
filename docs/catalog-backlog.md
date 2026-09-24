@@ -46,7 +46,7 @@ Candidates below are unverified -- confirm each against
 data and may be stale the same way AWS's were:
 
 - [x] A+ (confirmed still two exams: Core 1 220-1201 + Core 2 220-1202, both V15, launched 2025-03-25 -- built as two tracks, APLUS_CORE1 and APLUS_CORE2, sharing one `a-plus` credential row)
-- [ ] Network+
+- [x] Network+ (confirmed current: N10-009, V9, launched 2024-06-20, not beta -- built as a single track, NETWORKPLUS)
 - [ ] Cloud+
 - [ ] Data+
 - [ ] Server+
@@ -113,3 +113,4 @@ history: `YYYY-MM-DD HH:MM UTC -- <item> -- <result: seeded live / PR
 opened #N / blocked, see note above>`.
 
 2026-09-24 09:40 UTC -- A+ (Core 1 + Core 2) -- seeded live, in-session by Claude Code rather than the (still-blocked) overnight builder agent.
+2026-09-24 21:23 UTC -- Network+ -- seeded live, in-session by Claude Code rather than the (still-blocked) overnight builder agent.
