@@ -1438,6 +1438,35 @@
       "risk_notes": [
         "Professional Agentic Architect intentionally excluded from this strand while it remains in beta."
       ]
+    },
+    {
+      "id": "REQ-047",
+      "category": "Catalog content ops",
+      "title": "Provision the overnight catalog builder agent",
+      "description": "Second Managed Agent, separate from the quarterly review agent, that works through docs/catalog-backlog.md one course per session on an hourly schedule while Nick is away: agent_01CWRrp4MkHfMzCAdPrLtSBQ, vault vlt_011CfMwAWQ4Mc5bPfKJAyWX5 (separate from the review agent's, since it needs a full database-write credential), deployment depl_01EizV77ytLtbHGNTy5yw2rP (cron 0 * * * * UTC, $1.00 session budget against a $14.74 account balance, ~12 firings max, first run 2026-09-24T09:00:00Z). No GitHub write credential granted -- confirmed with Nick that each session commits locally only (repo is public, so read access needs no credential; write access was deliberately left out since this session's GitHub tool set has no branch-protection API to enforce PR-only at the platform level). Each firing writes a recoverable git-format-patch to its session outputs instead of pushing. docs/catalog-builder-agent.md documents the full design, credential setup, and how to pause it.",
+      "priority": "high",
+      "status": "blocked",
+      "minimum_access_scope": [
+        "Anthropic Console (Vaults)",
+        "docs/catalog-builder-agent.md"
+      ],
+      "acceptance_criteria": [
+        "Vault vlt_011CfMwAWQ4Mc5bPfKJAyWX5 has a DATABASE_URL environment_variable credential, scoped to aws-0-ca-central-1.pooler.supabase.com if the form allows it.",
+        "A scheduled firing completes a full course (typecheck + seed + backlog update + REQ/CHANGELOG entries + local commit + patch file) without a DATABASE_URL or GitHub-credential error.",
+        "docs/catalog-backlog.md's Session log shows entries accumulating over the scheduled run.",
+        "Deployment is paused (POST /v1/deployments/depl_01EizV77ytLtbHGNTy5yw2rP/pause) once the ~12-hour window or the $14.74 budget is reached, whichever comes first."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Blocked until the DATABASE_URL vault credential is added by hand -- every firing fails at npm run seed until then.",
+        "No native auto-stop on a scheduled deployment after N hours or spend -- pausing it in time is a manual follow-up.",
+        "Code changes from each firing exist only as a patch file in that session's outputs until retrieved and applied by hand -- not pushed anywhere automatically."
+      ]
     }
   ]
 }
