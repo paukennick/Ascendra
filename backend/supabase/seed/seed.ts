@@ -32,6 +32,7 @@ import {
 } from "./data";
 import { AWS_TRACKS } from "./tracks/aws";
 import { AZURE_TRACKS } from "./tracks/azure";
+import { GCP_TRACKS } from "./tracks/gcp";
 import { NURSING_TRACKS } from "./tracks/nursing";
 
 async function main() {
@@ -67,6 +68,10 @@ async function main() {
     }
 
     for (const track of AZURE_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    for (const track of GCP_TRACKS) {
       await seedTrack(pool, userId, track);
     }
 

@@ -1131,6 +1131,233 @@
       "risk_notes": [
         "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
       ]
+    },
+    {
+      "id": "REQ-036",
+      "category": "Catalog navigation",
+      "title": "Group the course list by education category and surface content freshness",
+      "description": "mobile/app/(app)/index.tsx grouped tracks only by track_type (certification vs graduate) into two flat sections, even though the database already has a full 13-category (14 with Healthcare & Nursing, REQ-022)/140-subcategory taxonomy (education_categories/education_subcategories, migration 007) with a per-track freshness status (view_content_freshness) that nothing in the client ever read. GET /api/courses now joins subcategory/category and freshness status onto each track; the home screen groups tracks by category (bounded, currently 14, instead of an ever-growing flat list) with subcategory shown per card, and each card shows a freshness badge (current/review due/unverified) driven by source_verified_at and content_review_due_at.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/courses/route.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/index.tsx"
+      ],
+      "acceptance_criteria": [
+        "GET /api/courses returns each track's subcategory id/name, category id/name, and freshness status alongside existing fields.",
+        "Home screen sections tracks by education category (Favorites section stays on top), not by track_type.",
+        "Each course card shows a freshness badge reflecting current/review_due/unverified, matching view_content_freshness's logic.",
+        "Tracks without a subcategory_id (none exist today, but the column is nullable) still render, in an Other section, rather than being dropped.",
+        "npm run typecheck passes in both backend and mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Purely additive read-path change; no schema change, no write-path behavior change."
+      ]
+    },
+    {
+      "id": "REQ-037",
+      "category": "Catalog data model",
+      "title": "Decouple learning format from track_type so new learning types do not overload it",
+      "description": "subject_tracks.track_type (graduate, certification, academic, professional, skills) mixes two different axes: pedigree/audience and delivery format. Every one of the 27 live tracks is a full guided course (objectives, units, mastery grading, PBQ, chat) -- there is no format variation yet, but AWS/Azure/nursing catalog expansion and future learning types (practice-exam-only tracks, flashcard decks, short readings) are coming soon and would otherwise have to be jammed into track_type. Added a separate content_format column (new enum, single value 'full_course' today) on subject_tracks, decoupled from track_type, so future formats are additive there instead of a retrofit against live rows.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/015_content_format.sql",
+        "backend/app/api/courses/route.ts",
+        "mobile/src/types/index.ts"
+      ],
+      "acceptance_criteria": [
+        "subject_tracks has a not-null content_format column, defaulted and backfilled to 'full_course' for all 27 existing rows.",
+        "POST /api/courses accepts an optional contentFormat, validated against a whitelist, defaulting to 'full_course'.",
+        "Migration is additive only (new column/type, no drop or rename of track_type or its values).",
+        "npm run typecheck passes in both backend and mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Schema change against the live Supabase project (project_ref mihgkfxefpqwvvrmlpyj) -- additive and reversible (drop column), applied via the supabase MCP the same way REQ-020/REQ-022's migrations were.",
+        "Does not itself ship any new learning-type UI -- it only makes room; building flashcards/practice-exam-only/etc. experiences is separate future work."
+      ]
+    },
+    {
+      "id": "REQ-038",
+      "category": "Catalog navigation",
+      "title": "Add a freshness filter to the home screen course list",
+      "description": "REQ-036 added a Verified/Review due/Unverified badge per course card, computed from GET /api/courses's freshness_status join, but gave no way to filter by it. Added three client-side chips (All/Verified/Unverified) above the course sections on mobile/app/(app)/index.tsx. Review due is folded into the Unverified chip -- both mean 'do not treat this as confirmed current' -- while the badge on each card still shows review_due distinctly. Filtering is client-side against the already-loaded track list (27 tracks today); the hero 'Continue studying' card is computed from the unfiltered list so switching chips never hides what you were mid-lesson on.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/index.tsx"
+      ],
+      "acceptance_criteria": [
+        "Three chips (All, Verified, Unverified) appear above the course sections whenever at least one course is loaded.",
+        "Verified chip shows only tracks with freshness_status === 'current'; Unverified chip shows both 'unverified' and 'review_due'.",
+        "The hero 'Continue studying' card ignores the active filter.",
+        "A filter that matches zero courses shows a distinct empty state from having zero courses at all.",
+        "npm run typecheck passes in mobile."
+      ],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Client-side filtering only; revisit if the per-user track count grows enough that this should move server-side."
+      ]
+    },
+    {
+      "id": "REQ-039",
+      "category": "Catalog content",
+      "title": "Seed the Azure certification strand to the live database",
+      "description": "The Azure strand (10 tracks: AZ-900, AZ-104, AZ-305, AI-901, DP-900, AZ-700, AZ-140, DP-300, AZ-400, AZ-120) was fully authored in backend/supabase/seed/tracks/azure.ts and wired into backend/supabase/seed/seed.ts's AZURE_TRACKS loop on 2026-09-18, but had never been run against the live Supabase project -- only AWS and nursing were live. Ran npm run seed; all 10 tracks inserted as new rows (log showed 'created AZ### -> uuid' for each, vs 'already exists ... updated' for the 26 pre-existing tracks), with credential_exams/exam_domains rows for each. Re-ran the seed a second time to verify idempotency (the same check the AWS strand's REQ-021 used): tracks/units/objectives/credential_exams/exam_domains row counts were identical before and after the second run.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/seed.ts"
+      ],
+      "acceptance_criteria": [
+        "All 10 Azure tracks exist in subject_tracks on the live project with matching course_units and objectives rows.",
+        "Each Azure track has a credential_exams row with the correct exam code and domain count.",
+        "Re-running the seed script changes no row counts (idempotency verified, not assumed).",
+        "No pre-existing track (core, AWS, nursing) lost data or was duplicated."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Live data change via a script that upserts on conflict; re-run verification is the safeguard against silent duplication.",
+        "seed.ts's per-track console.log prints 'credential_exams: undefined (active)' for the 4 nursing tracks with an accreditation/licensure basis (they carry standard_name, not exam_code) -- cosmetic logging gap, not a data issue; not fixed as part of this REQ."
+      ]
+    },
+    {
+      "id": "REQ-040",
+      "category": "Catalog data model",
+      "title": "Model vendor certifications that publish no exam code at all",
+      "description": "credential_exams' identity constraint (migration 014) requires exam_code or standard_name on any non-draft row -- exam_code for a normal vendor exam (AWS/Azure), standard_name for an accreditation/licensure credential that isn't an exam at all (nursing). Google Cloud is a third case the constraint didn't anticipate: a real, proctored vendor exam (same structure as AWS/Azure -- administered, scored, time-limited) that Google simply never assigns a published SKU-style code to, confirmed across the Cloud Digital Leader guide page, overview page, and official PDF. Forcing a standard_name onto it would misrepresent basis as accreditation/licensure; inventing an exam_code would be fabricated data. Added a new credential_basis value, vendor_exam_unpublished_code, and widened the identity check to also accept a row with that basis and no code.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/016_vendor_exam_unpublished_code.sql"
+      ],
+      "acceptance_criteria": [
+        "credential_basis has a new value vendor_exam_unpublished_code, additive only (no existing value removed or renamed).",
+        "credential_exams_identified constraint accepts a row with basis = 'vendor_exam_unpublished_code' and exam_code null, as long as standard_name is also null (still requires at least one real identifying fact, per row's basis).",
+        "Existing AWS/Azure (exam_code) and nursing (standard_name) rows are unaffected.",
+        "Migration applied to the live Supabase project."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Schema change against the live project -- additive only (new enum value, widened check), reversible."
+      ]
+    },
+    {
+      "id": "REQ-041",
+      "category": "Catalog content",
+      "title": "Start the GCP certification strand: author and seed Google Cloud Digital Leader",
+      "description": "First track of the GCP strand (third certification vendor after AWS and Azure). Authored in backend/supabase/seed/tracks/gcp.ts from Google's own official material read 2026-09-23 (exam guide page, certification overview page, and the official PDF exam guide extracted locally with pymupdf after pypdf mangled its text) -- not from memory. 6 sections/units, 65 objectives, weights 18/18/18/18/18/10. Uses the new vendor_exam_unpublished_code basis (REQ-040) since Google publishes no exam code. Seeded live: subject_tracks went from 37 to 38, with GCPCDL the only 'created' row in the log (all pre-existing tracks upserted unchanged). Google's certification catalog is confirmed to be mid-overhaul in 2026 (Pearson VUE delivery switch, several exams being actively rebuilt); remaining GCP tracks are deferred pending a per-cert status check against each one's own official page, tracked in project memory (gcp_catalog_progress.md), not assumed continuous the way AWS's exam-code version bumps were.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/seed.ts"
+      ],
+      "acceptance_criteria": [
+        "GCPCDL track exists live with 6 units and 65 objectives matching the authored file.",
+        "Credential row uses basis vendor_exam_unpublished_code with examCode unset.",
+        "No pre-existing track lost data or was duplicated by the seed run.",
+        "npm run typecheck passes in backend."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Only 1 of an estimated 8-9 stable GCP certifications built so far; continuing across future sessions per the multi-session pattern used for AWS/Azure."
+      ]
+    },
+    {
+      "id": "REQ-042",
+      "category": "Catalog content ops",
+      "title": "Give the quarterly catalog-review Managed Agent a place to read and write",
+      "description": "Nick built a Claude API Managed Agent (agent_01K6FP985aEw1qMgX1TKaUFd) in the Anthropic Console to sweep the catalog quarterly for outdated educational material. Added the two endpoints it needs, authenticated by a static machine credential (CATALOG_REVIEW_AGENT_TOKEN, separate from user session auth): GET /api/catalog/review-context (each track's code, source URL, credential exam status/objectives URL, last-verified date) and POST /api/catalog/review-findings (records a finding in the new content_review_findings table; a 'current' conclusion also advances subject_tracks.source_verified_at/content_review_due_at -- the same fields the Verified/Unverified badges and filter from REQ-036/038 read -- while a 'flagged' conclusion only pulls content_review_due_at to now, never claiming a fresh verification). Both queries verified directly against the live schema, including a real write for GCPCDL (checked earlier this session, so the finding is accurate, not test data). Anthropic-side wiring (environment, vault credential, scheduled deployment) is a separate follow-up requirement pending Nick's API key.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/018_content_review_findings.sql",
+        "backend/lib/auth/requireReviewAgent.ts",
+        "backend/app/api/catalog/review-context/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts"
+      ],
+      "acceptance_criteria": [
+        "content_review_findings table exists live and records every call, current or flagged.",
+        "A 'current' conclusion updates source_verified_at and content_review_due_at (+4 months) on the target track.",
+        "A 'flagged' conclusion updates only content_review_due_at (to now), never source_verified_at.",
+        "Both endpoints reject requests without a valid CATALOG_REVIEW_AGENT_TOKEN bearer token.",
+        "npm run typecheck passes in backend."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "New secret (CATALOG_REVIEW_AGENT_TOKEN) generated and stored in backend/.env.local; still needs to be set in Vercel env and registered as an Anthropic vault environment_variable credential before the agent can actually reach it.",
+        "Endpoints are live now but nothing calls them yet -- inert until the Anthropic-side deployment (REQ-043) is created."
+      ]
+    },
+    {
+      "id": "REQ-043",
+      "category": "Catalog content ops",
+      "title": "Provision the Anthropic-side scheduled deployment for the catalog-review agent",
+      "description": "Created the Managed Agents infrastructure referencing Nick's Console-built agent (agent_01K6FP985aEw1qMgX1TKaUFd): environment env_01LuC4FM8aaexBpeNCxuKKqA (cloud, unrestricted networking -- needs to reach many vendor doc sites), vault vlt_011CfMk3LNq3poLiKm5LE4dD, and scheduled deployment depl_01JTkJYuDrNUsWCAUNZXoodc (cron 0 6 1 1,4,7,10 * UTC -- Jan/Apr/Jul/Oct 1st, quarterly; outcome-based kickoff with a rubric requiring every checked track to get a real evidenceUrl and specific summary, and forbidding direct catalog edits outside the findings endpoint). The one step deliberately not automated: adding CATALOG_REVIEW_AGENT_TOKEN as the vault's environment_variable credential. The sandbox classifier blocked a script that would have sent the raw secret value through an API call; per its own guidance this was left for Nick to do by hand in the Console rather than routed around. Also still open: setting CATALOG_REVIEW_AGENT_TOKEN in Vercel's production env (only exists in backend/.env.local so far) -- no Vercel CLI/auth available this session.",
+      "priority": "high",
+      "status": "blocked",
+      "minimum_access_scope": [
+        "Anthropic Console (Vaults)",
+        "Vercel project env vars"
+      ],
+      "acceptance_criteria": [
+        "Vault vlt_011CfMk3LNq3poLiKm5LE4dD has an environment_variable credential named CATALOG_REVIEW_AGENT_TOKEN, scoped to backend-mauve-mu-18.vercel.app.",
+        "CATALOG_REVIEW_AGENT_TOKEN is set in Vercel's production project env vars, matching backend/.env.local's value.",
+        "A manual deployment run (POST /v1/deployments/depl_01JTkJYuDrNUsWCAUNZXoodc/run) completes with real findings recorded in content_review_findings.",
+        "First scheduled run (2026-10-01T06:00:00Z) succeeds without an auth failure."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Two real Anthropic API keys were pasted into this chat session during provisioning -- flagged to Nick to revoke/rotate both.",
+        "Blocked, not completed: the deployment exists and is active but cannot actually authenticate to this backend until the vault credential is added."
+      ]
     }
   ]
 }

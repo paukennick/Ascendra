@@ -28,7 +28,15 @@ export interface SeedCredential {
   credentialUrl?: string;
   // What kind of authority governs this qualification (migration 014).
   // Defaults to a vendor exam, which is what every AWS/CompTIA track is.
-  basis?: "vendor_exam" | "accreditation_standard" | "regulatory_licensure";
+  // REQ-040: vendor_exam_unpublished_code is a real, proctored vendor exam
+  // (same shape as vendor_exam) whose vendor never publishes an exam code --
+  // Google Cloud's certifications, unlike AWS/Azure's. examCode stays unset
+  // for these; the DB's identity check accepts basis alone as sufficient.
+  basis?:
+    | "vendor_exam"
+    | "accreditation_standard"
+    | "regulatory_licensure"
+    | "vendor_exam_unpublished_code";
   // Required for a vendor exam, absent for a degree or a state licence --
   // those are identified by standardName instead.
   examCode?: string;
