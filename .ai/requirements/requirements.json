@@ -1467,6 +1467,35 @@
         "No native auto-stop on a scheduled deployment after N hours or spend -- pausing it in time is a manual follow-up.",
         "Code changes from each firing exist only as a patch file in that session's outputs until retrieved and applied by hand -- not pushed anywhere automatically."
       ]
+    },
+    {
+      "id": "REQ-048",
+      "category": "Catalog content",
+      "title": "Open the CompTIA-remainder strand: A+ Core 1 and Core 2",
+      "description": "Authored and seeded live the first item on docs/catalog-backlog.md's CompTIA-remainder strand, done in-session by Claude Code rather than waiting on the still-blocked overnight builder agent (REQ-047). Confirmed directly against CompTIA's own certification pages (comptia.org/en-us/certifications/a/core-1-v15 and core-2-v15) that A+ is still a two-exam certification -- training data's pairing (220-1101/220-1102) had already been retired and replaced by 220-1201/220-1202 (V15, launched 2025-03-25). Built as two tracks in the new backend/supabase/seed/tracks/comptia.ts, following the AWS/Azure/GCP credential-block pattern rather than data.ts's older untagged style: APLUS_CORE1 (5 domains, 34 objectives, weights 13/23/25/11/28) and APLUS_CORE2 (4 domains, 28 objectives, weights 28/28/23/21). Both share one `a-plus` credential row with two separate credential_exams rows (220-1201 and 220-1202), matching how a learner actually sits the two exams separately. Seeded live: subject_tracks 48 -> 50.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/seed.ts",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "APLUS_CORE1 and APLUS_CORE2 exist in backend/supabase/seed/tracks/comptia.ts with units/objectives matching this description.",
+        "npm run typecheck passes in backend.",
+        "Both tracks confirmed live, sharing one a-plus credential with two distinct credential_exams rows.",
+        "docs/catalog-backlog.md's A+ item checked off and its Session log updated."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "First run of npm run seed for this change was killed mid-way through the nursing tracks on a mistaken read of stdout silence as a hang -- its output only flushes to the log file on process exit when redirected, not per line. Re-run completed cleanly; idempotent upserts meant the partial first run left nothing to clean up."
+      ]
     }
   ]
 }

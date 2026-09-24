@@ -45,7 +45,7 @@ Candidates below are unverified -- confirm each against
 `certification.comptia.org` before building; exam codes are from training
 data and may be stale the same way AWS's were:
 
-- [ ] A+ (currently two exams, Core 1 + Core 2 -- confirm still split)
+- [x] A+ (confirmed still two exams: Core 1 220-1201 + Core 2 220-1202, both V15, launched 2025-03-25 -- built as two tracks, APLUS_CORE1 and APLUS_CORE2, sharing one `a-plus` credential row)
 - [ ] Network+
 - [ ] Cloud+
 - [ ] Data+
@@ -111,3 +111,5 @@ Each session/firing appends one line here on completion (or on stopping
 for a `BLOCKED:` item), so progress is visible without reading full git
 history: `YYYY-MM-DD HH:MM UTC -- <item> -- <result: seeded live / PR
 opened #N / blocked, see note above>`.
+
+2026-09-24 09:40 UTC -- A+ (Core 1 + Core 2) -- seeded live, in-session by Claude Code rather than the (still-blocked) overnight builder agent.
