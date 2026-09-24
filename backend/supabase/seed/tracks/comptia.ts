@@ -554,10 +554,103 @@ export const DATAPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA Server+ (SK0-005, V5). Launch date 2021-05-18 is well past
+// CompTIA's usual ~3-year retirement window, so this was checked carefully
+// rather than assumed current: confirmed live 2026-09-24 -- no retirement
+// banner, no successor version mentioned, still purchasable/schedulable via
+// Pearson VUE. Simply a certification CompTIA has not yet revised.
+//
+// 90 minutes, up to 90 questions (multiple choice and performance-based),
+// passing score 750/900. Recommended experience: CompTIA A+ or equivalent
+// knowledge, plus 2 years hands-on in a server environment.
+// Domains: 18% / 30% / 24% / 28%.
+// ---------------------------------------------------------------------------
+export const SERVERPLUS_TRACK: SeedTrack = {
+  code: "SERVERPLUS",
+  title: "Server+ Coach",
+  description:
+    "CompTIA Server+ (SK0-005) exam prep across 4 weighted domains -- server hardware installation and management, server administration, security and disaster recovery, and troubleshooting.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/server/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "server-plus",
+    credentialName: "CompTIA Server+",
+    credentialUrl: "https://www.comptia.org/certifications/server",
+    examCode: "SK0-005",
+    examRevision: "V5",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2021-05-18",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/server/",
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "CompTIA A+ certification or equivalent knowledge, plus 2 years of hands-on experience in a server environment.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Server Hardware Installation and Management",
+      weight: 18,
+      gate: "Given a physical server to rack and provision, install it correctly -- power, cooling, cabling, and the right RAID level for the workload -- and maintain it with the right out-of-band tool, not a guess.",
+      objectives: [
+        "Installing physical hardware: racking, cabling, power, and cooling management",
+        "Deploying and managing storage: RAID levels, shared storage, and capacity planning",
+        "Performing hardware maintenance: out-of-band management, firmware upgrades, and hot-swappable components",
+      ],
+    },
+    {
+      title: "Server Administration",
+      weight: 30,
+      gate: "Given a server to bring into production, install the OS, configure its network services, and set up the specific high-availability or virtualization approach the workload needs -- not a default, unconfigured build.",
+      objectives: [
+        "Installing server operating systems: partition types, file systems, and installation methods",
+        "Configuring network services: IP addressing, DNS, DHCP, and VLANs",
+        "Managing server functions: roles, monitoring, data migration, and performance metrics",
+        "High availability: clustering, load balancing, and failover processes",
+        "Virtualization: host vs. guest, resource allocation, and cloud models",
+        "Scripting basics: loops, variables, and common server tasks",
+        "Asset management: documentation, lifecycle management, and secure storage",
+      ],
+    },
+    {
+      title: "Security and Disaster Recovery",
+      weight: 24,
+      gate: "Given a server to secure or retire, apply the specific control -- encryption, MFA, hardening, or proper media destruction -- that matches the requirement, not a generic 'lock it down' answer.",
+      objectives: [
+        "Data security: encryption, retention policies, and lifecycle management",
+        "Physical security: access controls, environmental controls, and biometric systems",
+        "Identity and access management: user accounts, MFA, and permissions",
+        "Mitigation strategies: malware prevention, DLP, and SIEM",
+        "Server hardening: OS updates, disabling unused services, and host security",
+        "Decommissioning: media destruction, recycling, and asset management",
+      ],
+    },
+    {
+      title: "Troubleshooting",
+      weight: 28,
+      gate: "Given a failing server, isolate the fault to hardware, software, or network before acting, and validate that a disaster-recovery plan actually works rather than assuming it does.",
+      objectives: [
+        "Troubleshooting hardware: power issues, storage failures, and connectivity problems",
+        "Troubleshooting software: OS errors, application issues, and patching failures",
+        "Troubleshooting network issues: latency, misconfigurations, and security breaches",
+        "Disaster recovery: backup strategies, recovery testing, and failover validation",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
   NETWORKPLUS_TRACK,
   CLOUDPLUS_TRACK,
   DATAPLUS_TRACK,
+  SERVERPLUS_TRACK,
 ];
