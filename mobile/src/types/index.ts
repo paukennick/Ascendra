@@ -18,18 +18,32 @@ export type MasteryStatus =
   | "Transfer-ready"
   | "Needs review";
 
+export type FreshnessStatus = "unverified" | "review_due" | "current";
+
 export interface Track {
   id: string;
   code: string;
   title: string;
   description: string | null;
   track_type: "graduate" | "certification" | "academic" | "professional" | "skills";
+  // REQ-037: delivery format, decoupled from track_type. Only one value
+  // exists today -- see backend/supabase/migrations/015_content_format.sql.
+  content_format?: "full_course";
   total_units?: number;
   total_objectives?: number;
   mastered_objectives?: number;
   percent_complete?: number;
   last_studied_at?: string | null;
   is_favorite?: boolean;
+  // REQ-036: taxonomy + freshness, joined in by GET /api/courses.
+  subcategory_id?: string | null;
+  subcategory_slug?: string | null;
+  subcategory_name?: string | null;
+  category_id?: string | null;
+  category_slug?: string | null;
+  category_name?: string | null;
+  category_sort_order?: number | null;
+  freshness_status?: FreshnessStatus | null;
 }
 
 export interface Unit {

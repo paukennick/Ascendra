@@ -1,6 +1,10 @@
 # Ascendra education taxonomy and freshness model
 
-Ascendra uses the taxonomy for navigation and classification, not as a substitute for curriculum records. The database contains all 13 primary categories and their subcategories.
+Ascendra uses the taxonomy for navigation and classification, not as a substitute for curriculum records. The database contains all 14 primary categories (13 from REQ-020, plus Healthcare & Nursing from REQ-022) and their subcategories.
+
+The home screen (`mobile/app/(app)/index.tsx`) groups a learner's courses by category, favorites pulled out on top, since `GET /api/courses` now joins each track's subcategory, category, and freshness status onto the row it returns (REQ-036). Each course card also shows a freshness badge -- Verified, Review due, or Unverified -- driven directly by the freshness status below.
+
+Delivery format is a separate axis from this taxonomy and from `track_type`. `subject_tracks.content_format` (REQ-037) records what kind of thing a track is -- today only `full_course` exists, since every track is still a full guided course with units, objectives, mastery grading, PBQ, and chat -- so future formats (practice-exam-only tracks, flashcard decks, short readings) have somewhere to go without overloading `track_type`, which stays the pedigree/audience axis (graduate, certification, academic, professional, skills).
 
 ## Freshness models
 
