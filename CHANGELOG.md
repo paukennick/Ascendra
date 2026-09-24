@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- REQ-046: Authored the remaining 8 GCP tracks (Professional Data Engineer, DevOps Engineer, Security Engineer, Network Engineer, Database Engineer, Cloud Developer, Machine Learning Engineer, and Generative AI Leader), closing out every stable GCP certification -- 11 of 11 tracks now authored, from Google's own official material read 2026-09-24. Professional Agentic Architect checked and confirmed still beta; deliberately not built. 9 of 11 tracks confirmed seeded live; GCPMLE and GCPGAIL are authored and typechecked but not yet seeded -- their seed run was killed by the harness's background-shell memory-pressure reaper while idle (not a script failure), needs a rerun.
+- REQ-046: Authored and seeded live the remaining 8 GCP tracks (Professional Data Engineer, DevOps Engineer, Security Engineer, Network Engineer, Database Engineer, Cloud Developer, Machine Learning Engineer, and Generative AI Leader), closing out every stable GCP certification -- 11 of 11 tracks, from Google's own official material read 2026-09-24. Professional Agentic Architect checked and confirmed still beta; deliberately not built. GCP strand is now complete; catalog stands at 48 tracks.
 
 - REQ-045: Added the 2nd and 3rd GCP tracks -- Associate Cloud Engineer (4 sections, 86 objectives) and Professional Cloud Architect (6 sections, 101 objectives, including the exam's 4 recurring case studies) -- to `backend/supabase/seed/tracks/gcp.ts`, from Google's own official material read 2026-09-24. Both confirmed active with no retirement banner before authoring. Seeded live: `subject_tracks` 38 -> 40. GCP strand is now 3 of an estimated 8-9 stable certifications.
 
