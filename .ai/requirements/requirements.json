@@ -1660,6 +1660,37 @@
       "risk_notes": [
         "Cloud Essentials+ is deliberately not built -- it needs a product/schema decision (a new content_format or credential_basis for CompCert-style non-proctored badges) before it can be represented without fabricating exam mechanics that don't exist."
       ]
+    },
+    {
+      "id": "REQ-055",
+      "category": "Catalog content",
+      "title": "Open a new-candidates pass on the CompTIA-remainder strand: AutoOps+, CloudNetX, SecAI+, DataAI",
+      "description": "Re-checked comptia.org/en-us/certifications/ against docs/catalog-backlog.md's original CompTIA-remainder roster (closed out in REQ-054) and found five certifications not on that original list: AutoOps+, CloudNetX, DataSys+, SecAI+, SecOT+. Built four of the five as new tracks in backend/supabase/seed/tracks/comptia.ts, each sourced from CompTIA's own exam objectives (SecAI+, CloudNetX, and DataAI from CompTIA's own PDF objectives documents, fetched and text-extracted with pymupdf since WebFetch alone cannot decode PDF binary streams; AutoOps+ from the 'exam objectives summary' embedded directly in its comptia.org page, since no separate objectives PDF was found live yet for that exam): AUTOOPSPLUS (AT0-001 V1, 4 domains/16 objectives, weights 31/25/24/20, launched 2026-06-02), CLOUDNETX (CNX-001 V1, 4 domains/25 objectives, weights 31/28/16/25, launched 2025-02-18), SECAIPLUS (CY0-001 V1, 4 domains/15 objectives, weights 17/40/24/19, launched 2026-02-17), DATAAI (DY0-001 V1, 5 domains/26 objectives, weights 17/24/24/22/13, launched 2024-07-25 under the pre-rebrand 'DataX' name still printed on its own objectives PDF). DataSys+ and SecOT+ were deliberately not built: SecOT+ (SOT-001) is still pre-order only, launching 2026-12-01; DataSys+ is mid-transition between current V1 (DS0-001, itself estimated to retire sometime in 2026) and V2 (DS0-002, objectives already published, launching 2026-10-13) -- the same ambiguous-version shape as Azure's DP-420 rename, deferred on that precedent rather than guessed at. Also checked seven more items surfaced on the same nav sweep (Cisco Networking Pro, Client Pro, CyberDefense Pro, Ethical Hacker Pro, Hybrid Server Pro I: Core, Hybrid Server Pro II: Advanced, Security Pro) and confirmed each is a TestOut-branded 'CompCert' competency assessment with no exam code -- same schema gap already flagged for Cloud Essentials+ in REQ-054, bundled into that same BLOCKED note rather than given four separate ones. A further batch of Essentials-tier items (AI Agent/Customer Support/Marketing/Sales/Fundamentals/Help Desk/Prompting Essentials, Business Essentials, Copilot 365 Essentials, Digital Literacy Pro, Soft Skills Essentials, Data Analysis Essentials, Project Management Essentials, Essentials All Access, Microsoft Excel/Office/Word Pro, Library Suite) was left explicitly unchecked rather than folded into the same BLOCKED bucket by inference -- docs/catalog-backlog.md flags that as a presumption still needing a per-item check, not a confirmed finding. CompTIA-remainder strand's newly-discovered-candidates pass is now fully worked through; next up is Strand 2 (PM certifications). Seeded live: subject_tracks 56 -> 60.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/comptia.ts",
+        "backend/supabase/seed/seed.ts",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "AUTOOPSPLUS, CLOUDNETX, SECAIPLUS, and DATAAI exist in backend/supabase/seed/tracks/comptia.ts with units/objectives matching this description.",
+        "npm run typecheck passes in backend.",
+        "Each track's domain weights sum to 100 and matches CompTIA's own published domain table.",
+        "All four tracks confirmed live via the seed run's own 'created <CODE>' log lines and a subject_tracks count of 60.",
+        "docs/catalog-backlog.md's catch-all item is split into per-item checked/blocked entries and the Session log is updated."
+      ],
+      "validation_required": [
+        "manual_verification",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "DataSys+ and SecOT+ remain deliberately unbuilt pending their own launch dates (2026-10-13 and 2026-12-01 respectively) -- revisit both after those dates rather than building ahead of a live exam.",
+        "The Essentials-tier batch found on the same nav sweep is an unverified presumption, not a confirmed BLOCKED finding -- each item still needs its own certifying-body page checked before being folded into the CompCert bucket or built as a real track."
+      ]
     }
   ]
 }

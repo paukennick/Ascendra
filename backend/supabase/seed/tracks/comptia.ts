@@ -24,6 +24,22 @@ const COMPTIA_PROVIDER = {
 } as const;
 
 const VERIFIED_AT = "2026-09-24T00:00:00Z";
+// Second verification pass, 2026-09-26: the four tracks below (AutoOps+,
+// CloudNetX, SecAI+, DataAI) were newly discovered while re-checking
+// comptia.org/en-us/certifications/ for anything docs/catalog-backlog.md's
+// original CompTIA-remainder roster missed. Domain/objective text for
+// CloudNetX, SecAI+, and DataAI came from CompTIA's own PDF exam-objectives
+// documents (fetched and text-extracted with pymupdf, not typed from
+// memory); AutoOps+'s came from the "exam objectives summary" block
+// embedded directly in its comptia.org page's HTML (no separate PDF found
+// live yet for AT0-001). Two more candidates found the same pass were not
+// built: SecOT+ (SOT-001) is still pre-order only, launching 2026-12-01;
+// DataSys+ is mid-transition (current V1/DS0-001 is due to retire
+// "sometime in 2026" per its own page, V2/DS0-002 doesn't launch until
+// 2026-10-13) -- same ambiguous-version shape as Azure's DP-420 rename,
+// so deferred rather than guessed at, per that precedent. Revisit DataSys+
+// after 2026-10-13 and SecOT+ after 2026-12-01.
+const VERIFIED_AT_20260926 = "2026-09-26T00:00:00Z";
 
 // ---------------------------------------------------------------------------
 // CompTIA A+ Core 1 (220-1201, V15). Confirmed still a two-exam certification
@@ -855,6 +871,356 @@ export const TECHPLUS_TRACK: SeedTrack = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// CompTIA AutoOps+ (AT0-001, V1). Confirmed current and live: launched
+// 2026-06-02, not beta. Domain/objective text is CompTIA's own "exam
+// objectives summary" embedded in its comptia.org page -- no separate PDF
+// was found live for this exam yet, unlike the tracks below.
+export const AUTOOPSPLUS_TRACK: SeedTrack = {
+  code: "AUTOOPSPLUS",
+  title: "AutoOps+ Coach",
+  description:
+    "CompTIA AutoOps+ (AT0-001) exam prep across 4 weighted domains -- automation coding concepts, system configuration, continuous integration, and continuous delivery.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/autoops/",
+  sourceVerifiedAt: VERIFIED_AT_20260926,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "autoops-plus",
+    credentialName: "CompTIA AutoOps+",
+    credentialUrl: "https://www.comptia.org/certifications/autoops",
+    examCode: "AT0-001",
+    examRevision: "V1",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2026-06-02",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/autoops/",
+    lastVendorVerifiedAt: VERIFIED_AT_20260926,
+    recommendedExperience:
+      "2-3 years in a core IT operations role (network, cloud, or systems administrator); CompTIA Network+, Linux+, Cloud+, or Server+ recommended.",
+    durationMinutes: 60,
+    questionFormat: "Maximum 60 questions; multiple choice and performance-based",
+    passingScorePolicy: "600 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Automation Coding Concepts",
+      weight: 31,
+      gate: "Given an automation script or a Git workflow to fix, name the specific coding, IaC, or source-control concept at fault -- not a generic 'the code is broken' answer.",
+      objectives: [
+        "Writing, testing, and maintaining automation scripts using variables, functions, and loops",
+        "Source control practices: Git remote/local operations, branching strategies, and semantic versioning",
+        "Infrastructure-as-code principles: reusability, immutability, idempotency, and declarative vs. imperative approaches",
+        "Troubleshooting the code life cycle: syntax errors, runtime errors, and merge conflicts",
+      ],
+    },
+    {
+      title: "System Configuration",
+      weight: 25,
+      gate: "Given a drifted or misconfigured system, apply the specific configuration-management or REST API fix the scenario calls for -- not a vague 'redeploy it' answer.",
+      objectives: [
+        "Configuration management techniques: drift detection, remediation, and state management",
+        "Automation approaches compared: remote vs. local, declarative vs. imperative, and push vs. pull methods",
+        "REST API operations: create, read, update, and delete (CRUD) using APIs and associated tools",
+        "Troubleshooting configuration issues: API communication failures, certificate problems, and configuration-file syntax errors",
+      ],
+    },
+    {
+      title: "Continuous Integration",
+      weight: 24,
+      gate: "Given a CI pipeline definition or failure, identify the specific secrets-management, artifact-management, or workflow-orchestration concept responsible.",
+      objectives: [
+        "CI environment factors: secrets management, artifact management, and task runners",
+        "CI workflow management: orchestration, dependency handling, and automated rollback techniques",
+        "Configuring basic automation pipelines: hooks, triggers, and pipeline definitions in tools such as Jenkins or GitHub Actions",
+      ],
+    },
+    {
+      title: "Continuous Delivery",
+      weight: 20,
+      gate: "Given a release requirement or a provider-connection risk, choose the specific delivery strategy or IAM control that fits -- not a generic 'ship it carefully' answer.",
+      objectives: [
+        "Continuous delivery techniques: canary, blue-green, rolling, and in-place deployment strategies",
+        "Application service-level concepts: SLOs, SLAs, uptime, MTTR, and feedback loops",
+        "Securing connections to providers: CLI, SDK, and IAM configuration for automated delivery pipelines",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// CompTIA CloudNetX (CNX-001, V1). Confirmed current: launched 2025-02-18,
+// not beta or retired. Domain/objective text sourced from CompTIA's own
+// "Exam Objectives Version 1.2" PDF (fetched and text-extracted with
+// pymupdf), not a third-party paraphrase.
+export const CLOUDNETX_TRACK: SeedTrack = {
+  code: "CLOUDNETX",
+  title: "CloudNetX Coach",
+  description:
+    "CompTIA CloudNetX (CNX-001) exam prep across 4 weighted domains -- hybrid network architecture design, network security, operations/monitoring/performance, and troubleshooting.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/cloudnetx/",
+  sourceVerifiedAt: VERIFIED_AT_20260926,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "cloudnetx",
+    credentialName: "CompTIA CloudNetX",
+    credentialUrl: "https://www.comptia.org/certifications/cloudnetx",
+    examCode: "CNX-001",
+    examRevision: "V1",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2025-02-18",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/cloudnetx/",
+    lastVendorVerifiedAt: VERIFIED_AT_20260926,
+    recommendedExperience:
+      "Minimum 10 years of IT experience, including 5 years in a network architect role with hybrid cloud environment experience; CompTIA Network+, Security+, and Cloud+ or equivalent experience recommended.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "Pass/fail only; no scaled score.",
+  },
+  units: [
+    {
+      title: "Network Architecture Design",
+      weight: 31,
+      gate: "Given a hybrid on-prem/cloud design requirement, select the specific topology, connectivity method, or availability technology it calls for -- not a generic 'use redundancy' answer.",
+      objectives: [
+        "Core networking concepts applied to design: the OSI model, IPv4/IPv6 addressing and subnetting, NAT, routing and DNS protocols, and container networking",
+        "Network architectures and topologies: mesh, star, hub-and-spoke, spine-and-leaf, trust zones, traffic-flow direction, and VLAN/VXLAN/GENEVE segmentation",
+        "Hybrid connectivity solutions: MPLS, SD-WAN, cellular, satellite, dark fiber, public-cloud interconnects (ExpressRoute, Direct Connect), and site-to-site/point-to-site VPNs",
+        "Availability technologies: load-balancing methods, active-active/active-passive high availability, link aggregation, autoscaling, regions/availability zones, and CDNs",
+        "Physical campus installation factors: power distribution and backup, environmental controls, fire suppression, and physical access controls",
+        "Campus wired network components: Layer 2 vs. Layer 3 devices, PoE, the three-tier hierarchy, IDF/MDF cabling, and spanning tree",
+        "Campus wireless network components: access-point placement and antenna types, Wi-Fi standards and frequencies, SSIDs, and BLE/NFC/LoRaWAN",
+        "Architecture documentation artifacts: requirements analysis, network diagrams, runbooks, baselines, reference architectures, and the CMDB",
+      ],
+    },
+    {
+      title: "Network Security",
+      weight: 28,
+      gate: "Given a described threat, vulnerability, or access requirement, apply the specific control, Zero Trust principle, or IAM mechanism that closes it -- not a generic 'add a firewall rule' answer.",
+      objectives: [
+        "Common cloud and network threats, vulnerabilities, and mitigations: DDoS, on-path attacks, BGP hijacking, zero-days, and patch/vulnerability management programs",
+        "Security technologies: next-gen and cloud-native firewalls, WAFs, IPS/IDS, TLS inspection, and network access control",
+        "Access control configuration: firewall and NACL rules, security-group inbound/outbound rules, geolocation and URL filtering, and DLP",
+        "Zero Trust architecture principles: microsegmentation, SASE/SSE, CASB, identity as the perimeter, device trust, and least privilege",
+        "Identity and access management: SSO/federation (SAML, OAuth 2.0, OIDC), MFA, PAM, RBAC/ABAC, PKI, and just-in-time provisioning",
+        "Wireless security methods: WPA2/WPA3 encryption, PSK/PSK-enterprise authentication, captive portals, and MAC filtering",
+        "Appliance-hardening techniques: patch management, default-credential management, disabling unneeded services and ports, and log management",
+      ],
+    },
+    {
+      title: "Network Operations, Monitoring, and Performance",
+      weight: 16,
+      gate: "Given an operational or monitoring requirement, name the specific risk-management, telemetry, or automation practice it calls for -- not a generic 'keep an eye on it' answer.",
+      objectives: [
+        "Operating and maintaining a network environment: risk management, business-continuity metrics (MTTR, MTBF, RPO/RTO), disaster recovery, SLAs/SLOs, and network cost management",
+        "Monitoring and performance tools: traffic analysis, centralized log collection and SIEM, SNMP, QoS, alerting, telemetry, and dashboards",
+        "Automation and scripting to administer a hybrid cloud environment: infrastructure as code, version control, CI/CD and GitOps pipelines, and desired-state configuration",
+      ],
+    },
+    {
+      title: "Network Troubleshooting",
+      weight: 25,
+      gate: "Given symptoms and tool output, walk the CompTIA troubleshooting methodology to the specific connectivity, performance, or security root cause -- not a guess at the fix.",
+      objectives: [
+        "The network troubleshooting methodology: identify the problem, establish and test a theory, plan and implement a solution, verify, and document",
+        "Appropriate tools and commands for diagnosis: Wireshark, Nmap, Iperf, tcpdump, dig, mtr, and traceroute",
+        "Analyzing tool and command output to resolve issues",
+        "Troubleshooting connectivity issues: DNS failures, asymmetric routing, duplicate IP/MAC addresses, DHCP issues, IPSec and BGP problems, and routing loops",
+        "Troubleshooting network performance issues: latency, packet loss, MTU/fragmentation, hairpinning, broadcast storms, and bandwidth bottlenecks",
+        "Troubleshooting Wi-Fi performance issues: signal interference and loss, band-steering, channel overlap, and roaming/sticky-client problems",
+        "Troubleshooting access and security issues: misconfigured rules, DoS conditions, authentication failures, and certificate problems",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// CompTIA SecAI+ (CY0-001, V1). Confirmed current: launched 2026-02-17,
+// CompTIA's first AI-security certification. Domain/objective text sourced
+// from CompTIA's own "Exam Objectives Document Version 2.0" PDF (fetched
+// and text-extracted with pymupdf). Duration/question-count/passing-score
+// came from comptia.org's certification page rather than the objectives
+// PDF, since the PDF still listed those fields as "TBD".
+export const SECAIPLUS_TRACK: SeedTrack = {
+  code: "SECAIPLUS",
+  title: "SecAI+ Coach",
+  description:
+    "CompTIA SecAI+ (CY0-001) exam prep across 4 weighted domains -- basic AI concepts for cybersecurity, securing AI systems, AI-assisted security, and AI governance/risk/compliance.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/secai/",
+  sourceVerifiedAt: VERIFIED_AT_20260926,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "secai-plus",
+    credentialName: "CompTIA SecAI+",
+    credentialUrl: "https://www.comptia.org/certifications/secai",
+    examCode: "CY0-001",
+    examRevision: "V1",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2026-02-17",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/secai/",
+    lastVendorVerifiedAt: VERIFIED_AT_20260926,
+    recommendedExperience:
+      "3-4 years of IT experience and approximately 2 years of hands-on cybersecurity experience.",
+    durationMinutes: 60,
+    questionFormat: "Maximum 60 questions; multiple choice and performance-based",
+    passingScorePolicy: "600 on a scale of 100-900.",
+  },
+  units: [
+    {
+      title: "Basic AI Concepts Related to Cybersecurity",
+      weight: 17,
+      gate: "Given an AI system description, name the specific model type, training technique, or life-cycle stage in play -- not a generic 'it's AI' answer.",
+      objectives: [
+        "AI types and techniques used in cybersecurity: generative AI, machine learning, deep learning, NLP (LLMs, SLMs, GANs), model training techniques, and prompt engineering (system/user prompts, zero/one/multi-shot)",
+        "The importance of data security in relation to AI: data processing and lineage, data types, watermarking, and retrieval-augmented generation (vector storage, embeddings)",
+        "The importance of security throughout the AI life cycle: business use-case alignment, data collection trustworthiness, model development through deployment and monitoring, and human-centric design (human-in-the-loop, oversight, validation)",
+      ],
+    },
+    {
+      title: "Securing AI Systems",
+      weight: 40,
+      gate: "Given an AI deployment scenario, apply the specific model, gateway, access, or data control that mitigates the described risk -- not a generic 'add guardrails' answer.",
+      objectives: [
+        "AI threat-modeling frameworks: the OWASP LLM and ML Security Top 10, the MIT AI Risk Repository, and MITRE ATLAS",
+        "Security controls for AI systems: model controls and guardrails, gateway controls (prompt firewalls, rate/token limits, input quotas), and guardrail testing and validation",
+        "Access controls for AI systems: model access, data access, agent access, and network/API access",
+        "Data security controls for AI systems: encryption in transit/at rest/in use, and data safety practices (anonymization, classification, redaction, masking, minimization)",
+        "Monitoring and auditing AI systems: prompt and log monitoring, AI cost monitoring, and auditing for hallucinations, accuracy, and bias",
+        "Analyzing evidence of AI-specific attacks and applying compensating controls: prompt injection, model/data poisoning, jailbreaking, model inversion and theft, and AI supply-chain attacks",
+      ],
+    },
+    {
+      title: "AI-assisted Security",
+      weight: 24,
+      gate: "Given a security task, name the specific AI-enabled tool, use case, or automation the scenario calls for -- and separately, the specific attack vector AI enables against it.",
+      objectives: [
+        "Using AI-enabled tools to facilitate security tasks: IDE/browser/CLI plug-ins, chatbots, MCP servers, and use cases like vulnerability analysis and automated penetration testing",
+        "How AI enables or enhances attack vectors: deepfake impersonation and disinformation, adversarial networks, automated reconnaissance, and automated attack generation",
+        "Using AI to automate security tasks: low-code/no-code scripting, AI-assisted change management, AI agents, and CI/CD security scanning",
+      ],
+    },
+    {
+      title: "AI Governance, Risk, and Compliance",
+      weight: 19,
+      gate: "Given an organizational AI initiative, name the specific governance structure, responsible-AI principle, or compliance framework it must satisfy -- not a generic 'follow policy' answer.",
+      objectives: [
+        "Organizational governance structures that support AI: AI centers of excellence, AI policies and procedures, and AI-related roles (AI architect, MLOps engineer, AI governance engineer, AI risk analyst)",
+        "Principles and risks of responsible AI use: transparency, explainability, accountability, and risks such as bias introduction, accidental data leakage, IP exposure, and shadow AI",
+        "The impact of compliance on AI business use and development: the EU AI Act, OECD standards, ISO AI standards, the NIST AI Risk Management Framework, and data sovereignty",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// CompTIA DataAI (DY0-001, V1, formerly branded DataX). Confirmed current:
+// launched 2024-07-25, not beta or retired. Domain/objective text sourced
+// from CompTIA's own "Exam Objectives Version 5.0" PDF (fetched and
+// text-extracted with pymupdf) -- the PDF still carries the DataX name and
+// a 2023 copyright line predating the DataAI rebrand, but its exam number
+// (DY0-001), domains, and weights match comptia.org's current DataAI page.
+export const DATAAI_TRACK: SeedTrack = {
+  code: "DATAAI",
+  title: "DataAI Coach",
+  description:
+    "CompTIA DataAI (DY0-001, formerly DataX) exam prep across 5 weighted domains -- mathematics and statistics, modeling/analysis/outcomes, machine learning, operations and processes, and specialized data-science applications.",
+  trackType: "certification",
+  subcategorySlug: "it-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/dataai/",
+  sourceVerifiedAt: VERIFIED_AT_20260926,
+  credential: {
+    ...COMPTIA_PROVIDER,
+    credentialSlug: "dataai",
+    credentialName: "CompTIA DataAI",
+    credentialUrl: "https://www.comptia.org/certifications/dataai",
+    examCode: "DY0-001",
+    examRevision: "V1",
+    basis: "vendor_exam",
+    status: "active",
+    effectiveDate: "2024-07-25",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/dataai/",
+    lastVendorVerifiedAt: VERIFIED_AT_20260926,
+    recommendedExperience: "A minimum of 5 years of hands-on experience as a data scientist.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "Pass/fail only; no scaled score.",
+  },
+  units: [
+    {
+      title: "Mathematics and Statistics",
+      weight: 17,
+      gate: "Given a dataset or model-evaluation question, apply the specific statistical test, distribution, or linear-algebra concept it calls for -- not a generic 'run the numbers' answer.",
+      objectives: [
+        "Statistical methods and concepts: t-tests, chi-squared tests, ANOVA, hypothesis testing, regression performance metrics (R2, RMSE), and confusion-matrix metrics (precision, recall, F1, MCC)",
+        "Probability and synthetic modeling concepts: normal/uniform/Poisson/binomial distributions, skewness and kurtosis, heteroskedasticity, Monte Carlo simulation, bootstrapping, and Bayes' rule",
+        "The importance of linear algebra and calculus: matrix rank and eigenvalues, matrix operations, distance metrics (Euclidean, Manhattan, cosine), partial derivatives, and the chain rule",
+        "Temporal models compared and contrasted: time series (AR, MA, ARIMA), survival analysis, and causal inference (DAGs, difference-in-differences, A/B testing, RCTs)",
+      ],
+    },
+    {
+      title: "Modeling, Analysis, and Outcomes",
+      weight: 24,
+      gate: "Given experiment results or a stakeholder audience, choose the specific EDA method, diagnostic check, or communication format the situation calls for -- not a generic 'analyze the data' answer.",
+      objectives: [
+        "Exploratory data analysis methods: univariate and multivariate analysis, and chart selection (scatter, box-and-whisker, heat map, Q-Q plot) by data type",
+        "Analyzing common data issues: sparse data, non-linearity, non-stationarity, seasonality, and remediation via one-hot encoding, scaling, geocoding, or synthetic data",
+        "Conducting the model design iteration process: design constraints, model selection, literature review, hyperparameter tuning, and experiment tracking",
+        "Analyzing experiment and testing results to justify a final model recommendation: performance evaluation, diagnostic plots, benchmarking, and requirements validation",
+        "Translating and communicating results: choosing visualizations and reports for executive, domain, and peer audiences while avoiding deceptive charting and ensuring accessibility",
+        "The importance of data model and code documentation: data dictionaries, metadata, and change descriptions",
+      ],
+    },
+    {
+      title: "Machine Learning",
+      weight: 24,
+      gate: "Given a modeling problem, select the specific supervised, tree-based, deep-learning, or unsupervised technique it calls for -- not a generic 'train a model' answer.",
+      objectives: [
+        "Foundational machine-learning concepts: loss functions, the bias-variance tradeoff, class-imbalance mitigations (SMOTE, oversampling), regularization, cross-validation, ensemble models, and model drift",
+        "Statistical supervised machine-learning concepts: linear and logistic regression variants (ridge, LASSO, elastic net), discriminant analysis, association rules, and naive Bayes",
+        "Tree-based supervised machine-learning concepts: decision trees, random forest, boosting (XGBoost), and bootstrap aggregation",
+        "Deep-learning and neural-network architecture: activation functions, layer types, backpropagation, CNNs, RNNs/LSTMs, GANs, and frameworks (PyTorch, TensorFlow/Keras)",
+        "Unsupervised machine-learning concepts: k-means clustering, hierarchical and density-based (DBSCAN) clustering, dimensionality reduction (PCA, t-SNE, UMAP), and k-nearest neighbors",
+      ],
+    },
+    {
+      title: "Operations and Processes",
+      weight: 22,
+      gate: "Given a data-science team's workflow, name the specific ingestion, wrangling, life-cycle, or MLOps practice it's missing -- not a generic 'improve the pipeline' answer.",
+      objectives: [
+        "The role of data science in business functions: compliance, privacy (PII), KPIs, and translating business needs into solutions",
+        "The process and purpose of obtaining different types of data: generated and synthetic data, sampling rationale, and commercial/public data licensing",
+        "Data ingestion and storage concepts: GPU/TPU infrastructure, file formats (CSV, JSON, Parquet), and data orchestration and automation",
+        "Data-wrangling techniques: merging and combining datasets, date/time standardization, and winsorization",
+        "The data science life cycle and workflow models: CRISP-DM, version control, and clean-code practices",
+        "DevOps and MLOps concepts: CI/CD pipelines, model deployment, container orchestration, and performance monitoring",
+        "Data science deployment environments compared and contrasted: on-premises, cloud, hybrid, and edge",
+      ],
+    },
+    {
+      title: "Specialized Applications of Data Science",
+      weight: 13,
+      gate: "Given a specialized data-science problem, name the specific optimization, NLP, computer-vision, or other technique it calls for -- not a generic 'apply AI' answer.",
+      objectives: [
+        "Optimization concepts compared and contrasted: constrained vs. unconstrained optimization, and multi-armed bandit problems",
+        "Natural language processing concepts: tokenization, word embeddings, TF-IDF, topic modeling, and NLP applications (sentiment analysis, NER, text generation)",
+        "Computer vision concepts: optical character recognition, object detection and tracking, and data augmentation",
+        "The purpose of other specialized applications: graph analysis, reinforcement learning, fraud and anomaly detection, and signal processing",
+      ],
+    },
+  ],
+};
+
 export const COMPTIA_TRACKS: SeedTrack[] = [
   APLUS_CORE1_TRACK,
   APLUS_CORE2_TRACK,
@@ -864,4 +1230,8 @@ export const COMPTIA_TRACKS: SeedTrack[] = [
   SERVERPLUS_TRACK,
   PROJECTPLUS_TRACK,
   TECHPLUS_TRACK,
+  AUTOOPSPLUS_TRACK,
+  CLOUDNETX_TRACK,
+  SECAIPLUS_TRACK,
+  DATAAI_TRACK,
 ];
