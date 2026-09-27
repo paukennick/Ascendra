@@ -25,7 +25,7 @@ const AWS_PROVIDER = {
   providerSlug: "aws",
   providerName: "Amazon Web Services",
   providerUrl: "https://aws.amazon.com/certification/",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   credentialType: "certification",
 } as const;
 
@@ -42,7 +42,7 @@ export const AWS_CLF_TRACK: SeedTrack = {
   description:
     "AWS Certified Cloud Practitioner (CLF-C02): the whole AWS Cloud at a working vocabulary level -- value and economics, security and compliance, the core service catalog, and how billing and support actually work.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
@@ -188,7 +188,7 @@ export const AWS_SAA_TRACK: SeedTrack = {
   description:
     "AWS Certified Solutions Architect - Associate (SAA-C03): designing solutions against the Well-Architected Framework -- secure, resilient, high-performing, and cost-optimized architectures, and knowing which trade-off a requirement is really asking for.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html",
@@ -359,7 +359,7 @@ export const AWS_AIF_TRACK: SeedTrack = {
   description:
     "AWS Certified AI Practitioner (AIF-C01): AI, ML, and generative AI on AWS for the person who uses these systems rather than builds them -- foundation models, prompt engineering, RAG and agents, responsible AI, and the security and governance around it all.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.html",
@@ -521,7 +521,7 @@ export const AWS_DVA_TRACK: SeedTrack = {
   description:
     "AWS Certified Developer - Associate (DVA-C02): writing, securing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB access patterns, encryption and secrets, CI/CD deployment strategies, and observability when it breaks.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
@@ -696,7 +696,7 @@ export const AWS_SOA_TRACK: SeedTrack = {
   description:
     "AWS Certified CloudOps Engineer - Associate (SOA-C03), formerly SysOps Administrator - Associate: running workloads day to day -- monitoring and remediation, reliability and backups, provisioning and automation, security and compliance, and networking when the packets do not arrive.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.html",
@@ -836,7 +836,7 @@ export const AWS_DEA_TRACK: SeedTrack = {
   description:
     "AWS Certified Data Engineer - Associate (DEA-C01): building data pipelines that survive production -- ingestion and transformation, choosing and cataloging data stores, operating and monitoring pipelines, and the security and governance around the data itself.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.html",
@@ -1032,7 +1032,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
   description:
     "AWS Certified Machine Learning Engineer - Associate (MLA-C02): building and running ML and generative AI systems on AWS -- data preparation, training and fine-tuning, deploying models, agents and RAG pipelines, and then monitoring, costing, and securing all of it in production.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
@@ -1217,7 +1217,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
   description:
     "AWS Certified Solutions Architect - Professional (SAP-C02): architecture at organizational scale -- multi-account governance and hybrid networking, designing new solutions across all five pillars, continuously improving what already runs, and migrating and modernizing existing workloads.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
@@ -1403,7 +1403,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
   description:
     "AWS Certified DevOps Engineer - Professional (DOP-C02): automating the whole delivery path -- CI/CD pipelines and artifacts, infrastructure as code across many accounts, resilient and scalable systems, monitoring and logging, incident response, and security controls applied by machine rather than by hand.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02.html",
@@ -1605,7 +1605,7 @@ export const AWS_SCS_TRACK: SeedTrack = {
   description:
     "AWS Certified Security - Specialty (SCS-C03): securing AWS at depth -- detection and logging pipelines, incident response and forensics, infrastructure and network controls, identity and authorization at scale, data protection and key management, and multi-account governance.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/security-specialty-03.html",
@@ -1763,7 +1763,7 @@ export const AWS_ANS_TRACK: SeedTrack = {
   description:
     "AWS Certified Advanced Networking - Specialty (ANS-C01): hybrid and cloud networking at scale -- designing edge, DNS, load balancing and hybrid routing, implementing it across accounts and Regions, operating and troubleshooting it, and securing it. Note that this exam retires 2026-12-31.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.html",

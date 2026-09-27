@@ -19,7 +19,7 @@ const COMPTIA_PROVIDER = {
   providerSlug: "comptia",
   providerName: "CompTIA",
   providerUrl: "https://www.comptia.org/certifications",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   credentialType: "certification",
 } as const;
 
@@ -60,7 +60,7 @@ export const APLUS_CORE1_TRACK: SeedTrack = {
   description:
     "CompTIA A+ Core 1 (220-1201) exam prep across 5 weighted domains -- mobile devices, networking, hardware, virtualization/cloud, and hardware/network troubleshooting.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -169,7 +169,7 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
   description:
     "CompTIA A+ Core 2 (220-1202) exam prep across 4 weighted domains -- operating systems, security, software troubleshooting, and operational procedures.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/a/core-2-v15/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -266,7 +266,7 @@ export const NETWORKPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Network+ (N10-009) exam prep across 5 weighted domains -- networking concepts, implementation, operations, security, and troubleshooting.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/network/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -375,7 +375,7 @@ export const CLOUDPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Cloud+ (CV0-004) exam prep across 6 weighted domains -- cloud architecture, deployment, security, operations, troubleshooting, and DevOps fundamentals.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/cloud/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -491,7 +491,7 @@ export const DATAPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Data+ (DA0-002) exam prep across 5 weighted domains -- data concepts and environments, acquisition and preparation, analysis, visualization and reporting, and governance.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/data/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -588,7 +588,7 @@ export const SERVERPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Server+ (SK0-005) exam prep across 4 weighted domains -- server hardware installation and management, server administration, security and disaster recovery, and troubleshooting.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/server/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -677,7 +677,7 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Project+ (PK0-005) exam prep across 4 weighted domains -- project management concepts, project life cycle phases, tools and documentation, and the basics of IT governance.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/project/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -775,7 +775,7 @@ export const TECHPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA Tech+ (FC0-U71) exam prep across 6 weighted domains -- tech concepts and terminology, infrastructure, applications software, software development concepts, data and database fundamentals, and security. Tech+ is CompTIA's 2024 relaunch of ITF+ (IT Fundamentals+).",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/tech/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -882,7 +882,7 @@ export const AUTOOPSPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA AutoOps+ (AT0-001) exam prep across 4 weighted domains -- automation coding concepts, system configuration, continuous integration, and continuous delivery.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/autoops/",
   sourceVerifiedAt: VERIFIED_AT_20260926,
@@ -961,7 +961,7 @@ export const CLOUDNETX_TRACK: SeedTrack = {
   description:
     "CompTIA CloudNetX (CNX-001) exam prep across 4 weighted domains -- hybrid network architecture design, network security, operations/monitoring/performance, and troubleshooting.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/cloudnetx/",
   sourceVerifiedAt: VERIFIED_AT_20260926,
@@ -1053,7 +1053,7 @@ export const SECAIPLUS_TRACK: SeedTrack = {
   description:
     "CompTIA SecAI+ (CY0-001) exam prep across 4 weighted domains -- basic AI concepts for cybersecurity, securing AI systems, AI-assisted security, and AI governance/risk/compliance.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/secai/",
   sourceVerifiedAt: VERIFIED_AT_20260926,
@@ -1135,7 +1135,7 @@ export const DATAAI_TRACK: SeedTrack = {
   description:
     "CompTIA DataAI (DY0-001, formerly DataX) exam prep across 5 weighted domains -- mathematics and statistics, modeling/analysis/outcomes, machine learning, operations and processes, and specialized data-science applications.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.comptia.org/en-us/certifications/dataai/",
   sourceVerifiedAt: VERIFIED_AT_20260926,

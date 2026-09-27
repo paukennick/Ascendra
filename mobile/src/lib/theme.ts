@@ -146,3 +146,56 @@ export const courseAccent: Record<string, string> = {
   SECURITYX: "#2E4A6B",
   CMPCBS: "#3D5A80",
 };
+
+// Per-category emoji/icon + accent, keyed by education_categories.slug
+// (migrations 007/013/019). The 67-track catalog now spans far more than
+// the original nine hand-picked courses above, so a card's identity comes
+// from its category once it isn't one of those nine -- this scales as new
+// tracks land in an existing category instead of needing a new hardcoded
+// entry per course code. Lookup order used by card rendering:
+// courseEmoji[code] (the original nine's specific personality) ->
+// categoryIcon[category_slug] (everything else) -> trackTypeIcon[track_type]
+// (final fallback for a track with no category at all).
+export const categoryIcon: Record<string, string> = {
+  development: "code",
+  business: "briefcase",
+  "finance-accounting": "dollar-sign",
+  "it-software": "server",
+  "office-productivity": "grid",
+  "personal-development": "sunrise",
+  design: "pen-tool",
+  marketing: "trending-up",
+  lifestyle: "coffee",
+  "photography-video": "camera",
+  "health-fitness": "activity",
+  music: "music",
+  "teaching-academics": "book-open",
+  "healthcare-nursing": "heart",
+  "aws-certifications": "cloud",
+  "azure-certifications": "cloud",
+  "gcp-certifications": "cloud",
+  "comptia-certifications": "shield",
+  "project-management-certifications": "check-square",
+};
+
+export const categoryAccent: Record<string, string> = {
+  development: "#3D6B73",
+  business: "#7A6A3D",
+  "finance-accounting": "#3D7A5E",
+  "it-software": "#3D5A80",
+  "office-productivity": "#5B5A8A",
+  "personal-development": "#8A5B6E",
+  design: "#8A6B3D",
+  marketing: "#3D7A7A",
+  lifestyle: "#7A5B3D",
+  "photography-video": "#5B6E8A",
+  "health-fitness": "#5B8A6E",
+  music: "#6B3D8A",
+  "teaching-academics": "#4A5A8A",
+  "healthcare-nursing": "#A34A5E",
+  "aws-certifications": "#B1743D",
+  "azure-certifications": "#3D6BB1",
+  "gcp-certifications": "#3D8A73",
+  "comptia-certifications": "#8A5B3D",
+  "project-management-certifications": "#3D7A8A",
+};

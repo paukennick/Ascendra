@@ -24,7 +24,7 @@ const PMI_PROVIDER = {
   providerSlug: "pmi",
   providerName: "Project Management Institute (PMI)",
   providerUrl: "https://www.pmi.org/certifications",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   credentialType: "certification",
 } as const;
 
@@ -48,7 +48,7 @@ export const CAPM_TRACK: SeedTrack = {
   description:
     "PMI Certified Associate in Project Management (CAPM) exam prep across 4 weighted domains -- PM fundamentals, predictive/plan-based methods, agile methods, and business analysis frameworks.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/certified-associate-capm",
   sourceVerifiedAt: VERIFIED_AT,
@@ -156,7 +156,7 @@ export const PMP_TRACK: SeedTrack = {
   description:
     "PMI Project Management Professional (PMP) exam prep across 3 weighted domains -- people, process, and business environment -- spanning predictive, agile, and hybrid ways of working.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/project-management-pmp",
   sourceVerifiedAt: VERIFIED_AT,
@@ -248,7 +248,7 @@ export const PMIACP_TRACK: SeedTrack = {
   description:
     "PMI Agile Certified Practitioner (PMI-ACP) exam prep across 4 weighted domains -- agile mindset, leadership, product, and delivery -- reframed by PMI's 2026 update around Enterprise Agility.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/agile-acp",
   sourceVerifiedAt: VERIFIED_AT,
@@ -351,7 +351,7 @@ export const PGMP_TRACK: SeedTrack = {
   description:
     "PMI Program Management Professional (PgMP) exam prep across 5 weighted domains -- strategic alignment, program life cycle management, benefits management, stakeholder engagement, and governance.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/program-management-pgmp",
   sourceVerifiedAt: VERIFIED_AT,
@@ -469,7 +469,7 @@ export const PFMP_TRACK: SeedTrack = {
   description:
     "PMI Portfolio Management Professional (PfMP) exam prep across 5 weighted domains -- strategic alignment, governance, portfolio performance, portfolio risk management, and communications management.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/portfolio-management-pfmp",
   sourceVerifiedAt: VERIFIED_AT,
@@ -583,7 +583,7 @@ export const PMIRMP_TRACK: SeedTrack = {
   description:
     "PMI Risk Management Professional (PMI-RMP) exam prep across 5 weighted domains -- risk strategy and planning, identification, analysis, response, and monitoring/closing risks.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/risk-management-rmp",
   sourceVerifiedAt: VERIFIED_AT,
@@ -687,7 +687,7 @@ export const PMISP_TRACK: SeedTrack = {
   description:
     "PMI Scheduling Professional (PMI-SP) exam prep across 5 weighted domains -- schedule strategy, planning/development, monitoring/controlling, closeout, and stakeholder communications.",
   trackType: "certification",
-  subcategorySlug: "project-management",
+  subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/scheduling-sp",
   sourceVerifiedAt: VERIFIED_AT,

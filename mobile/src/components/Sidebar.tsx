@@ -120,7 +120,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
             </View>
           </Pressable>
 
-          <NavRow icon="home" label="All courses" onPress={() => go("/")} />
+          <NavRow icon="compass" label="Explore all courses" onPress={() => go("/explore")} />
 
           {tracks ? (
             <>

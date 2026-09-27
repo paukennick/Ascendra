@@ -92,6 +92,7 @@ export const MSCS_TRACK: SeedTrack = {
   description:
     "15-week graduate-CS bridge covering algorithms, data structures, discrete math, OS, computer architecture, database theory, ML math, cybersecurity, HCI/UX, and big data.",
   trackType: "graduate",
+  subcategorySlug: "software-engineering",
   units: [
     {
       title: "Complexity & computational thinking",
@@ -319,6 +320,7 @@ export const SECPLUS_TRACK: SeedTrack = {
   title: "Security+ Coach",
   description: "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling.",
   trackType: "certification",
+  subcategorySlug: "comptia-certifications",
   units: [
     {
       title: "General Security Concepts",
@@ -433,6 +435,7 @@ export const PYTHON_TRACK: SeedTrack = {
   description:
     "9-week intro-to-advanced Python progression: syntax and control flow through OOP, the standard library, functional patterns, testing/typing, and concurrency.",
   trackType: "graduate",
+  subcategorySlug: "programming-languages",
   units: [
     {
       title: "Syntax, variables & control flow",
@@ -559,6 +562,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
   description:
     "9-week intro-to-advanced JavaScript progression: syntax and the DOM through async patterns, ES6+, prototypes, testing/tooling, and Node.js.",
   trackType: "graduate",
+  subcategorySlug: "programming-languages",
   units: [
     {
       title: "Syntax, variables & control flow",
@@ -679,6 +683,7 @@ export const LINUXPLUS_TRACK: SeedTrack = {
   title: "Linux+ Coach",
   description: "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs.",
   trackType: "certification",
+  subcategorySlug: "comptia-certifications",
   units: [
     {
       title: "System Management",
@@ -800,6 +805,7 @@ export const CYSAPLUS_TRACK: SeedTrack = {
   title: "CySA+ Coach",
   description: "CompTIA CySA+ CS0-003 exam prep across 4 weighted domains, with SOC-analyst drilling.",
   trackType: "certification",
+  subcategorySlug: "comptia-certifications",
   units: [
     {
       title: "Security Operations",
@@ -886,6 +892,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
   title: "PenTest+ Coach",
   description: "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling.",
   trackType: "certification",
+  subcategorySlug: "comptia-certifications",
   units: [
     {
       title: "Engagement Management",
@@ -970,6 +977,7 @@ export const SECURITYX_TRACK: SeedTrack = {
   title: "SecurityX Coach",
   description: "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering.",
   trackType: "certification",
+  subcategorySlug: "comptia-certifications",
   units: [
     {
       title: "Governance, Risk, Compliance",
@@ -1038,6 +1046,7 @@ export const CMPCBS_TRACK: SeedTrack = {
   description:
     "Liberty University's 2026-2027 BS in Computational Mathematics: Computer Science degree completion plan (120 credits) -- gen ed, Christianity core, and the full math/CS major sequence, mirrored from the official plan.",
   trackType: "graduate",
+  subcategorySlug: "software-engineering",
   units: [
     {
       title: "Communication & Information Literacy",

@@ -43,7 +43,7 @@ const AZURE_PROVIDER = {
   providerSlug: "microsoft",
   providerName: "Microsoft",
   providerUrl: "https://learn.microsoft.com/en-us/credentials/",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   credentialType: "certification",
 } as const;
 
@@ -61,7 +61,7 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Fundamentals (AZ-900): core cloud concepts, Azure's architecture and core services, and how cost, compliance, and governance work day to day in Azure.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -170,7 +170,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Administrator Associate (AZ-104): implementing, managing, and monitoring an Azure environment -- identities and governance, storage, compute, virtual networking, and day-to-day monitoring and recovery.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -325,7 +325,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Solutions Architect Expert (AZ-305): translating business requirements into Azure designs across identity/governance/monitoring, data storage, business continuity, and infrastructure -- aligned to the Well-Architected Framework and Cloud Adoption Framework. Requires the Azure Administrator Associate certification first.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -445,7 +445,7 @@ export const AZURE_AI901_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure AI Fundamentals (AI-901): core AI/ML concepts and responsible AI principles, then building generative AI, vision, speech, and information-extraction solutions with Microsoft Foundry.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -523,7 +523,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Data Fundamentals (DP-900): core relational and non-relational data concepts, Azure's data services for each, and the building blocks of an analytics workload -- ingestion, analytical stores, real-time analytics, and Power BI visualization.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-data-fundamentals/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -618,7 +618,7 @@ export const AZURE_AZ700_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Network Engineer Associate (AZ-700): designing and implementing Azure networking end to end -- IP addressing and DNS, VNet routing and monitoring, VPN/ExpressRoute/Virtual WAN connectivity, load balancing and Front Door, private access, and network security (NSGs, Azure Firewall, WAF).",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer-associate/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -821,7 +821,7 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140): planning and implementing an Azure Virtual Desktop infrastructure -- networking, storage, host pools, and session host images -- plus identity and security, user environments and app delivery (FSLogix, App attach), and ongoing monitoring, backup, and disaster recovery.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -964,7 +964,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure Database Administrator Associate (DP-300): administering Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs -- deployment and migration, authentication and data protection, performance monitoring and tuning, task automation, and high availability/disaster recovery.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -1131,7 +1131,7 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: DevOps Engineer Expert (AZ-400): designing and implementing Microsoft DevOps solutions across GitHub and Azure DevOps -- work-item flow and metrics, source control strategy, build/release pipelines, deployment strategies, infrastructure as code, security and compliance scanning, and instrumentation. Requires the Azure Administrator Associate certification.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/devops-engineer/",
   sourceVerifiedAt: VERIFIED_AT,
@@ -1288,7 +1288,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
   description:
     "Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120): planning, migrating, and administering SAP landscapes on Azure -- migration strategy and SAP RISE integration, compute/networking/storage infrastructure for SAP virtual machines, high availability and disaster recovery (clustering, Pacemaker, Site Recovery), and ongoing performance optimization and monitoring.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-for-sap-workloads-specialty/",
   sourceVerifiedAt: VERIFIED_AT,
