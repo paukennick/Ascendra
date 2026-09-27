@@ -1,101 +1,20 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { Track } from "@/types";
-import {
-  Badge,
-  Card,
-  Chip,
-  EmptyState,
-  ErrorBanner,
-  FavoriteButton,
-  H1,
-  H2,
-  IconButton,
-  Loading,
-  Muted,
-  ProgressBar,
-  SectionHeader,
-} from "@/components/ui";
+import { Card, EmptyState, ErrorBanner, FavoriteButton, H1, H2, IconButton, Loading, Muted, ProgressBar } from "@/components/ui";
+import { CourseCard } from "@/components/CourseCard";
 import { Sidebar } from "@/components/Sidebar";
-import { colors, courseEmoji, fonts, spacing, trackTypeIcon } from "@/lib/theme";
-
-interface Section {
-  title: string;
-  data: Track[];
-}
+import { colors, fonts, spacing } from "@/lib/theme";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
   const bTime = b.last_studied_at ? new Date(b.last_studied_at).getTime() : 0;
   return bTime - aTime;
-}
-
-// REQ-036: groups by education category instead of the old two-bucket
-// certification/graduate split. track_type only ever gave two sections no
-// matter how many courses landed; category comes from the taxonomy the
-// database already carries (education_categories, migration 007) and stays
-// scannable as the catalog grows because category count is bounded (14
-// today) even as courses within a category multiply. Favorited tracks are
-// still pulled into their own section on top. Tracks without a category
-// (none exist today, but subcategory_id is nullable) land in "Other" instead
-// of silently disappearing.
-function groupTracks(tracks: Track[]): Section[] {
-  const favorites = tracks.filter((t) => t.is_favorite).sort(byLastStudied);
-  const rest = tracks.filter((t) => !t.is_favorite);
-
-  const byCategory = new Map<string, { title: string; sortOrder: number; data: Track[] }>();
-  const other: Track[] = [];
-  for (const track of rest) {
-    if (!track.category_id || !track.category_name) {
-      other.push(track);
-      continue;
-    }
-    const group = byCategory.get(track.category_id) ?? {
-      title: track.category_name,
-      sortOrder: track.category_sort_order ?? 999,
-      data: [],
-    };
-    group.data.push(track);
-    byCategory.set(track.category_id, group);
-  }
-
-  const sections: Section[] = [];
-  if (favorites.length) sections.push({ title: "Favorites", data: favorites });
-  for (const group of Array.from(byCategory.values()).sort((a, b) => a.sortOrder - b.sortOrder)) {
-    sections.push({ title: group.title, data: group.data.sort(byLastStudied) });
-  }
-  if (other.length) sections.push({ title: "Other", data: other.sort(byLastStudied) });
-  return sections;
-}
-
-// REQ-036: freshness badge shown on each course card, mirroring
-// view_content_freshness's own status labels rather than inventing new ones.
-const freshnessLabel: Record<string, string> = {
-  current: "Verified",
-  review_due: "Review due",
-  unverified: "Unverified",
-};
-const freshnessColor: Record<string, string> = {
-  current: colors.good,
-  review_due: colors.warn,
-  unverified: colors.mutedDim,
-};
-
-// REQ-038: filter chips fold review_due into the same bucket as unverified --
-// both mean "don't treat this as confirmed current" -- so the filter is a
-// plain two-way choice instead of a third option most people won't need to
-// tell apart. The badge above still shows review_due distinctly.
-type FreshnessFilter = "all" | "current" | "needs_attention";
-
-function matchesFreshnessFilter(track: Track, filter: FreshnessFilter): boolean {
-  if (filter === "all") return true;
-  if (filter === "current") return track.freshness_status === "current";
-  return track.freshness_status !== "current";
 }
 
 function greeting(): string {
@@ -105,6 +24,13 @@ function greeting(): string {
   return "Good evening";
 }
 
+// Home is a personal launch point -- continue-studying first, then
+// favorites -- not a catalog browser. With the catalog at 67+ tracks across
+// a real taxonomy (see Explore), a single scrolling wall of every course
+// stopped being scannable long before it reached this size. Full browsing
+// (search, category filter, freshness filter) now lives at /explore instead;
+// this screen only ever shows courses the user has already chosen to care
+// about (favorited or in progress).
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
@@ -112,7 +38,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [freshnessFilter, setFreshnessFilter] = useState<FreshnessFilter>("all");
 
   const toggleFavorite = useCallback((track: Track) => {
     const next = !track.is_favorite;
@@ -139,14 +64,12 @@ export default function Home() {
     }, [])
   );
 
-  const sections = tracks
-    ? groupTracks(tracks.filter((t) => matchesFreshnessFilter(t, freshnessFilter)))
-    : [];
   const mostRecentId = tracks
     ?.filter((t) => t.last_studied_at)
     .slice()
     .sort(byLastStudied)[0]?.id;
   const mostRecent = tracks?.find((t) => t.id === mostRecentId);
+  const favorites = (tracks ?? []).filter((t) => t.is_favorite && t.id !== mostRecentId).sort(byLastStudied);
   const firstName = user?.displayName?.split(" ")[0];
 
   return (
@@ -160,11 +83,10 @@ export default function Home() {
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} tracks={tracks} />
-      <SectionList
-        sections={sections}
+      <FlatList
+        data={favorites}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
-        stickySectionHeadersEnabled={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />
         }
@@ -196,75 +118,42 @@ export default function Home() {
               </Card>
             ) : null}
 
-            {tracks && tracks.length ? (
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                <Chip label="All" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
-                <Chip
-                  label="Verified"
-                  active={freshnessFilter === "current"}
-                  onPress={() => setFreshnessFilter("current")}
-                />
-                <Chip
-                  label="Unverified"
-                  active={freshnessFilter === "needs_attention"}
-                  onPress={() => setFreshnessFilter("needs_attention")}
-                />
-              </View>
+            {tracks ? (
+              <Card onPress={() => router.push("/explore")} style={{ marginTop: mostRecent ? 0 : spacing.md }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+                  <View style={styles.exploreIconWrap}>
+                    <Feather name="compass" size={18} color={colors.accent} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <H2>Browse all courses</H2>
+                    <Muted>{tracks.length} courses across every category</Muted>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+                </View>
+              </Card>
             ) : null}
+
+            {tracks && favorites.length ? <H2 style={{ marginTop: spacing.md }}>Favorites</H2> : null}
           </View>
         }
-        renderSectionHeader={({ section }) => <SectionHeader label={section.title} />}
         renderItem={({ item }) => (
-          <Card onPress={() => router.push(`/course/${item.id}`)}>
-            <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
-              <View style={styles.trackIconWrap}>
-                {courseEmoji[item.code] ? (
-                  <Text style={{ fontSize: 20 }}>{courseEmoji[item.code]}</Text>
-                ) : (
-                  <Feather name={(trackTypeIcon[item.track_type] ?? "book") as any} size={18} color={colors.accent} />
-                )}
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <H2>{item.title}</H2>
-                <Muted>
-                  {item.code}
-                  {item.subcategory_name ? ` · ${item.subcategory_name}` : ""}
-                </Muted>
-              </View>
-              <FavoriteButton active={!!item.is_favorite} onPress={() => toggleFavorite(item)} size={32} />
-              <Feather name="chevron-right" size={20} color={colors.mutedDim} />
-            </View>
-            <ProgressBar percent={item.percent_complete ?? 0} />
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Muted>
-                {item.mastered_objectives ?? 0}/{item.total_objectives ?? 0} objectives at Independent+
-              </Muted>
-              <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                {item.freshness_status ? (
-                  <Badge
-                    label={freshnessLabel[item.freshness_status] ?? item.freshness_status}
-                    color={freshnessColor[item.freshness_status] ?? colors.mutedDim}
-                  />
-                ) : null}
-                <Badge
-                  label={item.percent_complete != null ? `${item.percent_complete}%` : "Not started"}
-                  color={item.percent_complete ? colors.good : colors.mutedDim}
-                />
-              </View>
-            </View>
-          </Card>
+          <CourseCard
+            track={item}
+            onPress={() => router.push(`/course/${item.id}`)}
+            onToggleFavorite={() => toggleFavorite(item)}
+          />
         )}
         ListEmptyComponent={
           tracks && tracks.length === 0 ? (
             <Card>
               <EmptyState icon="book-open" title="No courses yet" message="Check back soon — new courses show up here automatically." />
             </Card>
-          ) : tracks && tracks.length > 0 && sections.length === 0 ? (
-            <Card>
+          ) : tracks && !mostRecent && !favorites.length ? (
+            <Card onPress={() => router.push("/explore")}>
               <EmptyState
-                icon="filter"
-                title="No courses match this filter"
-                message="Try switching back to All."
+                icon="compass"
+                title="Nothing started yet"
+                message="Tap Browse all courses above to pick where to begin."
               />
             </Card>
           ) : null
@@ -310,7 +199,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, paddingBottom: 48, gap: spacing.md },
   heroCard: { borderColor: colors.accent, marginTop: spacing.md, gap: spacing.sm },
-  trackIconWrap: {
+  exploreIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 10,

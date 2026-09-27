@@ -37,7 +37,7 @@ const GCP_PROVIDER = {
   providerSlug: "google-cloud",
   providerName: "Google Cloud",
   providerUrl: "https://cloud.google.com/learn/certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   credentialType: "certification",
 } as const;
 
@@ -55,7 +55,7 @@ export const GCP_CDL_TRACK: SeedTrack = {
   description:
     "Google Cloud Digital Leader: a working, non-technical fluency in Google Cloud -- digital and data transformation, AI, modern infrastructure, trust and security, and how organizations actually run and pay for cloud operations.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-digital-leader",
   sourceVerifiedAt: VERIFIED_AT,
@@ -199,7 +199,7 @@ export const GCP_ACE_TRACK: SeedTrack = {
   description:
     "Google Cloud Associate Cloud Engineer: deploying, securing, and operating applications and infrastructure on Google Cloud -- environment setup, compute/storage/networking implementation, day-2 operations, and access/security configuration.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-engineer",
   sourceVerifiedAt: VERIFIED_AT_2,
@@ -352,7 +352,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud Architect: designing, building, and managing secure, scalable, cost-effective solutions on Google Cloud, anchored in the Well-Architected Framework's six pillars, plus the exam's own recurring case studies (Altostrat Media, Cymbal Retail, EHR Healthcare, KnightMotives Automotive).",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
   sourceVerifiedAt: VERIFIED_AT_3,
@@ -532,7 +532,7 @@ export const GCP_PDE_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Data Engineer: designing, building, and securing data processing systems on Google Cloud -- ingestion pipelines, storage system selection, data warehouses and lakes, preparing data for analysis and AI/ML, and keeping data workloads running reliably.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/data-engineer",
   sourceVerifiedAt: VERIFIED_AT_4,
@@ -673,7 +673,7 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud DevOps Engineer: bootstrapping a Google Cloud organization, building CI/CD pipelines for applications/infrastructure/ML workloads, applying SRE practices, implementing observability, and optimizing performance and cost.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
   sourceVerifiedAt: VERIFIED_AT_5,
@@ -819,7 +819,7 @@ export const GCP_SEC_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud Security Engineer: configuring identity and access, securing communications and network boundaries, protecting data at rest/in transit/in use, automating security operations, and supporting regulatory compliance on Google Cloud.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-security-engineer",
   sourceVerifiedAt: VERIFIED_AT_6,
@@ -961,7 +961,7 @@ export const GCP_NET_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud Network Engineer: designing, implementing, and troubleshooting VPC networks, hybrid/multicloud interconnectivity, managed network services, and cloud network security on Google Cloud.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-network-engineer",
   sourceVerifiedAt: VERIFIED_AT_7,
@@ -1169,7 +1169,7 @@ export const GCP_DBE_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud Database Engineer: designing scalable, highly available database solutions, managing solutions across multiple database technologies, migrating data into Google Cloud, and deploying and scaling databases in production.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-database-engineer",
   sourceVerifiedAt: VERIFIED_AT_8,
@@ -1279,7 +1279,7 @@ export const GCP_DEV_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Cloud Developer: designing scalable, secure cloud-native applications, building and testing them with Google-recommended tools, configuring deployment to Cloud Run/GKE, and integrating applications with Google Cloud data and API services.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-developer",
   sourceVerifiedAt: VERIFIED_AT_9,
@@ -1405,7 +1405,7 @@ export const GCP_MLE_TRACK: SeedTrack = {
   description:
     "Google Cloud Professional Machine Learning Engineer: architecting low-code AI solutions, managing data and models with a team, scaling prototypes into production ML models, serving and scaling models, automating ML pipelines, and monitoring AI solutions.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/machine-learning-engineer",
   sourceVerifiedAt: VERIFIED_AT_10,
@@ -1538,7 +1538,7 @@ export const GCP_GAIL_TRACK: SeedTrack = {
   description:
     "Google Cloud Generative AI Leader: a business-level, no-code fluency in generative AI -- core concepts, Google Cloud's gen AI product landscape, techniques that improve model output, and the business strategy and security/responsible-AI considerations behind a successful gen AI initiative.",
   trackType: "certification",
-  subcategorySlug: "it-certifications",
+  subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/generative-ai-leader",
   sourceVerifiedAt: VERIFIED_AT_11,

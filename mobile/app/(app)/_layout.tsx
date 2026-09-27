@@ -13,6 +13,7 @@ export default function AppLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
+      <Stack.Screen name="explore" options={{ title: "Explore" }} />
       <Stack.Screen name="account" options={{ title: "Account" }} />
       <Stack.Screen name="account/sessions" options={{ title: "Active sessions" }} />
       <Stack.Screen name="account/change-password" options={{ title: "Change password" }} />
