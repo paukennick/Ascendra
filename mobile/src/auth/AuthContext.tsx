@@ -258,7 +258,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // user had just changed their password, so logging back in doesn't also
   // mean re-enabling it. (Contrast logoutAll below, and useFallbackSignIn,
   // which are both an explicit choice to drop this device's enrollment.)
+  //
+  // With biometric unlock on, the token we would revoke here is the very
+  // one the biometric-gated store still holds -- revoking it leaves
+  // unlockWithBiometric replaying a dead token next time, which the server
+  // reads as theft and answers by revoking the whole token family, killing
+  // this device's other sessions too. So leave it live: it is already
+  // sealed behind the OS keystore and only opens to the user's own face.
+  // logoutAll is still the way to revoke for real.
   const logout = useCallback(async () => {
+    if (biometricEnabledRef.current) {
+      await clearAuth();
+      return;
+    }
     const storedRefreshToken = refreshTokenRef.current ?? (await secureStorage.getItem(REFRESH_TOKEN_KEY));
     if (storedRefreshToken) {
       await api.post("/api/auth/logout", { refreshToken: storedRefreshToken }).catch(() => undefined);
@@ -422,7 +434,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(me.user);
       setStatus("signedIn");
       return true;
-    } catch {
+    } catch (err) {
+      // A 401 means the server rejected the stored token, so it is spent
+      // and this device can never unlock with it again -- retrying would
+      // just replay it and read as theft again. Drop the enrolment and
+      // make the user sign in once to mint a fresh one. Anything else -- a
+      // cancelled prompt, no network -- leaves the enrolment alone so a
+      // retry is still possible.
+      if (err instanceof ApiError && err.status === 401) {
+        await clearBiometricEnrollment();
+        await clearAuth();
+      }
       // Wrong/cancelled/unavailable -- stay on the lock screen so the user
       // can retry or fall back, never trapped and never silently signed in.
       return false;
