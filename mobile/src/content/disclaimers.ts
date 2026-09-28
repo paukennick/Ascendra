@@ -35,6 +35,20 @@ export const DISCLAIMERS: Record<string, Disclaimer> = {
     ],
     acceptLabel: "I understand -- start the course",
   },
+  "pt-clinical-content": {
+    version: 1,
+    title: "Before you start this course",
+    summary:
+      "This is exam preparation. It is not clinical guidance, and it must not be used to make decisions about a real patient.",
+    body: [
+      "Ascendra's lessons are generated from published examination content outlines and are written to prepare you for a test. They are not reviewed by a licensed clinician, they are not a treatment protocol, and they can be wrong.",
+      "Physical therapy practice is governed by your licence, your employer's policies, and the scope of practice in your jurisdiction. Where anything here differs from those, those win -- every time, without exception.",
+      "Never act on something you read here in patient care. If a lesson conflicts with your instructor, your facility's policy, or a supervising clinician's judgment, treat this course as the thing that is wrong and raise it with them.",
+      "Contraindications, precautions, and intervention techniques change as evidence evolves. Verify anything you intend to rely on against a current authoritative source before you use it.",
+      "If you are facing a real clinical emergency, stop and follow your facility's emergency procedure.",
+    ],
+    acceptLabel: "I understand -- start the course",
+  },
 };
 
 export function getDisclaimer(key: string | null | undefined): Disclaimer | null {

@@ -36,6 +36,7 @@ import { GCP_TRACKS } from "./tracks/gcp";
 import { NURSING_TRACKS } from "./tracks/nursing";
 import { COMPTIA_TRACKS } from "./tracks/comptia";
 import { PM_TRACKS } from "./tracks/pm";
+import { PT_TRACKS } from "./tracks/pt";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -86,6 +87,10 @@ async function main() {
     }
 
     for (const track of PM_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    for (const track of PT_TRACKS) {
       await seedTrack(pool, userId, track);
     }
 
