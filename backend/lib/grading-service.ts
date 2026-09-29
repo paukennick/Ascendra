@@ -6,6 +6,23 @@ import {
   toDateOnlyString,
 } from "@/lib/mastery";
 
+// classification is a model-generated freeform tag (see
+// backend/lib/prompts.ts's grading prompts: "a short tag for the kind of
+// gap, e.g. 'misconception', 'incomplete', 'off-scope', 'none'") -- a soft
+// instruction, not a schema-enforced enum, so the model occasionally
+// returns a full descriptive phrase instead of a short tag. Migration 021
+// widened attempts.classification/error_log.classification from
+// varchar(50) to text after that mismatch made grading fail outright with
+// a raw "value too long for type character varying(50)" Postgres error
+// shown straight to the learner (looked like "the submit button doesn't
+// work"). Truncating here too, defensively: a schema fix alone still
+// leaves this an unbounded value from a source we don't fully control.
+const CLASSIFICATION_MAX_LENGTH = 200;
+function clampClassification(value: string | null | undefined): string | null {
+  if (!value) return value ?? null;
+  return value.length > CLASSIFICATION_MAX_LENGTH ? value.slice(0, CLASSIFICATION_MAX_LENGTH) : value;
+}
+
 export interface AttemptInput {
   userId: string;
   unitId?: string | null;
@@ -44,7 +61,7 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
       input.answer,
       input.verdict,
       input.feedback ?? null,
-      input.classification ?? null,
+      clampClassification(input.classification),
       input.missedParts ? JSON.stringify(input.missedParts) : null,
       input.confidence ?? null,
     ]
@@ -97,7 +114,7 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
         input.question.slice(0, 200),
         input.answer,
         input.feedback ?? null,
-        input.classification ?? null,
+        clampClassification(input.classification),
         toDateOnlyString(next),
       ]
     );
