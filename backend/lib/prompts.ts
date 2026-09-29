@@ -44,28 +44,100 @@ export interface LessonContent {
   soloWhy: string;
 }
 
-export function lessonGenerationPrompt(params: {
+// A previous generation's content to steer away from on regenerate. Without
+// this, asking the model for "this objective" again with an identical prompt
+// reliably comes back near-identical (same worked example, same numbers) —
+// regeneration looked broken even though a fresh Anthropic call really was
+// happening each time.
+export interface LessonAvoid {
+  teach: string;
+  fadeProblem: string;
+  soloCheck: string;
+}
+
+function avoidPreviousBlock(avoid?: LessonAvoid): string {
+  if (!avoid) return "";
+  return `
+
+The learner already saw a previous version of this objective's content and is explicitly regenerating
+because they want different material, not a reword of the same thing. Invent a genuinely different
+concrete scenario, numbers, and phrasing for every field below than the previous version — do not reuse
+or lightly rephrase any of it, while staying in scope of the same objective.
+
+Previous teach: "${avoid.teach}"
+Previous fadeProblem: "${avoid.fadeProblem}"
+Previous soloCheck: "${avoid.soloCheck}"`;
+}
+
+// Lesson content used to be generated as one ~10-field, up-to-6000-token
+// completion, which meant every first visit and every regenerate blocked on
+// one long sequential generation. Split into two prompts (this one for the
+// guess/teach half, lessonPracticePrompt below for fade/solo) so the route can
+// fire both at once with Promise.all — wall time drops to roughly the slower
+// of the two instead of the sum of both.
+export interface LessonIntroContent {
+  guessPrompt: string;
+  teach: string;
+}
+
+export function lessonIntroPrompt(params: {
   trackTitle: string;
   unitTitle: string;
   objectiveTitle: string;
+  avoid?: LessonAvoid;
 }): { system: string; user: string } {
   const system = withRules(
-    `You are generating cached lesson content for ONE learning objective, to be reused every time the
-learner revisits it (until they explicitly regenerate), so it must stand on its own without further
-back-and-forth. The learner benefits from an active-retrieval, worked-example-fading structure rather
-than a straight explanation. They are new to this specific objective, so fadeProblem and soloCheck each
-need BOTH a free-response version and a multiple-choice version of the exact same question — the app
-decides per visit which one to show based on track record, so both must be ready either way.`
+    `You are generating the guess-and-teach half of cached lesson content for ONE learning objective, to
+be reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its
+own without further back-and-forth. The learner benefits from an active-retrieval structure rather than a
+straight explanation.`
   );
 
   const user = `Course/track: ${params.trackTitle}
 Unit: ${params.unitTitle}
-Objective: ${params.objectiveTitle}
+Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
 
 Produce ONLY a JSON object with exactly these fields, no prose outside the JSON, no markdown fence:
 {
   "guessPrompt": "a short, concrete question form of this objective the learner can genuinely attempt from intuition or prior knowledge BEFORE any teaching — not a trick question",
-  "teach": "the actual teaching: definition(s) of every named term, why it works, ONE short worked example traced step by step, one common mistake/misconception, complexity/systems implications if relevant. Do not end this with a question.",
+  "teach": "the actual teaching: definition(s) of every named term, why it works, ONE short worked example traced step by step, one common mistake/misconception, complexity/systems implications if relevant. Do not end this with a question."
+}`;
+
+  return { system, user };
+}
+
+export interface LessonPracticeContent {
+  fadeProblem: string;
+  fadeChoices: string[];
+  fadeCorrectIndex: number;
+  fadeWhy: string;
+  soloCheck: string;
+  soloChoices: string[];
+  soloCorrectIndex: number;
+  soloWhy: string;
+}
+
+export function lessonPracticePrompt(params: {
+  trackTitle: string;
+  unitTitle: string;
+  objectiveTitle: string;
+  avoid?: LessonAvoid;
+}): { system: string; user: string } {
+  const system = withRules(
+    `You are generating the practice half of cached lesson content for ONE learning objective, to be
+reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its own
+without further back-and-forth. The learner benefits from a worked-example-fading structure. They are new
+to this specific objective, so fadeProblem and soloCheck each need BOTH a free-response version and a
+multiple-choice version of the exact same question — the app decides per visit which one to show based on
+track record, so both must be ready either way.`
+  );
+
+  const user = `Course/track: ${params.trackTitle}
+Unit: ${params.unitTitle}
+Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
+
+Produce ONLY a JSON object with exactly these fields, no prose outside the JSON, no markdown fence:
+{
   "fadeProblem": "a SECOND example, a different instance of the same idea, mostly worked through by you with the final step or piece explicitly left for the learner to complete — state exactly and unambiguously what they need to fill in (free-response phrasing)",
   "fadeChoices": ["exactly 4 plausible candidate completions for that same missing piece — one correct, three real misconceptions/near-misses, never silly filler"],
   "fadeCorrectIndex": 0,

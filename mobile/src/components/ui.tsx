@@ -19,6 +19,14 @@ import { colors, fonts, radius, shadow, spacing, verdictColor, verdictIcon } fro
 type IconName = React.ComponentProps<typeof Feather>["name"];
 type TextStyleProp = React.ComponentProps<typeof Text>["style"];
 
+// Animated Pressable so the scale transform lives on the same node Fabric
+// hit-tests, not a wrapping View. Splitting them (Animated.View > Pressable)
+// made every button here effectively require a long, held press that only
+// registered in the sliver where the stale pre-transform hit rect still
+// overlapped the visually-scaled button -- see
+// https://github.com/facebook/react-native/issues/57502.
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 // Shared press-scale micro-interaction. Plain RN Animated (no reanimated
 // installed) is enough for a one-shot scale on press in/out.
 function useScalePress(target = 0.97) {
@@ -56,16 +64,14 @@ export function Card({
     return <View style={[styles.card, elevated && shadow.sm, style]}>{children}</View>;
   }
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={[styles.card, elevated && shadow.sm, style]}
-      >
-        {children}
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[styles.card, elevated && shadow.sm, style, { transform: [{ scale }] }]}
+    >
+      {children}
+    </AnimatedPressable>
   );
 }
 
@@ -242,40 +248,40 @@ export function Button({
     variant === "primary" ? colors.accentText : variant === "danger" ? "#2a0509" : colors.text;
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }, !fullWidth && { alignSelf: "flex-start" }]}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        disabled={isDisabled}
-        style={[
-          variant === "link" ? styles.linkButton : styles.button,
-          size === "sm" && variant !== "link" && styles.buttonSm,
-          variant === "primary" && { backgroundColor: colors.accent },
-          variant === "ghost" && { backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border },
-          variant === "danger" && { backgroundColor: colors.bad },
-          isDisabled && { opacity: 0.5 },
-        ]}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color={iconColor} />
-        ) : (
-          <>
-            {icon ? <Feather name={icon} size={16} color={iconColor} style={{ marginRight: 8 }} /> : null}
-            <Text
-              style={[
-                variant === "link" ? styles.linkText : styles.buttonText,
-                variant === "ghost" && { color: colors.text },
-                variant === "primary" && { color: colors.accentText },
-                variant === "danger" && { color: "#2a0509" },
-              ]}
-            >
-              {label}
-            </Text>
-          </>
-        )}
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      disabled={isDisabled}
+      style={[
+        variant === "link" ? styles.linkButton : styles.button,
+        size === "sm" && variant !== "link" && styles.buttonSm,
+        variant === "primary" && { backgroundColor: colors.accent },
+        variant === "ghost" && { backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border },
+        variant === "danger" && { backgroundColor: colors.bad },
+        isDisabled && { opacity: 0.5 },
+        !fullWidth && { alignSelf: "flex-start" },
+        { transform: [{ scale }] },
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={iconColor} />
+      ) : (
+        <>
+          {icon ? <Feather name={icon} size={16} color={iconColor} style={{ marginRight: 8 }} /> : null}
+          <Text
+            style={[
+              variant === "link" ? styles.linkText : styles.buttonText,
+              variant === "ghost" && { color: colors.text },
+              variant === "primary" && { color: colors.accentText },
+              variant === "danger" && { color: "#2a0509" },
+            ]}
+          >
+            {label}
+          </Text>
+        </>
+      )}
+    </AnimatedPressable>
   );
 }
 
@@ -292,20 +298,19 @@ export function IconButton({
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.9);
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={[
-          styles.iconButton,
-          { width: size, height: size, borderRadius: size / 2 },
-          variant === "solid" && { backgroundColor: colors.accent, borderColor: colors.accent },
-        ]}
-      >
-        <Feather name={icon} size={size * 0.45} color={variant === "solid" ? colors.accentText : colors.text} />
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={[
+        styles.iconButton,
+        { width: size, height: size, borderRadius: size / 2 },
+        variant === "solid" && { backgroundColor: colors.accent, borderColor: colors.accent },
+        { transform: [{ scale }] },
+      ]}
+    >
+      <Feather name={icon} size={size * 0.45} color={variant === "solid" ? colors.accentText : colors.text} />
+    </AnimatedPressable>
   );
 }
 
@@ -323,23 +328,22 @@ export function FavoriteButton({
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.85);
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        hitSlop={8}
-        style={[
-          { width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center" },
-          active && { backgroundColor: withAlpha(colors.warn, 0.16) },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={active ? "Remove from favorites" : "Add to favorites"}
-        accessibilityState={{ selected: active }}
-      >
-        <Feather name="star" size={size * 0.5} color={active ? colors.warn : colors.mutedDim} />
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      hitSlop={8}
+      style={[
+        { width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center" },
+        active && { backgroundColor: withAlpha(colors.warn, 0.16) },
+        { transform: [{ scale }] },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={active ? "Remove from favorites" : "Add to favorites"}
+      accessibilityState={{ selected: active }}
+    >
+      <Feather name="star" size={size * 0.5} color={active ? colors.warn : colors.mutedDim} />
+    </AnimatedPressable>
   );
 }
 
