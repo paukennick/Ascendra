@@ -724,7 +724,7 @@
       "title": "Open the nursing strand: Healthcare & Nursing taxonomy, non-exam credentials, and the licensure ladder behind its disclaimer gate",
       "description": "Give nursing a home in the taxonomy as a fourteenth top-level category, widen the credential model so degrees and state licences can be recorded alongside vendor exams, seed the NCLEX-RN course from the NCSBN 2026 test plan, and build the app-side accept screen that lets a learner clear the per-course disclaimer gate the backend already enforces.",
       "priority": "high",
-      "status": "in_progress",
+      "status": "pending",
       "minimum_access_scope": [
         "backend/supabase/migrations/013_healthcare_nursing_taxonomy.sql",
         "backend/supabase/migrations/014_credential_non_exam_basis.sql",
@@ -893,7 +893,7 @@
       "title": "Restore saved-credential suggestions on the login screen, and associate the app with the website",
       "description": "REQ-024 changed the email field's autofill hint from 'email' to 'username' so a tapped suggestion would bring its password along. The reasoning was right but the association it depends on did not exist, so Android offered nothing at all -- worse than before. Revert the hint for now and publish Digital Asset Links so the saved web credential becomes offerable in the app.",
       "priority": "high",
-      "status": "in_progress",
+      "status": "pending",
       "minimum_access_scope": [
         "mobile/app/(auth)/login.tsx",
         "backend/public/.well-known/assetlinks.json",
@@ -1785,6 +1785,41 @@
         "Devices that already checked for updates during the brief window the first (likely broken) publish was live would need another foreground check to pick up the corrected one; expo-updates checks automatically on launch/foreground by default in this app's configuration, so this should self-heal without user action, but was not separately confirmed on a physical device.",
         "This does not explain why current source passed live reproduction of the reported symptoms -- the working theory is that end users are on a build old enough to predate whatever fixed those specific interactions, and this republish is what actually lets them receive anything newer going forward. Not separately confirmed against the exact 2026-09-26 build's behavior.",
         "mobile/.gitignore still carries the deliberately-uncommitted LF/CRLF byte-level diff from the REQ-033/034 era; it did not affect this fingerprint comparison (both platforms matched exactly), but remains an open item from a prior session."
+      ]
+    },
+    {
+      "id": "REQ-059",
+      "category": "CLI / template maintainability",
+      "title": "Update OmniEngineering to 1222532 and build the five-layer code graph",
+      "description": "The workspace was pinned to OmniEngineering d9b9d73 and ten commits behind upstream, so it had none of the five-layer graph, failure ledger, executable completion gate, MCP server or graph viewer. Updating hit five real conflicts in make_ai.py, because this workspace carries local code upstream does not have -- the omni agents command and the ant CLI checks, added when the senior-engineering agent package landed here. Resolved all five keeping both sides: validate_workspace_placement now uses upstream's configured_allowed_root_paths() and gitignore filtering alongside the existing own_repository guard, so an adopted repo's backend/ and mobile/ still do not read as misplaced; upstream split run_doctor into build_doctor_report() plus a thin wrapper, so validate_agents and validate_ant_cli moved into the builder rather than leaving a duplicate function behind; the agents subparser and its dispatch branch now sit alongside upstream's new gate, waive, hook, mcp and requirement draft commands. Two further local fixes were needed for upstream bugs that only bite an adopted repo on Windows: graph_python_candidates only probed the POSIX ~/.venvs/omni-graph/bin/python, so on Windows the venv omni itself tells you to create was never found and every graph command dead-ended on 'tree-sitter is not installed'; and validate_markdown_assets demanded a README reference to assets/omni-context.svg, which is OmniEngineering's own diagram shipped only under --include-presentation, giving every adopted workspace a permanent unclearable warning -- the same trap the licensing check beside it already sidesteps via is_adopted_workspace(). Graph built across all five layers: 2001 nodes, 7236 edges, 131 TypeScript / 21 SQL / 3 Python / 2 JS / 1 bash source files, 29 database tables reconstructed from the migrations, 58 requirements, 100 commits. REQ-022 and REQ-027 carried status in_progress, which has never been valid against requirements.schema.json; the new typed doctor validation surfaced it and both were mapped to pending.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "make_ai.py",
+        "omni_graph.py",
+        "omni_mcp.py",
+        ".ai/",
+        ".gitignore",
+        ".ai/requirements/requirements.json"
+      ],
+      "acceptance_criteria": [
+        "omni doctor passes with no errors",
+        "All 11 omni graph subcommands present and exercised against real nodes",
+        "omni agents list and omni agents doctor still work after the merge",
+        "Every Omni file except make_ai.py byte-identical to upstream 1222532"
+      ],
+      "validation_required": [
+        "manual_verification",
+        "lint",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "make_ai.py now carries three local patches (agents package",
+        "Windows venv lookup",
+        "adopted-repo SVG check) that the next omni update must re-merge; both Windows/adopted-repo fixes are upstream bugs worth reporting so the divergence can be dropped"
       ]
     }
   ]
