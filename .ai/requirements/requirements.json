@@ -1756,6 +1756,36 @@
         "The 200-character clamp added in grading-service.ts is defense in depth on top of the schema fix, not a replacement for it -- it protects against a future column-width mismatch or an unusually long model response without needing another migration.",
         "Reproduction and fix verification used a throwaway, non-privileged test account (debug-submit@ascendra.local) seeded with a full copy of the live catalog and deleted afterward -- Nick's own account and data were not touched."
       ]
+    },
+    {
+      "id": "REQ-058",
+      "category": "Mobile release infrastructure",
+      "title": "Republish the production OTA channel, dead since the fingerprint-policy switch",
+      "description": "Nick reported the lesson Submit button silently doing nothing on a second question, lessons not resuming where left off, and interactive lesson functions/tracking broadly not working for end users. Live reproduction of the exact reported sequence (guided-then-solo multiple choice, same account, current source) succeeded cleanly both times -- current source was not the defect. Checked `npx eas-cli update:list --branch production --json` and found every update ever published to the production branch/channel tagged `runtimeVersion: \"2.0.0\"`, a leftover from the old `appVersion` runtimeVersion policy (REQ-035 fixed the policy itself on 2026-09-19, switching app.json to `policy: \"fingerprint\"`, but nobody had republished to production since -- only the preview channel had been re-verified and republished after that switch, REQ-056). The live App Store/Play Store builds (commit 33667c4a, 2026-09-26 SDK 57 rebuild) carry fingerprint-hash runtime versions (7d439b03... Android, 2dafa2cde6... iOS), which never match \"2.0.0\" -- so every 'production' OTA publish in the last week-plus has been silently unreachable by any real device, regardless of how many were sent. End users have been running whatever JS shipped in the 2026-09-26 native binary the entire time, with zero effective updates landing.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "EAS update publish (production branch)",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "npx eas-cli fingerprint:compare against both live production store builds (Android and iOS) matches the local project fingerprint before any publish is attempted.",
+        "npx eas-cli update --branch production publishes an update group per platform whose runtimeVersion exactly matches the corresponding live store build's runtimeVersion.",
+        "The published bundle embeds the real production API URL (https://backend-mauve-mu-18.vercel.app), not a dev-machine LAN address or an empty value -- verified by reading the exported .hbc bundle as a buffer and confirming the URL string is present and the LAN address is absent, for both platforms.",
+        "npx eas-cli update:list --branch production shows the new, correctly-tagged group as the newest entry for each platform."
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "The first production publish attempt in this session did not set EXPO_PUBLIC_API_URL explicitly on the command line, trusting --environment production to cover it -- it does not. Caught before telling Nick it was done: the exported bundle contained neither the LAN URL nor the production URL, meaning the variable was likely undefined during that export (client.ts's BASE_URL falls back to an empty string, which would have sent every API request with no origin). Republished immediately with the variable set explicitly and re-verified against the new bundle before considering it complete.",
+        "Devices that already checked for updates during the brief window the first (likely broken) publish was live would need another foreground check to pick up the corrected one; expo-updates checks automatically on launch/foreground by default in this app's configuration, so this should self-heal without user action, but was not separately confirmed on a physical device.",
+        "This does not explain why current source passed live reproduction of the reported symptoms -- the working theory is that end users are on a build old enough to predate whatever fixed those specific interactions, and this republish is what actually lets them receive anything newer going forward. Not separately confirmed against the exact 2026-09-26 build's behavior.",
+        "mobile/.gitignore still carries the deliberately-uncommitted LF/CRLF byte-level diff from the REQ-033/034 era; it did not affect this fingerprint comparison (both platforms matched exactly), but remains an open item from a prior session."
+      ]
     }
   ]
 }
