@@ -1826,16 +1826,18 @@
       "id": "REQ-060",
       "category": "CI reliability",
       "title": "Drop a stale local worktree listing from the committed project map",
-      "description": "The OmniEngineering workspace-freshness CI job had been failing on every push since 2026-09-24, independent of the code in each commit. The committed .ai/project-map.md was generated on a machine that had a git worktree checked out at worktrees/agent-a2c09c1e45891a050/, so the map listed that directory and its whole subtree. No clean checkout has it, so CI's own regeneration always differed and git diff --exit-code always failed. Regenerated the map from a tree with no worktree present, which also picked up mobile/src/components/CourseCard.tsx, missing since the same date. The Root line still reads Ascendra, matching what CI generates: omni map derives it from git remote get-url origin, and GitHub has renamed this repository from prep-lms to Ascendra. The local remote still points at the old prep-lms URL and only reaches GitHub via a redirect, so a local omni map writes Root: prep-lms and would reintroduce the failure. Repointing the remote to https://github.com/paukennick/Ascendra.git is the durable fix and is left for Nick to make.",
+      "description": "The OmniEngineering workspace-freshness CI job had been failing on every push since 2026-09-24, independent of the code in each commit. The committed .ai/project-map.md was generated on a machine that had a git worktree checked out at worktrees/agent-a2c09c1e45891a050/, so the map listed that directory and its whole subtree. No clean checkout has it, so CI's own regeneration always differed and git diff --exit-code always failed. Regenerated the map from a tree with no worktree present, which also picked up mobile/src/components/CourseCard.tsx, missing since the same date. The Root line still reads Ascendra, matching what CI generates: omni map derives it from git remote get-url origin, and GitHub has renamed this repository from prep-lms to Ascendra. The local remote still points at the old prep-lms URL and only reaches GitHub via a redirect, so a local omni map writes Root: prep-lms and would reintroduce the failure. Repointing the remote to https://github.com/paukennick/Ascendra.git is the durable fix and is left for Nick to make. A second source of the same drift: .codex/ and .serena/ are per-machine assistant tool state, untracked but not gitignored, so omni map captured both into the map while CI's clean checkout has neither. Both are now in .gitignore; upstream OmniEngineering ignores .serena/ for the same reason.",
       "priority": "medium",
       "status": "completed",
       "minimum_access_scope": [
-        ".ai/project-map.md"
+        ".ai/project-map.md",
+        ".gitignore"
       ],
       "acceptance_criteria": [
         "CI workspace-freshness job passes",
         "Committed map contains no worktrees/ entries",
-        "Root line matches the name CI checks the repository out under"
+        "Root line matches the name CI checks the repository out under",
+        "Local assistant tool state is gitignored so it cannot re-enter the map"
       ],
       "validation_required": [
         "manual_verification"
