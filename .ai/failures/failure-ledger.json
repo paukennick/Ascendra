@@ -1,5 +1,115 @@
 {
   "version": "1.0.0",
   "failure_id_prefix": "FAIL",
-  "failures": []
+  "failures": [
+    {
+      "id": "FAIL-001",
+      "date": "2026-09-29",
+      "title": "Lesson buttons required a long precisely-placed press",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Nick reported every button in the lesson flow needed a long held press and only registered a tap in one specific spot rather than anywhere on the button.",
+      "how_detected": "user report",
+      "root_cause": "mobile/src/components/ui.tsx built every pressable as an outer Animated.View carrying a native-driven press-scale transform wrapping an inner Pressable carrying the touch handler. On RN 0.86 with Fabric (New Architecture), the transform visually repositions the button while Fabric hit-tests against the pre-transform layout, so only the sliver where the stale and current bounds overlap ever registers a tap -- a known regression class, facebook/react-native#57502.",
+      "requirement": "REQ-061",
+      "affected": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "Collapsed each Animated.View+Pressable pair into a single AnimatedPressable (Animated.createAnimatedComponent(Pressable)) so the transform and the touch handler live on the same node.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated UI/gesture test harness exists in this repo (no test runner is configured); confirmed via TypeScript compilation and by reasoning against the documented Fabric bug, not on a physical device by the agent.",
+      "prevention_rules": [],
+      "prevention_notes": "Never split an Animated transform from the Pressable it visually wraps onto two separate nodes on this RN version; apply the transform directly to the Pressable/AnimatedPressable itself.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-002",
+      "date": "2026-09-29",
+      "title": "Lesson generation blocked the whole request on one large completion",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Nick reported test/lesson generation and regeneration felt slow, especially over a network connection.",
+      "how_detected": "user report",
+      "root_cause": "The per-objective guess/teach/fade/solo lesson content was produced by one Anthropic completion of up to 6000 tokens, run synchronously in the GET/POST request path with no streaming and no early return -- measured at ~31 seconds on a real objective.",
+      "requirement": "REQ-062",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts"
+      ],
+      "fix_summary": "Split generation into two prompts (guess+teach, fade+solo) run concurrently with Promise.all, and return guess+teach as soon as ready instead of waiting on both; the fade/solo half keeps generating in the background via next/server after() and lands in the cache once done.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated integration test harness exists for this route (no test runner is configured); verified live end to end against a throwaway seeded test account and the real Anthropic API instead.",
+      "prevention_rules": [],
+      "prevention_notes": "For any single-request AI generation whose fields aren't all needed at once, prefer returning the part the UI needs first and completing the rest in the background over one large blocking completion.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-003",
+      "date": "2026-09-29",
+      "title": "Regenerating a lesson reliably returned near-identical material",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Nick reported that hitting Regenerate lesson did not produce different material from what was already there.",
+      "how_detected": "user report",
+      "root_cause": "lessonGenerationPrompt built its prompt only from the track/unit/objective titles -- identical on every call -- and callClaudeJSON was never given a temperature override, so asking again with an unchanged prompt reliably came back close to word-for-word the same content.",
+      "requirement": "REQ-062",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts"
+      ],
+      "fix_summary": "Regenerate now looks up the objective's current cached teach/fadeProblem/soloCheck and feeds it back into the prompt as an explicit do-not-reuse-this instruction, and both generation calls now request temperature 1 instead of the API default.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists for this route; verified live end to end against a throwaway seeded test account, comparing the regenerated teach/fadeProblem/soloCheck text against the pre-regenerate row in Postgres and confirming all three changed.",
+      "prevention_rules": [],
+      "prevention_notes": "A regenerate/retry action against an LLM needs an explicit anti-repeat instruction (and ideally a higher temperature) fed from the previous result -- an unchanged prompt is not enough to guarantee different output.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-004",
+      "date": "2026-09-29",
+      "title": "Split lesson-generation token budgets were too tight for verbose objectives",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "GET/POST on a real hardware-procedure objective (laptop battery/keyboard/wireless-card replacement) returned a 500 with 'Claude did not return valid JSON, stop_reason=max_tokens' on every retry.",
+      "how_detected": "test",
+      "root_cause": "When REQ-062's single ~6000-token completion was split into two smaller calls, the per-half maxTokens values (1500 for guess+teach, 4000 for fade+solo) were set by proportionally shrinking the old combined budget rather than re-checking headroom per half. A multi-step safety-procedure objective's teach field alone exceeded 1500 tokens, truncating the JSON mid-string; because the prompt and inputs are deterministic, every retry failed identically rather than flaking.",
+      "requirement": "REQ-062",
+      "affected": [
+        "backend/app/api/objectives/[id]/lesson/route.ts"
+      ],
+      "fix_summary": "Raised maxTokens to 4000 for the guess+teach call and 6000 for the fade+solo call -- real margin above the old combined 6000-token ceiling for the full ten-field response, not a proportional split of it -- and confirmed the same objective generates cleanly on both GET and POST.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists for this route; caught and confirmed fixed via live testing against a throwaway seeded test account and the real Anthropic API, deliberately including a known-verbose objective rather than only simple ones.",
+      "prevention_rules": [
+        "completion.validation"
+      ],
+      "prevention_notes": "When splitting one generously-budgeted AI completion into several smaller ones, budget each half with real margin above what it alone might need -- do not divide the original ceiling proportionally between them. Test against a worst-case-verbose real input, not just a typical one, before trusting a new token ceiling.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-005",
+      "date": "2026-09-29",
+      "title": "Regenerate could serve stale pre-regenerate content while the new version was still generating",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "In a live test, a GET fired immediately after a POST regenerate (before the background fade/solo generation had finished) returned the old, pre-regenerate lesson content instead of the new one or a pending state.",
+      "how_detected": "test",
+      "root_cause": "The route checked whether a cached row already existed before checking whether a generation was already in flight for that objective. On first-time generation that ordering is correct (no row exists yet), but on regenerate an old row already exists on disk until the background job's upsert overwrites it, so the existing-row check short-circuited and returned the stale version.",
+      "requirement": "REQ-062",
+      "affected": [
+        "backend/app/api/objectives/[id]/lesson/route.ts"
+      ],
+      "fix_summary": "Reordered both GET and POST to check the in-flight-generation map first and await it if present, falling back to the cached-row check only when nothing is in flight.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists for this route; caught and confirmed fixed via live testing: POST regenerate followed immediately by GET, with the database row inspected directly to confirm the fresh content (not the old row) was what came back both times.",
+      "prevention_rules": [],
+      "prevention_notes": "When a cache can be invalidated by a background job rather than synchronously, check for an in-flight replacement before checking the cache itself -- checking the cache first assumes it can never be stale, which is only true for a first-time write, not a regenerate/overwrite.",
+      "recurrence_of": ""
+    }
+  ]
 }

@@ -1849,6 +1849,88 @@
         "Local remote URL is still the pre-rename prep-lms address",
         "so any local omni map run rewrites Root to prep-lms and breaks CI again until the remote is repointed"
       ]
+    },
+    {
+      "id": "REQ-061",
+      "category": "Mobile lesson UI",
+      "title": "Fix lesson buttons requiring a long precisely-placed press",
+      "description": "Nick reported every button in the lesson flow (Submit guess; Next: guided practice; Regenerate lesson; etc.) needed a long held press and only registered a tap in one specific spot on the button rather than anywhere across it. Root cause: mobile/src/components/ui.tsx built every pressable (Button IconButton FavoriteButton and pressable Card) as an outer Animated.View carrying the press-scale transform wrapping an inner Pressable carrying the touch handler. On this RN 0.86 / Fabric New Architecture app that split is a known regression class (facebook/react-native#57502): the native-driven transform repositions the visual button while Fabric hit-tests against the pre-transform layout so only the sliver where old and new bounds still overlap registers a tap.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "acceptance_criteria": [
+        "Every Button IconButton FavoriteButton and pressable Card responds to a normal single tap anywhere within its visible bounds",
+        "No pressable in ui.tsx wraps a separate Pressable inside an Animated.View; the scale transform and the touch handler live on one AnimatedPressable node"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by code-level reasoning against the known Fabric hit-test-staleness bug class and by TypeScript compilation; not confirmed on a physical Android/iOS device by the agent -- Nick asked to tap through the lesson flow once to confirm it feels normal.",
+        "Fixed via mobile/src/components/ui.tsx; see FAIL-001."
+      ]
+    },
+    {
+      "id": "REQ-062",
+      "category": "Lesson generation",
+      "title": "Make lesson generation faster and stop regenerate returning near-identical material",
+      "description": "Nick reported test/lesson generation and regeneration felt slow especially on network and that regenerating a lesson did not produce different material. The per-objective guess/teach/fade/solo content was one Anthropic completion of up to 6000 tokens run synchronously in the request path (measured ~31s on a real objective) and built from a prompt with no variation input and no temperature override so an identical prompt reliably came back near-identical. Fix: split into two prompts (guess+teach; fade+solo) run concurrently via Promise.all and return guess+teach as soon as ready (practicePending true) while fade/solo continue via next/server after(); a later request for the same objective awaits that in-flight generation instead of starting a duplicate. Regenerate now feeds the objective's current cached teach/fadeProblem/soloCheck back as an explicit do-not-reuse instruction and both calls use temperature 1.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "A first-time GET on an objective with no cached lesson returns guessPrompt and teach without waiting on fadeProblem/fadeChoices/soloCheck",
+        "The fade/solo half finishes and is written to lesson_content even if the client that triggered generation has disconnected",
+        "A second request for the same objective while generation is still running awaits the same generation rather than issuing a second Anthropic call",
+        "POST regenerate returns teach and fadeProblem/soloCheck text that differs from the objective previous cached version",
+        "A GET that lands while a regenerate is still completing never returns the stale pre-regenerate row"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified live end to end against a throwaway seeded test account (created and deleted for this check isolated from Nick real account and cached content): progressive return background completion via after() in-flight de-dup and the regenerate-ordering fix were all exercised against the real Anthropic API and a real Postgres row not mocked.",
+        "Per-process in-flight de-dup only (a Map keyed by objective id); under multiple concurrent serverless instances a duplicate generation is possible though never a correctness problem -- worth revisiting if it shows up in cost or logs at higher scale.",
+        "Splitting guess+teach from fade+solo means the two halves no longer see each other output while generating so they are not as tightly threaded to one shared narrative example as when one call wrote both; still same objective and scope.",
+        "Fixed via backend/lib/prompts.ts and backend/app/api/objectives/[id]/lesson/route.ts; see FAIL-002, FAIL-003, FAIL-004, FAIL-005."
+      ]
+    },
+    {
+      "id": "REQ-063",
+      "category": "Repo hygiene",
+      "title": "Gitignore local Claude Code worktree and editor state",
+      "description": "Found while running omni gate for REQ-061/062: .claude/worktrees/ (a full nested git checkout, including its own .git directory, left by a paused autonomous catalog-builder agent) and .vscode/ (empty local editor settings) were untracked but not ignored, so omni gate flagged them as changed files needing changelog and requirements-registry entries. Same class of problem REQ-060 fixed for .codex/ and .serena/: per-machine assistant/editor state getting picked up by the project-map freshness job and completion gate instead of being ignored outright.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".gitignore"
+      ],
+      "acceptance_criteria": [
+        ".claude/worktrees/ and .vscode/ are listed in .gitignore",
+        "omni gate no longer flags .claude/worktrees/ or .vscode/ as changed files needing a changelog or requirements-registry entry"
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
