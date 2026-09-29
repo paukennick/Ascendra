@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { query, queryOne } from "@/lib/db";
 import { ok, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { callClaudeJSON, getModel } from "@/lib/anthropic";
@@ -6,7 +7,13 @@ import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { lessonGenerationPrompt, type LessonContent } from "@/lib/prompts";
+import {
+  lessonIntroPrompt,
+  lessonPracticePrompt,
+  type LessonAvoid,
+  type LessonIntroContent,
+  type LessonPracticeContent,
+} from "@/lib/prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +30,12 @@ interface LessonRow {
   solo_why: string;
   model: string;
   generated_at: string;
+}
+
+interface ObjectiveRow {
+  title: string;
+  unit_title: string;
+  track_title: string;
 }
 
 function rowToLesson(row: LessonRow) {
@@ -42,12 +55,12 @@ function rowToLesson(row: LessonRow) {
   };
 }
 
-async function generateAndCache(objectiveId: string) {
-  const objRow = await queryOne<{
-    title: string;
-    unit_title: string;
-    track_title: string;
-  }>(
+function rowToAvoid(row: LessonRow): LessonAvoid {
+  return { teach: row.teach, fadeProblem: row.fade_problem, soloCheck: row.solo_check };
+}
+
+async function loadObjective(objectiveId: string): Promise<ObjectiveRow | null> {
+  return queryOne<ObjectiveRow>(
     `select o.title, cu.title as unit_title, st.title as track_title
      from objectives o
      join course_units cu on cu.id = o.unit_id
@@ -55,23 +68,37 @@ async function generateAndCache(objectiveId: string) {
      where o.id = $1`,
     [objectiveId]
   );
-  if (!objRow) return null;
+}
 
-  const { system, user } = lessonGenerationPrompt({
+// Practice-half (fade + solo) generation already in flight for an objective,
+// keyed so a second request -- the learner reaching the fade step before the
+// background generation finishes, or a double-tapped regenerate -- awaits the
+// same call instead of starting a redundant, and possibly inconsistent,
+// second one. Per-process only: under multiple concurrent serverless
+// instances a duplicate generation is possible, but never a correctness
+// problem -- worst case is one wasted Anthropic call. Revisit if that
+// actually shows up in cost/logs.
+const pendingPractice = new Map<string, Promise<LessonRow>>();
+
+async function generatePracticeAndSave(
+  objectiveId: string,
+  objRow: ObjectiveRow,
+  intro: LessonIntroContent,
+  avoid?: LessonAvoid
+): Promise<LessonRow> {
+  const { system, user } = lessonPracticePrompt({
     trackTitle: objRow.track_title,
     unitTitle: objRow.unit_title,
     objectiveTitle: objRow.title,
+    avoid,
   });
-
-  const content = await callClaudeJSON<LessonContent>({
+  const practice = await callClaudeJSON<LessonPracticeContent>({
     system,
     messages: [{ role: "user", content: user }],
-    // Cached once per objective, not per user, so a generous budget is cheap
-    // in aggregate — Sonnet 5 was hitting this ceiling mid-JSON on the full
-    // teach/fadeProblem/soloCheck structure and getting truncated.
     maxTokens: 6000,
+    temperature: 1,
   });
-
+  const content = { ...intro, ...practice };
   const model = getModel();
   const rows = await query<LessonRow>(
     `insert into lesson_content
@@ -110,8 +137,32 @@ async function generateAndCache(objectiveId: string) {
   return rows[0];
 }
 
-// GET /api/objectives/:id/lesson — returns cached lesson content, generating (and
-// caching) it on first visit. Never re-spends an Anthropic call on repeat visits.
+function startPractice(
+  objectiveId: string,
+  objRow: ObjectiveRow,
+  intro: LessonIntroContent,
+  avoid?: LessonAvoid
+): Promise<LessonRow> {
+  const inFlight = pendingPractice.get(objectiveId);
+  if (inFlight) return inFlight;
+  const promise = generatePracticeAndSave(objectiveId, objRow, intro, avoid).finally(() => {
+    // Only clear if this is still the tracked promise -- guards against a
+    // newer regenerate's promise being dropped by an older one settling later.
+    if (pendingPractice.get(objectiveId) === promise) pendingPractice.delete(objectiveId);
+  });
+  pendingPractice.set(objectiveId, promise);
+  return promise;
+}
+
+// GET /api/objectives/:id/lesson -- returns cached lesson content. On a cache
+// miss, generates and returns the guess+teach half as soon as it's ready
+// (`practicePending: true`) instead of blocking on the full generation --
+// measured around 20s combined, vs. ~13s for guess+teach alone. The learner
+// spends real time on those two steps before reaching fade/solo, so the
+// practice half generates invisibly in the background (`after()` keeps it
+// running past this response) rather than as an up-front wait. A second GET
+// once they reach fade either gets the now-complete cached row, or awaits the
+// same in-flight generation if it's still running.
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -123,15 +174,41 @@ export async function GET(
     const user = await requireUser(req);
     await requireAcknowledgementForObjective(id, user.id);
 
+    const inFlight = pendingPractice.get(id);
+    if (inFlight) {
+      const generated = await inFlight;
+      return ok({ lesson: rowToLesson(generated), cached: false });
+    }
+
     const existing = await queryOne<LessonRow>(
       `select * from lesson_content where objective_id = $1`,
       [id]
     );
     if (existing) return ok({ lesson: rowToLesson(existing), cached: true });
 
-    const generated = await generateAndCache(id);
-    if (!generated) return notFound("Objective not found");
-    return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
+    const objRow = await loadObjective(id);
+    if (!objRow) return notFound("Objective not found");
+
+    const { system, user: userPrompt } = lessonIntroPrompt({
+      trackTitle: objRow.track_title,
+      unitTitle: objRow.unit_title,
+      objectiveTitle: objRow.title,
+    });
+    const intro = await callClaudeJSON<LessonIntroContent>({
+      system,
+      messages: [{ role: "user", content: userPrompt }],
+      maxTokens: 4000,
+      temperature: 1,
+    });
+
+    const practicePromise = startPractice(id, objRow, intro);
+    after(() => practicePromise.catch(() => {}));
+
+    return ok({
+      lesson: { guessPrompt: intro.guessPrompt, teach: intro.teach },
+      cached: false,
+      practicePending: true,
+    });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
@@ -139,7 +216,13 @@ export async function GET(
   }
 }
 
-// POST /api/objectives/:id/lesson — force-regenerate lesson content (overwrites cache).
+// POST /api/objectives/:id/lesson -- force-regenerate lesson content
+// (overwrites the cache). Same progressive shape as GET: a freshly generated
+// guess+teach comes back immediately, fade/solo regenerate in the background
+// and overwrite the row once both halves are done. `avoid` steers both halves
+// away from the objective's current cached content so a regenerate actually
+// comes back with different material instead of Claude converging back onto
+// the same answer for the same prompt.
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -151,9 +234,42 @@ export async function POST(
     const user = await requireUser(req);
     await requireAcknowledgementForObjective(id, user.id);
 
-    const generated = await generateAndCache(id);
-    if (!generated) return notFound("Objective not found");
-    return ok({ lesson: rowToLesson(generated as LessonRow), cached: false });
+    const inFlight = pendingPractice.get(id);
+    if (inFlight) {
+      const generated = await inFlight;
+      return ok({ lesson: rowToLesson(generated), cached: false });
+    }
+
+    const objRow = await loadObjective(id);
+    if (!objRow) return notFound("Objective not found");
+
+    const existing = await queryOne<LessonRow>(
+      `select * from lesson_content where objective_id = $1`,
+      [id]
+    );
+    const avoid = existing ? rowToAvoid(existing) : undefined;
+
+    const { system, user: userPrompt } = lessonIntroPrompt({
+      trackTitle: objRow.track_title,
+      unitTitle: objRow.unit_title,
+      objectiveTitle: objRow.title,
+      avoid,
+    });
+    const intro = await callClaudeJSON<LessonIntroContent>({
+      system,
+      messages: [{ role: "user", content: userPrompt }],
+      maxTokens: 4000,
+      temperature: 1,
+    });
+
+    const practicePromise = startPractice(id, objRow, intro, avoid);
+    after(() => practicePromise.catch(() => {}));
+
+    return ok({
+      lesson: { guessPrompt: intro.guessPrompt, teach: intro.teach },
+      cached: false,
+      practicePending: true,
+    });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

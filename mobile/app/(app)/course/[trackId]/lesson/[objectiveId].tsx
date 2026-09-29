@@ -34,13 +34,21 @@ export default function LessonFlow() {
   const [step, setStep] = useState<Step>("guess");
   const [guess, setGuess] = useState("");
   const [confidence, setConfidence] = useState<number | null>(null);
+  // True once guess+teach have come back but fade/solo are still generating
+  // in the background (server returns them early instead of blocking on the
+  // full ~20s generation). Gates the move into the fade step below.
+  const [practicePending, setPracticePending] = useState(false);
+  const [practiceLoading, setPracticeLoading] = useState(false);
 
   const loadLesson = useCallback(() => {
     setError(null);
     setLesson(null);
     api
-      .get<{ lesson: LessonContent }>(`/api/objectives/${objectiveId}/lesson`)
-      .then((res) => setLesson(res.lesson))
+      .get<{ lesson: LessonContent; practicePending?: boolean }>(`/api/objectives/${objectiveId}/lesson`)
+      .then((res) => {
+        setLesson(res.lesson);
+        setPracticePending(!!res.practicePending);
+      })
       .catch((err) => setError(err.message));
   }, [objectiveId]);
 
@@ -50,6 +58,30 @@ export default function LessonFlow() {
     setGuess("");
     setConfidence(null);
   }, [loadLesson]);
+
+  // Called right before advancing past "teach". Usually a no-op: the learner
+  // spends real time reading guess+teach, which is normally longer than
+  // whatever's left of the fade/solo generation. If it isn't ready yet, this
+  // re-fetches and the server awaits its own in-flight generation before
+  // responding, so it resolves once fade/solo actually exist rather than
+  // polling.
+  async function ensurePracticeReady() {
+    if (!practicePending) return true;
+    setPracticeLoading(true);
+    try {
+      const res = await api.get<{ lesson: LessonContent; practicePending?: boolean }>(
+        `/api/objectives/${objectiveId}/lesson`
+      );
+      setLesson(res.lesson);
+      setPracticePending(!!res.practicePending);
+      return !res.practicePending;
+    } catch (err) {
+      setError((err as Error).message);
+      return false;
+    } finally {
+      setPracticeLoading(false);
+    }
+  }
 
   const headerTitle = objectiveTitle ?? "Lesson";
 
@@ -98,17 +130,27 @@ export default function LessonFlow() {
           ) : null}
           <Muted>Explanation</Muted>
           <Body>{lesson.teach}</Body>
-          <Button label="Next: guided practice" icon="arrow-right" onPress={() => setStep("fade")} />
+          <Button
+            label="Next: guided practice"
+            icon="arrow-right"
+            loading={practiceLoading}
+            onPress={async () => {
+              const ready = await ensurePracticeReady();
+              if (ready) setStep("fade");
+            }}
+          />
         </Card>
       )}
 
       {step === "fade" && (
         <CheckStep
           kind="fade"
-          promptText={lesson.fadeProblem}
-          choices={lesson.fadeChoices}
-          correctIndex={lesson.fadeCorrectIndex}
-          why={lesson.fadeWhy}
+          // Reaching this step is gated on ensurePracticeReady() resolving
+          // practicePending to false, so these are guaranteed populated.
+          promptText={lesson.fadeProblem!}
+          choices={lesson.fadeChoices!}
+          correctIndex={lesson.fadeCorrectIndex!}
+          why={lesson.fadeWhy!}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
           unitId={unitId}
@@ -122,10 +164,12 @@ export default function LessonFlow() {
       {step === "solo" && (
         <CheckStep
           kind="solo"
-          promptText={lesson.soloCheck}
-          choices={lesson.soloChoices}
-          correctIndex={lesson.soloCorrectIndex}
-          why={lesson.soloWhy}
+          // Populated alongside fadeProblem above -- reaching solo means fade
+          // already resolved, so these came from the same generation.
+          promptText={lesson.soloCheck!}
+          choices={lesson.soloChoices!}
+          correctIndex={lesson.soloCorrectIndex!}
+          why={lesson.soloWhy!}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
           unitId={unitId}
@@ -153,8 +197,18 @@ export default function LessonFlow() {
               fullWidth={false}
               icon="refresh-cw"
               onPress={async () => {
-                await api.post(`/api/objectives/${objectiveId}/lesson`);
-                loadLesson();
+                // Use the POST response directly rather than re-fetching --
+                // the regenerated row hasn't finished overwriting the cache
+                // yet (fade/solo are still generating in the background), so
+                // a GET right now would just hand back the stale pre-
+                // regenerate content.
+                const res = await api.post<{ lesson: LessonContent; practicePending?: boolean }>(
+                  `/api/objectives/${objectiveId}/lesson`
+                );
+                setLesson(res.lesson);
+                setPracticePending(!!res.practicePending);
+                setGuess("");
+                setConfidence(null);
                 setStep("guess");
               }}
             />

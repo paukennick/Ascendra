@@ -75,16 +75,19 @@ export interface Objective {
 export interface LessonContent {
   guessPrompt: string;
   teach: string;
-  fadeProblem: string;
-  fadeChoices: string[];
-  fadeCorrectIndex: number;
-  fadeWhy: string;
-  soloCheck: string;
-  soloChoices: string[];
-  soloCorrectIndex: number;
-  soloWhy: string;
-  model: string;
-  generatedAt: string;
+  // Absent while the practice half is still generating in the background --
+  // see `practicePending` on the lesson GET/POST response. Always present
+  // once that flag is false.
+  fadeProblem?: string;
+  fadeChoices?: string[];
+  fadeCorrectIndex?: number;
+  fadeWhy?: string;
+  soloCheck?: string;
+  soloChoices?: string[];
+  soloCorrectIndex?: number;
+  soloWhy?: string;
+  model?: string;
+  generatedAt?: string;
 }
 
 export interface GradeResult {
