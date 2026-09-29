@@ -1724,6 +1724,38 @@
         "Not observed on a device: this repo has no test suite, and expo-updates is inert in development.",
         "The id REQ-036 was reused independently on master for an unrelated course-card filtering feature after this fix's original branch diverged -- this entry uses REQ-056 instead to avoid a second collision."
       ]
+    },
+    {
+      "id": "REQ-057",
+      "category": "Grading",
+      "title": "Stop free-response and PBQ grading crashing on an oversized classification tag",
+      "description": "Nick reported the lesson Submit button 'not working' across multiple courses when answering questions. Investigation (reproduced live via a throwaway test account seeded with the full catalog) found multiple-choice submission worked cleanly on every course tried, but free-response submission failed outright with a raw Postgres error -- 'value too long for type character varying(50)' -- returned as the grading response and shown verbatim in the lesson screen's error banner. attempts.classification and error_log.classification are both written from the grading model's own JSON response (backend/lib/prompts.ts asks for 'a short tag for the kind of gap, e.g. misconception, incomplete, off-scope, none'), a soft instruction rather than a schema-enforced enum, so the model occasionally returns a longer descriptive phrase instead. Multiple-choice grading never hit this because its classification is always the hardcoded literal 'none'. This explains why the failure looked format-specific and course-independent rather than tied to any one course.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/021_widen_classification_columns.sql",
+        "backend/lib/grading-service.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "attempts.classification and error_log.classification accept a value of any length.",
+        "view_due_reviews still returns the same rows after the migration as before it.",
+        "A free-response or PBQ answer that grades with a classification tag longer than 50 characters is recorded and returned to the client instead of crashing the request.",
+        "Reproduced live end to end after the fix: a free-response submission on a fresh objective grades and returns a verdict with no error banner."
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "The migration was applied directly against the live database by Nick from his own terminal, not by an automated agent action, after the sandbox's safety classifier declined to run a live schema change unattended.",
+        "view_due_reviews had to be dropped and recreated around the error_log column change, since Postgres fixes a `select *` view's row descriptor to the underlying column types at view-creation time and blocks an ALTER TYPE while the view depends on it.",
+        "The 200-character clamp added in grading-service.ts is defense in depth on top of the schema fix, not a replacement for it -- it protects against a future column-width mismatch or an unusually long model response without needing another migration.",
+        "Reproduction and fix verification used a throwaway, non-privileged test account (debug-submit@ascendra.local) seeded with a full copy of the live catalog and deleted afterward -- Nick's own account and data were not touched."
+      ]
     }
   ]
 }
