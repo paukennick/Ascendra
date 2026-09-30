@@ -304,10 +304,12 @@ function GuessStep({
   );
 }
 
-// Handles both the "fade" (guided practice) and "solo" (independent) check steps. Each
-// starts as multiple-choice; the lesson flow always offers MC here (proficiency-gated
-// free-response happens on repeat visits once /api/objectives/:id/mastery says the
-// learner has cleared the accuracy bar — kept simple here as MC-first for a first pass).
+// Handles both the "fade" (guided practice) and "solo" (independent) check steps. The
+// learner picks the answer type themselves via the mode toggle below (defaults to
+// multiple-choice) -- both formats grade the same underlying question, so there's no
+// mastery gate on which one is available. The "guess" step (above) and PBQ scenarios
+// (pbq.tsx) are the two cases where the format isn't a choice: guessing before being
+// taught has nothing to pick from, and a PBQ's multi-part scenario doesn't reduce to MC.
 function CheckStep({
   kind,
   promptText,

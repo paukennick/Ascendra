@@ -2066,6 +2066,32 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-069",
+      "category": "defect",
+      "title": "Fix generation prompt that told the model the app picks answer format",
+      "description": "The lesson-practice generation prompt (lessonPracticePrompt in backend/lib/prompts.ts) told Claude 'the app decides per visit which one to show based on track record' when generating fadeProblem/soloCheck -- describing a proficiency-gated auto-selection feature that was never built. In reality the learner freely picks multiple-choice or free-response themselves every time via the mode toggle in mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx's CheckStep, with no gating logic anywhere. The wrong narrative fed to the model risked it treating one format (or a track-record-based default) as primary and the other as an afterthought, rather than writing both fadeProblem/soloCheck and their MC counterparts as fully independent, self-contained questions. A stale comment directly above CheckStep made the identical false claim and was corrected in the same pass.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "lessonPracticePrompt's system message states the learner picks the answer format themselves every time",
+        "with no reference to app-side auto-selection or track-record gating; CheckStep's comment matches actual behavior (unconditional user choice",
+        "with guess/PBQ named as the two legitimate format-dictated exceptions)"
+      ],
+      "validation_required": [
+        "tsc --noEmit clean in both backend and mobile; manual review confirmed no other generation prompt (lessonIntroPrompt",
+        "pbqGenerationPrompt) makes a similar claim",
+        "and no gating logic exists anywhere in AuthContext/CheckStep/grading-service"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

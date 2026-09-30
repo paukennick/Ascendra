@@ -258,6 +258,28 @@
       "prevention_rules": [],
       "prevention_notes": "Progress (has this been touched) and mastery (has this been learned well) are now separate columns in view_track_progress; any new UI element needs to pick the one it actually means rather than reaching for whichever percent field happens to be on the object.",
       "recurrence_of": "FAIL-010"
+    },
+    {
+      "id": "FAIL-012",
+      "date": "2026-09-29",
+      "title": "Lesson-generation prompt claimed the app auto-picks answer format",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lessonPracticePrompt's system message (backend/lib/prompts.ts) told Claude 'the app decides per visit which one to show based on track record' when generating fadeProblem/soloCheck, describing a proficiency-gated auto-selection feature that doesn't exist. A comment directly above CheckStep in the mobile lesson screen made the identical false claim.",
+      "how_detected": "user question",
+      "root_cause": "Both were written against an early design intent (auto-pick format by track record) that was never implemented; the actual shipped behavior -- the learner freely toggles MC/free-response themselves, every time, via CheckStep's mode buttons -- was built later without updating either the generation prompt or the comment to match.",
+      "requirement": "REQ-069",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Rewrote both to state plainly that the learner picks the format every time, so fadeProblem/soloCheck and their MC counterparts must each stand as complete, independent questions rather than one being treated as primary.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Prompt wording change with no schema/behavior change; verified by re-reading the full prompt file for any other instance of the same claim (none found) and confirming lessonIntroPrompt/pbqGenerationPrompt never made it in the first place.",
+      "prevention_rules": [],
+      "prevention_notes": "When a described-but-unbuilt feature (auto-selection by track record) is dropped in favor of a simpler shipped one (user choice), grep for its description in both code comments and generation prompts, not just the code path itself.",
+      "recurrence_of": ""
     }
   ]
 }
