@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
@@ -34,6 +34,15 @@ export default function LessonFlow() {
   const [step, setStep] = useState<Step>("guess");
   const [guess, setGuess] = useState("");
   const [confidence, setConfidence] = useState<number | null>(null);
+  // Feedback on the guess itself, generated once it's submitted (never for
+  // "I don't know -- just teach me", since there's nothing to compare then).
+  // Fetched in the background after moving to "teach" rather than blocking
+  // the guess screen on it -- submitting a guess was instant before this,
+  // and staring at a spinner there to wait on an Anthropic call would be a
+  // felt regression. See guessFeedbackPrompt in backend/lib/prompts.ts for
+  // why this deliberately never touches attempts/mastery.
+  const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
+  const [guessFeedbackLoading, setGuessFeedbackLoading] = useState(false);
   // True once guess+teach have come back but fade/solo are still generating
   // in the background (server returns them early instead of blocking on the
   // full ~20s generation). Gates the move into the fade step below.
@@ -57,6 +66,8 @@ export default function LessonFlow() {
     setStep("guess");
     setGuess("");
     setConfidence(null);
+    setGuessFeedback(null);
+    setGuessFeedbackLoading(false);
   }, [loadLesson]);
 
   useEffect(() => {
@@ -94,6 +105,27 @@ export default function LessonFlow() {
     }
   }
 
+  // Moves to "teach" immediately either way -- getting to the explanation
+  // was instant before this feature existed, and it stays instant. A
+  // non-blank guess kicks off feedback in the background; it fills into its
+  // slot on the teach screen once ready instead of being waited on here.
+  function submitGuess() {
+    setStep("teach");
+    if (!guess.trim()) return;
+    setGuessFeedbackLoading(true);
+    api
+      .post<{ feedback: string }>(`/api/objectives/${objectiveId}/guess-feedback`, { guess: guess.trim() })
+      .then((res) => setGuessFeedback(res.feedback))
+      // Silent on purpose: this is a nice-to-have on top of the lesson, not
+      // something that should surface an error banner over the real content.
+      .catch(() => {})
+      .finally(() => setGuessFeedbackLoading(false));
+  }
+
+  function skipGuess() {
+    setStep("teach");
+  }
+
   const headerTitle = objectiveTitle ?? "Lesson";
 
   if (error) {
@@ -123,7 +155,8 @@ export default function LessonFlow() {
           prompt={lesson.guessPrompt}
           value={guess}
           onChange={setGuess}
-          onSubmit={() => setStep("teach")}
+          onSubmit={submitGuess}
+          onSkip={skipGuess}
         />
       )}
 
@@ -137,6 +170,22 @@ export default function LessonFlow() {
             <>
               <Muted>Your guess</Muted>
               <Body>{guess}</Body>
+              {guessFeedbackLoading ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                  <ActivityIndicator size="small" color={colors.accent} />
+                  <Muted style={{ fontSize: 12 }}>Comparing your guess to what's true...</Muted>
+                </View>
+              ) : guessFeedback ? (
+                <View style={styles.guessFeedback}>
+                  <View style={styles.cardHeadingRow}>
+                    <Feather name="message-circle" size={14} color={colors.accent} />
+                    <Muted style={{ color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 12 }}>
+                      On your guess
+                    </Muted>
+                  </View>
+                  <Body style={{ fontSize: 14 }}>{guessFeedback}</Body>
+                </View>
+              ) : null}
             </>
           ) : null}
           <Muted>Explanation</Muted>
@@ -220,6 +269,8 @@ export default function LessonFlow() {
                 setPracticePending(!!res.practicePending);
                 setGuess("");
                 setConfidence(null);
+                setGuessFeedback(null);
+                setGuessFeedbackLoading(false);
                 setStep("guess");
               }}
             />
@@ -275,11 +326,13 @@ function GuessStep({
   value,
   onChange,
   onSubmit,
+  onSkip,
 }: {
   prompt: string;
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
+  onSkip: () => void;
 }) {
   return (
     <Card elevated>
@@ -297,8 +350,8 @@ function GuessStep({
         style={styles.input}
       />
       <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-        <Button label="Submit my guess" fullWidth={false} icon="send" onPress={onSubmit} />
-        <Button label="I don't know — just teach me" variant="ghost" fullWidth={false} onPress={onSubmit} />
+        <Button label="Submit my guess" fullWidth={false} icon="send" onPress={onSubmit} disabled={!value.trim()} />
+        <Button label="I don't know — just teach me" variant="ghost" fullWidth={false} onPress={onSkip} />
       </View>
     </Card>
   );
@@ -499,6 +552,15 @@ function CheckStep({
 
 const styles = StyleSheet.create({
   cardHeadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  // Sits apart from the plain guess/explanation text below it so it reads as
+  // commentary on what was just typed, not a continuation of it.
+  guessFeedback: {
+    backgroundColor: colors.accentDim,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    gap: 4,
+    marginTop: 4,
+  },
   stepper: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 4 },
   stepItem: { alignItems: "center", gap: 4, width: 56 },
   stepDot: {

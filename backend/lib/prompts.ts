@@ -128,6 +128,57 @@ Produce ONLY a JSON object with exactly these fields, no prose outside the JSON,
   return { system, user };
 }
 
+// The "guess" step asks for an attempt from intuition BEFORE any teaching
+// happens, and always did -- but nothing ever closed the loop on what was
+// typed there: it just got echoed back verbatim on the teach screen, right
+// next to the real explanation, with no comparison between the two. This
+// generates that comparison, called once, right after the learner submits
+// a non-blank guess (never for "I don't know -- just teach me", since
+// there's nothing to compare then). Deliberately not run through
+// recordAttemptAndUpdateMastery like graded answers are: a pre-teaching
+// guess isn't a graded attempt, and treating it as one would mean simply
+// opening a lesson and submitting any guess at all counts as "started" for
+// the progress metric (REQ-068), which is supposed to mean real practice
+// happened, not just that the screen was opened.
+export const guessFeedbackSchema = z.object({
+  feedback: z
+    .string()
+    .describe(
+      "2-4 sentences, warm and encouraging, comparing the learner's pre-teaching guess to what's " +
+        "actually true. Name anything their guess got right or was reasonably close to, and gently " +
+        "flag the gap the upcoming teaching will close. Never call it 'correct' or 'incorrect' -- this " +
+        "is a comparison on an intuition check before any teaching happened, not a graded answer."
+    ),
+});
+export type GuessFeedback = z.infer<typeof guessFeedbackSchema>;
+
+export function guessFeedbackPrompt(params: {
+  objectiveTitle: string;
+  guessPrompt: string;
+  teach: string;
+  guess: string;
+}): { system: string; user: string } {
+  const system = withRules(
+    `You are giving quick, encouraging feedback on a learner's guess made BEFORE any teaching, in response
+to a prompt meant to surface intuition or prior knowledge -- not a graded answer. Never call it correct or
+incorrect; compare it to what's actually true, name what their instinct got right or was close to, and note
+(without fully re-teaching it) what the explanation they're about to read will clarify.`
+  );
+
+  const user = `Objective: ${params.objectiveTitle}
+Guess prompt shown to the learner: ${params.guessPrompt}
+What's actually true (the teaching they're about to read next): ${params.teach}
+
+Learner's guess: ${params.guess}
+
+Produce ONLY a JSON object, no markdown fence:
+{
+  "feedback": "2-4 sentences, warm and encouraging, comparing the guess to what's actually true"
+}`;
+
+  return { system, user };
+}
+
 export const lessonPracticeSchema = z.object({
   fadeProblem: z
     .string()

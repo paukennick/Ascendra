@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- REQ-072: The very first step of every lesson asks you to take a guess before you've been taught anything -- and until now, that guess just vanished into the teaching screen with no comment on it at all. Now, a few seconds after you submit a real guess (skipping is unaffected), a short comparison appears right under it on the teaching screen, naming what your instinct got right and what the explanation below is about to clarify. This is deliberately not graded and doesn't count toward your progress or mastery -- it's feedback on a guess made before any teaching happened, not a test.
+
 - REQ-071: Replaced the app's brand accent color -- the pale indigo-violet used on buttons, links, active chips, and card borders throughout the app is now a deeper, more confident sapphire blue instead. The old color was pulled from the original design reference and had started to feel dated and flat; the new one was picked after comparing three real candidates rendered against actual app components, not just flat color swatches.
 
 - REQ-070: Every course and certification now shows a real emoji, not just the original nine hand-picked ones -- everything else used to fall back to a plain gray icon (or, in the side menu specifically, a generic book emoji). Also, the progress and mastery bars throughout the app now change color as they fill in (gray at zero, amber underway, green at the halfway mark and beyond) instead of always being the same flat purple no matter what the number is.
