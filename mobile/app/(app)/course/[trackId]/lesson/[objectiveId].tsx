@@ -59,6 +59,17 @@ export default function LessonFlow() {
     setConfidence(null);
   }, [loadLesson]);
 
+  useEffect(() => {
+    // Fire-and-forget: nudges the server to start warming the cache for
+    // whatever objective comes next in course order, as early as possible --
+    // the learner spends real time on guess/teach/fade/solo here first, which
+    // is normally more than enough head start for it to finish invisibly.
+    // Errors are swallowed on purpose; this is a pure optimization with no
+    // effect on the current objective if it fails or the next one doesn't
+    // exist.
+    api.post(`/api/objectives/${objectiveId}/lesson/prefetch-next`).catch(() => {});
+  }, [objectiveId]);
+
   // Called right before advancing past "teach". Usually a no-op: the learner
   // spends real time reading guess+teach, which is normally longer than
   // whatever's left of the fade/solo generation. If it isn't ready yet, this
