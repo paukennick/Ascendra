@@ -136,6 +136,76 @@
       ],
       "prevention_notes": "Installing an Expo SDK package that ships its own config plugin (an app.plugin.js / plugin/ directory) is not enough -- it must also be listed in app.json's plugins array, or its native-side mods (permissions, Info.plist keys, manifest entries) never run. Check for a plugin/ directory whenever adding a new native-capable Expo package. Also: never leave a mount-time async call with no .catch() when its failure would otherwise be invisible -- silent failures here look identical to 'the feature was never built.'",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-007",
+      "date": "2026-09-29",
+      "title": "In-flight generation dedup only covered the practice half, not the intro half",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Immediately re-calling prefetch-next for the same objective returned status started twice in a row instead of in-flight the second time -- caught on literally the second call in live testing, not a rare race. A real GET for the same objective landing during that window ran its own independent intro generation, producing different guessPrompt/teach text than what the original prefetch's intro produced, with whichever call's practice phase happened to run first silently determining what actually got cached.",
+      "how_detected": "test",
+      "root_cause": "The prior pendingPractice map was only set once the intro half had already resolved (inside startPractice), so the entire intro-generation window -- often 10+ seconds, close to half the total generation time -- had no dedup at all. Any second caller in that window saw nothing in the map and started its own competing generation.",
+      "requirement": "REQ-066",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts"
+      ],
+      "fix_summary": "Replaced the practice-only pendingPractice map with pendingGeneration, claimed synchronously in a new ensureGeneration() the moment a caller decides to generate -- before either the intro or practice promise is awaited anywhere. Any caller checking the map after that point, even on the very next microtask, sees the claim.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists in this repo; caught and confirmed fixed via live testing -- immediately re-calling prefetch-next now correctly returns in-flight, and a real GET racing an in-flight generation now returns the single shared result instead of a second independently-generated one.",
+      "prevention_rules": [],
+      "prevention_notes": "Any in-flight-dedup map must be claimed synchronously at the point of the decision to start work, not lazily once some later sub-step completes -- claiming late leaves every step before that sub-step completely unguarded, and that window can be most of the total duration, not a rare edge case.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-008",
+      "date": "2026-09-29",
+      "title": "Sonnet 5's default adaptive thinking consumed max_tokens with no visible output",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A GET on a real, verbose objective (a multi-step hardware safety procedure) returned a 500: Anthropic response had no text content block, stop_reason=max_tokens, blocks=[thinking]. The model was still thinking when its token budget ran out and never produced any answer text at all.",
+      "how_detected": "test",
+      "root_cause": "Claude Sonnet 5 runs adaptive thinking by default even when the thinking parameter is never set -- confirmed against the claude-api skill's model reference, not assumed. Thinking tokens count against the same max_tokens ceiling as the actual answer, and how much a given prompt makes the model think is not predictable or capped by this code. For deterministic JSON content generation, that budget is pure downside.",
+      "requirement": "REQ-066",
+      "affected": [
+        "backend/lib/anthropic.ts",
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "Added a disableThinking option to callClaude/callClaudeJSON/callClaudeStructured that sends thinking: {type: disabled} -- explicitly accepted by Sonnet 5 per the model reference -- and set it on both lesson-generation calls, since this is content generation, not a reasoning task.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists in this repo; caught and confirmed fixed by regenerating the exact same objective that failed and getting a clean 200 with no error in the server log.",
+      "prevention_rules": [],
+      "prevention_notes": "Never assume omitting an API parameter means a feature is off -- check the current model reference before relying on a default, especially for a model newer than this assistant's training cutoff. For a deterministic structured-generation task, explicitly disable thinking rather than trusting whatever the model's default happens to be.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-009",
+      "date": "2026-09-29",
+      "title": "Prompted free-text JSON was occasionally syntactically invalid despite a clean stop_reason",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A GET on the same verbose objective later failed again with stop_reason=end_turn (not truncated) but Claude did not return valid JSON -- the visible text looked complete and well-formed, but JSON.parse still rejected it. This was the third distinct raw-JSON failure mode hit in this same code path across the session (after mid-string truncation and the pure-thinking-no-text case), each with a different cause.",
+      "how_detected": "test",
+      "root_cause": "The lesson-generation prompts asked Claude to write JSON as free text (\"Produce ONLY a JSON object...\") and callClaudeJSON parsed whatever text came back. The model occasionally wrote a literal, unescaped newline inside a string value (e.g. a paragraph break in the teach field) instead of the escaped two-character sequence JSON requires, which is syntactically invalid JSON even though the model considered its own response complete.",
+      "requirement": "REQ-066",
+      "affected": [
+        "backend/lib/anthropic.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "Replaced prompted free-text JSON with the Anthropic API's structured outputs feature (output_config.format via the SDK's zodOutputFormat helper and client.messages.parse()), which constrains the API's own generation to schema-conforming JSON rather than parsing free-hand text after the fact. Defined lessonIntroSchema/lessonPracticeSchema as Zod schemas in lib/prompts.ts (the LessonIntroContent/LessonPracticeContent types are now derived from them via z.infer, removing a previous hand-maintained duplication) and added callClaudeStructured in lib/anthropic.ts. Added zod as an explicit dependency (was only present transitively via the SDK's optional peer dependency).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No automated test harness exists in this repo; caught and confirmed fixed by regenerating the exact same objective and getting a clean 200, and again on a second full round of testing across both the plain GET/POST path and the prefetch path with zero errors.",
+      "prevention_rules": [
+        "completion.validation"
+      ],
+      "prevention_notes": "Prompting a model to write JSON as free text and parsing it afterward is inherently fragile -- three different failure shapes came out of the same prompted-JSON pattern in one session. Prefer the API's native structured-outputs / schema-constrained generation for any new JSON-shaped call instead of prompting-and-parsing; callClaudeStructured in lib/anthropic.ts is the reusable path for this. callClaudeJSON's other two callers (app/api/grade/route.ts, app/api/pbq/route.ts) were not touched by this fix and remain exposed to the same class of failure -- worth migrating them the same way if it comes up there.",
+      "recurrence_of": ""
     }
   ]
 }

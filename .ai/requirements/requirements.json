@@ -1979,6 +1979,40 @@
         "so adding the plugin does not change iOS behavior.",
         "Fixed via mobile/app.json and mobile/src/auth/AuthContext.tsx; see FAIL-006. Needs a fresh native build to actually take effect -- not verifiable on a real device from this environment."
       ]
+    },
+    {
+      "id": "REQ-066",
+      "category": "Lesson generation",
+      "title": "Prefetch the next objective's lesson content in the background",
+      "description": "Approved follow-up to REQ-062. The mobile lesson screen now fires a best-effort POST to a new /api/objectives/:id/lesson/prefetch-next endpoint as soon as it opens an objective, which finds the next objective in course order ((unit.sort_order, objective.sort_order) as one tuple comparison) and starts generating its lesson content in the background if nothing is cached or already in flight. The learner spends real time on guess/teach/fade/solo for the current objective -- normally well over the ~20-30s a generation takes -- so by the time they actually navigate to the next one, GET is usually an instant cache hit instead of triggering generation in the interactive path. Extracted the generation logic (loadObjective, generateIntro, generatePracticeAndSave, the in-flight map) out of the lesson route into a new backend/lib/lesson-generation.ts specifically so the prefetch route and the lesson route share the exact same in-flight-generation map instance -- two separate module copies would have silently defeated the de-dup between the two routes.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "POST /api/objectives/:id/lesson/prefetch-next finds the correct next objective across a unit boundary within the same track, and returns status none at the last objective in a track",
+        "A prefetch for an objective that is already cached returns status already-cached without spending an Anthropic call",
+        "A prefetch for an objective already being generated -- by an earlier prefetch or by a real GET/POST -- returns status in-flight without starting a second generation",
+        "A real GET for the next objective landing while a prefetch is still generating it awaits that same generation and returns the complete lesson, not a second, independently-generated version",
+        "The mobile lesson screen fires the prefetch once per objective visit and swallows its own errors, with no effect on the current objective if it fails"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified live end to end against a throwaway seeded test account (created and deleted for this check): all seven prefetch states exercised (started, in-flight, already-cached, none, a real GET racing an in-flight prefetch, the final instant cache hit) against the real Anthropic API and a real Postgres row, twice over across two rounds of fixes -- see FAIL-007/008/009.",
+        "Per-process only, same tradeoff REQ-062 already accepted for the underlying in-flight map: under multiple concurrent serverless instances a duplicate generation is possible but never a correctness problem.",
+        "Prefetching only helps once a learner is at least one objective into a track -- the very first objective anyone ever opens in a track still pays the full generation wait, same as before this REQ.",
+        "Fixed via backend/lib/lesson-generation.ts (new), the lesson route, and a new prefetch-next route; see FAIL-007, FAIL-008, FAIL-009."
+      ]
     }
   ]
 }
