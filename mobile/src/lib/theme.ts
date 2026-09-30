@@ -1,8 +1,22 @@
-// Color tokens, exactly, from the Ascendra design reference artifact's dark
-// palette (claude.ai/artifact/SeaodNous5p8xRgW8tGGLo) -- adopted wholesale
-// rather than approximated, since contrast there was already validated.
-// That artifact also defines a light palette under the same variable names;
-// this app is dark-only today, so only the dark set is carried over.
+// Color tokens. Everything except the accent family is exactly as pulled
+// from the Ascendra design reference artifact's dark palette
+// (claude.ai/artifact/SeaodNous5p8xRgW8tGGLo) -- adopted wholesale rather
+// than approximated, since contrast there was already validated. That
+// artifact also defines a light palette under the same variable names; this
+// app is dark-only today, so only the dark set is carried over.
+//
+// Accent family replaced 2026-09-30 (REQ-071): the artifact's periwinkle
+// (#9698F5) read as dated and flat against this dark background -- it's the
+// same pale indigo-violet a lot of dark-mode AI products converged on
+// around 2023, and at ~7:1 contrast against bg it behaved more like a
+// highlighter than a confident brand color. Replaced with a deeper,
+// more saturated sapphire after Nick reviewed it rendered against real
+// card/button/chip components, not as a flat swatch. accentHover/secondary/
+// accentDim are derived from the new accent by the same proportional
+// relationships the old family had to its own accent (accentHover/secondary
+// ~20% mixed toward white; accentDim ~28% of accent's own brightness, same
+// hue) rather than picked independently, so the family stays internally
+// consistent the way the original one was.
 export const colors = {
   bg: "#14151B",
   bgAlt: "#1B1D26",
@@ -14,11 +28,11 @@ export const colors = {
   text: "#E9E8F1",
   muted: "#9EA1B0",
   mutedDim: "#767A89",
-  accent: "#9698F5",
-  accentDim: "#2A2B49",
+  accent: "#4C6FEF",
+  accentDim: "#1B2447",
   accentText: "#14151B",
-  accentHover: "#ABADF7",
-  secondary: "#ABADF7",
+  accentHover: "#708CF2",
+  secondary: "#708CF2",
   good: "#5BC998",
   goodStrong: "#5BC998",
   goodDim: "#1D3227",

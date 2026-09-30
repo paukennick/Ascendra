@@ -2124,6 +2124,35 @@
         "Bar coloring by value (not by progress-vs-mastery type) means the two metrics split in REQ-068 still look visually identical at the bar level",
         "distinguished only by their text labels -- Nick chose this explicitly after that tradeoff was raised"
       ]
+    },
+    {
+      "id": "REQ-071",
+      "category": "feature",
+      "title": "Replace brand accent color: periwinkle to deep sapphire",
+      "description": "Nick's reaction to the original accent (#9698F5, a pale indigo-violet pulled from the design reference artifact) was that it 'feels dated and dead' -- likely because that specific pale-periwinkle-on-near-black-background look is what a lot of dark-mode AI-era products converged on, and at ~7:1 contrast against bg it behaved more like a highlighter than a considered brand color. Surfaced 3 options (deep sapphire, deep violet -- same family but richer, terracotta clay) rendered against real card/button/chip/badge components (not flat swatches) via a local HTML mockup screenshotted through Chrome; explicitly avoided amber/teal candidates since those are already spoken for by the warn/good semantic colors used on the exact same progress bars (REQ-070). Nick picked deep sapphire (#4C6FEF) after seeing all three rendered.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/theme.ts"
+      ],
+      "acceptance_criteria": [
+        "colors.accent is #4C6FEF; accentHover/secondary/accentDim are re-derived from the new accent using the same proportional relationships (mix-toward-white / darken) the old family had to its own accent",
+        "rather than left as stale periwinkle values; no file outside theme.ts hardcodes the old hex values"
+      ],
+      "validation_required": [
+        "tsc --noEmit clean; grepped mobile/src and mobile/app for the old hex values (9698F5",
+        "ABADF7",
+        "2A2B49) with only theme.ts's own explanatory comment matching; contrast-checked accentText (#14151B) against the new accent fill (~4.19:1",
+        "sufficient for bold/large UI labels like button text per WCAG's large-text threshold",
+        "though not full body-text AA -- worth a look once live on a real screen)"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "4.19:1 text-on-accent contrast is lower than the old pairing's ~7:1; flagged rather than silently accepted",
+        "since it's close to but under the 4.5:1 normal-text AA threshold"
+      ]
     }
   ]
 }
