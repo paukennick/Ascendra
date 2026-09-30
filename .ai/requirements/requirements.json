@@ -2153,6 +2153,29 @@
         "4.19:1 text-on-accent contrast is lower than the old pairing's ~7:1; flagged rather than silently accepted",
         "since it's close to but under the 4.5:1 normal-text AA threshold"
       ]
+    },
+    {
+      "id": "REQ-072",
+      "category": "feature",
+      "title": "Feedback on the initial guess, before teaching",
+      "description": "The lesson flow's 'guess' step (an intuition check before any teaching happens) captured what the learner typed but never closed the loop on it -- the guess was just echoed back verbatim on the teach screen next to the explanation, with nothing comparing the two. Added POST /api/objectives/:id/guess-feedback: a short, ungraded, encouraging comparison of the learner's actual guess against the objective's teach content, generated via a new guessFeedbackPrompt/guessFeedbackSchema (backend/lib/prompts.ts) using callClaudeStructured (the REQ-066 structured-output path, not the older free-hand-JSON callClaudeJSON). Deliberately does not call recordAttemptAndUpdateMastery -- a pre-teaching guess isn't a graded attempt, and writing it to mastery would mean merely opening a lesson and submitting any guess counts as 'started' for the REQ-068 progress metric, which is meant to mean real practice happened. Client-side: submitting a guess moves to the teach step immediately (unchanged, was already instant) and fetches feedback in the background rather than blocking on it; skipped entirely for 'I don't know -- just teach me' since there's nothing to compare. Feedback renders inline on the teach card, directly under the echoed guess, in a small inset box distinguished from the plain explanation text below it.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/app/api/objectives/[id]/guess-feedback/route.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "acceptance_criteria": [
+        "Submitting a non-blank guess shows a loading indicator then a short comparison inline on the teach screen under the echoed guess; skipping via 'I don't know' shows nothing; no attempts or mastery rows are written by this endpoint; regenerating the lesson or loading a new objective clears any prior feedback"
+      ],
+      "validation_required": [
+        "tsc --noEmit clean in both backend and mobile; manual read-through confirming the new route never imports recordAttemptAndUpdateMastery or writes to attempts/mastery"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
