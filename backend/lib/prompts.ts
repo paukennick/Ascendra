@@ -163,9 +163,10 @@ export function lessonPracticePrompt(params: {
     `You are generating the practice half of cached lesson content for ONE learning objective, to be
 reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its own
 without further back-and-forth. The learner benefits from a worked-example-fading structure. They are new
-to this specific objective, so fadeProblem and soloCheck each need BOTH a free-response version and a
-multiple-choice version of the exact same question — the app decides per visit which one to show based on
-track record, so both must be ready either way.`
+to this specific objective, so fadeProblem and soloCheck each need to work as a complete, self-contained
+free-response question on their own AND carry a matching multiple-choice version of that exact same
+question (fadeChoices/soloChoices) — the learner picks which format to answer in, every time they see it,
+so neither version can depend on the other to make sense.`
   );
 
   const user = `Course/track: ${params.trackTitle}
