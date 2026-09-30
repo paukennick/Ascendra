@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- REQ-071: Replaced the app's brand accent color -- the pale indigo-violet used on buttons, links, active chips, and card borders throughout the app is now a deeper, more confident sapphire blue instead. The old color was pulled from the original design reference and had started to feel dated and flat; the new one was picked after comparing three real candidates rendered against actual app components, not just flat color swatches.
+
 - REQ-070: Every course and certification now shows a real emoji, not just the original nine hand-picked ones -- everything else used to fall back to a plain gray icon (or, in the side menu specifically, a generic book emoji). Also, the progress and mastery bars throughout the app now change color as they fill in (gray at zero, amber underway, green at the halfway mark and beyond) instead of always being the same flat purple no matter what the number is.
 
 - REQ-069: The instructions that tell Claude how to write each lesson's practice questions were describing a feature that doesn't exist -- that the app automatically picks multiple-choice or free-response for you based on your track record. In reality you've always been able to just pick whichever one you want, every time, via the toggle on the question itself. Rewrote those instructions (and a matching stale comment in the lesson screen's code) to say what's actually true, so future-generated questions aren't written as if one format were the "real" one and the other an afterthought.
