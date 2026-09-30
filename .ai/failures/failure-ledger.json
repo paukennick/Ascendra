@@ -228,6 +228,36 @@
       "prevention_rules": [],
       "prevention_notes": "Any endpoint returning a subject_tracks row for display should join view_track_progress the same way GET /api/courses does, rather than re-deriving progress ad hoc or letting a fallback default mask a missing column.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-011",
+      "date": "2026-09-29",
+      "title": "Overall progress and mastery were the same metric everywhere",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Every 'progress' indicator in the app (course dashboard's Overall progress bar, Explore/Home course cards, the Home continue card) actually showed the mastery rate -- percent of objectives at Independent/Transfer-ready -- not how far a learner had gotten. An objective sitting at Introduced or Guided, clearly worked on, still read as 0% progress.",
+      "how_detected": "user report",
+      "root_cause": "view_track_progress only ever computed one number, percent_complete, filtered to Independent/Transfer-ready mastery statuses. Every screen that wanted to show 'how far along is this course' had nothing else to read, so it read that mastery number and labeled it progress -- there was no separate concept of started-but-not-mastered in the data model at all.",
+      "requirement": "REQ-068",
+      "affected": [
+        "backend/supabase/migrations/022_track_progress_vs_mastery.sql",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "mobile/src/types/index.ts",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/_layout.tsx"
+      ],
+      "fix_summary": "Added started_objectives/percent_progress to view_track_progress, counting any objective with a mastery row at all (mastery rows are only ever inserted once an objective is attempted, per backend/app/api/objectives/[id]/mastery/route.ts, so a row's existence means 'touched' regardless of status). Repointed every headline progress bar/percentage at percent_progress; left everything explicitly labeled mastery (Mastery matrix screen, per-unit 'at Independent+' captions) on the original percent_complete/mastered_objectives. Renamed the dashboard's 'Progress' quick action and the progress.tsx screen's header to 'Mastery' so the two no longer collide under the same word on one screen.",
+      "fix_commits": [
+        "REQ-068"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "No backend test harness exists yet in this repo (.ai/test-suites.json is empty); verified against live data via the Supabase MCP connection, where percent_progress and percent_complete now visibly diverge (e.g. Security+: 5.6% vs 0.0%), plus a clean tsc --noEmit in both backend and mobile.",
+      "prevention_rules": [],
+      "prevention_notes": "Progress (has this been touched) and mastery (has this been learned well) are now separate columns in view_track_progress; any new UI element needs to pick the one it actually means rather than reaching for whichever percent field happens to be on the object.",
+      "recurrence_of": "FAIL-010"
     }
   ]
 }

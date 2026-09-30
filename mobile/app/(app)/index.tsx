@@ -107,11 +107,11 @@ export default function Home() {
                   <FavoriteButton active={!!mostRecent.is_favorite} onPress={() => toggleFavorite(mostRecent)} />
                 </View>
                 <H2>{mostRecent.title}</H2>
-                <ProgressBar percent={mostRecent.percent_complete ?? 0} />
+                <ProgressBar percent={mostRecent.percent_progress ?? 0} />
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Muted>
-                    {mostRecent.mastered_objectives ?? 0}/{mostRecent.total_objectives ?? 0} objectives ·{" "}
-                    {mostRecent.percent_complete ?? 0}%
+                    {mostRecent.mastered_objectives ?? 0}/{mostRecent.total_objectives ?? 0} objectives mastered ·{" "}
+                    {mostRecent.percent_progress ?? 0}% progress
                   </Muted>
                   <IconButton icon="arrow-right" variant="solid" size={36} onPress={() => router.push(`/course/${mostRecent.id}`)} />
                 </View>

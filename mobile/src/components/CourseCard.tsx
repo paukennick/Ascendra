@@ -72,7 +72,7 @@ export function CourseCard({
         <FavoriteButton active={!!track.is_favorite} onPress={onToggleFavorite} size={32} />
         <Feather name="chevron-right" size={20} color={colors.mutedDim} />
       </View>
-      <ProgressBar percent={track.percent_complete ?? 0} />
+      <ProgressBar percent={track.percent_progress ?? 0} />
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Muted>
           {track.mastered_objectives ?? 0}/{track.total_objectives ?? 0} objectives at Independent+
@@ -86,8 +86,8 @@ export function CourseCard({
             />
           ) : null}
           <Badge
-            label={track.percent_complete != null ? `${track.percent_complete}%` : "Not started"}
-            color={track.percent_complete ? colors.good : colors.mutedDim}
+            label={track.percent_progress != null ? `${track.percent_progress}%` : "Not started"}
+            color={track.percent_progress ? colors.good : colors.mutedDim}
           />
         </View>
       </View>

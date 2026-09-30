@@ -2035,6 +2035,37 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-068",
+      "category": "defect",
+      "title": "Split Overall progress from mastery as two distinct metrics",
+      "description": "Overall progress and mastery were the same number end to end (view_track_progress.percent_complete, which only ever counted objectives at Independent/Transfer-ready) wired into every UI element labeled 'progress' -- the course dashboard's Overall progress bar, the course cards on Explore/Home, and the Home continue card. An objective that had been started (Introduced/Guided) but not yet mastered counted as zero progress. Added a second metric, started_objectives/percent_progress, counting any objective with a mastery row at all (any status), and repointed every headline progress bar/percentage at it, while everything explicitly labeled mastery (the Mastery matrix screen, per-unit 'X/Y at Independent+' captions) keeps reading the original mastery-only numbers.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/022_track_progress_vs_mastery.sql",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "mobile/src/types/index.ts",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/_layout.tsx"
+      ],
+      "acceptance_criteria": [
+        "view_track_progress exposes started_objectives/percent_progress alongside the original mastered_objectives/percent_complete; GET /api/courses and GET /api/courses/:id both return the new columns; every UI element headlined as progress (dashboard Overall progress bar",
+        "CourseCard",
+        "Home continue card) reads percent_progress; every UI element headlined as mastery (Mastery matrix screen",
+        "per-unit Independent+ captions) still reads percent_complete/mastered_objectives unchanged"
+      ],
+      "validation_required": [
+        "Migration applied live via Supabase MCP; queried view_track_progress directly and confirmed percent_progress and percent_complete now diverge for tracks with started-but-unmastered objectives (e.g. Security+: 5.6% progress vs 0.0% mastery); tsc --noEmit clean in both backend and mobile; omni gate passes"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

@@ -31,8 +31,15 @@ export interface Track {
   content_format?: "full_course";
   total_units?: number;
   total_objectives?: number;
+  // Mastery: objectives at Independent/Transfer-ready. Distinct from progress
+  // below -- an objective can be "started" (below) without being mastered.
   mastered_objectives?: number;
   percent_complete?: number;
+  // Progress: objectives with any mastery row at all, i.e. attempted at
+  // least once, regardless of how well. This is "how far in," not "how well
+  // known" -- see backend/supabase/migrations/022_track_progress_vs_mastery.sql.
+  started_objectives?: number;
+  percent_progress?: number;
   last_studied_at?: string | null;
   is_favorite?: boolean;
   // REQ-036: taxonomy + freshness, joined in by GET /api/courses.
