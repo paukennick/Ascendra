@@ -1931,6 +1931,54 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-064",
+      "category": "Repo hygiene",
+      "title": "Gitignore mobile/android and mobile/ios native build output",
+      "description": "mobile/.gitignore was missing the standard Expo managed-workflow entries for /android and /ios, the directories expo prebuild or a native build generates. Neither directory exists yet in this repo (confirmed via git ls-files), so this is a preventive addition, not a cleanup of already-tracked files.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/.gitignore"
+      ],
+      "acceptance_criteria": [
+        "mobile/.gitignore lists /android and /ios"
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-065",
+      "category": "Mobile auth",
+      "title": "Fix the biometric unlock toggle never appearing in Settings",
+      "description": "The Face/fingerprint unlock toggle in Settings has been reported not showing up since at least 2026-09-26 and was still unresolved as of this session. Root cause, confirmed against the installed expo-local-authentication package's own bundled config plugin source: the plugin (which injects android.permission.USE_BIOMETRIC and USE_FINGERPRINT into AndroidManifest.xml at build time) was never listed in app.json's plugins array, so it never ran during any prebuild/EAS build and the Android permissions were never added to any native build shipped so far. Without that permission, hasHardwareAsync/isEnrolledAsync fail on a real Android device, biometricAvailable in AuthContext.tsx stays false, and the toggle -- gated on biometricAvailable -- never renders. A second, compounding bug: the mount-time isBiometricAvailable().then(setBiometricAvailable) call had no .catch(), so the failure was completely silent with nothing in the logs to explain it.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx"
+      ],
+      "acceptance_criteria": [
+        "On a real Android device with a biometric sensor enrolled and a fresh native build carrying this change",
+        "the Settings toggle appears"
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "iOS was not actually broken by this gap -- NSFaceIDUsageDescription was already set directly in app.json's ios.infoPlist",
+        "and the plugin's own merge logic (confirmed by reading @expo/config-plugins' createPermissionsPlugin) preserves an already-set infoPlist value rather than overwriting it",
+        "so adding the plugin does not change iOS behavior.",
+        "Fixed via mobile/app.json and mobile/src/auth/AuthContext.tsx; see FAIL-006. Needs a fresh native build to actually take effect -- not verifiable on a real device from this environment."
+      ]
     }
   ]
 }
