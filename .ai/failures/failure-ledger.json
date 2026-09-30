@@ -206,6 +206,28 @@
       ],
       "prevention_notes": "Prompting a model to write JSON as free text and parsing it afterward is inherently fragile -- three different failure shapes came out of the same prompted-JSON pattern in one session. Prefer the API's native structured-outputs / schema-constrained generation for any new JSON-shaped call instead of prompting-and-parsing; callClaudeStructured in lib/anthropic.ts is the reusable path for this. callClaudeJSON's other two callers (app/api/grade/route.ts, app/api/pbq/route.ts) were not touched by this fix and remain exposed to the same class of failure -- worth migrating them the same way if it comes up there.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-010",
+      "date": "2026-09-29",
+      "title": "Course dashboard Overall progress bar always showed 0%",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Overall progress bar and percentage on the course dashboard (mobile/app/(app)/course/[trackId]/index.tsx) always read 0%, no matter how many objectives a user had mastered, while the same track's card on the Explore/Home list correctly showed the real percentage. The per-unit progress bars further down the same dashboard were also correct.",
+      "how_detected": "review",
+      "root_cause": "GET /api/courses/[id] selected only subject_tracks.* and never joined view_track_progress, so the API response had no percent_complete field at all. The mobile client reads track.percent_complete ?? 0, which silently rendered a plausible-looking 0% instead of surfacing the missing field. GET /api/courses (the list endpoint) joins view_track_progress correctly, which is why only the dashboard was wrong.",
+      "requirement": "REQ-067",
+      "affected": [
+        "backend/app/api/courses/[id]/route.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "Joined view_track_progress into the GET /api/courses/[id] query (same total_units/total_objectives/mastered_objectives/percent_complete columns the list endpoint already selects), so the dashboard now gets the real value instead of falling back to 0.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "No backend test harness exists yet in this repo (.ai/test-suites.json is empty); verified by comparing the updated query's output against view_track_progress directly via the Supabase MCP connection.",
+      "prevention_rules": [],
+      "prevention_notes": "Any endpoint returning a subject_tracks row for display should join view_track_progress the same way GET /api/courses does, rather than re-deriving progress ad hoc or letting a fallback default mask a missing column.",
+      "recurrence_of": ""
     }
   ]
 }

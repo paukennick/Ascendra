@@ -2013,6 +2013,28 @@
         "Prefetching only helps once a learner is at least one objective into a track -- the very first objective anyone ever opens in a track still pays the full generation wait, same as before this REQ.",
         "Fixed via backend/lib/lesson-generation.ts (new), the lesson route, and a new prefetch-next route; see FAIL-007, FAIL-008, FAIL-009."
       ]
+    },
+    {
+      "id": "REQ-067",
+      "category": "defect",
+      "title": "Fix Overall progress bar stuck at 0% on the course dashboard",
+      "description": "GET /api/courses/[id] (the course dashboard) never joined view_track_progress, so track.percent_complete was always undefined and the mobile client's ?? 0 fallback pinned the Overall progress bar at 0% regardless of real progress, even though the Explore/Home course list (GET /api/courses, which does join that view) showed the correct percentage for the same track.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/courses/[id]/route.ts"
+      ],
+      "acceptance_criteria": [
+        "GET /api/courses/:id response includes percent_complete/total_units/total_objectives/mastered_objectives sourced from view_track_progress",
+        "matching the value GET /api/courses returns for the same track"
+      ],
+      "validation_required": [
+        "Compared SQL output of the updated join against view_track_progress directly via Supabase; confirmed shape matches the existing GET /api/courses query"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
