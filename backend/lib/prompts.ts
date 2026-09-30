@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 // Prompt-building helpers, adapted from the governing rules baked into
 // mscs-coach.html and security-plus-coach.html (Claude Artifact apps this
 // backend runs alongside — it must replicate their teaching/grading behavior,
@@ -75,10 +77,30 @@ Previous soloCheck: "${avoid.soloCheck}"`;
 // guess/teach half, lessonPracticePrompt below for fade/solo) so the route can
 // fire both at once with Promise.all — wall time drops to roughly the slower
 // of the two instead of the sum of both.
-export interface LessonIntroContent {
-  guessPrompt: string;
-  teach: string;
-}
+// Zod schemas for lib/anthropic.ts's callClaudeStructured -- passed as
+// output_config.format so the API itself constrains generation to valid,
+// schema-conforming JSON, rather than the model free-hand writing JSON text
+// per prompt instructions alone. Three distinct real failures came out of
+// the latter approach in testing on real objectives: JSON truncated
+// mid-string (stop_reason max_tokens), no text block produced at all
+// (stop_reason max_tokens, blocks=[thinking] -- see lib/anthropic.ts's
+// disableThinking), and syntactically invalid JSON despite a clean
+// stop_reason end_turn (a raw, unescaped newline inside a string value).
+// Structured outputs close all three at the API level instead of patching
+// each symptom as it's found.
+export const lessonIntroSchema = z.object({
+  guessPrompt: z
+    .string()
+    .describe(
+      "A short, concrete question in the form of the objective the learner can genuinely attempt from intuition or prior knowledge BEFORE any teaching -- not a trick question."
+    ),
+  teach: z
+    .string()
+    .describe(
+      "The actual teaching: definition(s) of every named term, why it works, ONE short worked example traced step by step, one common mistake/misconception, complexity/systems implications if relevant. Do not end this with a question."
+    ),
+});
+export type LessonIntroContent = z.infer<typeof lessonIntroSchema>;
 
 export function lessonIntroPrompt(params: {
   trackTitle: string;
@@ -106,16 +128,30 @@ Produce ONLY a JSON object with exactly these fields, no prose outside the JSON,
   return { system, user };
 }
 
-export interface LessonPracticeContent {
-  fadeProblem: string;
-  fadeChoices: string[];
-  fadeCorrectIndex: number;
-  fadeWhy: string;
-  soloCheck: string;
-  soloChoices: string[];
-  soloCorrectIndex: number;
-  soloWhy: string;
-}
+export const lessonPracticeSchema = z.object({
+  fadeProblem: z
+    .string()
+    .describe(
+      "A SECOND example, a different instance of the same idea, mostly worked through with the final step or piece explicitly left for the learner to complete -- state exactly and unambiguously what they need to fill in (free-response phrasing)."
+    ),
+  fadeChoices: z
+    .array(z.string())
+    .length(4)
+    .describe(
+      "Exactly 4 plausible candidate completions for that same missing piece -- one correct, three real misconceptions/near-misses, never silly filler."
+    ),
+  fadeCorrectIndex: z.number().int().min(0).max(3).describe("Index into fadeChoices of the correct answer."),
+  fadeWhy: z.string().describe("One short sentence on why the correct choice is correct."),
+  soloCheck: z
+    .string()
+    .describe(
+      "A THIRD, standalone question or small problem, same scope as the objective, for the learner to solve entirely alone with no scaffolding (free-response phrasing)."
+    ),
+  soloChoices: z.array(z.string()).length(4).describe("Same shape as fadeChoices, but for soloCheck instead."),
+  soloCorrectIndex: z.number().int().min(0).max(3).describe("Index into soloChoices of the correct answer."),
+  soloWhy: z.string().describe("One short sentence."),
+});
+export type LessonPracticeContent = z.infer<typeof lessonPracticeSchema>;
 
 export function lessonPracticePrompt(params: {
   trackTitle: string;

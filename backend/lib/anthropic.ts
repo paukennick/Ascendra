@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { oidcFederationProvider } from "@anthropic-ai/sdk/lib/credentials/oidc-federation";
 import { getVercelOidcToken } from "@vercel/oidc";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { z } from "zod";
 
 let client: Anthropic | null = null;
 
@@ -123,6 +125,15 @@ async function callClaudeWithMeta(opts: {
   maxTokens?: number;
   temperature?: number;
   model?: string;
+  // Sonnet 5 runs adaptive thinking BY DEFAULT even when this option is never
+  // set -- thinking tokens count against the same max_tokens ceiling as the
+  // actual answer, and the budget it spends thinking is unpredictable. For a
+  // deterministic content-generation task (not a reasoning task), that
+  // showed up as two different failures on real objectives: a `text` block
+  // truncated mid-JSON, and once, no `text` block at all -- stop_reason
+  // max_tokens with blocks=[thinking], the model still "thinking" when its
+  // budget ran out. Pass disableThinking: true for calls like this one.
+  disableThinking?: boolean;
 }): Promise<{ text: string; stopReason: string | null }> {
   if (isLocalProvider()) {
     return { text: await callOllama(opts), stopReason: null };
@@ -134,6 +145,7 @@ async function callClaudeWithMeta(opts: {
     // Newer Claude models (e.g. Sonnet 5) reject `temperature` outright
     // ("deprecated for this model"), so only send it when a caller opts in.
     ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
+    ...(opts.disableThinking ? { thinking: { type: "disabled" } } : {}),
     system: opts.system,
     messages: opts.messages,
   });
@@ -153,6 +165,7 @@ export async function callClaude(opts: {
   maxTokens?: number;
   temperature?: number;
   model?: string;
+  disableThinking?: boolean;
 }): Promise<string> {
   const { text } = await callClaudeWithMeta(opts);
   return text;
@@ -170,6 +183,7 @@ export async function callClaudeJSON<T>(opts: {
   maxTokens?: number;
   temperature?: number;
   model?: string;
+  disableThinking?: boolean;
 }): Promise<T> {
   const { text: raw, stopReason } = await callClaudeWithMeta(opts);
   const cleaned = raw
@@ -185,4 +199,52 @@ export async function callClaudeJSON<T>(opts: {
         `Head: ${cleaned.slice(0, 300)} ... Tail: ${cleaned.slice(-300)}`
     );
   }
+}
+
+/**
+ * Calls Claude with output_config.format built from a Zod schema (via the
+ * SDK's zodOutputFormat helper), so the API itself constrains generation to
+ * valid, schema-conforming JSON instead of the model free-hand writing JSON
+ * text per prompt instructions and this code parsing it after the fact.
+ * Prefer this over callClaudeJSON for any new structured-output call.
+ *
+ * Built after three distinct raw-JSON failures on real objectives in lesson
+ * generation, none of them the same bug: output truncated mid-string
+ * (stop_reason max_tokens), no text block produced at all (stop_reason
+ * max_tokens with blocks=[thinking] -- see disableThinking below), and
+ * syntactically invalid JSON despite a clean stop_reason end_turn (a raw,
+ * unescaped newline inside a string value). Structured outputs close all
+ * three at the API level instead of patching each symptom as it turns up.
+ */
+export async function callClaudeStructured<S extends z.ZodType>(opts: {
+  system: string;
+  messages: ChatTurn[];
+  schema: S;
+  maxTokens?: number;
+  temperature?: number;
+  model?: string;
+  disableThinking?: boolean;
+}): Promise<z.infer<S>> {
+  if (isLocalProvider()) {
+    throw new Error(
+      "callClaudeStructured doesn't support AI_PROVIDER=local (Ollama) -- structured outputs are an " +
+        "Anthropic API feature. Use callClaudeJSON for local-dev testing against Ollama, or extend this function."
+    );
+  }
+  const anthropic = getClient();
+  const message = await anthropic.messages.parse({
+    model: opts.model ?? getModel(),
+    max_tokens: opts.maxTokens ?? 2000,
+    // Newer Claude models (e.g. Sonnet 5) reject `temperature` outright
+    // ("deprecated for this model"), so only send it when a caller opts in.
+    ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
+    ...(opts.disableThinking ? { thinking: { type: "disabled" } } : {}),
+    output_config: { format: zodOutputFormat(opts.schema) },
+    system: opts.system,
+    messages: opts.messages,
+  });
+  if (message.parsed_output === null || message.parsed_output === undefined) {
+    throw new Error(`Claude structured output missing parsed_output. stop_reason=${message.stop_reason}`);
+  }
+  return message.parsed_output;
 }
