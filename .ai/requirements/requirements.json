@@ -2092,6 +2092,38 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-070",
+      "category": "feature",
+      "title": "Category emoji for every course/cert + value-based progress bar color",
+      "description": "Two visual-polish items Nick picked from a surfaced options list (2026-09-30): (1) every course/cert now shows a real emoji, not just the original 9 hand-picked tracks -- added categoryEmoji (19 entries, one per education_categories slug) and a shared getCourseIcon() helper in mobile/src/lib/theme.ts so CourseCard and both course-referencing spots in Sidebar.tsx (brand header, CourseRow) use one canonical lookup chain (courseEmoji -> categoryEmoji -> categoryIcon -> trackTypeIcon) instead of three separately-maintained copies -- Sidebar's two copies had already drifted narrower than CourseCard's before this fix, missing the category branch entirely. (2) ProgressBar's fill color now reflects the percentage value (mutedDim at 0, warn under 50, good at/above 50) instead of a single flat accent color for every bar in the app, chosen over a metric-type-based scheme (progress vs. mastery in different colors) after the tradeoff was raised explicitly.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/theme.ts",
+        "mobile/src/components/CourseCard.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/components/ui.tsx"
+      ],
+      "acceptance_criteria": [
+        "Every track in all 19 education_categories renders a real emoji (its own if in courseEmoji",
+        "else its category's); CourseCard",
+        "Sidebar's brand header",
+        "and Sidebar's CourseRow all resolve icon/emoji/accent through the single getCourseIcon() helper; ProgressBar fill color changes with percent (0 / <50 / >=50) everywhere it's used",
+        "with no per-callsite changes needed"
+      ],
+      "validation_required": [
+        "tsc --noEmit clean; categoryEmoji key set diffed against a live query of education_categories.slug (exact 19-way match",
+        "no typos); manual read-through confirming no other screen has its own separate icon/emoji lookup left unfixed"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Bar coloring by value (not by progress-vs-mastery type) means the two metrics split in REQ-068 still look visually identical at the bar level",
+        "distinguished only by their text labels -- Nick chose this explicitly after that tradeoff was raised"
+      ]
     }
   ]
 }

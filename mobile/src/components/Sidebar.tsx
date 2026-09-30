@@ -5,7 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { ChoiceSheet } from "@/components/ui";
-import { colors, courseEmoji, fonts, radius, spacing, trackTypeIcon } from "@/lib/theme";
+import { colors, fonts, getCourseIcon, radius, spacing } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
 
 // Custom-built rather than a React Navigation Drawer -- this pops out on
@@ -96,7 +96,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   }
 
   if (!rendered) return null;
-  const emoji = track ? courseEmoji[track.code] : undefined;
+  const emoji = track ? getCourseIcon(track).emoji : undefined;
 
   const favorites = tracks?.filter((t) => t.is_favorite).sort(byLastStudied) ?? [];
   const favoriteIds = new Set(favorites.map((t) => t.id));
@@ -258,7 +258,7 @@ function NavRow({ icon, label, onPress }: { icon: IconName; label: string; onPre
 }
 
 function CourseRow({ track, busy, onPress }: { track: Track; busy: boolean; onPress: () => void }) {
-  const emoji = courseEmoji[track.code];
+  const { emoji, icon, accent } = getCourseIcon(track);
   return (
     <Pressable style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]} onPress={onPress} disabled={busy}>
       {busy ? (
@@ -266,7 +266,7 @@ function CourseRow({ track, busy, onPress }: { track: Track; busy: boolean; onPr
       ) : emoji ? (
         <Text style={{ fontSize: 16 }}>{emoji}</Text>
       ) : (
-        <Feather name={(trackTypeIcon[track.track_type] ?? "book") as IconName} size={16} color={colors.accent} />
+        <Feather name={icon as IconName} size={16} color={accent} />
       )}
       <Text style={styles.navLabel} numberOfLines={1}>{track.title}</Text>
     </Pressable>

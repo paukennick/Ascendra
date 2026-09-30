@@ -2,7 +2,7 @@ import React from "react";
 import { Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Badge, Card, FavoriteButton, H2, Muted, ProgressBar } from "@/components/ui";
-import { categoryAccent, categoryIcon, colors, courseAccent, courseEmoji, spacing, trackTypeIcon } from "@/lib/theme";
+import { colors, getCourseIcon, spacing } from "@/lib/theme";
 import type { Track } from "@/types";
 
 type IconName = React.ComponentProps<typeof Feather>["name"];
@@ -28,20 +28,6 @@ function contentKindLabel(trackType: string): string {
   return trackType === "certification" ? "Certification" : "Course";
 }
 
-// Icon + accent lookup, in order of specificity: a course's own hand-picked
-// emoji (the original nine tracks) -> its category's icon/accent (everything
-// else, scales as new tracks land in an existing category) -> a generic
-// track_type icon (a track with no category at all).
-function courseIcon(track: Track): { emoji?: string; icon: IconName; accent: string } {
-  const emoji = courseEmoji[track.code];
-  if (emoji) return { emoji, icon: "book", accent: courseAccent[track.code] ?? colors.accent };
-  const catSlug = track.category_slug ?? undefined;
-  if (catSlug && categoryIcon[catSlug]) {
-    return { icon: categoryIcon[catSlug] as IconName, accent: categoryAccent[catSlug] ?? colors.accent };
-  }
-  return { icon: (trackTypeIcon[track.track_type] ?? "book") as IconName, accent: colors.accent };
-}
-
 export function CourseCard({
   track,
   onPress,
@@ -51,7 +37,7 @@ export function CourseCard({
   onPress: () => void;
   onToggleFavorite: () => void;
 }) {
-  const { emoji, icon, accent } = courseIcon(track);
+  const { emoji, icon, accent } = getCourseIcon(track);
   return (
     <Card onPress={onPress}>
       <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
@@ -59,7 +45,7 @@ export function CourseCard({
           {emoji ? (
             <Text style={{ fontSize: 20 }}>{emoji}</Text>
           ) : (
-            <Feather name={icon} size={18} color={accent} />
+            <Feather name={icon as IconName} size={18} color={accent} />
           )}
         </View>
         <View style={{ flex: 1, gap: 4 }}>

@@ -406,6 +406,17 @@ export function TextField({
   );
 }
 
+// Fill color reads the value, not what the bar represents (progress vs.
+// mastery look identical otherwise) -- muted at 0 (nothing started yet,
+// not a failure state), warn under halfway (underway), good at/past halfway
+// (well underway). Mirrors the same three-tier grammar masteryColor already
+// uses for per-objective status badges, rather than inventing new meaning.
+function colorForPercent(percent: number): string {
+  if (percent <= 0) return colors.mutedDim;
+  if (percent < 50) return colors.warn;
+  return colors.good;
+}
+
 export function ProgressBar({ percent, height = 8 }: { percent: number; height?: number }) {
   const clamped = Math.max(0, Math.min(100, percent));
   const widthAnim = useRef(new Animated.Value(0)).current;
@@ -420,6 +431,7 @@ export function ProgressBar({ percent, height = 8 }: { percent: number; height?:
         style={[
           styles.progressFill,
           {
+            backgroundColor: colorForPercent(clamped),
             borderRadius: height / 2,
             width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] }),
           },
@@ -683,8 +695,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: {
+    // backgroundColor is set per-instance by colorForPercent() above, not here.
     height: "100%",
-    backgroundColor: colors.accent,
   },
   errorBanner: {
     flexDirection: "row",

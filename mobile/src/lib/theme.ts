@@ -148,14 +148,41 @@ export const courseAccent: Record<string, string> = {
 };
 
 // Per-category emoji/icon + accent, keyed by education_categories.slug
-// (migrations 007/013/019). The 67-track catalog now spans far more than
-// the original nine hand-picked courses above, so a card's identity comes
-// from its category once it isn't one of those nine -- this scales as new
-// tracks land in an existing category instead of needing a new hardcoded
-// entry per course code. Lookup order used by card rendering:
-// courseEmoji[code] (the original nine's specific personality) ->
-// categoryIcon[category_slug] (everything else) -> trackTypeIcon[track_type]
-// (final fallback for a track with no category at all).
+// (migrations 007/013/019). The catalog now spans far more than the
+// original nine hand-picked courses above, so a card's identity comes from
+// its category once it isn't one of those nine -- this scales as new tracks
+// land in an existing category instead of needing a new hardcoded entry per
+// course code. Lookup order, see getCourseIcon() below: courseEmoji[code]
+// (the original nine's specific personality) -> categoryEmoji[category_slug]
+// (everything else, a real emoji rather than just an icon glyph) ->
+// categoryIcon (only reached if a category is somehow missing from
+// categoryEmoji) -> trackTypeIcon[track_type] (final fallback for a track
+// with no category at all). categoryIcon/categoryAccent stay in their own
+// maps rather than folded into one object so a Feather icon name and a
+// CSS-style hex color aren't sitting in the same record under different
+// implied types.
+export const categoryEmoji: Record<string, string> = {
+  development: "💻",
+  business: "💼",
+  "finance-accounting": "💰",
+  "it-software": "🖥️",
+  "office-productivity": "🗂️",
+  "personal-development": "🌱",
+  design: "🎨",
+  marketing: "📈",
+  lifestyle: "☕",
+  "photography-video": "📷",
+  "health-fitness": "🏃",
+  music: "🎵",
+  "teaching-academics": "📚",
+  "healthcare-nursing": "🩺",
+  "aws-certifications": "☁️",
+  "azure-certifications": "🔷",
+  "gcp-certifications": "🔺",
+  "comptia-certifications": "🛡️",
+  "project-management-certifications": "📋",
+};
+
 export const categoryIcon: Record<string, string> = {
   development: "code",
   business: "briefcase",
@@ -199,3 +226,35 @@ export const categoryAccent: Record<string, string> = {
   "comptia-certifications": "#8A5B3D",
   "project-management-certifications": "#3D7A8A",
 };
+
+// Single source of truth for "what does this course look like," used by
+// CourseCard and both course-referencing spots in Sidebar.tsx. Previously
+// each of those three places had its own copy of this fallback chain, and
+// two of them (Sidebar's brand header and its CourseRow) never grew the
+// category-level branch when it was added for CourseCard -- so a track
+// outside the original nine looked richly identified on Explore/Home but
+// fell back to a generic icon or a plain "📚" the moment it showed up in the
+// sidebar. One function, three call sites, can't drift apart again.
+export interface CourseIconInfo {
+  emoji?: string;
+  icon: string; // Feather icon name; only rendered when emoji is undefined.
+  accent: string;
+}
+
+export function getCourseIcon(track: {
+  code: string;
+  category_slug?: string | null;
+  track_type: string;
+}): CourseIconInfo {
+  const ownEmoji = courseEmoji[track.code];
+  if (ownEmoji) return { emoji: ownEmoji, icon: "book", accent: courseAccent[track.code] ?? colors.accent };
+
+  const catSlug = track.category_slug ?? undefined;
+  const catEmoji = catSlug ? categoryEmoji[catSlug] : undefined;
+  if (catSlug && catEmoji) return { emoji: catEmoji, icon: "book", accent: categoryAccent[catSlug] ?? colors.accent };
+
+  if (catSlug && categoryIcon[catSlug]) {
+    return { icon: categoryIcon[catSlug], accent: categoryAccent[catSlug] ?? colors.accent };
+  }
+  return { icon: trackTypeIcon[track.track_type] ?? "book", accent: colors.accent };
+}
