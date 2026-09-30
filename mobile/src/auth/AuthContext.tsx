@@ -78,8 +78,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const backgroundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    isBiometricAvailable().then(setBiometricAvailable);
-    getBiometricLabel().then(setBiometricLabel);
+    // No .catch() here previously meant a thrown hasHardwareAsync/
+    // isEnrolledAsync (e.g. missing USE_BIOMETRIC permission on Android)
+    // failed completely silently -- biometricAvailable just stayed at its
+    // false default forever, and the Settings toggle never appeared, with
+    // nothing in the logs to explain why.
+    isBiometricAvailable()
+      .then(setBiometricAvailable)
+      .catch((err) => console.warn("isBiometricAvailable failed:", err));
+    getBiometricLabel()
+      .then(setBiometricLabel)
+      .catch((err) => console.warn("getBiometricLabel failed:", err));
   }, []);
 
   const clearAuth = useCallback(async () => {
