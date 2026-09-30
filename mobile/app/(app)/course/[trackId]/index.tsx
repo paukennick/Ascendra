@@ -34,7 +34,7 @@ interface AcknowledgementState {
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
-  { icon: "bar-chart-2", label: "Progress", path: "progress" },
+  { icon: "bar-chart-2", label: "Mastery", path: "progress" },
   { icon: "clock", label: "History", path: "history" },
   { icon: "layers", label: "PBQ sim", path: "pbq" },
 ];
@@ -141,9 +141,12 @@ export default function CourseDashboard() {
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Muted>Overall progress</Muted>
-              <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{track.percent_complete ?? 0}%</Muted>
+              <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{track.percent_progress ?? 0}%</Muted>
             </View>
-            <ProgressBar percent={track.percent_complete ?? 0} />
+            <ProgressBar percent={track.percent_progress ?? 0} />
+            <Muted style={{ fontSize: 12 }}>
+              {track.mastered_objectives ?? 0}/{track.total_objectives ?? 0} objectives mastered ({track.percent_complete ?? 0}%)
+            </Muted>
 
             <Button
               label="Continue studying"

@@ -14,7 +14,8 @@ export async function GET(
     const user = await requireUser(req);
     const userId = user.id;
     const tracks = await query(
-      `select st.*, vp.total_units, vp.total_objectives, vp.mastered_objectives, vp.percent_complete
+      `select st.*, vp.total_units, vp.total_objectives, vp.mastered_objectives, vp.percent_complete,
+              vp.started_objectives, vp.percent_progress
        from subject_tracks st
        left join view_track_progress vp on vp.track_id = st.id
        where st.id = $1 and st.user_id = $2`,
