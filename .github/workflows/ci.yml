@@ -21,6 +21,10 @@ jobs:
         working-directory: backend
       - run: npm run typecheck
         working-directory: backend
+      # REQ-080: node:test suites for the mastery engine, prompt framing and
+      # grading helpers -- pure modules, no database or API key needed.
+      - run: npm test
+        working-directory: backend
       # Real secrets are never needed at build time (every server module reads
       # process.env lazily, inside request handlers -- see lib/db.ts,
       # lib/email.ts), but Next.js still needs the names present so nothing
@@ -53,6 +57,10 @@ jobs:
       - run: npm ci
         working-directory: mobile
       - run: npm run typecheck
+        working-directory: mobile
+      # REQ-084: node:test over the pure helpers in mobile/src/lib (Node 24
+      # strips types natively, so no extra tooling).
+      - run: npm test
         working-directory: mobile
       # Report-only, not blocking: Expo's own CLI toolchain currently ships
       # transitive advisories (uuid/bunyan/xcode, build-time only, not in the

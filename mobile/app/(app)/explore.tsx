@@ -111,7 +111,15 @@ export default function Explore() {
     return tracks.filter((t) => {
       if (categorySlug && t.category_slug !== categorySlug) return false;
       if (!matchesFreshnessFilter(t, freshnessFilter)) return false;
-      if (q && !t.title.toLowerCase().includes(q) && !t.code.toLowerCase().includes(q)) return false;
+      // REQ-075: "nursing" or "cloud" used to return nothing unless it was
+      // literally in a title or code. Match the description and taxonomy
+      // names too.
+      if (q) {
+        const haystack = [t.title, t.code, t.description ?? "", t.category_name ?? "", t.subcategory_name ?? ""]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
   }, [tracks, query, categorySlug, freshnessFilter]);

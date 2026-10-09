@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const [profile, tracks, mastery, attempts, errorLog, chatMessages, studySessions] = await Promise.all([
       query("select id, email, display_name, created_at from app_users where id = $1", [user.id]),
       query("select * from subject_tracks where user_id = $1", [user.id]),
+      query("select track_id, created_at from course_favorites where user_id = $1", [user.id]),
       query("select * from mastery where user_id = $1", [user.id]),
       query("select * from attempts where user_id = $1 order by created_at asc", [user.id]),
       query("select * from error_log where user_id = $1 order by created_at asc", [user.id]),

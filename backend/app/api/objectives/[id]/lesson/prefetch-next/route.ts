@@ -13,15 +13,26 @@ import { loadObjective, ensureGeneration, pendingGeneration } from "@/lib/lesson
 // first objective of the next unit in the same track. Ordering entirely by
 // (unit.sort_order, objective.sort_order) as one tuple comparison covers
 // both cases without special-casing "last in unit."
-async function findNextObjectiveId(objectiveId: string): Promise<string | null> {
-  const row = await queryOne<{ id: string }>(
+//
+// REQ-074: also returns the next objective's title and unit so the lesson
+// screen's "Next objective" button can navigate with the same params the
+// course dashboard passes, without a second round trip.
+export interface NextObjective {
+  id: string;
+  title: string;
+  unit_id: string;
+  unit_title: string;
+}
+
+async function findNextObjective(objectiveId: string): Promise<NextObjective | null> {
+  const row = await queryOne<NextObjective>(
     `with cur as (
        select cu.track_id, cu.sort_order as unit_sort, o.sort_order as obj_sort
        from objectives o
        join course_units cu on cu.id = o.unit_id
        where o.id = $1
      )
-     select o.id
+     select o.id, o.title, cu.id as unit_id, cu.title as unit_title
      from objectives o
      join course_units cu on cu.id = o.unit_id
      join cur on cu.track_id = cur.track_id
@@ -30,7 +41,7 @@ async function findNextObjectiveId(objectiveId: string): Promise<string | null> 
      limit 1`,
     [objectiveId]
   );
-  return row?.id ?? null;
+  return row ?? null;
 }
 
 // POST /api/objectives/:id/lesson/prefetch-next -- best-effort nudge fired by
@@ -58,8 +69,9 @@ export async function POST(
     const user = await requireUser(req);
     await requireAcknowledgementForObjective(id, user.id);
 
-    const nextId = await findNextObjectiveId(id);
-    if (!nextId) return ok({ nextObjectiveId: null, status: "none" });
+    const next = await findNextObjective(id);
+    if (!next) return ok({ nextObjectiveId: null, next: null, status: "none" });
+    const nextId = next.id;
 
     // The next objective is very likely still in the same track/unit as the
     // current one, but check anyway rather than assume -- a track boundary
@@ -70,14 +82,14 @@ export async function POST(
 
     const alreadyInFlight = pendingGeneration.has(nextId);
     if (alreadyInFlight) {
-      return ok({ nextObjectiveId: nextId, status: "in-flight" });
+      return ok({ nextObjectiveId: nextId, next, status: "in-flight" });
     }
 
     const existing = await queryOne<{ id: string }>(
       `select id from lesson_content where objective_id = $1`,
       [nextId]
     );
-    if (existing) return ok({ nextObjectiveId: nextId, status: "already-cached" });
+    if (existing) return ok({ nextObjectiveId: nextId, next, status: "already-cached" });
 
     const objRow = await loadObjective(nextId);
     if (!objRow) return notFound("Next objective not found");
@@ -88,7 +100,7 @@ export async function POST(
     const handle = ensureGeneration(nextId, objRow);
     after(() => handle.fullPromise.catch(() => {}));
 
-    return ok({ nextObjectiveId: nextId, status: "started" });
+    return ok({ nextObjectiveId: nextId, next, status: "started" });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, serverError, badRequest, unauthorized } from "@/lib/http";
+import { ok, serverError, badRequest, notFound, unauthorized } from "@/lib/http";
 import { MASTERY_LABELS, statusToScore, type MasteryStatus } from "@/lib/mastery";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
@@ -41,6 +41,16 @@ export async function PUT(
       return badRequest(`status must be one of: ${MASTERY_LABELS.join(", ")}`);
     }
     const user = await requireUser(req);
+    // REQ-079: the objective must belong to one of the caller's own tracks
+    // before a mastery row is written against it.
+    const owned = await queryOne<{ id: string }>(
+      `select o.id from objectives o
+       join course_units cu on cu.id = o.unit_id
+       join subject_tracks st on st.id = cu.track_id
+       where o.id = $1 and (st.user_id is null or st.user_id = $2)`,
+      [id, user.id]
+    );
+    if (!owned) return notFound("Objective not found");
     const score = statusToScore(status);
     const rows = await query(
       `insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)

@@ -2176,6 +2176,342 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-073",
+      "category": "feature",
+      "title": "Surface the spaced-review queue in the app",
+      "description": "The 1/7/21-day spaced-review scheduler has written error_log rows since day one, but no screen ever read them: /api/errors was never called by the mobile app. Add a Review screen listing due entries (question, your answer, why, next-review stage) with Open lesson / Got it / Dismiss actions, a Home card showing how many are due, and extend GET /api/errors to return track context.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/index.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "backend/app/api/errors/route.ts",
+        "backend/app/api/errors/[id]/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-074",
+      "category": "ux",
+      "title": "Lesson flow: next objective, confidence before submit, follow-up with context, mastery explanation",
+      "description": "Done screen gets a Next objective button (prefetch-next already computes the id; now returns title/unit too) and shows the mastery status reached plus how to advance. Confidence picker moves above Submit so it is actually set before answering. Follow-up to the coach carries the question/answer/verdict context and confirms it was sent. After a correct MC answer, explain that free response is what earns Independent.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-075",
+      "category": "ux",
+      "title": "Browse objectives from the course dashboard; tappable mastery and history rows; history timestamps; wider Explore search",
+      "description": "Units on the course dashboard expand to list their objectives with mastery status, each tappable into its lesson. Mastery-matrix rows and History cards navigate to the objective's lesson. History shows when each attempt happened. Explore search also matches description, category and subcategory.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx",
+        "mobile/app/(app)/course/[trackId]/history.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "backend/app/api/attempts/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-076",
+      "category": "quality",
+      "title": "Track-aware coach rules for lesson, grading, PBQ and chat prompts",
+      "description": "COACH_RULES in backend/lib/prompts.ts still says the learner is closing gaps in graduate CS foundations and/or CompTIA Security+ -- stale since the catalog grew to 74 tracks across nursing, PT, PM, AWS/Azure/GCP. Every prompt now receives the track's title, category, track type, exam/credential name and unit weight, and the rules frame the coach for that domain (exam-blueprint framing for certifications, clinical-exam framing for nursing/PT, degree framing for academic tracks).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/objectives/[id]/guess-feedback/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-077",
+      "category": "defect",
+      "title": "Chat: send the most recent 40 turns (not the oldest), typing indicator, Enter sends on web",
+      "description": "POST /api/chat's history query used order by created_at asc limit 40, which keeps the OLDEST 40 messages and drops everything recent once a thread passes 40 -- the opposite of the comment's intent. Fixed to take the newest 40 in chronological order. Chat screen shows a typing bubble while the reply is pending and Enter sends (Shift+Enter newline) on web.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/chat/route.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-078",
+      "category": "feature",
+      "title": "Weighted exam readiness on certification tracks",
+      "description": "Units already carry the vendor's published domain weight, but progress was a flat count of mastered objectives. For tracks whose units have weights, the course dashboard now also shows exam readiness: each unit's mastery share multiplied by its exam weight, summed -- the number that actually predicts a pass.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-079",
+      "category": "security",
+      "title": "Auth and ownership on errors PATCH, sessions PATCH, mastery PUT",
+      "description": "PATCH /api/errors/:id and PATCH /api/sessions had no requireUser at all -- any caller could resolve any user's review entries or end any session by id. PUT /api/objectives/:id/mastery authenticated but never checked the objective belonged to the caller's track. All three now require a user and scope the write to that user.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/errors/[id]/route.ts",
+        "backend/app/api/sessions/route.ts",
+        "backend/app/api/objectives/[id]/mastery/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "security_review"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-080",
+      "category": "automation",
+      "title": "Unit tests for the mastery engine and grading helpers, run in CI",
+      "description": "No test runner or tests existed in either package. Add node:test suites via the already-installed tsx for backend/lib/mastery.ts (status suggestion, proficiency, review schedule) and the classification clamp, wired as npm test and into the backend CI job. No new dependencies.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/mastery.test.ts",
+        "backend/lib/grading-service.test.ts",
+        "backend/package.json",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-081",
+      "category": "content",
+      "title": "Catalog: DPT entry-to-practice pathway and ABPTS specialist certifications",
+      "description": "Continue Strand 3 of docs/catalog-backlog.md: author the DPT degree pathway from CAPTE's standards and the ABPTS specialist certifications from each specialty's own published exam content outline, seeding live when sourced. Standing sourcing rule applies: vendor/body's own current page, BLOCKED note if unavailable.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/seed.ts",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 in the app-wide quality sweep; see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-082",
+      "category": "feature",
+      "title": "Shared catalog: seeded courses visible to every account, favorites per user",
+      "description": "subject_tracks were copied per user by the seed, so any new sign-up had zero courses until someone re-ran the seed for their email, and the seed clobbered the seed user's display name on every run. Catalog tracks now have user_id null and are visible to every signed-in user; user-created tracks keep their owner. Favorites move from a boolean on the track to a per-user course_favorites table (migration 023). Progress/mastery rollups are computed per user in the routes instead of via the user-agnostic views, which would have mixed users' mastery on a shared track.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/023_shared_catalog.sql",
+        "backend/supabase/seed/seed.ts",
+        "backend/lib/progress-sql.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/courses/[id]/favorite/route.ts",
+        "backend/app/api/courses/[id]/acknowledgement/route.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/units/[id]/route.ts",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/objectives/[id]/mastery/route.ts",
+        "backend/app/api/account/export/route.ts"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "data_validation",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "readme"
+      ],
+      "risk_notes": [
+        "Live data migration of Nick's 84 tracks to shared ownership; verified by row counts before and after",
+        "Completed 2026-10-08 (round 2 of the app-wide sweep); see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-083",
+      "category": "automation",
+      "title": "Keep Supabase awake: daily health ping from Vercel cron and GitHub Actions",
+      "description": "Supabase free projects pause after 7 days without activity. Add a Vercel cron hitting /api/health (which runs select 1) daily, plus a scheduled GitHub Actions workflow curling the production health endpoint as a second, independent trigger.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/vercel.json",
+        ".github/workflows/keepalive.yml"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 (round 2 of the app-wide sweep); see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-084",
+      "category": "ux",
+      "title": "Auto-advance spaced review on a correct answer; ask-the-coach shortcut from a lesson; PBQ unit picker, sub-part results and history; mobile unit tests",
+      "description": "A correct graded answer on an objective now advances that objective's open review entries one interval (same as Got it) instead of leaving them to be cleared by hand. Lesson teach/done steps get an Ask the coach button that opens chat prefilled with the objective and unit. The PBQ screen opened from the dashboard's quick action lets you pick a unit instead of erroring, shows each sub-part as hit/missed after grading, and lists past PBQ attempts. Pure mobile helpers (exam readiness, relative time) move to src/lib with node:test coverage in CI.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/grading-service.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/history.tsx",
+        "mobile/src/lib/progress.ts",
+        "mobile/src/lib/time.ts",
+        "mobile/package.json",
+        "mobile/tsconfig.json",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 (round 2 of the app-wide sweep); see CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "REQ-085",
+      "category": "content",
+      "title": "Catalog: fitness certifications strand (NASM-CPT, ACE-CPT, ACSM-CPT, NSCA-CSCS, ISSA-CPT)",
+      "description": "Strand 4 of docs/catalog-backlog.md. Each from its certifying body's own current exam content outline; BLOCKED note where unavailable.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/fitness.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/supabase/migrations/024_fitness_taxonomy.sql",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [],
+      "validation_required": [
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Completed 2026-10-08 (round 2 of the app-wide sweep); see CHANGELOG.md"
+      ]
     }
   ]
 }

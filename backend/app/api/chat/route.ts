@@ -8,6 +8,7 @@ import {
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { coachContextForTrack } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
     await recordAuthEvent("chat_message", userId);
 
     const track = await queryOne<{ title: string }>(
-      `select title from subject_tracks where id = $1 and user_id = $2`,
+      `select title from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
       [trackId, userId]
     );
     if (!track) return notFound("Track not found");
@@ -66,14 +67,23 @@ export async function POST(req: Request) {
       unitTitle = unit?.title;
     }
 
+    // REQ-077: `order by created_at asc limit 40` kept the OLDEST 40 turns
+    // and silently dropped everything recent once a thread passed 40 -- the
+    // model lost the live context exactly when a conversation got going.
+    // Take the newest 40, then flip back into chronological order.
     const history = await query<{ role: "user" | "assistant"; content: string }>(
-      `select role, content from chat_messages where user_id = $1 and track_id = $2
-       order by created_at asc limit 40`,
+      `select role, content from (
+         select role, content, created_at from chat_messages
+          where user_id = $1 and track_id = $2
+          order by created_at desc limit 40
+       ) recent
+       order by created_at asc`,
       [userId, trackId]
     );
 
     const messages: ChatTurn[] = [...history.map((h) => ({ role: h.role, content: h.content })), { role: "user", content: message }];
-    const system = chatSystemPrompt({ trackTitle: track.title, unitTitle });
+    const ctx = await coachContextForTrack(trackId);
+    const system = chatSystemPrompt({ trackTitle: track.title, unitTitle, ctx: ctx ?? undefined });
     const reply = await callClaude({ system, messages, maxTokens: 1200, model: getFastModel() });
 
     await query(

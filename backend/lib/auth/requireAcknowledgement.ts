@@ -21,7 +21,7 @@ export async function requireAcknowledgementForTrack(trackId: string, userId: st
     disclaimer_version: number;
   }>(
     `select requires_acknowledgement, disclaimer_version
-       from subject_tracks where id = $1 and user_id = $2`,
+       from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
     [trackId, userId]
   );
   // Missing/not-owned tracks are the caller's problem to report as 404;

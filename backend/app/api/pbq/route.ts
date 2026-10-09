@@ -9,6 +9,7 @@ import {
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
     const unit = await queryOne<{ title: string; track_title: string }>(
       `select cu.title, st.title as track_title
        from course_units cu join subject_tracks st on st.id = cu.track_id
-       where cu.id = $1 and st.user_id = $2`,
+       where cu.id = $1 and (st.user_id is null or st.user_id = $2)`,
       [unitId, authUser.id]
     );
     if (!unit) return notFound("Unit not found");
@@ -54,10 +55,12 @@ export async function GET(req: Request) {
       [unitId]
     );
 
+    const ctx = await coachContextForUnit(unitId);
     const { system, user } = pbqGenerationPrompt({
       trackTitle: unit.track_title,
       unitTitle: unit.title,
       unitObjectives: objectives.map((o) => o.title),
+      ctx: ctx ?? undefined,
     });
     const generated = await callClaudeJSON<PBQScenario>({
       system,
@@ -103,10 +106,12 @@ export async function POST(req: Request) {
     );
     if (!scenario) return notFound("PBQ scenario not found");
 
+    const ctx = unitId ? await coachContextForUnit(unitId) : null;
     const { system, user } = gradePBQPrompt({
       scenario: scenario.scenario,
       subParts: scenario.sub_parts,
       answer,
+      ctx: ctx ?? undefined,
     });
     const graded = await callClaudeJSON<GradeResult>({
       system,

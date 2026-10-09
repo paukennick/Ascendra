@@ -52,6 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       guessPrompt: lessonRow.guess_prompt,
       teach: lessonRow.teach,
       guess,
+      ctx: objective?.ctx ?? undefined,
     });
     const { feedback } = await callClaudeStructured({
       system,

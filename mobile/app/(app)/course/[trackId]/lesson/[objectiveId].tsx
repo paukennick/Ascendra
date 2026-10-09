@@ -3,8 +3,9 @@ import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
-import type { GradeResult, LessonContent } from "@/types";
+import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
 import {
+  Badge,
   Body,
   Button,
   Card,
@@ -15,7 +16,7 @@ import {
   Screen,
   VerdictBadge,
 } from "@/components/ui";
-import { colors, fonts, radius, spacing } from "@/lib/theme";
+import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -48,6 +49,13 @@ export default function LessonFlow() {
   // full ~20s generation). Gates the move into the fade step below.
   const [practicePending, setPracticePending] = useState(false);
   const [practiceLoading, setPracticeLoading] = useState(false);
+  // REQ-074: the objective after this one in course order, from the same
+  // prefetch call that warms its cache -- drives "Next objective" on the
+  // done screen so finishing a lesson doesn't dead-end on the dashboard.
+  const [next, setNext] = useState<NextObjective | null>(null);
+  // Mastery status reached, fetched once the learner lands on "done" so the
+  // screen can say what the work just earned and how to go further.
+  const [reached, setReached] = useState<MasteryStatus | null>(null);
 
   const loadLesson = useCallback(() => {
     setError(null);
@@ -68,6 +76,8 @@ export default function LessonFlow() {
     setConfidence(null);
     setGuessFeedback(null);
     setGuessFeedbackLoading(false);
+    setNext(null);
+    setReached(null);
   }, [loadLesson]);
 
   useEffect(() => {
@@ -78,8 +88,19 @@ export default function LessonFlow() {
     // Errors are swallowed on purpose; this is a pure optimization with no
     // effect on the current objective if it fails or the next one doesn't
     // exist.
-    api.post(`/api/objectives/${objectiveId}/lesson/prefetch-next`).catch(() => {});
+    api
+      .post<{ next: NextObjective | null }>(`/api/objectives/${objectiveId}/lesson/prefetch-next`)
+      .then((res) => setNext(res.next ?? null))
+      .catch(() => {});
   }, [objectiveId]);
+
+  useEffect(() => {
+    if (step !== "done") return;
+    api
+      .get<{ mastery: { status: MasteryStatus } }>(`/api/objectives/${objectiveId}/mastery`)
+      .then((res) => setReached(res.mastery.status))
+      .catch(() => setReached(null));
+  }, [step, objectiveId]);
 
   // Called right before advancing past "teach". Usually a no-op: the learner
   // spends real time reading guess+teach, which is normally longer than
@@ -199,6 +220,17 @@ export default function LessonFlow() {
               if (ready) setStep("fade");
             }}
           />
+          <Button
+            label="Ask the coach about this"
+            variant="link"
+            icon="message-circle"
+            onPress={() =>
+              router.push({
+                pathname: `/course/${trackId}/chat`,
+                params: { unitId, prefill: `About "${headerTitle}": ` },
+              })
+            }
+          />
         </Card>
       )}
 
@@ -246,11 +278,51 @@ export default function LessonFlow() {
             <Feather name="check" size={28} color={colors.good} />
           </View>
           <H2>Objective complete</H2>
-          <Muted style={{ textAlign: "center" }}>
-            Head back to the course dashboard to pick the next objective, or revisit this one.
-          </Muted>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button label="Back to course" icon="arrow-left" fullWidth={false} onPress={() => router.push(`/course/${trackId}`)} />
+          {reached ? (
+            <Badge
+              label={reached}
+              color={masteryColor[reached] ?? colors.mutedDim}
+              icon={(masteryIcon[reached] ?? "circle") as React.ComponentProps<typeof Feather>["name"]}
+            />
+          ) : null}
+          <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>
+          {next ? (
+            <Button
+              label="Next objective"
+              icon="arrow-right"
+              onPress={() =>
+                router.replace({
+                  pathname: `/course/${trackId}/lesson/${next.id}`,
+                  params: { unitId: next.unit_id, objectiveTitle: next.title },
+                })
+              }
+            />
+          ) : null}
+          {next ? (
+            <Muted style={{ textAlign: "center", fontSize: 12 }} numberOfLines={2}>
+              Up next: {next.title}
+            </Muted>
+          ) : null}
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+            <Button
+              label="Back to course"
+              icon="arrow-left"
+              variant={next ? "ghost" : "primary"}
+              fullWidth={false}
+              onPress={() => router.push(`/course/${trackId}`)}
+            />
+            <Button
+              label="Ask the coach"
+              variant="ghost"
+              fullWidth={false}
+              icon="message-circle"
+              onPress={() =>
+                router.push({
+                  pathname: `/course/${trackId}/chat`,
+                  params: { unitId, prefill: `About "${headerTitle}": ` },
+                })
+              }
+            />
             <Button
               label="Regenerate lesson"
               variant="ghost"
@@ -279,6 +351,27 @@ export default function LessonFlow() {
       )}
     </Screen>
   );
+}
+
+// What the status just reached means, and the one concrete thing that
+// moves it up. The rubric lives in backend/lib/mastery.ts; nothing in the
+// app explained it before, so a learner answering multiple choice forever
+// would never find out why they were stuck at Guided.
+function masteryAdvice(status: MasteryStatus | null): string {
+  switch (status) {
+    case "Transfer-ready":
+      return "Top of the rubric: you've answered in your own words correctly more than once. Spaced review will still bring it back if you ever miss it.";
+    case "Independent":
+      return "You answered in free response correctly. One more correct free-response answer here makes it Transfer-ready.";
+    case "Guided":
+      return "Multiple choice tops out here. Revisit and answer in free response to earn Independent.";
+    case "Introduced":
+      return "Not there yet -- the explanation is one tap back, and this objective will come up for review.";
+    case "Needs review":
+      return "This one is flagged for review. Re-read the explanation and try the solo check in free response.";
+    default:
+      return "Pick up the next objective, or revisit this one.";
+  }
 }
 
 const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof Feather>["name"] }> = {
@@ -395,8 +488,10 @@ function CheckStep({
   const [openAnswer, setOpenAnswer] = useState("");
   const [result, setResult] = useState<{ verdict: string; feedback: string; missedParts?: string[] } | null>(null);
   const [followUp, setFollowUp] = useState("");
+  const [followUpSent, setFollowUpSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function submitMC() {
     if (picked == null) return;
@@ -448,12 +543,26 @@ function CheckStep({
     }
   }
 
+  // REQ-074: used to send only "Follow-up on graded answer: <text>", so the
+  // coach had no idea which question, answer or verdict was being disputed
+  // and nothing told the learner the message had gone anywhere. Now carries
+  // the full context and flips into a "sent" state with a link to the thread.
   async function sendFollowUp() {
-    if (!followUp.trim()) return;
+    if (!followUp.trim() || !result) return;
     setBusy(true);
+    const answerText = mode === "mc" && picked != null ? choices[picked] : openAnswer;
+    const message =
+      `Follow-up on a graded ${kind === "fade" ? "guided practice" : "solo check"} answer.\n` +
+      `Question: ${promptText}\n` +
+      `My answer: ${answerText}\n` +
+      `Verdict: ${result.verdict}. Feedback given: ${result.feedback}\n` +
+      `My follow-up: ${followUp.trim()}`;
     try {
-      await api.post(`/api/chat`, { trackId, message: `Follow-up on graded answer: ${followUp}` });
+      await api.post(`/api/chat`, { trackId, message });
       setFollowUp("");
+      setFollowUpSent(true);
+    } catch (err) {
+      setError((err as Error).message);
     } finally {
       setBusy(false);
     }
@@ -473,6 +582,11 @@ function CheckStep({
             <Button label="Multiple choice" size="sm" fullWidth={false} variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
             <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
           </View>
+          <Muted style={{ fontSize: 12 }}>
+            {mode === "mc"
+              ? "Multiple choice earns up to Guided. Free response is what earns Independent."
+              : "Answer in your own words -- a correct free-response answer earns Independent."}
+          </Muted>
 
           {mode === "mc" ? (
             <View style={{ gap: 8 }}>
@@ -488,7 +602,8 @@ function CheckStep({
                   <Body style={{ flex: 1 }}>{c}</Body>
                 </Pressable>
               ))}
-              <Button label="Submit" icon="send" onPress={submitMC} disabled={busy || picked == null} />
+              <ConfidencePicker value={confidence} onChange={setConfidence} />
+              <Button label="Submit" icon="send" loading={busy} onPress={submitMC} disabled={busy || picked == null} />
             </View>
           ) : (
             <View style={{ gap: 8 }}>
@@ -500,26 +615,11 @@ function CheckStep({
                 onChangeText={setOpenAnswer}
                 style={styles.input}
               />
-              <Button label="Submit" icon="send" onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
+              <ConfidencePicker value={confidence} onChange={setConfidence} />
+              <Button label="Submit" icon="send" loading={busy} onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
             </View>
           )}
 
-          <Muted>How confident are you?</Muted>
-          <View style={{ flexDirection: "row", gap: 6 }}>
-            {["1", "2", "3", "4", "5"].map((label, idx) => (
-              <Pressable
-                key={label}
-                onPress={() => setConfidence(idx + 1)}
-                style={[styles.confidence, confidence === idx + 1 && styles.confidenceActive]}
-              >
-                <Body style={confidence === idx + 1 ? { color: colors.accentText, fontFamily: fonts.bodyBold } : undefined}>{label}</Body>
-              </Pressable>
-            ))}
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Muted style={{ fontSize: 11 }}>guessing</Muted>
-            <Muted style={{ fontSize: 11 }}>certain</Muted>
-          </View>
 
           {error ? <ErrorBanner message={error} /> : null}
         </>
@@ -532,21 +632,77 @@ function CheckStep({
           {result.missedParts && result.missedParts.length > 0 ? (
             <Muted>Missed: {result.missedParts.join(", ")}</Muted>
           ) : null}
-
-          <Muted>Send follow-up (dispute or ask about this verdict)</Muted>
-          <TextInput
-            placeholder="e.g. I think my answer covered that — here's why..."
-            placeholderTextColor={colors.mutedDim}
-            value={followUp}
-            onChangeText={setFollowUp}
-            style={styles.input}
-          />
-          <Button label="Send follow-up" variant="ghost" icon="corner-up-right" onPress={sendFollowUp} disabled={busy} />
+          {mode === "mc" && result.verdict === "correct" ? (
+            <Muted style={{ fontSize: 12 }}>
+              Correct on multiple choice earns Guided. Answer the {kind === "fade" ? "solo check" : "next objective"} in
+              free response to earn Independent.
+            </Muted>
+          ) : null}
 
           <Button label="Continue" icon="arrow-right" onPress={onDone} />
+
+          {followUpSent ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <Feather name="check" size={14} color={colors.good} />
+              <Muted style={{ flex: 1 }}>Sent to the coach with your question, answer and verdict.</Muted>
+              <Button
+                label="Open chat"
+                variant="link"
+                fullWidth={false}
+                onPress={() => router.push({ pathname: `/course/${trackId}/chat` })}
+              />
+            </View>
+          ) : (
+            <>
+              <Muted>Dispute or ask about this verdict</Muted>
+              <TextInput
+                placeholder="e.g. I think my answer covered that — here's why..."
+                placeholderTextColor={colors.mutedDim}
+                value={followUp}
+                onChangeText={setFollowUp}
+                style={styles.input}
+              />
+              <Button
+                label="Send to the coach"
+                variant="ghost"
+                icon="corner-up-right"
+                onPress={sendFollowUp}
+                loading={busy}
+                disabled={busy || !followUp.trim()}
+              />
+            </>
+          )}
+          {error ? <ErrorBanner message={error} /> : null}
         </View>
       )}
     </Card>
+  );
+}
+
+// Sits ABOVE the submit button (it used to sit below it, so most answers
+// went in before confidence was ever set). Confidence is stored with every
+// attempt for calibration -- a confident wrong answer is a stronger signal
+// than a hesitant one.
+function ConfidencePicker({ value, onChange }: { value: number | null; onChange: (n: number) => void }) {
+  return (
+    <View style={{ gap: 4 }}>
+      <Muted>How confident are you?</Muted>
+      <View style={{ flexDirection: "row", gap: 6 }}>
+        {["1", "2", "3", "4", "5"].map((label, idx) => (
+          <Pressable
+            key={label}
+            onPress={() => onChange(idx + 1)}
+            style={[styles.confidence, value === idx + 1 && styles.confidenceActive]}
+          >
+            <Body style={value === idx + 1 ? { color: colors.accentText, fontFamily: fonts.bodyBold } : undefined}>{label}</Body>
+          </Pressable>
+        ))}
+      </View>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Muted style={{ fontSize: 11 }}>guessing</Muted>
+        <Muted style={{ fontSize: 11 }}>certain</Muted>
+      </View>
+    </View>
   );
 }
 

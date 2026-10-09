@@ -1,5 +1,12 @@
-// Seed script: creates the single app user (if missing) and every catalog track
-// with its real units/objectives.
+// Seed script: writes every catalog track with its real units/objectives.
+//
+// REQ-082: catalog tracks are shared -- user_id NULL, visible to every
+// account -- rather than copied under one user. If DEFAULT_USER_EMAIL names
+// an existing account that still owns a private copy of a catalog track
+// (the pre-REQ-082 layout), that copy is adopted into the shared catalog
+// in place: same row id, so every mastery/attempt/favorite/acknowledgement
+// row pointing at it keeps working. The script no longer creates or
+// renames any user.
 // Idempotent: safe to re-run (uses ON CONFLICT / existence checks throughout), so it
 // won't duplicate rows on a second run.
 //
@@ -37,6 +44,7 @@ import { NURSING_TRACKS } from "./tracks/nursing";
 import { COMPTIA_TRACKS } from "./tracks/comptia";
 import { PM_TRACKS } from "./tracks/pm";
 import { PT_TRACKS } from "./tracks/pt";
+import { FITNESS_TRACKS } from "./tracks/fitness";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -46,15 +54,14 @@ async function main() {
   const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
   try {
-    const userRes = await pool.query(
-      `insert into app_users (email, display_name)
-       values ($1, $2)
-       on conflict (email) do update set display_name = excluded.display_name
-       returning id`,
-      [SEED_USER_EMAIL, "Pak"]
+    // Legacy owner whose private catalog copies get adopted (see header).
+    const legacy = await pool.query(`select id from app_users where email = $1`, [SEED_USER_EMAIL]);
+    const userId: string | null = (legacy.rows[0]?.id as string | undefined) ?? null;
+    console.log(
+      userId
+        ? `legacy catalog owner ${SEED_USER_EMAIL} -> ${userId} (private copies will be adopted into the shared catalog)`
+        : `no legacy catalog owner for ${SEED_USER_EMAIL}; seeding shared catalog only`
     );
-    const userId = userRes.rows[0].id as string;
-    console.log(`app_users: ${SEED_USER_EMAIL} -> ${userId}`);
 
     await seedTrack(pool, userId, MSCS_TRACK);
     await seedTrack(pool, userId, SECPLUS_TRACK);
@@ -91,6 +98,10 @@ async function main() {
     }
 
     for (const track of PT_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    for (const track of FITNESS_TRACKS) {
       await seedTrack(pool, userId, track);
     }
 
@@ -258,7 +269,7 @@ async function seedCredentialExam(
   return examId;
 }
 
-async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
+async function seedTrack(pool: Pool, legacyUserId: string | null, track: SeedTrack) {
   const credentialExamId = track.credential
     ? await seedCredentialExam(pool, track.credential, track.units)
     : null;
@@ -280,9 +291,14 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
     track.disclaimerVersion ?? 1,
   ];
 
+  // Shared row first; failing that, the legacy owner's private copy, which
+  // gets adopted (user_id -> null) below.
   const existing = await pool.query(
-    `select id from subject_tracks where user_id = $1 and code = $2`,
-    [userId, track.code]
+    `select id, user_id from subject_tracks
+      where code = $1 and (user_id is null or user_id = $2)
+      order by user_id nulls first
+      limit 1`,
+    [track.code, legacyUserId]
   );
 
   let trackId: string;
@@ -304,11 +320,13 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
               -- there has to actually turn the gate off.
               requires_acknowledgement = $11,
               disclaimer_key = $12,
-              disclaimer_version = $13
+              disclaimer_version = $13,
+              user_id = null
         where id = $4`,
       [track.title, track.description, track.trackType, trackId, ...alignment]
     );
-    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated title/description)`);
+    const adopted = existing.rows[0].user_id ? " (adopted into shared catalog)" : "";
+    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated)${adopted}`);
   } else {
     const res = await pool.query(
       `insert into subject_tracks
@@ -316,9 +334,9 @@ async function seedTrack(pool: Pool, userId: string, track: SeedTrack) {
           subcategory_id, freshness_model, credential_exam_id,
           source_url, source_verified_at, content_review_due_at,
           requires_acknowledgement, disclaimer_key, disclaimer_version)
-       values ($1,$2,$3,$4,$5,$6,$7::content_freshness_model,$8,$9,$10::timestamptz,$11::timestamptz,$12,$13,$14)
+       values (null,$1,$2,$3,$4,$5,$6::content_freshness_model,$7,$8,$9::timestamptz,$10::timestamptz,$11,$12,$13)
        returning id`,
-      [userId, track.code, track.title, track.description, track.trackType, ...alignment]
+      [track.code, track.title, track.description, track.trackType, ...alignment]
     );
     trackId = res.rows[0].id;
     console.log(`subject_tracks: created ${track.code} -> ${trackId}`);

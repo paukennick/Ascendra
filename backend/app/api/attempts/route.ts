@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 
     values.push(limit);
     const rows = await query(
-      `select a.*, o.title as objective_title, cu.title as unit_title
+      `select a.*, o.title as objective_title, cu.title as unit_title, cu.track_id
        from attempts a
        left join objectives o on o.id = a.objective_id
        left join course_units cu on cu.id = a.unit_id

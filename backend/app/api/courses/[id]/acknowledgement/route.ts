@@ -11,11 +11,12 @@ interface TrackRow {
   disclaimer_version: number;
 }
 
-// Shared by both handlers: a track the caller owns, or null.
+// Shared by both handlers: a track the caller can see (catalog or their
+// own, REQ-082), or null.
 async function loadTrack(trackId: string, userId: string): Promise<TrackRow | null> {
   return queryOne<TrackRow>(
     `select id, requires_acknowledgement, disclaimer_key, disclaimer_version
-       from subject_tracks where id = $1 and user_id = $2`,
+       from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
     [trackId, userId]
   );
 }

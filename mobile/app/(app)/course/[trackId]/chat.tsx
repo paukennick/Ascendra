@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
@@ -8,9 +8,17 @@ import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
 
 export default function ChatScreen() {
-  const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
+  // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
+  // this" shortcut inside a lesson, so the thread opens with the objective
+  // already named and the server gets the unit for its framing.
+  const { trackId, trackTitle, prefill, unitId } = useLocalSearchParams<{
+    trackId: string;
+    trackTitle?: string;
+    prefill?: string;
+    unitId?: string;
+  }>();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
@@ -32,7 +40,7 @@ export default function ChatScreen() {
     setInput("");
     setBusy(true);
     try {
-      const res = await api.post<{ reply: string }>("/api/chat", { trackId, message: text });
+      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text });
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
     } catch (err) {
       setMessages((prev) => [
@@ -75,6 +83,16 @@ export default function ChatScreen() {
             style={{ flex: 1 }}
             contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.sm }}
             onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+            // REQ-077: a reply takes several seconds; nothing in the list
+            // acknowledged the send before this, so it read as dropped.
+            ListFooterComponent={
+              busy ? (
+                <View style={[styles.bubble, styles.bubbleAssistant, { flexDirection: "row", alignItems: "center", gap: 8 }]}>
+                  <ActivityIndicator size="small" color={colors.accent} />
+                  <Muted>Coach is thinking...</Muted>
+                </View>
+              ) : null
+            }
             renderItem={({ item }) => (
               <View
                 style={[
@@ -96,6 +114,17 @@ export default function ChatScreen() {
             placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}
+            // REQ-077: on web, Enter sends and Shift+Enter inserts a newline,
+            // the convention every chat UI on the desktop follows. Native
+            // keyboards keep their return key as a newline.
+            onKeyPress={(e) => {
+              if (Platform.OS !== "web") return;
+              const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
+              if (native.key === "Enter" && !native.shiftKey) {
+                e.preventDefault();
+                if (!busy && input.trim()) send();
+              }
+            }}
           />
           <Pressable
             onPress={send}

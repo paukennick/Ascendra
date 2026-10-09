@@ -110,6 +110,8 @@ export interface Attempt {
   objective_id: string | null;
   objective_title?: string;
   unit_title?: string;
+  // REQ-075: lets History navigate straight into the objective's lesson.
+  track_id?: string | null;
   kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
   stage: string | null;
   format: "mc" | "open" | "pbq";
@@ -129,6 +131,9 @@ export interface ErrorLogEntry {
   objective_id: string | null;
   objective_title?: string;
   unit_title?: string;
+  // REQ-073: the Review screen groups by course and opens the lesson.
+  track_id?: string | null;
+  track_title?: string | null;
   topic: string;
   error_text: string;
   why: string | null;
@@ -137,6 +142,15 @@ export interface ErrorLogEntry {
   next_review_at: string | null;
   resolved: boolean;
   created_at: string;
+}
+
+// REQ-074: shape returned by POST /api/objectives/:id/lesson/prefetch-next
+// alongside its status, so the lesson screen can offer "Next objective".
+export interface NextObjective {
+  id: string;
+  title: string;
+  unit_id: string;
+  unit_title: string;
 }
 
 export interface PBQScenario {

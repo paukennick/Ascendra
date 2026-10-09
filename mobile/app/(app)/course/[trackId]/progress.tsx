@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Track, Unit } from "@/types";
 import { Badge, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
@@ -9,6 +9,7 @@ import { colors, masteryColor, masteryIcon, spacing } from "@/lib/theme";
 
 export default function ProgressScreen() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
+  const router = useRouter();
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +61,26 @@ export default function ProgressScreen() {
               {u.objectives?.map((o) => {
                 const status = o.mastery_status ?? "Not started";
                 const c = masteryColor[status] ?? colors.mutedDim;
+                // REQ-075: each row opens its lesson -- the matrix used to be
+                // read-only, so spotting a weak objective here meant hunting
+                // for it again on the dashboard.
                 return (
-                  <View key={o.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}>
+                  <Pressable
+                    key={o.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: `/course/${trackId}/lesson/${o.id}`,
+                        params: { unitId: u.id, objectiveTitle: o.title },
+                      })
+                    }
+                    style={({ pressed }) => [
+                      { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
                     <Muted style={{ flex: 1, color: colors.text }} numberOfLines={2}>{o.title}</Muted>
                     <Badge label={status} color={c} icon={(masteryIcon[status] ?? "circle") as React.ComponentProps<typeof Feather>["name"]} />
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
