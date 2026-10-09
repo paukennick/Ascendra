@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Attempt } from "@/types";
 import { Body, Card, Chip, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { spacing } from "@/lib/theme";
+import { whenLabel } from "@/lib/time";
 
 const KINDS = ["all", "lesson", "quiz", "pbq", "unitcheck", "lab"] as const;
 
+
 export default function HistoryScreen() {
   const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
+  const router = useRouter();
   const [attempts, setAttempts] = useState<Attempt[] | null>(null);
   const [kind, setKind] = useState<typeof KINDS[number]>("all");
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +43,22 @@ export default function HistoryScreen() {
       {!attempts && !error ? <Loading /> : null}
 
       {attempts?.map((a) => (
-        <Card key={a.id}>
+        <Card
+          key={a.id}
+          onPress={
+            a.objective_id
+              ? () =>
+                  router.push({
+                    pathname: `/course/${a.track_id ?? trackId}/lesson/${a.objective_id}`,
+                    params: { unitId: a.unit_id ?? undefined, objectiveTitle: a.objective_title },
+                  })
+              : undefined
+          }
+        >
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Muted>
               {a.kind}
-              {a.stage ? ` / ${a.stage}` : ""} · {a.format}
+              {a.stage ? ` / ${a.stage}` : ""} · {a.format} · {whenLabel(a.created_at)}
             </Muted>
             <VerdictBadge verdict={a.verdict ?? "ungraded"} />
           </View>

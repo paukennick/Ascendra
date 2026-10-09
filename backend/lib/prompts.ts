@@ -1,12 +1,60 @@
 import { z } from "zod";
+import type { CoachContext } from "@/lib/coach-context";
 
 // Prompt-building helpers, adapted from the governing rules baked into
 // mscs-coach.html and security-plus-coach.html (Claude Artifact apps this
 // backend runs alongside — it must replicate their teaching/grading behavior,
 // not water it down).
 
-export const COACH_RULES = `You are a demanding but practical study coach helping an adult learner close real
-gaps in graduate-level computer science foundations and/or CompTIA Security+ material.
+// REQ-076: the opening line used to hardcode "graduate-level computer
+// science foundations and/or CompTIA Security+" -- true of the two original
+// artifact apps, wrong for the nursing, PT, PM and cloud tracks the catalog
+// has grown since. The coach's goal line, and a short domain-specific
+// framing block, are now built from the track's own taxonomy.
+export function goalLine(ctx?: CoachContext): string {
+  if (!ctx) return "close real gaps in the material they are studying";
+  const t = ctx.trackType;
+  if (t === "certification") {
+    const cred = ctx.credentialName ?? ctx.trackTitle;
+    const code = ctx.examCode ? ` (exam ${ctx.examCode})` : "";
+    const by = ctx.providerName ? ` from ${ctx.providerName}` : "";
+    return `pass the ${cred}${code}${by} exam`;
+  }
+  if (t === "graduate" || t === "academic") {
+    return `master the coursework in "${ctx.trackTitle}"`;
+  }
+  return `build real, job-ready competence in "${ctx.trackTitle}"`;
+}
+
+export function domainFraming(ctx?: CoachContext): string {
+  if (!ctx) return "";
+  const lines: string[] = [];
+  if (ctx.categoryName) {
+    lines.push(`Subject area: ${ctx.categoryName}${ctx.subcategoryName ? ` / ${ctx.subcategoryName}` : ""}.`);
+  }
+  if (ctx.trackType === "certification") {
+    lines.push(
+      "Frame every explanation the way this exam tests it: use the certifying body's own terminology, stay " +
+        "inside the published blueprint's scope, and make the distinctions exam items actually hinge on " +
+        "explicit. Never invent exam mechanics (question counts, passing scores, item formats) you were not given."
+    );
+  }
+  if (ctx.categorySlug === "healthcare-nursing") {
+    lines.push(
+      "This is clinical exam-preparation content, not clinical guidance for a real patient. Align to the " +
+        "published content outline, use standard clinical terminology, and reason the way the exam expects " +
+        "(safety and priority first; the nursing process or clinical-reasoning cycle; evidence-based " +
+        "practice). Where real guidelines vary by jurisdiction or institution, say so rather than asserting one."
+    );
+  }
+  if (ctx.unitWeight != null && ctx.unitWeight > 0) {
+    lines.push(`The current unit carries ${ctx.unitWeight}% of the exam's weight.`);
+  }
+  return lines.length ? `\n\n${lines.join("\n")}` : "";
+}
+
+export function coachRules(ctx?: CoachContext): string {
+  return `You are a demanding but practical study coach helping an adult learner ${goalLine(ctx)}.${domainFraming(ctx)}
 
 Rules, always:
 - Plain language. Define any named term on first use — an objective or question often names
@@ -28,9 +76,14 @@ Rules, always:
   textbook pattern onto a scenario that isn't actually an instance of it.
 - Any question you write must be answerable using only material already taught or within the stated
   scope. If your own example needs something not yet taught, teach it first, in the same response.`;
+}
 
-export function withRules(task: string): string {
-  return `${COACH_RULES}\n\n---\n\n${task}`;
+// The generic (no-track) rules text. Nothing in the app calls withRules
+// without a context any more; kept exported for tests and ad-hoc use.
+export const COACH_RULES = coachRules();
+
+export function withRules(task: string, ctx?: CoachContext): string {
+  return `${coachRules(ctx)}\n\n---\n\n${task}`;
 }
 
 export interface LessonContent {
@@ -107,12 +160,14 @@ export function lessonIntroPrompt(params: {
   unitTitle: string;
   objectiveTitle: string;
   avoid?: LessonAvoid;
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are generating the guess-and-teach half of cached lesson content for ONE learning objective, to
 be reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its
 own without further back-and-forth. The learner benefits from an active-retrieval structure rather than a
-straight explanation.`
+straight explanation.`,
+    params.ctx
   );
 
   const user = `Course/track: ${params.trackTitle}
@@ -157,12 +212,14 @@ export function guessFeedbackPrompt(params: {
   guessPrompt: string;
   teach: string;
   guess: string;
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are giving quick, encouraging feedback on a learner's guess made BEFORE any teaching, in response
 to a prompt meant to surface intuition or prior knowledge -- not a graded answer. Never call it correct or
 incorrect; compare it to what's actually true, name what their instinct got right or was close to, and note
-(without fully re-teaching it) what the explanation they're about to read will clarify.`
+(without fully re-teaching it) what the explanation they're about to read will clarify.`,
+    params.ctx
   );
 
   const user = `Objective: ${params.objectiveTitle}
@@ -209,6 +266,7 @@ export function lessonPracticePrompt(params: {
   unitTitle: string;
   objectiveTitle: string;
   avoid?: LessonAvoid;
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are generating the practice half of cached lesson content for ONE learning objective, to be
@@ -217,7 +275,8 @@ without further back-and-forth. The learner benefits from a worked-example-fadin
 to this specific objective, so fadeProblem and soloCheck each need to work as a complete, self-contained
 free-response question on their own AND carry a matching multiple-choice version of that exact same
 question (fadeChoices/soloChoices) — the learner picks which format to answer in, every time they see it,
-so neither version can depend on the other to make sense.`
+so neither version can depend on the other to make sense.`,
+    params.ctx
   );
 
   const user = `Course/track: ${params.trackTitle}
@@ -250,11 +309,13 @@ export function gradeFreeResponsePrompt(params: {
   taughtText: string;
   question: string;
   answer: string;
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are grading ONE free-response answer against material the learner has already been taught.
 Judge substance, not length. If the question has multiple parts or sub-asks, grade each named part
-explicitly and never grade past a part that was skipped.`
+explicitly and never grade past a part that was skipped.`,
+    params.ctx
   );
   const user = `Context already taught to the learner:
 ${params.taughtText}
@@ -283,12 +344,14 @@ export function pbqGenerationPrompt(params: {
   trackTitle: string;
   unitTitle: string;
   unitObjectives: string[];
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are generating a performance-based-question (PBQ) style scenario: a realistic, multi-part
 scenario with 2-4 named sub-tasks in one prompt, the closest a text-based app gets to a real
 certification PBQ. It will be graded holistically against every sub-task, so each sub-task must be
-independently identifiable and answerable from the scenario as written.`
+independently identifiable and answerable from the scenario as written.`,
+    params.ctx
   );
   const user = `Track: ${params.trackTitle}
 Unit: ${params.unitTitle}
@@ -307,11 +370,13 @@ export function gradePBQPrompt(params: {
   scenario: string;
   subParts: string[];
   answer: string;
+  ctx?: CoachContext;
 }): { system: string; user: string } {
   const system = withRules(
     `You are grading a PBQ-style multi-part answer holistically but explicitly per sub-part. If the
 learner misses one, name exactly which one(s) — never give a blanket "partial credit" verdict without
-naming exactly what's missing.`
+naming exactly what's missing.`,
+    params.ctx
   );
   const user = `Scenario: ${params.scenario}
 
@@ -329,11 +394,19 @@ Produce ONLY a JSON object, no markdown fence:
   return { system, user };
 }
 
-export function chatSystemPrompt(params: { trackTitle: string; unitTitle?: string }): string {
+export function chatSystemPrompt(params: {
+  trackTitle: string;
+  unitTitle?: string;
+  ctx?: CoachContext;
+}): string {
   return withRules(
     `Open Q&A ("Ask the coach") for the track "${params.trackTitle}"${
       params.unitTitle ? `, currently on unit "${params.unitTitle}"` : ""
     }. This thread is not graded and does not touch mastery or the error log — answer plainly and
-helpfully, matching the same teaching rules (define every term, worked examples, name misconceptions).`
+helpfully, matching the same teaching rules (define every term, worked examples, name misconceptions).
+When the learner pastes a graded answer and its verdict to dispute or ask about it, re-grade it yourself
+on substance: say plainly whether you agree with the verdict and exactly why, naming the specific part
+that was or wasn't covered.`,
+    params.ctx
   );
 }

@@ -1,0 +1,23 @@
+name: Keep Supabase awake
+
+# REQ-083: Supabase pauses a free project after 7 days without activity.
+# /api/health runs `select 1` against the database, so hitting it is enough
+# to count as activity. The Vercel cron in backend/vercel.json does the same
+# thing from the other side; this is the independent second trigger so a
+# problem with either one doesn't silently let the project pause.
+on:
+  schedule:
+    # 09:30 UTC daily, offset from the Vercel cron at 09:00.
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit production health endpoint
+        run: |
+          code=$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 60 \
+            https://backend-mauve-mu-18.vercel.app/api/health)
+          cat /tmp/health.json; echo
+          test "$code" = "200"

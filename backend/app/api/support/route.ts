@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     let trackId: string | null = null;
     if (payload?.trackId) {
       const owned = await queryOne<{ id: string }>(
-        `select id from subject_tracks where id = $1 and user_id = $2`,
+        `select id from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
         [payload.trackId, user.id]
       );
       if (!owned) return badRequest("trackId not found");

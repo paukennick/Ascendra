@@ -23,6 +23,8 @@
 // on in practice has patient-safety consequences, same as nursing.
 
 import type { SeedTrack } from "../data";
+import { DPT_TRACK } from "./pt-dpt";
+import { ABPTS_TRACKS } from "./pt-abpts";
 
 const FSBPT_PROVIDER = {
   providerSlug: "fsbpt",
@@ -422,4 +424,6 @@ export const NPTE_PTA_TRACK: SeedTrack = {
   ],
 };
 
-export const PT_TRACKS: SeedTrack[] = [NPTE_PT_TRACK, NPTE_PTA_TRACK];
+// REQ-081: the DPT degree pathway and the ten ABPTS specialist
+// certifications live in their own files; seeded through this same list.
+export const PT_TRACKS: SeedTrack[] = [NPTE_PT_TRACK, NPTE_PTA_TRACK, DPT_TRACK, ...ABPTS_TRACKS];

@@ -8,6 +8,7 @@ import {
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { coachContextForObjective, coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,18 @@ export async function POST(req: Request) {
         throw err;
       }
       await recordAuthEvent("grade_open", authUser.id);
-      const { system, user } = gradeFreeResponsePrompt({ taughtText, question, answer });
+      // REQ-076: grade in the voice of the learner's actual track/exam.
+      const ctx = objectiveId
+        ? await coachContextForObjective(objectiveId)
+        : unitId
+          ? await coachContextForUnit(unitId)
+          : null;
+      const { system, user } = gradeFreeResponsePrompt({
+        taughtText,
+        question,
+        answer,
+        ctx: ctx ?? undefined,
+      });
       const graded = await callClaudeJSON<GradeResult>({
         system,
         messages: [{ role: "user", content: user }],

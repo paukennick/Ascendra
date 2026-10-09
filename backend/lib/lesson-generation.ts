@@ -1,5 +1,6 @@
 import { query, queryOne } from "@/lib/db";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
+import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
   lessonIntroPrompt,
   lessonPracticePrompt,
@@ -37,6 +38,9 @@ export interface ObjectiveRow {
   title: string;
   unit_title: string;
   track_title: string;
+  // REQ-076: taxonomy/credential framing for the prompts. Null only for an
+  // objective whose track has no taxonomy row at all (user-created tracks).
+  ctx: CoachContext | null;
 }
 
 export function rowToLesson(row: LessonRow) {
@@ -61,14 +65,18 @@ export function rowToAvoid(row: LessonRow): LessonAvoid {
 }
 
 export async function loadObjective(objectiveId: string): Promise<ObjectiveRow | null> {
-  return queryOne<ObjectiveRow>(
-    `select o.title, cu.title as unit_title, st.title as track_title
-     from objectives o
-     join course_units cu on cu.id = o.unit_id
-     join subject_tracks st on st.id = cu.track_id
-     where o.id = $1`,
-    [objectiveId]
-  );
+  const [row, ctx] = await Promise.all([
+    queryOne<Omit<ObjectiveRow, "ctx">>(
+      `select o.title, cu.title as unit_title, st.title as track_title
+       from objectives o
+       join course_units cu on cu.id = o.unit_id
+       join subject_tracks st on st.id = cu.track_id
+       where o.id = $1`,
+      [objectiveId]
+    ),
+    coachContextForObjective(objectiveId),
+  ]);
+  return row ? { ...row, ctx } : null;
 }
 
 export interface GenerationHandle {
@@ -110,6 +118,7 @@ async function generateIntro(
     unitTitle: objRow.unit_title,
     objectiveTitle: objRow.title,
     avoid,
+    ctx: objRow.ctx ?? undefined,
   });
   return callClaudeStructured({
     system,
@@ -138,6 +147,7 @@ async function generatePracticeAndSave(
     unitTitle: objRow.unit_title,
     objectiveTitle: objRow.title,
     avoid,
+    ctx: objRow.ctx ?? undefined,
   });
   const practice = await callClaudeStructured({
     system,

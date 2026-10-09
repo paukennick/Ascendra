@@ -23,11 +23,16 @@ export async function GET(req: Request) {
       values.push(trackId);
     }
 
+    // REQ-073: the Review screen groups entries by course and navigates
+    // straight into the objective's lesson, so each row carries its track
+    // (via the unit) alongside the objective/unit titles it always had.
     const rows = await query(
-      `select e.*, o.title as objective_title, cu.title as unit_title
+      `select e.*, o.title as objective_title, cu.title as unit_title,
+              cu.track_id, st.title as track_title
        from error_log e
        left join objectives o on o.id = e.objective_id
        left join course_units cu on cu.id = e.unit_id
+       left join subject_tracks st on st.id = cu.track_id
        where ${conditions.join(" and ")}
        order by e.next_review_at asc nulls last, e.created_at desc`,
       values

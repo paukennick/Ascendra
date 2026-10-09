@@ -5,8 +5,9 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 export const dynamic = "force-dynamic";
 
 // PATCH /api/courses/:id/favorite — Body: { favorite: boolean }
-// Only ever touches a track owned by the caller (see the `and user_id = $3`
-// below) -- same ownership pattern as GET /api/courses/:id.
+// REQ-082: favorites are per user (course_favorites), not a flag on the
+// track, now that catalog tracks are shared. The track must be visible to
+// the caller (catalog or their own).
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,11 +19,23 @@ export async function PATCH(
     const favorite = body?.favorite;
     if (typeof favorite !== "boolean") return badRequest("favorite must be a boolean");
 
-    const rows = await query(
-      `update subject_tracks set is_favorite = $1 where id = $2 and user_id = $3 returning *`,
-      [favorite, id, user.id]
+    const visible = await queryOne<{ id: string }>(
+      `select id from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
+      [id, user.id]
     );
-    if (!rows[0]) return notFound("Track not found");
+    if (!visible) return notFound("Track not found");
+    if (favorite) {
+      await query(
+        `insert into course_favorites (user_id, track_id) values ($1, $2) on conflict do nothing`,
+        [user.id, id]
+      );
+    } else {
+      await query(`delete from course_favorites where user_id = $1 and track_id = $2`, [user.id, id]);
+    }
+    const rows = await query(
+      `select st.*, $2::boolean as is_favorite from subject_tracks st where st.id = $1`,
+      [id, favorite]
+    );
     return ok({ track: rows[0] });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

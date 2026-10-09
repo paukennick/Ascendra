@@ -17,8 +17,8 @@ import {
 // shown straight to the learner (looked like "the submit button doesn't
 // work"). Truncating here too, defensively: a schema fix alone still
 // leaves this an unbounded value from a source we don't fully control.
-const CLASSIFICATION_MAX_LENGTH = 200;
-function clampClassification(value: string | null | undefined): string | null {
+export const CLASSIFICATION_MAX_LENGTH = 200;
+export function clampClassification(value: string | null | undefined): string | null {
   if (!value) return value ?? null;
   return value.length > CLASSIFICATION_MAX_LENGTH ? value.slice(0, CLASSIFICATION_MAX_LENGTH) : value;
 }
@@ -94,6 +94,26 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
         score,
         `${input.kind}/${input.stage ?? input.format} on ${new Date().toISOString().slice(0, 10)}: ${input.verdict}`,
       ]
+    );
+  }
+
+  // REQ-084: a correct graded answer on an objective is the strongest
+  // evidence its open review entries deserve to move on -- the same step the
+  // Review screen's "Got it" takes (1 -> 7 -> 21 days -> resolved), applied
+  // automatically instead of waiting to be cleared by hand. Offsets mirror
+  // REVIEW_OFFSETS_DAYS in lib/mastery.ts.
+  if (input.verdict === "correct" && input.objectiveId) {
+    await query(
+      `update error_log
+          set review_stage = review_stage + 1,
+              resolved = (review_stage + 1) >= 3,
+              next_review_at = case review_stage + 1
+                                 when 1 then current_date + 7
+                                 when 2 then current_date + 21
+                                 else null
+                               end
+        where user_id = $1 and objective_id = $2 and resolved = false`,
+      [userId, input.objectiveId]
     );
   }
 

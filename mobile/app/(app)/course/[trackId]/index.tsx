@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
@@ -23,7 +23,8 @@ import {
 import { Sidebar } from "@/components/Sidebar";
 import { DisclaimerGate } from "@/components/DisclaimerGate";
 import { getDisclaimer } from "@/content/disclaimers";
-import { colors, fonts, spacing } from "@/lib/theme";
+import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
+import { examReadiness } from "@/lib/progress";
 
 interface AcknowledgementState {
   required: boolean;
@@ -47,6 +48,18 @@ export default function CourseDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ack, setAck] = useState<AcknowledgementState | null>(null);
+  // REQ-075: which units are expanded to show their objective list. Nothing
+  // on this screen let a learner pick a specific objective before -- only
+  // "continue" into whatever came next.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  function toggleExpanded(unitId: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(unitId)) next.delete(unitId);
+      else next.add(unitId);
+      return next;
+    });
+  }
 
   // Marks this as a "studied" course once per visit (not per refocus --
   // that's what drives Home's "Continue studying" hero and the sidebar's
@@ -93,6 +106,10 @@ export default function CourseDashboard() {
   const continueUnit = units?.find(
     (u) => (u.mastered_objectives ?? 0) < (u.total_objectives ?? 0)
   );
+
+  // REQ-078: exam readiness, weighted by each unit's published exam
+  // weight (see src/lib/progress.ts).
+  const readiness = examReadiness(units);
 
   // The gate stands in for the whole dashboard rather than sitting above it:
   // every action below would be refused by the server anyway, and offering
@@ -147,6 +164,12 @@ export default function CourseDashboard() {
             <Muted style={{ fontSize: 12 }}>
               {track.mastered_objectives ?? 0}/{track.total_objectives ?? 0} objectives mastered ({track.percent_complete ?? 0}%)
             </Muted>
+            {readiness != null ? (
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Muted style={{ fontSize: 12 }}>Exam readiness, weighted by domain</Muted>
+                <Muted style={{ fontSize: 12, color: colors.text, fontFamily: fonts.bodyBold }}>{readiness}%</Muted>
+              </View>
+            ) : null}
 
             <Button
               label="Continue studying"
@@ -188,9 +211,15 @@ export default function CourseDashboard() {
             const unitPercent = u.total_objectives
               ? Math.round(((u.mastered_objectives ?? 0) / u.total_objectives) * 100)
               : 0;
+            const isOpen = expanded.has(u.id);
             return (
               <Card key={u.id}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <Pressable
+                  onPress={() => toggleExpanded(u.id)}
+                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isOpen }}
+                >
                   <View style={{ flex: 1, gap: 2 }}>
                     <H2>{u.title}</H2>
                     <Muted>
@@ -201,8 +230,39 @@ export default function CourseDashboard() {
                   {(u.needs_review_objectives ?? 0) > 0 ? (
                     <Badge label={`${u.needs_review_objectives} to review`} color={colors.bad} icon="alert-triangle" />
                   ) : null}
-                </View>
+                  <Feather
+                    name={isOpen ? "chevron-up" : "chevron-down"}
+                    size={18}
+                    color={colors.mutedDim}
+                    style={{ marginLeft: 6, marginTop: 2 }}
+                  />
+                </Pressable>
                 <ProgressBar percent={unitPercent} />
+                {isOpen ? (
+                  <View style={{ gap: 2, marginTop: 2 }}>
+                    {u.objectives?.map((o, idx) => {
+                      const status = o.mastery_status ?? "Not started";
+                      return (
+                        <Pressable
+                          key={o.id}
+                          onPress={() =>
+                            router.push({
+                              pathname: `/course/${trackId}/lesson/${o.id}`,
+                              params: { unitId: u.id, objectiveTitle: o.title },
+                            })
+                          }
+                          style={({ pressed }) => [styles.objectiveRow, pressed && { opacity: 0.7 }]}
+                        >
+                          <View style={[styles.statusDot, { backgroundColor: masteryColor[status] ?? colors.mutedDim }]} />
+                          <Muted style={{ flex: 1, color: colors.text }} numberOfLines={2}>
+                            {idx + 1}. {o.title}
+                          </Muted>
+                          <Feather name="chevron-right" size={16} color={colors.mutedDim} />
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
                 <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
                   {u.objectives?.slice(0, 1).map((o) => (
                     <Button
@@ -250,3 +310,15 @@ export default function CourseDashboard() {
     </Screen>
   );
 }
+
+const styles = {
+  objectiveRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 10,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+};

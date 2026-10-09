@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { ok, serverError, badRequest, unauthorized } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -28,15 +29,20 @@ export async function GET(req: Request) {
   try {
     const user = await requireUser(req);
     const rows = await query(
+      // REQ-082: catalog tracks (user_id null) are visible to everyone;
+      // progress and favorite are computed for the caller. is_favorite is
+      // selected after st.* on purpose -- node-pg assigns duplicate column
+      // names in order, so the per-user value wins over the legacy column.
       `select st.*, vp.total_units, vp.total_objectives, vp.mastered_objectives, vp.percent_complete,
               vp.started_objectives, vp.percent_progress,
               ss.last_studied_at,
               vcf.freshness_status,
               esc.slug as subcategory_slug, esc.name as subcategory_name,
               ec.id as category_id, ec.slug as category_slug, ec.name as category_name,
-              ec.sort_order as category_sort_order
+              ec.sort_order as category_sort_order,
+              ${isFavoriteSelect("$1")}
        from subject_tracks st
-       left join view_track_progress vp on vp.track_id = st.id
+       ${trackProgressLateral("$1")}
        left join (
          select track_id, max(started_at) as last_studied_at
          from study_sessions
@@ -46,7 +52,7 @@ export async function GET(req: Request) {
        left join view_content_freshness vcf on vcf.track_id = st.id
        left join education_subcategories esc on esc.id = st.subcategory_id
        left join education_categories ec on ec.id = esc.category_id
-       where st.user_id = $1
+       where ${ownedOrCatalog("$1")}
        order by st.created_at asc`,
       [user.id],
     );

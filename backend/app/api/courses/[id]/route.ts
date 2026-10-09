@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { ok, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitMasteryLateral } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,11 @@ export async function GET(
     const userId = user.id;
     const tracks = await query(
       `select st.*, vp.total_units, vp.total_objectives, vp.mastered_objectives, vp.percent_complete,
-              vp.started_objectives, vp.percent_progress
+              vp.started_objectives, vp.percent_progress,
+              ${isFavoriteSelect("$2")}
        from subject_tracks st
-       left join view_track_progress vp on vp.track_id = st.id
-       where st.id = $1 and st.user_id = $2`,
+       ${trackProgressLateral("$2")}
+       where st.id = $1 and ${ownedOrCatalog("$2")}`,
       [id, userId]
     );
     if (!tracks[0]) return notFound("Track not found");
@@ -26,10 +28,10 @@ export async function GET(
     const units = await query(
       `select cu.*, vm.total_objectives, vm.mastered_objectives, vm.needs_review_objectives, vm.avg_score_0_4
        from course_units cu
-       left join view_unit_mastery vm on vm.unit_id = cu.id
+       ${unitMasteryLateral("$2")}
        where cu.track_id = $1
        order by cu.sort_order asc`,
-      [id]
+      [id, userId]
     );
 
     const objectives = await query(

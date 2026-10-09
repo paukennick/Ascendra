@@ -280,6 +280,97 @@
       "prevention_rules": [],
       "prevention_notes": "When a described-but-unbuilt feature (auto-selection by track record) is dropped in favor of a simpler shipped one (user choice), grep for its description in both code comments and generation prompts, not just the code path itself.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-013",
+      "date": "2026-10-08",
+      "title": "Chat history sent the oldest 40 turns, not the newest",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Once an Ask-the-coach thread passed 40 messages, the model stopped seeing anything recent: replies ignored the last few turns and answered as if the conversation were still at its start.",
+      "how_detected": "code review during the 2026-10-08 app-wide sweep",
+      "root_cause": "POST /api/chat built history with 'order by created_at asc limit 40', which keeps the first 40 rows ever written, not the most recent 40. The comment next to it said 'capped to the most recent 40' so the intent was clear and the query simply did the opposite; nothing exercised a thread long enough to notice.",
+      "requirement": "REQ-077",
+      "affected": [
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "Subselect the newest 40 by created_at desc, then re-order ascending for the model.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Query-level fix against a live Postgres table; no DB test harness exists yet (REQ-080 only covers pure modules).",
+      "prevention_rules": [],
+      "prevention_notes": "When a comment says 'most recent N', the query needs desc+limit then a re-sort; asc+limit is the oldest N.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-014",
+      "date": "2026-10-08",
+      "title": "Errors PATCH and sessions PATCH had no authentication; mastery PUT had no ownership check",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "PATCH /api/errors/:id and PATCH /api/sessions accepted unauthenticated requests and matched rows by id alone, so anyone with an id could resolve another user's spaced-review entries or end their study session. PUT /api/objectives/:id/mastery authenticated but wrote a mastery row for any objective id, owned or not.",
+      "how_detected": "code review during the 2026-10-08 app-wide sweep; confirmed with curl (unauthenticated PATCH now returns 401)",
+      "root_cause": "The three handlers predate requireUser (REQ-era single-user app) and were never swept when auth was added; the GET handlers in the same files were updated and the PATCH/PUT ones below them were missed.",
+      "requirement": "REQ-079",
+      "affected": [
+        "backend/app/api/errors/[id]/route.ts",
+        "backend/app/api/sessions/route.ts",
+        "backend/app/api/objectives/[id]/mastery/route.ts"
+      ],
+      "fix_summary": "requireUser on all three; every update scoped by user_id; mastery PUT verifies the objective belongs to one of the caller's tracks.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Route-level auth against a live DB; verified by curl, no HTTP test harness exists yet.",
+      "prevention_rules": [],
+      "prevention_notes": "When adding auth to a route file, grep every exported handler in it, not just the one being worked on.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-015",
+      "date": "2026-10-08",
+      "title": "Catalog was copied per user; new accounts saw zero courses",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "Any account other than the one the seed ran under had an empty Home and Explore. The seed also overwrote that account's display_name to 'Pak' on every run.",
+      "how_detected": "found during the 2026-10-08 sweep; confirmed by creating a throwaway account via the API and seeing zero tracks",
+      "root_cause": "subject_tracks rows were created with the seeding user's id (single-user-era design), and GET /api/courses filtered on st.user_id = caller. Favorites were a boolean on the track and the progress views joined mastery with no user filter -- all three assumed one user per track copy. The seed's upsert of app_users set display_name unconditionally.",
+      "requirement": "REQ-082",
+      "affected": [
+        "backend/supabase/seed/seed.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/courses/[id]/favorite/route.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/supabase/migrations/023_shared_catalog.sql"
+      ],
+      "fix_summary": "Catalog tracks have user_id null and are visible to everyone (ownedOrCatalog predicate); course_favorites per-user table; per-user LATERAL rollups in lib/progress-sql.ts replace the views in routes; seed adopts the legacy owner's copies in place (same ids) and no longer touches app_users.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Verified live over HTTP with a throwaway account against the dev server (see REQ-082 changelog); no HTTP test harness exists yet.",
+      "prevention_rules": [],
+      "prevention_notes": "Any new query touching subject_tracks must use ownedOrCatalog(), never st.user_id = caller alone; any rollup must bind m.user_id.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-016",
+      "date": "2026-10-08",
+      "title": "Seed failed on fitness tracks: examRevision over varchar(100)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run seed exited 1 after the PT tracks with 'value too long for type character varying(100)' and no indication of which row or column.",
+      "how_detected": "seed run, 2026-10-08",
+      "root_cause": "credential_exams.exam_revision is varchar(100) (migration 007); two fitness tracks carried 109- and 123-character revision strings. The seed prints progress per track but not the failing field.",
+      "requirement": "REQ-085",
+      "affected": [
+        "backend/supabase/seed/tracks/fitness.ts"
+      ],
+      "fix_summary": "Shortened both strings under 100 chars.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Seed-only data; the type system can't see Postgres column widths.",
+      "prevention_rules": [],
+      "prevention_notes": "exam_revision / standard_revision / objectives_revision are varchar(100): keep revision strings to a short label, put the long provenance note in the file comment instead.",
+      "recurrence_of": ""
     }
   ]
 }

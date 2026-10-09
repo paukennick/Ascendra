@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
@@ -51,12 +51,18 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { id, summary } = body ?? {};
     if (!id) return badRequest("id is required");
+    // REQ-079: was unauthenticated and matched by id alone -- anyone could
+    // end anyone's session. Scoped to the caller's own rows.
+    const user = await requireUser(req);
     const rows = await query(
-      `update study_sessions set ended_at = now(), summary = coalesce($2, summary) where id = $1 returning *`,
-      [id, summary ?? null]
+      `update study_sessions set ended_at = now(), summary = coalesce($3, summary)
+        where id = $1 and user_id = $2 returning *`,
+      [id, user.id, summary ?? null]
     );
+    if (!rows[0]) return notFound("Session not found");
     return ok({ session: rows[0] });
   } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }

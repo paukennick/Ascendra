@@ -25,16 +25,18 @@ A cross-platform (iOS · Android · Web) study coach. Every course runs the same
 
 | Capability | Description |
 |---|---|
-| **Adaptive lessons** | Guess → teach → fade → solo, one Claude-generated lesson per objective, cached after first generation so cost doesn't scale with users |
+| **Adaptive lessons** | Guess → teach → fade → solo, one Claude-generated lesson per objective, cached after first generation so cost doesn't scale with users; the coach is framed per course (credential, exam code, provider, domain weight) |
 | **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/7/21-day spaced review scheduler |
 | **PBQ simulator** | Multi-part performance-based-question scenarios, graded per sub-part |
 | **Ask the coach** | Multi-turn chat, persisted per course |
-| **Catalog navigation** | Home screen groups courses by education category (bounded, currently 14) instead of a flat list; per-course Verified / Review due / Unverified freshness badge and filter |
+| **Catalog navigation** | Home is a personal launch point (continue, review due, favorites); Explore browses the full catalog grouped by category with search and Verified / Review due / Unverified filters |
+| **Spaced review** | Missed questions come back on a 1 / 7 / 21-day schedule; a Review screen lists what's due, with a Home card showing the count |
+| **Exam readiness** | Certification courses show mastery weighted by each domain's published exam weight, alongside the plain objective count |
 | **Full account system** | Email/password, TOTP + email-code MFA with per-method backup codes, Google OAuth linking, active-session management, account export/delete |
 | **Per-course disclaimers** | Tracks where acting on wrong content has real consequences (nursing) require an explicit, per-account acknowledgement before the first lesson |
 | **Automated freshness review** | A quarterly scheduled agent checks every course's recorded source against the vendor's current page and files a findings record — see [Catalog content ops](#catalog-content-ops) below |
 
-**Catalog today:** 38 courses across 14 categories / 140 subcategories — 9 core (graduate CS + language/security foundations), 11 AWS certifications, 10 Azure certifications, 1 Google Cloud certification (strand in progress), 6 nursing tracks (CNA → BSN-RN + NCLEX-RN/PN), 226 units, 3,083 objectives, 28 tracked credential exams.
+**Catalog today:** 90 courses — 9 core (graduate CS + language/security foundations), 11 AWS, 10 Azure and 11 Google Cloud certifications, 13 CompTIA certifications, 12 PMI project-management certifications, 6 nursing tracks (CNA → BSN-RN + NCLEX-RN/PN), 13 physical therapy tracks (NPTE-PT/PTA, the DPT pathway, and all ten ABPTS specialist certifications), and 6 fitness certifications (NASM, ACE, ACSM, NSCA CSCS and CPT, ISSA/NCCPT).
 
 ---
 
@@ -69,7 +71,7 @@ ascendra/
 
 Additive-only — nothing has ever been dropped or destructively rewritten.
 
-`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target.
+`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes).
 
 ---
 
@@ -78,19 +80,19 @@ Additive-only — nothing has ever been dropped or destructively rewritten.
 ### 1. Supabase project + schema
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. **SQL Editor → New query** — run every file in `backend/supabase/migrations/` in numeric order.
-3. **Project Settings → Database → Connection string → URI**, using the **Transaction pooler** (port `6543`).
+2. **Project Settings → Database → Connection string → URI**, using the **Transaction pooler** (port `6543`) — put it in `backend/.env.local` as `DATABASE_URL`.
+3. Apply the migrations: `cd backend && npm install && npm run migrate -- --all`. Each file runs in its own transaction and is recorded in `schema_migrations`, so re-running is a no-op. (Pasting the files into the SQL Editor in numeric order still works too.)
 
 ### 2. Seed the catalog
 
 ```bash
 cd backend
-cp .env.example .env.local   # fill in DATABASE_URL, DEFAULT_USER_EMAIL
+cp .env.example .env.local   # fill in DATABASE_URL
 npm install
 npm run seed
 ```
 
-Idempotent — safe to re-run; existing rows update in place rather than duplicating.
+Idempotent — safe to re-run; existing rows update in place rather than duplicating. Seeded courses belong to the shared catalog (no owner) and are visible to every account; a user's own progress, favorites and acknowledgements are stored per user. `DEFAULT_USER_EMAIL` is only read to adopt a pre-2026-10 per-user copy of the catalog into the shared one.
 
 ### 3. Backend env vars + deploy
 

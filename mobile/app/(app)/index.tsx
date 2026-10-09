@@ -5,7 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
-import type { Track } from "@/types";
+import type { ErrorLogEntry, Track } from "@/types";
 import { Card, EmptyState, ErrorBanner, FavoriteButton, H1, H2, IconButton, Loading, Muted, ProgressBar } from "@/components/ui";
 import { CourseCard } from "@/components/CourseCard";
 import { Sidebar } from "@/components/Sidebar";
@@ -35,6 +35,10 @@ export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
   const [tracks, setTracks] = useState<Track[] | null>(null);
+  // REQ-073: how many spaced-review entries have come due. Loaded alongside
+  // the course list but never allowed to block or blank it -- a failure
+  // here just hides the review card.
+  const [dueCount, setDueCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +59,10 @@ export default function Home() {
       .then((res) => setTracks(res.tracks))
       .catch((err) => setError(err.message))
       .finally(() => setRefreshing(false));
+    api
+      .get<{ errors: ErrorLogEntry[] }>("/api/errors?due=1")
+      .then((res) => setDueCount(res.errors.length))
+      .catch(() => setDueCount(null));
   }, []);
 
   useFocusEffect(
@@ -118,8 +126,25 @@ export default function Home() {
               </Card>
             ) : null}
 
+            {dueCount ? (
+              <Card onPress={() => router.push("/review")} style={{ marginTop: mostRecent ? 0 : spacing.md }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+                  <View style={[styles.exploreIconWrap, { backgroundColor: withAlpha(colors.warn) }]}>
+                    <Feather name="rotate-ccw" size={18} color={colors.warn} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <H2>Review due</H2>
+                    <Muted>
+                      {dueCount === 1 ? "1 missed question is" : `${dueCount} missed questions are`} ready to re-check
+                    </Muted>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+                </View>
+              </Card>
+            ) : null}
+
             {tracks ? (
-              <Card onPress={() => router.push("/explore")} style={{ marginTop: mostRecent ? 0 : spacing.md }}>
+              <Card onPress={() => router.push("/explore")} style={{ marginTop: mostRecent || dueCount ? 0 : spacing.md }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
                   <View style={styles.exploreIconWrap}>
                     <Feather name="compass" size={18} color={colors.accent} />
@@ -188,6 +213,15 @@ function Footer() {
       <Muted style={styles.footerCopy}>Ascendra</Muted>
     </View>
   );
+}
+
+// Same 0.16 wash Badge and CourseCard use for a tinted icon chip.
+function withAlpha(hex: string): string {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.16)`;
 }
 
 const styles = StyleSheet.create({
