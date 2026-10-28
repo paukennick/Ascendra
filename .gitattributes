@@ -9,3 +9,17 @@
 # SQL migrations are pasted into Supabase's SQL editor and read on Linux
 # hosts; no reason to carry CRLF into either.
 *.sql text eol=lf
+
+# The agent team's vendored sources and its two rendered editions must be LF
+# everywhere. `.ai/agent-team/build.py` always writes LF, and CI runs
+# `omni agents sync --check` as a blocking step (see .github/workflows/ci.yml).
+# Left to core.autocrlf these check out as CRLF on Windows and LF on Linux, so
+# the same tree would pass the gate on one platform and fail on the other, and
+# every sync would rewrite files it had just verified.
+# Forced `eol=lf` rather than `text=auto`: if a skill ever ships a binary
+# reference (an image or PDF under skills/*/references/), add a `-text` rule
+# for it here, or checkout will corrupt it.
+.ai/agent-team/** text eol=lf
+.claude/agents/** text eol=lf
+.claude/skills/** text eol=lf
+managed-agents/agents/** text eol=lf

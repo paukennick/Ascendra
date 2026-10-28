@@ -1131,6 +1131,44 @@
       "risk_notes": [
         "Devices already running the old appVersion-policy preview build will not resolve updates published under the new fingerprint-policy runtime until they install a new native build -- this is expected and matches how the old policy would eventually have needed a new build too, just without automatic protection against a mismatched one in between."
       ]
+    },
+    {
+      "id": "REQ-038",
+      "category": "Developer tooling",
+      "title": "Render the subagent team from vendored canonical roles instead of copying it in from a sibling clone",
+      "description": "The eight-role senior-engineering agent package shipped as two checked-in renderings -- Claude Code subagents in .claude/agents/ and Anthropic managed-agents definitions in managed-agents/agents/ -- copied in from a separate clone at C:\\Users\\pauke\\dev\\senior-engineering-agent. Nothing in this repo could regenerate or verify them: .ai/agent-team.json recorded the upstream ref but also an absolute path to one machine, and no code read the file at all. An edited role, a hand-edited rendering, or a role deleted upstream would all have shipped unnoticed, and a subagent's tools: line is a permission grant. The package's canonical roles/, its skills/, and its own build.py are now vendored under .ai/agent-team/, and omni agents sync renders both editions plus the shared skills from them. omni agents sync --check reports drift without writing and now runs as a blocking CI step.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".ai/agent-team",
+        ".ai/agent-team.json",
+        "make_ai.py",
+        ".gitattributes",
+        ".gitignore",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance_criteria": [
+        "omni agents sync reproduces the committed .claude/agents/ .claude/skills/ and managed-agents/agents/ with zero content change",
+        "Deleting all three installed directories and re-running omni agents sync restores them byte-identically from .ai/agent-team/roles/ alone",
+        "omni agents sync --check writes nothing and exits non-zero exactly when sync would change something",
+        "A role deleted from roles/ has its rendered files removed from every installed location",
+        "Files without build.py's generated banner are never deleted by sync",
+        "A role naming a skill with no SKILL.md fails both omni agents sync --check and omni agents doctor",
+        "omni imports standard library only"
+      ],
+      "validation_required": [
+        "automated_test",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "omni agents sync deletes package-owned renderings for roles removed from roles/; ownership is proven per file by build.py's generated banner so project-authored subagents and skills in the same directories are left alone",
+        ".gitattributes forces eol=lf on .claude/skills/** so a future binary asset under a skill's references/ would need its own -text rule",
+        "CI now fails on agent drift where previously nothing checked it",
+        "REQ-036 and REQ-037 are both claimed by the fix/req-036-biometric-logout branch (biometric logout, and the refresh path that signed users out on a dropped connection), so this is REQ-038."
+      ]
     }
   ]
 }

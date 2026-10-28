@@ -86,3 +86,11 @@ jobs:
       # there's no flag to scope them off, so this step is visibility only --
       # read its output in the job log rather than relying on its exit code.
       - run: python omni doctor || true
+      # Report-only, like `omni doctor` above. It reports whether
+      # .claude/agents/, .claude/skills/ or managed-agents/agents/ have
+      # drifted from .ai/agent-team/roles/ -- read it in the job log. Writes
+      # nothing. Deliberately not blocking: the agent package is tooling for
+      # people working on this repo, and drift in it should not stop a build
+      # that is otherwise sound. Revisit only if drift starts reaching
+      # anything a user runs.
+      - run: python omni agents sync --check || true

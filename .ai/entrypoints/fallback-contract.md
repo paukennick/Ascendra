@@ -36,7 +36,11 @@ these fallback rules exactly:
     completed, blocked, or materially changed.
 15. Run relevant validation. For OmniContext workspace changes, run
     `omni doctor` or `./omni doctor`; when assistant entrypoint files change,
-    run `omni sync` or `./omni sync`.
+    run `omni sync` or `./omni sync`; after editing anything under
+    `.ai/agent-team/roles/` or `.ai/agent-team/skills/`, run
+    `omni agents sync` to regenerate `.claude/agents/`, `.claude/skills/` and
+    `managed-agents/agents/`. Never hand-edit those three directories: every
+    file there is generated, and CI fails if they drift from the roles.
 16. Do not claim completion if validation was skipped. Explain why it was not
     run.
 17. Final output must include requirement ID and status, files changed,
