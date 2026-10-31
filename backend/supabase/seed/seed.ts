@@ -45,6 +45,9 @@ import { COMPTIA_TRACKS } from "./tracks/comptia";
 import { PM_TRACKS } from "./tracks/pm";
 import { PT_TRACKS } from "./tracks/pt";
 import { FITNESS_TRACKS } from "./tracks/fitness";
+import { CCRN_TRACKS } from "./tracks/ccrn";
+import { CCRN_PEDS_NEO_TRACKS } from "./tracks/ccrn-peds-neo";
+import { MS_HEALTH_INFORMATICS_TRACK } from "./tracks/informatics";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -102,6 +105,12 @@ async function main() {
     }
 
     for (const track of FITNESS_TRACKS) {
+      await seedTrack(pool, userId, track);
+    }
+
+    // REQ-086: AACN CCRN (Adult, Pediatric, Neonatal) and the MS Health
+    // Informatics degree pathway.
+    for (const track of [...CCRN_TRACKS, ...CCRN_PEDS_NEO_TRACKS, MS_HEALTH_INFORMATICS_TRACK]) {
       await seedTrack(pool, userId, track);
     }
 
