@@ -2542,6 +2542,33 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-087",
+      "category": "security",
+      "title": "Clear new Next.js and zod security advisories blocking CI",
+      "description": "CI's npm audit began failing on new advisories: Next.js 16.3.8 (critical RCE in image optimization, use-cache RCE, server-action DoS) and zod <4.6.6 (memory exhaustion), the latter also pulled in by @vercel/cli-config's zod 4.1.11 pin. Upgrade next to 16.4.3 via npm audit fix, zod to ^4.6.6, and add an npm override so the transitive copy uses the root zod.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/package.json",
+        "backend/package-lock.json"
+      ],
+      "acceptance_criteria": [
+        "npm audit reports 0 vulnerabilities",
+        "typecheck and unit tests pass",
+        "CI backend job passes"
+      ],
+      "validation_required": [
+        "npm audit",
+        "tsc",
+        "npm test",
+        "CI"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
