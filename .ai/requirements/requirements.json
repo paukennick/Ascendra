@@ -2569,6 +2569,40 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-088",
+      "category": "content",
+      "title": "Deepen CCRN and MS Health Informatics courses from open textbooks under a source reliability standard",
+      "description": "Append open-textbook-sourced objectives to CCRN Adult/Pediatric/Neonatal and MSHI (154->271, 60->135, 62->136, 75->134), adopt docs/source-reliability-standard.md, grade every source against it, resolve source disagreements against Tier 1 guidelines, and restore data-warehouse and health-information-behaviour coverage with qualifying sources. Append-only: existing objectives keep unit, position and wording because the seed matches by sort order.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/seed/tracks/informatics.ts",
+        "docs/source-reliability-standard.md",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Every objective traces to a Tier 1 or Tier 2 source",
+        "Disagreements resolved against Tier 1 or the disputed value omitted",
+        "Objectives live before the change keep text and position",
+        "Tracks seeded live"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "append-only diff against HEAD",
+        "npm run seed"
+      ],
+      "documentation_required": [
+        "changelog",
+        "source reliability standard"
+      ],
+      "risk_notes": [
+        "2026-11-02 mitigation: restore data warehouses and health-information-behaviour models with qualifying sources; add the ACC/AHA acute-aortic-syndrome exception because AACN explicitly tests aortic dissection; commit and open a PR."
+      ]
     }
   ]
 }
