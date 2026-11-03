@@ -1,6 +1,7 @@
 import { query, queryOne } from "@/lib/db";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
+import { shuffled } from "@/lib/lesson-choices";
 import {
   lessonIntroPrompt,
   lessonPracticePrompt,
@@ -24,10 +25,12 @@ export interface LessonRow {
   teach: string;
   fade_problem: string;
   fade_choices: string[];
+  fade_choice_feedback: string[] | null;
   fade_correct_index: number;
   fade_why: string;
   solo_check: string;
   solo_choices: string[];
+  solo_choice_feedback: string[] | null;
   solo_correct_index: number;
   solo_why: string;
   model: string;
@@ -43,18 +46,18 @@ export interface ObjectiveRow {
   ctx: CoachContext | null;
 }
 
-export function rowToLesson(row: LessonRow) {
+// REQ-089: what the learner's app receives. Choices are shuffled on every
+// serve, and the right answer, its explanation and the per-option feedback
+// stay on the server -- /api/grade looks them up from the cached row -- so
+// the app can't reveal or forge the answer.
+export function rowToLesson(row: LessonRow, random: () => number = Math.random) {
   return {
     guessPrompt: row.guess_prompt,
     teach: row.teach,
     fadeProblem: row.fade_problem,
-    fadeChoices: row.fade_choices,
-    fadeCorrectIndex: row.fade_correct_index,
-    fadeWhy: row.fade_why,
+    fadeChoices: shuffled(row.fade_choices, random),
     soloCheck: row.solo_check,
-    soloChoices: row.solo_choices,
-    soloCorrectIndex: row.solo_correct_index,
-    soloWhy: row.solo_why,
+    soloChoices: shuffled(row.solo_choices, random),
     model: row.model,
     generatedAt: row.generated_at,
   };
@@ -146,6 +149,7 @@ async function generatePracticeAndSave(
     trackTitle: objRow.track_title,
     unitTitle: objRow.unit_title,
     objectiveTitle: objRow.title,
+    teach: intro.teach,
     avoid,
     ctx: objRow.ctx ?? undefined,
   });
@@ -162,8 +166,9 @@ async function generatePracticeAndSave(
   const rows = await query<LessonRow>(
     `insert into lesson_content
       (objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-       solo_check, solo_choices, solo_correct_index, solo_why, model)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       solo_check, solo_choices, solo_correct_index, solo_why, model,
+       fade_choice_feedback, solo_choice_feedback)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
      on conflict (objective_id) do update set
        guess_prompt = excluded.guess_prompt,
        teach = excluded.teach,
@@ -176,6 +181,8 @@ async function generatePracticeAndSave(
        solo_correct_index = excluded.solo_correct_index,
        solo_why = excluded.solo_why,
        model = excluded.model,
+       fade_choice_feedback = excluded.fade_choice_feedback,
+       solo_choice_feedback = excluded.solo_choice_feedback,
        generated_at = now()
      returning *`,
     [
@@ -191,6 +198,8 @@ async function generatePracticeAndSave(
       content.soloCorrectIndex,
       content.soloWhy,
       model,
+      JSON.stringify(content.fadeChoiceFeedback),
+      JSON.stringify(content.soloChoiceFeedback),
     ]
   );
   return rows[0];

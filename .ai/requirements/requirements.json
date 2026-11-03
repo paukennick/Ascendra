@@ -2569,6 +2569,41 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-089",
+      "category": "learning",
+      "title": "Lesson quick fixes: shuffled choices, server-side grading, per-option feedback, reasoning-step guided questions",
+      "description": "From docs/lesson-quality-evaluation.md: the right answer sat first in 49 of 52 cached questions and the app told the server which answer was right. Choices are now shuffled on every serve, the answer key stays on the server and /api/grade grades by chosen text against the cached lesson, every option gets its own explanation (migration 025), and the practice prompt now sees the teaching text and must leave a reasoning step rather than a label. Four lessons with content errors were deleted so they regenerate.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/lesson-choices.ts",
+        "backend/lib/lesson-choices.test.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/supabase/migrations/025_lesson_choice_feedback.sql",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/types/index.ts",
+        "docs/lesson-quality-evaluation.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Served lessons carry no answer key",
+        "Grading uses the cached lesson not the request",
+        "A wrong pick is told why it is wrong",
+        "Older app builds still grade"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test",
+        "migration 025 applied"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
