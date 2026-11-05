@@ -91,10 +91,12 @@ export interface LessonContent {
   teach: string;
   fadeProblem: string;
   fadeChoices: string[];
+  fadeChoiceFeedback?: string[];
   fadeCorrectIndex: number;
   fadeWhy: string;
   soloCheck: string;
   soloChoices: string[];
+  soloChoiceFeedback?: string[];
   soloCorrectIndex: number;
   soloWhy: string;
 }
@@ -236,28 +238,45 @@ Produce ONLY a JSON object, no markdown fence:
   return { system, user };
 }
 
+// REQ-089: the guided step must leave a reasoning step to the learner (not
+// just a label to name), every option gets its own explanation so a wrong
+// pick is told why it is wrong, and the practice half now sees the teaching
+// text it is testing so it stays inside what was actually taught. Choices
+// are shuffled when served (lib/lesson-choices.ts), so the stored position
+// of the right answer no longer matters to the learner.
+const CHOICE_RULES =
+  "Exactly 4 options for the same question: one correct, three that reflect real misconceptions or near-misses a " +
+  "learner at this level would plausibly hold, never silly filler. Keep all four similar in length and detail so " +
+  "the longest or most specific option is not a giveaway, and never use 'all of the above' or 'none of the above'.";
+const FEEDBACK_RULES =
+  "Exactly 4 short explanations, one per option in the same order as the options. For a wrong option, name the " +
+  "specific misconception behind it and why it fails in this case. For the right option, say why it is right. One " +
+  "or two sentences each; never just 'incorrect'.";
+
 export const lessonPracticeSchema = z.object({
   fadeProblem: z
     .string()
     .describe(
-      "A SECOND example, a different instance of the same idea, mostly worked through with the final step or piece explicitly left for the learner to complete -- state exactly and unambiguously what they need to fill in (free-response phrasing)."
+      "A SECOND example, a different instance of the same idea, worked through partway. Show the first steps, " +
+        "then leave the deciding reasoning step for the learner -- the step where they must apply the idea to " +
+        "this case's details -- not just a term or label to name. Do not state that reasoning in the question " +
+        "and then ask for its name. State exactly what they need to work out (free-response phrasing)."
     ),
-  fadeChoices: z
-    .array(z.string())
-    .length(4)
-    .describe(
-      "Exactly 4 plausible candidate completions for that same missing piece -- one correct, three real misconceptions/near-misses, never silly filler."
-    ),
+  fadeChoices: z.array(z.string()).length(4).describe(CHOICE_RULES),
+  fadeChoiceFeedback: z.array(z.string()).length(4).describe(FEEDBACK_RULES),
   fadeCorrectIndex: z.number().int().min(0).max(3).describe("Index into fadeChoices of the correct answer."),
   fadeWhy: z.string().describe("One short sentence on why the correct choice is correct."),
   soloCheck: z
     .string()
     .describe(
-      "A THIRD, standalone question or small problem, same scope as the objective, for the learner to solve entirely alone with no scaffolding (free-response phrasing)."
+      "A THIRD, standalone question or small problem, same scope as the objective, for the learner to solve " +
+        "entirely alone with no scaffolding. Use a new case or scenario that requires applying the idea, not " +
+        "recalling a definition (free-response phrasing). Every clue in it must be consistent with the right answer."
     ),
-  soloChoices: z.array(z.string()).length(4).describe("Same shape as fadeChoices, but for soloCheck instead."),
+  soloChoices: z.array(z.string()).length(4).describe(CHOICE_RULES),
+  soloChoiceFeedback: z.array(z.string()).length(4).describe(FEEDBACK_RULES),
   soloCorrectIndex: z.number().int().min(0).max(3).describe("Index into soloChoices of the correct answer."),
-  soloWhy: z.string().describe("One short sentence."),
+  soloWhy: z.string().describe("One short sentence on why the correct choice is correct."),
 });
 export type LessonPracticeContent = z.infer<typeof lessonPracticeSchema>;
 
@@ -265,6 +284,8 @@ export function lessonPracticePrompt(params: {
   trackTitle: string;
   unitTitle: string;
   objectiveTitle: string;
+  // The teaching text the learner just read, so the questions test it.
+  teach?: string;
   avoid?: LessonAvoid;
   ctx?: CoachContext;
 }): { system: string; user: string } {
@@ -275,23 +296,39 @@ without further back-and-forth. The learner benefits from a worked-example-fadin
 to this specific objective, so fadeProblem and soloCheck each need to work as a complete, self-contained
 free-response question on their own AND carry a matching multiple-choice version of that exact same
 question (fadeChoices/soloChoices) — the learner picks which format to answer in, every time they see it,
-so neither version can depend on the other to make sense.`,
+so neither version can depend on the other to make sense.
+
+Both questions must make the learner apply the idea, not recognise a word from the teaching. Before
+finalising, check every clue in each question against the right answer: if any detail would point a
+knowledgeable reader to a different answer, change the detail. Stay within what the teaching text below
+covers and what is accurate for this course.`,
     params.ctx
   );
 
+  const taught = params.teach
+    ? `
+
+Teaching text the learner has just read (test this; do not contradict it):
+"""
+${params.teach}
+"""`
+    : "";
+
   const user = `Course/track: ${params.trackTitle}
 Unit: ${params.unitTitle}
-Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
+Objective: ${params.objectiveTitle}${taught}${avoidPreviousBlock(params.avoid)}
 
 Produce ONLY a JSON object with exactly these fields, no prose outside the JSON, no markdown fence:
 {
-  "fadeProblem": "a SECOND example, a different instance of the same idea, mostly worked through by you with the final step or piece explicitly left for the learner to complete — state exactly and unambiguously what they need to fill in (free-response phrasing)",
-  "fadeChoices": ["exactly 4 plausible candidate completions for that same missing piece — one correct, three real misconceptions/near-misses, never silly filler"],
-  "fadeCorrectIndex": 0,
+  "fadeProblem": "a SECOND example, partly worked, leaving the deciding reasoning step (not a label) for the learner — state exactly what they must work out (free-response phrasing)",
+  "fadeChoices": ["4 options for that same step — one correct, three real misconceptions, similar in length"],
+  "fadeChoiceFeedback": ["one explanation per option, same order — why each wrong one fails, why the right one is right"],
+  "fadeCorrectIndex": <index of the correct option, 0-3>,
   "fadeWhy": "one short sentence on why the correct choice is correct",
-  "soloCheck": "a THIRD, standalone question or small problem, same scope as the objective, for the learner to solve entirely alone with no scaffolding (free-response phrasing)",
-  "soloChoices": ["same shape as fadeChoices, for soloCheck instead"],
-  "soloCorrectIndex": 0,
+  "soloCheck": "a THIRD, standalone applied question or small problem, same scope as the objective, solved with no scaffolding (free-response phrasing)",
+  "soloChoices": ["same rules as fadeChoices, for soloCheck"],
+  "soloChoiceFeedback": ["same rules as fadeChoiceFeedback, for soloChoices"],
+  "soloCorrectIndex": <index of the correct option, 0-3>,
   "soloWhy": "one short sentence"
 }`;
 
