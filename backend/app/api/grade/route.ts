@@ -9,6 +9,8 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective, coachContextForUnit } from "@/lib/coach-context";
+import { queryOne } from "@/lib/db";
+import { gradeChoice, type StoredChoices } from "@/lib/lesson-choices";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,13 @@ export const dynamic = "force-dynamic";
 // first spaced-review date. PBQ grading has its own route (see /api/pbq) since it needs
 // a scenario + multiple named sub-parts.
 //
-// Body for format "mc" (graded locally — no Anthropic call needed, the correct index
-// is already known from the cached lesson content):
-//   { format: "mc", kind, stage?, objectiveId?, unitId?, question, chosenIndex, correctIndex,
-//     chosenText, why?, confidence? }
+// Body for format "mc" (graded locally — no Anthropic call needed):
+//   { format: "mc", kind, stage: "fade" | "solo", objectiveId, unitId?, question, chosenText,
+//     confidence? }
+// REQ-089: the right answer is looked up in the cached lesson, never taken
+// from the request, and the pick is matched by its text because choices are
+// shuffled on every serve. Older app builds still send chosenIndex /
+// correctIndex / why; those fields are ignored.
 //
 // Body for format "open" (graded by Claude):
 //   { format: "open", kind, stage?, objectiveId?, unitId?, question, answer, taughtText, confidence? }
@@ -37,13 +42,30 @@ export async function POST(req: Request) {
     if (objectiveId) await requireAcknowledgementForObjective(objectiveId, authUser.id);
 
     if (format === "mc") {
-      const { chosenIndex, correctIndex, chosenText, why } = body;
-      if (typeof chosenIndex !== "number" || typeof correctIndex !== "number") {
-        return badRequest("chosenIndex and correctIndex are required for format 'mc'");
+      const { chosenText } = body;
+      if (!objectiveId || (stage !== "fade" && stage !== "solo") || typeof chosenText !== "string") {
+        return badRequest("objectiveId, stage ('fade' or 'solo') and chosenText are required for format 'mc'");
       }
-      const correct = chosenIndex === correctIndex;
-      const verdict = correct ? "correct" : "incorrect";
-      const feedback = `${correct ? "That's right." : "Not quite."} ${why ?? ""}`.trim();
+      const p = stage === "fade" ? "fade" : "solo";
+      const row = await queryOne<{ choices: string[]; correct_index: number; why: string; feedback: string[] | null }>(
+        `select ${p}_choices as choices, ${p}_correct_index as correct_index, ${p}_why as why,
+                ${p}_choice_feedback as feedback
+         from lesson_content where objective_id = $1`,
+        [objectiveId]
+      );
+      if (!row) return badRequest("No lesson is cached for this objective");
+      const stored: StoredChoices = {
+        choices: row.choices,
+        correctIndex: row.correct_index,
+        why: row.why,
+        choiceFeedback: row.feedback,
+      };
+      const graded = gradeChoice(stored, chosenText);
+      // The lesson was regenerated after the learner loaded it: their choices
+      // no longer exist, so there is nothing fair to grade.
+      if (!graded) return badRequest("This lesson has changed since it was loaded. Reload it and try again.");
+      const verdict = graded.correct ? "correct" : "incorrect";
+      const feedback = graded.feedback;
       const attempt = await recordAttemptAndUpdateMastery({
         userId: authUser.id,
         unitId,
@@ -52,7 +74,7 @@ export async function POST(req: Request) {
         stage,
         format: "mc",
         question,
-        answer: chosenText ?? String(chosenIndex),
+        answer: chosenText,
         verdict,
         feedback,
         classification: "none",
