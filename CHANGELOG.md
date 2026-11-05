@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- REQ-091: Record-keeping fix. The 2026-10-09 Next.js upgrade (16.3.5 to 16.3.8, commit 0d3d768) called itself REQ-086 but was never registered, and REQ-086 was later given to the CCRN and Health Informatics courses. The upgrade now has its own number; in that one commit message, REQ-086 means REQ-091. No code change.
+
 - REQ-090: The six nursing courses go deeper. NCLEX-RN grows from 259 to 452 objectives, NCLEX-PN from 180 to 322, CNA from 70 to 127, LPN/LVN from 98 to 176, ADN from 101 to 178 and BSN from 100 to 179, under the same source reliability standard as CCRN. Sources: the 2026 NCSBN test plans, the NCSBN-ANA delegation guidelines, federal nursing-home rules (42 CFR 483) and CDC infection-control guidance for CNA scope, AACN Essentials for the BSN, and OpenStax nursing textbooks. Where textbooks disagreed and no guideline settled it (time between eye drops, injection distance from the navel, a normal bicarbonate range, the usual TPN route), the number is left out. CNA and PN objectives stay inside those roles' scope; PN objectives on transfusions, IV piggybacks and central lines say "where state scope and facility policy allow", following the 2026 PN plan, and an old note claiming the PN plan excludes them was corrected. Nothing already live moved or changed.
 
 - REQ-087: Security updates that were blocking CI. Next.js moves from 16.3.8 to 16.4.3, closing a critical advisory (remote code execution through the image optimizer) and two others; zod (input validation) moves to 4.6.7, and an override makes Vercel's own config library use that same patched copy instead of the old version it pins. No code changes; typecheck and all 23 tests pass, and npm audit is clean.
