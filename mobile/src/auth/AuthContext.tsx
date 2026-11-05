@@ -5,6 +5,8 @@ import { isBiometricAvailable, confirmBiometric, getBiometricLabel } from "@/lib
 import { api, ApiError, registerAuthHooks } from "@/api/client";
 import type { AuthUser } from "@/types";
 
+import { TERMS, PRIVACY } from "@/content/legal";
+
 const REFRESH_TOKEN_KEY = "ascendra_refresh_token";
 // A distinct key, not just a flag on the same one -- when biometric unlock is
 // on, the refresh token lives ONLY here (write-protected by the OS itself via
@@ -259,7 +261,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async (email: string, password: string, displayName?: string) => {
-    await api.post("/api/auth/register", { email, password, displayName });
+    // REQ-093: the versions shown at the sign-up checkbox, so the server can
+    // record exactly what was agreed to.
+    await api.post("/api/auth/register", {
+      email,
+      password,
+      displayName,
+      termsVersion: TERMS.version,
+      privacyVersion: PRIVACY.version,
+    });
   }, []);
 
   // A plain "Log out" ends this session but leaves the device's own

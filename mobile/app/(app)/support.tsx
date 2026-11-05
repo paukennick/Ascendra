@@ -210,7 +210,7 @@ export default function Support() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <Badge label={STATUS_LABEL[r.status]} color={STATUS_COLOR[r.status]} />
               <Muted style={{ fontSize: 12 }}>
-                {r.kind === "course_request" ? "Course request" : "Ticket"} ·{" "}
+                {r.kind === "course_request" ? "Course request" : r.kind === "content_report" ? "Lesson report" : "Ticket"} ·{" "}
                 {new Date(r.created_at).toLocaleDateString()}
               </Muted>
             </View>

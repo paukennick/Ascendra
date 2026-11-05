@@ -5,6 +5,7 @@ import { hashPassword } from "@/lib/auth/passwords";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { sendVerificationEmail } from "@/lib/email";
+import { acceptsCurrentVersions, recordAcceptance } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,10 @@ export async function POST(req: Request) {
       [normalizedEmail, displayName ?? null, passwordHash]
     );
     if (!userRow) throw new Error("Failed to create account.");
+
+    // REQ-093: record the sign-up checkbox. Older app builds don't send the
+    // versions; those users are asked to accept on first sign-in instead.
+    if (acceptsCurrentVersions(body)) await recordAcceptance(userRow.id, ["terms", "privacy"]);
 
     const rawToken = crypto.randomBytes(32).toString("base64url");
     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");

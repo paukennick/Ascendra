@@ -2719,6 +2719,48 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-093",
+      "category": "legal",
+      "title": "Codify legal documents, privacy notices, consent records, data retention and lesson feedback",
+      "description": "One versioned source for Terms, Privacy, Cookies, Disclaimer, FAQ and new About and Sources & Trademarks pages (mobile/src/content/legal.ts), rewritten against a checked data inventory (docs/legal/data-inventory.md). Consent is now recorded: sign-up sends the shown versions, legal_acceptances stores each acceptance, and users who have not accepted the current versions get an accept prompt. Daily retention cron enforces the stated periods; account deletion now removes the sign-in log. Data export covers every personal-data table. Lessons get a Report a problem button (support kind content_report) and docs/support-process.md sets triage. Migration 027 applied live. Owner placeholders (operator, contact, governing law, minimum age) remain visible until decided.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/components/LegalPage.tsx",
+        "mobile/src/components/LegalAcceptGate.tsx",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/app/(legal)",
+        "backend/lib/legal.ts",
+        "backend/lib/retention.ts",
+        "backend/app/api/legal/accept/route.ts",
+        "backend/app/api/cron/retention/route.ts",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/account",
+        "backend/supabase/migrations/027_legal_acceptances_and_content_reports.sql",
+        "docs/legal/data-inventory.md",
+        "docs/support-process.md"
+      ],
+      "acceptance_criteria": [
+        "Every privacy statement matches the code",
+        "Consent recorded with version and time",
+        "Stated retention periods enforced and tested",
+        "Export covers every personal-data table",
+        "Lesson problems reportable with objective and step"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test",
+        "migration 027 applied"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data inventory",
+        "support process"
+      ],
+      "risk_notes": []
     }
   ]
 }

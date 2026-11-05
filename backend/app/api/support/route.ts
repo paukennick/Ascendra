@@ -5,7 +5,10 @@ import { sendSupportRequestNotification } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
-const KINDS = ["ticket", "course_request"] as const;
+// REQ-093: "content_report" is the in-lesson "Report a problem" button, tied
+// to the objective and lesson step so the reviewer can find it.
+const KINDS = ["ticket", "course_request", "content_report"] as const;
+const STAGES = ["guess", "teach", "fade", "solo"] as const;
 type Kind = (typeof KINDS)[number];
 
 const MAX_SUBJECT = 200;
@@ -30,7 +33,7 @@ export async function GET(req: Request) {
     const user = await requireUser(req);
     const rows = await query(
       `select id, kind, subject, body, status, track_id, course_name, course_source_url,
-              admin_note, created_at, updated_at
+              objective_id, lesson_stage, admin_note, created_at, updated_at
          from support_requests
         where user_id = $1
         order by created_at desc`,
@@ -72,6 +75,24 @@ export async function POST(req: Request) {
       }
     }
 
+    let objectiveId: string | null = null;
+    let lessonStage: string | null = null;
+    if (kind === "content_report") {
+      if (
+        typeof payload?.objectiveId !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.objectiveId)
+      ) {
+        return badRequest("objectiveId is required for a content report");
+      }
+      const obj = await queryOne<{ id: string }>(`select id from objectives where id = $1`, [payload.objectiveId]);
+      if (!obj) return badRequest("objectiveId not found");
+      objectiveId = obj.id;
+      if (payload?.stage != null) {
+        if (!STAGES.includes(payload.stage)) return badRequest(`stage must be one of: ${STAGES.join(", ")}`);
+        lessonStage = payload.stage;
+      }
+    }
+
     // Only accept a track the caller actually owns -- otherwise the id is a
     // way to probe whether arbitrary track ids exist.
     let trackId: string | null = null;
@@ -94,10 +115,12 @@ export async function POST(req: Request) {
     }
 
     const created = await queryOne(
-      `insert into support_requests (user_id, kind, subject, body, track_id, course_name, course_source_url)
-       values ($1, $2, $3, $4, $5, $6, $7)
-       returning id, kind, subject, body, status, track_id, course_name, course_source_url, created_at, updated_at`,
-      [user.id, kind, subject, body, trackId, courseName, courseSourceUrl]
+      `insert into support_requests
+         (user_id, kind, subject, body, track_id, course_name, course_source_url, objective_id, lesson_stage)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       returning id, kind, subject, body, status, track_id, course_name, course_source_url,
+                 objective_id, lesson_stage, created_at, updated_at`,
+      [user.id, kind, subject, body, trackId, courseName, courseSourceUrl, objectiveId, lessonStage]
     );
 
     // Stored already -- a mail failure must not fail the submission.
@@ -108,6 +131,8 @@ export async function POST(req: Request) {
       fromEmail: user.email,
       courseName,
       courseSourceUrl,
+      objectiveId,
+      lessonStage,
     }).catch(() => undefined);
 
     return ok({ request: created }, 201);

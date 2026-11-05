@@ -20,6 +20,18 @@ export async function GET(req: Request) {
       query("select * from chat_messages where user_id = $1 order by created_at asc", [user.id]),
       query("select * from study_sessions where user_id = $1 order by started_at asc", [user.id]),
     ]);
+    // REQ-093: everything else stored about the account. Secrets (token and
+    // code hashes, MFA secrets) are left out: they are not information about
+    // the person, and exporting them would only make a stolen export worse.
+    const [supportRequests, acknowledgements, legalAcceptances, linkedAccounts, sessions, securityEvents] =
+      await Promise.all([
+        query("select * from support_requests where user_id = $1 order by created_at asc", [user.id]),
+        query("select track_id, disclaimer_key, disclaimer_version, acknowledged_at from track_acknowledgements where user_id = $1", [user.id]),
+        query("select document, version, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc", [user.id]),
+        query("select provider, email, created_at from oauth_accounts where user_id = $1", [user.id]),
+        query("select ip, user_agent, created_at, last_used_at, expires_at, revoked_at from refresh_tokens where user_id = $1 order by created_at asc", [user.id]),
+        query("select event_type, ip, created_at from auth_events where user_id = $1 order by created_at asc", [user.id]),
+      ]);
 
     const payload = {
       exportedAt: new Date().toISOString(),
@@ -30,6 +42,12 @@ export async function GET(req: Request) {
       errorLog,
       chatMessages,
       studySessions,
+      supportRequests,
+      courseAcknowledgements: acknowledgements,
+      legalAcceptances,
+      linkedAccounts,
+      sessions,
+      securityEvents,
     };
 
     return new Response(JSON.stringify(payload, null, 2), {

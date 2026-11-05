@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { ReportProblem } from "@/components/ReportProblem";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -345,6 +346,8 @@ export default function LessonFlow() {
           </View>
         </Card>
       )}
+
+      <ReportProblem objectiveId={objectiveId} objectiveTitle={headerTitle} stage={step} />
     </Screen>
   );
 }
