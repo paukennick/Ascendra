@@ -88,13 +88,11 @@ export interface LessonContent {
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.
   fadeProblem?: string;
+  // REQ-089: shuffled on every serve. The right answer and its explanation
+  // stay on the server, which grades the chosen text.
   fadeChoices?: string[];
-  fadeCorrectIndex?: number;
-  fadeWhy?: string;
   soloCheck?: string;
   soloChoices?: string[];
-  soloCorrectIndex?: number;
-  soloWhy?: string;
   model?: string;
   generatedAt?: string;
 }

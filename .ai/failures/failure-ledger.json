@@ -371,6 +371,79 @@
       "prevention_rules": [],
       "prevention_notes": "exam_revision / standard_revision / objectives_revision are varchar(100): keep revision strings to a short label, put the long provenance note in the file comment instead.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-017",
+      "date": "2026-11-02",
+      "title": "Aortic dissection objective overgeneralized definitive repair",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The first mitigation wording implied that every acute aortic dissection proceeds to definitive repair.",
+      "how_detected": "Tier 1 guideline review before commit",
+      "root_cause": "The objective carried the type A surgical pathway into all dissections instead of preserving the ACC/AHA distinction: uncomplicated acute type B starts with medical therapy, while type A needs immediate repair and complicated type B needs intervention.",
+      "requirement": "REQ-088",
+      "affected": [
+        "backend/supabase/seed/tracks/ccrn.ts"
+      ],
+      "fix_summary": "Kept the anti-impulse objective neutral about definitive management and appended a separate objective distinguishing type A, uncomplicated type B and complicated type B pathways.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "This is sourced clinical curriculum content rather than executable behavior; validation is source-to-objective review against the 2022 ACC/AHA aortic disease guideline plus the append-only objective-position check.",
+      "prevention_rules": [
+        "docs/source-reliability-standard.md",
+        ".ai/playbooks/implementation.md"
+      ],
+      "prevention_notes": "For clinical treatment objectives, check management branches and exceptions in the Tier 1 guideline before compressing them into one objective.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-018",
+      "date": "2026-11-02",
+      "title": "Full catalog seed interrupted by Supabase pooler drop",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "The idempotent full-catalog seed terminated partway through with 'Connection terminated unexpectedly' before reaching the CCRN and MSHI tracks.",
+      "how_detected": "npm run seed during release validation",
+      "root_cause": "The long-running seed relies on one external pooled PostgreSQL connection across the 94-course catalog; the remote pooler dropped that connection during the run.",
+      "requirement": "REQ-088",
+      "affected": [
+        "backend/supabase/seed/seed.ts",
+        "live shared catalog"
+      ],
+      "fix_summary": "Stopped retrying the broad live mutation and used a one-time append-only helper restricted to the four exact missing objective positions; it refused updates or mismatched existing rows. A read-only live count then confirmed all four course totals.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "The drop is an external transient connection failure; the requirement-level regression evidence is the append-only snapshot comparison and live objective-count query.",
+      "prevention_rules": [
+        ".ai/playbooks/implementation.md",
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "For small live catalog additions, use an append-only operation scoped to exact missing positions and verify counts; do not use a broad updater as a workaround.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-019",
+      "date": "2026-11-02",
+      "title": "Production build initially blocked by restricted Bash execution",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "npm run build failed before compilation with Bash/E_ACCESSDENIED.",
+      "how_detected": "Local release build",
+      "root_cause": "The build starts a Bash-based Expo web export, and the restricted execution environment could not launch that shell.",
+      "requirement": "REQ-088",
+      "affected": [
+        "backend/scripts/build-webapp.sh",
+        "backend production build"
+      ],
+      "fix_summary": "Reran the unchanged production build with approved execution access; Expo export, Next.js compilation, TypeScript and static generation completed successfully.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "This was an execution-environment permission failure, not application behavior; the successful full production build is the regression evidence.",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Run the production build in an environment permitted to launch the repository's Bash export step.",
+      "recurrence_of": ""
     }
   ]
 }
