@@ -241,8 +241,6 @@ export default function LessonFlow() {
           // practicePending to false, so these are guaranteed populated.
           promptText={lesson.fadeProblem!}
           choices={lesson.fadeChoices!}
-          correctIndex={lesson.fadeCorrectIndex!}
-          why={lesson.fadeWhy!}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
           unitId={unitId}
@@ -260,8 +258,6 @@ export default function LessonFlow() {
           // already resolved, so these came from the same generation.
           promptText={lesson.soloCheck!}
           choices={lesson.soloChoices!}
-          correctIndex={lesson.soloCorrectIndex!}
-          why={lesson.soloWhy!}
           taughtText={lesson.teach}
           objectiveId={objectiveId}
           unitId={unitId}
@@ -460,8 +456,6 @@ function CheckStep({
   kind,
   promptText,
   choices,
-  correctIndex,
-  why,
   taughtText,
   objectiveId,
   unitId,
@@ -473,8 +467,6 @@ function CheckStep({
   kind: "fade" | "solo";
   promptText: string;
   choices: string[];
-  correctIndex: number;
-  why: string;
   taughtText: string;
   objectiveId: string;
   unitId?: string;
@@ -505,10 +497,9 @@ function CheckStep({
         objectiveId,
         unitId,
         question: promptText,
-        chosenIndex: picked,
-        correctIndex,
+        // REQ-089: the server grades by the chosen text against the cached
+        // lesson; the app no longer knows (or sends) the right answer.
         chosenText: choices[picked],
-        why,
         confidence,
       });
       setResult(res);
