@@ -2763,6 +2763,66 @@
       "risk_notes": []
     },
     {
+      "id": "REQ-094",
+      "category": "release",
+      "title": "Play Store preparation: drop microphone permission, public account-deletion page, auto build numbers, listing draft",
+      "description": "The image picker plugin added android.permission.RECORD_AUDIO by default though the app never records audio; microphonePermission false removes it. New public /delete-account page on the backend satisfies Play's account-deletion URL requirement. eas.json now uses remote app versions with autoIncrement on production so each upload gets a new versionCode (both prior store builds were versionCode 1). docs/play-store/listing-draft.md drafts the listing, content and Data safety answers from the data inventory.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app.json",
+        "mobile/eas.json",
+        "backend/app/delete-account/page.tsx",
+        "docs/play-store/listing-draft.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Resolved Android permissions exclude RECORD_AUDIO",
+        "Deletion page reachable without sign-in",
+        "Production builds auto-increment versionCode"
+      ],
+      "validation_required": [
+        "expo config permissions",
+        "backend typecheck"
+      ],
+      "documentation_required": [
+        "changelog",
+        "listing draft"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-095",
+      "category": "content",
+      "title": "Deepen the 13 physical therapy courses from open sources under the source reliability standard",
+      "description": "Append sourced objectives to NPTE-PT 38->80, NPTE-PTA 26->55, DPT 59->110 and the ten ABPTS specialist courses 221->443 (344->688 total), following docs/source-reliability-standard.md, with sources, tiers and disagreements in each file header. Append-only: existing objectives, units, weights, range labels and gates unchanged. PTA objectives stay within PTA scope.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Every new objective cites a Tier 1 or Tier 2 source",
+        "Objectives live before the change keep text and position",
+        "Disputed values omitted unless Tier 1 settles them",
+        "Tracks seeded live"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "append-only diff against master",
+        "number check against source text",
+        "npm run seed"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
       "id": "REQ-096",
       "category": "learning",
       "title": "Labs step zero: show an objective's lab prompt as an optional, ungraded 'Try it' lesson step",
