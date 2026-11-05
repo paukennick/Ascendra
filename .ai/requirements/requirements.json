@@ -2611,6 +2611,35 @@
         "support process"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-094",
+      "category": "release",
+      "title": "Play Store preparation: drop microphone permission, public account-deletion page, auto build numbers, listing draft",
+      "description": "The image picker plugin added android.permission.RECORD_AUDIO by default though the app never records audio; microphonePermission false removes it. New public /delete-account page on the backend satisfies Play's account-deletion URL requirement. eas.json now uses remote app versions with autoIncrement on production so each upload gets a new versionCode (both prior store builds were versionCode 1). docs/play-store/listing-draft.md drafts the listing, content and Data safety answers from the data inventory.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app.json",
+        "mobile/eas.json",
+        "backend/app/delete-account/page.tsx",
+        "docs/play-store/listing-draft.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Resolved Android permissions exclude RECORD_AUDIO",
+        "Deletion page reachable without sign-in",
+        "Production builds auto-increment versionCode"
+      ],
+      "validation_required": [
+        "expo config permissions",
+        "backend typecheck"
+      ],
+      "documentation_required": [
+        "changelog",
+        "listing draft"
+      ],
+      "risk_notes": []
     }
   ]
 }
