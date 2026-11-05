@@ -275,7 +275,6 @@ mobile/
   tsconfig.json
 .cursorignore
 .cursorrules
-.git
 .gitattributes
 .gitignore
 .mcp.json
