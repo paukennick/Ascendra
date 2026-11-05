@@ -2821,6 +2821,54 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-096",
+      "category": "learning",
+      "title": "Labs step zero: show an objective's lab prompt as an optional, ungraded 'Try it' lesson step",
+      "description": "28 objectives carry a hands-on lab_prompt that no screen showed (docs/lesson-quality-evaluation.md, docs/interactive-labs-evaluation.md). Lessons with a lab_prompt get a fifth stepper entry 'Try it' after the solo check: the prompt, a note that mastery won't change, Skip and 'I did it'. 'I did it' records one attempt of kind 'lab' (format 'lab', verdict null) through POST /api/objectives/:id/lab. It never touches mastery or the spaced-review error log. Lessons without a lab_prompt are unchanged. The lesson GET now returns labPrompt. Migration 028 adds 'lab' to the attempt_format enum and must be applied before the backend is deployed.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/028_attempt_format_lab.sql",
+        "backend/lib/lab-attempts.ts",
+        "backend/lib/lab-attempts.test.ts",
+        "backend/app/api/objectives/[id]/lab/route.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/lib/grading-service.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lesson-steps.ts",
+        "mobile/src/lib/lesson-steps.test.ts",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/src/types/index.ts",
+        "docs/interactive-labs-evaluation.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Objective with lab_prompt shows Try it after solo; objective without behaves as before",
+        "Skip and I did it both go to Done",
+        "I did it records exactly one lab attempt and repeat taps within 10 minutes do not add more",
+        "Mastery and error_log unchanged by a lab attempt",
+        "Endpoint rejects unauthenticated callers and objectives the caller cannot see and objectives with no lab_prompt",
+        "Lesson GET returns labPrompt on all paths"
+      ],
+      "validation_required": [
+        "backend npm run typecheck",
+        "backend npm test",
+        "mobile npm run typecheck",
+        "mobile npm test",
+        "omni sync/map freshness",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/interactive-labs-evaluation.md"
+      ],
+      "risk_notes": [
+        "Migration 028 must be applied before deploying the backend or 'I did it' returns a 500 (Skip still works)",
+        "No on-device or browser check",
+        "Self-reported completion cannot be verified"
+      ]
     }
   ]
 }

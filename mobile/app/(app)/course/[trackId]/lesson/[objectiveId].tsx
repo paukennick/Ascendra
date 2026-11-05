@@ -15,12 +15,13 @@ import {
   Loading,
   Muted,
   Screen,
+  SectionHeader,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
-
-type Step = "guess" | "teach" | "fade" | "solo" | "done";
-const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
+// REQ-096: the step list is no longer fixed -- an objective with a lab
+// prompt gets a fifth, optional "Try it" step after the solo check.
+import { normalizeLabPrompt, stepAfterSolo, stepsFor, type ProgressStep, type Step } from "@/lib/lesson-steps";
 
 export default function LessonFlow() {
   const { trackId, objectiveId, unitId, objectiveTitle } = useLocalSearchParams<{
@@ -57,15 +58,24 @@ export default function LessonFlow() {
   // Mastery status reached, fetched once the learner lands on "done" so the
   // screen can say what the work just earned and how to go further.
   const [reached, setReached] = useState<MasteryStatus | null>(null);
+  // REQ-096: the objective's optional hands-on lab text, or null. Comes
+  // from the lesson GET (beside `lesson`, not inside it), so it survives a
+  // regenerate -- that POST doesn't carry it and doesn't need to.
+  const [labPrompt, setLabPrompt] = useState<string | null>(null);
+  const [labSaving, setLabSaving] = useState(false);
+  const [labError, setLabError] = useState<string | null>(null);
 
   const loadLesson = useCallback(() => {
     setError(null);
     setLesson(null);
     api
-      .get<{ lesson: LessonContent; practicePending?: boolean }>(`/api/objectives/${objectiveId}/lesson`)
+      .get<{ lesson: LessonContent; practicePending?: boolean; labPrompt?: string | null }>(
+        `/api/objectives/${objectiveId}/lesson`
+      )
       .then((res) => {
         setLesson(res.lesson);
         setPracticePending(!!res.practicePending);
+        setLabPrompt(normalizeLabPrompt(res.labPrompt));
       })
       .catch((err) => setError(err.message));
   }, [objectiveId]);
@@ -79,6 +89,9 @@ export default function LessonFlow() {
     setGuessFeedbackLoading(false);
     setNext(null);
     setReached(null);
+    setLabPrompt(null);
+    setLabSaving(false);
+    setLabError(null);
   }, [loadLesson]);
 
   useEffect(() => {
@@ -170,7 +183,7 @@ export default function LessonFlow() {
   return (
     <Screen>
       <Stack.Screen options={{ title: headerTitle }} />
-      <StepHeader step={step} />
+      <StepHeader step={step} steps={stepsFor(labPrompt)} />
 
       {step === "guess" && (
         <GuessStep
@@ -265,9 +278,31 @@ export default function LessonFlow() {
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
-          onDone={() => setStep("done")}
+          onDone={() => setStep(stepAfterSolo(labPrompt))}
         />
       )}
+
+      {step === "lab" && labPrompt ? (
+        <LabStep
+          prompt={labPrompt}
+          saving={labSaving}
+          error={labError}
+          onSkip={() => setStep("done")}
+          onDid={async () => {
+            setLabSaving(true);
+            setLabError(null);
+            try {
+              await api.post(`/api/objectives/${objectiveId}/lab`);
+              setStep("done");
+            } catch (err) {
+              // Skip stays available: a failed save must never trap the learner.
+              setLabError((err as Error).message);
+            } finally {
+              setLabSaving(false);
+            }
+          }}
+        />
+      ) : null}
 
       {step === "done" && (
         <Card elevated style={{ alignItems: "center", gap: spacing.sm }}>
@@ -378,21 +413,26 @@ const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof
   teach: { label: "Teach", icon: "book-open" },
   fade: { label: "Guided", icon: "compass" },
   solo: { label: "Solo", icon: "check-circle" },
+  lab: { label: "Try it", icon: "terminal" },
   done: { label: "Done", icon: "flag" },
 };
 
-function StepHeader({ step }: { step: Step }) {
-  const activeIndex = STEPS.indexOf(step);
+function StepHeader({ step, steps }: { step: Step; steps: ProgressStep[] }) {
+  // "done" isn't in the list, so every step reads as past once it's reached
+  // -- same as before the lab step existed.
+  const activeIndex = step === "done" ? steps.length : steps.indexOf(step as ProgressStep);
+  // Five items at the usual width crowd a 320dp screen; narrow them a touch.
+  const itemWidth = steps.length > 4 ? 52 : 56;
   return (
     <View style={styles.stepper}>
-      {STEPS.map((s, i) => {
+      {steps.map((s, i) => {
         const meta = STEP_META[s];
         const isActive = s === step;
         const isPast = activeIndex > i;
         const color = isActive ? colors.accent : isPast ? colors.good : colors.mutedDim;
         return (
           <React.Fragment key={s}>
-            <View style={styles.stepItem}>
+            <View style={[styles.stepItem, { width: itemWidth }]}>
               <View
                 style={[
                   styles.stepDot,
@@ -403,13 +443,44 @@ function StepHeader({ step }: { step: Step }) {
               </View>
               <Muted style={{ color, fontSize: 11 }}>{meta.label}</Muted>
             </View>
-            {i < STEPS.length - 1 ? (
+            {i < steps.length - 1 ? (
               <View style={[styles.stepLine, { backgroundColor: isPast ? colors.good : colors.border }]} />
             ) : null}
           </React.Fragment>
         );
       })}
     </View>
+  );
+}
+
+// REQ-096: the optional hands-on lab. Nothing here is graded or checked --
+// the note says so plainly, and "I did it" is only a record that the learner
+// did it. One calm card, one primary action; Skip is the quieter ghost
+// button, and no motion beyond the buttons' own press feedback.
+function LabStep({
+  prompt,
+  saving,
+  error,
+  onSkip,
+  onDid,
+}: {
+  prompt: string;
+  saving: boolean;
+  error: string | null;
+  onSkip: () => void;
+  onDid: () => void;
+}) {
+  return (
+    <Card elevated>
+      <SectionHeader label="Try it yourself · optional" style={{ marginTop: 0, marginBottom: 0 }} />
+      <Body>{prompt}</Body>
+      <Muted style={{ fontSize: 12 }}>Your mastery won't change. This is practice the app can't check.</Muted>
+      {error ? <ErrorBanner message={error} /> : null}
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        <Button label="I did it" icon="check" fullWidth={false} loading={saving} onPress={onDid} />
+        <Button label="Skip" variant="ghost" fullWidth={false} disabled={saving} onPress={onSkip} />
+      </View>
+    </Card>
   );
 }
 

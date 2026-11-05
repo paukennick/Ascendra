@@ -114,7 +114,7 @@ export interface Attempt {
   track_id?: string | null;
   kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
   stage: string | null;
-  format: "mc" | "open" | "pbq";
+  format: "mc" | "open" | "pbq" | "lab";
   question: string;
   answer: string;
   verdict: "correct" | "partial" | "incorrect" | null;

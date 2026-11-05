@@ -6,6 +6,7 @@ import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
+import { findLabObjective } from "@/lib/lab-attempts";
 import {
   loadObjective,
   rowToAvoid,
@@ -38,17 +39,22 @@ export async function GET(
     const user = await requireUser(req);
     await requireAcknowledgementForObjective(id, user.id);
 
+    // REQ-096: the objective's optional hands-on lab, if it has one. Sits
+    // beside `lesson` rather than inside it because the cached lesson row
+    // doesn't hold it -- it lives on the objective and is not regenerated.
+    const labPrompt = (await findLabObjective(id, user.id))?.lab_prompt?.trim() || null;
+
     const inFlight = pendingGeneration.get(id);
     if (inFlight) {
       const generated = await inFlight.fullPromise;
-      return ok({ lesson: rowToLesson(generated), cached: false });
+      return ok({ lesson: rowToLesson(generated), cached: false, labPrompt });
     }
 
     const existing = await queryOne<LessonRow>(
       `select * from lesson_content where objective_id = $1`,
       [id]
     );
-    if (existing) return ok({ lesson: rowToLesson(existing), cached: true });
+    if (existing) return ok({ lesson: rowToLesson(existing), cached: true, labPrompt });
 
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
@@ -61,6 +67,7 @@ export async function GET(
       lesson: { guessPrompt: intro.guessPrompt, teach: intro.teach },
       cached: false,
       practicePending: true,
+      labPrompt,
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
