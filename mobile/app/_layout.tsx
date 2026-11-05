@@ -19,6 +19,7 @@ import { UpdateBanner } from "@/components/UpdateBanner";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
+import { LegalAcceptGate } from "@/components/LegalAcceptGate";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
 installWebAutofillStyles();
@@ -98,6 +99,8 @@ function RootNavigator() {
         <Stack.Screen name="(legal)" />
         <Stack.Screen name="lock" />
       </Stack>
+      {/* REQ-093: legal pages stay readable while the prompt is up. */}
+      {status === "signedIn" && segments[0] !== "(legal)" ? <LegalAcceptGate /> : null}
       {Platform.OS === "web" && webIdleWarningSecondsLeft !== null ? (
         <IdleWarningBanner secondsLeft={webIdleWarningSecondsLeft} />
       ) : null}

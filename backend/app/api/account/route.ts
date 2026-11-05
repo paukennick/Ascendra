@@ -2,6 +2,7 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { verifyPassword } from "@/lib/auth/passwords";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { deleteAuthEventsFor } from "@/lib/retention";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,8 @@ export const dynamic = "force-dynamic";
 export async function DELETE(req: Request) {
   try {
     const authUser = await requireUser(req);
-    const row = await queryOne<{ password_hash: string | null }>(
-      "select password_hash from app_users where id = $1",
+    const row = await queryOne<{ password_hash: string | null; email: string }>(
+      "select password_hash, email from app_users where id = $1",
       [authUser.id]
     );
     if (row?.password_hash) {
@@ -28,6 +29,10 @@ export async function DELETE(req: Request) {
       if (!valid) return badRequest("Password is incorrect.");
     }
 
+    // REQ-093: sign-in log rows only lose their user_id on cascade and keep
+    // the email address or user id as identifier, so delete them first --
+    // after the user row is gone, user_id is already null.
+    if (row) await deleteAuthEventsFor(authUser.id, row.email);
     await query("delete from app_users where id = $1", [authUser.id]);
     return ok({ message: "Account deleted." });
   } catch (err) {

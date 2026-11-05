@@ -8,6 +8,8 @@ export interface AuthUser {
   hasPassword?: boolean;
   googleLinked?: boolean;
   avatarDataUrl?: string | null;
+  // REQ-093: documents whose current version this user still has to accept.
+  legalPending?: ("terms" | "privacy")[];
 }
 
 export type MasteryStatus =
@@ -190,7 +192,7 @@ export interface EducationCategory {
   subcategories: EducationSubcategory[];
 }
 
-export type SupportRequestKind = "ticket" | "course_request";
+export type SupportRequestKind = "ticket" | "course_request" | "content_report";
 export type SupportRequestStatus = "open" | "in_review" | "resolved" | "declined";
 
 export interface SupportRequest {
