@@ -2693,6 +2693,32 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-092",
+      "category": "security",
+      "title": "Enable RLS and revoke Supabase Data API access on every public table",
+      "description": "Supabase's anon and authenticated roles could read all 36 public tables and views through the project's REST API, including password hashes, refresh tokens and MFA secrets; only 7 catalog tables had RLS. The app never uses that API (the backend connects as postgres, which bypasses RLS). Migration 026 enables RLS on every table, revokes all anon/authenticated privileges on tables, views, sequences and functions, and revokes default privileges so new tables start locked. Applied live.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/026_enable_rls.sql",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "anon and authenticated can read no public table or view",
+        "Backend queries unaffected",
+        "New tables start locked"
+      ],
+      "validation_required": [
+        "pg privilege query",
+        "set role anon read denied",
+        "live login path returns normal 401"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }
