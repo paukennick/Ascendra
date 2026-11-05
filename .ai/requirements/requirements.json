@@ -2571,6 +2571,130 @@
       "risk_notes": []
     },
     {
+      "id": "REQ-088",
+      "category": "content",
+      "title": "Deepen CCRN and MS Health Informatics courses from open textbooks under a source reliability standard",
+      "description": "Append open-textbook-sourced objectives to CCRN Adult/Pediatric/Neonatal and MSHI (154->271, 60->135, 62->136, 75->134), adopt docs/source-reliability-standard.md, grade every source against it, resolve source disagreements against Tier 1 guidelines, and restore data-warehouse and health-information-behaviour coverage with qualifying sources. Append-only: existing objectives keep unit, position and wording because the seed matches by sort order.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/seed/tracks/informatics.ts",
+        "docs/source-reliability-standard.md",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Every objective traces to a Tier 1 or Tier 2 source",
+        "Disagreements resolved against Tier 1 or the disputed value omitted",
+        "Objectives live before the change keep text and position",
+        "Tracks seeded live"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "append-only diff against HEAD",
+        "npm run seed"
+      ],
+      "documentation_required": [
+        "changelog",
+        "source reliability standard"
+      ],
+      "risk_notes": [
+        "2026-11-02 mitigation: restore data warehouses and health-information-behaviour models with qualifying sources; add the ACC/AHA acute-aortic-syndrome exception because AACN explicitly tests aortic dissection; commit and open a PR."
+      ]
+    },
+    {
+      "id": "REQ-089",
+      "category": "learning",
+      "title": "Lesson quick fixes: shuffled choices, server-side grading, per-option feedback, reasoning-step guided questions",
+      "description": "From docs/lesson-quality-evaluation.md: the right answer sat first in 49 of 52 cached questions and the app told the server which answer was right. Choices are now shuffled on every serve, the answer key stays on the server and /api/grade grades by chosen text against the cached lesson, every option gets its own explanation (migration 025), and the practice prompt now sees the teaching text and must leave a reasoning step rather than a label. Four lessons with content errors were deleted so they regenerate.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/lesson-choices.ts",
+        "backend/lib/lesson-choices.test.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/supabase/migrations/025_lesson_choice_feedback.sql",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/types/index.ts",
+        "docs/lesson-quality-evaluation.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Served lessons carry no answer key",
+        "Grading uses the cached lesson not the request",
+        "A wrong pick is told why it is wrong",
+        "Older app builds still grade"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test",
+        "migration 025 applied"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-090",
+      "category": "content",
+      "title": "Deepen the six nursing courses from open textbooks under the source reliability standard",
+      "description": "Append sourced objectives to NCLEX-RN, NCLEX-PN, CNA, LPN/VN, ADN and BSN (259->452, 180->322, 70->127, 98->176, 101->178, 100->179) following docs/source-reliability-standard.md, with sources, tiers and disagreements in the nursing.ts header. Append-only: existing objectives keep unit and position. Corrects the stale PN-scope comment against the 2026 NCLEX-PN plan.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Every new objective cites a Tier 1 or Tier 2 source",
+        "Objectives live before the change keep text and position",
+        "Disputed values omitted unless Tier 1 settles them",
+        "Tracks seeded live"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "append-only diff against HEAD",
+        "npm run seed",
+        "live objective count"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-091",
+      "category": "security",
+      "title": "Upgrade Next.js to 16.3.8 to clear backend audit advisories (commit 0d3d768, mislabelled REQ-086)",
+      "description": "Commit 0d3d768 (2026-10-09) upgraded Next.js 16.3.5 -> 16.3.8 to clear a critical advisory and transitive highs, and labelled itself REQ-086 without registering it. REQ-086 was later issued to the CCRN and MS Health Informatics courses. This entry gives the upgrade its own ID; the commit message cannot be changed because it is already on master, so read REQ-086 in that one commit as REQ-091. Superseded by REQ-087 (Next.js 16.4.3).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/package.json",
+        "backend/package-lock.json",
+        "backend/next-env.d.ts"
+      ],
+      "acceptance_criteria": [
+        "npm audit clean at the time",
+        "typecheck and tests pass"
+      ],
+      "validation_required": [
+        "npm audit",
+        "tsc",
+        "npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
       "id": "REQ-092",
       "category": "security",
       "title": "Enable RLS and revoke Supabase Data API access on every public table",
