@@ -2821,6 +2821,38 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-097",
+      "category": "content",
+      "title": "Retitle the 17 CompTIA courses to follow CompTIA's trademark rules",
+      "description": "CompTIA's trademark page (comptia.org/en-us/legal/trademarks) says a certification name must always carry the word CompTIA and a training course must not be named after the certification; it should make a true statement that it helps learners prepare for it. Retitle all 17 CompTIA tracks from '<cert> Coach' to 'Prep for CompTIA <cert>' (A+ cores as 'Prep for CompTIA A+ (Core 1)'). Titles only; codes, descriptions, units and objectives unchanged. Not legal advice; needs a lawyer's review before Play Store launch. REQ-096 is taken by labs/step-zero (PR #12), hence 097.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/comptia.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "All 17 CompTIA track titles put CompTIA before the mark",
+        "No title is the bare certification name",
+        "Track codes unchanged so the seed updates existing rows in place"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not reviewed by a lawyer",
+        "Live titles change only on the next npm run seed",
+        "17 titles changed; backend typecheck, 36/36 tests, omni gate pass. Not seeded live; lawyer review pending."
+      ]
     }
   ]
 }

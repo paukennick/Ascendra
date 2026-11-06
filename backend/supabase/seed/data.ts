@@ -317,7 +317,7 @@ export const MSCS_TRACK: SeedTrack = {
 
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
-  title: "Security+ Coach",
+  title: "Prep for CompTIA Security+",
   description: "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -680,7 +680,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const LINUXPLUS_TRACK: SeedTrack = {
   code: "LINUXPLUS",
-  title: "Linux+ Coach",
+  title: "Prep for CompTIA Linux+",
   description: "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -802,7 +802,7 @@ export const LINUXPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CYSAPLUS_TRACK: SeedTrack = {
   code: "CYSAPLUS",
-  title: "CySA+ Coach",
+  title: "Prep for CompTIA CySA+",
   description: "CompTIA CySA+ CS0-003 exam prep across 4 weighted domains, with SOC-analyst drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -889,7 +889,7 @@ export const CYSAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PENTESTPLUS_TRACK: SeedTrack = {
   code: "PENTESTPLUS",
-  title: "PenTest+ Coach",
+  title: "Prep for CompTIA PenTest+",
   description: "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -974,7 +974,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SECURITYX_TRACK: SeedTrack = {
   code: "SECURITYX",
-  title: "SecurityX Coach",
+  title: "Prep for CompTIA SecurityX",
   description: "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
