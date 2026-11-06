@@ -2028,6 +2028,10 @@ export const ADN_TRACK: SeedTrack = {
 // the featured concept that was "Diversity, Equity, and Inclusion" in the
 // 2021 edition is "Access, Connection, and Engagement" in the 2026 one.
 // Anything written from memory would have the old list.
+// Unit titles renamed 2026-11-06 (REQ-099, Nick): each unit still covers
+// one Essentials Domain in AACN's order (marked on each title line), but
+// the titles use common nursing-course names instead of AACN's own domain
+// names, because AACN's terms bar derivative works without permission.
 // ---------------------------------------------------------------------------
 export const BSN_TRACK: SeedTrack = {
   code: "BSNRN",
@@ -2061,7 +2065,7 @@ export const BSN_TRACK: SeedTrack = {
   },
   units: [
     {
-      title: "Knowledge for Nursing Practice",
+      title: "Nursing Science and Theory", // AACN Essentials Domain 1
       weight: 11,
       gate: "Use disciplinary knowledge and knowledge from other fields together, and say which one you are leaning on.",
       objectives: [
@@ -2086,7 +2090,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Person-Centered Care",
+      title: "Patient- and Family-Centered Care", // AACN Essentials Domain 2
       weight: 14,
       gate: "Build care around the person and the people who matter to them, not around the diagnosis.",
       objectives: [
@@ -2119,7 +2123,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Population Health",
+      title: "Community and Public Health Nursing", // AACN Essentials Domain 3
       weight: 11,
       gate: "Move from one patient to a population, and name the partnership that would actually shift the outcome.",
       objectives: [
@@ -2153,7 +2157,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Scholarship for the Nursing Discipline",
+      title: "Evidence-Based Practice and Nursing Research", // AACN Essentials Domain 4
       weight: 9,
       gate: "Read the evidence critically, and be able to say why a study should or should not change what you do.",
       objectives: [
@@ -2176,7 +2180,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Quality and Safety",
+      title: "Patient Safety and Quality Improvement", // AACN Essentials Domain 5
       weight: 11,
       gate: "Treat an error as a system signal: find the condition that allowed it, not the person who met it.",
       objectives: [
@@ -2202,7 +2206,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Interprofessional Partnerships",
+      title: "Teamwork and Interprofessional Collaboration", // AACN Essentials Domain 6
       weight: 9,
       gate: "Work with other professions as colleagues with distinct expertise, and communicate across that difference under pressure.",
       objectives: [
@@ -2226,7 +2230,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Systems-Based Practice",
+      title: "Health Care Systems, Policy and Finance", // AACN Essentials Domain 7
       weight: 9,
       gate: "Explain how the system pays for, staffs and constrains the care you give, and where the leverage sits.",
       objectives: [
@@ -2250,7 +2254,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Informatics and Healthcare Technologies",
+      title: "Nursing Informatics and Health Technology", // AACN Essentials Domain 8
       weight: 9,
       gate: "Use the record and the technology as clinical instruments, including knowing how they mislead.",
       objectives: [
@@ -2273,7 +2277,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Professionalism",
+      title: "Professional Nursing: Ethics and Standards", // AACN Essentials Domain 9
       weight: 9,
       gate: "Hold the standards of the profession when it is inconvenient, and know where they come from.",
       objectives: [
@@ -2297,7 +2301,7 @@ export const BSN_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Personal, Professional and Leadership Development",
+      title: "Nursing Leadership and Professional Growth", // AACN Essentials Domain 10
       weight: 8,
       gate: "Build the practice you can sustain: self-awareness, lifelong learning, leadership, and the honesty to seek feedback.",
       objectives: [
