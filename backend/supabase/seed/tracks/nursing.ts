@@ -1345,7 +1345,7 @@ export const CNA_TRACK: SeedTrack = {
         "Measure and record intake and output accurately, and tell the nurse when a resident drinks or passes much less than usual", // FN 26.4; CNS 19.2
         "Recognise the changes that can signal death is near -- cool hands and feet, mottled or pale skin, irregular or noisy breathing with pauses, less eating and drinking -- and report them to the nurse", // FN 36.2
         "Keep talking to and touching a dying resident gently, because a person near death may still hear and feel even when they cannot respond", // FN 36.2
-        "Help with care of the body after death as the facility directs: handle the body gently, preserve privacy, replace soiled linen, clean soiled areas and tidy the room so the family can say goodbye", // FN 36.4
+        "Help the nurse with care of the body after death, as the nurse and facility direct: handle the body gently, preserve privacy, replace soiled linen, clean soiled areas and tidy the room so the family can say goodbye", // FN 36.4
         "Respect the resident's and family's cultural and religious wishes about care at and after death, and pass any request you cannot meet to the nurse", // FN 36.4
         "Report pain a resident shows or describes, because the facility must manage pain in line with professional standards, the care plan and the resident's goals", // CFR 483.25
       ],

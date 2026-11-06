@@ -145,12 +145,21 @@
 // - Physiopedia was not used.
 //
 // Where sources disagreed, and what we did (checked 2026-11-04):
+// - PTA supervision, resolved 2026-11-06 (Nick): 42 CFR 410.60(c)(2), read
+//   on eCFR 2026-11-06, says a PTA may work under the general supervision
+//   of a PT in private practice (CY2025 fee-schedule rule, effective
+//   2025-01-01). The Benefit Policy Manual ch. 15 still prints the old
+//   direct-supervision wording (sec. 230.4, not 230.1); the regulation
+//   governs, so the objective names general supervision plus the note
+//   that state law, payers or facilities may be stricter.
 // - FSBPT's own documents differ on two outline totals: the 2025.02
 //   Candidate Handbook prints Musculoskeletal as 45-54 items and the
 //   Interventions column total as 45-58, while the 2024 content-outline
 //   PDFs print 44-54 and 47-58. Both are FSBPT (Tier 1). The existing
 //   rangeLabel "45-54 of 225 items" and weight were left untouched
 //   (append-only); flagged for Nick.
+//   Decided 2026-11-06 (Nick): keep 45-54, because the 2025.02 handbook is
+//   newer than the 2024 outline.
 // - PTA supervision in private practice: CMS Benefit Policy Manual sec.
 //   230.1 (Rev. 179, 2014) says private practice requires direct
 //   supervision of PTAs, while 42 CFR 410.60(c) as amended through
@@ -647,7 +656,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
         "Know what Medicare does not allow a PTA to do -- evaluate or assess, make clinical judgments, or develop and furnish skilled maintenance programs -- and work under the supervising PT's direction", // CMS-BPM15 230.1
         "Record progress objectively, for example the distance walked and level of assistance, leaving judgments about why progress did or did not happen to the PT, and change goals only at the PT's direction", // CMS-BPM15 220.3
-        "Follow the supervision level the setting, payer and state law require, applying the stricter rule when they differ, and the Standards of Ethical Conduct duty to decide jointly with the PT", // CMS-BPM15 230.1; CFR 410.60; APTA-SEC
+        "Know that since 2025 Medicare lets a PT in private practice supervise a PTA under general supervision (the PT need not be on site), that state law, other payers or the facility may require closer supervision, and that the Standards of Ethical Conduct still require deciding jointly with the PT", // CFR 410.60(c)(2); APTA-SEC
       ],
     },
     {

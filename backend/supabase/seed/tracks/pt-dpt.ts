@@ -79,6 +79,13 @@
 //   Accessed 2026-11-04. Sections cited: .
 //
 // Where sources disagreed, and what we did (checked 2026-11-04):
+// - PTA supervision, resolved 2026-11-06 (Nick): 42 CFR 410.60(c)(2), read
+//   on eCFR 2026-11-06, says a PTA may work under the general supervision
+//   of a PT in private practice (CY2025 fee-schedule rule, effective
+//   2025-01-01). The Benefit Policy Manual ch. 15 still prints the old
+//   direct-supervision wording (sec. 230.4, not 230.1); the regulation
+//   governs, so the objective names general supervision plus the note
+//   that state law, payers or facilities may be stricter.
 // - PTA supervision in private practice: CMS manual sec. 230.1 (Rev. 179,
 //   2014) says direct supervision; 42 CFR 410.60(c) as amended through
 //   2024-12-09 allows general supervision. Two Tier 1 sources conflict, so
@@ -249,7 +256,7 @@ export const DPT_TRACK: SeedTrack = {
         "Set measurable long-term goals for the episode and short-term goals to track progress, knowing they may be the same when the episode is expected to last only 4 to 6 treatment days", // CMS-BPM15 220.1.2
         "Get the plan certified by a physician or NPP within 30 days of the first treatment, and recertify within certification intervals of 90 calendar days or less", // CMS-BPM15 220.1.3
         "What a PTA may not do under Medicare -- evaluate or assess, make clinical judgments, or develop and deliver skilled maintenance programs -- when deciding which care to direct to an assistant", // CMS-BPM15 230.1; CAPTE-PT 7D7
-        "PTA supervision rules: Medicare's manual and 42 CFR 410.60 differ on private-practice supervision, and state law may be stricter, so apply the strictest rule that governs the setting", // CMS-BPM15 230.1; CFR 410.60; CAPTE-PT 7D7
+        "PTA supervision rules: since 2025 Medicare allows general supervision of a PTA by a PT in private practice, but state law, other payers or facility policy may require closer supervision, and the PT stays responsible for the care", // CFR 410.60(c)(2); CAPTE-PT 7D7
         "Design a maintenance program when a patient's skilled need is to maintain function or slow decline rather than to improve, which Medicare covers when it needs a therapist's skill", // CMS-BPM15 220.2
         "Write a discharge note covering care since the last progress report, as the final record that the whole episode was medically necessary", // CMS-BPM15 220.3; CAPTE-PT 7D9
       ],
