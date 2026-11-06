@@ -2821,6 +2821,98 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-097",
+      "category": "content",
+      "title": "Retitle the 17 CompTIA courses to follow CompTIA's trademark rules",
+      "description": "CompTIA's trademark page (comptia.org/en-us/legal/trademarks) says a certification name must always carry the word CompTIA and a training course must not be named after the certification; it should make a true statement that it helps learners prepare for it. Retitle all 17 CompTIA tracks from '<cert> Coach' to 'Prep for CompTIA <cert>' (A+ cores as 'Prep for CompTIA A+ (Core 1)'). Titles only; codes, descriptions, units and objectives unchanged. Not legal advice; needs a lawyer's review before Play Store launch. REQ-096 is taken by labs/step-zero (PR #12), hence 097.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/comptia.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "All 17 CompTIA track titles put CompTIA before the mark",
+        "No title is the bare certification name",
+        "Track codes unchanged so the seed updates existing rows in place"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not reviewed by a lawyer",
+        "Live titles change only on the next npm run seed",
+        "17 titles changed; backend typecheck, 36/36 tests, omni gate pass. Not seeded live; lawyer review pending."
+      ]
+    },
+    {
+      "id": "REQ-098",
+      "category": "content",
+      "title": "Settle three open content decisions: PTA supervision, NPTE range, CNA after-death care",
+      "description": "Nick's 2026-11-06 picks. (1) PTA private-practice supervision objectives in pt.ts and pt-dpt.ts now teach general supervision under 42 CFR 410.60(c)(2) (effective 2025-01-01), with state law, payers or facilities possibly stricter; the CMS manual's direct-supervision text is stale. (2) NPTE musculoskeletal stays 45-54 (2025.02 handbook is newer than the 2024 outline); no data change. (3) CNA care-after-death objective reworded to 'help the nurse with', so the aide assists rather than leads. All edits are rewordings in place; positions unchanged.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Supervision objectives cite 42 CFR 410.60(c)(2)",
+        "No objective added removed or moved",
+        "CNA objective says the aide helps the nurse"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Typecheck, tests, gate pass; not seeded live."
+      ]
+    },
+    {
+      "id": "REQ-099",
+      "category": "content",
+      "title": "Rename the 10 BSN units in our own words",
+      "description": "AACN's Essentials terms bar derivative works without permission. Rename the BSN course's 10 units from AACN's domain names to common nursing-course names learners recognise (e.g. Population Health -> Community and Public Health Nursing), keeping one unit per domain in AACN's order with the domain number noted in source. Titles only; units are matched by position so progress is unaffected. Replaces the planned AACN permission email.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "No BSN unit title reuses an AACN domain name",
+        "Each unit maps to one domain in order",
+        "Unit count and order unchanged"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Typecheck, tests, gate pass; not seeded live."
+      ]
     }
   ]
 }
