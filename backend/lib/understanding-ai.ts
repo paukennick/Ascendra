@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import type { AiPurpose } from "@/lib/ai-calls";
+import type { CoachContext } from "@/lib/coach-context";
+import { reconciled, trivialAnswer, trivialGrade } from "@/lib/grade-consistency";
 import { coachContextForObjective, coachContextForTrack } from "@/lib/coach-context";
 import { queryOne } from "@/lib/db";
 import {
@@ -183,6 +186,11 @@ export async function ensurePrerequisites(trackId: string): Promise<InsightState
   });
 }
 
+// Audit 3 L1 (FAIL-305): verdict, feedback, four rubric checks, a model
+// answer and a misconception used to share 900 output tokens; a long answer
+// could truncate, fail to parse and show a 500 after the call was billed.
+export const EXPLAIN_BACK_MAX_TOKENS = 1500;
+
 export async function gradeExplainBack(params: {
   objectiveId: string;
   objectiveTitle: string;
@@ -190,18 +198,43 @@ export async function gradeExplainBack(params: {
   question: string;
   answer: string;
   userId: string;
+  // Only the live eval sets these.
+  ctx?: CoachContext;
+  model?: string;
+  purpose?: AiPurpose;
 }): Promise<ExplainBackGrade> {
-  const ctx = (await coachContextForObjective(params.objectiveId)) ?? undefined;
-  const { system, user } = explainBackGradePrompt({ ...params, ctx });
-  return callClaudeStructured({
+  // Audit 3 M1: a trivial explanation is incorrect without a model call, and
+  // a "correct" that the rubric contradicts is downgraded.
+  const trivial = trivialAnswer(params.answer, { question: params.question });
+  if (trivial) {
+    const { trivial: _r, ...g } = trivialGrade(trivial);
+    return {
+      ...g,
+      modelAnswer: g.modelAnswer ?? "",
+      fixNext: g.fixNext ?? "",
+      rubric: { correct: false, complete: false, keyTerms: false, noMisconception: false },
+      misconception: "",
+      confusedWith: "",
+    };
+  }
+  const ctx = params.ctx ?? (await coachContextForObjective(params.objectiveId)) ?? undefined;
+  const { system, user } = explainBackGradePrompt({
+    objectiveTitle: params.objectiveTitle,
+    teach: params.teach,
+    question: params.question,
+    answer: params.answer,
+    ctx,
+  });
+  const graded = await callClaudeStructured({
     system,
     messages: [{ role: "user", content: user }],
     schema: explainBackGradeSchema,
-    maxTokens: 900,
-    model: getFastModel(),
+    maxTokens: EXPLAIN_BACK_MAX_TOKENS,
+    model: params.model ?? getFastModel(),
     effort: "high",
     thinking: "off",
-    purpose: "explain_back",
+    purpose: params.purpose ?? "explain_back",
     userId: params.userId,
   });
+  return reconciled(graded, { missedParts: graded.missedParts, rubric: graded.rubric });
 }

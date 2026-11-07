@@ -28,6 +28,16 @@
   long-timeout route list has every model route (FAIL-234), logout sweeps
   every per-user device key (FAIL-235), and tests written against an older
   rule were updated, not deleted (FAIL-232).
+- AI-layer changes (REQ-115, FAIL-290..307): text a learner or course author
+  wrote goes into a prompt only escaped (`escapeLearnerText`, `fenceLearnerText`,
+  `quoteTitle`), never stripped; a recorded verdict goes through
+  `lib/grade-consistency.ts` (trivial answers, verdict vs the grader's own parts
+  and rubric); shared generated content passes `lib/content-validator.ts`
+  before it is stored; a per-learner model route that can run up cost is under
+  `requireAiBudget` or says why not; per-request prompt blocks go after the
+  cached history, never in the system blocks; a model route answers a bad or
+  empty model reply with a 503, not a 500; a new grader gets a runner in
+  `scripts/eval/live.ts`.
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

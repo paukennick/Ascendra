@@ -302,7 +302,7 @@ describe("misconception diagnosis on lesson answers (/api/grade)", () => {
       verdict: "partial", feedback: "Close.", classification: "misconception", missedParts: [],
       misconception: "You may be mixing up RBAC with MAC.", confusedWith: "MAC",
     });
-    const res = await (await gradePost(post(u, { format: "open", stage: "fade", objectiveId: o[1], answer: "labels" }))).json();
+    const res = await (await gradePost(post(u, { format: "open", stage: "fade", objectiveId: o[1], answer: "it uses labels" }))).json();
     assert.equal(res.diagnosis.sentence, "You may be mixing up RBAC with MAC.");
     assert.match(userText(sent[0]), /"misconception"/);
     const m = await queryOne<{ source: string; confused_with: string }>(`select source, confused_with from learner_misconceptions where user_id = $1`, [u]);

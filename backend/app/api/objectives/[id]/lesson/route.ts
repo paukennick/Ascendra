@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { requireAiBudget } from "@/lib/ai-budget";
 import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
@@ -155,6 +156,10 @@ export async function POST(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
+    // Audit 3 H4 / adversary finding 8: regenerations count against the
+    // learner's daily AI budget (lib/ai-budget.ts), not only the 10-minute
+    // window (which allowed ~720 a day).
+    await requireAiBudget(user.id);
     try {
       await consumeRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT, { userId: user.id });
     } catch (err) {

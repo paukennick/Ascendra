@@ -347,7 +347,8 @@ describe("6. PBQ review entries can be retested", () => {
         })
       );
     nextVerdict = "partial";
-    assert.equal((await post("half", `pbq-${run}-1`)).status, 200);
+    // Audit 3 M1: one-word answers are graded without a model call; these are real attempts.
+    assert.equal((await post("half of the parts", `pbq-${run}-1`)).status, 200);
     const errs = (await (await errorsGet(new Request("http://t/api/errors", { headers: auth(u) }))).json()) as {
       errors: Array<{ id: string; pbq_scenario_id: string | null; track_id: string | null; review_stage: number }>;
     };
@@ -361,7 +362,7 @@ describe("6. PBQ review entries can be retested", () => {
 
     await query(`update error_log set next_review_at = current_date where id = $1`, [errs.errors[0].id]);
     nextVerdict = "correct";
-    assert.equal((await post("full", `pbq-${run}-2`)).status, 200);
+    assert.equal((await post("the full answer this time", `pbq-${run}-2`)).status, 200);
     const row = await queryOne<{ review_stage: number }>(`select review_stage from error_log where id = $1`, [errs.errors[0].id]);
     assert.equal(row?.review_stage, 1);
   });

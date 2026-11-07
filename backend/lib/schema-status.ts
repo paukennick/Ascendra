@@ -326,6 +326,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "mastery_backup_029 table (029b backup, backfill and first recompute ran)",
     sql: `select to_regclass('public.mastery_backup_029') is not null as ok`,
   },
+  {
+    migration: "043_ai_budget_index.sql",
+    what: "ai_calls (user_id, created_at) index (daily AI budget per learner; the check runs without it, slowly)",
+    sql: `select to_regclass('public.ai_calls_user_created_idx') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {

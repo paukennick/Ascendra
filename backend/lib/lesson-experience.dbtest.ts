@@ -206,7 +206,7 @@ describe("teach cards", () => {
       new Request("http://t/api/grade", {
         method: "POST",
         headers: auth(u),
-        body: JSON.stringify({ kind: "lesson", format: "open", stage: "fade", objectiveId: FRESH, answer: "x" }),
+        body: JSON.stringify({ kind: "lesson", format: "open", stage: "fade", objectiveId: FRESH, answer: "a real attempt at it" }), // Audit 3 M1: "x" is now graded without a model call
       })
     );
     assert.equal(g.status, 200);

@@ -1,7 +1,7 @@
 import { query } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
-import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
-import { chatSystemPrompt } from "@/lib/prompts";
+import { callClaude, getFastModel } from "@/lib/anthropic";
+import { buildChatRequest } from "@/lib/chat-request";
 import { findChatTurn, saveChatTurn, sameChatTurn, ChatIdConflictError } from "@/lib/chat-store";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleTrack, visibleUnit, isUuid } from "@/lib/visibility";
@@ -13,7 +13,9 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForTrack } from "@/lib/coach-context";
-import { fenceLearnerText, guardedReply, matchOpenItems, openItemsBlock, openItemsFor } from "@/lib/coach-guard";
+import { guardedReply, haikuLeakJudge, MOCK_IN_PROGRESS_REPLY, openItemsFor, timedMockInProgress } from "@/lib/coach-guard";
+import { loadChatHistory } from "@/lib/chat-history";
+import { requireAiBudget } from "@/lib/ai-budget";
 import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 
 export const dynamic = "force-dynamic";
@@ -44,9 +46,10 @@ export async function GET(req: Request) {
 // Body: { trackId, unitId?, message, clientMessageId? }
 // clientMessageId: one id per message, reused by the app when it retries. A repeat returns
 // the stored reply without calling Anthropic or saving the message again.
-// The whole prior thread for this track is sent back to Claude as conversation history
-// (capped to the most recent 40 messages) so it's a genuinely multi-turn "ask the coach" —
-// not a single-shot Q&A that forgets earlier context.
+// Earlier turns of the thread are sent back as conversation history (lib/chat-history.ts:
+// at most 40 messages and ~8K estimated tokens, trimmed in fixed chunks so the cached
+// prefix holds), so it's a genuinely multi-turn "ask the coach".
+// Audit 3: closed during a timed mock exam (H3); a daily AI budget per learner (H4).
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -90,6 +93,15 @@ export async function POST(req: Request) {
       }
     }
 
+    // Audit 3 H3: a timed mock exam in progress closes the coach until it is
+    // submitted or its time runs out. Not saved, not billed.
+    if (await timedMockInProgress(userId)) {
+      return ok({ reply: MOCK_IN_PROGRESS_REPLY, blocked: "mock_exam_in_progress" });
+    }
+    // Audit 3 H4: per-learner daily AI budget (lib/ai-budget.ts); a 429 with
+    // a plain message when it is reached.
+    await requireAiBudget(userId);
+
     try {
       await consumeRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
     } catch (err) {
@@ -103,56 +115,36 @@ export async function POST(req: Request) {
       unitTitle = rows[0]?.title;
     }
 
-    // REQ-077: `order by created_at asc limit 40` kept the OLDEST 40 turns
-    // and silently dropped everything recent once a thread passed 40 -- the
-    // model lost the live context exactly when a conversation got going.
-    // Take the newest 40, then flip back into chronological order.
-    const history = await query<{ role: "user" | "assistant"; content: string }>(
-      `select role, content from (
-         select role, content, created_at from chat_messages
-          where user_id = $1 and track_id = $2
-          order by created_at desc limit 40
-       ) recent
-       order by created_at asc`,
-      [userId, trackId]
-    );
+    // REQ-077 kept the newest turns rather than the oldest. Audit 3 H4/M4:
+    // the window is now also capped by estimated tokens (~8K) and moves in
+    // fixed chunks, so it stays under Haiku's 100K price tier and its cached
+    // prefix survives from one call to the next (lib/chat-history.ts).
+    const history = await loadChatHistory(userId, trackId);
 
-    // The history is a stable prefix (the next message appends to it), so a
-    // cache breakpoint on its last turn lets the following message read it
-    // from cache. The new message is not marked: it is not part of any later
-    // prefix until it has a reply. The request still ends with that user turn.
-    // REQ-100: every learner turn, history included, is fenced as data. The
-    // wrapping is deterministic, so the cached history prefix still matches.
-    const messages: ChatTurn[] = [
-      ...history.map((h, i): ChatTurn => ({
-        role: h.role,
-        content: h.role === "user" ? fenceLearnerText(h.content) : h.content,
-        ...(i === history.length - 1 ? { cacheBreakpoint: true } : {}),
-      })),
-      { role: "user", content: fenceLearnerText(message) },
-    ];
     // REQ-100: items this learner has not answered yet are named to the model
-    // (questions only, never the key), and the reply is checked against their
-    // answer keys before it is saved or sent (lib/coach-guard.ts).
-    // REQ-112 (f): every open item kind (lesson, PBQ, review, unit check,
-    // comparison card, Quiz me, exam) comes from that one function.
+    // (questions only, never the key), and the reply is checked before it is
+    // saved or sent (lib/coach-guard.ts). REQ-112 (f): every open item kind
+    // comes from that one function. Audit 3 H2: an item stays in play for the
+    // learner's next few messages, not only the one that matched it.
     const openItems = await openItemsFor(userId, trackId, unitId ?? null);
-    const matched = matchOpenItems(message, openItems);
     const ctx = await coachContextForTrack(trackId);
-    const system = chatSystemPrompt({
+    // The request itself (cache order, fencing, the per-request server_note
+    // after the cached history) is built in lib/chat-request.ts, shared with
+    // the live eval. REQ-110: the learner profile is per call, fenced as data.
+    const request = buildChatRequest({
       trackTitle: track.title,
       unitTitle,
       ctx: ctx ?? undefined,
-      openItems: openItemsBlock(openItems, matched),
-      // REQ-110: weakest objectives and recent mistake kinds, per call (never
-      // in the cached stable block), fenced as data.
+      history,
+      message,
+      openItems,
       learnerProfile: learnerProfileBlock(await learnerProfileFor(userId, trackId)),
     });
     const { reply } = await guardedReply(
       (extraNote) =>
         callClaude({
-          system: extraNote ? { ...system, task: system.task + extraNote } : system,
-          messages,
+          system: request.system,
+          messages: request.messages(extraNote),
           maxTokens: 1200,
           model: getFastModel(),
           effort: "low",
@@ -161,7 +153,8 @@ export async function POST(req: Request) {
           userId,
         }),
       openItems,
-      matched
+      request.inPlay,
+      { judge: haikuLeakJudge(userId) }
     );
 
     // If a request with the same id finished while this one waited on

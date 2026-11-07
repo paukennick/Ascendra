@@ -3,6 +3,7 @@ import { queryOne } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
+import { generateValid, lessonIntroProblems, lessonPracticeProblems } from "@/lib/content-validator";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
   lessonIntroPrompt,
@@ -151,7 +152,9 @@ export const claudeGenerator: LessonGenerator = {
       ctx: objRow.ctx ?? undefined,
     });
     // REQ-106: the model writes the cards; the flat teach text is derived.
-    const raw = await callClaudeStructured({
+    // Audit 3 M2: checked before it can be stored; regenerated once, then a
+    // clean 503 (lib/content-validator.ts).
+    return generateValid("lesson", async () => introFromModel(await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: lessonIntroSchema,
@@ -161,8 +164,7 @@ export const claudeGenerator: LessonGenerator = {
       thinking: "off",
       purpose: "lesson_intro",
       userId: meta?.userId,
-    });
-    return introFromModel(raw);
+    })), lessonIntroProblems);
   },
   async practice(objRow, avoid, meta) {
     const { system, user } = lessonPracticePrompt({
@@ -172,7 +174,7 @@ export const claudeGenerator: LessonGenerator = {
       avoid,
       ctx: objRow.ctx ?? undefined,
     });
-    return callClaudeStructured({
+    return generateValid("lesson", () => callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: lessonPracticeSchema,
@@ -182,7 +184,7 @@ export const claudeGenerator: LessonGenerator = {
       thinking: "off",
       purpose: "lesson_practice",
       userId: meta?.userId,
-    });
+    }), lessonPracticeProblems);
   },
   model: getModel,
 };

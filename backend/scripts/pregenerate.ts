@@ -30,6 +30,7 @@ import { buildRequest, getModel } from "../lib/anthropic";
 import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema, introFromModel } from "../lib/prompts";
 import { loadObjective } from "../lib/lesson-generation";
 import { saveLesson } from "../lib/lesson-store";
+import { lessonIntroProblems, lessonPracticeProblems } from "../lib/content-validator";
 import {
   estimateCost,
   pairBatchResults,
@@ -126,9 +127,17 @@ async function collect(batchId: string) {
   let saved = 0;
   let kept = 0;
   for (const l of lessons) {
-    const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
     // REQ-106: the batch returns cards; the flat teach text is derived.
-    await saveLesson({ kind: "shared" }, l.objectiveId, { ...introFromModel(l.intro), ...l.practice }, model);
+    const intro = introFromModel(l.intro);
+    // Audit 3 M2: a lesson that fails the content check is not stored; the
+    // app generates (and checks) it on first visit instead.
+    const problems = [...lessonIntroProblems(intro), ...lessonPracticeProblems(l.practice)];
+    if (problems.length) {
+      failed.push({ objectiveId: l.objectiveId, reason: `content check: ${problems.slice(0, 3).join(" ")}` });
+      continue;
+    }
+    const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
+    await saveLesson({ kind: "shared" }, l.objectiveId, { ...intro, ...l.practice }, model);
     if (before.length) kept++;
     else saved++;
   }

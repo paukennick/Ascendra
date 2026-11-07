@@ -1,7 +1,7 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { gradePBQPrompt, gradeResultSchema } from "@/lib/prompts";
+import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
@@ -190,17 +190,17 @@ export async function gradeUnitCheck(
     throw err;
   }
   const ctx = await coachContextForUnit(status.unitId);
-  const { system, user } = gradePBQPrompt({ scenario: item.scenario, subParts: item.sub_parts, answer, ctx: ctx ?? undefined });
-  const graded = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: gradeResultSchema,
-    maxTokens: 900,
-    model: getFastModel(),
-    effort: "high",
-    thinking: "off",
-    purpose: "unitcheck_grade",
+  // Audit 3 M1/L1: the shared multi-part grader (lib/pbq-grading.ts) -- the
+  // PBQ prompt with its matching per-part schema and a 1,500-token cap,
+  // trivial answers graded without a call, verdicts checked against the
+  // part scores.
+  const { trivial: _trivial, ...graded } = await gradePbqAnswer({
+    scenario: item.scenario,
+    subParts: item.sub_parts,
+    answer,
+    ctx: ctx ?? undefined,
     userId,
+    purpose: "unitcheck_grade",
   });
   try {
     const attempt = await withTransaction((tx) =>

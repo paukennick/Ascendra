@@ -383,6 +383,8 @@ export interface GradingCase {
   expectedVerdict: Verdict;
   expectedMissedParts: string[];
   note?: string;
+  // Audit 3 M5: what production passes the grader as the reference answer.
+  referenceAnswer?: string;
 }
 
 export interface GradeOutput {
@@ -534,11 +536,24 @@ export const gradingCaseSchema = z.object({
   expectedVerdict: z.enum(["correct", "partial", "incorrect"]),
   expectedMissedParts: z.array(z.string()),
   note: z.string().optional(),
+  referenceAnswer: z.string().min(1).optional(),
 });
 export const gradingCasesFileSchema = z.object({
   _status: z.string(),
   cases: z.array(gradingCaseSchema).min(1),
 });
+
+// Audit 3 M5: what must hold on EVERY grader output, whatever the case
+// expects: a "correct" verdict lists no missed parts and no per-part score
+// below "met" (the server downgrades such a verdict; the eval reports how
+// often the model produced one).
+export function gradeOutputProblems(out: { verdict: string; missedParts?: string[]; parts?: { score: string }[]; rubric?: Record<string, boolean> }): string[] {
+  const p: string[] = [];
+  if (out.verdict === "correct" && (out.missedParts ?? []).length) p.push("correct with missed parts");
+  if (out.verdict === "correct" && (out.parts ?? []).some((x) => x.score !== "met")) p.push("correct with a part not met");
+  if (out.verdict === "correct" && out.rubric && Object.values(out.rubric).some((v) => !v)) p.push("correct with a rubric check false");
+  return p;
+}
 
 export function parseGradingCases(raw: unknown): GradingCase[] {
   const file = gradingCasesFileSchema.parse(raw);
