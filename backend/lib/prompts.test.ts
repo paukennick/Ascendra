@@ -20,6 +20,8 @@ import {
   guessFeedbackPrompt,
   gradeResultSchema,
   pbqScenarioSchema,
+  pbqGradeResultSchema,
+  normalizePartScores,
 } from "./prompts";
 
 describe("goalLine", () => {
@@ -216,4 +218,49 @@ describe("learner text can't break out of its fence", () => {
 test("the practice prompt's example no longer shows the correct index as 0", () => {
   const p = lessonPracticePrompt({ trackTitle: "T", unitTitle: "U", objectiveTitle: "O" });
   assert.doesNotMatch(p.user, /CorrectIndex": 0/);
+});
+
+// REQ-107: per-part scores on a graded PBQ.
+describe("PBQ per-part scores", () => {
+  const base = { verdict: "partial", feedback: "f", classification: "incomplete", missedParts: ["Contain"] };
+  test("pbqGradeResultSchema needs a score from the enum on every part", () => {
+    const ok = { ...base, parts: [{ part: "Identify", score: "met", comment: "c" }] };
+    assert.deepEqual(pbqGradeResultSchema.parse(ok), ok);
+    assert.throws(() => pbqGradeResultSchema.parse({ ...ok, parts: [{ part: "Identify", score: "half", comment: "c" }] }));
+    assert.throws(() => pbqGradeResultSchema.parse(base), "parts is required");
+  });
+  test("the PBQ grading prompt asks for one part entry per sub-part", () => {
+    assert.match(gradePBQPrompt({ scenario: "s", subParts: ["a", "b"], answer: "x" }).user, /"parts" has exactly one entry per sub-part/);
+  });
+  test("scores line up with the scenario's own labels, matched by label before position", () => {
+    const out = normalizePartScores(
+      ["Identify the threat", "Contain"],
+      [
+        { part: "contain ", score: "missed", comment: "no isolation step" },
+        { part: "Identify the Threat", score: "met", comment: "good" },
+      ]
+    );
+    assert.deepEqual(out, [
+      { part: "Identify the threat", score: "met", comment: "good" },
+      { part: "Contain", score: "missed", comment: "no isolation step" },
+    ]);
+  });
+  test("reworded labels fall back to position when the counts agree", () => {
+    const out = normalizePartScores(["A", "B"], [
+      { part: "first", score: "partial", comment: "" },
+      { part: "second", score: "met", comment: "" },
+    ]);
+    assert.deepEqual(out?.map((p) => [p.part, p.score]), [["A", "partial"], ["B", "met"]]);
+  });
+  test("a part left out is missed if missedParts names it, else the list is dropped", () => {
+    const scored = [{ part: "A", score: "met", comment: "" }];
+    assert.deepEqual(normalizePartScores(["A", "B"], scored, ["b"])?.map((p) => p.score), ["met", "missed"]);
+    assert.equal(normalizePartScores(["A", "B"], scored, []), null);
+  });
+  test("nothing usable gives null, never a guess", () => {
+    assert.equal(normalizePartScores(["A"], undefined), null);
+    assert.equal(normalizePartScores(["A"], []), null);
+    assert.equal(normalizePartScores([], [{ part: "A", score: "met", comment: "" }]), null);
+    assert.equal(normalizePartScores(["A"], [{ part: "A", score: "great", comment: "" }]), null);
+  });
 });

@@ -131,6 +131,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.idx_study_sessions_user_track_started') is not null as ok`,
   },
   {
+    migration: "036_pbq_generation_claims.sql",
+    what: "pbq_generation_claims table (new PBQ scenarios; serving stored ones still works without it)",
+    sql: `select to_regclass('public.pbq_generation_claims') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

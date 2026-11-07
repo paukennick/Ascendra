@@ -2980,6 +2980,52 @@
         "Supabase RLS state unverified in production",
         "query_timeout is client-side only for non-transaction queries"
       ]
+    },
+    {
+      "id": "REQ-107",
+      "category": "feature",
+      "title": "PBQ scenarios per learner, with per-part scores",
+      "description": "GET /api/pbq?unitId= serves the newest scenario for the unit that the learner can see and has not attempted (stored catalog scenarios reused before generating; private-course scenarios never reach another learner), generates only when none is unseen, and keeps ?scenarioId= and fresh=1. A per-(learner, unit) lease (migration 036, pbq_generation_claims) makes simultaneous requests generate once. The PBQ grader returns a score per sub-part, shown on the result. From audit 2 learning research item 11.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/pbq-scenarios.ts",
+        "backend/lib/pbq-scenarios.dbtest.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/prompts.test.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/036_pbq_generation_claims.sql",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/src/lib/pbqProgress.ts",
+        "mobile/src/lib/pbqProgress.test.ts",
+        "mobile/src/types/index.ts",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A plain request never serves a scenario the learner has attempted",
+        "Stored unseen scenarios are served before the model is called",
+        "5 concurrent requests by one learner for one unit generate one scenario",
+        "A private-course scenario is never served to another learner",
+        "Graded PBQ shows a score per sub-part",
+        "Migration 036 applies and its probe passes"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test",
+        "tsc backend and mobile",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Per-part scores are not stored so a replayed retry shows the missedParts fallback",
+        "A dead lease holder makes the learner wait up to the 120 s lease (waiters give up at 90 s)"
+      ]
     }
   ]
 }
