@@ -3790,6 +3790,379 @@
       ],
       "prevention_notes": "DB test.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-270",
+      "date": "2026-11-07",
+      "title": "Prompts had no guard against made-up facts",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The model got only titles and an exam code; no prompt told it to stay inside the objective for that exam version, admit uncertainty, or avoid guessing version-specific names, limits or prices; shared output was served to every learner.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Prompts were written for teaching structure; the only factual guard was 'never invent exam mechanics'.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/lib/review-prompts.ts",
+        "backend/lib/understanding-prompts.ts"
+      ],
+      "fix_summary": "ACCURACY_RULES in the shared coach rules (every prompt); confidence + uncertainClaims on every generation schema; uncertain shared items held back to item_holdbacks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::every generation",
+        "grading and chat prompt's stable block includes them",
+        "backend/lib/item-quality.test.ts::generation schemas require confidence and uncertainClaims",
+        "backend/lib/item-quality.dbtest.ts::exam bank: an uncertain item is held without a check; the rest are checked in ONE call and only agreements publish"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-271",
+      "date": "2026-11-07",
+      "title": "Shared items had no fact check and learners could not flag them",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A wrong answer key in a shared exam, quiz, review or lesson item stayed live for every learner; dispute only re-graded one answer in chat.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "validateItemDraft checks structure only; no item report, quarantine or review path existed.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/item-quality.ts",
+        "backend/app/api/items/report/route.ts",
+        "mobile/src/components/ReportProblem.tsx"
+      ],
+      "fix_summary": "Migration 042 item_flags/item_status; POST /api/items/report and the ReportProblem control; auto-quarantine at 3 independent flags or 1 flag + failed re-check; pulled items filtered from every serving query; confirmItemWrong voids answers.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.dbtest.ts::five learners flag at once: exactly one quarantine row",
+        "every flag counted",
+        "item no longer served",
+        "backend/lib/item-quality.dbtest.ts::one flag plus a failed automated re-check pulls it; the re-check runs once per item",
+        "backend/lib/item-quality.dbtest.ts::confirming an item wrong keeps the attempts",
+        "voids them",
+        "and the mastery rule stops counting them"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-272",
+      "date": "2026-11-07",
+      "title": "Free-response grader enforced a wrong generated key",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A correct learner was marked wrong whenever the lesson's generated reference answer was wrong, lowering mastery and readiness.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "The grading rule required agreement with the reference in substance, with no way to say the reference itself is wrong.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/prompts.ts::gradeFreeResponsePrompt",
+        "backend/app/api/grade/route.ts",
+        "backend/lib/review-service.ts"
+      ],
+      "fix_summary": "KEY_SUSPECT_RULE in the grader prompt when a key is given; classification key-suspect auto-flags the lesson or review item and starts its one re-check.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.dbtest.ts::the grader grades on the facts",
+        "the attempt counts",
+        "and the shared check is flagged and re-checked"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-273",
+      "date": "2026-11-07",
+      "title": "ANS-C01 passing score seeded as 700",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Advanced Networking learners saw a 700 passing bar; the AWS exam guide says 750.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Copied from the associate-level default.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "Seed passingScorePolicy 750, lastVendorVerifiedAt 2026-11-07.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M1: ANS-C01 passes at 750 (AWS exam guide) and was re-verified"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-274",
+      "date": "2026-11-07",
+      "title": "Coach rules referred to every learner as 'he'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Every system prompt said 'require he can define the idea', nudging the model to misgender learners; no inclusive-scenario rule.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Inherited from a personal coach artifact.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/prompts.ts::coachRules"
+      ],
+      "fix_summary": "'the learner' and INCLUSIVE_RULES in the shared coach rules.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M3: the rules no longer call the learner 'he'",
+        "and ask for inclusive scenarios"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-275",
+      "date": "2026-11-07",
+      "title": "Lesson, quiz and review MC prompts lacked item-writing rules",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Items could be guessed from wording (longest option, absolutes) or have two defensible answers.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Only examItemsPrompt had any item-writing rules.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/lib/review-prompts.ts"
+      ],
+      "fix_summary": "Shared ITEM_WRITING_RULES in lesson practice, Quiz me, review and exam prompts.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::lesson",
+        "Quiz-me",
+        "review and exam prompts include it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-276",
+      "date": "2026-11-07",
+      "title": "DOP-C02 track taught AWS OpsWorks as current",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Two objectives offered OpsWorks as a configuration management choice; OpsWorks Stacks reached end of life 2024-05-26 and is not in the DOP-C02 in-scope services list.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Objectives written from an older service landscape.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "Reworded to Systems Manager (State Manager, AppConfig) and Config, noting OpsWorks end of life.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M5/M6: no track teaches OpsWorks or CodeGuru Security as current"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-277",
+      "date": "2026-11-07",
+      "title": "SCS-C03 and MLA-C02 taught CodeGuru Security as a pipeline scanner",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "CodeGuru Security reached end of support on 2025-11-20.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Objectives predate the end-of-support notice.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "Reworded to Amazon Inspector code scanning / Amazon Q Developer with an end-of-support note.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M5/M6: no track teaches OpsWorks or CodeGuru Security as current"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-278",
+      "date": "2026-11-07",
+      "title": "Fitness tracks had no safety framing or disclaimer",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Six trainer/strength-coach tracks teach special populations and nutrition with no exam-prep framing and no acknowledgement gate.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Framing applied only to healthcare-nursing; fitness gate left off on purpose.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/prompts.ts::domainFraming",
+        "backend/supabase/seed/tracks/fitness.ts",
+        "mobile/src/content/disclaimers.ts"
+      ],
+      "fix_summary": "health-fitness framing in domainFraming; requiresAcknowledgement + fitness-content disclaimer on every fitness track.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M7: fitness tracks are disclaimer-gated and get the safety framing"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-279",
+      "date": "2026-11-07",
+      "title": "Security+ V8 lab taught an unsafe fix for a leaked secret",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "'Fix anything it finds' leaves a leaked secret in git history and live.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Lab wording omitted revoke/rotate and history.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Revoke or rotate first, then remove from code and history.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M8 / L1 / L3: lab wording is safe and asks for the right concept"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-280",
+      "date": "2026-11-07",
+      "title": "Security+ V8 lab asked what RPO MTBF/MTTR can support",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "MTBF/MTTR give availability and inform RTO; RPO depends on backup frequency.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Concept conflation in lab text.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Lab asks for availability, RTO, and what extra information an RPO needs.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M8 / L1 / L3: lab wording is safe and asks for the right concept"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-281",
+      "date": "2026-11-07",
+      "title": "'(Choose two.)' never checked against the key count",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "An item could say Choose two with three keyed answers.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "validateItemDraft did not read the stem.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/lib/exam-formats.ts"
+      ],
+      "fix_summary": "statedChoiceCount + check in validateItemDraft.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::the stem's count is read and checked against the number of keyed answers"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-282",
+      "date": "2026-11-07",
+      "title": "Lab wording could harm a learner's machine, network or accounts",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Bridged vulnerable VM, SSH lockout, VirusTotal uploads, Nmap on shared networks, plain SHA-256 for passwords, running decoded malware.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Labs lacked safety clauses.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Added the clause to each of the six labs.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::M8 / L1 / L3: lab wording is safe and asks for the right concept"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-283",
+      "date": "2026-11-07",
+      "title": "CySA+ V3 units hidden before translated V3 exams retire",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Translated CS0-003 runs to 2027-03-23 but units hide 2026-12-23; Security+ V7 translations run to 2027-08-13.",
+      "how_detected": "Audit 3 content review (re-verified 2026-11-07)",
+      "root_cause": "Retirement keyed to the English date only.",
+      "requirement": "REQ-114",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Track descriptions state the translated dates (an opt-in to keep V3 visible was not simple: retired units are filtered in many readers).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.test.ts::L4: the CySA+ and Security+ V7 tracks say when translated exams run past the English date"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
     }
   ]
 }

@@ -97,6 +97,7 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
          join course_units cu on cu.id = o.unit_id
          join assessment_types ty on ty.type_name = attempt_type_of(a.kind, a.stage, a.format, a.assessment_type)
         where a.user_id = $1 and cu.track_id = $2 and a.verdict is not null and a.format <> 'pbq'
+          and a.voided_at is null -- REQ-114: as the mastery rule
           and (a.kind = 'lesson' or a.assessment_type is not null)
           and ty.cognitive_weight > 0 and a.assist_reason is distinct from 'retry'
      ), k as (

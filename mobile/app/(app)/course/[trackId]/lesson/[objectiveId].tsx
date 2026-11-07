@@ -8,6 +8,7 @@ import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/compo
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
+import { ReportProblem } from "@/components/ReportProblem";
 import {
   Badge,
   Body,
@@ -1288,6 +1289,8 @@ function CheckStep({
           {/* REQ-111: the likely mix-up, and a refresher of a weak prerequisite. */}
           <MisconceptionNote diagnosis={result.diagnosis} />
           <RefresherOffer objectiveId={objectiveId} verdict={result.verdict} />
+          {/* REQ-114: report a wrong key or unclear question on this check. */}
+          <ReportProblem target={{ kind: "lesson", objectiveId, stage: kind }} />
           {/* REQ-097: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
           {mode === "open" && result.verdict !== "correct" && result.correctAnswer ? (

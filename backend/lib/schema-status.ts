@@ -310,6 +310,19 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where table_schema = 'public' and table_name = 'attempts' and column_name = 'part_scores') as ok`,
   },
   {
+    // REQ-114: shared-item quality (flags, quarantine, holdbacks, voided
+    // answers) and the one-line voided filter in mastery_detail().
+    migration: "042_item_quality.sql",
+    what: "item_flags / item_status / item_holdbacks / item_quality_params, attempts.voided_at, and mastery_detail() leaving voided answers out",
+    sql: `select to_regclass('public.item_flags') is not null
+             and to_regclass('public.item_status') is not null
+             and to_regclass('public.item_holdbacks') is not null
+             and exists(select 1 from item_quality_params where name = 'quarantine_flag_threshold')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'voided_at')
+             and exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%a.voided_at is null%') as ok`,
+  },
+  {
     // 041b is data, not schema: its backup table is the one object it
     // creates. Remove this probe when the backup is dropped (runbook).
     migration: "041b_mastery_rule_backfill.sql",

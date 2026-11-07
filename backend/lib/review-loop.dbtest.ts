@@ -4,6 +4,10 @@
 // unit gate checks. Route handlers are called directly; the model is a fake
 // client that records each call and answers by what the prompt asks for.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+// REQ-114: the second-model fact-check gate has its own tests
+// (lib/item-quality.dbtest.ts); here the fake model answers only the
+// feature's own calls, so the gate is off, as it was before REQ-114.
+process.env.ITEM_FACT_CHECK = "off";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";

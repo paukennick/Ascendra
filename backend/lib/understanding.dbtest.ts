@@ -2,6 +2,10 @@
 // migration applied, through the real routes, with the model mocked (no key).
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 process.env.CATALOG_REVIEW_AGENT_TOKEN ??= "review-agent-test-token";
+// REQ-114: the second-model fact-check gate has its own tests
+// (lib/item-quality.dbtest.ts); here the fake model answers only the
+// feature's own calls, so the gate is off, as it was before REQ-114.
+process.env.ITEM_FACT_CHECK = "off";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";

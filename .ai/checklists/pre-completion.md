@@ -28,6 +28,13 @@
   long-timeout route list has every model route (FAIL-234), logout sweeps
   every per-user device key (FAIL-235), and tests written against an older
   rule were updated, not deleted (FAIL-232).
+- Shared generated content (REQ-114): a new kind of shared item asks for
+  `confidence`/`uncertainClaims`, holds uncertain output back
+  (`recordHoldback`), passes the fact-check gate (`factCheckGate`) before it
+  is stored, filters pulled items when serving (`servableSql`), and is
+  reachable from "Report a problem". Any migration that restates
+  `mastery_detail()` keeps `a.voided_at is null` in its attempt selection
+  (lib/item-quality.dbtest.ts).
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

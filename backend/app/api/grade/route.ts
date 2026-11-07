@@ -28,6 +28,9 @@ import {
   storedIndexAt,
 } from "@/lib/choice-order";
 import { diagnoseLessonMc, recordGraderMisconception } from "@/lib/understanding-grading";
+import { KEY_SUSPECT } from "@/lib/prompts";
+import { flagItem, lessonItemId } from "@/lib/item-quality";
+import { inBackground } from "@/lib/understanding-ai";
 
 export const dynamic = "force-dynamic";
 
@@ -242,6 +245,14 @@ export async function POST(req: Request) {
       retryOf,
     });
     if (prior) return ok(withReveal(prior, check, reveal));
+    // REQ-114 (Audit 3 H3): the grader judged the lesson's own key wrong and
+    // graded on the facts. That is this learner's flag on the shared check;
+    // the one automated re-check runs after the response.
+    if (graded.classification === KEY_SUSPECT) {
+      const ref = { kind: "lesson" as const, itemId: lessonItemId(objectiveId, stage, check.question), objectiveId, question: check.question };
+      const flagged = await flagItem(ref, { userId: authUser.id, source: "key_suspect" }).catch(() => null);
+      if (flagged?.recheck) inBackground(() => flagged.recheck!);
+    }
     const diagnosis = await recordGraderMisconception({
       userId: authUser.id,
       objectiveId,

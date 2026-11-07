@@ -182,13 +182,16 @@ describe("structured-output schemas", () => {
       soloWhy: "w",
       fadeOptionReasons: ["ra", "rb", "rc", "rd"],
       soloOptionReasons: ["ra", "rb", "rc", "rd"],
+      // REQ-114: every generation schema requires these (tests below).
+      confidence: "high",
+      uncertainClaims: [],
     };
     assert.deepEqual(lessonPracticeSchema.parse(practice), practice);
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, fadeOptionReasons: ["only one"] }));
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, soloOptionReasons: undefined }));
   });
   test("pbqScenarioSchema needs title, scenario and a subParts string array", () => {
-    const ok = { title: "t", scenario: "s", subParts: ["a", "b"] };
+    const ok = { title: "t", scenario: "s", subParts: ["a", "b"], confidence: "medium", uncertainClaims: [] };
     assert.deepEqual(pbqScenarioSchema.parse(ok), ok);
     assert.throws(() => pbqScenarioSchema.parse({ title: "t", scenario: "s" }));
   });

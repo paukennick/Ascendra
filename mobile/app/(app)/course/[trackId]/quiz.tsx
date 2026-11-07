@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api, ApiError } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import type { QuizTurn } from "@/types/plan";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -147,6 +148,7 @@ export default function QuizScreen() {
               ))}
             </View>
           ) : null}
+          {closed ? <ReportProblem target={{ kind: "quiz", turnId: turn.id }} /> : null}
           {closed ? <Button label="Next question" icon="arrow-right" loading={busy} onPress={next} /> : null}
           <Button
             label="Ask the coach about this"

@@ -14,6 +14,8 @@ import { ALREADY_REVISED, partsToRevise, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario, isUuid, NotVisibleError } from "@/lib/visibility";
 import { servePbqScenario } from "@/lib/pbq-scenarios";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { UserFacingError } from "@/lib/http";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { isActive } from "@/lib/progress-sql";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -25,6 +27,9 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
+
+const HELD_SCENARIO_MESSAGE =
+  "We couldn't write a scenario we're confident in just now. Please try again.";
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
@@ -96,6 +101,13 @@ export async function GET(req: Request) {
         purpose: "pbq_generate",
         userId: authUser.id,
       });
+      // REQ-114 (Audit 3 H1): a scenario its writer was unsure of is never
+      // stored or shown; it is logged for review and the learner can retry.
+      const unsure = uncertaintyOf(generated);
+      if (unsure) {
+        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
+        throw new UserFacingError(HELD_SCENARIO_MESSAGE);
+      }
       return { ...generated, model: generationModel };
     };
 

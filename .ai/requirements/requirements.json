@@ -3617,6 +3617,52 @@
         "041b recompute holds row locks on changed mastery rows until commit: run in a quiet window",
         "Discrimination evidence lands on the right concept's objective so two-option cards need two scenarios with the same answer concept before format evidence is possible"
       ]
+    },
+    {
+      "id": "REQ-114",
+      "category": "defect",
+      "title": "Audit 3 content: fact-safety of shared generated items",
+      "description": "Fix the Audit 3 content findings. H1: anti-hallucination rules in the shared coach rules (every prompt) and confidence/uncertainClaims on every generation schema; shared content listing uncertain claims is held back and logged (item_holdbacks). H2: item_flags + Report a problem on lesson checks, review, exam, Quiz me and comparison items; auto-quarantine after N (=3, item_quality_params) independent flags or 1 flag + failed automated re-check; pulled items never served; answers on an item confirmed wrong are voided (kept, excluded by a one-line filter in mastery_detail's attempt selection). H3: grader key-suspect path auto-flags the item. Second-model fact-check gate (ITEM_FACT_CHECK, default on) before a shared item is published. Seed/prompt fixes M1, M3-M8, L1-L4 (M2 dropped: the ANS-C01 exam guide lists only multiple response and matching). L5 catalog backlog: AWS AIB-C01 (AI Business Strategist) and AIP-C01 (Generative AI Developer - Professional) are listed in the AWS exam guide index and not seeded; not built here. Migration 042 with schema probe.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib",
+        "backend/app/api/items",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/supabase/migrations/042_item_quality.sql",
+        "backend/supabase/seed",
+        "backend/scripts",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/src/lib/reportProblem.ts",
+        "mobile/src/content/disclaimers.ts"
+      ],
+      "acceptance_criteria": [
+        "Every prompt carries the accuracy and inclusive rules",
+        "Generation schemas require confidence and uncertainClaims",
+        "Uncertain or fact-check-failed shared items are not served and are logged",
+        "5 concurrent flags give one quarantine",
+        "1 flag + failed re-check quarantines",
+        "Voided answers are kept and excluded from mastery",
+        "key-suspect grade flags the item",
+        "Seed fixes covered by tests"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "mastery_detail is patched in place by 042; a later migration that restates it must keep a.voided_at is null",
+        "A lesson whose practice half fails twice is still served (logged served_after_retry) because a lesson needs its checks",
+        "Teach text uncertainty is logged only",
+        "Items already placed in an open exam or review session stay in that session after quarantine"
+      ]
     }
   ]
 }

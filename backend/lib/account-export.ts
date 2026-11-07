@@ -81,6 +81,10 @@ export const EXPORT_SECTIONS = {
     "select * from lesson_progress_tombstones where user_id = $1 order by cleared_at asc, objective_id asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
+  // REQ-114: questions the learner reported (and key-suspect grades on their
+  // answers). Their own input; the automated re-check rows have no user.
+  itemReports:
+    "select id, item_kind, item_id, question, source, reason, note, created_at from item_flags where user_id = $1 order by created_at asc, id asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

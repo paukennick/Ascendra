@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { api, ApiError } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import type { ExamItem, ExamProfile, ExamResponse, ExamSessionSummary, ExamSessionView } from "@/types/exam";
 import {
   Body,
@@ -508,6 +509,7 @@ function ResultsView({ view, onDone }: { view: ExamSessionView; onDone: () => vo
             Question {it.position + 1} · {it.unitTitle} · {FORMAT_LABEL[it.format]}
           </Muted>
           <ExamQuestion item={it} response={it.response} review />
+          <ReportProblem target={{ kind: "exam", sessionId: view.session.id, position: it.position }} />
         </Card>
       ))}
       {missed.length && missed.length < view.items.length ? (

@@ -49,6 +49,20 @@ export const DISCLAIMERS: Record<string, Disclaimer> = {
     ],
     acceptLabel: "I understand -- start the course",
   },
+  // REQ-114 (Audit 3 M7): the six personal-trainer and strength-coach tracks.
+  "fitness-content": {
+    version: 1,
+    title: "Before you start this course",
+    summary:
+      "This is exam preparation. It is not exercise, nutrition or medical advice for you or anyone you train.",
+    body: [
+      "Ascendra's lessons are generated from the certifying bodies' published exam outlines and are written to prepare you for a test. They are not reviewed by a qualified professional for your situation, and they can be wrong.",
+      "Do not start, change or prescribe a training or nutrition plan for yourself or a client because of something you read here. Screen first, follow your certifying body's guidance and scope of practice, and refer anyone with a medical condition, injury, pregnancy or other risk to a qualified health professional.",
+      "If a lesson conflicts with your certifying body's materials, a health professional, or current guidelines, treat this course as the thing that is wrong.",
+      "If you or someone you are training feels chest pain, faintness or severe shortness of breath, stop and get emergency help.",
+    ],
+    acceptLabel: "I understand -- start the course",
+  },
 };
 
 export function getDisclaimer(key: string | null | undefined): Disclaimer | null {

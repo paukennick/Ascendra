@@ -1,3 +1,4 @@
+import { servableSql } from "@/lib/item-quality";
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { recordAttemptTx, type AssistReason } from "@/lib/grading-service";
@@ -261,6 +262,7 @@ export async function unseenItems(userId: string, objectiveId: string, sourceHas
             to_char(ri.generated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US') as generated_at
        from review_items ri
       where ri.objective_id = $2 and ri.source_hash = $3
+        and ${servableSql("review", "ri.id")}
         and not exists (
           select 1 from review_session_items si join review_sessions s on s.id = si.session_id
            where s.user_id = $1 and si.review_item_id = ri.id and si.answered_at is not null)

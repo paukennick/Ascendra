@@ -30,6 +30,8 @@ import { buildRequest, getModel } from "../lib/anthropic";
 import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema, introFromModel } from "../lib/prompts";
 import { loadObjective } from "../lib/lesson-generation";
 import { saveLesson } from "../lib/lesson-store";
+import { factCheckGate } from "../lib/fact-check";
+import { recordHoldback, uncertaintyOf } from "../lib/item-quality";
 import {
   estimateCost,
   pairBatchResults,
@@ -125,14 +127,41 @@ async function collect(batchId: string) {
   const model = getModel();
   let saved = 0;
   let kept = 0;
+  let held = 0;
   for (const l of lessons) {
+    // REQ-114: the same hold-back and fact-check as an on-demand shared
+    // lesson. A held lesson is not saved; the app generates it on first
+    // visit (with its one retry).
+    const unsure = uncertaintyOf(l.practice);
+    const gate = unsure
+      ? null
+      : await factCheckGate(
+          [
+            { key: "fade", objectiveTitle: l.objectiveId, question: l.practice.fadeProblem, format: "single", options: l.practice.fadeChoices, expected: [l.practice.fadeCorrectIndex] },
+            { key: "solo", objectiveTitle: l.objectiveId, question: l.practice.soloCheck, format: "single", options: l.practice.soloChoices, expected: [l.practice.soloCorrectIndex] },
+          ],
+          {}
+        );
+    const disputed = gate ? [...gate.verdicts.values()].filter((v) => !v.publish) : [];
+    if (unsure || gate?.error || disputed.length) {
+      held++;
+      await recordHoldback({
+        kind: "lesson",
+        objectiveId: l.objectiveId,
+        reason: unsure ? "uncertain" : gate?.error ? "fact_check_error" : "fact_check",
+        claims: unsure ?? (gate?.error ? [gate.error] : disputed.flatMap((v) => v.unsupportedClaims)),
+        content: l.practice,
+        model,
+      });
+      continue;
+    }
     const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
     // REQ-106: the batch returns cards; the flat teach text is derived.
     await saveLesson({ kind: "shared" }, l.objectiveId, { ...introFromModel(l.intro), ...l.practice }, model);
     if (before.length) kept++;
     else saved++;
   }
-  console.log(`Saved ${saved} new lessons; ${kept} already had one and were left alone; ${failed.length} failed.`);
+  console.log(`Saved ${saved} new lessons; ${kept} already had one and were left alone; ${held} held back for review; ${failed.length} failed.`);
   for (const f of failed.slice(0, 20)) console.log(`  failed ${f.objectiveId}: ${f.reason}`);
   if (failed.length) console.log("Failed objectives are simply still missing; the app generates them on first visit, or re-run --submit.");
 }

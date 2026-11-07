@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { ComparisonCard, MisconceptionNote } from "@/components/Understanding";
 import { assistNote } from "@/lib/lessonFeedback";
@@ -216,6 +217,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
               <Body>{result.feedback}</Body>
               <MisconceptionNote diagnosis={result.diagnosis} />
               {assistNote(result.assistReason) ? <Muted style={{ fontSize: 12 }}>{assistNote(result.assistReason)}</Muted> : null}
+              <ReportProblem target={{ kind: "comparison", itemId: question.id }} />
               <Button label="Another scenario" icon="refresh-cw" onPress={next} />
               <Button label="Back to the card" variant="ghost" icon="columns" onPress={onClose} />
             </>

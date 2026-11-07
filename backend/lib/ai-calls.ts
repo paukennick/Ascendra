@@ -40,6 +40,10 @@ export type AiPurpose =
   | "review_grade"
   | "unitcheck_generate"
   | "unitcheck_grade"
+  // REQ-114: the second-model fact-check of new shared items (one call per
+  // generation batch) and the one automated re-check of a flagged item.
+  | "fact_check"
+  | "item_recheck"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

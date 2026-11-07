@@ -41,6 +41,10 @@ import {
 import { utcDay } from "@/lib/review-scheduler";
 import { findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
+import { factCheckGate, type CheckItem } from "@/lib/fact-check";
+import { flagItem, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
+import { KEY_SUSPECT } from "@/lib/prompts";
+import { inBackground } from "@/lib/understanding-ai";
 
 // REQ-108: Today's review -- the part that talks to the model. Questions are
 // written once, in one batched call per course per session, from each
@@ -229,10 +233,43 @@ async function writeQuestions(
     purpose: "review_generate",
     userId,
   });
+  // REQ-114 (Audit 3 H1 + recommendation 1): uncertain items are held back;
+  // the rest are fact-checked in one fast-model call and only the ones an
+  // independent answer agrees with are cached for every learner.
+  const ready: { g: (typeof group)[number]; gen: (typeof out.items)[number] }[] = [];
   for (const [i, g] of group.entries()) {
     const key = objectives[i].key;
     const gen = out.items.find((it) => it.key === key);
     if (!gen || !validItem(gen)) continue;
+    const unsure = uncertaintyOf(gen);
+    if (unsure) {
+      await recordHoldback({ kind: "review", objectiveId: g.item.objective_id, reason: "uncertain", claims: unsure, content: gen, model });
+      continue;
+    }
+    ready.push({ g, gen });
+  }
+  const checks: CheckItem[] = ready.map(({ g, gen }) => ({
+    key: gen.key,
+    objectiveTitle: g.item.objective_title,
+    question: gen.question,
+    format: "single",
+    options: gen.choices,
+    expected: [gen.correctIndex],
+  }));
+  const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId, purpose: "fact_check" });
+  for (const { g, gen } of ready) {
+    const v = gate.verdicts.get(gen.key);
+    if (!v?.publish) {
+      await recordHoldback({
+        kind: "review",
+        objectiveId: g.item.objective_id,
+        reason: gate.error ? "fact_check_error" : "fact_check",
+        claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
+        content: { item: gen, checker: v ?? null },
+        model,
+      });
+      continue;
+    }
     let terms = g.known;
     if (terms === null) {
       terms = cleanTerms(gen.terms);
@@ -362,6 +399,13 @@ export async function answerItem(userId: string, sessionId: string, position: nu
       purpose: "review_grade",
     });
     answerText = answer;
+    // REQ-114 (Audit 3 H3): the grader judged this item's key wrong and graded
+    // on the facts; that counts as this learner's flag on the shared item.
+    if (result.classification === KEY_SUSPECT) {
+      const ref: ItemRef = { kind: "review", itemId: ri.id, objectiveId: item.objective_id, question: ri.question };
+      const flagged = await flagItem(ref, { userId, source: "key_suspect" }).catch(() => null);
+      if (flagged?.recheck) inBackground(() => flagged.recheck!);
+    }
     graded = {
       verdict: result.verdict,
       feedback: result.feedback,

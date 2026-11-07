@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import type { ReviewAnswerResult, ReviewSession, ReviewSessionItem } from "@/types";
 import { Body, Button, Card, EmptyState, ErrorBanner, H2, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -230,6 +231,7 @@ export default function ReviewSessionScreen() {
               ) : null}
               {result.why && result.verdict !== "correct" ? <Muted>{result.why}</Muted> : null}
               {result.terms.length ? <Muted>This question checked: {result.terms.join(", ")}</Muted> : null}
+              <ReportProblem target={{ kind: "review", sessionId: session.id, position: item.position }} />
               {nextReviewLabel(result.nextDueOn, utcToday()) ? (
                 <Muted>{nextReviewLabel(result.nextDueOn, utcToday())}</Muted>
               ) : null}

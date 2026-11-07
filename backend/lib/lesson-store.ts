@@ -1,3 +1,4 @@
+import { lessonServableSql } from "@/lib/item-quality";
 import { query, queryOne } from "./db";
 import type { LessonIntroContent, LessonPracticeContent } from "./prompts";
 
@@ -69,6 +70,10 @@ export type LessonSource = "override" | "shared";
 
 // What `userId` should be served for an objective: their own regenerated
 // lesson if they have one, otherwise the shared lesson, otherwise null.
+// REQ-114: a lesson whose Guided or Solo check is pulled from rotation
+// (item_status) is never served or graded against; with none left, the
+// caller generates a replacement (saveLesson below replaces a pulled shared
+// lesson).
 export async function getLessonFor(
   userId: string,
   objectiveId: string
@@ -76,10 +81,10 @@ export async function getLessonFor(
   const row = await queryOne<LessonRow & { source: LessonSource }>(
     `select * from (
        select 1 as pri, 'override' as source, ${LESSON_COLUMNS}
-         from lesson_content_overrides where user_id = $1 and objective_id = $2
+         from lesson_content_overrides lo where user_id = $1 and objective_id = $2 and ${lessonServableSql("lo")}
        union all
        select 2 as pri, 'shared' as source, ${LESSON_COLUMNS}
-         from lesson_content where objective_id = $2
+         from lesson_content lc where objective_id = $2 and ${lessonServableSql("lc")}
      ) t order by pri limit 1`,
     [userId, objectiveId]
   );
@@ -90,6 +95,15 @@ export async function getLessonFor(
 
 export async function getSharedLesson(objectiveId: string): Promise<LessonRow | null> {
   return queryOne<LessonRow>(`select ${LESSON_COLUMNS} from lesson_content where objective_id = $1`, [objectiveId]);
+}
+
+// The shared lesson only if it can be served (REQ-114): what generation
+// checks before and after taking the lease, so a pulled lesson is replaced.
+export async function getServableSharedLesson(objectiveId: string): Promise<LessonRow | null> {
+  return queryOne<LessonRow>(
+    `select ${LESSON_COLUMNS} from lesson_content lc where objective_id = $1 and ${lessonServableSql("lc")}`,
+    [objectiveId]
+  );
 }
 
 export async function getOverrideLesson(userId: string, objectiveId: string): Promise<LessonRow | null> {
@@ -126,7 +140,10 @@ function jsonOrNull(v: unknown): string | null {
 //
 // shared: insert-if-absent. A first generation never replaces an existing
 //   shared lesson (that is what made "regenerate" affect everyone); if a row
-//   is already there, that row wins and is returned.
+//   is already there, that row wins and is returned. REQ-114: the one
+//   exception is a shared lesson with a check pulled from rotation, which the
+//   new generation replaces. Learners' saved places in it stop matching its
+//   lesson_key, so the app starts them on the new lesson.
 // user: upsert of that learner's override only. lesson_content is never
 //   written by this path.
 export async function saveLesson(
@@ -142,7 +159,15 @@ export async function saveLesson(
         (objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
          solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, teach_cards, model)
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-       on conflict (objective_id) do nothing
+       on conflict (objective_id) do update set
+         guess_prompt = excluded.guess_prompt, teach = excluded.teach,
+         fade_problem = excluded.fade_problem, fade_choices = excluded.fade_choices,
+         fade_correct_index = excluded.fade_correct_index, fade_why = excluded.fade_why,
+         solo_check = excluded.solo_check, solo_choices = excluded.solo_choices,
+         solo_correct_index = excluded.solo_correct_index, solo_why = excluded.solo_why,
+         fade_option_reasons = excluded.fade_option_reasons, solo_option_reasons = excluded.solo_option_reasons,
+         teach_cards = excluded.teach_cards, model = excluded.model, generated_at = now()
+       where not (${lessonServableSql("lesson_content")})
        returning ${LESSON_COLUMNS}`,
       [objectiveId, ...params]
     );

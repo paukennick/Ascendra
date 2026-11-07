@@ -7,6 +7,8 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
 import { unitCheckPrompt, unitCheckSchema } from "@/lib/review-prompts";
 import { md5 } from "@/lib/review-plan";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { UserFacingError } from "@/lib/http";
 import { ReviewError } from "@/lib/review-service";
 
 // REQ-108 (research item #1): the unit gate check. Every unit carries a
@@ -159,6 +161,12 @@ export async function getOrWriteUnitCheck(userId: string, status: UnitCheckStatu
   });
   const subParts = gen.subParts.map((s) => s.trim()).filter(Boolean);
   if (!gen.scenario.trim() || subParts.length < 1) throw new Error("unit check generation returned no scenario");
+  // REQ-114 (Audit 3 H1): never store a scenario its writer was unsure of.
+  const unsure = uncertaintyOf(gen);
+  if (unsure) {
+    await recordHoldback({ kind: "unit_check", unitId: status.unitId, reason: "uncertain", claims: unsure, content: gen, model });
+    throw new UserFacingError("We couldn't write a check we're confident in just now. Please try again.");
+  }
   const row = await queryOne<UnitCheckItem & Record<string, unknown>>(
     `insert into unit_check_items (unit_id, gate_hash, title, scenario, sub_parts, model)
      values ($1, $2, $3, $4, $5, $6) returning id, unit_id, title, scenario, sub_parts`,
