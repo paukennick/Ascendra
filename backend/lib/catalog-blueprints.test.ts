@@ -74,6 +74,19 @@ describe("catalog exam blueprints", () => {
     assert.deepEqual(bad, []);
   });
 
+  // REQ-104 / FAIL-140: during a version change the outgoing units stay
+  // listed until their retiredAt passes, beside the incoming ones. When the
+  // new exam reuses a domain name (DVA-C03 reuses three of DVA-C02's), the
+  // course page and attempt/error history would show two identical unit
+  // titles. Retired units must therefore be named apart from active ones.
+  test("unit titles are unique within a track, retired units included", () => {
+    const bad = CATALOG_TRACKS.filter((t) => {
+      const titles = t.units.map((u) => u.title);
+      return new Set(titles).size !== titles.length;
+    }).map((t) => t.code);
+    assert.deepEqual(bad, []);
+  });
+
   test("every catalog track code is unique", () => {
     const codes = CATALOG_TRACKS.map((t) => t.code);
     assert.equal(new Set(codes).size, codes.length);
@@ -118,4 +131,51 @@ describe("AWS SAP-C02 -> SAP-C03 (REQ-102)", () => {
     );
     assert.deepEqual(sap.units.slice(4), active);
   });
+});
+
+describe("AWS DVA-C02 -> DVA-C03 (REQ-104)", () => {
+  const dva = CATALOG_TRACKS.find((t) => t.code === "AWSDVA")!;
+
+  test("teaches DVA-C03 and records that it supersedes DVA-C02", () => {
+    assert.equal(dva.credential?.examCode, "DVA-C03");
+    assert.equal(dva.credential?.status, "active");
+    assert.deepEqual(dva.credential?.supersedes, { examCode: "DVA-C02", lastExamDate: "2026-11-30" });
+    assert.equal(dva.credential?.effectiveDate, "2026-12-01");
+    assert.match(dva.credential?.questionFormat ?? "", /65 questions \(50 scored, 15 unscored\)/);
+    assert.match(dva.credential?.passingScorePolicy ?? "", /720/);
+    assert.match(dva.credential?.officialObjectivesUrl ?? "", /developer-associate-03/);
+  });
+
+  test("keeps the four DVA-C02 units in place, retired after DVA-C02's last day everywhere, ahead of the four DVA-C03 units", () => {
+    // Positions are row identity (sort_order): the C02 units must not move.
+    assert.deepEqual(
+      dva.units.slice(0, 4).map((u) => [u.title, u.weight]),
+      [
+        ["Development with AWS Services (DVA-C02)", 32],
+        ["Security (DVA-C02)", 26],
+        ["Deployment (DVA-C02)", 24],
+        ["Troubleshooting and Optimization (DVA-C02)", 18],
+      ]
+    );
+    // 2026-11-30 ends in UTC-12 at 2026-12-01T12:00Z.
+    for (const u of dva.units.slice(0, 4)) {
+      assert.ok(u.retiredAt && u.retiredAt >= "2026-12-01T12:00:00Z", `${u.title} retires too early`);
+    }
+    // The C02 objective lists are untouched (29/20/26/23): rewriting one
+    // would re-point learners' mastery at different content.
+    assert.deepEqual(dva.units.slice(0, 4).map((u) => u.objectives.length), [29, 20, 26, 23]);
+    const active = activeUnits(dva);
+    assert.deepEqual(
+      active.map((u) => [u.title, u.weight]),
+      [
+        ["Development with AWS Services", 30],
+        ["Security", 26],
+        ["Testing and Deployment", 22],
+        ["Troubleshooting and Optimization", 22],
+      ]
+    );
+    assert.deepEqual(dva.units.slice(4), active);
+    for (const u of active) assert.ok(u.gate && u.gate.length > 40, `${u.title} has no gate`);
+  });
+
 });

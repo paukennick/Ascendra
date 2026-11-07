@@ -2997,6 +2997,42 @@
         "DVA-C03 rebase not done",
         "MLA-C02 GA date only in AWS blog not exam page"
       ]
+    },
+    {
+      "id": "REQ-104",
+      "category": "feature",
+      "title": "AWS Developer Associate moves to DVA-C03, keeping DVA-C02 learner history",
+      "description": "AWSDVA taught DVA-C02, whose last test day is 2026-11-30; DVA-C03 (guide published, registration open since 2026-10-27) is in use from 2026-12-01 with domains 30/26/22/22, a new AI-security task (2.3) and scored AI-assisted development skills. Rebase AWSDVA with the REQ-102 retire-and-append pattern: keep the four DVA-C02 units and objectives at their sort_order with retiredAt 2026-12-01T12:00Z (after 2026-11-30 has ended in UTC-12), append four DVA-C03 units sourced skill by skill from the official guide, credential block on DVA-C03 superseding DVA-C02. Retired C02 unit titles get a (DVA-C02) suffix because three C03 domains reuse C02 names and both sets are listed until retirement.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/lib/catalog-blueprints.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "AWSDVA credential is DVA-C03 active effective 2026-12-01 and supersedes DVA-C02 with last day 2026-11-30",
+        "Every DVA-C03 skill (72 across 12 tasks) is covered by an objective with its source cited",
+        "Active domain weights are 30/26/22/22",
+        "DVA-C02 units and objectives keep row ids and learner mastery and are retired at 2026-12-01T12:00Z",
+        "No two units in a track share a title",
+        "Seed run twice creates no duplicates"
+      ],
+      "validation_required": [
+        "npm test",
+        "npx tsc --noEmit",
+        "npm run test:db after migrate --all and seed twice",
+        "Upgrade path: seed DVA-C02 then add mastery then seed DVA-C03 twice and confirm mastery row intact",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Exam duration 130 minutes is from the certification page not the C03 guide",
+        "Learners' C02 mastery does not carry to C03 objectives by design"
+      ]
     }
   ]
 }

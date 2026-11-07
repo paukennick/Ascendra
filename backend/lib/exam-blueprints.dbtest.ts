@@ -110,6 +110,27 @@ describe("seeded catalog blueprints", () => {
     }
   });
 
+  // REQ-104: same shape for AWSDVA. A pre-REQ-104 database has a DVA-C02
+  // row; a fresh one does not. Either way the track must be on DVA-C03.
+  test("AWSDVA teaches DVA-C03; any DVA-C02 row is kept, superseded, with its last test day", async () => {
+    const dva = await queryOne<{ id: string }>(`select id from subject_tracks where code = 'AWSDVA' and user_id is null`);
+    assert.ok(dva, "AWSDVA not seeded");
+    const exam = await examBlueprintForTrack(dva.id);
+    assert.equal(exam?.examCode, "DVA-C03");
+    assert.equal(exam?.durationMinutes, 130);
+    assert.match(exam?.questionFormat ?? "", /65 questions/);
+    assert.match(exam?.passingScorePolicy ?? "", /720/);
+    assert.deepEqual(exam?.domains.map((d) => d.weightPercent), [30, 26, 22, 22]);
+    const olds = await query<{ retirement_date: string; superseded_by_exam_id: string }>(
+      `select to_char(retirement_date, 'YYYY-MM-DD') as retirement_date, superseded_by_exam_id
+         from credential_exams where exam_code = 'DVA-C02'`
+    );
+    for (const old of olds) {
+      assert.equal(old.retirement_date, "2026-11-30");
+      assert.equal(old.superseded_by_exam_id, exam?.examId);
+    }
+  });
+
   test("Security+ now has its exam record (SY0-701) exposed with duration and format", async () => {
     const t = await queryOne<{ id: string }>(`select id from subject_tracks where code = 'SECPLUS' and user_id is null`);
     const exam = await examBlueprintForTrack(t!.id);
