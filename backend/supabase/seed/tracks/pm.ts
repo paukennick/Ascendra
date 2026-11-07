@@ -1263,6 +1263,11 @@ export const CSPP_TRACK: SeedTrack = {
     durationMinutes: 120,
     questionFormat: "100 questions (85 scored, 15 unscored pretest); multiple choice, computer-based",
     passingScorePolicy: "Pass/fail against a criterion-referenced standard; PMI does not publish a numeric cut score.",
+    // REQ-102: weights re-read 2026-11-07 at
+    // https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/cspp/cspp-exam-content-outline_2026.pdf?rev=6011b9e9341047a2a25d4ea58a390cb4
+    // -- both pathways' printed weights total 101, with no rounding note.
+    publishedWeightsNote:
+      "PMI's 2026 CSPP outline prints 18+18+36+18+11 (=101) for the Certified Practitioner pathway, with no rounding note; kept as printed.",
   },
   units: [
     {

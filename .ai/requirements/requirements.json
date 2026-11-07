@@ -2996,6 +2996,61 @@
         "Aligned with PR #22 revision (b4-align): 031 carries 029 guarantees (FAIL-082..086), 031/031b lock split measured on the 1.9M-attempt fixture (FAIL-084), retry assist reason for 034. A database that applied the first draft of 031 has it recorded in schema_migrations: re-apply 031 by hand (the schema probe flags it) before 031b.",
         "Open (lead, 2026-11-07): the recompute must not overwrite grades committed during the run (per pair under the grader's advisory-lock key, committed batches, skip unchanged rows). 031b only calls 029's recompute_mastery(), which feat/mastery-integrity is changing; merge that fix in and switch 031b's call to the same mechanism."
       ]
+    },
+    {
+      "id": "REQ-102",
+      "category": "defect",
+      "title": "Exam blueprints: credential blocks, SAP-C03, version changes that keep learner history",
+      "description": "Catalog exam data was stale or missing: the flagship Security+ track (and Linux+, CySA+, PenTest+, SecurityX) had no credential block; AWSSAP taught SAP-C02, whose last test day is 2026-11-16 (SAP-C03 GA 2026-11-17); DVA-C02's last day was recorded a day late; MLA-C02's announced GA date was missing; eight Azure tracks' weights totalled 94-105; and the seed could only rewrite units/objectives in place by sort_order, which re-points learner mastery at different content when an exam version changes. Adds retirement (migration 033: course_units/objectives.retired_at, filtered everywhere the course is listed or rolled up), seed support for retired units, superseded exams and stale-domain cleanup, the SAP-C03 units, credential blocks for the five data.ts CompTIA tracks, Azure weights normalized inside Microsoft's published ranges, documented exemptions for vendor-printed totals that are not 100, and the exam blueprint (duration, question format, passing policy, domains) exposed on GET /api/courses/:id via lib/exam-blueprint.ts.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/tracks/pm.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/migrations/033_exam_blueprints.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/progress-sql.ts",
+        "backend/lib/exam-blueprint.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/units/[id]/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/lib/catalog-blueprints.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "acceptance_criteria": [
+        "Every certification track has a credential block",
+        "Active domain weights total 100 or carry a vendor-printed note",
+        "AWSSAP teaches SAP-C03 and SAP-C02 rows are superseded not deleted",
+        "Learner mastery on retired objectives survives and is hidden from course and progress once retired",
+        "Seed run twice creates no duplicates",
+        "Exam duration/format/passing/domains readable via examBlueprintForTrack and the course API"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db after migrate --all and seed twice",
+        "npx tsc --noEmit",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "SAP C02 and C03 units both listed until 2026-11-17T12:00Z",
+        "Mastery not carried from C02 to C03 objectives",
+        "Security+ SY0-801 launches 2026-11-17 and CySA+ CS0-004 is live: rebases not done",
+        "DVA-C03 rebase not done",
+        "MLA-C02 GA date only in AWS blog not exam page"
+      ]
     }
   ]
 }

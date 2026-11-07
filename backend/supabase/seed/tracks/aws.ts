@@ -13,7 +13,17 @@
 //     CloudOps Engineer - Associate".
 //   - AWS Certified Advanced Networking - Specialty retires 2026-12-31, and
 //     AWS Certified Developer - Associate moves from DVA-C02 to DVA-C03
-//     (registration opens 2026-10-27, last day for DVA-C02 is 2026-12-01).
+//     (registration opens 2026-10-27, last day for DVA-C02 is 2026-11-30 --
+//     corrected from 2026-12-01 on 2026-11-07, see the DVA block).
+//
+// REQ-102 pass, 2026-11-07: every exam code below was re-checked against
+// AWS's exam-guide index,
+// https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
+// (CLF-C02, AIF-C01, SAA-C03, SOA-C03, DEA-C01, DVA-C02/C03, MLA-C02,
+// SAP-C02/C03, DOP-C02, SCS-C03, ANS-C01 all listed). Changes made in that
+// pass: AWSSAP moved to SAP-C03 (see its block), DVA-C02's last day
+// corrected, MLA-C02's GA date recorded. Tracks not touched were confirmed
+// by exam code only; their domain weights were not re-read this pass.
 //
 // Re-verify each track's `credential.lastVendorVerifiedAt` against the live
 // exam guide before a release; migration 007 refuses to store any exam record
@@ -505,9 +515,17 @@ export const AWS_AIF_TRACK: SeedTrack = {
 // 130 minutes, 65 questions (50 scored, 15 unscored), scaled 100-1000, pass 720.
 // Domains: 32% / 26% / 24% / 18%.
 //
-// Marked 'transitioning', not 'active': AWS opens registration for DVA-C03 on
-// 2026-10-27, and 2026-12-01 is the last day to sit DVA-C02. Revisit this
-// track the week of 2026-10-27, when the DVA-C03 guide publishes.
+// Marked 'transitioning', not 'active': AWS opened registration for DVA-C03
+// on 2026-10-27; the last day to sit DVA-C02 is 2026-11-30 and DVA-C03 GA
+// delivery starts 2026-12-01 (AWS Training and Certification blog,
+// https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/,
+// read 2026-11-07; the exam-guide index above also lists DVA-C02 as being
+// retired with last day November 30, 2026). This file previously recorded
+// 2026-12-01 as the last day -- that is the first C03 day.
+//
+// REQ-102 follow-up, not done here: the DVA-C03 guide is published
+// (https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03.html),
+// so this track is due the same retire-and-append rebase AWSSAP got.
 //
 // The DVA-C02 guide also carries an "emerging topics" section -- AI-assisted
 // code generation and review, AI-generated tests, AI in CI/CD, AI-assisted
@@ -534,7 +552,7 @@ export const AWS_DVA_TRACK: SeedTrack = {
     credentialUrl: "https://aws.amazon.com/certification/certified-developer-associate/",
     examCode: "DVA-C02",
     status: "transitioning",
-    retirementDate: "2026-12-01",
+    retirementDate: "2026-11-30", // last day to sit DVA-C02; see block comment for source
     officialObjectivesUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
     lastVendorVerifiedAt: VERIFIED_AT,
@@ -1011,7 +1029,21 @@ export const AWS_DEA_TRACK: SeedTrack = {
 //
 // This track deliberately teaches MLA-C02, not the outgoing MLA-C01:
 //   - 2026-09-28 is the last day to sit MLA-C01 in English.
-//   - 2026-09-29 beta delivery of MLA-C02 begins; GA dates are still TBD.
+//   - 2026-09-29 beta delivery of MLA-C02 begins.
+//   - GA: AWS's September 2026 certification-updates post says "GA delivery
+//     of MLA-C02 begins January 14, 2027" in all languages, and MLA-C01
+//     retires everywhere that day
+//     (https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/,
+//     read 2026-11-07). UNCONFIRMED ON THE EXAM PAGE: the certification page
+//     (https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/,
+//     read 2026-11-07) still says GA registration and delivery dates are
+//     "TBD" and still shows "ME1-C02" in its code row, and the MLA-C02
+//     announcement post only says "early 2027". So status stays 'beta', the
+//     GA question count/duration are not recorded (only the beta form's
+//     are), and the review date is set to that announced GA day.
+//   - The exam guide itself (same docs URL as below, read 2026-11-07) is
+//     unchanged from the version this track was written from: 50 scored +
+//     15 unscored, pass 720, weights 28/24/24/24.
 //   - MLA-C01 remains available in Japanese, Korean, and Simplified Chinese
 //     until MLA-C02 reaches general availability.
 // Anyone starting this course now in English will sit MLA-C02.
@@ -1037,7 +1069,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
   sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-12-01T00:00:00Z",
+  contentReviewDueAt: "2027-01-14T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-machine-learning-engineer-associate",
@@ -1049,7 +1081,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
     effectiveDate: "2026-09-29",
     officialObjectivesUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: "2026-11-07T00:00:00Z",
     recommendedExperience:
       "At least 1 year using Amazon SageMaker AI, Amazon Bedrock, and other AWS services for ML engineering, plus at least 1 year in a related role such as backend developer, DevOps developer, data engineer, or data scientist, with experience in both traditional ML and generative AI.",
     durationMinutes: 170,
@@ -1198,54 +1230,93 @@ export const AWS_MLA_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// Professional: AWS Certified Solutions Architect - Professional (SAP-C02)
-// 180 minutes, 75 questions (65 scored, 10 unscored), scaled 100-1000,
-// pass 750 -- the highest passing bar of the AWS exams covered here.
-// Domains: 26% / 29% / 25% / 20%.
+// Professional: AWS Certified Solutions Architect - Professional (SAP-C03)
 //
-// Marked 'transitioning': registration for SAP-C03 opens 2026-10-27 and
-// 2026-11-17 is the last day to sit SAP-C02.
+// REQ-102 (2026-11-07): moved from SAP-C02 to SAP-C03. Sources, all read
+// 2026-11-07:
+//   - Exam-guide index, "Being retired. Registration for SAP-C03 opens
+//     October 27, 2026. Last day to take SAP-C02 is November 16, 2026":
+//     https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
+//   - SAP-C02 -> SAP-C03 comparison, "SAP-C02 ... in use until November 16,
+//     2026. The SAP-C03 exam begins November 17, 2026", plus the full list
+//     of added, merged and removed skills used to plan the units below:
+//     https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/sap-03-comparison.html
+//   - SAP-C03 exam guide: 65 scored + 10 unscored questions, multiple choice
+//     and multiple response, scaled 100-1000, minimum passing score 720
+//     (SAP-C02 was 750), compensatory scoring; five domains 25/25/15/15/20:
+//     https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html
+//     (pass mark cross-checked in the PDF,
+//     https://docs.aws.amazon.com/pdfs/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.pdf)
+//   - Duration 180 minutes and 75 questions -- the exam guide does not state
+//     a time limit; taken from the certification page
+//     (https://aws.amazon.com/certification/certified-solutions-architect-professional/?trk=public_profile_certification-title)
+//     and the AWS T&C September 2026 post
+//     (https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/).
+//   - Per-domain skills: .../solutions-architect-professional-03-domain1.html
+//     through -domain5.html under the same docs path.
 //
-// The guide carries an unscored "emerging topics" section on generative and
-// agentic AI controls -- Amazon Bedrock Guardrails, AgentCore Identity, and
-// human approval workflows via AWS Step Functions. Pretest only, so not a
-// weighted unit here.
+// HOW THE SWITCH IS MODELLED (learner history preserved, nothing deleted):
+//   - The four SAP-C02 units stay at sort_order 0-3 with retiredAt set.
+//     Their objective rows -- and every learner's mastery, attempts, error
+//     log and cached lessons on them -- are kept; the app stops listing
+//     them once retiredAt passes. retiredAt is 2026-11-17T12:00Z, i.e.
+//     after 2026-11-16 (SAP-C02's last day) has ended in every time zone,
+//     so a learner sitting SAP-C02 before then keeps the C02 units.
+//   - The five SAP-C03 domains are new units at sort_order 4-8 with new
+//     objective rows. Mastery is NOT copied from C02 objectives onto C03
+//     ones: the domains were restructured (no one-to-one map exists, per
+//     the comparison page) and carried-over mastery would claim evidence
+//     the learner never produced on that objective.
+//   - credential_exams gets a new SAP-C03 row; the SAP-C02 row is kept,
+//     marked superseded_by SAP-C03 with retirement_date 2026-11-16.
+//   - Until 2026-11-17T12:00Z both sets are listed (registration for C03 is
+//     already open, so a learner starting now should study C03). Exam
+//     domains / readiness use the C03 units only.
+//
+// Removed in C03 (comparison page section 4): C02 Task 2.1's "application
+// upgrade path" and "delegating to AWS", and C02 Task 4.2's "migration-tool
+// security". AWS notes these may still be implicit in other skills.
 // ---------------------------------------------------------------------------
+const SAP_C02_RETIRED_AT = "2026-11-17T12:00:00Z";
+const SAP_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
 export const AWS_SAP_TRACK: SeedTrack = {
   code: "AWSSAP",
   title: "AWS Solutions Architect Professional Coach",
   description:
-    "AWS Certified Solutions Architect - Professional (SAP-C02): architecture at organizational scale -- multi-account governance and hybrid networking, designing new solutions across all five pillars, continuously improving what already runs, and migrating and modernizing existing workloads.",
+    "AWS Certified Solutions Architect - Professional (SAP-C03): architecture at organizational scale -- cloud-native and AI-integrated designs, hybrid and multi-account networks, security, compliance and governance, cost-optimized design, resilience, migration and disaster recovery, and operational excellence through automation.",
   trackType: "certification",
   subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
-    "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
-  sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-10-27T00:00:00Z",
+    "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
+  sourceVerifiedAt: SAP_VERIFIED_AT,
+  contentReviewDueAt: "2027-05-17T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-solutions-architect-professional",
     credentialName: "AWS Certified Solutions Architect - Professional",
     credentialUrl:
       "https://aws.amazon.com/certification/certified-solutions-architect-professional/",
-    examCode: "SAP-C02",
-    status: "transitioning",
-    retirementDate: "2026-11-17",
+    examCode: "SAP-C03",
+    status: "active",
+    effectiveDate: "2026-11-17", // GA delivery; sap-03-comparison.html
     officialObjectivesUrl:
-      "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+      "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
+    lastVendorVerifiedAt: SAP_VERIFIED_AT,
     recommendedExperience:
-      "2 or more years using AWS services to design and implement cloud solutions, with the ability to give architectural guidance spanning multiple applications and projects in a complex organization. Mobile frontend development, 12-factor app methodology, and deep operating system knowledge are out of scope.",
-    durationMinutes: 180,
+      "2 or more years of experience using AWS services to design and implement cloud solutions. Out of scope: in-depth operating system knowledge; AI/ML model training, fine-tuning, and data science workflows; security incident forensics and detailed threat investigation; application code development and debugging.",
+    durationMinutes: 180, // certification page + T&C blog; the exam guide states no time limit
     questionFormat:
       "75 questions (65 scored, 10 unscored); multiple choice and multiple response",
     passingScorePolicy:
-      "Scaled score 100-1000; minimum passing score 750; compensatory scoring, so no per-domain minimum",
+      "Scaled score 100-1000; minimum passing score 720; compensatory scoring, so no per-domain minimum",
+    supersedes: { examCode: "SAP-C02", lastExamDate: "2026-11-16" },
   },
   units: [
     {
       title: "Design Solutions for Organizational Complexity",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 26,
       gate: "Given an enterprise with many accounts, an on-premises data center, and a compliance auditor, design the network, the identity model, the account structure, and the cost visibility -- and say which requirement each piece answers.",
       objectives: [
@@ -1280,6 +1351,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Design for New Solutions",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 29,
       gate: "Take a green-field requirement with a deployment need, a continuity need, a security need, a reliability target, a performance objective, and a budget -- and design one architecture that satisfies all six without pretending they do not conflict. Heaviest domain on the exam.",
       objectives: [
@@ -1322,6 +1394,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Continuous Improvement for Existing Solutions",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 25,
       gate: "Given an architecture already in production, find what is weakest across operations, security, performance, reliability, and cost -- and order the fixes by what the business would feel first.",
       objectives: [
@@ -1360,6 +1433,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Accelerate Workload Migration and Modernization",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 20,
       gate: "Given a portfolio of legacy applications, classify each against the 7Rs, pick the transfer mechanism and target platform for the ones that move, and name the two worth modernizing rather than lifting.",
       objectives: [
@@ -1383,6 +1457,163 @@ export const AWS_SAP_TRACK: SeedTrack = {
         "Identifying opportunities for serverless solutions with AWS Lambda",
         "Identifying opportunities for purpose-built databases: DynamoDB, Amazon Aurora Serverless, Amazon ElastiCache",
         "Selecting the appropriate application integration service: Amazon SQS, Amazon SNS, Amazon EventBridge, AWS Step Functions",
+      ],
+    },
+    // ----- SAP-C03 domains (sort_order 4-8). Objectives paraphrase the
+    // skills in each domain page of the SAP-C03 guide, one idea apiece.
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain1.html
+      title: "Architecture Design and Implementation Built for the Cloud",
+      weight: 25,
+      gate: "Given a product requirement, design the cloud-native shape end to end -- event flow, compute and scaling model, network, data layer, and where an AI service or agent fits -- and defend each choice against the requirement it answers.",
+      objectives: [
+        "Event-driven architectures and their messaging guarantees: idempotency, ordering, and delivery with EventBridge, SQS FIFO and standard queues, SNS, and Kinesis partition keys",
+        "Stateless application design with state externalized to DynamoDB, Amazon S3, or ElastiCache",
+        "Serverless data processing pipelines: Kinesis Data Streams, AWS Glue, Amazon Athena, AWS Lambda",
+        "Durable multi-step workflows with AWS Step Functions and durable Lambda functions",
+        "Cross-account and cross-Region event routing with event buses and event forwarding",
+        "Container orchestration for microservices on Amazon EKS, Amazon ECS, and AWS Fargate",
+        "Service mesh communication and observability with Amazon VPC Lattice and ECS Service Connect",
+        "Container image management in Amazon ECR: security scanning and lifecycle policies",
+        "Auto scaling for serverless and container workloads: Lambda concurrency, Horizontal Pod Autoscaler, Cluster Autoscaler, ECS service scaling, Application Auto Scaling",
+        "Ingress patterns: Application Load Balancer, Network Load Balancer, AWS Load Balancer Controller, Amazon API Gateway",
+        "Edge architectures for latency: CloudFront Functions and Lambda@Edge",
+        "Real-time designs with WebSocket and publish-subscribe patterns, including API Gateway WebSocket APIs",
+        "Multi-tenant architectures and tenant isolation: siloed versus pooled resources, Cognito tenant context, row-level security, per-tenant encryption",
+        "Generative AI integration with Amazon Bedrock, including multi-account deployment patterns",
+        "AI agent architectures that call tools: Amazon Bedrock AgentCore and Bedrock Knowledge Bases",
+        "ML inference architectures on Amazon SageMaker AI endpoints",
+        "Retrieval Augmented Generation architectures: ingestion and retrieval strategies over vector stores",
+        "Redundant hybrid connectivity with failover: AWS Direct Connect, AWS VPN, AWS Transit Gateway",
+        "Data synchronization for hybrid workloads: AWS DataSync, AWS Storage Gateway, AWS Transfer Family",
+        "Modernizing legacy systems through integration and data transformation: API Gateway, Lambda, Amazon MQ",
+        "Hybrid DNS: Route 53 Resolver endpoints, private hosted zones, split-horizon DNS, conditional forwarding",
+        "Hybrid compute: EKS Anywhere, ECS Anywhere, AWS Outposts, AWS Local Zones",
+        "Multi-VPC and multi-account connectivity: VPC peering and AWS PrivateLink",
+        "VPC design: subnet strategy, IP address management with VPC IPAM, network segmentation",
+        "Network security architecture: AWS Network Firewall, AWS WAF, Gateway Load Balancer, security groups, network ACLs, VPC Flow Logs",
+        "IPv6 adoption and dual-stack migration strategy",
+        "Global traffic routing for multi-Region applications: Route 53 routing policies and AWS Global Accelerator",
+        "Data lake and lakehouse design: Amazon S3, AWS Lake Formation, Redshift Spectrum, Apache Iceberg",
+        "Real-time and batch analytics pipelines: Amazon EMR, Amazon Redshift, Amazon MSK, Amazon AppFlow",
+        "Choosing a database by access pattern, consistency, and scale: RDS, Aurora, DynamoDB, Redshift",
+        "Database scaling for high availability: read replicas, Aurora Global Database, DynamoDB global tables, RDS Multi-AZ",
+        "Storage architecture by access pattern and performance: Amazon S3, EBS, EFS, FSx",
+        "Caching to meet performance targets: ElastiCache and DynamoDB Accelerator (DAX)",
+        "Data cataloging and cross-account data sharing: Glue Data Catalog, Lake Formation, AWS Clean Rooms",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain2.html
+      title: "Security, Compliance, and Governance",
+      weight: 25,
+      gate: "Given a regulated, multi-account organization that is adding generative AI, design the identity model, encryption, guardrails, logging, and compliance evidence -- and say which control stops which failure.",
+      objectives: [
+        "Identity federation with standard protocols: IAM Identity Center, SAML 2.0, OpenID Connect, SCIM",
+        "Application authentication and authorization: Cognito user pools and identity pools, OAuth 2.0, EKS Pod Identity",
+        "Least-privilege access: cross-account roles, temporary credentials, permissions boundaries, external IDs, session policies, ABAC",
+        "Data perimeter controls and external-access validation: IAM Access Analyzer, VPC endpoint policies, AWS Verified Access",
+        "Workload identity for hybrid and multi-cloud environments with IAM Roles Anywhere",
+        "Encryption at rest with customer managed KMS keys and automatic key rotation",
+        "Encryption in transit and certificate management: TLS 1.3, AWS Certificate Manager, AWS Private CA",
+        "Dedicated hardware security modules with AWS CloudHSM for regulatory requirements",
+        "Post-quantum cryptography strategy: AWS KMS with ML-DSA and ML-KEM",
+        "Organization structure, guardrails, landing zones, and automated account provisioning: AWS Organizations, OUs, Control Tower, Account Factory",
+        "Centralized logging and configuration management, including AI model invocation logs: CloudTrail organization trails, Config aggregation, GuardDuty, Security Lake, Security Hub, CloudWatch Logs",
+        "Cross-account resource sharing with AWS RAM and Transit Gateway",
+        "Policy enforcement with service control policies (SCPs) and resource control policies (RCPs)",
+        "Automated compliance monitoring with AWS Config rules and Security Hub CSPM",
+        "Automated vulnerability scanning and patching: Amazon Inspector and Systems Manager Patch Manager",
+        "Meeting data protection requirements through encryption, access control, and audit logging",
+        "Regulatory requirements such as data sovereignty controls",
+        "Audit trail management for regulated workloads, including AI services",
+        "Data residency controls: Region-specific deployments and transfer restrictions",
+        "Compliance evidence collection and reporting with AWS Artifact",
+        "Risk assessment for cloud architectures: threat modeling and mitigation strategies",
+        "Content filtering and compliance controls for generative AI with Amazon Bedrock Guardrails",
+        "Access control for generative and agentic AI applications with Bedrock AgentCore Identity",
+        "Human oversight of AI operations: approval workflows built with AWS Step Functions",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain3.html
+      title: "Cost-Optimized Architecture Design",
+      weight: 15,
+      gate: "Given a running architecture and its bill, find where the money goes -- compute, data transfer, storage, observability, AI tokens -- and redesign it cheaper without breaking a stated performance or resilience requirement.",
+      objectives: [
+        "Choosing purchase options by usage pattern: On-Demand, Reserved Instances, Savings Plans, Spot, and provisioned capacity",
+        "Cost-optimized compute choices: Graviton instances, Step Functions Standard versus Express, Lambda",
+        "Rightsizing and scaling from performance metrics: Compute Optimizer, scheduled scaling, target tracking, Fargate Spot",
+        "Cost optimization for AI/ML workloads: service tier selection, batching, and caching in Bedrock and SageMaker AI",
+        "Content delivery design for cost: CloudFront origins, caching, Origin Shield, and failover",
+        "Reducing data transfer cost: private connectivity, VPC endpoints versus NAT gateways, AZ-aware and Region-aware traffic",
+        "Cost-aware multi-Region replication: S3 Cross-Region Replication and DynamoDB global tables",
+        "Cost-effective network design: Transit Gateway data processing charges versus PrivateLink pricing",
+        "Data transfer cost for AI/ML, including cross-Region inference routing",
+        "Tagging strategy for cost allocation by business unit, project, and environment",
+        "Cost reporting and analytics from detailed billing data: Cost Explorer and Cost and Usage Reports",
+        "Policy-based tag enforcement: SCPs, Config rules, and tag policies",
+        "Chargeback and showback: cost categories, split cost allocation, Bedrock token usage monitoring",
+        "Cost monitoring and alerting: AWS Budgets thresholds and Cost Anomaly Detection",
+        "Storage tiering and lifecycle policies: S3 Intelligent-Tiering, S3 Lifecycle, Glacier storage classes, EFS lifecycle",
+        "Block storage cost: EBS gp3 versus gp2 versus Provisioned IOPS, and provisioning the IOPS actually needed",
+        "Database cost: DynamoDB capacity modes, RDS reserved instances, Aurora Serverless and I/O-Optimized, Database Savings Plans",
+        "Cost-optimized backup and disaster recovery retention with AWS Backup and Data Lifecycle Manager",
+        "Cost-effective observability: log filtering, metric aggregation, and retention tuning",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain4.html
+      title: "Resilience, Migration, and Business Continuity",
+      weight: 15,
+      gate: "Given a legacy portfolio and a stated RTO/RPO, plan the migration waves and strategy per workload, then design and prove the disaster recovery and ransomware protection -- with a test, not an assumption.",
+      objectives: [
+        "Discovery and portfolio assessment: mapping dependencies and planning migration waves",
+        "Rehosting with AWS Transform MGN (formerly AWS Application Migration Service) and AWS Transform",
+        "Database and data migration strategy: AWS Database Migration Service and AWS DataSync",
+        "Replatforming onto managed services to cut operational overhead: RDS, Aurora, ECS, Lambda",
+        "Refactoring: microservices decomposition, serverless adoption, and the strangler fig pattern",
+        "Modernizing legacy workloads: mainframes, applications, and databases",
+        "Designing disaster recovery to business requirements: RTO, RPO, and cost",
+        "Continuous replication for fast recovery with AWS Elastic Disaster Recovery",
+        "Disaster recovery assessment and recovery procedures: AWS Resilience Hub and Systems Manager runbooks",
+        "Multi-Region disaster recovery with replication and failover: Route 53 health checks, Global Accelerator, Application Recovery Controller",
+        "Disaster recovery testing and validation with AWS Resilience Hub",
+        "Multi-cluster container strategies for high availability and DR on EKS and ECS",
+        "Centralized backup governance and cross-account backup policies with AWS Backup",
+        "Failover testing and measuring recovery time: AWS Fault Injection Service and Route 53 health checks",
+        "Resilient architecture: redundancy, fault tolerance, and self-healing",
+        "Protecting data from ransomware and accidental deletion: S3 Object Lock, EBS snapshot lock, Backup Vault Lock",
+        "Chaos engineering with controlled failure: Fault Injection Service experiment templates and steady-state hypotheses",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain5.html
+      title: "Operational Excellence and Automation",
+      weight: 20,
+      gate: "Given a multi-account estate deployed by hand, design the IaC, pipelines, observability, and automated remediation that let it be changed, watched, and repaired safely -- including how an AI workload is evaluated and monitored.",
+      objectives: [
+        "Infrastructure as code, declarative and imperative: AWS CloudFormation and AWS CDK",
+        "Policy as code for proactive validation, enforcement, and drift remediation: CloudFormation Hooks, CDK aspects, Config rules, SCPs",
+        "Secrets in infrastructure code: AWS Secrets Manager and Systems Manager Parameter Store",
+        "Multi-account and multi-Region infrastructure deployment with CloudFormation StackSets",
+        "CI/CD orchestration: CodePipeline, CodeBuild, CodeDeploy, CodeCommit",
+        "Pipeline security: vulnerability scanning and artifact signing with Amazon Inspector and ECR image scanning",
+        "Multi-account and multi-Region pipelines: role delegation and artifact promotion",
+        "Evaluating AI/ML applications and validating their outputs with Amazon Bedrock Evaluations",
+        "Deployment strategies with rollback: blue/green, canary, rolling",
+        "Observability through metrics, logs, and distributed tracing: CloudWatch, X-Ray, AWS Distro for OpenTelemetry",
+        "Monitoring containerized applications with Container Insights on ECS and EKS",
+        "Multi-account log aggregation: CloudWatch Logs subscriptions and archival S3 storage tiers",
+        "Alerting: CloudWatch alarms, Amazon SNS, Systems Manager",
+        "Monitoring AI/ML workloads: model performance, agent performance, inference latency, and drift",
+        "User experience monitoring: CloudWatch Synthetics and CloudWatch RUM",
+        "Service-level objectives with measurable indicators and alerts: CloudWatch Application Signals",
+        "Health monitoring, capacity planning, and operational response: CloudWatch alarms, EventBridge, Systems Manager, Service Quotas",
+        "Controlled remediation with safety limits: circuit breakers, rate limits, bulkheads, retries with exponential backoff",
+        "Auto scaling policies: target tracking, scheduled, and predictive scaling",
+        "Automated failure recovery: health checks and replacement for Auto Scaling, ECS tasks, and Lambda retries",
+        "Automated runbooks and incident response for patching, remediation, and scaling",
       ],
     },
   ],

@@ -156,6 +156,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'attempts' and column_name = 'assessment_type'
           ) as ok`,
   },
+  {
+    migration: "033_exam_blueprints.sql",
+    what: "course_units.retired_at / objectives.retired_at columns (course view, progress, seed)",
+    sql: `select count(*) = 2 as ok from information_schema.columns
+           where table_schema = 'public' and column_name = 'retired_at'
+             and table_name in ('course_units', 'objectives')`,
+  },
 ];
 
 export interface SchemaStatus {

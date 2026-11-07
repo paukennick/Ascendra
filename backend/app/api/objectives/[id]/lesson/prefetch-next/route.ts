@@ -3,6 +3,7 @@ import { queryOne } from "@/lib/db";
 import { ok, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
+import { isActive } from "@/lib/progress-sql";
 import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
@@ -39,6 +40,7 @@ async function findNextObjective(objectiveId: string): Promise<NextObjective | n
      join course_units cu on cu.id = o.unit_id
      join cur on cu.track_id = cur.track_id
      where (cu.sort_order, o.sort_order) > (cur.unit_sort, cur.obj_sort)
+       and ${isActive("cu")} and ${isActive("o")}
      order by cu.sort_order, o.sort_order
      limit 1`,
     [objectiveId]

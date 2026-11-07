@@ -25,6 +25,7 @@ import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { query, closePool } from "../lib/db";
+import { isActive } from "../lib/progress-sql";
 import { buildRequest, getModel } from "../lib/anthropic";
 import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema } from "../lib/prompts";
 import { loadObjective } from "../lib/lesson-generation";
@@ -44,6 +45,7 @@ async function missingObjectives(tracks: string[], limit: number | null): Promis
        join course_units cu on cu.id = o.unit_id
        join subject_tracks st on st.id = cu.track_id
       where st.user_id is null
+        and ${isActive("cu")} and ${isActive("o")}
         and not exists (select 1 from lesson_content lc where lc.objective_id = o.id)
         and ($1::text[] is null or st.code = any($1::text[]))
       order by st.code, cu.sort_order, o.sort_order
