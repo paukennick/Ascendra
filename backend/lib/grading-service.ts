@@ -1,11 +1,7 @@
 import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { getLessonFor } from "@/lib/lesson-store";
-import {
-  accuracyFromAttempts,
-  suggestStatus,
-  statusToScore,
-  toDateOnlyString,
-} from "@/lib/mastery";
+import { toDateOnlyString } from "@/lib/mastery";
+import { lessonItemKey } from "@/lib/choice-order";
 
 // classification is a model-generated freeform tag (see
 // backend/lib/prompts.ts's grading prompts: "a short tag for the kind of
@@ -44,6 +40,8 @@ export interface AttemptInput {
   clientAttemptId?: string | null;
 }
 
+export type AssistReason = "hint" | "repeat";
+
 // REQ-089: the stored attempt for an id the app has already submitted, in
 // the shape /api/grade returns, or null if this id is new.
 export async function findClientAttempt(userId: string, clientAttemptId: string) {
@@ -53,6 +51,8 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     feedback: string | null;
     classification: string | null;
     missed_parts: string[] | null;
+    assisted: boolean | null;
+    assist_reason: AssistReason | null;
   }>(
     `select * from attempts where user_id = $1 and client_attempt_id = $2`,
     [userId, clientAttemptId]
@@ -63,6 +63,8 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     feedback: row.feedback ?? "",
     classification: row.classification ?? "none",
     missedParts: Array.isArray(row.missed_parts) ? row.missed_parts : [],
+    assisted: row.assisted === true,
+    assistReason: row.assist_reason ?? null,
     attempt: row,
     replayed: true,
   };
@@ -91,26 +93,54 @@ export async function recordAttemptIdempotent(input: AttemptInput) {
   }
 }
 
-// The correct choice for a lesson's Guided ("fade") or Solo ("solo") check,
-// read from the cached lesson_content so /api/grade doesn't have to trust
-// the index the client sends. null when no lesson is cached for the
-// objective yet, or the stage isn't one of the two multiple-choice stages.
-// The answer key is the lesson THIS learner was shown: their own
-// regenerated lesson if they have one (REQ-091, per-learner regeneration),
-// otherwise the shared one. Reading only the shared row would grade a
-// learner who regenerated against a different question's key.
-// `practiceReady` is false while fade/solo are still generating.
-export async function cachedCorrectIndex(
+// REQ-097: everything needed to grade a lesson's Guided ("fade") or Solo
+// ("solo") check, read from the lesson THIS learner was shown -- their own
+// regenerated lesson if they have one (REQ-091), otherwise the shared one.
+// /api/grade grades only against this; the question, teaching text and answer
+// key are never taken from the request. Indexes here are in stored order; the
+// shuffle the learner saw is applied by the route (lib/choice-order.ts).
+export interface LessonCheck {
+  stage: "fade" | "solo";
+  question: string;
+  choices: string[];
+  correctIndex: number;
+  why: string;
+  teach: string;
+}
+
+export type LessonCheckLookup =
+  | { status: "ok"; check: LessonCheck }
+  | { status: "no-lesson" }
+  | { status: "bad-stage" }
+  | { status: "pending" };
+
+export async function lessonCheckFor(
   userId: string,
   objectiveId: string,
-  stage: string | null | undefined
-): Promise<{ hasLesson: boolean; validStage: boolean; index: number | null }> {
+  stage: unknown
+): Promise<LessonCheckLookup> {
+  if (stage !== "fade" && stage !== "solo") return { status: "bad-stage" };
   const found = await getLessonFor(userId, objectiveId);
-  if (!found) return { hasLesson: false, validStage: false, index: null };
-  const row = found.row as { fade_correct_index?: number | null; solo_correct_index?: number | null };
-  if (stage === "fade") return { hasLesson: true, validStage: true, index: row.fade_correct_index ?? null };
-  if (stage === "solo") return { hasLesson: true, validStage: true, index: row.solo_correct_index ?? null };
-  return { hasLesson: true, validStage: false, index: null };
+  if (!found) return { status: "no-lesson" };
+  const r = found.row;
+  const question = stage === "fade" ? r.fade_problem : r.solo_check;
+  const choices = stage === "fade" ? r.fade_choices : r.solo_choices;
+  const correctIndex = stage === "fade" ? r.fade_correct_index : r.solo_correct_index;
+  const why = stage === "fade" ? r.fade_why : r.solo_why;
+  // Practice half still generating (or a malformed row): nothing to grade against.
+  if (!question || !Array.isArray(choices) || !Number.isInteger(correctIndex)) return { status: "pending" };
+  return { status: "ok", check: { stage, question, choices, correctIndex, why: why ?? "", teach: r.teach } };
+}
+
+// Records that this learner asked to see the choices for a Solo item. Called
+// before the choices are sent, so the hint is known to the server rather than
+// reported by the app. Idempotent.
+export async function recordHintReveal(userId: string, objectiveId: string, stage: string, question: string) {
+  await queryOne(
+    `insert into lesson_hint_reveals (user_id, objective_id, item_key) values ($1, $2, $3)
+     on conflict do nothing returning 1`,
+    [userId, objectiveId, lessonItemKey(stage, question)]
+  );
 }
 
 // "Got it" on a review entry: one guarded UPDATE, not read-then-write. The
@@ -148,6 +178,22 @@ export async function advanceReviewStage(
   return current ? { row: current, advanced: false } : null;
 }
 
+// Whether this learner has been shown the choices for this item.
+export async function hasHintReveal(userId: string, objectiveId: string, stage: string, question: string) {
+  return !!(await queryOne(
+    `select 1 from lesson_hint_reveals where user_id = $1 and objective_id = $2 and item_key = $3`,
+    [userId, objectiveId, lessonItemKey(stage, question)]
+  ));
+}
+
+// The name hashed for the per-pair grading lock. Must stay identical to
+// grade_lock_key() in migration 029 (which hashes uuid::text, always
+// lowercase), so ids are lowercased here: an upper-case id in a request would
+// otherwise take a different lock from the recompute.
+export function gradeLockName(userId: string, objectiveId: string): string {
+  return `grade:${userId.toLowerCase()}:${objectiveId.toLowerCase()}`;
+}
+
 // REQ-089: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded
@@ -163,15 +209,21 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // Serialise grades for the same learner and objective, so two at once
   // can't each compute accuracy without the other's attempt and have the
   // later write overwrite mastery with a stale status. Released at commit.
+  // recompute_mastery_pair() (migration 029) takes the same lock, through
+  // grade_lock_key(), so a recompute never overwrites a grade (FAIL-118).
   if (input.objectiveId) {
-    await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade:${userId}:${input.objectiveId}`]);
+    await query(`select pg_advisory_xact_lock(hashtext($1))`, [gradeLockName(userId, input.objectiveId)]);
   }
+
+  // REQ-097: was this answer given with help? Decided here, under the lock
+  // above, so two first answers racing can't both count as the first.
+  const assistReason = await assistReasonFor(query, input);
 
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence, client_attempt_id)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
      returning *`,
     [
       userId,
@@ -189,45 +241,40 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.missedParts ? JSON.stringify(input.missedParts) : null,
       input.confidence ?? null,
       input.clientAttemptId ?? null,
+      assistReason !== null,
+      assistReason,
     ]
   );
   const attempt = attemptRows[0];
 
-  // Update mastery only when the attempt is tied to a specific objective (PBQs are
-  // tied to a unit, not one objective, so they don't directly drive per-objective mastery).
+  // REQ-097: mastery is recomputed from this learner's whole attempt history
+  // on the objective by mastery_from_attempts() (migration 029, where the
+  // rule is written out) -- the same function the 029 recompute used. Status
+  // no longer comes from the latest answer alone, and only unassisted Solo
+  // free-response successes lift it above Guided (two at least 24 hours apart
+  // for Transfer-ready).
   if (input.objectiveId) {
-    const priorAttempts = await query<{ verdict: string | null }>(
-      `select verdict from attempts where user_id = $1 and objective_id = $2 and format != 'pbq'`,
-      [userId, input.objectiveId]
-    );
-    const acc = accuracyFromAttempts(priorAttempts);
-    const newStatus = suggestStatus({
-      acc,
-      lastFormat: input.format === "pbq" ? "open" : input.format,
-      lastVerdict: input.verdict,
-    });
-    const score = statusToScore(newStatus);
     await query(
       `insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
-       values ($1,$2,$3,$4,$5, now())
+       select $1, $2, m.status, m.score, m.evidence, now() from mastery_from_attempts($1, $2) m
        on conflict (user_id, objective_id) do update set
          status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()`,
-      [
-        userId,
-        input.objectiveId,
-        newStatus,
-        score,
-        `${input.kind}/${input.stage ?? input.format} on ${new Date().toISOString().slice(0, 10)}: ${input.verdict}`,
-      ]
+      [userId, input.objectiveId]
     );
   }
 
-  // REQ-084: a correct graded answer on an objective is the strongest
-  // evidence its open review entries deserve to move on -- the same step the
-  // Review screen's "Got it" takes (1 -> 7 -> 21 days -> resolved), applied
-  // automatically instead of waiting to be cleared by hand. Offsets mirror
+  // REQ-084 / REQ-097: a correct answer moves the item's open review entries
+  // on one step (1 -> 7 -> 21 days -> resolved), but only entries due today or
+  // overdue: an early review no longer jumps the interval, and because the
+  // step sets the next date in the future an entry moves at most once a day.
+  // Only a Solo answer (lesson) or a retry of the same PBQ scenario counts;
+  // the scaffolded Guided step and the choices hint do not. Offsets mirror
   // REVIEW_OFFSETS_DAYS in lib/mastery.ts.
-  if (input.verdict === "correct" && input.objectiveId) {
+  const reviewEvidence =
+    input.verdict === "correct" &&
+    assistReason !== "hint" &&
+    ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
+  if (reviewEvidence) {
     await query(
       `update error_log
           set review_stage = review_stage + 1,
@@ -237,8 +284,11 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
                                  when 2 then current_date + 21
                                  else null
                                end
-        where user_id = $1 and objective_id = $2 and resolved = false`,
-      [userId, input.objectiveId]
+        where user_id = $1 and resolved = false
+          and next_review_at <= current_date
+          and (($2::uuid is not null and objective_id = $2::uuid)
+            or ($3::uuid is not null and pbq_scenario_id = $3::uuid))`,
+      [userId, input.pbqScenarioId ? null : input.objectiveId ?? null, input.pbqScenarioId ?? null]
     );
   }
 
@@ -249,12 +299,14 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     next.setDate(next.getDate() + 1);
     await query(
       `insert into error_log
-        (user_id, unit_id, objective_id, attempt_id, topic, error_text, why, classification, review_stage, next_review_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,0,$9)`,
+        (user_id, unit_id, objective_id, pbq_scenario_id, attempt_id, topic, error_text, why, classification,
+         review_stage, next_review_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10)`,
       [
         userId,
         input.unitId ?? null,
         input.objectiveId ?? null,
+        input.pbqScenarioId ?? null,
         attempt.id,
         input.question.slice(0, 200),
         input.answer,
@@ -266,4 +318,29 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   }
 
   return attempt;
+}
+
+// "hint": the Solo choices were on screen -- answered as multiple choice, or
+//   the hint was opened for this item (lesson_hint_reveals).
+// "repeat": this learner already answered this exact item (same stage, same
+//   question), and grading showed the answer then.
+// Either keeps the answer from lifting mastery above Guided.
+async function assistReasonFor(
+  query: TxClient["query"],
+  input: AttemptInput
+): Promise<AssistReason | null> {
+  if (input.kind !== "lesson" || !input.objectiveId || (input.stage !== "fade" && input.stage !== "solo")) return null;
+  if (input.stage === "solo") {
+    if (input.format === "mc") return "hint";
+    const hinted = await query(
+      `select 1 from lesson_hint_reveals where user_id = $1 and objective_id = $2 and item_key = $3`,
+      [input.userId, input.objectiveId, lessonItemKey(input.stage, input.question)]
+    );
+    if (hinted.length) return "hint";
+  }
+  const before = await query(
+    `select 1 from attempts where user_id = $1 and objective_id = $2 and stage = $3 and question = $4 limit 1`,
+    [input.userId, input.objectiveId, input.stage, input.question]
+  );
+  return before.length ? "repeat" : null;
 }

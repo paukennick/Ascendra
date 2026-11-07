@@ -28,10 +28,12 @@ import { colors, fonts, spacing } from "@/lib/theme";
 // "Due" means next_review_at has arrived. "Got it" advances the entry one
 // stage (1 -> 7 -> 21 days -> resolved); "Dismiss" resolves immediately.
 // "Open lesson" is the honest way to re-check: it goes through the real
-// lesson flow again, which (via /api/grade) writes a fresh attempt and
-// mastery update, so a correct answer there also earns credit toward
-// Independent -- the review entry itself is only bookkeeping about when to
-// look again.
+// lesson flow again, which (via /api/grade) writes a fresh attempt. REQ-097:
+// a correct Solo answer there moves the entry on only once it is due, and a
+// question already answered before can't raise mastery (its answer was
+// shown) -- "Try a different question" in the lesson gives a fresh one.
+// "Retry scenario" does the same for a missed PBQ. The review entry itself is
+// only bookkeeping about when to look again.
 
 type Filter = "due" | "all";
 
@@ -153,6 +155,23 @@ export default function ReviewScreen() {
                         router.push({
                           pathname: `/course/${e.track_id}/lesson/${e.objective_id}`,
                           params: { unitId: e.unit_id ?? undefined, objectiveTitle: e.objective_title },
+                        })
+                      }
+                    />
+                  ) : null}
+                  {/* REQ-097: a missed PBQ has no objective, so "Open lesson"
+                      never showed; it can now be retried, and a correct retry
+                      once it is due moves it to the next interval. */}
+                  {e.track_id && e.pbq_scenario_id ? (
+                    <Button
+                      label="Retry scenario"
+                      size="sm"
+                      fullWidth={false}
+                      icon="layers"
+                      onPress={() =>
+                        router.push({
+                          pathname: `/course/${e.track_id}/pbq`,
+                          params: { unitId: e.unit_id ?? undefined, scenarioId: e.pbq_scenario_id ?? undefined },
                         })
                       }
                     />

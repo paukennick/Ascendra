@@ -72,6 +72,55 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "ai_calls table (AI call log; calls still work without it, but cost and latency go unrecorded)",
     sql: `select to_regclass('public.ai_calls') is not null as ok`,
   },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "attempts.assisted / assist_reason columns (every graded answer)",
+    sql: `select count(*) = 2 as ok from information_schema.columns
+           where table_schema = 'public' and table_name = 'attempts'
+             and column_name in ('assisted', 'assist_reason')`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    // Checks the current version, not just the name: the first version of
+    // 029 returned no row for "no evidence" and trusted attempts.assisted for
+    // repeats (FAIL-110/111); the second counted attempts of any kind
+    // (FAIL-182).
+    what: "mastery_from_attempts() function, current version (every graded answer)",
+    sql: `select coalesce((select status = 'Not started'
+                             from mastery_from_attempts('00000000-0000-0000-0000-000000000000'::uuid,
+                                                        '00000000-0000-0000-0000-000000000000'::uuid)), false)
+                 and position('x.kind = ''lesson''' in
+                              pg_get_functiondef('public.mastery_from_attempts(uuid,uuid)'::regprocedure)) > 0 as ok`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "recompute_mastery_batched() procedure and grade_lock_key() (post-deploy recompute, FAIL-118)",
+    sql: `select to_regprocedure('public.recompute_mastery_batched(integer,uuid)') is not null
+                 and to_regprocedure('public.grade_lock_key(uuid,uuid)') is not null as ok`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "lesson_hint_reveals table (Solo choices hint)",
+    sql: `select to_regclass('public.lesson_hint_reveals') is not null as ok`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "error_log.pbq_scenario_id column (graded PBQ answers, Review)",
+    sql: `select exists(
+            select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'error_log' and column_name = 'pbq_scenario_id'
+          ) as ok`,
+  },
+  {
+    // FAIL-119: 029b is data, not schema, so no object above notices if it
+    // was skipped -- and skipping it leaves every learner on the old levels.
+    // Its backup table is the one object it creates. (When the backups are
+    // dropped after 30 days -- docs/deploy-runbook-mastery.md -- remove this
+    // probe in the same change.)
+    migration: "029b_mastery_backfill.sql",
+    what: "mastery_backup_029 table (029b backup, backfill and first recompute ran)",
+    sql: `select to_regclass('public.mastery_backup_029') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {
@@ -100,4 +149,47 @@ export async function checkSchema(run: QueryFn, probes: SchemaProbe[] = SCHEMA_P
 // Migrations named by the missing probes, deduplicated, in apply order.
 export function migrationsToApply(status: SchemaStatus): string[] {
   return [...new Set(status.missing.map((m) => m.migration))].sort();
+}
+
+// FAIL-119: how many stored mastery levels differ from what
+// mastery_from_attempts() gives now (rows that would change), plus pairs with
+// graded lesson attempts and no mastery row. Informational, for
+// `npm run migrate -- --status` and the deploy runbook: not 0 straight after
+// 029b means the old code graded in the deploy gap, or the batched recompute
+// has not run yet. Reads every mastery row, so it is not part of /api/health.
+export const MASTERY_DRIFT_SQL = `
+  select (select count(*) from mastery m
+            cross join lateral mastery_from_attempts(m.user_id, m.objective_id) f
+           where (m.status, m.score_0_4, m.evidence) is distinct from (f.status, f.score, f.evidence))::int as differing,
+         (select count(*) from (
+            select distinct a.user_id, a.objective_id from attempts a
+             where a.user_id is not null and a.objective_id is not null
+               and a.kind = 'lesson' and a.format <> 'pbq' and a.verdict is not null
+               and not exists (select 1 from mastery m where m.user_id = a.user_id and m.objective_id = a.objective_id)
+          ) p)::int as missing`;
+
+export interface MasteryDrift {
+  differing: number;
+  missing: number;
+}
+
+export async function masteryDrift(
+  run: (sql: string) => Promise<Array<Record<string, unknown>>>
+): Promise<MasteryDrift | null> {
+  try {
+    const r = (await run(MASTERY_DRIFT_SQL))[0];
+    return { differing: Number(r?.differing ?? 0), missing: Number(r?.missing ?? 0) };
+  } catch {
+    return null; // 029 not applied yet: there is no rule to compare against
+  }
+}
+
+export function formatMasteryDrift(d: MasteryDrift | null): string {
+  if (!d) return "Mastery vs. rule: not checked (mastery_from_attempts() is missing; apply 029 first).";
+  if (d.differing === 0 && d.missing === 0) return "Mastery vs. rule: every stored level matches mastery_from_attempts().";
+  return (
+    `Mastery vs. rule: ${d.differing} stored level(s) differ from mastery_from_attempts(), ` +
+    `${d.missing} graded pair(s) have no mastery row. Run \`call recompute_mastery_batched();\` ` +
+    `(docs/deploy-runbook-mastery.md). Informational; does not fail --status.`
+  );
 }

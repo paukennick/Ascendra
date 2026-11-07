@@ -36,9 +36,10 @@ function validIndex(i: number | null | undefined, count: number): i is number {
 
 // How each option should be marked after grading. The server's verdict is the
 // authority on whether the learner's pick was right (it grades against its own
-// answer key); the lesson's stored correctIndex is only used to point at the
-// right option when it agrees with that verdict. If they disagree (a stale
-// copy of the lesson, say) the screen says nothing it can't stand behind:
+// answer key); the correctIndex it returned with the verdict (REQ-097: the
+// lesson payload carries none) is only used to point at the right option when
+// it agrees with that verdict. If they disagree the screen says nothing it
+// can't stand behind:
 // no second option is called "correct".
 export function choiceMarks(
   count: number,
@@ -54,6 +55,27 @@ export function choiceMarks(
     marks[correctIndex] = "correct-answer";
   }
   return marks;
+}
+
+// REQ-097: why a graded answer could not raise mastery, if it couldn't.
+export function assistNote(assistReason: string | null | undefined): string | null {
+  if (assistReason === "repeat") {
+    return "You've answered this question before, so this answer can't raise your mastery level. \"Try a different question\" gives you a fresh one.";
+  }
+  if (assistReason === "hint") {
+    return "The choices were shown for this question, so this answer counts toward Guided at most.";
+  }
+  return null;
+}
+
+// REQ-097: grading happens only on the server, so a failed submit never shows
+// a verdict. A server answer (it has a status) shows its own message; anything
+// else is treated as no connection, and the answer is kept for a retry, which
+// reuses the same attempt id.
+export function gradeSubmitError(err: unknown): string {
+  const e = err as { status?: unknown; message?: unknown } | null;
+  if (e && typeof e.status === "number" && typeof e.message === "string" && e.message) return e.message;
+  return "Couldn't reach the server, so this answer hasn't been graded yet. Your answer is kept -- tap Retry.";
 }
 
 export type MarkTone = "good" | "bad" | "neutral";

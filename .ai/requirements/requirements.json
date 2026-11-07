@@ -2888,6 +2888,60 @@
         "Migration 028 needed for logging (calls still succeed without it)",
         "Grading cases are a draft for owner review"
       ]
+    },
+    {
+      "id": "REQ-097",
+      "category": "defect",
+      "title": "Mastery integrity: server-side grading, spaced evidence, recompute",
+      "description": "Closes the teaching-quality audit's mastery loopholes. Mastery above Guided needs an unassisted Solo free-response success; Transfer-ready needs two, at least 24 hours apart (one SQL rule, mastery_from_attempts, used by live grading and the recompute). Answers to an item already answered, or after the Solo choices hint, are assisted. Only due review entries advance. Grading is server-side against the learner's own stored lesson: no answer key or explanation is sent before answering, the free-response grader gets the answer key and treats the answer as data, and choice order is a fixed per-learner shuffle. PBQ review entries can be retried. Migration 029 backs up mastery and review state, then recomputes everyone's mastery (owner decision).",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/grading-service.ts",
+        "backend/lib/choice-order.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/free-response-grader.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/mastery.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/hint/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "mobile/src/types/index.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonFeedback.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "acceptance_criteria": [
+        "Guided answers cap at Guided; Transfer-ready needs spaced unassisted evidence",
+        "Repeat and hinted answers are assisted",
+        "Only due review entries advance",
+        "Grading ignores client question/key context",
+        "Lesson payload carries no answer key",
+        "Choices shuffled per learner",
+        "PBQ review entries retestable",
+        "029 backs up then recomputes and is idempotent"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model"
+      ],
+      "risk_notes": [
+        "Learners' levels drop after the recompute",
+        "Transfer-ready now needs a regenerated lesson on a later day",
+        "Pre-029 hint peeks are not visible in history",
+        "PR #22 review fixes (FAIL-039, FAIL-110..117): 029 split into 029 (schema, lock_timeout 5s, ~1 s) and 029b (backup, backfill, recompute; row locks only, ~61 s at 1.9M attempts). After deploying the code run select recompute_mastery() once. Backend rollback needs an OTA app rollback (new app vs old backend -> 400 on grade). A DB that applied the pre-fix 029 must re-run both files."
+      ]
     }
   ]
 }

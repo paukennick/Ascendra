@@ -1,181 +1,175 @@
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
-  cachedCorrectIndex,
   findClientAttempt,
+  hasHintReveal,
+  lessonCheckFor,
   recordAttemptIdempotent,
+  type LessonCheck,
 } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleObjective, visibleUnit } from "@/lib/visibility";
+import { visibleObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import {
-  requireAcknowledgementForObjective,
-  requireAcknowledgementForUnit,
-  AcknowledgementError,
-} from "@/lib/auth/requireAcknowledgement";
+import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
-import { coachContextForObjective, coachContextForUnit } from "@/lib/coach-context";
+import { coachContextForObjective } from "@/lib/coach-context";
+import { presentationOrder, presentationSeed, shownIndexOf, storedIndexAt } from "@/lib/choice-order";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/grade — grades one lesson/quiz/unit-check answer (MC or free-response) and
-// records the attempt + mastery update + (if not correct) an error-log entry with the
-// first spaced-review date. PBQ grading has its own route (see /api/pbq) since it needs
-// a scenario + multiple named sub-parts.
+const MAX_ANSWER = 8000;
+
+// POST /api/grade -- grades one answer to a lesson's Guided ("fade") or Solo
+// ("solo") check and records the attempt, the mastery update and (if not
+// correct) a spaced-review entry. PBQs have their own route (/api/pbq).
 //
-// Body for format "mc" (graded locally — no Anthropic call needed). For a lesson check
-// (objectiveId + stage "fade"/"solo") the correct index comes from the cached lesson
-// content on the server; the client's correctIndex is only used when no lesson is cached:
-//   { format: "mc", kind, stage?, objectiveId?, unitId?, question, chosenIndex, correctIndex,
-//     chosenText, why?, confidence? }
+// REQ-097: grading is entirely server-side. The question, the teaching text
+// and the answer key come from the lesson this learner was shown; the app
+// sends only which check it is and its answer. Fields older clients send
+// (question, taughtText, correctIndex, chosenText, why) are ignored. The
+// answer key and explanation are returned only with the verdict.
 //
-// Body for format "open" (graded by Claude):
-//   { format: "open", kind, stage?, objectiveId?, unitId?, question, answer, taughtText, confidence? }
+//   { clientAttemptId?, format: "mc",   objectiveId, stage, chosenIndex, confidence? }
+//   { clientAttemptId?, format: "open", objectiveId, stage, answer,      confidence? }
+//
+// chosenIndex is a position in the order the choices were shown, which is
+// this learner's fixed shuffle (lib/choice-order.ts).
+//
+// Returns { verdict, feedback, classification, missedParts, assisted,
+//   assistReason, correctIndex (shown order), correctAnswer, why, attempt }.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { format, kind, stage, objectiveId, unitId, question, confidence } = body ?? {};
+    const { format, stage, objectiveId, unitId, confidence } = body ?? {};
+    const kind = body?.kind ?? "lesson";
 
-    if (!format || !kind || !question) {
-      return badRequest("format, kind, and question are required");
+    if (format !== "mc" && format !== "open") {
+      return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
     }
+    if (kind !== "lesson") return badRequest("only lesson checks are graded here");
+    if (typeof objectiveId !== "string" || !objectiveId) return badRequest("objectiveId is required");
+    if (stage !== "fade" && stage !== "solo") return badRequest("stage must be 'fade' or 'solo'");
+    if (unitId !== undefined && unitId !== null && typeof unitId !== "string") return badRequest("unitId must be a string");
 
     const authUser = await requireUser(req);
 
-    // REQ-091: the ids in the body are untrusted. Each must be in a track the
-    // caller can see (shared catalog or their own), and if both are sent the
-    // objective must belong to that unit -- otherwise an attempt (and its
-    // mastery / review entries) could be filed against someone else's course.
-    // requireAcknowledgement* is not an access check: it returns silently
-    // for a track the caller can't see.
-    for (const [name, v] of [["objectiveId", objectiveId], ["unitId", unitId]] as const) {
-      if (v !== undefined && v !== null && typeof v !== "string") return badRequest(`${name} must be a string`);
-    }
-    let attemptUnitId: string | undefined = unitId || undefined;
-    if (objectiveId) {
-      const objective = await visibleObjective(objectiveId, authUser.id);
-      if (!objective) return notFound("Objective not found");
-      if (unitId && objective.unit_id !== unitId) {
-        return badRequest("objectiveId does not belong to unitId");
-      }
-      attemptUnitId = objective.unit_id;
-      await requireAcknowledgementForObjective(objectiveId, authUser.id);
-    } else if (unitId) {
-      const unit = await visibleUnit(unitId, authUser.id);
-      if (!unit) return notFound("Unit not found");
-      await requireAcknowledgementForUnit(unitId, authUser.id);
-    }
+    // REQ-091: ids in the body are untrusted; the objective must be in a track
+    // the caller can see, and a unitId sent alongside must be its own unit.
+    const objective = await visibleObjective(objectiveId, authUser.id);
+    if (!objective) return notFound("Objective not found");
+    if (unitId && objective.unit_id !== unitId) return badRequest("objectiveId does not belong to unitId");
+    await requireAcknowledgementForObjective(objectiveId, authUser.id);
 
-    // REQ-089: an id the app already submitted is a retry (dropped
-    // connection, double tap, resumed lesson) -- hand back the stored result
-    // rather than grading again, recording a second attempt and moving
-    // mastery twice. Checked before the rate limit and the Anthropic call.
+    const found = await lessonCheckFor(authUser.id, objectiveId, stage);
+    if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
+    if (found.status !== "ok") {
+      return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
+    }
+    const check = found.check;
+    const order = presentationOrder(presentationSeed(authUser.id, objectiveId, stage, check.question), check.choices.length);
+    const reveal = {
+      correctIndex: shownIndexOf(order, check.correctIndex),
+      correctAnswer: check.choices[check.correctIndex] ?? null,
+      why: check.why || null,
+    };
+
+    // REQ-089: an id the app already submitted is a retry -- hand back the
+    // stored result rather than grading again. Checked before the rate limit
+    // and the model call. The key is added back only if the stored attempt was
+    // for the question this lesson still has (a regenerate changes it).
     const clientAttemptId = validClientAttemptId(body.clientAttemptId);
     if (clientAttemptId) {
       const prior = await findClientAttempt(authUser.id, clientAttemptId);
-      if (prior) return ok(prior);
+      if (prior) return ok(withReveal(prior, check, reveal));
     }
-    // Two requests with the same id can still race past that check; the
-    // unique index makes the slower one fail, and it returns the winner's.
     const record = (input: Parameters<typeof recordAttemptIdempotent>[0]) =>
       recordAttemptIdempotent({ ...input, clientAttemptId });
+    const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence };
 
     if (format === "mc") {
-      const { chosenIndex, chosenText, why } = body;
-      if (!Number.isInteger(chosenIndex)) {
-        return badRequest("chosenIndex is required for format 'mc'");
+      const stored = storedIndexAt(order, body.chosenIndex);
+      if (stored === null) return badRequest(`chosenIndex must be 0-${check.choices.length - 1}`);
+      // FAIL-039: Solo choices are only ever shown by the hint route, which
+      // records the reveal. A Solo multiple-choice answer without one came
+      // from an app build older than REQ-097 (its saved position can still
+      // hold a pick from the old, unshuffled order), so its index can't be
+      // trusted. Refuse it plainly; old builds show `error` in a banner.
+      if (stage === "solo" && !(await hasHintReveal(authUser.id, objectiveId, stage, check.question))) {
+        return badRequest(
+          "Answer this check in your own words, or use \"Show choices\" first. If no choices appear, please update the app."
+        );
       }
-      // The client's correctIndex is not trusted: anyone with a token could
-      // send correctIndex = chosenIndex and be graded correct every time.
-      // For a lesson check the answer key is the cached lesson_content row.
-      let correctIndex: unknown = body.correctIndex;
-      if (objectiveId) {
-        const cached = await cachedCorrectIndex(authUser.id, objectiveId, stage);
-        if (cached.hasLesson) {
-          if (!cached.validStage) {
-            return badRequest("stage must be 'fade' or 'solo' for a multiple-choice check on a lesson");
-          }
-          if (cached.index === null) {
-            return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
-          }
-          correctIndex = cached.index;
-        }
-        // else: no lesson is cached for this objective, so there is no
-        // server-side answer key. Fall back to the client's value rather
-        // than refusing to grade; this is the only path that trusts it.
-      }
-      if (!Number.isInteger(correctIndex)) {
-        return badRequest("correctIndex is required for format 'mc' when no lesson is cached");
-      }
-      const correct = chosenIndex === correctIndex;
+      const correct = stored === check.correctIndex;
       const verdict = correct ? "correct" : "incorrect";
-      const feedback = `${correct ? "That's right." : "Not quite."} ${why ?? ""}`.trim();
+      const feedback = `${correct ? "That's right." : "Not quite."} ${check.why}`.trim();
       const { attempt, prior } = await record({
-        userId: authUser.id,
-        unitId: attemptUnitId,
-        objectiveId,
-        kind,
-        stage,
+        ...common,
         format: "mc",
-        question,
-        answer: chosenText ?? String(chosenIndex),
+        question: check.question,
+        answer: check.choices[stored],
         verdict,
         feedback,
         classification: "none",
-        confidence,
       });
-      if (prior) return ok(prior);
-      return ok({ verdict, feedback, classification: "none", missedParts: [], attempt });
+      if (prior) return ok(withReveal(prior, check, reveal));
+      return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt });
     }
 
-    if (format === "open") {
-      const { answer, taughtText } = body;
-      if (!answer || !taughtText) {
-        return badRequest("answer and taughtText are required for format 'open'");
-      }
-      try {
-        await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
-      } catch (err) {
-        if (err instanceof RateLimitError) return tooManyRequests(err.message);
-        throw err;
-      }
-      await recordAuthEvent("grade_open", authUser.id);
-      // REQ-076: grade in the voice of the learner's actual track/exam.
-      const ctx = objectiveId
-        ? await coachContextForObjective(objectiveId)
-        : unitId
-          ? await coachContextForUnit(unitId)
-          : null;
-      const graded = await gradeFreeResponse({
-        taughtText,
-        question,
-        answer,
-        ctx: ctx ?? undefined,
-        userId: authUser.id,
-      });
-      const { attempt, prior } = await record({
-        userId: authUser.id,
-        unitId: attemptUnitId,
-        objectiveId,
-        kind,
-        stage,
-        format: "open",
-        question,
-        answer,
-        verdict: graded.verdict,
-        feedback: graded.feedback,
-        classification: graded.classification,
-        missedParts: graded.missedParts ?? [],
-        confidence,
-      });
-      if (prior) return ok(prior);
-      return ok({ ...graded, attempt });
+    const answer = body.answer;
+    if (typeof answer !== "string" || !answer.trim()) return badRequest("answer is required for format 'open'");
+    if (answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+    try {
+      await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
+    } catch (err) {
+      if (err instanceof RateLimitError) return tooManyRequests(err.message);
+      throw err;
     }
-
-    return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
+    await recordAuthEvent("grade_open", authUser.id);
+    // REQ-076: grade in the voice of the learner's actual track/exam.
+    const ctx = await coachContextForObjective(objectiveId);
+    const graded = await gradeFreeResponse({
+      taughtText: check.teach,
+      question: check.question,
+      answerKey: answerKeyText(check),
+      answer,
+      ctx: ctx ?? undefined,
+      userId: authUser.id,
+    });
+    const { attempt, prior } = await record({
+      ...common,
+      format: "open",
+      question: check.question,
+      answer,
+      verdict: graded.verdict,
+      feedback: graded.feedback,
+      classification: graded.classification,
+      missedParts: graded.missedParts ?? [],
+    });
+    if (prior) return ok(withReveal(prior, check, reveal));
+    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
+}
+
+function answerKeyText(check: LessonCheck): string {
+  const right = check.choices[check.correctIndex];
+  return check.why ? `${right}\nWhy: ${check.why}` : right;
+}
+
+function assistOf(attempt: Record<string, unknown> | null) {
+  return {
+    assisted: attempt?.assisted === true,
+    assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
+  };
+}
+
+function withReveal<T extends { attempt: Record<string, unknown> }>(
+  prior: T,
+  check: LessonCheck,
+  reveal: { correctIndex: number; correctAnswer: string | null; why: string | null }
+) {
+  return prior.attempt.question === check.question && prior.attempt.stage === check.stage ? { ...prior, ...reveal } : prior;
 }
