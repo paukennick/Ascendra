@@ -51,8 +51,14 @@ export interface LessonSnapshot {
   savedAt: number;
 }
 
-export function emptyCheck(): CheckState {
-  return { mode: "mc", picked: null, openAnswer: "", clientAttemptId: null, sentSignature: null, result: null };
+// REQ-095: Solo is unassisted -- it starts in free response, and the choices
+// are an explicit opt-in hint (mode "mc"). Guided keeps multiple choice first.
+export function defaultMode(kind: CheckKind): CheckState["mode"] {
+  return kind === "solo" ? "open" : "mc";
+}
+
+export function emptyCheck(kind: CheckKind = "fade"): CheckState {
+  return { mode: defaultMode(kind), picked: null, openAnswer: "", clientAttemptId: null, sentSignature: null, result: null };
 }
 
 // A snapshot older than this is treated as stale: after a week away the
@@ -101,7 +107,7 @@ export function parseSnapshot(raw: unknown, currentLessonKey: string, now: numbe
   const checksIn = (o.checks && typeof o.checks === "object" ? o.checks : {}) as Record<string, unknown>;
   const checks: LessonSnapshot["checks"] = {};
   for (const k of ["fade", "solo"] as const) {
-    const c = parseCheck(checksIn[k]);
+    const c = parseCheck(checksIn[k], k);
     if (c) checks[k] = c;
   }
   return {
@@ -116,14 +122,23 @@ export function parseSnapshot(raw: unknown, currentLessonKey: string, now: numbe
   };
 }
 
-function parseCheck(v: unknown): CheckState | null {
+function parseCheck(v: unknown, kind: CheckKind): CheckState | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
   const r = o.result as Record<string, unknown> | null | undefined;
+  const picked = Number.isInteger(o.picked) && (o.picked as number) >= 0 ? (o.picked as number) : null;
+  const openAnswer = typeof o.openAnswer === "string" ? o.openAnswer : "";
+  const hasResult = !!r && typeof r === "object" && typeof r.verdict === "string";
+  // A Solo check saved before free response became its default, with nothing
+  // answered yet, is just the old default: put it on the new one. Anything
+  // answered or graded keeps the mode it was answered in.
+  const untouched = !hasResult && picked === null && openAnswer === "";
+  const mode: CheckState["mode"] =
+    kind === "solo" && untouched ? "open" : o.mode === "open" ? "open" : o.mode === "mc" ? "mc" : defaultMode(kind);
   return {
-    mode: o.mode === "open" ? "open" : "mc",
-    picked: Number.isInteger(o.picked) && (o.picked as number) >= 0 ? (o.picked as number) : null,
-    openAnswer: typeof o.openAnswer === "string" ? o.openAnswer : "",
+    mode,
+    picked,
+    openAnswer,
     clientAttemptId: typeof o.clientAttemptId === "string" ? o.clientAttemptId : null,
     sentSignature: typeof o.sentSignature === "string" ? o.sentSignature : null,
     result:
