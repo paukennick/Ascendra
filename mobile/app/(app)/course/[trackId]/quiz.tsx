@@ -4,7 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
 import type { QuizTurn } from "@/types/plan";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
