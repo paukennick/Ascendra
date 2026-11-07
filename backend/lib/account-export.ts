@@ -24,6 +24,8 @@ export const EXPORT_SECTIONS = {
   examSessions: "select * from exam_sessions where user_id = $1 order by created_at asc",
   examSessionItems:
     "select si.* from exam_session_items si join exam_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, si.position asc",
+  // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
+  lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

@@ -903,6 +903,55 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-039",
+      "date": "2026-11-07",
+      "title": "App builds from before REQ-097 crash on the Solo hint",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "rowToLesson stopped sending soloChoices; the old lesson screen does lesson.soloChoices!.map(...) when the learner opens Show choices, so old builds crashed. An old build's saved Solo pick (old unshuffled order) was also graded against the new shuffle.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The payload change was checked only against the new app; nobody read the old screen to see which fields it dereferences without a guard, and the grade route accepted a Solo choice index without the hint the new flow always records first.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Lesson payload sends soloChoices: [] (old builds fall back to free response). /api/grade refuses a Solo multiple-choice answer with no recorded hint reveal with a 400 whose error text old builds show in their error banner; nothing is recorded.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::9. App builds from before REQ-097 degrade instead of crashing (FAIL-039)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Before removing or reshaping a response field, read the previous released screen (git show <last release>:mobile/...) for unguarded dereferences of it, and keep the field with a safe empty value.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-060",
+      "date": "2026-11-07",
+      "title": "MFA leave guard blocked sign-out and lock",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
+      "how_detected": "Audit 2 mobile-flows review",
+      "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
+      "requirement": "REQ-093",
+      "affected": [
+        "mobile/src/lib/mfaLeaveGuard.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Guard takes the auth status and never blocks when not signed in.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mfaLeaveGuard.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-076",
       "date": "2026-11-07",
       "title": "029 recompute test committed the old mastery rule into the shared test database",
@@ -1050,52 +1099,235 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-039",
+      "id": "FAIL-082",
       "date": "2026-11-07",
-      "title": "App builds from before REQ-097 crash on the Solo hint",
+      "title": "Weighted mastery (031) trusted a stored assisted = false",
       "status": "fixed",
       "severity": "high",
-      "symptom": "rowToLesson stopped sending soloChoices; the old lesson screen does lesson.soloChoices!.map(...) when the learner opens Show choices, so old builds crashed. An old build's saved Solo pick (old unshuffled order) was also graded against the new shuffle.",
-      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
-      "root_cause": "The payload change was checked only against the new app; nobody read the old screen to see which fields it dereferences without a guard, and the grade route accepted a Solo choice index without the hint the new flow always records first.",
-      "requirement": "REQ-097",
+      "symptom": "On the merged branch, attempts written with assisted = false by pre-029 code (repeats of the same item, hints revealed before the answer, Solo multiple choice) earned full credit and counted as format evidence under 031; integrity tests 'a repeat stored with assisted = false is still a repeat' and 'a hint recorded before the answer counts' failed once 031 replaced the 029 rule.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "031 was written against the first version of 029, whose rule read attempts.assisted. PR #22's review moved 029 to deriving repeats and hint reveals from history (FAIL-110); 031 replaced mastery_from_attempts wholesale and so dropped that guarantee.",
+      "requirement": "REQ-100",
       "affected": [
-        "backend/lib/lesson-generation.ts",
-        "backend/app/api/grade/route.ts",
-        "backend/lib/grading-service.ts"
+        "backend/supabase/migrations/031_weighted_mastery.sql"
       ],
-      "fix_summary": "Lesson payload sends soloChoices: [] (old builds fall back to free response). /api/grade refuses a Solo multiple-choice answer with no recorded hint reveal with a 400 whose error text old builds show in their error banner; nothing is recorded.",
+      "fix_summary": "mastery_detail derives each direct answer's assist from history with the same precedence as assistReasonFor(): stored flag, Solo multiple choice (hint), lesson_hint_reveals at or before the answer (hint), an earlier answer to the same stage and question (repeat). Unit PBQs keep their stored flag.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-integrity.dbtest.ts::9. App builds from before REQ-097 degrade instead of crashing (FAIL-039)"
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::a repeat or a Solo multiple choice written with assisted = false scores as if flagged (FAIL-082)",
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::a hint revealed before the answer counts even when the attempt says unassisted; one revealed after does not (FAIL-082)",
+        "backend/lib/mastery-integrity.dbtest.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Before removing or reshaping a response field, read the previous released screen (git show <last release>:mobile/...) for unguarded dereferences of it, and keep the field with a safe empty value.",
+      "prevention_notes": "A rule that replaces mastery_from_attempts must re-run the 029 guarantee tests (mastery-integrity.dbtest.ts section 10) against itself; the merge surfaced this because those tests run against whatever rule is installed.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-060",
+      "id": "FAIL-083",
       "date": "2026-11-07",
-      "title": "MFA leave guard blocked sign-out and lock",
+      "title": "Weighted mastery (031) returned no row for no evidence, so self-set levels survived",
       "status": "fixed",
       "severity": "high",
-      "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
-      "how_detected": "Audit 2 mobile-flows review",
-      "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
-      "requirement": "REQ-093",
+      "symptom": "mastery_from_attempts returned nothing for a pair with no direct evidence; recompute_mastery()'s lateral join then skipped existing rows (old self-set overrides, PBQ-only levels), which kept their levels. The 029 schema probe ('current version', expects Not started) failed on a fully migrated database.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "mastery_detail filters out pairs with no direct evidence (correct for readiness), and 031's mastery_from_attempts passed that through instead of returning Not started as 029's revised rule does (FAIL-111).",
+      "requirement": "REQ-100",
       "affected": [
-        "mobile/src/lib/mfaLeaveGuard.ts",
-        "mobile/app/(app)/settings/mfa.tsx"
+        "backend/supabase/migrations/031_weighted_mastery.sql",
+        "backend/lib/grading-service.ts"
       ],
-      "fix_summary": "Guard takes the auth status and never blocks when not signed in.",
+      "fix_summary": "mastery_from_attempts left-joins mastery_detail and returns Not started, score 0, when it returns nothing; mastery_detail still returns no row so readiness treats the objective as unpracticed. The PBQ grade path only writes Not started to objectives that already have a row, so a PBQ never creates rows for unstudied objectives.",
       "fix_commits": [],
       "regression_tests": [
-        "mobile/src/lib/mfaLeaveGuard.test.ts"
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::no direct evidence is Not started; mastery_detail still returns nothing (FAIL-083)",
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
+        "the restore leaves later progress alone",
+        "backups go with the account (FAIL-083",
+        "085",
+        "086)"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
+      "prevention_notes": "Same as FAIL-082: the 029 guarantee tests run against the installed rule.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-084",
+      "date": "2026-11-07",
+      "title": "031 held ACCESS EXCLUSIVE on attempts through the backup and recompute",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the 1.9M-attempt / 320k-mastery review fixture, the first version of 031 ran 88.8 s in one transaction after ALTER TABLE attempts; 155 of 183 probe reads of attempts and 155 of 183 attempts inserts hit a 10 s statement timeout.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "Schema change (attempts.assessment_type with an inline foreign key) and the backup plus global recompute were in one file; the runner applies a file as one transaction, so the ALTER's lock lasted until the recompute committed. The same defect FAIL-112 fixed for 029.",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/supabase/migrations/031_weighted_mastery.sql",
+        "backend/supabase/migrations/031b_weighted_mastery_backfill.sql"
+      ],
+      "fix_summary": "031 is schema and functions only, with set local lock_timeout = '5s'; the foreign key is added NOT VALID (no scan under the lock). 031b (sorts after 031) takes the backup, runs recompute_mastery(), records created rows and validates the foreign key under SHARE UPDATE EXCLUSIVE. Measured over three runs on the fixture: 031 0.33-0.68 s including runner start-up, 031b 90.8-92.9 s; probe reads of attempts, mastery and error_log and attempts inserts every 0.5 s answered within 0.33 s with no failures (before: 88.8 s, 155 of 183 reads and inserts timed out at 10 s).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031 is schema only",
+        "under a lock timeout; the assessment_type key is added NOT VALID and 031b validates it (FAIL-084)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "FAIL-112's prevention note applies: migrations that ALTER a large table keep data work in a separate b file; measure against the production-sized fixture with a concurrent read probe.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-085",
+      "date": "2026-11-07",
+      "title": "031's restore rewound progress made after the backup",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The documented 031 restore put every backed-up row back, including rows a learner had since earned by grading, and left rows the recompute created.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "031 copied 029's first restore, which FAIL-114 later fixed for 029.",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/supabase/migrations/031b_weighted_mastery_backfill.sql"
+      ],
+      "fix_summary": "mastery_backup_031 has created_by_031; the restore in the 031b header updates only rows with updated_at <= backed_up_at and deletes created rows untouched since. On the fixture the restore returned all 320,003 rows to their pre-031 values exactly (in a rolled-back transaction).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
+        "the restore leaves later progress alone",
+        "backups go with the account (FAIL-083",
+        "085",
+        "086)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Restore SQL is executed by the test straight from the migration header.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-086",
+      "date": "2026-11-07",
+      "title": "mastery_backup_031 kept a deleted account's mastery history",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mastery_backup_031.user_id had no reference to app_users, so DELETE /api/account left the learner's backed-up mastery behind.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "Same omission FAIL-115 fixed for the 029 backups; 031 predated that fix.",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/supabase/migrations/031_weighted_mastery.sql"
+      ],
+      "fix_summary": "mastery_backup_031.user_id references app_users(id) on delete cascade (created in 031, before any rows exist).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
+        "the restore leaves later progress alone",
+        "backups go with the account (FAIL-083",
+        "085",
+        "086)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any new per-user backup table needs ON DELETE CASCADE to app_users.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-087",
+      "date": "2026-11-07",
+      "title": "Merged 029 test could not tell 'after the backup' from 'during it'",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Resolving mastery-recompute.dbtest.ts by running PR #22's new restore test inside REQ-100's single rolled-back transaction (FAIL-076) would make every write carry the backup's own timestamp: now() never moves inside one transaction, so the restore's updated_at <= backed_up_at test reverted rows changed 'after' the backup.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "The two branches fixed the file in incompatible ways: one isolated it in one transaction (FAIL-076), the other added a test that depends on transaction boundaries (FAIL-114).",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/lib/mastery-recompute.dbtest.ts"
+      ],
+      "fix_summary": "Kept the single rolled-back transaction; migrate() runs 029 and 029b in it and then moves the learner's mastery and backup timestamps back a minute, modelling the migration's commit. The 031b test does the same.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts",
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
+        "the restore leaves later progress alone",
+        "backups go with the account (FAIL-083",
+        "085",
+        "086)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests that run a migration inside a rolled-back transaction must not rely on now() differing between statements.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-088",
+      "date": "2026-11-07",
+      "title": "Lesson-regen lease test raced the regenerate it was checking",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "test:db failed 1 of 12 full runs (fresh database, seeded twice, --test-concurrency=1): lesson-regen.dbtest.ts 'a GET waits for the learner's own regenerate running elsewhere, then serves it' -- isClaimLive(...) was false right after the intro resolved. 0 of 40 runs of the file alone; a 50 ms pause before the check failed it 3 of 3.",
+      "how_detected": "repeated full DB suite runs (b4-align, FAIL-081 investigation)",
+      "root_cause": "The test's fake generator had no practice delay, so once the 100 ms intro resolved the regenerate could write the lesson and release its lease before the test's isClaimLive query ran; the test assumed 'practice still running' without making it so. Which query won depended on scheduling, so it failed only under load.",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/lib/lesson-regen.dbtest.ts"
+      ],
+      "fix_summary": "The fake generator's practice now takes 500 ms, so the lease is held when the test checks it; with a 150 ms pause injected before the check the file passed 3 of 3, and 12 more full runs are recorded in FAIL-081.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-regen.dbtest.ts::cross-instance generation claims::a GET waits for the learner's own regenerate running elsewhere",
+        "then serves it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A test that asserts an in-flight state must hold that state open itself (a fake that waits), never rely on the code under test being slower than the assertion; check flaky candidates by injecting a delay before the assertion.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-089",
+      "date": "2026-11-07",
+      "title": "Schema probe could not tell the first 031 from the current one",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With the first version of 031 installed, migrate --status reported only the 029 probe and advised re-applying 029, which would install the old rule over 031.",
+      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
+      "root_cause": "The 031 probe only checked that mastery_from_attempts calls mastery_detail; the 029 'current version' probe judged the function even when 031 owns it.",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "New 031 probe: mastery_from_attempts returns Not started for no evidence and mastery_detail reads lesson_hint_reveals. The 029 probe passes once the 031 rule is installed, leaving the verdict to the 031 probes. Checked against the real first-version 031: status lists only 031.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::the schema probe tells the first version of 031 from the current one",
+        "and asks for 031 only (FAIL-089)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A probe for a function names its current version, and an older migration's probe defers once a later one replaces the function.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-090",
+      "date": "2026-11-07",
+      "title": "Weighted mastery counted every attempt kind as evidence",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mastery_detail took every graded non-PBQ attempt on an objective (quiz, unitcheck, lab as well as lesson) as direct evidence and any earlier miss of any kind as a review retest, so an attempt kind nobody had weighted could set or lower a level.",
+      "how_detected": "second review of PR #22, applied to 031 at the lead's request",
+      "root_cause": "The evidence filter keyed on format (<> 'pbq') rather than kind; the second review of PR #22 found the same gap in 029 (lead, 2026-11-07).",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/supabase/migrations/031_weighted_mastery.sql"
+      ],
+      "fix_summary": "Direct evidence is kind = 'lesson' or an attempt that names an assessment_types row; unit evidence is kind = 'pbq'; review retests look at the same kinds.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::only lesson answers and PBQs are evidence; another kind counts only when its assessment type is named"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "New attempt kinds reach mastery only through an explicit assessment_types row.",
       "recurrence_of": ""
     },
     {
@@ -1436,235 +1668,271 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-082",
+      "id": "FAIL-118",
       "date": "2026-11-07",
-      "title": "Weighted mastery (031) trusted a stored assisted = false",
+      "title": "recompute_mastery() overwrote grades committed during the run",
       "status": "fixed",
       "severity": "high",
-      "symptom": "On the merged branch, attempts written with assisted = false by pre-029 code (repeats of the same item, hints revealed before the answer, Solo multiple choice) earned full credit and counted as format evidence under 031; integrity tests 'a repeat stored with assisted = false is still a repeat' and 'a hint recorded before the answer counts' failed once 031 replaced the 029 rule.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "031 was written against the first version of 029, whose rule read attempts.assisted. PR #22's review moved 029 to deriving repeats and hint reveals from history (FAIL-110); 031 replaced mastery_from_attempts wholesale and so dropped that guarantee.",
-      "requirement": "REQ-100",
+      "symptom": "In the review's race test 245 of 290 grades committed while recompute_mastery() ran were overwritten with the level from before the grade (local re-run: 312/312 lock-less, 297/297 with the grader's lock).",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The recompute was one INSERT ... SELECT: every pair was computed from the snapshot taken when the statement started, and the upsert took no per-pair grading lock, so a grade committed after the snapshot was replaced with a level computed without it.",
+      "requirement": "REQ-097",
       "affected": [
-        "backend/supabase/migrations/031_weighted_mastery.sql"
-      ],
-      "fix_summary": "mastery_detail derives each direct answer's assist from history with the same precedence as assistReasonFor(): stored flag, Solo multiple choice (hint), lesson_hint_reveals at or before the answer (hint), an earlier answer to the same stage and question (repeat). Unit PBQs keep their stored flag.",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::a repeat or a Solo multiple choice written with assisted = false scores as if flagged (FAIL-082)",
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::a hint revealed before the answer counts even when the attempt says unassisted; one revealed after does not (FAIL-082)",
-        "backend/lib/mastery-integrity.dbtest.ts"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "A rule that replaces mastery_from_attempts must re-run the 029 guarantee tests (mastery-integrity.dbtest.ts section 10) against itself; the merge surfaced this because those tests run against whatever rule is installed.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-083",
-      "date": "2026-11-07",
-      "title": "Weighted mastery (031) returned no row for no evidence, so self-set levels survived",
-      "status": "fixed",
-      "severity": "high",
-      "symptom": "mastery_from_attempts returned nothing for a pair with no direct evidence; recompute_mastery()'s lateral join then skipped existing rows (old self-set overrides, PBQ-only levels), which kept their levels. The 029 schema probe ('current version', expects Not started) failed on a fully migrated database.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "mastery_detail filters out pairs with no direct evidence (correct for readiness), and 031's mastery_from_attempts passed that through instead of returning Not started as 029's revised rule does (FAIL-111).",
-      "requirement": "REQ-100",
-      "affected": [
-        "backend/supabase/migrations/031_weighted_mastery.sql",
+        "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/lib/grading-service.ts"
       ],
-      "fix_summary": "mastery_from_attempts left-joins mastery_detail and returns Not started, score 0, when it returns nothing; mastery_detail still returns no row so readiness treats the objective as unpracticed. The PBQ grade path only writes Not started to objectives that already have a row, so a PBQ never creates rows for unstudied objectives.",
+      "fix_summary": "recompute_mastery_pair() decides each pair under the grader's advisory lock (grade_lock_key(), same derivation as gradeLockName() with lowercase ids), in a statement started after the lock; recompute_mastery() loops it in one transaction (029b, tests) and the new procedure recompute_mastery_batched() commits every 500 pairs. Race re-run: 0 stale of 385-400 grades in every variant.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::no direct evidence is Not started; mastery_detail still returns nothing (FAIL-083)",
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
-        "the restore leaves later progress alone",
-        "backups go with the account (FAIL-083",
-        "085",
-        "086)"
+        "backend/lib/mastery-recompute-race.dbtest.ts::a grade committed while recompute_mastery() runs keeps its level",
+        "backend/lib/mastery-recompute-race.dbtest.ts::a grade committed while call recompute_mastery_batched() runs keeps its level",
+        "backend/lib/mastery-recompute-race.dbtest.ts::the lock key matches the grader's",
+        "including upper-case ids"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Same as FAIL-082: the 029 guarantee tests run against the installed rule.",
+      "prevention_notes": "Any bulk writer of a table the grader writes takes the grader's per-pair lock and reads after acquiring it; covered by a two-connection DB test.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-084",
+      "id": "FAIL-119",
       "date": "2026-11-07",
-      "title": "031 held ACCESS EXCLUSIVE on attempts through the backup and recompute",
+      "title": "Skipping 029b passed every schema check",
       "status": "fixed",
       "severity": "high",
-      "symptom": "On the 1.9M-attempt / 320k-mastery review fixture, the first version of 031 ran 88.8 s in one transaction after ALTER TABLE attempts; 155 of 183 probe reads of attempts and 155 of 183 attempts inserts hit a 10 s statement timeout.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "Schema change (attempts.assessment_type with an inline foreign key) and the backup plus global recompute were in one file; the runner applies a file as one transaction, so the ALTER's lock lasted until the recompute committed. The same defect FAIL-112 fixed for 029.",
-      "requirement": "REQ-100",
+      "symptom": "A database with 029 applied and 029b skipped reported current in npm run migrate -- --status and /api/health, with every learner still on the old levels.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "Schema probes only checked objects 029 creates; 029b is data work and nothing probed for it, and nothing compared stored levels with the rule.",
+      "requirement": "REQ-097",
       "affected": [
-        "backend/supabase/migrations/031_weighted_mastery.sql",
-        "backend/supabase/migrations/031b_weighted_mastery_backfill.sql"
+        "backend/lib/schema-status.ts",
+        "backend/supabase/apply-migration.ts"
       ],
-      "fix_summary": "031 is schema and functions only, with set local lock_timeout = '5s'; the foreign key is added NOT VALID (no scan under the lock). 031b (sorts after 031) takes the backup, runs recompute_mastery(), records created rows and validates the foreign key under SHARE UPDATE EXCLUSIVE. Measured over three runs on the fixture: 031 0.33-0.68 s including runner start-up, 031b 90.8-92.9 s; probe reads of attempts, mastery and error_log and attempts inserts every 0.5 s answered within 0.33 s with no failures (before: 88.8 s, 155 of 183 reads and inserts timed out at 10 s).",
+      "fix_summary": "Probe on mastery_backup_029 tagged 029b_mastery_backfill.sql (status, migrationsToApply, /api/health); --status also prints how many stored levels differ from mastery_from_attempts() and how many graded pairs have no row (informational). mastery_from_attempts probe now checks the kind = 'lesson' version; new probe for recompute_mastery_batched/grade_lock_key.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031 is schema only",
-        "under a lock timeout; the assessment_type key is added NOT VALID and 031b validates it (FAIL-084)"
+        "backend/lib/mastery-recompute-race.dbtest.ts::a database without 029b's backup table is reported as missing 029b",
+        "backend/lib/mastery-recompute-race.dbtest.ts::--status counts stored levels that differ from the rule"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "FAIL-112's prevention note applies: migrations that ALTER a large table keep data work in a separate b file; measure against the production-sized fixture with a concurrent read probe.",
+      "prevention_notes": "A data-only migration gets a probe on an object it creates, and the pre-completion checklist already requires a probe per migration the code depends on.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-085",
+      "id": "FAIL-180",
       "date": "2026-11-07",
-      "title": "031's restore rewound progress made after the backup",
+      "title": "Recompute row-locked and rewrote every mastery row",
       "status": "fixed",
       "severity": "medium",
-      "symptom": "The documented 031 restore put every backed-up row back, including rows a learner had since earned by grading, and left rows the recompute created.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "031 copied 029's first restore, which FAIL-114 later fixed for 029.",
-      "requirement": "REQ-100",
+      "symptom": "Every recompute_mastery() call row-locked every existing mastery row, even rows already equal to the rule, so a re-run blocked grades for its whole duration.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "INSERT ... ON CONFLICT DO UPDATE ... WHERE locks the conflicting row even when the WHERE skips the update.",
+      "requirement": "REQ-097",
       "affected": [
-        "backend/supabase/migrations/031b_weighted_mastery_backfill.sql"
+        "backend/supabase/migrations/029_mastery_recompute.sql"
       ],
-      "fix_summary": "mastery_backup_031 has created_by_031; the restore in the 031b header updates only rows with updated_at <= backed_up_at and deletes created rows untouched since. On the fixture the restore returned all 320,003 rows to their pre-031 values exactly (in a rolled-back transaction).",
+      "fix_summary": "recompute_mastery_pair() compares the stored row with the rule first, without any lock, and returns when equal; only differing pairs take the lock and are written. No-op re-run on the fixture: 12 s, 0 rows locked.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
-        "the restore leaves later progress alone",
-        "backups go with the account (FAIL-083",
-        "085",
-        "086)"
+        "backend/lib/mastery-recompute-race.dbtest.ts::a recompute with nothing to change finishes while every row is locked elsewhere"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Restore SQL is executed by the test straight from the migration header.",
+      "prevention_notes": "Bulk upserts check for a difference before writing; ON CONFLICT ... WHERE is not a no-lock skip.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-086",
+      "id": "FAIL-181",
       "date": "2026-11-07",
-      "title": "mastery_backup_031 kept a deleted account's mastery history",
+      "title": "029b header understated the mastery row locks",
       "status": "fixed",
       "severity": "medium",
-      "symptom": "mastery_backup_031.user_id had no reference to app_users, so DELETE /api/account left the learner's backed-up mastery behind.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "Same omission FAIL-115 fixed for the 029 backups; 031 predated that fix.",
-      "requirement": "REQ-100",
+      "symptom": "The 029b header said it locked only the mastery rows the recompute changed; on the review's fixture it locked every mastery row, and its timing omitted that a grade of a locked row waits until commit.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The lock description was written from the intended behaviour (WHERE skips unchanged rows), not measured; ON CONFLICT DO UPDATE locks skipped rows too.",
+      "requirement": "REQ-097",
       "affected": [
-        "backend/supabase/migrations/031_weighted_mastery.sql"
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "docs/deploy-runbook-mastery.md"
       ],
-      "fix_summary": "mastery_backup_031.user_id references app_users(id) on delete cascade (created in 031, before any rows exist).",
+      "fix_summary": "With FAIL-180, unchanged rows are not locked; header and runbook now state that a first run still changes (and locks) nearly every row, re-measured 58 s on the 1.9M-attempt fixture with reads <=21 ms, inserts <=135 ms, and mastery writes to changed rows waiting for the commit; recommend a quiet window.",
       "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
-        "the restore leaves later progress alone",
-        "backups go with the account (FAIL-083",
-        "085",
-        "086)"
-      ],
-      "no_test_reason": "",
+      "regression_tests": [],
+      "no_test_reason": "Documentation of measured lock behaviour; the skip itself is tested by FAIL-180's test and the timing needs the 1.9M-row fixture (scratchpad probe.cjs), too large for test:db.",
       "prevention_rules": [],
-      "prevention_notes": "Any new per-user backup table needs ON DELETE CASCADE to app_users.",
+      "prevention_notes": "Lock and timing claims in a migration header come from a run with a concurrent probe on a production-sized fixture.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-087",
+      "id": "FAIL-182",
       "date": "2026-11-07",
-      "title": "Merged 029 test could not tell 'after the backup' from 'during it'",
-      "status": "fixed",
-      "severity": "low",
-      "symptom": "Resolving mastery-recompute.dbtest.ts by running PR #22's new restore test inside REQ-100's single rolled-back transaction (FAIL-076) would make every write carry the backup's own timestamp: now() never moves inside one transaction, so the restore's updated_at <= backed_up_at test reverted rows changed 'after' the backup.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "The two branches fixed the file in incompatible ways: one isolated it in one transaction (FAIL-076), the other added a test that depends on transaction boundaries (FAIL-114).",
-      "requirement": "REQ-100",
-      "affected": [
-        "backend/lib/mastery-recompute.dbtest.ts"
-      ],
-      "fix_summary": "Kept the single rolled-back transaction; migrate() runs 029 and 029b in it and then moves the learner's mastery and backup timestamps back a minute, modelling the migration's commit. The 031b test does the same.",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/mastery-recompute.dbtest.ts",
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::031b: self-set and PBQ-only levels reset",
-        "the restore leaves later progress alone",
-        "backups go with the account (FAIL-083",
-        "085",
-        "086)"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "Tests that run a migration inside a rolled-back transaction must not rely on now() differing between statements.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-089",
-      "date": "2026-11-07",
-      "title": "Schema probe could not tell the first 031 from the current one",
+      "title": "Deploy gap: attempts of any kind counted as mastery evidence",
       "status": "fixed",
       "severity": "medium",
-      "symptom": "With the first version of 031 installed, migrate --status reported only the 029 probe and advised re-applying 029, which would install the old rule over 031.",
-      "how_detected": "merge of feat/mastery-integrity into feat/mastery-model (b4-align)",
-      "root_cause": "The 031 probe only checked that mastery_from_attempts calls mastery_detail; the 029 'current version' probe judged the function even when 031 owns it.",
-      "requirement": "REQ-100",
+      "symptom": "The review's gap.sql: a forged kind=quiz Solo success two days old plus one lesson Solo success written by the old code in the gap made Transfer-ready after the recompute.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "mastery_from_attempts() filtered only format <> 'pbq'; the old grade route accepted kind from the app, so any kind of row with stage solo counted.",
+      "requirement": "REQ-097",
       "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/lib/schema-status.ts"
       ],
-      "fix_summary": "New 031 probe: mastery_from_attempts returns Not started for no evidence and mastery_detail reads lesson_hint_reveals. The 029 probe passes once the 031 rule is installed, leaving the verdict to the 031 probes. Checked against the real first-version 031: status lists only 031.",
+      "fix_summary": "Evidence (and the recompute's pair list) requires kind = 'lesson'; the 029 header documents that pre-029 history and gap rows are trusted as-is and that grading should be paused or the gap kept short; the schema probe checks for the new version.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::the schema probe tells the first version of 031 from the current one",
-        "and asks for 031 only (FAIL-089)"
+        "backend/lib/mastery-recompute-race.dbtest.ts::a forged other-kind row does not make Transfer-ready",
+        "backend/lib/mastery-recompute-race.dbtest.ts::an objective with only other-kind attempts has no evidence"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "A probe for a function names its current version, and an older migration's probe defers once a later one replaces the function.",
+      "prevention_notes": "Evidence rules name every column that identifies what an attempt was, not only the ones that excluded known cases.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-088",
+      "id": "FAIL-183",
       "date": "2026-11-07",
-      "title": "Lesson-regen lease test raced the regenerate it was checking",
-      "status": "fixed",
-      "severity": "low",
-      "symptom": "test:db failed 1 of 12 full runs (fresh database, seeded twice, --test-concurrency=1): lesson-regen.dbtest.ts 'a GET waits for the learner's own regenerate running elsewhere, then serves it' -- isClaimLive(...) was false right after the intro resolved. 0 of 40 runs of the file alone; a 50 ms pause before the check failed it 3 of 3.",
-      "how_detected": "repeated full DB suite runs (b4-align, FAIL-081 investigation)",
-      "root_cause": "The test's fake generator had no practice delay, so once the 100 ms intro resolved the regenerate could write the lesson and release its lease before the test's isClaimLive query ran; the test assumed 'practice still running' without making it so. Which query won depended on scheduling, so it failed only under load.",
-      "requirement": "REQ-100",
-      "affected": [
-        "backend/lib/lesson-regen.dbtest.ts"
-      ],
-      "fix_summary": "The fake generator's practice now takes 500 ms, so the lease is held when the test checks it; with a 150 ms pause injected before the check the file passed 3 of 3, and 12 more full runs are recorded in FAIL-081.",
-      "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/lesson-regen.dbtest.ts::cross-instance generation claims::a GET waits for the learner's own regenerate running elsewhere",
-        "then serves it"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "A test that asserts an in-flight state must hold that state open itself (a fake that waits), never rely on the code under test being slower than the assertion; check flaky candidates by injecting a delay before the assertion.",
-      "recurrence_of": ""
-    },
-    {
-      "id": "FAIL-090",
-      "date": "2026-11-07",
-      "title": "Weighted mastery counted every attempt kind as evidence",
+      "title": "No single deploy and rollback order for 029/029b",
       "status": "fixed",
       "severity": "medium",
-      "symptom": "mastery_detail took every graded non-PBQ attempt on an objective (quiz, unitcheck, lab as well as lesson) as direct evidence and any earlier miss of any kind as a review retest, so an attempt kind nobody had weighted could set or lower a level.",
-      "how_detected": "second review of PR #22, applied to 031 at the lead's request",
-      "root_cause": "The evidence filter keyed on format (<> 'pbq') rather than kind; the second review of PR #22 found the same gap in 029 (lead, 2026-11-07).",
-      "requirement": "REQ-100",
+      "symptom": "The deploy order lived in a migration header, missed the app update, the Vercel auto-deploy on merge, the post-deploy recompute and verification, and gave no rollback order.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "Each review round added a step to the 029 header; no runbook owned the full sequence across database, Vercel and EAS.",
+      "requirement": "REQ-097",
       "affected": [
-        "backend/supabase/migrations/031_weighted_mastery.sql"
+        "docs/deploy-runbook-mastery.md",
+        "README.md",
+        "backend/supabase/migrations/029_mastery_recompute.sql"
       ],
-      "fix_summary": "Direct evidence is kind = 'lesson' or an attempt that names an assessment_types row; unit evidence is kind = 'pbq'; review retests look at the same kinds.",
+      "fix_summary": "docs/deploy-runbook-mastery.md: check status, apply 029 then 029b before merging (Vercel deploys master on merge), deploy backend, call recompute_mastery_batched(), publish the OTA update, verify health and status counts; reverse rollback order; cleanup. Linked from the 029 header and the README.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Operational document; its commands are exercised by test:db (migrate, recompute_mastery_batched, restore) and migrate --status.",
+      "prevention_rules": [],
+      "prevention_notes": "A release that spans database, backend and app ships one runbook with forward and rollback order.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-184",
+      "date": "2026-11-07",
+      "title": "No adversarial cases in the grading eval",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "grading-cases.json had no prompt-injection, fence-breaking, restated-question, empty, irrelevant or other-language answers, so the fence fix (FAIL-113) was never checked against the live grader.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The eval set was written for grading accuracy on honest answers only.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/scripts/eval/grading-cases.json",
+        "backend/scripts/eval/scoring.test.ts"
+      ],
+      "fix_summary": "13 adversarial cases (adv-01..adv-13) with expected verdicts; not yet run against the live model (no API key here).",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-model.dbtest.ts::031 keeps 029's guarantees::only lesson answers and PBQs are evidence; another kind counts only when its assessment type is named"
+        "backend/scripts/eval/scoring.test.ts::has at least 10 adversarial cases covering injection",
+        "fence breaks",
+        "restated",
+        "empty",
+        "irrelevant and other-language answers"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "New attempt kinds reach mastery only through an explicit assessment_types row.",
+      "prevention_notes": "Prompt-boundary fixes add eval cases that attack the boundary.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-185",
+      "date": "2026-11-07",
+      "title": "029b restore unsafe statement by statement and rewrote identical rows",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The documented restore re-wrote rows that already held their backed-up values and was only described as a begin/commit block.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The update had no is-distinct-from check, and nothing said whether its statements could be run alone or again.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql"
+      ],
+      "fix_summary": "The update skips rows already equal to the backup; the header states each statement is complete on its own and safe in either order and on a re-run.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::the restore statements run one at a time",
+        "twice",
+        "and skip identical rows"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Documented manual SQL is idempotent per statement and run by a test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-186",
+      "date": "2026-11-07",
+      "title": "Production could run without CHOICE_ORDER_SECRET",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With CHOICE_ORDER_SECRET unset, production silently used a key derived from AUTH_JWT_SECRET.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The dev fallback had no environment guard.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/choice-order.ts",
+        "backend/.env.example"
+      ],
+      "fix_summary": "choiceOrderKey() throws a clear error on first use when NODE_ENV=production and CHOICE_ORDER_SECRET is unset; fallback kept for dev/tests; .env.example and the runbook say it is required.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/choice-order.test.ts::production requires CHOICE_ORDER_SECRET; development keeps the derived fallback"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Secrets with a dev fallback are required in production.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-187",
+      "date": "2026-11-07",
+      "title": "Account export omitted lesson_hint_reveals",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "GET /api/account/export did not include the learner's Solo hint reveals added by migration 029.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The new per-user table was not added to EXPORT_SECTIONS.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "lessonHintReveals section added.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts::includes the learner's Solo hint reveals"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new table with user_id gets an export section in the same change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-188",
+      "date": "2026-11-07",
+      "title": "029 backup tables had no drop date",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mastery_backup_029 and error_log_backup_029 kept learner data indefinitely with no documented cleanup.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The backup was designed for rollback but its lifetime was never stated.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "docs/deploy-runbook-mastery.md",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "029b header and runbook: drop both tables by hand after 30 days, in the same change that removes the 029b probe; not automatic.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A manual, dated cleanup step; dropping the tables in a test would remove the 029b probe target (covered by FAIL-119's test).",
+      "prevention_rules": [],
+      "prevention_notes": "Backup tables state their drop date where they are created.",
       "recurrence_of": ""
     },
     {
