@@ -8,6 +8,13 @@ export const REGENERATE_FAILED = "Couldn't regenerate the lesson. Check your con
 
 export function regenerateErrorMessage(err: unknown): string {
   const status = typeof err === "object" && err !== null ? (err as { status?: unknown }).status : undefined;
+  // REQ-122: a plan limit (the week's new versions, the month's AI coaching,
+  // or not in the plan) says so in the server's own words, which name when
+  // it opens again.
+  const data = typeof err === "object" && err !== null ? (err as { data?: any }).data : undefined;
+  if ((status === 402 || status === 429) && data && (data.upgrade || data.allowance || data.aiPaused) && typeof data.error === "string") {
+    return data.error;
+  }
   if (status === 429) return REGENERATE_RATE_LIMITED;
   return REGENERATE_FAILED;
 }

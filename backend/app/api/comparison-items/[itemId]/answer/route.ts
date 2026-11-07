@@ -9,6 +9,7 @@ import { presentationOrder, presentationSeed, shownIndexOf, storedIndexAt } from
 import { discriminationItem, recordMisconception, visibleConceptSet } from "@/lib/understanding-store";
 import { diagnosisView } from "@/lib/understanding-grading";
 import type { Diagnosis } from "@/lib/understanding";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ itemId:
     const item = isUuid(itemId) ? await discriminationItem(itemId) : null;
     if (!item || !(await visibleConceptSet(item.set_id, user.id))) return notFound("Question not found");
     await requireAcknowledgementForTrack(item.track_id, user.id);
+    await requireFeature(user.id, "comparison"); // REQ-122
     const body = await req.json().catch(() => ({}));
 
     const order = presentationOrder(presentationSeed(user.id, item.set_id, "discriminate", item.scenario), item.options.length);

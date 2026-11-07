@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+import { requireCourseAccessForObjective } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // anything is read, rate-limited or sent to Anthropic.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
+    await requireCourseAccessForObjective(user.id, id); // REQ-122: Free studies one course
 
     try {
       await consumeRateLimit("guess_feedback", user.id, { max: 40, windowMinutes: 10 });

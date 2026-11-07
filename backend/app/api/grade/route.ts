@@ -32,6 +32,7 @@ import { KEY_SUSPECT } from "@/lib/prompts";
 import { flagItem, lessonItemId } from "@/lib/item-quality";
 import { inBackground } from "@/lib/understanding-ai";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
+import { consumeAllowance, requireCourseAccess } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,8 @@ export async function POST(req: Request) {
     if (unitId && objective.unit_id !== normUuid(unitId)) return badRequest("objectiveId does not belong to unitId");
     const objectiveId = objective.id;
     await requireAcknowledgementForObjective(objectiveId, authUser.id);
+    // REQ-122: a Free learner studies one course (no-op while billing is off).
+    await requireCourseAccess(authUser.id, objective.track_id);
 
     const found = await lessonCheckFor(authUser.id, objectiveId, stage);
     if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
@@ -234,16 +237,26 @@ export async function POST(req: Request) {
         if (err instanceof RateLimitError) return tooManyRequests(err.message);
         throw err;
       }
+      // REQ-122: Free gets a few graded typed answers a day (Plus and Pro
+      // are not counted; nothing is counted while billing is off). Given
+      // back if grading fails. Multiple choice above is never counted.
+      const use = await consumeAllowance(authUser.id, "graded_answer");
       // REQ-076: grade in the voice of the learner's actual track/exam.
       const ctx = await coachContextForObjective(objectiveId);
-      const graded = await gradeFreeResponse({
-        taughtText: check.teach,
-        question: check.question,
-        answerKey: answerKeyText(check),
-        answer,
-        ctx: ctx ?? undefined,
-        userId: authUser.id,
-      });
+      let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;
+      try {
+        graded = await gradeFreeResponse({
+          taughtText: check.teach,
+          question: check.question,
+          answerKey: answerKeyText(check),
+          answer,
+          ctx: ctx ?? undefined,
+          userId: authUser.id,
+        });
+      } catch (err) {
+        await use.release();
+        throw err;
+      }
       const { attempt, prior } = await record({
         ...common,
         format: "open",

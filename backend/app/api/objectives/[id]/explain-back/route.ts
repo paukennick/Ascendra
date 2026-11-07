@@ -20,6 +20,7 @@ import { lastExplainBack, masteryStatus } from "@/lib/understanding-store";
 import { gradeExplainBack } from "@/lib/understanding-ai";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { recordGraderMisconception } from "@/lib/understanding-grading";
+import { featureLock, requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +42,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const status = await masteryStatus(user.id, id);
+    // REQ-122: not in this learner's plan -- shown as not open, with why.
+    const locked = await featureLock(user.id, "explain_back");
     return ok({
-      eligible: isGuidedPlus(status),
+      ...(locked ? { locked } : {}),
+      eligible: !locked && isGuidedPlus(status),
       status: status ?? "Not started",
       question: explainBackQuestion(await objectiveTitle(id)),
       last: await lastExplainBack(user.id, id),
@@ -79,6 +83,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
+    await requireFeature(user.id, "explain_back"); // REQ-122
     const body = await req.json().catch(() => ({}));
 
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);

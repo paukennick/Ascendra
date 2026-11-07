@@ -5,6 +5,7 @@ import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth
 import { visibleTrack } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { answerPlacement, placementView, skipPlacement, startPlacement } from "@/lib/placement";
+import { requireCourseAccess } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const user = await requireUser(req);
     if (!(await visibleTrack(id, user.id))) return notFound("Track not found");
     await requireAcknowledgementForTrack(id, user.id);
+    await requireCourseAccess(user.id, id); // REQ-122: Free studies one course
     return ok(await placementView(user.id, id));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
@@ -37,6 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser(req);
     if (!(await visibleTrack(id, user.id))) return notFound("Track not found");
     await requireAcknowledgementForTrack(id, user.id);
+    await requireCourseAccess(user.id, id); // REQ-122: Free studies one course
     switch (body?.action) {
       case "start": {
         const r = await startPlacement(user.id, id);

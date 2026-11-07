@@ -6,6 +6,7 @@ import { isUuid } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { getOrWriteUnitCheck, gradeUnitCheck, unitCheckStatus } from "@/lib/unit-check";
 import { reviewRouteError } from "@/lib/review-routes";
+import { featureLock, requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const status = await unitCheckStatus(user.id, id);
     if (!status) return notFound("Unit not found");
     await requireAcknowledgementForUnit(id, user.id);
+    // REQ-122: not in this learner's plan -- the status, no check written.
+    const locked = await featureLock(user.id, "unit_check");
+    if (locked) return ok({ status, check: null, locked });
     if (!status.eligible) return ok({ status, check: null });
     return ok({ status, check: await getOrWriteUnitCheck(user.id, status) });
   } catch (err) {
@@ -48,6 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const status = await unitCheckStatus(user.id, id);
     if (!status) return notFound("Unit not found");
     await requireAcknowledgementForUnit(id, user.id);
+    await requireFeature(user.id, "unit_check"); // REQ-122
     // REQ-121: eligibility is checked inside gradeUnitCheck, after a resend of
     // an already-graded id has been answered from the stored result.
     return ok(await gradeUnitCheck(user.id, status, body.checkId, body.answer, validClientAttemptId(body.clientAttemptId)));

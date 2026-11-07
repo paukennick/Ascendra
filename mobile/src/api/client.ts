@@ -46,6 +46,16 @@ export function registerAuthHooks(hooks: {
   setAccessToken = hooks.setAccessToken ?? null;
 }
 
+// REQ-122: a request refused because of the learner's plan (402) or a used-up
+// allowance (429 with `allowance` / `aiPaused`) is also handed to the billing
+// provider, which shows the gentle upgrade sheet -- only while paid plans
+// are on. Screens still get the ApiError and show its message as before.
+let onBillingRefusal: ((status: number, data: unknown) => void) | null = null;
+
+export function registerBillingHook(hook: ((status: number, data: unknown) => void) | null): void {
+  onBillingRefusal = hook;
+}
+
 // REQ-116 (audit 3): changing the password and turning on two-factor now
 // end every other session and every access token already issued, this
 // device's included; the server sends this device a fresh `accessToken`
@@ -160,6 +170,13 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     const status = res.ok ? 502 : res.status;
     const err = new ApiError(httpErrorMessage(status, data, body.ok), status, data);
     if (!body.ok) (err as ApiError & { unreadable?: boolean }).unreadable = true;
+    if ((status === 402 || status === 429) && data && onBillingRefusal) {
+      try {
+        onBillingRefusal(status, data);
+      } catch {
+        /* never let the sheet break the request's own error handling */
+      }
+    }
     throw err;
   }
   const data = body.data;

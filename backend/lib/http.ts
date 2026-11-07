@@ -40,8 +40,10 @@ export function tooManyRequests(message = "Too many requests") {
 // A failure whose message was written for the learner and is safe to show
 // (for example "Lesson generation is taking longer than expected"). Every
 // other error is treated as internal: see serverError.
+// REQ-122: `extra` is merged into the JSON body (for example the plan a
+// feature needs, or when an allowance resets) so the app can act on it.
 export class UserFacingError extends Error {
-  constructor(message: string, readonly status = 503) {
+  constructor(message: string, readonly status = 503, readonly extra?: Record<string, unknown>) {
     super(message);
     this.name = "UserFacingError";
   }
@@ -80,7 +82,7 @@ const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "2200
 export function serverError(err: unknown) {
   const requestId = randomUUID();
   if (err instanceof UserFacingError) {
-    return NextResponse.json({ error: err.message, requestId }, { status: err.status });
+    return NextResponse.json({ ...(err.extra ?? {}), error: err.message, requestId }, { status: err.status });
   }
   const code = (err as { code?: unknown } | null)?.code;
   if (typeof code === "string" && CLIENT_INPUT_PG_CODES.has(code)) {

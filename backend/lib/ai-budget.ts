@@ -39,6 +39,16 @@ export function dailyBudgetUsd(env: Record<string, string | undefined> = process
 
 // What this learner's model calls cost over the last 24 hours, in USD.
 export async function spendLast24hUsd(userId: string): Promise<number> {
+  return spendWhereUsd(userId, `created_at > now() - interval '24 hours'`, []);
+}
+
+// REQ-122: the same sum since a given time (the monthly per-tier AI cap,
+// lib/entitlements.ts). Same (user_id, created_at) index.
+export async function spendSinceUsd(userId: string, since: Date): Promise<number> {
+  return spendWhereUsd(userId, `created_at >= $2`, [since.toISOString()]);
+}
+
+async function spendWhereUsd(userId: string, window: string, extra: unknown[]): Promise<number> {
   const rows = await query<{ model: string; input: number; output: number; read: number; write: number; long_input: number; long_output: number; long_read: number; long_write: number }>(
     `select model,
             coalesce(sum(input_tokens) filter (where not long), 0)::float8 as input,
@@ -52,9 +62,9 @@ export async function spendLast24hUsd(userId: string): Promise<number> {
        from (select model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
                     coalesce(input_tokens, 0) + coalesce(cache_read_tokens, 0) + coalesce(cache_write_tokens, 0) > 100000 as long
                from ai_calls
-              where user_id = $1 and created_at > now() - interval '24 hours') c
+              where user_id = $1 and ${window}) c
       group by model`,
-    [userId]
+    [userId, ...extra]
   );
   let usd = 0;
   for (const r of rows) {

@@ -24,6 +24,7 @@ import {
 } from "@/lib/lesson-generation";
 import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { SHARED } from "@/lib/lesson-store";
+import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,8 @@ export async function GET(
     // not an access check on its own.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
+    // REQ-122: a Free learner studies one course (the first one opened).
+    await requireCourseAccessForObjective(user.id, id);
     // REQ-106: read-only summary of this learner's history on the objective,
     // for the adaptive Guided suggestion. Started now, read with each reply;
     // a failure only means no suggestion.
@@ -160,6 +163,11 @@ export async function POST(
     // learner's daily AI budget (lib/ai-budget.ts), not only the 10-minute
     // window (which allowed ~720 a day).
     await requireAiBudget(user.id);
+    // REQ-122: regenerate is in Plus and Pro, counted per week, and pauses at
+    // the plan's monthly AI cap. All no-ops while billing is off.
+    await requireCourseAccessForObjective(user.id, id);
+    const tier = await requireFeature(user.id, "regenerate");
+    await requireAiAllowance(user.id, tier);
     try {
       await consumeRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT, { userId: user.id });
     } catch (err) {
@@ -169,8 +177,16 @@ export async function POST(
       throw err;
     }
 
-    const handle = await startRegeneration(user.id, id, objRow);
-    const intro = await handle.introPromise;
+    // The use is given back if the regenerate fails before its first half.
+    const { handle, intro } = await withAllowance(
+      user.id,
+      "regeneration",
+      async () => {
+        const h = await startRegeneration(user.id, id, objRow);
+        return { handle: h, intro: await h.introPromise };
+      },
+      tier
+    );
     // null: this learner's regenerate is already running on another
     // instance; hand back its finished result.
     if (!intro) {

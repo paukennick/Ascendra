@@ -4,6 +4,7 @@ import { visibleObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { lessonCheckFor, recordHintReveal } from "@/lib/grading-service";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
+import { requireCourseAccessForObjective } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!objective) return notFound("Objective not found");
     const id = objective.id;
     await requireAcknowledgementForObjective(id, user.id);
+    await requireCourseAccessForObjective(user.id, id); // REQ-122: Free studies one course
 
     const body = await req.json().catch(() => ({}));
     const stage = body?.stage ?? "solo";

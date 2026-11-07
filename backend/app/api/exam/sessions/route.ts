@@ -5,8 +5,16 @@ import { visibleTrack } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { createSession, examProfile, listSessions, sessionView } from "@/lib/exam-sessions";
 import { examError } from "@/lib/exam-route-errors";
+import { requireCourseAccess, requireFeature, withAllowance } from "@/lib/entitlements";
+import { queryOne } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+
+// REQ-122: a resend of a session this learner already started (same
+// clientSessionId) is a replay, never a second counted mock.
+async function sessionExists(userId: string, clientSessionId: string): Promise<boolean> {
+  return (await queryOne(`select 1 from exam_sessions where user_id = $1 and client_session_id = $2`, [userId, clientSessionId])) !== null;
+}
 
 // REQ-109: timed sprints and mock exams.
 //
@@ -39,13 +47,20 @@ export async function POST(req: Request) {
     const user = await requireUser(req);
     if (!(await visibleTrack(trackId, user.id))) return notFound("Course not found");
     await requireAcknowledgementForTrack(trackId, user.id);
-    const { sessionId, preparation } = await createSession({
-      userId: user.id,
-      trackId,
-      mode,
-      timed,
-      clientSessionId: validClientAttemptId(body.clientSessionId),
-    });
+    // REQ-122: a Free learner studies one course; mock exams are in Plus
+    // (counted a month) and Pro. A resend of a session already started is
+    // never counted again. All no-ops while billing is off.
+    await requireCourseAccess(user.id, trackId);
+    const clientSessionId = validClientAttemptId(body.clientSessionId);
+    const start = () => createSession({ userId: user.id, trackId, mode, timed, clientSessionId });
+    let created: Awaited<ReturnType<typeof createSession>>;
+    if (mode === "mock" && !(clientSessionId && (await sessionExists(user.id, clientSessionId)))) {
+      const tier = await requireFeature(user.id, "mock_exam");
+      created = await withAllowance(user.id, "mock_exam", start, tier);
+    } else {
+      created = await start();
+    }
+    const { sessionId, preparation } = created;
     return ok({ ...(await sessionView(sessionId, user.id)), preparation }, 201);
   } catch (err) {
     return examError(err);

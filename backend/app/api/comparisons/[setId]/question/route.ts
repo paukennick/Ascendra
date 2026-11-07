@@ -3,6 +3,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { nextDiscriminationItem, visibleConceptSet } from "@/lib/understanding-store";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ setId: s
     const set = await visibleConceptSet(setId, user.id);
     if (!set) return notFound("Comparison not found");
     await requireAcknowledgementForTrack(set.track_id, user.id);
+    await requireFeature(user.id, "comparison"); // REQ-122
     const next = await nextDiscriminationItem(user.id, setId);
     if (!next) return notFound("This comparison has no questions yet");
     const { item, seen } = next;

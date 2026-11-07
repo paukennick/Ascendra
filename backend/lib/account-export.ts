@@ -113,6 +113,15 @@ export const EXPORT_SECTIONS = {
                   order by created_at asc, id asc`,
   sessions: `select id, device_label, user_agent, ip, created_at, last_used_at, expires_at, revoked_at
                from refresh_tokens where user_id = $1 order by created_at asc, id asc`,
+  // REQ-122 (migration 049): plans paid for or given, the payment events
+  // received for the account (type, time, outcome -- no payload), the free
+  // course choice and counted allowance uses.
+  entitlements: `select id, tier, source, product_id, plan, status, period_end, store, created_at, updated_at
+                   from entitlements where user_id = $1 order by created_at asc, id asc`,
+  billingEvents: `select provider, event_type, occurred_at, received_at, outcome
+                    from billing_events where user_id = $1 order by received_at asc, id asc`,
+  freeCourse: "select * from free_course_choice where user_id = $1 order by user_id asc",
+  allowanceUses: "select kind, used_at from allowance_uses where user_id = $1 order by used_at asc, id asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

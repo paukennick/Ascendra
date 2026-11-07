@@ -1,8 +1,11 @@
 import { Stack } from "expo-router";
 import { colors, fonts } from "@/lib/theme";
+import { BillingProvider } from "@/billing/BillingContext";
 
 export default function AppLayout() {
+  // REQ-122: the plan (inert while paid plans are off) for every signed-in screen.
   return (
+    <BillingProvider>
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.bgAlt },
@@ -41,6 +44,9 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/placement" options={{ title: "Placement check" }} />
       <Stack.Screen name="course/[trackId]/quiz" options={{ title: "Quiz me" }} />
       <Stack.Screen name="course/[trackId]/outcome" options={{ title: "I took the exam" }} />
+      <Stack.Screen name="plans" options={{ title: "Plans" }} />
+      <Stack.Screen name="settings/free-course" options={{ title: "Your free course" }} />
     </Stack>
+    </BillingProvider>
   );
 }

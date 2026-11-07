@@ -6,11 +6,14 @@ import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/componen
 import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
+import { useBilling } from "@/billing/BillingContext";
+import { planSummary } from "@/lib/billing";
 
 export default function Settings() {
   const router = useRouter();
   const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
   const [biometricBusy, setBiometricBusy] = useState(false);
+  const { config, me } = useBilling();
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -32,6 +35,22 @@ export default function Settings() {
       <Card style={{ gap: 0 }}>
         <ListRow icon="user" label="Profile & sign-in" value={user?.displayName ?? user?.email} onPress={() => router.push("/account")} />
       </Card>
+
+      {/* REQ-122: only while paid plans are on. */}
+      {config.enabled ? (
+        <>
+          <SectionHeader label="Plan" />
+          <Card style={{ gap: 0 }}>
+            <ListRow icon="star" label="Current plan" value={planSummary(me) || "Free"} onPress={() => router.push("/plans")} />
+            {me?.tier === "free" ? (
+              <>
+                <Divider />
+                <ListRow icon="book" label="Free course" value={me.freeCourse?.title ?? "Not picked yet"} onPress={() => router.push("/settings/free-course")} />
+              </>
+            ) : null}
+          </Card>
+        </>
+      ) : null}
 
       {/* REQ-119 (M7): opt-in, kind study reminders. */}
       <SectionHeader label="Study" />

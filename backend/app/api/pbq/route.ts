@@ -27,6 +27,7 @@ import {
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export async function GET(req: Request) {
       const scenario = await visibleScenario(scenarioId, authUser.id);
       if (!scenario) return notFound("PBQ scenario not found");
       await requireAcknowledgementForUnit(scenario.unit_id, authUser.id);
+      await requireFeature(authUser.id, "pbq"); // REQ-122
       const row = await queryOne(`select * from pbq_scenarios where id = $1`, [scenario.id]);
       return ok({ scenario: row, cached: true });
     }
@@ -70,6 +72,7 @@ export async function GET(req: Request) {
     );
     if (!unit) return notFound("Unit not found");
     await requireAcknowledgementForUnit(unitId, authUser.id);
+    await requireFeature(authUser.id, "pbq"); // REQ-122
 
     // Runs only when nothing unseen is left (or fresh=1), and only in the
     // one request holding this learner's generation lease for the unit, so
@@ -166,6 +169,7 @@ export async function POST(req: Request) {
     if (!scenario) return notFound("PBQ scenario not found");
     const unitId = scenario.unit_id;
     await requireAcknowledgementForUnit(unitId, authUser.id);
+    await requireFeature(authUser.id, "pbq"); // REQ-122
 
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.

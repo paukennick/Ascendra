@@ -207,6 +207,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                     'learner_events_review_session', 'learner_events_exam_session', 'learner_events_placement')) = 5 as ok`,
   },
   {
+    migration: "049_billing.sql",
+    what: "entitlements, billing_events, free_course_choice, allowance_uses (paid tiers; read only when BILLING_ENABLED is on, written by the billing webhooks, in the export)",
+    sql: `select to_regclass('public.entitlements') is not null
+             and to_regclass('public.billing_events') is not null
+             and to_regclass('public.free_course_choice') is not null
+             and to_regclass('public.allowance_uses_user_kind_idx') is not null as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

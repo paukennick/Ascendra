@@ -4,6 +4,7 @@ import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth
 import { isUuid, visibleTrack } from "@/lib/visibility";
 import { conceptSetsForTrack, insightStatus } from "@/lib/understanding-store";
 import { ensureConceptSets, generateLearnedSets, inBackground } from "@/lib/understanding-ai";
+import { featureLock } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     await requireAcknowledgementForTrack(id, user.id);
     const objectiveId = new URL(req.url).searchParams.get("objectiveId");
     if (objectiveId && !isUuid(objectiveId)) return badRequest("objectiveId must be an id");
+    // REQ-122: not in this learner's plan -- no cards, said gently, and no
+    // generation started on their behalf.
+    const locked = await featureLock(user.id, "comparison");
+    if (locked) return ok({ pending: false, failed: false, sets: [], locked });
 
     const state = await insightStatus(id, "concept_sets");
     if (state !== "ready") {

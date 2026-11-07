@@ -3960,6 +3960,63 @@
       "risk_notes": [
         "The app shows the lab route's 409 by its message (gradeSubmitError keys off the message not the status) so nothing relied on the 400"
       ]
+    },
+    {
+      "id": "REQ-122",
+      "category": "feature",
+      "title": "Paid tiers and payments, built but off behind BILLING_ENABLED",
+      "description": "Free / Plus / Pro tiers with server-side gating, metered allowances (coach messages a day, regenerations a week, mocks a month, Free's 3 graded typed answers a day) and a monthly per-tier AI cap (Plus ~$1.29, Pro ~$2.21) at which only coach chat and regenerate pause. Entitlements fed by RevenueCat (App Store, Google Play) and Stripe webhooks (authenticated, idempotent, out-of-order safe) plus operator grants; Stripe Checkout for the web; mobile plans screen, upgrade sheet, free-course picker and current plan in Settings, RevenueCat loaded lazily. BILLING_ENABLED unset = every learner Pro, no pricing UI, no behaviour change. Migration 049. Audit 3 product C1.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/049_billing.sql",
+        "backend/lib/billing-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/billing-webhooks.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/lib/billing-grant.ts",
+        "backend/app/api/billing/**",
+        "backend/app/api (gated routes)",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/http.ts",
+        "backend/lib/ai-budget.ts",
+        "mobile/src/billing/**",
+        "mobile/src/lib/billing.ts",
+        "mobile/app/(app)/plans.tsx",
+        "mobile/app/(app)/settings/free-course.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/api/client.ts",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "With BILLING_ENABLED off every gated route behaves as before and no 049 row is read or written (lib/billing.dbtest.ts)",
+        "Switch on: each tier gets exactly its features; Free one course; allowances count atomically and give back failed uses; AI cap pauses chat and regenerate only",
+        "Webhooks: constant-time RevenueCat auth; Stripe signature on raw body; duplicate and stale events change nothing; purchase/renewal/cancel/expiry/refund/billing issue handled",
+        "GET /api/billing/config drives the app; no pricing UI while disabled",
+        "Grants with optional expiry via npm run billing:grant",
+        "Existing test suites pass unchanged"
+      ],
+      "validation_required": [
+        "npm run test:db (fresh DB)",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md",
+        "backend/.env.example",
+        "mobile/.env.example"
+      ],
+      "risk_notes": [
+        "Policy decisions open (comps for existing learners; Pro coach count; Free regenerate)",
+        "Legal terms for auto-renewal and refunds not written yet",
+        "Adding react-native-purchases changes the runtime fingerprint so OTA updates do not reach older builds (a store build is already required)",
+        "Account export and /api/health need migration 049 before the backend deploy"
+      ]
     }
   ]
 }

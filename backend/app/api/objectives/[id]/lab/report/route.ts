@@ -12,6 +12,7 @@ import { labReportAnswer, labReportQuestion, labReportTaughtText } from "@/lib/p
 import { hasUnstorableText } from "@/lib/text-input";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser(req);
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
+    await requireFeature(user.id, "lab"); // REQ-122
     const obj = await labObjective(id);
     const prompt = obj?.lab_prompt?.trim();
     if (!obj || !prompt) return notFound("This objective has no lab");

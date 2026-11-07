@@ -6,6 +6,7 @@ import { validClientAttemptId } from "@/lib/lesson-progress";
 import { isUuid } from "@/lib/visibility";
 import { queryOne } from "@/lib/db";
 import { answerQuizTurn } from "@/lib/coach-quiz";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
     ]);
     if (!owned) return notFound("Quiz question not found");
     await requireAcknowledgementForTrack(owned.track_id, user.id);
+    await requireFeature(user.id, "quiz_me"); // REQ-122
 
     const result = await answerQuizTurn(user.id, turnId, body.choice, validClientAttemptId(body.clientAttemptId));
     if (result.status === "not_found") return notFound("Quiz question not found");

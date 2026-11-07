@@ -4,6 +4,7 @@ import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth
 import { isUuid } from "@/lib/visibility";
 import { discriminationItem, visibleConceptSet } from "@/lib/understanding-store";
 import { recordHintReveal } from "@/lib/grading-service";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ itemId:
     const item = isUuid(itemId) ? await discriminationItem(itemId) : null;
     if (!item || !(await visibleConceptSet(item.set_id, user.id))) return notFound("Question not found");
     await requireAcknowledgementForTrack(item.track_id, user.id);
+    await requireFeature(user.id, "comparison"); // REQ-122
     if (item.objective_id) await recordHintReveal(user.id, item.objective_id, "discriminate", item.scenario);
     return ok({ recorded: !!item.objective_id });
   } catch (err) {

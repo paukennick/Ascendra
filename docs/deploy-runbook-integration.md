@@ -1,4 +1,4 @@
-# Deploy runbook: integration release (migrations 029 to 048)
+# Deploy runbook: integration release (migrations 029 to 049)
 
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
@@ -49,6 +49,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 046 | nine performance indexes (REQ-118). **Build them CONCURRENTLY first** (step 1a); then the migration only records the file | under 1 s after step 1a (6 s of index builds on the fixture) | no, after step 1a | a plain build blocks attempt inserts while it runs |
 | 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 | 048 | REQ-119: `terms_acceptances`, `learner_onboarding` (existing accounts marked past first run), `learner_events` with AFTER triggers on attempts, lesson_progress, review_sessions, exam_sessions, placement_checks, and `exam_outcomes` | not timed on the fixture (one insert per account for the backfill) | no | (instant SHARE ROW EXCLUSIVE per trigger, 5 s lock_timeout) |
+| 049 | REQ-122: paid tiers, built but off -- `entitlements`, `billing_events`, `free_course_choice`, `allowance_uses` (four new tables, nothing existing altered). Apply BEFORE the backend deploy: the account export reads these tables, and `/api/health` probes them, even while `BILLING_ENABLED` is off (docs/billing.md) | not timed on the fixture (empty tables, no backfill) | no | (new tables only, 5 s lock_timeout) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.

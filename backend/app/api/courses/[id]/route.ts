@@ -4,6 +4,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isActive, isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitMasteryLateral } from "@/lib/progress-sql";
 import { courseReadiness } from "@/lib/readiness";
 import { cachedExamBlueprint, courseReadinessCache, stampOf } from "@/lib/readiness-cache";
+import { featureLock } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -82,16 +83,20 @@ export async function GET(
       ? { required: true, acknowledged: __acknowledged === true }
       : { required: false, acknowledged: true };
 
-    const { value: readiness } = await courseReadinessCache.get(userId, id, stampOf(__attempt_stamp), () =>
-      courseReadiness(id, userId)
-    );
+    // REQ-122: the readiness score is in Pro. Other plans get null and
+    // readinessLocked (the app says so in one line); not computed for them.
+    // No database read while billing is off.
+    const readinessLocked = await featureLock(userId, "readiness");
+    const readiness = readinessLocked
+      ? null
+      : (await courseReadinessCache.get(userId, id, stampOf(__attempt_stamp), () => courseReadiness(id, userId))).value;
 
     // REQ-102: the exam this track prepares for -- code, status and dates,
     // duration, question format, passing policy, weighted domains -- for
     // mock-exam and readiness features to read. null for non-exam tracks.
     const exam = await cachedExamBlueprint(id, (tracks[0] as { credential_exam_id?: unknown }).credential_exam_id);
 
-    return ok({ track: trackOut, units: unitsWithObjectives, acknowledgement, readiness, exam });
+    return ok({ track: trackOut, units: unitsWithObjectives, acknowledgement, readiness, exam, ...(readinessLocked ? { readinessLocked } : {}) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

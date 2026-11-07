@@ -7142,6 +7142,51 @@
       ],
       "prevention_notes": "Replay lookups run before any state-dependent refusal, as /api/grade does.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-450",
+      "date": "2026-11-07",
+      "title": "Regenerate error helper called every 429 'wait a few minutes', including weekly and monthly plan limits",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "regenerateErrorMessage returned REGENERATE_RATE_LIMITED ('Give it a few minutes') for any 429; with REQ-122 a regenerate can be refused for the week's allowance or the month's AI cap, so the lesson screen would have told the learner to retry in minutes when the next version opens days later",
+      "how_detected": "review while adding plan limits to the regenerate route",
+      "root_cause": "The helper keyed only on the status code because 429 meant only the 10-minute rate limit when it was written; a new meaning for an existing status reached a client helper that summarised by status instead of showing the server's message",
+      "requirement": "REQ-122",
+      "affected": [
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "fix_summary": "A 402/429 whose body carries upgrade, allowance or aiPaused shows the server's own message (which names when it opens again); other 429s keep the rate-limit text",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/billing.test.ts::a regenerate refused for the plan shows the server's message",
+        "not the 'few minutes' one"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Plan refusals carry a machine-readable field (upgrade / allowance / aiPaused) beside a learner-ready message; client helpers that map statuses to text check for those fields first (src/lib/billing.ts billingSignal)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-451",
+      "date": "2026-11-07",
+      "title": "npm install of one package rewrote unrelated libc fields in mobile/package-lock.json",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "npm 10.9.9 'npm install react-native-purchases' also dropped the libc: [glibc]/[musl] entries of four unrelated optional native packages in the lockfile",
+      "how_detected": "git diff review of the lockfile before committing",
+      "root_cause": "The lockfile was written by an npm that records libc for platform-specific optional dependencies; the local npm doesn't, and re-serialises the whole tree on any install",
+      "requirement": "REQ-122",
+      "affected": [
+        "mobile/package-lock.json"
+      ],
+      "fix_summary": "Kept the committed lockfile and added only the four new package entries and the root dependency (scripted merge); npm ci verified afterwards",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A tooling behaviour of the local npm version, not product code; caught by reading the lockfile diff",
+      "prevention_rules": [],
+      "prevention_notes": "Read the lockfile diff after adding a dependency; it should contain only the new packages. Use the same npm major/minor that wrote the lockfile when one is available",
+      "recurrence_of": ""
     }
   ]
 }

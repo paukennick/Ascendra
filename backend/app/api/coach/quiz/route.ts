@@ -4,6 +4,7 @@ import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { visibleTrack } from "@/lib/visibility";
 import { nextQuizTurn } from "@/lib/coach-quiz";
+import { requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
     const track = await visibleTrack(trackId, user.id);
     if (!track) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
+    await requireFeature(user.id, "quiz_me"); // REQ-122
 
     const result = await nextQuizTurn(user.id, trackId, {
       beforeGenerate: async () => {

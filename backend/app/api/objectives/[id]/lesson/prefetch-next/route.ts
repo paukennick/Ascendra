@@ -18,6 +18,7 @@ import {
 } from "@/lib/lesson-generation";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
+import { requireCourseAccessForObjective, UpgradeRequiredError } from "@/lib/entitlements";
 
 // The objective immediately after this one in course order: same unit with
 // the next sort_order, or -- if this is the unit's last objective -- the
@@ -95,6 +96,13 @@ export async function POST(
     // track, but a disclaimer-gated track's acknowledgement is still a real
     // precondition worth enforcing explicitly rather than inferring it.
     await requireAcknowledgementForObjective(nextId, user.id);
+    // REQ-122: nothing to warm in a course this learner's plan doesn't open.
+    try {
+      await requireCourseAccessForObjective(user.id, nextId);
+    } catch (err) {
+      if (err instanceof UpgradeRequiredError) return ok({ nextObjectiveId: null, next: null, status: "none" });
+      throw err;
+    }
 
     // Prefetch warms the SHARED lesson only (a regenerate is a learner's own
     // choice and is never started speculatively).

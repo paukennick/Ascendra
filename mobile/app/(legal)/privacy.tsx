@@ -116,6 +116,15 @@ export default function Privacy() {
         <Body>• Resend — sends verification, password-reset and security emails, and forwards support requests to us.</Body>
         <Body>• Google — only if you choose to sign in or link your account with Google.</Body>
         <Body>• Anthropic — the AI provider (Claude models). What it receives is described in section 5.</Body>
+        {/* REQ-122 DRAFT [when payments launch]: add, once BILLING_ENABLED is
+            turned on (docs/billing.md, launch checklist), and have it
+            reviewed with the auto-renewal and refund terms:
+            "• Apple App Store, Google Play and RevenueCat -- if you subscribe in
+            the app: your store handles the payment; we receive your plan, its
+            dates and status, never your card details. • Stripe -- if you
+            subscribe on the web: Stripe handles the payment and your card;
+            we receive your plan, its dates, status and a Stripe customer id."
+            Not shown yet: no payment is taken while paid plans are off. */}
       </Section>
 
       <Section title="5. AI features and what they send">

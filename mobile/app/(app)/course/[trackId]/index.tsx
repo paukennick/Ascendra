@@ -53,6 +53,9 @@ export default function CourseDashboard() {
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
+  // REQ-122: the server sends this only while paid plans are on and the plan
+  // doesn't include the readiness score; one quiet line, not a lock.
+  const [readinessLocked, setReadinessLocked] = useState(false);
   // REQ-119 (M6): the exam's provider, for the "not affiliated" line.
   const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -90,13 +93,14 @@ export default function CourseDashboard() {
   const load = useCallback(() => {
     setError(null);
     api
-      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; readinessLocked?: { message: string } | null; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
         `/api/courses/${trackId}`
       )
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
         setReadinessData(res.readiness ?? null);
+        setReadinessLocked(!!res.readinessLocked); // REQ-122
         setExam(res.exam ?? null);
       })
       .catch((err) => setError(err.message));
@@ -195,6 +199,8 @@ export default function CourseDashboard() {
                   </Muted>
                 ))}
               </View>
+            ) : readinessLocked ? (
+              <Muted style={{ fontSize: 12 }}>Your readiness score for the exam comes with Pro.</Muted>
             ) : null}
 
             {step ? (
