@@ -166,6 +166,8 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
           ) as ok`,
   },
   {
+  },
+  {
     migration: "033_exam_blueprints.sql",
     what: "course_units.retired_at / objectives.retired_at columns (course view, progress, seed)",
     sql: `select count(*) = 2 as ok from information_schema.columns
@@ -180,6 +182,8 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where table_schema = 'public' and table_name = 'exam_items' and column_name = 'source')
              and (select count(*) from assessment_types
                    where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
+  },
+  {
   },
   {
     // FAIL-119: 029b is data, not schema, so no object above notices if it

@@ -5,6 +5,7 @@ adopter project's repository structure so an assistant can choose where
 to inspect next without reading the whole repository.
 
 - Generated at: `2026-11-07T11:21:45+00:00`
+- Generated at: `2026-11-07T11:21:50+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
