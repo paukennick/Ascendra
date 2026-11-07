@@ -20,6 +20,7 @@ export async function GET(req: Request) {
        from subject_tracks st
        left join credential_exams ce on ce.id = st.credential_exam_id
        where st.source_url is not null
+         and st.user_id is null -- shared catalog only, never a learner's private track
        order by st.code`,
     );
     return ok({ tracks: rows });

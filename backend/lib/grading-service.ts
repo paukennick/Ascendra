@@ -74,6 +74,75 @@ export function isDuplicateClientAttempt(err: unknown): boolean {
   return e?.code === "23505" && (e.constraint ?? "").includes("client_attempt");
 }
 
+// Records an attempt, or -- when its client id was already recorded, either
+// earlier or by a request that raced this one past the first check -- hands
+// back the stored result instead. Exactly one of `attempt` / `prior` is set.
+// Shared by /api/grade and /api/pbq so both replay the same way.
+export async function recordAttemptIdempotent(input: AttemptInput) {
+  try {
+    return { attempt: await recordAttemptAndUpdateMastery(input), prior: null };
+  } catch (err) {
+    if (input.clientAttemptId && isDuplicateClientAttempt(err)) {
+      const prior = await findClientAttempt(input.userId, input.clientAttemptId);
+      if (prior) return { attempt: null, prior };
+    }
+    throw err;
+  }
+}
+
+// The correct choice for a lesson's Guided ("fade") or Solo ("solo") check,
+// read from the cached lesson_content so /api/grade doesn't have to trust
+// the index the client sends. null when no lesson is cached for the
+// objective yet, or the stage isn't one of the two multiple-choice stages.
+export async function cachedCorrectIndex(
+  objectiveId: string,
+  stage: string | null | undefined
+): Promise<{ hasLesson: boolean; index: number | null }> {
+  const row = await queryOne<{ fade_correct_index: number; solo_correct_index: number }>(
+    `select fade_correct_index, solo_correct_index from lesson_content where objective_id = $1`,
+    [objectiveId]
+  );
+  if (!row) return { hasLesson: false, index: null };
+  if (stage === "fade") return { hasLesson: true, index: row.fade_correct_index };
+  if (stage === "solo") return { hasLesson: true, index: row.solo_correct_index };
+  return { hasLesson: true, index: null };
+}
+
+// "Got it" on a review entry: one guarded UPDATE, not read-then-write. The
+// stage moves 0 -> 1 -> 2 -> 3 (1 / 7 / 21 days out, then resolved), the same
+// mapping as REVIEW_OFFSETS_DAYS in lib/mastery.ts and the auto-advance in
+// recordAttemptTx. `resolved = false` stops a finished row going past 3.
+// `fromStage` (optional) is the stage the learner was looking at: a retry or
+// double tap carries the old stage, no longer matches, and changes nothing
+// instead of skipping the 7-day review. Returns null if the caller has no
+// such entry; otherwise the row and whether this call advanced it.
+export async function advanceReviewStage(
+  userId: string,
+  errorId: string,
+  fromStage?: number | null
+): Promise<{ row: Record<string, unknown>; advanced: boolean } | null> {
+  const guarded = await queryOne<Record<string, unknown>>(
+    `update error_log
+        set review_stage = review_stage + 1,
+            resolved = (review_stage + 1) >= 3,
+            next_review_at = case review_stage + 1
+                               when 1 then current_date + 7
+                               when 2 then current_date + 21
+                               else null
+                             end
+      where id = $1 and user_id = $2 and resolved = false
+        and ($3::int is null or review_stage = $3::int)
+      returning *`,
+    [errorId, userId, fromStage ?? null]
+  );
+  if (guarded) return { row: guarded, advanced: true };
+  const current = await queryOne<Record<string, unknown>>(
+    `select * from error_log where id = $1 and user_id = $2`,
+    [errorId, userId]
+  );
+  return current ? { row: current, advanced: false } : null;
+}
+
 // REQ-089: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded

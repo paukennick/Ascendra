@@ -74,7 +74,9 @@ export default function ReviewScreen() {
     // Optimistic: drop the row now, put it back if the server disagrees.
     setEntries((prev) => prev?.filter((e) => e.id !== entry.id) ?? prev);
     try {
-      await api.patch(`/api/errors/${entry.id}`, { action });
+      // fromStage: the stage this row was showing, so a repeated tap can't
+      // advance it a second time (see PATCH /api/errors/:id).
+      await api.patch(`/api/errors/${entry.id}`, { action, fromStage: entry.review_stage });
     } catch (err) {
       setError((err as Error).message);
       setEntries((prev) => (prev ? [entry, ...prev] : prev));

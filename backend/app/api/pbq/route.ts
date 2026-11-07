@@ -2,7 +2,9 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, type PBQScenario, type GradeResult } from "@/lib/prompts";
-import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
+import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
+import { validClientAttemptId } from "@/lib/lesson-progress";
+import { visibleScenario } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForUnit,
@@ -82,15 +84,37 @@ export async function GET(req: Request) {
   }
 }
 
-// POST /api/pbq — grade a PBQ answer. Body: { scenarioId, unitId, answer, confidence? }
+// POST /api/pbq — grade a PBQ answer.
+// Body: { scenarioId, answer, clientAttemptId?, confidence?, unitId? }
+// unitId is accepted for older clients but ignored: the unit (and so the
+// track, visibility check and acknowledgement gate) comes from the scenario.
+// clientAttemptId works as it does on /api/grade: a repeat returns the
+// stored result instead of grading and recording a second attempt.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { scenarioId, unitId, answer, confidence } = body ?? {};
-    if (!scenarioId || !answer) return badRequest("scenarioId and answer are required");
+    const { scenarioId, answer, confidence } = body ?? {};
+    if (!scenarioId || typeof scenarioId !== "string" || !answer || typeof answer !== "string") {
+      return badRequest("scenarioId and answer are required");
+    }
 
     const authUser = await requireUser(req);
-    if (unitId) await requireAcknowledgementForUnit(unitId, authUser.id);
+
+    // REQ-091: reach the scenario through its unit and track so a scenario in
+    // another user's private track is a 404, and gate on the scenario's own
+    // unit -- not on whatever unitId the client chose to send (or omit).
+    const scenario = await visibleScenario(scenarioId, authUser.id);
+    if (!scenario) return notFound("PBQ scenario not found");
+    const unitId = scenario.unit_id;
+    await requireAcknowledgementForUnit(unitId, authUser.id);
+
+    // A retry (dropped connection, double tap) replays the stored result.
+    // Checked before the rate limit and the Anthropic call.
+    const clientAttemptId = validClientAttemptId(body.clientAttemptId);
+    if (clientAttemptId) {
+      const prior = await findClientAttempt(authUser.id, clientAttemptId);
+      if (prior) return ok(prior);
+    }
 
     try {
       await checkRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
@@ -100,13 +124,7 @@ export async function POST(req: Request) {
     }
     await recordAuthEvent("pbq_grade", authUser.id);
 
-    const scenario = await queryOne<{ scenario: string; sub_parts: string[]; title: string }>(
-      `select scenario, sub_parts, title from pbq_scenarios where id = $1`,
-      [scenarioId]
-    );
-    if (!scenario) return notFound("PBQ scenario not found");
-
-    const ctx = unitId ? await coachContextForUnit(unitId) : null;
+    const ctx = await coachContextForUnit(unitId);
     const { system, user } = gradePBQPrompt({
       scenario: scenario.scenario,
       subParts: scenario.sub_parts,
@@ -120,10 +138,13 @@ export async function POST(req: Request) {
       model: getFastModel(),
     });
 
-    const attempt = await recordAttemptAndUpdateMastery({
+    // Two requests with the same id can race past the check above; the
+    // unique index fails the slower one and it returns the winner's result.
+    const { attempt, prior } = await recordAttemptIdempotent({
       userId: authUser.id,
       unitId,
-      pbqScenarioId: scenarioId,
+      pbqScenarioId: scenario.id,
+      clientAttemptId,
       kind: "pbq",
       format: "pbq",
       question: scenario.title,
@@ -135,6 +156,7 @@ export async function POST(req: Request) {
       confidence,
     });
 
+    if (prior) return ok(prior);
     return ok({ ...graded, attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

@@ -10,6 +10,14 @@
 
 import { queryOne } from "@/lib/db";
 
+// An id that isn't a UUID can't match any row; asking Postgres anyway raises
+// "invalid input syntax for type uuid" and surfaces as a 500. Treat it as
+// not visible (404) instead.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function isUuid(v: unknown): v is string {
+  return typeof v === "string" && UUID.test(v);
+}
+
 export class NotVisibleError extends Error {
   constructor(what = "Not found") {
     super(what);
@@ -24,6 +32,7 @@ export interface VisibleObjective {
 }
 
 export async function visibleObjective(objectiveId: string, userId: string): Promise<VisibleObjective | null> {
+  if (!isUuid(objectiveId)) return null;
   return queryOne<VisibleObjective>(
     `select o.id, o.unit_id, cu.track_id
        from objectives o
@@ -35,6 +44,7 @@ export async function visibleObjective(objectiveId: string, userId: string): Pro
 }
 
 export async function visibleUnit(unitId: string, userId: string): Promise<{ id: string; track_id: string } | null> {
+  if (!isUuid(unitId)) return null;
   return queryOne<{ id: string; track_id: string }>(
     `select cu.id, cu.track_id
        from course_units cu
@@ -44,10 +54,34 @@ export async function visibleUnit(unitId: string, userId: string): Promise<{ id:
   );
 }
 
-export async function visibleTrack(trackId: string, userId: string): Promise<{ id: string } | null> {
-  return queryOne<{ id: string }>(
-    `select id from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
+export async function visibleTrack(trackId: string, userId: string): Promise<{ id: string; title: string } | null> {
+  if (!isUuid(trackId)) return null;
+  return queryOne<{ id: string; title: string }>(
+    `select id, title from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
     [trackId, userId]
+  );
+}
+
+export interface VisibleScenario {
+  id: string;
+  unit_id: string;
+  track_id: string;
+  title: string;
+  scenario: string;
+  sub_parts: string[];
+}
+
+// A PBQ scenario reached through its own unit and track. Its unit_id is the
+// only one callers should trust; a scenario with no unit is not visible.
+export async function visibleScenario(scenarioId: string, userId: string): Promise<VisibleScenario | null> {
+  if (!isUuid(scenarioId)) return null;
+  return queryOne<VisibleScenario>(
+    `select ps.id, ps.unit_id, cu.track_id, ps.title, ps.scenario, ps.sub_parts
+       from pbq_scenarios ps
+       join course_units cu on cu.id = ps.unit_id
+       join subject_tracks st on st.id = cu.track_id
+      where ps.id = $1 and (st.user_id is null or st.user_id = $2)`,
+    [scenarioId, userId]
   );
 }
 
