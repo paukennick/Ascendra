@@ -126,9 +126,11 @@ export async function sampleLabId(trackId: string): Promise<string | null> {
        join objectives o on o.id = l.objective_id
        join course_units cu on cu.id = o.unit_id
        join subject_tracks st on st.id = cu.track_id
-      where cu.track_id = $1 and l.review_status = 'approved' and l.retired_at is null
+      where cu.track_id = $1 and l.retired_at is null
         and ${servableSql("lab", "l.id")} and ${isActive("o")} and ${isActive("cu")}
-      order by cu.sort_order, o.sort_order, l.kind, l.title, l.id
+      -- REQ-125: labs are served before expert review, so the sample is the
+      -- first approved lab when there is one, else the first served lab.
+      order by (l.review_status = 'approved') desc, cu.sort_order, o.sort_order, l.kind, l.title, l.id
       limit 1`,
     [trackId]
   );

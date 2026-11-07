@@ -805,7 +805,15 @@ describe("REQ-124 decision 10: labs are Pro; Free and Plus get one sample lab pe
     delete process.env.BILLING_ENABLED;
   });
 
-  test("the first APPROVED lab of the course is the sample; an unreviewed one never is; the rest are listed as locked", async () => {
+  test("with no approved lab, the first served lab is the sample (REQ-125: labs are served before review)", async () => {
+    for (const tier of ["free", "plus"] as const) {
+      const u = await as(tier);
+      const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs;
+      assert.deepEqual(Object.fromEntries(list.map((l: any) => [l.id, l.access])), { [BUILD]: "sample", [CASE]: "locked" }, tier);
+    }
+  });
+
+  test("the first APPROVED lab of the course is the sample, ahead of earlier unreviewed ones; the rest are listed as locked", async () => {
     // CASE approved, BUILD (earlier in the course) still awaiting review.
     await query(`update labs set review_status = 'approved' where id = $1`, [CASE]);
     try {
