@@ -229,12 +229,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   );
   const attempt = attemptRows[0];
 
-  // REQ-097: mastery is recomputed from this learner's whole attempt history
-  // on the objective by mastery_from_attempts() (migration 029, where the
-  // rule is written out) -- the same function the 029 recompute used. Status
-  // no longer comes from the latest answer alone, and only unassisted Solo
-  // free-response successes lift it above Guided (two at least 24 hours apart
-  // for Transfer-ready).
+  // REQ-097 / REQ-100: mastery is recomputed from this learner's whole
+  // attempt history by mastery_from_attempts() -- the weighted cross-format
+  // model written out in migration 031 -- the same function the recompute
+  // uses, so the two cannot disagree.
   if (input.objectiveId) {
     await query(
       `insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
@@ -242,6 +240,29 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
        on conflict (user_id, objective_id) do update set
          status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()`,
       [userId, input.objectiveId]
+    );
+  } else if (input.format === "pbq" && input.unitId) {
+    // REQ-100: a PBQ covers its whole unit, so it is evidence for every
+    // objective of the unit this learner has already studied (the function
+    // returns nothing for an objective with no direct answers). Take the same
+    // per-objective locks the lesson path takes, in id order so two PBQs
+    // cannot deadlock, before reading attempts.
+    await query(
+      `select pg_advisory_xact_lock(hashtext('grade:' || $1 || ':' || o.id))
+         from objectives o where o.unit_id = $2 order by o.id`,
+      [userId, input.unitId]
+    );
+    await query(
+      `insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
+       select $1, o.id, m.status, m.score, m.evidence, now()
+         from objectives o cross join lateral mastery_from_attempts($1, o.id) m
+        where o.unit_id = $2
+       on conflict (user_id, objective_id) do update set
+         status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()
+       where mastery.status is distinct from excluded.status
+          or mastery.score_0_4 is distinct from excluded.score_0_4
+          or mastery.evidence is distinct from excluded.evidence`,
+      [userId, input.unitId]
     );
   }
 

@@ -2941,6 +2941,58 @@
         "Transfer-ready now needs a regenerated lesson on a later day",
         "Pre-029 hint peeks are not visible in history"
       ]
+    },
+    {
+      "id": "REQ-100",
+      "category": "feature",
+      "title": "Weighted cross-format mastery, blueprint readiness, coach guardrails",
+      "description": "Owner request 2026-11-07: depth is weighted accuracy across every type of assessment. MODEL (migration 031, mastery_detail; mastery_from_attempts keeps its signature): evidence for (learner, objective) = every graded answer on it plus every graded PBQ on its unit (PBQ only adds to objectives with direct answers). Each answer has credit = verdict credit (correct 1, partial 0.5, incorrect 0) x assist credit (none 1, hint 0.5, reveal 0.25, repeat 0.25) and weight = cognitive weight of its type (guided_step 0.5, multiple_choice 0.75, free_response 1.0, pbq 1.5, explain_back 1.25, scenario 1.5) x unit_scope_factor 0.5 for a unit PBQ x spacing_factor 1.5 if 24h+ after the previous answer on the objective x review_retest_factor 1.2 if the objective/scenario was missed on an earlier day x 0.5^(age days / 60). Weighted accuracy = sum(w*c)/sum(w); readiness score = sum(w*c)/max(sum(w), 2.0). Levels: Needs review (latest direct answer incorrect, 2+ direct answers, accuracy < 0.5); Transfer-ready (accuracy >= 0.75, unassisted correct application-level answers in 2+ format families, first and last 24h+ apart, one of them direct); Independent (accuracy >= 0.60 and one unassisted correct direct free response); Guided (any credit); Introduced. All numbers in tables mastery_model_params and assessment_types; new types slot in by name via attempts.assessment_type. 031 backs up mastery to mastery_backup_031, then recompute_mastery(); 029 backup untouched. READINESS (lib/readiness.ts, GET /api/courses/:id readiness): per-objective readiness scores rolled up by course_units.weight (vendor blueprint), coverage and accuracy reported separately, status gated on coverage (no_evidence / not_enough_evidence below 50% / building / ready at 75% with 90% coverage); mobile dashboard and mastery matrix show it in plain language. COACH (lib/coach-guard.ts, POST /api/chat): open lesson items (opened, unanswered or pending review), unanswered/reviewing PBQs named to the model by question only; learner turns fenced in learner_message tags; guardrails for no answers to open items (hints, Socratic questions), staying on topic and encouraging tone; reply checked against open answer keys, one retry, then a server-written hint.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/031_weighted_mastery.sql",
+        "backend/lib/grading-service.ts",
+        "backend/lib/mastery.ts",
+        "backend/lib/readiness.ts",
+        "backend/lib/coach-guard.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/lib/mastery-recompute.dbtest.ts",
+        "backend/lib/mastery-integrity.dbtest.ts",
+        "mobile/src/lib/progress.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/app/(app)/course/[trackId]/progress.tsx"
+      ],
+      "acceptance_criteria": [
+        "One format alone cannot reach Transfer-ready",
+        "One sitting cannot reach Transfer-ready",
+        "Assisted answers earn reduced credit and are never format evidence",
+        "Spaced evidence outweighs massed",
+        "Old evidence decays",
+        "031 re-run is idempotent and leaves the 029 backup unchanged",
+        "Readiness rolls up with blueprint weights and gates on coverage",
+        "Coach never receives answer keys and replies leaking an open answer are replaced",
+        "Learner text fenced"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "data_model",
+        "changelog"
+      ],
+      "risk_notes": [
+        "PBQ evidence is unit-wide: one correct PBQ is a second format for every studied objective of its unit",
+        "Levels shift on recompute: two spaced free responses no longer make Transfer-ready without a second format",
+        "Lesson screen hint copy still states the 029 Transfer-ready rule (owned by REQ-101; FAIL-080)",
+        "Thresholds are first-pass values for owner tuning"
+      ]
     }
   ]
 }

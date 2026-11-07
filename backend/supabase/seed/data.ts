@@ -315,6 +315,11 @@ export const MSCS_TRACK: SeedTrack = {
   ],
 };
 
+// CompTIA Security+ (SY0-701). Domain weights 12 / 22 / 18 / 28 / 20 are the
+// "percentage of examination" table in CompTIA's SY0-701 exam objectives
+// document (comptia.org/certifications/security#examdetails). REQ-100 course
+// readiness rolls objective evidence up with these weights. Recorded from the
+// published objectives; not re-fetched live in REQ-100.
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
   title: "Security+ Coach",

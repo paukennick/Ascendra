@@ -68,6 +68,30 @@ export interface Unit {
   objectives?: Objective[];
 }
 
+// REQ-100: GET /api/courses/:id -> readiness (backend/lib/readiness.ts).
+export interface DomainReadiness {
+  unitId: string;
+  title: string;
+  weight: number | null;
+  objectives: number;
+  practiced: number;
+  coveragePercent: number;
+  accuracyPercent: number | null;
+  readinessPercent: number;
+}
+
+export interface CourseReadiness {
+  blueprintWeighted: boolean;
+  status: "no_evidence" | "not_enough_evidence" | "building" | "ready";
+  readinessPercent: number;
+  coveragePercent: number;
+  accuracyPercent: number | null;
+  objectives: number;
+  practiced: number;
+  focusUnitId: string | null;
+  domains: DomainReadiness[];
+}
+
 export interface Objective {
   id: string;
   unit_id: string;

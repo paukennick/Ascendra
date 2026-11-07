@@ -3,14 +3,28 @@
 // file itself (again -- CI already applied it to the empty database) over a
 // fixture written the way the old code left it, then run it a third time to
 // prove a re-run changes nothing and never overwrites the backup.
+//
+// REQ-100 (FAIL-076): re-running this file puts 029's mastery_from_attempts
+// back. Committed, that silently replaced the live 031 rule for every test
+// running in parallel and for the rest of the run. The whole file now runs on
+// one connection inside one transaction that is rolled back at the end, so
+// the 029 rule it tests is never visible outside it.
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { query, queryOne, closePool } from "./db";
+import { Client, type QueryResultRow } from "pg";
+import { sslOption } from "./db";
 
 const SQL = readFileSync(join(__dirname, "../supabase/migrations/029_mastery_recompute.sql"), "utf8");
+const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+async function query<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []): Promise<T[]> {
+  return (await client.query<T>(text, params)).rows;
+}
+async function queryOne<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []): Promise<T | null> {
+  return (await query<T>(text, params))[0] ?? null;
+}
 const run = Date.now().toString(36);
 const user = randomUUID();
 const track = randomUUID();
@@ -46,6 +60,8 @@ const snapshot = async () => ({
 });
 
 before(async () => {
+  await client.connect();
+  await client.query("begin");
   await query(`insert into app_users (id, email) values ($1, $2)`, [user, `rc-${run}@example.test`]);
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'RC', 'certification', $3)`, [
     track,
@@ -87,12 +103,10 @@ before(async () => {
   assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from mastery_backup_029 where user_id = $1`, [user]))!.n, 0);
 });
 
+// Rolls back the fixture, every 029 re-run and the restore together.
 after(async () => {
-  await query(`delete from mastery_backup_029 where user_id = $1`, [user]);
-  await query(`delete from error_log_backup_029 where user_id = $1`, [user]);
-  await query(`delete from app_users where id = $1`, [user]);
-  await query(`delete from subject_tracks where id = $1`, [track]);
-  await closePool();
+  await client.query("rollback");
+  await client.end();
 });
 
 describe("029 recompute", () => {
@@ -136,8 +150,9 @@ describe("029 recompute", () => {
     assert.deepEqual(second, first);
   });
 
-  // For a later rule change (B4): replace mastery_from_attempts, then call
-  // recompute_mastery() again. It must reuse the same rule and never write the backup.
+  // For a later rule change (B4, migration 031): replace mastery_from_attempts,
+  // then call recompute_mastery() again. It must reuse the same rule and never
+  // write the backup.
   test("recompute_mastery() can be called again on its own: same rule, no backup writes, 0 changes when current", async () => {
     const backupBefore = await query(`select * from mastery_backup_029 where user_id = $1 order by mastery_id`, [user]);
     await query(`update mastery set status = 'Transfer-ready', score_0_4 = 4 where user_id = $1 and objective_id = $2`, [user, o.repeat]);
@@ -150,7 +165,12 @@ describe("029 recompute", () => {
 
   test("the documented restore puts the old levels back", async () => {
     const header = SQL.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
-    const restore = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1).join("\n");
+    const block = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1);
+    assert.equal(block[0], "begin;");
+    assert.equal(block[block.length - 1], "commit;");
+    // Run the body only: its own commit would end this file's transaction and
+    // commit everything after it, the 029 rule included.
+    const restore = block.slice(1, -1).join("\n");
     assert.match(restore, /update mastery m/);
     await query(restore);
     assert.equal(await status(o.oneSitting), "Transfer-ready");

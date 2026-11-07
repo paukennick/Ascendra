@@ -925,6 +925,150 @@
       "prevention_rules": [],
       "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-076",
+      "date": "2026-11-07",
+      "title": "029 recompute test committed the old mastery rule into the shared test database",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "After migration 031, mastery tests saw 029 levels (Independent where 031 gives Transfer-ready) and pg_proc showed 029's mastery_from_attempts installed",
+      "how_detected": "test (mastery-model.dbtest failed intermittently; pg_proc check)",
+      "root_cause": "mastery-recompute.dbtest re-runs the 029 file, which CREATE OR REPLACEs mastery_from_attempts with the 029 rule and commits it for every parallel test file; wrapping it in a transaction was not enough because the documented restore block it executes contains its own begin/commit, which committed the outer transaction early",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/lib/mastery-recompute.dbtest.ts"
+      ],
+      "fix_summary": "The 029 test runs on one dedicated connection inside one transaction rolled back in after(); the restore block is executed without its begin/commit lines (asserted present); a schema probe fails if mastery_from_attempts is not the 031 version",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::029 recompute",
+        "backend/lib/schema-status.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any test that re-runs an older migration must run it in a rolled-back transaction and strip embedded transaction control; the 031 probe makes a reverted rule fail migrate --status and /api/health",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-077",
+      "date": "2026-11-07",
+      "title": "Mastery depth came from one question type only",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "PBQs and multiple choice never influenced mastery, and two spaced Solo free responses made Transfer-ready: depth was measured on words only",
+      "how_detected": "owner request 2026-11-07",
+      "root_cause": "The 029 rule counted only unassisted Solo free-response successes; PBQ attempts have no objective so they were excluded entirely, and there was no notion of accuracy, assistance credit, spacing weight or decay",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Migration 031: weighted-accuracy model over every assessment type with tunable weights; graded PBQs recompute the unit's studied objectives live",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-model.dbtest.ts::weighted mastery model (031)",
+        "backend/lib/mastery-integrity.dbtest.ts::1. Guided work does not earn Independent or Transfer-ready"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every weight and threshold lives in mastery_model_params / assessment_types; DB tests pin one-format, one-sitting, assisted, spacing and decay behaviour",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-078",
+      "date": "2026-11-07",
+      "title": "Exam readiness could not tell unpracticed from weak and showed a score on thin evidence",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Readiness was the blueprint-weighted share of objectives at Independent or above; a learner with a few perfect answers and the rest unpracticed got the same kind of number as a learner who had tried everything",
+      "how_detected": "owner request 2026-11-07",
+      "root_cause": "examReadiness (mobile) used only mastered counts per unit; no coverage, no accuracy, no evidence gate",
+      "requirement": "REQ-100",
+      "affected": [
+        "mobile/src/lib/progress.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "Server-side readiness (lib/readiness.ts) from per-objective weighted evidence, blueprint-weighted, with coverage and accuracy separate and a coverage gate; plain-language display on the dashboard and mastery matrix",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/readiness.test.ts",
+        "backend/lib/mastery-model.dbtest.ts::course readiness (blueprint-weighted",
+        "coverage-gated)",
+        "mobile/src/lib/progress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Status is not_enough_evidence below readiness_min_coverage and the app shows no percentage then",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-079",
+      "date": "2026-11-07",
+      "title": "Coach could give away answers to unanswered items and took learner text as instructions",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Ask the coach would answer the open Solo or PBQ question outright if asked, and the learner message went to the model unfenced",
+      "how_detected": "owner request 2026-11-07",
+      "root_cause": "The chat route knew nothing about the learner's open items and sent the message as a bare user turn; the prompt had no rule against solving ungraded work",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/app/api/chat/route.ts",
+        "backend/lib/prompts.ts"
+      ],
+      "fix_summary": "lib/coach-guard.ts finds open lesson, PBQ and review items server-side, names them to the model by question only, fences learner turns, adds on-topic and encouraging-tone rules, and checks the reply against open answer keys with one retry then a server-written hint",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/coach-guard.test.ts",
+        "backend/lib/coach-guard.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Answer keys never enter the chat prompt; tests use a mocked model client so they run without an API key",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-080",
+      "date": "2026-11-07",
+      "title": "Lesson screen copy still describes the 029 Transfer-ready rule",
+      "status": "open",
+      "severity": "low",
+      "symptom": "Lesson screen (line ~582) tells an Independent learner to come back tomorrow and answer a fresh question to reach Transfer-ready; under 031 that needs a second format (e.g. a PBQ) on a separate day",
+      "how_detected": "review (grep for rule text after 031)",
+      "root_cause": "The hint text was written for the 029 rule; the lesson screen is owned by a parallel batch (REQ-101) and was deliberately not edited here",
+      "requirement": "REQ-100",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Copy change belongs to the lesson-screen batch; handed off to the lead",
+      "prevention_rules": [],
+      "prevention_notes": "When a mastery rule changes, grep the app for user-facing text that restates it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-081",
+      "date": "2026-11-07",
+      "title": "One unidentified DB test failure in one full run, not reproduced",
+      "status": "open",
+      "severity": "low",
+      "symptom": "npm run test:db reported 116/117 once (first run after a fresh migrate and double seed); the failing test name was not captured, and 13 later full runs (including one from a fresh database) passed 117/117",
+      "how_detected": "test",
+      "root_cause": "Unknown. Candidates: row locks taken by tests that re-run a migration's global recompute inside a transaction (029 test, 031 re-run test) colliding with parallel test files; the 031 re-run test was changed to tune a parameter no level depends on to shrink that window",
+      "requirement": "REQ-100",
+      "affected": [
+        "backend/lib/mastery-recompute.dbtest.ts",
+        "backend/lib/mastery-model.dbtest.ts"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Not reproduced; capture the TAP log on the next occurrence",
+      "prevention_rules": [],
+      "prevention_notes": "Run test:db with output saved so a one-off failure can be named",
+      "recurrence_of": ""
     }
   ]
 }

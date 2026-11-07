@@ -97,6 +97,33 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'error_log' and column_name = 'pbq_scenario_id'
           ) as ok`,
   },
+  {
+    migration: "031_weighted_mastery.sql",
+    what: "mastery_model_params and assessment_types tables, seeded (mastery weights and thresholds)",
+    sql: `select exists(select 1 from mastery_model_params where name = 'transfer_accuracy')
+             and exists(select 1 from assessment_types where type_name = 'pbq') as ok`,
+  },
+  {
+    migration: "031_weighted_mastery.sql",
+    what: "mastery_detail() function (course readiness, every graded answer)",
+    sql: `select to_regprocedure('public.mastery_detail(uuid,uuid)') is not null as ok`,
+  },
+  {
+    // Re-running an older migration file (029) would put its rule back while
+    // every object still exists; this catches that.
+    migration: "031_weighted_mastery.sql",
+    what: "mastery_from_attempts() uses the weighted model (031), not the 029 rule",
+    sql: `select coalesce(bool_and(prosrc like '%mastery_detail%'), false) as ok
+            from pg_proc where proname = 'mastery_from_attempts'`,
+  },
+  {
+    migration: "031_weighted_mastery.sql",
+    what: "attempts.assessment_type column (new assessment types)",
+    sql: `select exists(
+            select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'attempts' and column_name = 'assessment_type'
+          ) as ok`,
+  },
 ];
 
 export interface SchemaStatus {
