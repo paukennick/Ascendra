@@ -3889,6 +3889,40 @@
         "Legal text remains a draft for a lawyer",
         "expo-notifications needs a new native build; device check required"
       ]
+    },
+    {
+      "id": "REQ-120",
+      "category": "fix",
+      "title": "One model call per submission on the remaining graded routes",
+      "description": "Apply withGradingClaim (lib/grading-claims.ts) to every graded route that takes a clientAttemptId and bills a model call beyond /api/grade, /api/pbq and review answers: unit check, explain-back and lab report. Keep each route's replay binding on the claim's replay path. Comparison-card and coach quiz answers make no model call and are left as they are. Fix the deploy runbook 046 row (step 1a).",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/unit-check.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/lib/grading-claims-rest.dbtest.ts",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "20 simultaneous identical submissions make exactly 1 model call and 1 attempt on each route",
+        "Every copy answers 200 with the same result or the documented in-progress 409",
+        "A replay of the id on a different item is still refused"
+      ],
+      "validation_required": [
+        "npm run test:db (fresh DB)",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "Lab report keeps its existing 400 (not 409) for an id reused on another lab"
+      ]
     }
   ]
 }

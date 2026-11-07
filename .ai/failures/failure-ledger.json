@@ -6993,6 +6993,75 @@
       ],
       "prevention_notes": "The course line is built from credential_providers data, so a new vendor is named without a code change; TRADEMARK_OWNERS should be updated with the catalog.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-430",
+      "date": "2026-11-07",
+      "title": "Racing copies of one unit check submission each called the model",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "20 simultaneous copies of one clientAttemptId on the unit check route made 20 model calls for 1 stored attempt.",
+      "how_detected": "Follow-up to FAIL-359 (REQ-117)",
+      "root_cause": "The replay check ran before any claim, so every copy reached the grader; REQ-117's grading claim covered only /api/grade, /api/pbq and review answers.",
+      "requirement": "REQ-120",
+      "affected": [
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "withGradingClaim around rate limit, grading and recording; waiters replay the stored result through the route's own replay binding.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/grading-claims-rest.dbtest.ts::FAIL-430"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any new graded route that takes a clientAttemptId and calls the model goes through withGradingClaim.",
+      "recurrence_of": "FAIL-359"
+    },
+    {
+      "id": "FAIL-431",
+      "date": "2026-11-07",
+      "title": "Racing copies of one explain-back submission each called the model",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "20 simultaneous copies of one clientAttemptId on the explain-back route made 20 model calls for 1 stored attempt.",
+      "how_detected": "Follow-up to FAIL-359 (REQ-117)",
+      "root_cause": "The replay check ran before any claim, so every copy reached the grader; REQ-117's grading claim covered only /api/grade, /api/pbq and review answers.",
+      "requirement": "REQ-120",
+      "affected": [
+        "backend/app/api/objectives/[id]/explain-back/route.ts"
+      ],
+      "fix_summary": "withGradingClaim around rate limit, grading and recording; waiters replay the stored result through the route's own replay binding.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/grading-claims-rest.dbtest.ts::FAIL-431"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any new graded route that takes a clientAttemptId and calls the model goes through withGradingClaim.",
+      "recurrence_of": "FAIL-359"
+    },
+    {
+      "id": "FAIL-432",
+      "date": "2026-11-07",
+      "title": "Racing copies of one lab report submission each called the model",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "20 simultaneous copies of one clientAttemptId on the lab report route made 20 model calls for 1 stored attempt.",
+      "how_detected": "Follow-up to FAIL-359 (REQ-117)",
+      "root_cause": "The replay check ran before any claim, so every copy reached the grader; REQ-117's grading claim covered only /api/grade, /api/pbq and review answers.",
+      "requirement": "REQ-120",
+      "affected": [
+        "backend/app/api/objectives/[id]/lab/report/route.ts"
+      ],
+      "fix_summary": "withGradingClaim around rate limit, grading and recording; waiters replay the stored result through the route's own replay binding.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/grading-claims-rest.dbtest.ts::FAIL-432"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any new graded route that takes a clientAttemptId and calls the model goes through withGradingClaim.",
+      "recurrence_of": "FAIL-359"
     }
   ]
 }

@@ -46,7 +46,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 044 | auth hardening columns and two `auth_events` indexes (REQ-116); apply BEFORE the backend deploy (see below) | not timed on the fixture | no | builds indexes on `auth_events` |
 | 045 | Audit 3 mastery rule, `review_state()`, `grading_claims`, two partial indexes on attempts (REQ-117) | 3.7 s | no | reads ≤ 13 ms; attempt inserts waited up to 2.5 s while the indexes built |
 | **045b** | backup to `mastery_backup_045`, recompute under 045 | **370 s** | **yes** | ≤ 54 ms / ≤ 770 ms, none failed |
-| 046 | nine performance indexes (REQ-118). **Build them CONCURRENTLY first** (step 1a); then the migration only records the file | under 1 s after step 2a (6 s of index builds on the fixture) | no, after step 1a | a plain build blocks attempt inserts while it runs |
+| 046 | nine performance indexes (REQ-118). **Build them CONCURRENTLY first** (step 1a); then the migration only records the file | under 1 s after step 1a (6 s of index builds on the fixture) | no, after step 1a | a plain build blocks attempt inserts while it runs |
 | 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 | 048 | REQ-119: `terms_acceptances`, `learner_onboarding` (existing accounts marked past first run), `learner_events` with AFTER triggers on attempts, lesson_progress, review_sessions, exam_sessions, placement_checks, and `exam_outcomes` | not timed on the fixture (one insert per account for the backfill) | no | (instant SHARE ROW EXCLUSIVE per trigger, 5 s lock_timeout) |
 
