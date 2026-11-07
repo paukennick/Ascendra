@@ -353,7 +353,7 @@ const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // 2023-11-07; max 90 questions, multiple choice and performance-based; 90
 // minutes; pass 750 on 100-900; domains 12/22/18/28/20. The page states
 // English retires 2027-06-11 (Japanese, Portuguese, Spanish, Thai on
-// 2027-08-13), so 'transitioning' like AWSDVA/AWSANS.
+// 2027-08-13), so 'transitioning' like AWSANS (AWSDVA has since moved to DVA-C03).
 //
 // Successor: Security+ V8 (SY0-801), launching 2026-11-17 per
 // https://www.comptia.org/en-us/certifications/security/v8/ -- same 90

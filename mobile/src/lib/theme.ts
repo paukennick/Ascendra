@@ -140,6 +140,7 @@ export const trackTypeIcon: Record<string, string> = {
 export const courseEmoji: Record<string, string> = {
   MSCS: "🎓",
   SECPLUS: "🔐",
+  SECPLUSV8: "🔐",
   PYTHON: "🐍",
   JAVASCRIPT: "⚡",
   LINUXPLUS: "🐧",
@@ -152,6 +153,7 @@ export const courseEmoji: Record<string, string> = {
 export const courseAccent: Record<string, string> = {
   MSCS: "#4B4CBE",
   SECPLUS: "#B14A3D",
+  SECPLUSV8: "#B14A3D",
   PYTHON: "#2E7D5B",
   JAVASCRIPT: "#A5760B",
   LINUXPLUS: "#3D5A73",
