@@ -2,19 +2,30 @@
 -- backfills, the first recompute) is in 029b_mastery_backfill.sql, which the
 -- runner applies straight after this file in its own transaction.
 --
--- DEPLOY ORDER (read before running):
---   1. npm run migrate -- --all      (applies 029, then 029b)
---   2. deploy the backend code
---   3. after deploying the code, run `select recompute_mastery()` once.
---      Between steps 1 and 2 the old code is still grading: it writes
---      attempts with assisted = false and overwrites mastery with its
---      latest-answer rule. The rule below does not trust a stored
---      assisted = false for repeats (it reads them from history), and every
---      later grade recomputes the pair, so this one call only catches pairs
---      the old code touched in the gap and nobody has graded since.
+-- DEPLOY ORDER: follow docs/deploy-runbook-mastery.md, step by step. In
+-- short: apply 029, apply 029b (both with `npm run migrate -- --all`), deploy
+-- the backend, run `call recompute_mastery_batched();`, publish the app
+-- update, verify. The rollback order is in the same file.
+--
+-- THE DEPLOY GAP (between 029b and the backend deploy) and what is trusted.
+-- Until the new backend is live, the old code is still grading: it takes the
+-- question, the taught text and the kind from the app, writes attempts with
+-- assisted = false, and overwrites mastery with its latest-answer rule. So:
+--   - Only kind = 'lesson' attempts are evidence (FAIL-182). A row of any
+--     other kind ('quiz' and the like, which the old route accepted from the
+--     app and the new one refuses) never counts, even with stage 'solo'.
+--   - Repeats are read from history, not from attempts.assisted.
+--   - Pre-029 history, and lesson rows the old code writes in the gap, are
+--     trusted as they are: a learner who sent the old route a crafted
+--     'lesson' answer can keep the level it earns. Nothing in the data tells
+--     those rows apart from honest ones. Keep the gap short (minutes: deploy
+--     straight after 029b), or pause grading for it, and run the batched
+--     recompute after the deploy, which re-derives every pair the old code
+--     touched.
 -- ROLLBACK: rolling the backend back also needs an over-the-air rollback of
 -- the app (a new app against the old backend gets 400 on every grade: the
 -- old route requires the question and answer key the new app no longer has).
+-- See the runbook for the order.
 --
 -- What was wrong (audit, teaching quality): a correct answer on the Guided
 -- ("fade") step, which is mostly worked through for the learner, earned
@@ -23,12 +34,14 @@
 -- correct option had been shown; looking at the choices hint and then typing
 -- the answer counted as unassisted; and status came from the latest answer
 -- alone. Live grading uses mastery_from_attempts() below, and 029b and
--- recompute_mastery() use the same function, so they cannot disagree.
+-- recompute_mastery() / recompute_mastery_batched() use the same function, so
+-- they cannot disagree.
 --
--- THE RULE (mastery_from_attempts). Evidence for an objective is every graded,
--- non-PBQ attempt on it (PBQ answers belong to a unit, not an objective, and
--- never count). "Unassisted Solo success" = stage 'solo', free response,
--- verdict correct, and none of these:
+-- THE RULE (mastery_from_attempts). Evidence for an objective is every graded
+-- kind = 'lesson', non-PBQ attempt on it (PBQ answers belong to a unit, not an
+-- objective, and never count; other kinds never count either -- see above).
+-- "Unassisted Solo success" = stage 'solo', free response, verdict correct,
+-- and none of these:
 --   - attempts.assisted is true (the hint was shown, or it was multiple choice)
 --   - the learner answered the same item (same stage and question) earlier:
 --     a repeat. Read from history here, not from attempts.assisted, so an
@@ -110,7 +123,7 @@ language sql stable as $$
                  and h.revealed_at <= x.created_at)) as solo_win
       from attempts x
      where x.user_id = p_user and x.objective_id = p_objective
-       and x.format <> 'pbq' and x.verdict is not null
+       and x.kind = 'lesson' and x.format <> 'pbq' and x.verdict is not null
   ), s as (
     select count(*) as n,
            count(*) filter (where verdict = 'correct') as n_correct,
@@ -146,39 +159,142 @@ language sql stable as $$
     from st
 $$;
 
--- recompute_mastery() re-derives stored mastery through
--- mastery_from_attempts(), the one function that decides a level (live
--- grading calls it too). It visits every pair with graded non-PBQ attempts
--- AND every existing mastery row, so a level with no evidence behind it
--- (the old self-set override, or a row whose only evidence was PBQ) drops to
--- what the rule gives for no evidence: Not started. A later rule change
--- replaces mastery_from_attempts() with CREATE OR REPLACE and then runs
--- `select recompute_mastery();` -- taking its own backup first; this
--- function never touches mastery_backup_029. Pass a user id to recompute one
--- learner. Returns the number of rows that changed (0 on a re-run).
-create or replace function recompute_mastery(p_user uuid default null)
-returns int language sql volatile as $$
-  with changed as (
-    insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
-    select p.user_id, p.objective_id, m.status, m.score, m.evidence, now()
-      from (select user_id, objective_id
-              from attempts
-             where user_id is not null and objective_id is not null
-               and format <> 'pbq' and verdict is not null
-               and (p_user is null or user_id = p_user)
-            union
-            select user_id, objective_id
-              from mastery
-             where user_id is not null and objective_id is not null
-               and (p_user is null or user_id = p_user)) p
-      cross join lateral mastery_from_attempts(p.user_id, p.objective_id) m
-    on conflict (user_id, objective_id) do update
-       set status = excluded.status, score_0_4 = excluded.score_0_4,
-           evidence = excluded.evidence, updated_at = now()
-     where mastery.status is distinct from excluded.status
-        or mastery.score_0_4 is distinct from excluded.score_0_4
-        or mastery.evidence is distinct from excluded.evidence
-    returning 1
-  )
-  select count(*)::int from changed
+-- RECOMPUTE. recompute_mastery() and recompute_mastery_batched() re-derive
+-- stored mastery through mastery_from_attempts(), the one function that
+-- decides a level (live grading calls it too). They visit every pair with
+-- graded lesson attempts AND every existing mastery row, so a level with no
+-- evidence behind it (the old self-set override, or a row whose only evidence
+-- was PBQ) drops to what the rule gives for no evidence: Not started. A later
+-- rule change replaces mastery_from_attempts() with CREATE OR REPLACE and then
+-- runs `call recompute_mastery_batched();` -- taking its own backup first;
+-- neither touches mastery_backup_029.
+--
+-- Safe under live grading (FAIL-118). The grader (recordAttemptTx in
+-- backend/lib/grading-service.ts) holds pg_advisory_xact_lock(grade_lock_key)
+-- while it inserts the attempt and rewrites the pair's mastery. Each pair here
+-- is decided under that same lock, in a statement started after the lock was
+-- granted, so it sees every grade committed before it and never writes a
+-- level computed without one. (The first version computed every pair from one
+-- snapshot taken when the statement started and upserted without the lock: a
+-- grade committed during the run was overwritten with the level from before
+-- it -- 245 of 290 such grades in the review's race test.) A grade that starts
+-- after this pair is written waits on the row lock until the batch commits and
+-- then writes its own, newer level.
+--
+-- Unchanged rows are skipped before any lock (FAIL-180): a pair whose stored
+-- row already equals the rule is not written and not row-locked, so a re-run
+-- touches nothing. The advisory lock is taken and released per pair (session
+-- level), so at most one is held at a time whatever the number of rows.
+
+-- Same key as the grader: hashtext('grade:<user id>:<objective id>') with
+-- both ids in canonical lowercase text (gradeLockName() in grading-service.ts).
+create or replace function grade_lock_key(p_user uuid, p_objective uuid)
+returns int language sql immutable as $$
+  select hashtext('grade:' || lower(p_user::text) || ':' || lower(p_objective::text))
 $$;
+
+-- Re-derives one pair. Returns 1 if the stored row changed, else 0.
+create or replace function recompute_mastery_pair(p_user uuid, p_objective uuid)
+returns int language plpgsql volatile as $$
+declare
+  k int := grade_lock_key(p_user, p_objective);
+  m record;
+  changed int := 0;
+begin
+  -- Cheap pre-check without any lock: most rows are already current.
+  if exists (
+    select 1 from mastery x, mastery_from_attempts(p_user, p_objective) f
+     where x.user_id = p_user and x.objective_id = p_objective
+       and x.status = f.status and x.score_0_4 = f.score and x.evidence = f.evidence) then
+    return 0;
+  end if;
+  perform pg_advisory_lock(k);
+  -- New statement, new snapshot: taken after the lock, so any grade of this
+  -- pair has committed (or not started).
+  select f.status, f.score, f.evidence into m from mastery_from_attempts(p_user, p_objective) f;
+  insert into mastery (user_id, objective_id, status, score_0_4, evidence, updated_at)
+  values (p_user, p_objective, m.status, m.score, m.evidence, now())
+  on conflict (user_id, objective_id) do update
+     set status = excluded.status, score_0_4 = excluded.score_0_4,
+         evidence = excluded.evidence, updated_at = now()
+   where mastery.status is distinct from excluded.status
+      or mastery.score_0_4 is distinct from excluded.score_0_4
+      or mastery.evidence is distinct from excluded.evidence;
+  get diagnostics changed = row_count;
+  perform pg_advisory_unlock(k);
+  return changed;
+end $$;
+
+-- Every pair the recompute visits, in a stable order.
+create or replace function mastery_pairs(p_user uuid default null)
+returns table (user_id uuid, objective_id uuid) language sql stable as $$
+  select a.user_id, a.objective_id
+    from attempts a
+   where a.user_id is not null and a.objective_id is not null
+     and a.kind = 'lesson' and a.format <> 'pbq' and a.verdict is not null
+     and (p_user is null or a.user_id = p_user)
+  union
+  select m.user_id, m.objective_id
+    from mastery m
+   where m.user_id is not null and m.objective_id is not null
+     and (p_user is null or m.user_id = p_user)
+  order by 1, 2
+$$;
+
+-- One transaction (what 029b and the tests use). Pass a user id to recompute
+-- one learner. Returns the number of rows that changed (0 on a re-run). Rows
+-- it changes stay row-locked until the caller commits; for a whole database
+-- after deploy use recompute_mastery_batched() instead.
+create or replace function recompute_mastery(p_user uuid default null)
+returns int language plpgsql volatile as $$
+declare
+  r record;
+  n int := 0;
+begin
+  for r in select * from mastery_pairs(p_user) loop
+    n := n + recompute_mastery_pair(r.user_id, r.objective_id);
+  end loop;
+  return n;
+exception when others then
+  -- A session-level advisory lock outlives a rollback; never leave one held.
+  perform pg_advisory_unlock_all();
+  raise;
+end $$;
+
+-- The whole database in committed batches: `call recompute_mastery_batched();`
+-- (psql or the Supabase SQL editor, outside a transaction block -- CALL with
+-- COMMIT inside fails in one). Each batch of p_batch pairs commits on its own,
+-- so the row locks it takes are held only for that batch. Progress is printed
+-- as NOTICEs; safe to stop and run again (finished batches stay done, and a
+-- re-run skips current rows).
+create or replace procedure recompute_mastery_batched(p_batch int default 500, p_user uuid default null)
+language plpgsql as $$
+declare
+  v_total int;
+  v_from int := 0;
+  v_changed int := 0;
+  v_n int;
+begin
+  drop table if exists pg_temp.recompute_mastery_todo;
+  create temp table recompute_mastery_todo as
+    select (row_number() over ())::int as n, p.user_id, p.objective_id from mastery_pairs(p_user) p;
+  alter table recompute_mastery_todo add primary key (n);
+  select count(*) into v_total from recompute_mastery_todo;
+  commit;
+  while v_from < v_total loop
+    begin
+      select coalesce(sum(recompute_mastery_pair(t.user_id, t.objective_id)), 0)::int into v_n
+        from recompute_mastery_todo t
+       where t.n > v_from and t.n <= v_from + p_batch;
+    exception when others then
+      perform pg_advisory_unlock_all();
+      raise;
+    end;
+    v_changed := v_changed + v_n;
+    v_from := v_from + p_batch;
+    commit;
+    raise notice 'recompute_mastery_batched: % of % pairs checked, % rows changed', least(v_from, v_total), v_total, v_changed;
+  end loop;
+  drop table if exists pg_temp.recompute_mastery_todo;
+  commit;
+end $$;

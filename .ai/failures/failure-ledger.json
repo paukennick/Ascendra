@@ -1289,6 +1289,58 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-118",
+      "date": "2026-11-07",
+      "title": "recompute_mastery() overwrote grades committed during the run",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "In the review's race test 245 of 290 grades committed while recompute_mastery() ran were overwritten with the level from before the grade (local re-run: 312/312 lock-less, 297/297 with the grader's lock).",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The recompute was one INSERT ... SELECT: every pair was computed from the snapshot taken when the statement started, and the upsert took no per-pair grading lock, so a grade committed after the snapshot was replaced with a level computed without it.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "recompute_mastery_pair() decides each pair under the grader's advisory lock (grade_lock_key(), same derivation as gradeLockName() with lowercase ids), in a statement started after the lock; recompute_mastery() loops it in one transaction (029b, tests) and the new procedure recompute_mastery_batched() commits every 500 pairs. Race re-run: 0 stale of 385-400 grades in every variant.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute-race.dbtest.ts::a grade committed while recompute_mastery() runs keeps its level",
+        "backend/lib/mastery-recompute-race.dbtest.ts::a grade committed while call recompute_mastery_batched() runs keeps its level",
+        "backend/lib/mastery-recompute-race.dbtest.ts::the lock key matches the grader's",
+        "including upper-case ids"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any bulk writer of a table the grader writes takes the grader's per-pair lock and reads after acquiring it; covered by a two-connection DB test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-119",
+      "date": "2026-11-07",
+      "title": "Skipping 029b passed every schema check",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A database with 029 applied and 029b skipped reported current in npm run migrate -- --status and /api/health, with every learner still on the old levels.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "Schema probes only checked objects 029 creates; 029b is data work and nothing probed for it, and nothing compared stored levels with the rule.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/schema-status.ts",
+        "backend/supabase/apply-migration.ts"
+      ],
+      "fix_summary": "Probe on mastery_backup_029 tagged 029b_mastery_backfill.sql (status, migrationsToApply, /api/health); --status also prints how many stored levels differ from mastery_from_attempts() and how many graded pairs have no row (informational). mastery_from_attempts probe now checks the kind = 'lesson' version; new probe for recompute_mastery_batched/grade_lock_key.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute-race.dbtest.ts::a database without 029b's backup table is reported as missing 029b",
+        "backend/lib/mastery-recompute-race.dbtest.ts::--status counts stored levels that differ from the rule"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A data-only migration gets a probe on an object it creates, and the pre-completion checklist already requires a probe per migration the code depends on.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-130",
       "date": "2026-11-07",
       "title": "New CS0-003 superseded check assumed a CS0-003 exam row exists on a fresh database",
@@ -1360,6 +1412,222 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "The catalog-wide test fails any future version change that reuses a domain name without renaming the outgoing unit; confirmed it fails when the suffix is removed.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-180",
+      "date": "2026-11-07",
+      "title": "Recompute row-locked and rewrote every mastery row",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Every recompute_mastery() call row-locked every existing mastery row, even rows already equal to the rule, so a re-run blocked grades for its whole duration.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "INSERT ... ON CONFLICT DO UPDATE ... WHERE locks the conflicting row even when the WHERE skips the update.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql"
+      ],
+      "fix_summary": "recompute_mastery_pair() compares the stored row with the rule first, without any lock, and returns when equal; only differing pairs take the lock and are written. No-op re-run on the fixture: 12 s, 0 rows locked.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute-race.dbtest.ts::a recompute with nothing to change finishes while every row is locked elsewhere"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Bulk upserts check for a difference before writing; ON CONFLICT ... WHERE is not a no-lock skip.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-181",
+      "date": "2026-11-07",
+      "title": "029b header understated the mastery row locks",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The 029b header said it locked only the mastery rows the recompute changed; on the review's fixture it locked every mastery row, and its timing omitted that a grade of a locked row waits until commit.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The lock description was written from the intended behaviour (WHERE skips unchanged rows), not measured; ON CONFLICT DO UPDATE locks skipped rows too.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "docs/deploy-runbook-mastery.md"
+      ],
+      "fix_summary": "With FAIL-180, unchanged rows are not locked; header and runbook now state that a first run still changes (and locks) nearly every row, re-measured 58 s on the 1.9M-attempt fixture with reads <=21 ms, inserts <=135 ms, and mastery writes to changed rows waiting for the commit; recommend a quiet window.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Documentation of measured lock behaviour; the skip itself is tested by FAIL-180's test and the timing needs the 1.9M-row fixture (scratchpad probe.cjs), too large for test:db.",
+      "prevention_rules": [],
+      "prevention_notes": "Lock and timing claims in a migration header come from a run with a concurrent probe on a production-sized fixture.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-182",
+      "date": "2026-11-07",
+      "title": "Deploy gap: attempts of any kind counted as mastery evidence",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The review's gap.sql: a forged kind=quiz Solo success two days old plus one lesson Solo success written by the old code in the gap made Transfer-ready after the recompute.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "mastery_from_attempts() filtered only format <> 'pbq'; the old grade route accepted kind from the app, so any kind of row with stage solo counted.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "Evidence (and the recompute's pair list) requires kind = 'lesson'; the 029 header documents that pre-029 history and gap rows are trusted as-is and that grading should be paused or the gap kept short; the schema probe checks for the new version.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute-race.dbtest.ts::a forged other-kind row does not make Transfer-ready",
+        "backend/lib/mastery-recompute-race.dbtest.ts::an objective with only other-kind attempts has no evidence"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Evidence rules name every column that identifies what an attempt was, not only the ones that excluded known cases.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-183",
+      "date": "2026-11-07",
+      "title": "No single deploy and rollback order for 029/029b",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The deploy order lived in a migration header, missed the app update, the Vercel auto-deploy on merge, the post-deploy recompute and verification, and gave no rollback order.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "Each review round added a step to the 029 header; no runbook owned the full sequence across database, Vercel and EAS.",
+      "requirement": "REQ-097",
+      "affected": [
+        "docs/deploy-runbook-mastery.md",
+        "README.md",
+        "backend/supabase/migrations/029_mastery_recompute.sql"
+      ],
+      "fix_summary": "docs/deploy-runbook-mastery.md: check status, apply 029 then 029b before merging (Vercel deploys master on merge), deploy backend, call recompute_mastery_batched(), publish the OTA update, verify health and status counts; reverse rollback order; cleanup. Linked from the 029 header and the README.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Operational document; its commands are exercised by test:db (migrate, recompute_mastery_batched, restore) and migrate --status.",
+      "prevention_rules": [],
+      "prevention_notes": "A release that spans database, backend and app ships one runbook with forward and rollback order.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-184",
+      "date": "2026-11-07",
+      "title": "No adversarial cases in the grading eval",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "grading-cases.json had no prompt-injection, fence-breaking, restated-question, empty, irrelevant or other-language answers, so the fence fix (FAIL-113) was never checked against the live grader.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The eval set was written for grading accuracy on honest answers only.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/scripts/eval/grading-cases.json",
+        "backend/scripts/eval/scoring.test.ts"
+      ],
+      "fix_summary": "13 adversarial cases (adv-01..adv-13) with expected verdicts; not yet run against the live model (no API key here).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/eval/scoring.test.ts::has at least 10 adversarial cases covering injection",
+        "fence breaks",
+        "restated",
+        "empty",
+        "irrelevant and other-language answers"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Prompt-boundary fixes add eval cases that attack the boundary.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-185",
+      "date": "2026-11-07",
+      "title": "029b restore unsafe statement by statement and rewrote identical rows",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The documented restore re-wrote rows that already held their backed-up values and was only described as a begin/commit block.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The update had no is-distinct-from check, and nothing said whether its statements could be run alone or again.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql"
+      ],
+      "fix_summary": "The update skips rows already equal to the backup; the header states each statement is complete on its own and safe in either order and on a re-run.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::the restore statements run one at a time",
+        "twice",
+        "and skip identical rows"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Documented manual SQL is idempotent per statement and run by a test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-186",
+      "date": "2026-11-07",
+      "title": "Production could run without CHOICE_ORDER_SECRET",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With CHOICE_ORDER_SECRET unset, production silently used a key derived from AUTH_JWT_SECRET.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The dev fallback had no environment guard.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/choice-order.ts",
+        "backend/.env.example"
+      ],
+      "fix_summary": "choiceOrderKey() throws a clear error on first use when NODE_ENV=production and CHOICE_ORDER_SECRET is unset; fallback kept for dev/tests; .env.example and the runbook say it is required.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/choice-order.test.ts::production requires CHOICE_ORDER_SECRET; development keeps the derived fallback"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Secrets with a dev fallback are required in production.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-187",
+      "date": "2026-11-07",
+      "title": "Account export omitted lesson_hint_reveals",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "GET /api/account/export did not include the learner's Solo hint reveals added by migration 029.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The new per-user table was not added to EXPORT_SECTIONS.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "lessonHintReveals section added.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts::includes the learner's Solo hint reveals"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new table with user_id gets an export section in the same change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-188",
+      "date": "2026-11-07",
+      "title": "029 backup tables had no drop date",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mastery_backup_029 and error_log_backup_029 kept learner data indefinitely with no documented cleanup.",
+      "how_detected": "PR#22-second-independent-review",
+      "root_cause": "The backup was designed for rollback but its lifetime was never stated.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "docs/deploy-runbook-mastery.md",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "029b header and runbook: drop both tables by hand after 30 days, in the same change that removes the 029b probe; not automatic.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A manual, dated cleanup step; dropping the tables in a test would remove the 029b probe target (covered by FAIL-119's test).",
+      "prevention_rules": [],
+      "prevention_notes": "Backup tables state their drop date where they are created.",
       "recurrence_of": ""
     }
   ]
