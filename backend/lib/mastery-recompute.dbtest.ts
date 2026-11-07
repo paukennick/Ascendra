@@ -1,8 +1,13 @@
-// REQ-097: migration 029 backs up mastery and review state, then recomputes
-// mastery from attempt history under the new rules. These run the migration
-// file itself (again -- CI already applied it to the empty database) over a
-// fixture written the way the old code left it, then run it a third time to
+// REQ-097: migration 029 (schema, the rule) and 029b (backup, backfill,
+// recompute) back up mastery and review state, then recompute mastery from
+// attempt history under the new rules. These run the migration files
+// themselves (again -- CI already applied them to the empty database) over a
+// fixture written the way the old code left it, then run them a third time to
 // prove a re-run changes nothing and never overwrites the backup.
+//
+// 029b recomputes EVERY learner's mastery, so test:db runs files one at a
+// time (--test-concurrency=1); run concurrently, it would rewrite other test
+// files' fixture rows mid-test.
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -10,7 +15,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { query, queryOne, closePool } from "./db";
 
-const SQL = readFileSync(join(__dirname, "../supabase/migrations/029_mastery_recompute.sql"), "utf8");
+const MIGRATIONS = join(__dirname, "../supabase/migrations");
+const SCHEMA_SQL = readFileSync(join(MIGRATIONS, "029_mastery_recompute.sql"), "utf8");
+const BACKFILL_SQL = readFileSync(join(MIGRATIONS, "029b_mastery_backfill.sql"), "utf8");
+// As the runner applies them: each file in its own transaction, 029 first.
+async function migrate() {
+  for (const sql of [SCHEMA_SQL, BACKFILL_SQL]) await query(`begin;\n${sql}\ncommit;`);
+}
 const run = Date.now().toString(36);
 const user = randomUUID();
 const track = randomUUID();
@@ -20,7 +31,18 @@ const scenario = randomUUID();
 // repeat:     Solo missed, then the same Solo item typed back correctly -> old code said Independent.
 // spaced:     two different Solo items answered correctly two days apart -> stays Transfer-ready.
 // mcOnly:     Solo answered as multiple choice -> Guided before and after.
-const o = { oneSitting: randomUUID(), repeat: randomUUID(), spaced: randomUUID(), mcOnly: randomUUID() };
+// selfSet:    Transfer-ready set by the old PUT override, no attempts -> Not started (FAIL-111).
+// pbqOnly:    a level whose only attempt on the objective was a PBQ -> Not started (PBQ isn't evidence).
+// noRow:      a graded attempt but no mastery row -> the recompute creates one.
+const o = {
+  oneSitting: randomUUID(),
+  repeat: randomUUID(),
+  spaced: randomUUID(),
+  mcOnly: randomUUID(),
+  selfSet: randomUUID(),
+  pbqOnly: randomUUID(),
+  noRow: randomUUID(),
+};
 
 async function attempt(objectiveId: string | null, stage: string | null, format: string, question: string, verdict: string, ago: string) {
   const r = await queryOne<{ id: string }>(
@@ -76,6 +98,17 @@ before(async () => {
   await attempt(o.mcOnly, "solo", "mc", "solo q", "correct", "1 hour");
   await setOld(o.mcOnly, "Guided", 2);
 
+  await setOld(o.selfSet, "Transfer-ready", 4);
+
+  await query(
+    `insert into attempts (user_id, unit_id, objective_id, kind, format, question, answer, verdict)
+     values ($1, $2, $3, 'pbq', 'pbq', 'S', 'a', 'correct')`,
+    [user, unit, o.pbqOnly]
+  );
+  await setOld(o.pbqOnly, "Independent", 3);
+
+  await attempt(o.noRow, "solo", "open", "solo q", "correct", "2 hours");
+
   // A missed PBQ's review entry from before 029: linked only through attempt_id.
   const pbqAttempt = await attempt(null, null, "pbq", "S", "partial", "2 days");
   await query(
@@ -97,13 +130,18 @@ after(async () => {
 
 describe("029 recompute", () => {
   test("backs up the old state first, then recomputes under the new rules", async () => {
-    await query(SQL);
+    await migrate();
 
     const backup = await query<{ objective_id: string; status: string; evidence: string }>(
-      `select objective_id, status, evidence from mastery_backup_029 where user_id = $1`,
+      `select objective_id, status, evidence from mastery_backup_029 where user_id = $1 and not created_by_029`,
       [user]
     );
-    assert.equal(backup.length, 4, "every mastery row is backed up");
+    assert.equal(backup.length, 6, "every mastery row is backed up");
+    const created = await query<{ objective_id: string }>(
+      `select objective_id from mastery_backup_029 where user_id = $1 and created_by_029`,
+      [user]
+    );
+    assert.deepEqual(created.map((c) => c.objective_id), [o.noRow], "the row the recompute created is marked");
     const backedUp = Object.fromEntries(backup.map((b) => [b.objective_id, b.status]));
     assert.equal(backedUp[o.oneSitting], "Transfer-ready", "backup holds the pre-recompute value");
     assert.equal(backedUp[o.repeat], "Independent");
@@ -114,6 +152,9 @@ describe("029 recompute", () => {
     assert.equal(await status(o.repeat), "Guided", "a resubmitted item is assisted");
     assert.equal(await status(o.spaced), "Transfer-ready", "genuinely spaced evidence keeps its level");
     assert.equal(await status(o.mcOnly), "Guided");
+    assert.equal(await status(o.selfSet), "Not started", "a self-set level with no evidence is dropped");
+    assert.equal(await status(o.pbqOnly), "Not started", "PBQ answers are not objective evidence");
+    assert.equal(await status(o.noRow), "Independent", "a missing row is created from its attempts");
 
     const repeatAttempt = await queryOne<{ assist_reason: string }>(
       `select assist_reason from attempts where user_id = $1 and objective_id = $2 and verdict = 'correct'`,
@@ -131,7 +172,7 @@ describe("029 recompute", () => {
 
   test("is idempotent: a second run changes nothing and keeps the original backup", async () => {
     const first = await snapshot();
-    await query(SQL);
+    await migrate();
     const second = await snapshot();
     assert.deepEqual(second, first);
   });
@@ -148,21 +189,58 @@ describe("029 recompute", () => {
     assert.deepEqual(await query(`select * from mastery_backup_029 where user_id = $1 order by mastery_id`, [user]), backupBefore);
   });
 
-  test("the documented restore puts the old levels back", async () => {
-    const header = SQL.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
+  // FAIL-114: the restore used to put every backed-up row back, rewinding
+  // progress made after the backup. Now it only restores rows untouched since,
+  // and removes the rows the recompute created.
+  test("the documented restore puts untouched levels back and leaves later progress alone", async () => {
+    const header = BACKFILL_SQL.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
     const restore = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1).join("\n");
     assert.match(restore, /update mastery m/);
+    // Real progress after the backup: a graded answer rewrote this row.
+    await query(
+      `update mastery set status = 'Guided', score_0_4 = 2, evidence = 'graded after 029', updated_at = now()
+        where user_id = $1 and objective_id = $2`,
+      [user, o.spaced]
+    );
     await query(restore);
     assert.equal(await status(o.oneSitting), "Transfer-ready");
-    assert.equal(await status(o.repeat), "Independent");
+    assert.equal(await status(o.selfSet), "Transfer-ready");
+    assert.equal(await status(o.pbqOnly), "Independent");
+    assert.equal(await status(o.spaced), "Guided", "progress after the backup is kept");
+    // The previous test's recompute_mastery() call changed this row after the backup too.
+    assert.equal(await status(o.repeat), "Guided");
+    assert.equal(await status(o.noRow), undefined, "the row the recompute created is gone, as before 029");
     // Re-running after a restore recomputes again, and the backup still holds
     // the original pre-029 values.
-    await query(SQL);
+    await migrate();
     assert.equal(await status(o.oneSitting), "Independent");
     const b = await queryOne<{ status: string }>(`select status from mastery_backup_029 where user_id = $1 and objective_id = $2`, [
       user,
       o.oneSitting,
     ]);
     assert.equal(b?.status, "Transfer-ready");
+  });
+
+  // FAIL-115: the backup tables had no link to app_users, so a deleted
+  // account's mastery and review history stayed behind in them.
+  test("deleting the account removes its backup rows", async () => {
+    const gone = randomUUID();
+    await query(`insert into app_users (id, email) values ($1, $2)`, [gone, `rc-gone-${run}@example.test`]);
+    await query(`insert into mastery (user_id, objective_id, status, score_0_4) values ($1, $2, 'Guided', 2)`, [gone, o.spaced]);
+    await query(
+      `insert into error_log (user_id, unit_id, objective_id, topic, error_text, review_stage, next_review_at)
+       values ($1, $2, $3, 't', 'e', 0, current_date)`,
+      [gone, unit, o.spaced]
+    );
+    await migrate();
+    const count = async () =>
+      (await queryOne<{ n: number }>(
+        `select (select count(*) from mastery_backup_029 where user_id = $1)
+              + (select count(*) from error_log_backup_029 where user_id = $1) as n`,
+        [gone]
+      ))!.n;
+    assert.equal(Number(await count()), 2);
+    await query(`delete from app_users where id = $1`, [gone]); // what DELETE /api/account does
+    assert.equal(Number(await count()), 0);
   });
 });

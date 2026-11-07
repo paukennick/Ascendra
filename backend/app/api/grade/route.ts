@@ -2,6 +2,7 @@ import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, con
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
+  hasHintReveal,
   lessonCheckFor,
   recordAttemptIdempotent,
   sameAttempt,
@@ -134,6 +135,16 @@ export async function POST(req: Request) {
     const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence };
 
     if (format === "mc") {
+      // FAIL-039: Solo choices are only ever shown by the hint route, which
+      // records the reveal. A Solo multiple-choice answer without one came
+      // from an app build older than REQ-097 (its saved position can still
+      // hold a pick from the old, unshuffled order), so its index can't be
+      // trusted. Refuse it plainly; old builds show `error` in a banner.
+      if (stage === "solo" && !(await hasHintReveal(authUser.id, objectiveId, stage, check.question))) {
+        return badRequest(
+          "Answer this check in your own words, or use \"Show choices\" first. If no choices appear, please update the app."
+        );
+      }
       const correct = storedChoice === check.correctIndex;
       const verdict = correct ? "correct" : "incorrect";
       const feedback = `${correct ? "That's right." : "Not quite."} ${check.why}`.trim();

@@ -52,9 +52,9 @@ export interface ObjectiveRow {
 // answer keys (*_correct_index) and the explanations of the right answer
 // (*_why) never leave the server before the learner answers; /api/grade
 // returns them with the verdict. Guided choices come in this learner's fixed
-// shuffled order (lib/choice-order.ts). Solo choices are not sent at all:
-// they are a hint, fetched from POST /api/objectives/:id/hint, which records
-// that the hint was used.
+// shuffled order (lib/choice-order.ts). Solo choices are not sent (the field
+// is an empty list for old app builds): they are a hint, fetched from
+// POST /api/objectives/:id/hint, which records that the hint was used.
 export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveId: string }) {
   const fadeChoices = Array.isArray(row.fade_choices) && row.fade_problem
     ? shuffleForPresentation(
@@ -71,6 +71,11 @@ export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveI
     fadeProblem: row.fade_problem,
     fadeChoices,
     soloCheck: row.solo_check,
+    // Always empty: the real choices come from the hint route. App builds
+    // from before REQ-097 do `lesson.soloChoices!.map(...)` when the learner
+    // opens the hint, and crashed on a missing field; an empty list leaves
+    // them with free response only (FAIL-039).
+    soloChoices: [] as string[],
     model: row.model,
     generatedAt: row.generated_at,
   };

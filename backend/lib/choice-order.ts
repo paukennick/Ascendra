@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 
 // REQ-097: the order a lesson check's choices are shown in, and the identity
 // of a check item.
@@ -29,11 +29,30 @@ export function presentationOrder(seed: string, n: number): number[] {
   return order;
 }
 
-// REQ-098: ids are lowercased, so the lesson GET, the hint route and
-// /api/grade derive the same order however the app spelled the objective id
-// (iOS prints UUIDs in uppercase).
+// The seed is an HMAC under a server secret, so the order can't be worked out
+// from ids the learner can see (their user id, the objective id and the
+// question text are all in the app). Without the secret, "seed = the ids"
+// let anyone recompute the shuffle and read the answer's position off the
+// stored order the model tends to use. Stable for one learner, objective,
+// stage and question as long as the secret doesn't change. REQ-098: ids are
+// lowercased first, so iOS's uppercase UUIDs give the same order.
+//
+// Key: CHOICE_ORDER_SECRET if set, otherwise a key derived from
+// AUTH_JWT_SECRET (an HMAC of a fixed label, so the JWT secret itself is
+// never used directly for a second purpose). Rotating either reshuffles
+// every learner's choices, which only matters for a lesson open mid-answer.
+export function choiceOrderKey(env: Record<string, string | undefined> = process.env): Buffer {
+  const own = env.CHOICE_ORDER_SECRET;
+  if (own) return Buffer.from(own, "utf8");
+  const jwt = env.AUTH_JWT_SECRET;
+  if (!jwt) throw new Error("CHOICE_ORDER_SECRET or AUTH_JWT_SECRET must be set to order lesson choices.");
+  return createHmac("sha256", jwt).update("ascendra/choice-order/v1", "utf8").digest();
+}
+
 export function presentationSeed(userId: string, objectiveId: string, stage: string, question: string): string {
-  return `${userId.toLowerCase()}\n${objectiveId.toLowerCase()}\n${stage}\n${question}`;
+  return createHmac("sha256", choiceOrderKey())
+    .update(`${userId.toLowerCase()}\n${objectiveId.toLowerCase()}\n${stage}\n${question}`, "utf8")
+    .digest("hex");
 }
 
 export function shuffleForPresentation<T>(items: T[], order: number[]): T[] {

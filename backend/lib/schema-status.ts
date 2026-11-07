@@ -90,8 +90,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
   },
   {
     migration: "029_mastery_recompute.sql",
-    what: "mastery_from_attempts() function (every graded answer)",
-    sql: `select to_regprocedure('public.mastery_from_attempts(uuid,uuid)') is not null as ok`,
+    // Checks the current version, not just the name: the first version of
+    // 029 returned no row for "no evidence" and trusted attempts.assisted for
+    // repeats (FAIL-110/111).
+    what: "mastery_from_attempts() function, current version (every graded answer)",
+    sql: `select coalesce((select status = 'Not started'
+                             from mastery_from_attempts('00000000-0000-0000-0000-000000000000'::uuid,
+                                                        '00000000-0000-0000-0000-000000000000'::uuid)), false) as ok`,
   },
   {
     migration: "029_mastery_recompute.sql",
