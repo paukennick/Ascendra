@@ -3,8 +3,12 @@ import { TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
-import { api } from "@/api/client";
+import { api, ApiError } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
+import { pbqDraftKey } from "@/lib/drafts";
 import { attemptIdFor } from "@/lib/lessonProgress";
+import { parsePbqPayload, pbqPayload } from "@/lib/pbqProgress";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Attempt, GradeResult, PBQScenario, Unit } from "@/types";
 import {
   Body,
@@ -32,6 +36,9 @@ import { whenLabel } from "@/lib/time";
 //    rather than one combined "Missed: a, b" line.
 // 3. Past PBQ attempts for this course are listed below, so the simulator
 //    has a memory.
+// REQ-093: the scenario, the unsent answer and the graded result are kept on
+// the device (src/lib/pbqProgress.ts), so leaving the screen and coming back
+// shows the same scenario instead of starting over.
 export default function PBQScreen() {
   const { trackId, unitId: unitIdParam, trackTitle } = useLocalSearchParams<{
     trackId: string;
@@ -47,6 +54,35 @@ export default function PBQScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentRef = useRef<{ id: string; signature: string } | null>(null);
+  const { user } = useAuth();
+
+  // The saved state is read when a unit is known (the dashboard's unit card,
+  // or the picker below) and rewritten as it changes. sentRef is read during
+  // render on purpose: it is updated before the state change that re-renders.
+  const scenarioShown = useRef(false);
+  scenarioShown.current = !!scenario;
+  const snapshot =
+    scenario && unitId
+      ? pbqPayload({
+          unitId,
+          scenario,
+          answer,
+          result,
+          clientAttemptId: sentRef.current?.id ?? null,
+          sentSignature: sentRef.current?.signature ?? null,
+        })
+      : null;
+  useStoredDraft(user && unitId ? pbqDraftKey(user.id, unitId) : null, snapshot, (stored) => {
+    // Only fills the empty picker; a scenario already on screen wins.
+    if (!stored || !unitId || scenarioShown.current) return;
+    const snap = parsePbqPayload(stored, unitId);
+    if (!snap) return;
+    setScenario(snap.scenario);
+    setAnswer(snap.answer);
+    setResult(snap.result);
+    sentRef.current =
+      snap.clientAttemptId && snap.sentSignature ? { id: snap.clientAttemptId, signature: snap.sentSignature } : null;
+  });
 
   useEffect(() => {
     api
@@ -72,6 +108,7 @@ export default function PBQScreen() {
     setError(null);
     setResult(null);
     setAnswer("");
+    sentRef.current = null;
     try {
       const res = await api.get<{ scenario: PBQScenario }>(
         `/api/pbq?unitId=${unitId}${fresh ? "&fresh=1" : ""}`
@@ -108,7 +145,18 @@ export default function PBQScreen() {
       setResult(res);
       loadHistory();
     } catch (err) {
-      setError((err as Error).message);
+      // The scenario was removed on the server after it was saved here (or
+      // is no longer visible): drop it and return to the picker rather than
+      // failing on every attempt.
+      if (err instanceof ApiError && err.status === 404) {
+        setScenario(null);
+        setResult(null);
+        setAnswer("");
+        sentRef.current = null;
+        setError("That scenario is no longer available. Generate a new one.");
+      } else {
+        setError((err as Error).message);
+      }
     } finally {
       setBusy(false);
     }
@@ -219,6 +267,7 @@ export default function PBQScreen() {
                     setScenario(null);
                     setResult(null);
                     setAnswer("");
+                    sentRef.current = null;
                   }}
                 />
               </View>

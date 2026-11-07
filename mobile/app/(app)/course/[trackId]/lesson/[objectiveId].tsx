@@ -496,7 +496,10 @@ export default function LessonFlow() {
               icon="arrow-left"
               variant={next ? "ghost" : "primary"}
               fullWidth={false}
-              onPress={() => router.push(`/course/${trackId}`)}
+              // REQ-093: pop back to the dashboard already in the stack
+              // (or replace this screen with it) -- push stacked a second
+              // dashboard, so Back from it returned to the same screen.
+              onPress={() => router.dismissTo(`/course/${trackId}`)}
             />
             <Button
               label="Ask the coach"
