@@ -52,6 +52,21 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'attempts' and column_name = 'client_attempt_id'
           ) as ok`,
   },
+  {
+    migration: "026_chat_client_message_id.sql",
+    what: "chat_messages.client_message_id unique index (every chat message)",
+    sql: `select to_regclass('public.chat_messages_user_client_message_unique') is not null as ok`,
+  },
+  {
+    migration: "027_lesson_overrides.sql",
+    what: "lesson_content_overrides table (per-learner regenerated lessons)",
+    sql: `select to_regclass('public.lesson_content_overrides') is not null as ok`,
+  },
+  {
+    migration: "027_lesson_overrides.sql",
+    what: "lesson_generation_claims table (lesson generation across servers)",
+    sql: `select to_regclass('public.lesson_generation_claims') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {

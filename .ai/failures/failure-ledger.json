@@ -492,6 +492,79 @@
       "prevention_rules": [],
       "prevention_notes": "New migrations that code depends on get a probe in lib/schema-status.ts; CI requires all probes to pass on a fresh schema",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-022",
+      "date": "2026-11-07",
+      "title": "Single-use auth secrets could be used twice concurrently",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Concurrent refresh with one token minted several live tokens; one backup code, challenge, reset link or email link could create several sessions or changes",
+      "how_detected": "review",
+      "root_cause": "Select-then-update consumption with no guard on the update",
+      "requirement": "REQ-091",
+      "affected": [
+        "backend/lib/auth/tokens.ts",
+        "backend/lib/auth/mfaChallenge.ts",
+        "backend/app/api/auth/reset-password/route.ts",
+        "backend/lib/auth/emailTokens.ts"
+      ],
+      "fix_summary": "Guarded update ... where unused returning, inside transactions",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-races.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Race tests fire 5 concurrent consumes and require exactly one success; they failed against the old code",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-023",
+      "date": "2026-11-07",
+      "title": "Routes skipped visibility checks on shared catalog",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Lesson-adjacent, grade, PBQ, chat and sessions routes accepted ids from other users' private tracks; catalog agent could write private tracks",
+      "how_detected": "review",
+      "root_cause": "Acknowledgement gate silently returned for invisible tracks and was treated as an access check",
+      "requirement": "REQ-091",
+      "affected": [
+        "backend/app/api"
+      ],
+      "fix_summary": "lib/visibility.ts checks before work, 404 when not visible",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/access.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "One shared visibility helper; tests cover another user's private track",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-024",
+      "date": "2026-11-07",
+      "title": "One learner's regenerate replaced the shared lesson for everyone",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Regenerate on a catalog track changed every learner's lesson and reset their saved place; no rate limit",
+      "how_detected": "review",
+      "root_cause": "lesson_content keyed only by objective and overwritten by POST after the catalog became shared (REQ-082)",
+      "requirement": "REQ-092",
+      "affected": [
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "Per-learner overrides, rate limit, cross-instance claims",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-regen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests assert another learner's lesson and saved place are untouched",
+      "recurrence_of": ""
     }
   ]
 }

@@ -1,4 +1,5 @@
 import { queryOne, withTransaction, type TxClient } from "@/lib/db";
+import { getLessonFor } from "@/lib/lesson-store";
 import {
   accuracyFromAttempts,
   suggestStatus,
@@ -94,18 +95,22 @@ export async function recordAttemptIdempotent(input: AttemptInput) {
 // read from the cached lesson_content so /api/grade doesn't have to trust
 // the index the client sends. null when no lesson is cached for the
 // objective yet, or the stage isn't one of the two multiple-choice stages.
+// The answer key is the lesson THIS learner was shown: their own
+// regenerated lesson if they have one (REQ-091, per-learner regeneration),
+// otherwise the shared one. Reading only the shared row would grade a
+// learner who regenerated against a different question's key.
+// `practiceReady` is false while fade/solo are still generating.
 export async function cachedCorrectIndex(
+  userId: string,
   objectiveId: string,
   stage: string | null | undefined
-): Promise<{ hasLesson: boolean; index: number | null }> {
-  const row = await queryOne<{ fade_correct_index: number; solo_correct_index: number }>(
-    `select fade_correct_index, solo_correct_index from lesson_content where objective_id = $1`,
-    [objectiveId]
-  );
-  if (!row) return { hasLesson: false, index: null };
-  if (stage === "fade") return { hasLesson: true, index: row.fade_correct_index };
-  if (stage === "solo") return { hasLesson: true, index: row.solo_correct_index };
-  return { hasLesson: true, index: null };
+): Promise<{ hasLesson: boolean; validStage: boolean; index: number | null }> {
+  const found = await getLessonFor(userId, objectiveId);
+  if (!found) return { hasLesson: false, validStage: false, index: null };
+  const row = found.row as { fade_correct_index?: number | null; solo_correct_index?: number | null };
+  if (stage === "fade") return { hasLesson: true, validStage: true, index: row.fade_correct_index ?? null };
+  if (stage === "solo") return { hasLesson: true, validStage: true, index: row.solo_correct_index ?? null };
+  return { hasLesson: true, validStage: false, index: null };
 }
 
 // "Got it" on a review entry: one guarded UPDATE, not read-then-write. The

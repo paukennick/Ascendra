@@ -115,15 +115,33 @@ describe("visibility", () => {
 
 describe("answer key for multiple choice", () => {
   test("comes from the cached lesson, keyed by stage", async () => {
-    assert.deepEqual(await cachedCorrectIndex(aliceObjective, "fade"), { hasLesson: true, index: 2 });
-    assert.deepEqual(await cachedCorrectIndex(aliceObjective, "solo"), { hasLesson: true, index: 1 });
+    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "fade"), { hasLesson: true, validStage: true, index: 2 });
+    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "solo"), { hasLesson: true, validStage: true, index: 1 });
   });
-  test("a lesson exists but the stage is not fade/solo: no index (route answers 400)", async () => {
-    assert.deepEqual(await cachedCorrectIndex(aliceObjective, undefined), { hasLesson: true, index: null });
-    assert.deepEqual(await cachedCorrectIndex(aliceObjective, "guess"), { hasLesson: true, index: null });
+  test("a lesson exists but the stage is not fade/solo: invalid stage (route answers 400)", async () => {
+    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, undefined), { hasLesson: true, validStage: false, index: null });
+    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "guess"), { hasLesson: true, validStage: false, index: null });
   });
   test("no cached lesson: hasLesson false (route falls back to the client's value)", async () => {
-    assert.deepEqual(await cachedCorrectIndex(sharedObjective, "fade"), { hasLesson: false, index: null });
+    assert.deepEqual(await cachedCorrectIndex(alice, sharedObjective, "fade"), { hasLesson: false, validStage: false, index: null });
+  });
+  test("a learner who regenerated is graded against their own lesson, others against the shared one", async () => {
+    await query(
+      `insert into lesson_content_overrides
+         (user_id, objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
+          solo_check, solo_choices, solo_correct_index, solo_why, model)
+       select $1, objective_id, guess_prompt, 'regenerated teach', fade_problem, fade_choices, 0, fade_why,
+              solo_check, solo_choices, 3, solo_why, model
+         from lesson_content where objective_id = $2`,
+      [bob, aliceObjective]
+    );
+    try {
+      assert.equal((await cachedCorrectIndex(bob, aliceObjective, "fade")).index, 0);
+      assert.equal((await cachedCorrectIndex(bob, aliceObjective, "solo")).index, 3);
+      assert.equal((await cachedCorrectIndex(alice, aliceObjective, "fade")).index, 2, "shared key changed for others");
+    } finally {
+      await query(`delete from lesson_content_overrides where user_id = $1 and objective_id = $2`, [bob, aliceObjective]);
+    }
   });
 });
 

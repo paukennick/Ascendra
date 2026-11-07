@@ -91,10 +91,13 @@ export async function POST(req: Request) {
       // For a lesson check the answer key is the cached lesson_content row.
       let correctIndex: unknown = body.correctIndex;
       if (objectiveId) {
-        const cached = await cachedCorrectIndex(objectiveId, stage);
+        const cached = await cachedCorrectIndex(authUser.id, objectiveId, stage);
         if (cached.hasLesson) {
-          if (cached.index === null) {
+          if (!cached.validStage) {
             return badRequest("stage must be 'fade' or 'solo' for a multiple-choice check on a lesson");
+          }
+          if (cached.index === null) {
+            return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
           }
           correctIndex = cached.index;
         }

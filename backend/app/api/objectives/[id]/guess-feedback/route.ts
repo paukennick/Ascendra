@@ -1,4 +1,4 @@
-import { queryOne } from "@/lib/db";
+import { getLessonFor } from "@/lib/lesson-store";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
@@ -43,10 +43,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await recordAuthEvent("guess_feedback", user.id);
 
     const [lessonRow, objective] = await Promise.all([
-      queryOne<{ guess_prompt: string; teach: string }>(
-        `select guess_prompt, teach from lesson_content where objective_id = $1`,
-        [id]
-      ),
+      // The lesson this learner actually saw: their regenerated one if any.
+      getLessonFor(user.id, id).then((r) => (r ? { guess_prompt: r.row.guess_prompt, teach: r.row.teach } : null)),
       loadObjective(id),
     ]);
     if (!lessonRow) return notFound("No lesson content for this objective yet");
