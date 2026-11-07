@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { query, queryOne } from "../db";
+import { query, queryOne, withTransaction } from "../db";
 
 const CHALLENGE_TTL_MINUTES = 10;
 
@@ -33,7 +33,7 @@ export class ChallengeError extends Error {}
 
 // Looks up a challenge WITHOUT consuming it -- a mistyped code shouldn't
 // burn the user's one shot at this login. Callers verify the code first,
-// then call markChallengeConsumed only once it's actually correct. The
+// then call consumeLoginChallenge only once it's actually correct. The
 // challenge's own 10-minute expiry plus the caller's own rate limiting
 // (see checkRateLimit("mfa_verify_attempt", ...) in the verify route) is
 // what bounds brute-force guessing, not single-use-ness.
@@ -48,8 +48,43 @@ export async function getLoginChallenge(rawToken: string): Promise<{ id: string;
   return { id: row.id, userId: row.user_id };
 }
 
-export async function markChallengeConsumed(id: string): Promise<void> {
-  await query(`update login_challenges set consumed_at = now() where id = $1`, [id]);
+// Spends a challenge, and the backup code that proved it when one did, in a
+// single transaction. Both are guarded UPDATEs, so when several requests
+// verify the same challenge (or the same backup code) at once, exactly one
+// gets through; the rest roll back and leave their own backup code unspent.
+// getLoginChallenge above is only the cheap early check -- this is the
+// authoritative one.
+export type ChallengeConsumeResult = "ok" | "challenge_used" | "backup_code_used";
+
+// Thrown inside the transaction purely to force the rollback.
+class ChallengeNotConsumed extends Error {}
+
+export async function consumeLoginChallenge(
+  challengeId: string,
+  backupCodeId: string | null
+): Promise<ChallengeConsumeResult> {
+  return withTransaction<ChallengeConsumeResult>(async (tx) => {
+    if (backupCodeId) {
+      const code = await tx.queryOne<{ id: string }>(
+        `update mfa_backup_codes set used_at = now() where id = $1 and used_at is null returning id`,
+        [backupCodeId]
+      );
+      if (!code) return "backup_code_used";
+    }
+    const challenge = await tx.queryOne<{ id: string }>(
+      `update login_challenges set consumed_at = now()
+       where id = $1 and consumed_at is null and expires_at > now() returning id`,
+      [challengeId]
+    );
+    if (!challenge) {
+      // Roll back the backup-code spend: this request didn't log anyone in.
+      throw new ChallengeNotConsumed();
+    }
+    return "ok";
+  }).catch((err) => {
+    if (err instanceof ChallengeNotConsumed) return "challenge_used" as const;
+    throw err;
+  });
 }
 
 // Called by /api/auth/mfa/challenge/send-email-code once a fresh code is
