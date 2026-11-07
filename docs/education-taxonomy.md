@@ -16,6 +16,8 @@ The subcategory selects the default model. An individual track may override it w
 
 ## Publication rules
 
+When a vendor replaces an exam version (REQ-102, migration 033), the old `credential_exams` row is kept and points at its successor through `superseded_by_exam_id`, with `retirement_date` set to the last day the old exam can be sat. The outgoing version's units and objectives are never rewritten or deleted: the seed sets `retired_at` on them (`SeedUnit.retiredAt`) and appends the new version's units after them, so learners' mastery and attempts stay attached to the content they were earned on. Course listings and progress roll-ups hide a row once its `retired_at` has passed (`isActive()` in `backend/lib/progress-sql.ts`). `backend/lib/exam-blueprint.ts` returns a track's exam (duration, question format, passing policy, weighted domains) for app code.
+
 Non-draft certification exams cannot be stored without both an official objectives URL and a vendor-verification timestamp. Exam lifecycle states are `draft`, `active`, `transitioning`, `beta`, `retired`, and `archived`.
 
 A credential is identified by an `exam_code` (AWS, Azure), a `standard_name` (accreditation/licensure credentials with no exam at all -- nursing), or, since REQ-040, the `basis` value `vendor_exam_unpublished_code` alone -- for a real vendor exam whose vendor simply never publishes a code (Google Cloud). `credential_exams_identified` requires at least one of the three; no credential row can exist unidentified.

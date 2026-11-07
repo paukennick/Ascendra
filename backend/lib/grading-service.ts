@@ -38,6 +38,11 @@ export interface AttemptInput {
   // REQ-089: one id per submitted answer from the app. A second request
   // with the same id is a retry, not a new attempt (see findClientAttempt).
   clientAttemptId?: string | null;
+  // REQ-109: an assessment_types row (migration 031/038) for answer kinds
+  // the kind/stage/format columns can't express (exam-style formats).
+  // Required for any kind other than lesson/pbq to count as mastery
+  // evidence; null keeps the derived type.
+  assessmentType?: string | null;
 }
 
 export type AssistReason = "hint" | "repeat";
@@ -222,8 +227,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
+       assessment_type)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
      returning *`,
     [
       userId,
@@ -243,6 +249,7 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.clientAttemptId ?? null,
       assistReason !== null,
       assistReason,
+      input.assessmentType ?? null,
     ]
   );
   const attempt = attemptRows[0];
@@ -354,6 +361,17 @@ async function assistReasonFor(
   query: TxClient["query"],
   input: AttemptInput
 ): Promise<AssistReason | null> {
+  // REQ-109: an exam-style answer (sprint / mock) is a repeat when this
+  // learner already answered the same question on this objective in any
+  // setting -- a lesson check, an earlier sprint or mock -- because the answer
+  // was shown then. Without this a reused item would earn full credit.
+  if (input.kind === "quiz" && input.assessmentType && input.objectiveId) {
+    const seen = await query(
+      `select 1 from attempts where user_id = $1 and objective_id = $2 and question = $3 limit 1`,
+      [input.userId, input.objectiveId, input.question]
+    );
+    return seen.length ? "repeat" : null;
+  }
   if (input.kind !== "lesson" || !input.objectiveId || (input.stage !== "fade" && input.stage !== "solo")) return null;
   if (input.stage === "solo") {
     if (input.format === "mc") return "hint";

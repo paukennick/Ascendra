@@ -20,6 +20,10 @@ export const EXPORT_SECTIONS = {
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc",
   courseAcknowledgements: "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc",
+  // REQ-109: sprints and mock exams, and each question's saved answer.
+  examSessions: "select * from exam_sessions where user_id = $1 order by created_at asc",
+  examSessionItems:
+    "select si.* from exam_session_items si join exam_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, si.position asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc",
 } as const;

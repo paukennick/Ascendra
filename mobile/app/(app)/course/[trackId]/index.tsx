@@ -199,6 +199,17 @@ export default function CourseDashboard() {
               }}
             />
 
+            {/* REQ-109: timed sprints and mock exams. */}
+            <Button
+              label="Practice exam"
+              accessibilityLabel="Practice exam: timed sprint or mock exam"
+              icon="clock"
+              variant="ghost"
+              onPress={() =>
+                router.push({ pathname: `/course/${trackId}/exam`, params: { trackTitle: track.title } })
+              }
+            />
+
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
               {QUICK_ACTIONS.map((a) => (
                 <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>

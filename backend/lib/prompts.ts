@@ -504,3 +504,103 @@ ${CHAT_GUARDRAILS}${params.openItems ?? ""}`,
     params.ctx
   );
 }
+
+// ---------------------------------------------------------------------------
+// REQ-109: exam-style items (multiple choice, multiple response, ordering,
+// matching, optional exhibit). Generated once per objective into the shared
+// exam_items bank (lib/exam-items.ts) and served to every learner, so this is
+// not a per-learner cost. Format-specific fields are nullable rather than
+// optional so the structured-output schema stays simple; lib/exam-formats.ts
+// validateItemDraft() rejects anything inconsistent before it is stored.
+// ---------------------------------------------------------------------------
+
+export const examExhibitSchema = z.object({
+  kind: z.enum(["log", "policy", "table", "diagram"]),
+  title: z.string().describe("Short caption, e.g. 'Exhibit: web server auth log'."),
+  text: z
+    .string()
+    .nullable()
+    .describe("log: the log lines; policy: the policy as valid JSON; diagram: the network described in plain text, one connection per line; null for table."),
+  columns: z.array(z.string()).nullable().describe("table only: header cells; null otherwise."),
+  rows: z.array(z.array(z.string())).nullable().describe("table only: one array per row, one cell per column; null otherwise."),
+});
+
+export const examItemSchema = z.object({
+  format: z.enum(["multiple_choice", "multiple_response", "ordering", "matching"]),
+  stem: z
+    .string()
+    .describe("The question, written the way this exam words its items. For multiple_response end with '(Choose two.)' or '(Choose three.)'."),
+  choices: z.array(z.string()).nullable().describe("multiple_choice: 4 options; multiple_response: 5-6 options; null otherwise."),
+  correct: z.array(z.number().int()).nullable().describe("Indexes into choices of the right option(s): exactly 1 for multiple_choice, 2-3 for multiple_response; null otherwise."),
+  steps: z.array(z.string()).nullable().describe("ordering only: 3-6 steps listed in the CORRECT order (the app shuffles them); null otherwise."),
+  prompts: z.array(z.string()).nullable().describe("matching only: 3-6 prompts; null otherwise."),
+  responses: z.array(z.string()).nullable().describe("matching only: 3-6 responses; null otherwise."),
+  matches: z.array(z.number().int()).nullable().describe("matching only: for each prompt, the index of its response; null otherwise."),
+  exhibit: examExhibitSchema.nullable().describe("An exhibit the question refers to, only when asked for; null otherwise."),
+  explanation: z
+    .string()
+    .describe("Why the right answer is right AND, briefly, why each wrong option or arrangement is wrong. Two to five sentences."),
+});
+
+export const examItemsSchema = z.object({ items: z.array(examItemSchema) });
+export type GeneratedExamItems = z.infer<typeof examItemsSchema>;
+
+export function examItemsPrompt(params: {
+  trackTitle: string;
+  unitTitle: string;
+  objectiveTitle: string;
+  formats: string[]; // one item per entry, in this order
+  exhibits: boolean;
+  // The cached lesson's teaching text, when there is one, so items stay
+  // inside what the course teaches.
+  taughtText?: string | null;
+  // Stems already in the bank for this objective, to avoid near-duplicates.
+  avoidStems?: string[];
+  ctx?: CoachContext;
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
+    `You are writing exam-style practice items for ONE learning objective. They are stored and reused for
+every learner, so each must stand on its own and its answer key must be unambiguously right. Write them the
+way the real exam asks: a short realistic scenario, then the question. Distractors are real misconceptions
+or near-misses, never silly filler, and never "all of the above" / "none of the above". Use only the
+formats you are asked for -- they are the formats this exam actually uses. Exhibits use fictitious data
+only: documentation IP ranges (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24) or private ranges, example
+account ids (111122223333), example.com names; never a real secret, key or person.`,
+    params.ctx
+  );
+  const formatRules: Record<string, string> = {
+    multiple_choice: "multiple_choice: 4 choices, exactly one right (vary its position).",
+    multiple_response:
+      "multiple_response: 5 or 6 choices, 2 or 3 right; the stem ends '(Choose two.)' or '(Choose three.)' matching the count; every right option is needed and sufficient.",
+    ordering:
+      "ordering: 3-6 steps of a real procedure whose order matters and is not a matter of opinion (e.g. incident-response phases); list them in the correct order.",
+    matching:
+      "matching: 3-6 prompts and as many responses (or one extra distractor response); each prompt has exactly one right response (e.g. control type to an example of it).",
+  };
+  const asked = params.formats.map((f, i) => `${i + 1}. ${f}`).join("\n");
+  const used = [...new Set(params.formats)].map((f) => `- ${formatRules[f] ?? f}`).join("\n");
+  const exhibitRule = params.exhibits
+    ? `\nAttach an exhibit (a log excerpt, an IAM-style policy as valid JSON, a firewall rule table, or a network diagram described in text) to at least one item where reading it is part of answering; set exhibit to null on the others.`
+    : `\nThis exam does not use exhibits: set exhibit to null on every item.`;
+  const taught = params.taughtText
+    ? `\nWhat the course teaches for this objective (stay inside it):\n${params.taughtText.slice(0, 6000)}\n`
+    : "";
+  const avoid = params.avoidStems?.length
+    ? `\nItems already written for this objective (write different situations, not rewordings):\n${params.avoidStems
+        .slice(0, 12)
+        .map((s) => `- ${s.replace(/\s+/g, " ").slice(0, 200)}`)
+        .join("\n")}\n`
+    : "";
+  const user = `Course/track: ${params.trackTitle}
+Unit: ${params.unitTitle}
+Objective: ${params.objectiveTitle}
+${taught}${avoid}
+Write ${params.formats.length} item(s), in this order of formats:
+${asked}
+
+Format rules:
+${used}${exhibitRule}
+
+Fields that do not apply to an item's format are null.`;
+  return { system, user };
+}

@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { isActive } from "@/lib/progress-sql";
 
 // REQ-100: course readiness from the same per-objective evidence that
 // decides mastery (mastery_detail, migration 031), rolled up with the exam
@@ -159,7 +160,9 @@ export async function readinessParams(): Promise<ReadinessParams> {
 // without a recompute. The caller has already checked the track is visible.
 export async function courseReadiness(trackId: string, userId: string): Promise<CourseReadiness> {
   const units = await query<{ id: string; title: string; weight: number | null }>(
-    `select id, title, weight from course_units where track_id = $1 order by sort_order`,
+    // Retired units/objectives (REQ-102, migration 033: an outgoing exam
+    // version) are not part of the exam any more, so they don't count.
+    `select id, title, weight from course_units cu where track_id = $1 and ${isActive("cu")} order by sort_order`,
     [trackId]
   );
   const objectives = await query<{ unit_id: string; weighted_accuracy: number | null; readiness_score: number | null }>(
@@ -167,7 +170,7 @@ export async function courseReadiness(trackId: string, userId: string): Promise<
        from objectives o
        join course_units cu on cu.id = o.unit_id
        left join lateral mastery_detail($2, o.id) d on true
-      where cu.track_id = $1`,
+      where cu.track_id = $1 and ${isActive("cu")} and ${isActive("o")}`,
     [trackId, userId]
   );
   return rollupReadiness(

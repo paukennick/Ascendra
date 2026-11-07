@@ -16,6 +16,9 @@
   type or route, its other callers and readers were found (grep the name) and
   each still behaves correctly. Changes beside existing code are where defects
   hide -- the account export broke when a query was added next to it.
+- After merging another branch that adds a visibility or filter column (for
+  example `retired_at`), every reader of that table on the merged tree applies
+  it, including files the other branch never had (FAIL-200).
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

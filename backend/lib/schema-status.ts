@@ -166,6 +166,22 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
           ) as ok`,
   },
   {
+    migration: "033_exam_blueprints.sql",
+    what: "course_units.retired_at / objectives.retired_at columns (course view, progress, seed)",
+    sql: `select count(*) = 2 as ok from information_schema.columns
+           where table_schema = 'public' and column_name = 'retired_at'
+             and table_name in ('course_units', 'objectives')`,
+  },
+  {
+    migration: "038_exam_practice.sql",
+    what: "exam_items / exam_sessions / exam_session_items tables and the new assessment types (sprints, mock exams)",
+    sql: `select to_regclass('public.exam_session_items') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'exam_items' and column_name = 'source')
+             and (select count(*) from assessment_types
+                   where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are
