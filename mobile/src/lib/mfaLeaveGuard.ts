@@ -10,12 +10,17 @@
 //  - "setup": an authenticator/email setup has started but not been
 //    confirmed; leaving abandons it (the backend keeps nothing enabled).
 //  - null: nothing at stake.
+//
+// Never guard once the learner is no longer signed in (logout, session
+// expiry, background sign-out, biometric lock, web idle sign-out): those
+// remove the screen on purpose, and keeping it would leave backup codes on
+// screen for a signed-out or locked device (Audit 2, FAIL-060).
 
 export type MfaView = "status" | "totp-setup" | "email-setup" | "backup-codes" | "disable" | "regenerate";
 export type MfaLeaveGuard = "codes" | "setup" | null;
 
-export function mfaLeaveGuard(view: MfaView, allowLeave: boolean): MfaLeaveGuard {
-  if (allowLeave) return null;
+export function mfaLeaveGuard(view: MfaView, allowLeave: boolean, signedIn = true): MfaLeaveGuard {
+  if (allowLeave || !signedIn) return null;
   if (view === "backup-codes") return "codes";
   if (view === "totp-setup" || view === "email-setup") return "setup";
   return null;
