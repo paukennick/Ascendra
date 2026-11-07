@@ -26,6 +26,8 @@ export const EXPORT_SECTIONS = {
                       from placement_checks pc where pc.user_id = $1 order by pc.started_at asc`,
   coachQuizTurns: `select t.*, i.question, i.objective_id from coach_quiz_turns t join coach_quiz_items i on i.id = t.item_id
                     where t.user_id = $1 order by t.created_at asc`,
+  // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
+  lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

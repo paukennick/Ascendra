@@ -80,6 +80,20 @@ describe("account export", () => {
     assert.ok(mastery.length >= 9 && mastery.every((m) => "status" in m && m.user_id === user));
     assert.equal((out.profile as { id: string }).id, user);
   });
+
+  // FAIL-187: hint reveals (migration 029) are the learner's data too.
+  test("includes the learner's Solo hint reveals", async () => {
+    await query(`insert into lesson_hint_reveals (user_id, objective_id, item_key) values ($1, $2, $3)`, [
+      user,
+      objectives[0],
+      "0".repeat(32),
+    ]);
+    const out = await buildAccountExport(user, (sql, params) => query(sql, params));
+    const reveals = out.lessonHintReveals as Record<string, unknown>[];
+    assert.equal(reveals.length, 1);
+    assert.equal(reveals[0].objective_id, objectives[0]);
+    assert.equal(reveals[0].user_id, user);
+  });
 });
 
 describe("grading writes", () => {
