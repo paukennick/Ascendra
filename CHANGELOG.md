@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- REQ-089: Your place in a lesson now follows your account, not just the phone. It's saved to the server as well as on the device, so a lesson started on one device resumes on another (the newer save wins, and the device copy still works offline). Two grading fixes ride along. If you answered a Guided or Solo check and left before tapping Continue, coming back now shows your verdict instead of asking the same question again and recording a second attempt. And every answer is now sent with its own id, so a retry after a dropped connection or a double tap returns the original grade instead of counting twice and moving mastery twice. Needs migration 025 (`npm run migrate -- 025_lesson_progress.sql`) before the backend deploys.
+
 - REQ-088: Lessons now pick up where you left off. Leaving a lesson part way through -- back to the course, through the sidebar, to the review queue -- used to throw away your place, so reopening that objective always started over at the Guess step, on every course. Your step, your guess, the feedback on it and your confidence are now saved per objective on the device and restored when you come back. A lesson that was regenerated since, one you finished, or a save more than a week old starts fresh instead. Graded answers were never lost; they were already saved on the server.
 
 - REQ-087: Security updates that were blocking CI. Next.js moves from 16.3.8 to 16.4.3, closing a critical advisory (remote code execution through the image optimizer) and two others; zod (input validation) moves to 4.6.7, and an override makes Vercel's own config library use that same patched copy instead of the old version it pins. No code changes; typecheck and all 23 tests pass, and npm audit is clean.

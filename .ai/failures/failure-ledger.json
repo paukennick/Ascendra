@@ -394,6 +394,31 @@
       "prevention_rules": [],
       "prevention_notes": "Multi-step screen state that a learner would expect to survive navigation must be persisted, not held only in component state; the parse rules are unit tested",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-018",
+      "date": "2026-11-06",
+      "title": "Answered lesson check re-asked and recorded twice",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Answering a Guided or Solo check, leaving before Continue, and returning asked the same check again; answering again recorded a second attempt. A retry after a dropped connection could also record twice.",
+      "how_detected": "review",
+      "root_cause": "Graded result lived only in CheckStep component state, and /api/grade had no way to recognise a resubmission of the same answer, so every POST inserted an attempt and moved mastery.",
+      "requirement": "REQ-089",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "backend/app/api/grade/route.ts"
+      ],
+      "fix_summary": "Check state saved with the lesson position; per-answer clientAttemptId with a unique index on attempts and replay of the stored result",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts",
+        "backend/lib/lesson-progress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Grading writes are idempotent per client attempt id; attempt-id reuse rules are unit tested",
+      "recurrence_of": ""
     }
   ]
 }
