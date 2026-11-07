@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -17,6 +18,13 @@ import {
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
+import {
+  isResumable,
+  lessonFingerprint,
+  parseSnapshot,
+  snapshotStorageKey,
+  type LessonSnapshot,
+} from "@/lib/lessonProgress";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -56,6 +64,13 @@ export default function LessonFlow() {
   // Mastery status reached, fetched once the learner lands on "done" so the
   // screen can say what the work just earned and how to go further.
   const [reached, setReached] = useState<MasteryStatus | null>(null);
+  // Saving is held off until the saved position (if any) has been restored
+  // for this objective, so the fresh "guess" state on mount can't overwrite
+  // it first. Holds the objectiveId it was restored for.
+  const restoredFor = useRef<string | null>(null);
+  // Mirrors restoredFor for rendering, so the guess screen doesn't flash
+  // before jumping to the resumed step.
+  const [restoring, setRestoring] = useState(true);
 
   const loadLesson = useCallback(() => {
     setError(null);
@@ -78,7 +93,72 @@ export default function LessonFlow() {
     setGuessFeedbackLoading(false);
     setNext(null);
     setReached(null);
+    restoredFor.current = null;
+    setRestoring(true);
   }, [loadLesson]);
+
+  // Resume where the learner left off (see src/lib/lessonProgress.ts).
+  // Runs once per objective, after its lesson content has loaded.
+  useEffect(() => {
+    if (!lesson || restoredFor.current === objectiveId) return;
+    let cancelled = false;
+    const key = snapshotStorageKey(objectiveId);
+    (async () => {
+      let snap: LessonSnapshot | null = null;
+      try {
+        snap = parseSnapshot(await AsyncStorage.getItem(key), lessonFingerprint(lesson), Date.now());
+      } catch {
+        snap = null;
+      }
+      if (cancelled) return;
+      if (snap) {
+        setGuess(snap.guess);
+        setGuessFeedback(snap.guessFeedback);
+        setConfidence(snap.confidence);
+        // fade/solo need the practice content; if it's still generating,
+        // wait for it the same way the "Next" button does, and fall back to
+        // the teach step if it can't be had.
+        let target = snap.step;
+        if (target !== "teach" && practicePending) {
+          const ready = await ensurePracticeReady();
+          if (cancelled) return;
+          if (!ready) target = "teach";
+        }
+        setStep(target);
+      } else {
+        AsyncStorage.removeItem(key).catch(() => {});
+      }
+      restoredFor.current = objectiveId;
+      setRestoring(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // ensurePracticeReady/practicePending are read once at restore time on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson, objectiveId]);
+
+  // Persist the position on every change once restored. "guess" and "done"
+  // clear it: nothing to resume before the guess, and a finished objective
+  // should reopen as a fresh attempt.
+  useEffect(() => {
+    if (!lesson || restoredFor.current !== objectiveId) return;
+    const key = snapshotStorageKey(objectiveId);
+    if (!isResumable(step)) {
+      AsyncStorage.removeItem(key).catch(() => {});
+      return;
+    }
+    const snap: LessonSnapshot = {
+      v: 1,
+      step,
+      guess,
+      guessFeedback,
+      confidence,
+      lessonKey: lessonFingerprint(lesson),
+      savedAt: Date.now(),
+    };
+    AsyncStorage.setItem(key, JSON.stringify(snap)).catch(() => {});
+  }, [lesson, objectiveId, step, guess, guessFeedback, confidence]);
 
   useEffect(() => {
     // Fire-and-forget: nudges the server to start warming the cache for
@@ -157,11 +237,11 @@ export default function LessonFlow() {
       </Screen>
     );
   }
-  if (!lesson) {
+  if (!lesson || restoring) {
     return (
       <Screen>
         <Stack.Screen options={{ title: headerTitle }} />
-        <Loading label="Generating lesson (first visit only)..." />
+        <Loading label={lesson ? "Picking up where you left off..." : "Generating lesson (first visit only)..."} />
       </Screen>
     );
   }

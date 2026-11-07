@@ -371,6 +371,29 @@
       "prevention_rules": [],
       "prevention_notes": "exam_revision / standard_revision / objectives_revision are varchar(100): keep revision strings to a short label, put the long provenance note in the file comment instead.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-017",
+      "date": "2026-11-06",
+      "title": "Lesson step state lost on navigation",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Returning to a lesson after going back to the course restarts at the Guess step, on every course",
+      "how_detected": "user report",
+      "root_cause": "Lesson step lived only in useState on the lesson screen; navigating back pops/unmounts it and the mount effect resets step to guess. Nothing persisted the learner's place; only graded attempts are saved server-side.",
+      "requirement": "REQ-088",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Per-objective snapshot in AsyncStorage, restored after lesson load, validated by lessonProgress.parseSnapshot (lesson fingerprint, 7-day age, schema version)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Multi-step screen state that a learner would expect to survive navigation must be persisted, not held only in component state; the parse rules are unit tested",
+      "recurrence_of": ""
     }
   ]
 }
