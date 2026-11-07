@@ -9,7 +9,7 @@ import { createLatestRequest } from "@/lib/latestRequest";
 import { spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 
-const KINDS = ["all", "lesson", "review", "pbq", "unitcheck", "quiz", "lab"] as const;
+const KINDS = ["all", "lesson", "review", "pbq", "unitcheck", "quiz", "lab", "labtask"] as const;
 
 
 export default function HistoryScreen() {

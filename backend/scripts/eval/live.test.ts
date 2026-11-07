@@ -40,7 +40,7 @@ describe("live-eval arguments and plan coverage", () => {
     assert.throws(() => parseLiveArgs(["--steps", "nope"]));
     assert.throws(() => parseLiveArgs(["--budget", "500"]));
   });
-  test("the guard step covers all 7 open item kinds with 10 attacks, and question 40 of a 50-question mock", () => {
+  test("the guard step covers all 8 open item kinds with 10 attacks, and question 40 of a 50-question mock", () => {
     assert.equal(ATTACKS.length, 10);
     const exam = mockExamItems();
     assert.equal(exam.length, 50);

@@ -25,7 +25,8 @@ import { Pool } from "pg";
 import "./env-local"; // must run before ./data so DEFAULT_USER_EMAIL is already set
 import { SEED_USER_EMAIL } from "./data";
 import { CATALOG_TRACKS } from "./catalog";
-import { seedTrack } from "./seed-lib";
+import { seedLabs, seedTrack } from "./seed-lib";
+import { LAB_SETS } from "./labs";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -58,6 +59,16 @@ async function main() {
     // REQ-102: one list, shared with the blueprint tests (./catalog.ts).
     for (const track of CATALOG_TRACKS) {
       await seedTrack(pool, userId, track);
+    }
+
+    // REQ-123: authored labs, after every track so their objectives exist.
+    const hasLabs = await pool.query<{ ok: boolean }>(`select to_regclass('public.labs') is not null as ok`);
+    if (!hasLabs.rows[0]?.ok) {
+      throw new Error("labs table missing -- run `npm run migrate -- 050_lab_engine.sql` before seeding.");
+    }
+    for (const set of LAB_SETS) {
+      const n = await seedLabs(pool, set);
+      console.log(`labs: ${set.trackCode} -> ${n} authored lab(s)`);
     }
 
     console.log("Seed complete.");

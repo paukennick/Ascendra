@@ -8,7 +8,9 @@ export type ReportTarget =
   | { kind: "review"; sessionId: string; position: number }
   | { kind: "exam"; sessionId: string; position: number }
   | { kind: "quiz"; turnId: string }
-  | { kind: "comparison"; itemId: string };
+  | { kind: "comparison"; itemId: string }
+  // REQ-123: a verifiable lab, by its id.
+  | { kind: "lab"; labId: string };
 
 export type ReportReason = "wrong_answer" | "unclear" | "outdated" | "offensive" | "other";
 
@@ -40,6 +42,8 @@ export function reportKey(target: ReportTarget): string {
       return `quiz:${target.turnId}`;
     case "comparison":
       return `comparison:${target.itemId}`;
+    case "lab":
+      return `lab:${target.labId}`;
   }
 }
 

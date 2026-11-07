@@ -20,6 +20,7 @@ const discItem = randomUUID();
 const quizItem = randomUUID();
 const examItem = randomUUID();
 const reviewItem = randomUUID();
+const labId = randomUUID();
 const users: string[] = [];
 
 const Q = {
@@ -32,6 +33,8 @@ const Q = {
   quiz: "IG quiz: which control is detective?",
   exam: "IG exam: which service queues messages?",
   reviewSession: "IG review session: what does TLS provide?",
+  // REQ-123: the step text + ask of the lab step a learner is on
+  lab: "IG lab: write the least-privilege policy. Name the statements.",
 };
 
 async function newUser(): Promise<string> {
@@ -83,6 +86,8 @@ async function learnerWithEverythingOpen(): Promise<string> {
     oOther,
     reviewItem,
   ]);
+  // lab: a run in progress (REQ-123), no step graded yet
+  await query(`insert into lab_runs (user_id, lab_id) values ($1, $2)`, [u, labId]);
   return u;
 }
 const kinds = (items: OpenItem[]) => new Set(items.map((i) => i.kind));
@@ -148,10 +153,16 @@ before(async () => {
      values ($1, $2, 'h', $3, '["Confidentiality and integrity in transit","x","y","z"]', 0, 'w', 't')`,
     [reviewItem, oOther, Q.reviewSession]
   );
+  await query(
+    `insert into labs (id, objective_id, slug, kind, title, brief, steps, rubric, source, review_status, content_hash)
+     values ($1, $2, 'ig', 'build', 'IG lab', 'A fictional brief long enough to pass.', $3, '[{"parts":[{"label":"P","criteria":"c","modelAnswer":"m"}]}]', 'authored', 'approved', 'h')`,
+    [labId, oOther, JSON.stringify([{ text: "IG lab: write the least-privilege policy.", ask: "Name the statements." }])]
+  );
 });
 
 after(async () => {
   await query(`delete from app_users where id = any($1::uuid[])`, [users]);
+  await query(`delete from labs where id = $1`, [labId]);
   await query(`delete from subject_tracks where id = $1`, [track]);
   await closePool();
 });
@@ -169,6 +180,7 @@ describe("coach guard: one list of every open item kind (REQ-112 f)", () => {
     assert.ok(has(items, "comparison", Q.disc));
     assert.ok(has(items, "quiz", Q.quiz));
     assert.ok(has(items, "exam", Q.exam));
+    assert.ok(has(items, "lab", Q.lab), "the lab step in progress");
     const key = (q: string) => items.find((i) => i.question === q)?.answerKey;
     assert.equal(key(Q.disc), "Role-based access control");
     assert.equal(key(Q.quiz), "Audit log review");
@@ -176,7 +188,7 @@ describe("coach guard: one list of every open item kind (REQ-112 f)", () => {
     assert.equal(key(Q.reviewSession), "Confidentiality and integrity in transit");
     // Every kind has its own wording in the prompt block.
     const block = openItemsBlock(items, []);
-    for (const phrase of ["unit check scenario", "comparison-card question", "Quiz me question", "practice exam", "PBQ", "pending review retest", "lesson question"]) {
+    for (const phrase of ["unit check scenario", "comparison-card question", "Quiz me question", "practice exam", "PBQ", "pending review retest", "lesson question", "lab step"]) {
       assert.ok(block.includes(phrase), phrase);
     }
   });
@@ -204,6 +216,8 @@ describe("coach guard: one list of every open item kind (REQ-112 f)", () => {
     await query(`update coach_quiz_turns set status = 'correct' where user_id = $1`, [u]);
     // exam: submitted
     await query(`update exam_sessions set status = 'submitted' where user_id = $1`, [u]);
+    // lab: the run finished
+    await query(`update lab_runs set completed_at = now() where user_id = $1`, [u]);
     assert.deepEqual(await openItemsFor(u, track), []);
   });
 

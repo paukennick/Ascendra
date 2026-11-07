@@ -21,7 +21,8 @@ import { factCheckEnabled, modelFactChecker, orderingForCheck, type CheckItem, t
 //                  against it is voided (kept, left out of mastery) and the
 //                  learners' mastery is recomputed.
 
-export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison"] as const;
+// REQ-123: "lab" (migration 050) -- a verifiable lab, by labs.id.
+export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison", "lab"] as const;
 export type ItemKind = (typeof ITEM_KINDS)[number];
 
 export const FLAG_REASONS = ["wrong_answer", "unclear", "outdated", "offensive", "other"] as const;
@@ -246,6 +247,10 @@ export async function loadCheckItem(ref: ItemRef): Promise<CheckItem | null> {
       if (!row) return null;
       return examCheckItem("i1", objectiveTitle, row.item_format, row.stem, row.body, row.answer_key);
     }
+    case "lab":
+      // REQ-123: an open-ended lab has no key the choice checker can answer;
+      // a flagged lab goes to a person (flagItem skips the re-check).
+      return null;
   }
 }
 
@@ -338,7 +343,9 @@ export async function flagItem(
   checker?: FactChecker
 ): Promise<FlagResult & { recheck: Promise<RecheckResult> | null }> {
   const r = await recordFlag(ref, f);
-  const recheck = r.recorded && !r.quarantined ? recheckItem(ref, checker) : null;
+  // REQ-123: labs have no automated re-check (loadCheckItem has nothing to
+  // ask); running it would only spend the item's one re-check on an error.
+  const recheck = r.recorded && !r.quarantined && ref.kind !== "lab" ? recheckItem(ref, checker) : null;
   return { ...r, recheck };
 }
 
@@ -374,6 +381,9 @@ function attemptsSql(ref: ItemRef): { sql: string; params: unknown[] } {
     case "comparison":
       // Scoped to the card's objective: two cards can share scenario text.
       return { sql: `assessment_type = 'discrimination' and ($1::uuid is null or objective_id = $1::uuid) and question = $2`, params: [ref.objectiveId, ref.question] };
+    case "lab":
+      // REQ-123: every finished run of the lab (attempts.lab_id, migration 050).
+      return { sql: `lab_id = $1::uuid`, params: [ref.itemId] };
   }
 }
 

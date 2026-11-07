@@ -7142,6 +7142,57 @@
       ],
       "prevention_notes": "Replay lookups run before any state-dependent refusal, as /api/grade does.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-480",
+      "date": "2026-11-07",
+      "title": "Deleting a course with labs and lab answers failed (labs key and the labtask check blocked the objective's deletion)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With the first draft of migration 050, deleting a subject track whose objectives had labs failed with 'update or delete on table objectives violates foreign key constraint labs_objective_id_fkey'; with labs set to cascade, the attempts_labtask_shape check (lab_id and objective_id required on every labtask row) and an immediate ON DELETE SET NULL key on attempts.lab_id still failed the same delete, because attempts.objective_id is SET NULL when an objective goes.",
+      "how_detected": "test (lib/labs.dbtest.ts after() hook, then the dedicated test)",
+      "root_cause": "The new tables and constraints were designed for inserts only. attempts keeps answers as history when what they were about is deleted (every item key on attempts is ON DELETE SET NULL), so a check that a labtask row always names its objective and lab cannot hold after a deletion, and labs had no ON DELETE at all. Found by the lab DB test's own cleanup (deleting its test tracks) failing.",
+      "requirement": "REQ-123",
+      "affected": [
+        "backend/supabase/migrations/050_lab_engine.sql",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "labs.objective_id and lab_runs.lab_id ON DELETE CASCADE; attempts_labtask_shape only requires a lab type in format 'open' (and no lab_id on other kinds); that a new labtask answer names its lab and objective is enforced in recordAttemptTx, as 035's rule for 'lab' is. attempts.lab_id keeps the lab id as history.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts::deleting a course with labs",
+        "runs and lab answers works and keeps the answers as history",
+        "backend/lib/labs.dbtest.ts::a labtask attempt must name its lab and objective; the database refuses a lab id on any other kind or a pbq format"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A check or key added to attempts must still hold after every ON DELETE action on attempts' existing keys (objective_id, unit_id, pbq_scenario_id are SET NULL); test deleting a course that has the new rows, not only inserting them.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-481",
+      "date": "2026-11-07",
+      "title": "A deferred foreign key on attempts.lab_id broke later DDL on attempts in the same transaction",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/mastery-recompute.dbtest.ts failed 6 tests with 'cannot CREATE INDEX \"attempts\" because it has pending trigger events' after attempts.lab_id got a DEFERRABLE INITIALLY DEFERRED foreign key (the fix tried first for FAIL-480).",
+      "how_detected": "test (npm run test:db, lib/mastery-recompute.dbtest.ts)",
+      "root_cause": "A deferred foreign key queues an after-trigger event for every row inserted into attempts, whatever lab_id holds; Postgres refuses DDL on a table with pending trigger events, so any transaction that inserts attempts and then alters or indexes attempts fails (the recompute test re-runs migration 029 that way, and a migration could do the same). The deferral was chosen to dodge the ordering of two SET NULL actions without considering its effect on every other writer of attempts.",
+      "requirement": "REQ-123",
+      "affected": [
+        "backend/supabase/migrations/050_lab_engine.sql"
+      ],
+      "fix_summary": "attempts.lab_id has no foreign key: it is a plain indexed column written only by lib/labs.ts recordStep inside the transaction that reads the lab, with recordAttemptTx refusing a labtask answer without its lab (rationale in the migration's section 5).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts",
+        "backend/lib/labs.dbtest.ts::deleting a course with labs",
+        "runs and lab answers works and keeps the answers as history"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Never add a deferrable constraint to attempts (or any hot table migrations alter): run the full npm run test:db after any constraint change on attempts, not only the feature's own tests.",
+      "recurrence_of": ""
     }
   ]
 }

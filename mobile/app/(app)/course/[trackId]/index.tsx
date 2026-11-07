@@ -30,6 +30,7 @@ import { nextCourseStep } from "@/lib/nextStep";
 import { vendorDisclaimer } from "@/lib/vendor";
 import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
+import { labCountsByUnit, type LabListItem } from "@/lib/labs";
 
 interface AcknowledgementState {
   required: boolean;
@@ -58,6 +59,9 @@ export default function CourseDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ack, setAck] = useState<AcknowledgementState | null>(null);
+  // REQ-123: verifiable labs per unit; empty (and nothing shown) for a
+  // course without labs or if the request fails.
+  const [labCounts, setLabCounts] = useState<Record<string, number>>({});
   // REQ-075: which units are expanded to show their objective list. Nothing
   // on this screen let a learner pick a specific objective before -- only
   // "continue" into whatever came next.
@@ -108,7 +112,12 @@ export default function CourseDashboard() {
       .get<AcknowledgementState>(`/api/courses/${trackId}/acknowledgement`)
       .then(setAck)
       .catch(() => setAck(null));
+    api
+      .get<{ labs: LabListItem[] }>(`/api/labs?trackId=${encodeURIComponent(trackId)}`)
+      .then((res) => setLabCounts(labCountsByUnit(res.labs)))
+      .catch(() => setLabCounts({}));
   }, [trackId]);
+  const totalLabs = Object.values(labCounts).reduce((a, b) => a + b, 0);
 
   useFocusEffect(
     useCallback(() => {
@@ -223,6 +232,17 @@ export default function CourseDashboard() {
                 router.push({ pathname: `/course/${trackId}/exam`, params: { trackTitle: track.title } })
               }
             />
+
+            {/* REQ-123: hands-on labs, only on courses that have them. */}
+            {totalLabs > 0 ? (
+              <Button
+                label={`Hands-on labs (${totalLabs})`}
+                accessibilityLabel={`Hands-on labs: ${totalLabs} build and case labs`}
+                icon="tool"
+                variant="ghost"
+                onPress={() => router.push({ pathname: `/course/${trackId}/labs`, params: { trackTitle: track.title } })}
+              />
+            ) : null}
 
             {/* REQ-113 (Audit 3 mobile H3, H4): five fixed 72 dp items needed
                 360 dp but a 360 dp phone has about 294 here, so "Compare" sat
@@ -350,6 +370,19 @@ export default function CourseDashboard() {
                           pathname: `/course/${trackId}/pbq`,
                           params: { unitId: u.id, trackTitle: track.title },
                         })
+                      }
+                    />
+                  ) : null}
+                  {labCounts[u.id] ? (
+                    <Button
+                      label={`Labs (${labCounts[u.id]})`}
+                      accessibilityLabel={`${labCounts[u.id]} hands-on labs in ${u.title}`}
+                      variant="ghost"
+                      size="sm"
+                      fullWidth={false}
+                      icon="tool"
+                      onPress={() =>
+                        router.push({ pathname: `/course/${trackId}/labs`, params: { unitId: u.id, trackTitle: track.title } })
                       }
                     />
                   ) : null}
