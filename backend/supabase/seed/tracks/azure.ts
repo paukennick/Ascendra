@@ -32,6 +32,23 @@
 // remains unconfirmed -- see the azure-catalog-progress memory file, which
 // also tracks Microsoft's live 2026 retirement wave.
 //
+// Domain weights (REQ-102, 2026-11-07): Microsoft publishes each domain as a
+// range ("25-30%"), not a single number. Units used to carry each range's
+// rounded midpoint, which left eight tracks' weights totalling 94-105, so
+// weighted readiness and the exam_domains rows did not describe a whole
+// exam. Each weight is now the range midpoint when the midpoints already
+// total 100 (AZ-305, AI-901, AZ-120); otherwise the midpoints scaled to
+// total 100 and rounded to whole percents by largest remainder (AZ-900,
+// AZ-104, DP-900, AZ-140, DP-300). Every value stays inside its published
+// range. AZ-700 and AZ-400 already totalled 100 inside their ranges and are
+// unchanged. Ranges for all ten were re-read on 2026-11-07 from the study
+// guide cited in each block; none had changed. AZ-700 and AZ-400 guides:
+// https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700
+// and .../study-guides/az-400 (skills measured as of July 27, 2026).
+// DP-300's guide changed on 2026-10-27 ("Implement security for data at
+// rest and data in transit", marked minor) -- its objectives were not
+// re-read this pass.
+//
 // Re-verify each track's `credential.lastVendorVerifiedAt` against the live
 // certification page before release; migration 007 refuses to store any exam
 // record outside 'draft' status without both an objectives URL and a
@@ -73,6 +90,10 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
     examCode: "AZ-900",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 20, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "No prerequisites; Microsoft suggests familiarity with any area of IT (infrastructure, database, or software development) as helpful but not required.",
@@ -101,7 +122,7 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
     },
     {
       title: "Azure Architecture and Services",
-      weight: 38,
+      weight: 39,
       gate: "Given a workload's availability, data, or identity requirement, name the specific Azure building block that satisfies it -- not just 'use Azure'.",
       objectives: [
         "Azure regions, region pairs, and sovereign regions",
@@ -182,6 +203,10 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     examCode: "AZ-104",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 26, 2023) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Familiarity with operating systems, networking, servers, and virtualization; experience with PowerShell, Azure CLI, the Azure portal, Azure Resource Manager templates or Bicep files, and Microsoft Entra ID.",
@@ -193,7 +218,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
   units: [
     {
       title: "Manage Azure Identities and Governance",
-      weight: 23,
+      weight: 24,
       gate: "Given an identity, access, or governance scenario, name the specific Entra ID or Azure Policy/subscription control that applies -- not just 'set a permission'.",
       objectives: [
         "Creating Microsoft Entra users and groups",
@@ -215,7 +240,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     },
     {
       title: "Implement and Manage Storage",
-      weight: 18,
+      weight: 19,
       gate: "Given a storage access, redundancy, or lifecycle requirement, name the specific Azure Storage feature that satisfies it and how it differs from a similarly-named alternative.",
       objectives: [
         "Configuring Azure Storage firewalls and virtual network rules",
@@ -239,7 +264,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     },
     {
       title: "Deploy and Manage Azure Compute Resources",
-      weight: 23,
+      weight: 24,
       gate: "Given a workload, name the specific compute option (VM, Scale Set, container, or App Service) and the exact ARM/Bicep or portal step that provisions or configures it -- not just 'deploy it'.",
       objectives: [
         "Interpreting an Azure Resource Manager template or a Bicep file",
@@ -270,7 +295,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     },
     {
       title: "Implement and Manage Virtual Networking",
-      weight: 18,
+      weight: 19,
       gate: "Given a connectivity or network-security requirement, name the specific virtual networking control (NSG, peering, Bastion, load balancer) that applies and what it would actually block or route.",
       objectives: [
         "Creating and configuring virtual networks and subnets",
@@ -290,7 +315,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     },
     {
       title: "Monitor and Maintain Azure Resources",
-      weight: 12,
+      weight: 14,
       gate: "Given a monitoring or disaster-recovery scenario, name the specific Azure Monitor or Azure Backup/Site Recovery capability that surfaces or restores what's needed.",
       objectives: [
         "Interpreting metrics in Azure Monitor",
@@ -337,6 +362,10 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
     examCode: "AZ-305",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 17, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Requires the Azure Administrator Associate certification. Advanced experience with networking, virtualization, identity, security, business continuity, disaster recovery, data platforms, governance, Azure administration, Azure development, and DevOps processes.",
@@ -347,7 +376,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
   units: [
     {
       title: "Design Identity, Governance, and Monitoring Solutions",
-      weight: 28,
+      weight: 27.5,
       gate: "Given a business requirement, recommend the specific Azure identity, governance, or monitoring solution that satisfies it -- and say why a plausible alternative falls short -- not just name a service.",
       objectives: [
         "Recommending a logging solution",
@@ -365,7 +394,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
     },
     {
       title: "Design Data Storage Solutions",
-      weight: 23,
+      weight: 22.5,
       gate: "Given a data workload's structure, scale, and durability requirements, recommend the specific Azure data storage solution that fits -- and the tradeoff it makes against the next-best option.",
       objectives: [
         "Recommending a solution for storing relational data",
@@ -382,7 +411,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
     },
     {
       title: "Design Business Continuity Solutions",
-      weight: 18,
+      weight: 17.5,
       gate: "Given a stated recovery objective (RPO/RTO) or availability target, recommend the specific backup, recovery, or high-availability solution that meets it.",
       objectives: [
         "Recommending a recovery solution for Azure and hybrid workloads that meets stated recovery objectives",
@@ -396,7 +425,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
     },
     {
       title: "Design Infrastructure Solutions",
-      weight: 33,
+      weight: 32.5,
       gate: "Given a workload's compute, application-architecture, migration, or network requirement, recommend the specific Azure solution that fits -- not a generic 'move it to Azure' answer.",
       objectives: [
         "Specifying compute-solution components based on workload requirements",
@@ -457,6 +486,10 @@ export const AZURE_AI901_TRACK: SeedTrack = {
     examCode: "AI-901",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 15, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "No prerequisites; benefits from familiarity with Python syntax and programming techniques, Azure resources, and REST APIs/SDKs/CLIs.",
@@ -467,7 +500,7 @@ export const AZURE_AI901_TRACK: SeedTrack = {
   units: [
     {
       title: "AI Concepts and Capabilities",
-      weight: 43,
+      weight: 42.5,
       gate: "Given an AI scenario, name the specific responsible-AI consideration or workload category at play -- not a generic 'AI can help with that'.",
       objectives: [
         "Considerations for fairness in an AI solution",
@@ -488,7 +521,7 @@ export const AZURE_AI901_TRACK: SeedTrack = {
     },
     {
       title: "Implementing AI Solutions with Microsoft Foundry",
-      weight: 58,
+      weight: 57.5,
       gate: "Given a task -- a chat agent, a vision or speech feature, an extraction pipeline -- name the specific Foundry capability that builds it and how a lightweight client would call it.",
       objectives: [
         "Writing effective system and user prompts for generative AI models",
@@ -535,6 +568,10 @@ export const AZURE_DP900_TRACK: SeedTrack = {
     examCode: "DP-900",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 21, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "No prerequisites; familiarity with relational and non-relational data concepts and with transactional versus analytical data workloads is helpful.",
@@ -546,7 +583,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
   units: [
     {
       title: "Core Data Concepts",
-      weight: 28,
+      weight: 29,
       gate: "Given a dataset or workload description, name whether it's structured/semi-structured/unstructured and transactional/analytical -- and which data role owns it -- not just 'it's data'.",
       objectives: [
         "Features of structured data",
@@ -564,7 +601,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
     },
     {
       title: "Relational Data on Azure",
-      weight: 23,
+      weight: 24,
       gate: "Given a relational-data requirement, name the specific Azure SQL product or open-source database service that fits -- and the SQL concept (normalization, a given statement type, a database object) behind it.",
       objectives: [
         "Features of relational data",
@@ -589,7 +626,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
     },
     {
       title: "Analytics Workload on Azure",
-      weight: 28,
+      weight: 29,
       gate: "Given an analytics scenario, name the specific ingestion, storage, or visualization component -- including whether it's batch or streaming -- that fits, and how Power BI would present the result.",
       objectives: [
         "Considerations for data ingestion and processing",
@@ -833,6 +870,10 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
     examCode: "AZ-140",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 20, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Server or desktop administrator experience designing, implementing, managing, and maintaining Azure Virtual Desktop experiences and remote apps, working closely with Azure administrators, Azure architects, Microsoft 365 administrators, and Azure security engineers; experience with Azure compute, networking, identity, storage, and resiliency.",
@@ -843,7 +884,7 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
   units: [
     {
       title: "Plan and Implement an Azure Virtual Desktop Infrastructure",
-      weight: 43,
+      weight: 45,
       gate: "Given an AVD networking, storage, host-pool, or image requirement, name the specific control or workflow that fits -- not a generic 'deploy AVD'.",
       objectives: [
         "Assessing network capacity and speed requirements for Azure Virtual Desktop",
@@ -898,7 +939,7 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
     },
     {
       title: "Plan and Implement User Environments and Apps",
-      weight: 23,
+      weight: 24,
       gate: "Given a user-profile or app-delivery requirement, name the specific FSLogix, client, or App attach configuration that fits.",
       objectives: [
         "Recommending an FSLogix configuration",
@@ -976,6 +1017,10 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     examCode: "DP-300",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 27, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Subject matter expertise building database solutions on Azure SQL services and SQL Server on-premises, including day-to-day operational management, availability, security, and performance monitoring/optimization using Transact-SQL and other administrative tools.",
@@ -986,7 +1031,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
   units: [
     {
       title: "Plan and Implement Data Platform Resources",
-      weight: 18,
+      weight: 17,
       gate: "Given an Azure SQL deployment, scaling, or migration requirement, name the specific offering or migration strategy that fits -- not a generic 'move it to Azure'.",
       objectives: [
         "Recommending a database offering based on specific requirements",
@@ -1015,7 +1060,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     },
     {
       title: "Implement a Secure Environment",
-      weight: 23,
+      weight: 22,
       gate: "Given a database authentication, encryption, or compliance requirement, name the specific control that fits, not just 'lock it down'.",
       objectives: [
         "Configuring Microsoft Entra ID authentication for Azure SQL Database, Azure SQL Managed Instance, and SQL Server",
@@ -1042,7 +1087,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     },
     {
       title: "Monitor, Configure, and Optimize Database Resources",
-      weight: 23,
+      weight: 22,
       gate: "Given a performance-monitoring or tuning requirement, name the specific metric source or tuning control that fits, not just 'make it faster'.",
       objectives: [
         "Preparing an operational performance baseline",
@@ -1072,7 +1117,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     },
     {
       title: "Configure and Manage Automation of Tasks",
-      weight: 18,
+      weight: 17,
       gate: "Given a recurring database-operations requirement, name the specific automation tool (SQL Server Agent, ARM/Bicep, elastic jobs) that fits.",
       objectives: [
         "Managing schedules for regular maintenance jobs",
@@ -1090,7 +1135,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     },
     {
       title: "Plan and Configure a High Availability and Disaster Recovery Environment",
-      weight: 23,
+      weight: 22,
       gate: "Given an RPO/RTO requirement, name the specific HA/DR configuration (geo-replication, availability groups, failover groups, log shipping) that fits, not just 'make it resilient'.",
       objectives: [
         "Recommending an HA/DR strategy based on Recovery Point Objective/Recovery Time Objective (RPO/RTO) requirements",
@@ -1300,6 +1345,10 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
     examCode: "AZ-120",
     status: "active",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120",
+    // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 17, 2026) at
+    // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120
+    // -- unchanged. Unit weights are now points inside those ranges that total 100;
+    // see "Domain weights" in the file header.
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
       "Experience as an architect or engineer designing and managing SAP landscapes on Azure, including RISE with SAP, with extensive knowledge of SAP HANA, SAP Business Suite, and SAP NetWeaver, plus virtualization, cloud infrastructure, storage, high availability, disaster recovery, and networking; an Azure Administrator Associate certification is strongly recommended first.",
@@ -1310,7 +1359,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
   units: [
     {
       title: "Migrate SAP Workloads to Azure",
-      weight: 28,
+      weight: 27.5,
       gate: "Given an SAP migration-planning requirement, name the specific target-infrastructure decision or RISE integration point that fits, not just 'move it to Azure'.",
       objectives: [
         "Estimating target sizing for SAP workloads",
@@ -1337,7 +1386,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
     },
     {
       title: "Design and Implement Infrastructure to Support SAP Workloads on Azure",
-      weight: 25,
+      weight: 27.5,
       gate: "Given a compute, networking, or storage requirement for SAP virtual machines, name the specific Azure control that fits.",
       objectives: [
         "Choosing an SAP-certified Azure virtual machine for a given SAP workload",
@@ -1369,7 +1418,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
     },
     {
       title: "Design and Implement High Availability and Disaster Recovery",
-      weight: 23,
+      weight: 22.5,
       gate: "Given an SAP resiliency requirement, name the specific clustering, replication, or Site Recovery configuration that fits, not just 'make it available'.",
       objectives: [
         "Designing for service-level agreement (SLA) considerations",
@@ -1393,7 +1442,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
     },
     {
       title: "Maintain SAP Workloads on Azure",
-      weight: 23,
+      weight: 22.5,
       gate: "Given an ongoing SAP cost or monitoring requirement, name the specific Azure Advisor, Monitor, or Center for SAP solutions control that fits.",
       objectives: [
         "Optimizing performance and costs for an SAP workload using Azure Advisor recommendations",

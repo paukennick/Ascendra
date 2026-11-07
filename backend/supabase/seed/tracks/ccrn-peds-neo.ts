@@ -148,14 +148,19 @@ export const CCRN_PEDIATRIC_TRACK: SeedTrack = {
   title: "CCRN (Pediatric) Critical Care Coach",
   description:
     "AACN's direct-care certification for nurses caring for acutely and critically ill children, on the test plan in force from November 2025: five clinical-judgment categories weighted as AACN weights them, plus the Synergy Model's professional caring and ethical practice.",
-  credential: aacnCredential({
-    slug: "ccrn-pediatric",
-    name: "CCRN (Pediatric)",
-    url: "https://www.aacn.org/certification/get-certified/ccrn-peds",
-    population: "pediatric",
-    revision: "Pediatric CCRN Test Plan 2025-11-19 (Handbook July 2026)",
-    effectiveDate: "2025-11-19",
-  }),
+  credential: {
+    ...aacnCredential({
+      slug: "ccrn-pediatric",
+      name: "CCRN (Pediatric)",
+      url: "https://www.aacn.org/certification/get-certified/ccrn-peds",
+      population: "pediatric",
+      revision: "Pediatric CCRN Test Plan 2025-11-19 (Handbook July 2026)",
+      effectiveDate: "2025-11-19",
+    }),
+    // REQ-102: AACN's printed weights total 101; kept as printed (see file header).
+    publishedWeightsNote:
+      "AACN's Pediatric test plan prints 11+13+25+15+17 (=81) for the 80% Clinical Judgment share plus 20% Professional Caring, and notes the sum may not equal 100 due to rounding.",
+  },
   units: [
     {
       title: "Cardiovascular",
@@ -260,14 +265,19 @@ export const CCRN_NEONATAL_TRACK: SeedTrack = {
   title: "CCRN (Neonatal) Critical Care Coach",
   description:
     "AACN's direct-care certification for nurses caring for acutely and critically ill neonates, on the test plan in force from November 12, 2025: five clinical-judgment categories weighted as AACN weights them, plus the Synergy Model's professional caring and ethical practice.",
-  credential: aacnCredential({
-    slug: "ccrn-neonatal",
-    name: "CCRN (Neonatal)",
-    url: "https://www.aacn.org/certification/get-certified/ccrn-neo",
-    population: "neonatal",
-    revision: "Neonatal CCRN Test Plan 2025-11-12 (Handbook July 2026)",
-    effectiveDate: "2025-11-12",
-  }),
+  credential: {
+    ...aacnCredential({
+      slug: "ccrn-neonatal",
+      name: "CCRN (Neonatal)",
+      url: "https://www.aacn.org/certification/get-certified/ccrn-neo",
+      population: "neonatal",
+      revision: "Neonatal CCRN Test Plan 2025-11-12 (Handbook July 2026)",
+      effectiveDate: "2025-11-12",
+    }),
+    // REQ-102: AACN's printed weights total 98; kept as printed (see file header).
+    publishedWeightsNote:
+      "AACN's Neonatal test plan prints 10+15+20+13+20 (=78) for the 80% Clinical Judgment share plus 20% Professional Caring, and notes the sum may not equal 100 due to rounding.",
+  },
   units: [
     {
       title: "Cardiovascular",

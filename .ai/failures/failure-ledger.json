@@ -925,6 +925,153 @@
       "prevention_rules": [],
       "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-100",
+      "date": "2026-11-07",
+      "title": "Security+ and four other CompTIA tracks had no credential block",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "SECPLUS, LINUXPLUS, CYSAPLUS, PENTESTPLUS and SECURITYX had no credential_exam_id: no exam code, duration, question format or passing score for the coach or any readiness feature, and no exam_domains rows.",
+      "how_detected": "review",
+      "root_cause": "The five tracks were hand-authored in data.ts before the credential block existed; later strands added credential blocks to new files only, and no test required one on every certification track.",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Credential blocks added from comptia.org pages (read 2026-11-07); catalog test requires a credential on every certification track.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "catalog-blueprints.test.ts walks CATALOG_TRACKS (the same list the seed uses) and fails on any certification track without a credential block.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-101",
+      "date": "2026-11-07",
+      "title": "AWSSAP taught SAP-C02 past its last test day",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The AWS Solutions Architect Professional track taught SAP-C02, whose last test day is 2026-11-16; SAP-C03 (5 restructured domains, pass mark 720) is GA 2026-11-17.",
+      "how_detected": "review",
+      "root_cause": "Vendor version changes are only caught when someone re-reads the guide; contentReviewDueAt (2026-10-27) had passed without a rebase, and the seed had no safe way to replace a version's units without rewriting learner-linked rows.",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "AWSSAP now carries SAP-C03 (credential, five new units/objectives from the SAP-C03 guide); the four C02 units are retired, not rewritten; the SAP-C02 exam row is marked superseded.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "contentReviewDueAt on transitioning tracks is the trigger; the seed's retiredAt/supersedes mechanism now makes the rebase safe to do as soon as a successor guide publishes. Remaining due rebases (DVA-C03, CySA+ CS0-004, Security+ SY0-801) are listed in REQ-102 risks.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-102",
+      "date": "2026-11-07",
+      "title": "DVA-C02 last test day recorded as 2026-12-01",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "credential_exams.retirement_date for DVA-C02 was 2026-12-01; AWS's exam-guide index and T&C post say the last day is 2026-11-30 (2026-12-01 is DVA-C03's first GA day).",
+      "how_detected": "review",
+      "root_cause": "The GA date of the successor was recorded as the predecessor's last day.",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "retirementDate set to 2026-11-30 with source URLs; SeedCredential.supersedes now records lastExamDate explicitly as the last day to sit.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "A vendor date; the test cannot know the right value. The supersedes field's comment and the ExamBlueprint.retirementDate doc fix the meaning (last day the exam can be sat).",
+      "prevention_rules": [],
+      "prevention_notes": "SeedCredential.supersedes.lastExamDate and ExamBlueprint.retirementDate are documented as the last day the exam can be sat; source URLs sit beside each date.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-103",
+      "date": "2026-11-07",
+      "title": "Eight Azure tracks' domain weights did not total 100",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AZ-900 99, AZ-104 94, AZ-305 102, AI-901 101, DP-900 97, AZ-140 97, DP-300 105, AZ-120 99: weighted readiness and exam_domains did not describe a whole exam.",
+      "how_detected": "review",
+      "root_cause": "Microsoft publishes ranges; each unit took the rounded midpoint, and nothing checked the total.",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts"
+      ],
+      "fix_summary": "Weights are points inside each published range that total 100 (midpoints when they already do; otherwise scaled and rounded by largest remainder). Ranges re-read on learn.microsoft.com 2026-11-07.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The blueprint test fails any certification track whose active weights do not total 100 unless publishedWeightsNote explains a vendor-printed total.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-104",
+      "date": "2026-11-07",
+      "title": "Seed could only rewrite units/objectives in place on an exam-version change",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Units and objectives are matched by sort_order and updated in place, so replacing a version's units would re-point every learner's mastery and attempts at different objectives; rows past the end of the seed stayed listed; exam_domains rows past a shrunken blueprint stayed, inflating weight totals; the outgoing exam row kept looking current.",
+      "how_detected": "review",
+      "root_cause": "The seed had no notion of retirement or supersession -- only insert-or-update by position -- and the schema had no way to hide a row without deleting it (which cascades mastery).",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/supabase/seed/seed.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/migrations/033_exam_blueprints.sql",
+        "backend/lib/progress-sql.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/units/[id]/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/scripts/pregenerate.ts"
+      ],
+      "fix_summary": "Migration 033 adds retired_at to course_units/objectives; every listing/rollup filters with isActive(); the seed writes retired_at from SeedUnit.retiredAt, retires surplus rows, deletes surplus exam_domains, and marks the superseded exam; schema probe added.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "exam-blueprints.dbtest.ts drives a version change through seedTrack and asserts objective id/title/mastery survive and the course hides retired rows. New readers of course_units/objectives must use isActive() from lib/progress-sql.ts.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-105",
+      "date": "2026-11-07",
+      "title": "credential_exams duration/format data was not readable by app code",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "duration_minutes, question_format, passing_score_policy and exam_domains were written by the seed but no API or lib function returned them, so mock-exam or readiness work would have re-joined the taxonomy ad hoc.",
+      "how_detected": "review",
+      "root_cause": "coach-context joined only the exam code; nothing exposed the rest of the blueprint.",
+      "requirement": "REQ-102",
+      "affected": [
+        "backend/lib/exam-blueprint.ts",
+        "backend/app/api/courses/[id]/route.ts"
+      ],
+      "fix_summary": "lib/exam-blueprint.ts examBlueprintForTrack(); GET /api/courses/:id returns it as exam.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "examBlueprintForTrack is the one reader for exam mechanics; exam-blueprints.dbtest.ts asserts it returns duration, format, passing policy and domains.",
+      "recurrence_of": ""
     }
   ]
 }
