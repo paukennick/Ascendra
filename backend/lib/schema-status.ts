@@ -83,13 +83,10 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "029_mastery_recompute.sql",
     // Checks the current version, not just the name: the first version of
     // 029 returned no row for "no evidence" and trusted attempts.assisted for
-    // repeats (FAIL-110/111).
-    // Once 031's rule is installed the 031 probes below judge the function:
-    // re-applying 029 would put the old rule back, so this one doesn't ask for it.
-  },
-  {
     // repeats (FAIL-110/111); the second counted attempts of any kind
     // (FAIL-182).
+    // Once 031's rule is installed the 031 probes below judge the function:
+    // re-applying 029 would put the old rule back, so this one doesn't ask for it.
     what: "mastery_from_attempts() function, current version (every graded answer)",
     sql: `select exists(select 1 from pg_proc where proname = 'mastery_from_attempts' and prosrc like '%mastery_detail%')
              or coalesce((select status = 'Not started'

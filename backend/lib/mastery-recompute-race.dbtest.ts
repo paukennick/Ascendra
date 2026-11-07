@@ -124,9 +124,13 @@ describe("recompute under live grading (FAIL-118)", () => {
       }
       await recompute;
 
-      assert.equal(await stored(o), "Transfer-ready", "the fresh grade's level survives the recompute");
+      // REQ-100: under 031's weighted rule two Solo answers in one format give
+      // Independent, not Transfer-ready, so the check is rule-relative: what's
+      // stored must be what the rule gives with the fresh grade counted, and
+      // not the stale value the recompute started from.
       const f = await queryOne<{ status: string }>(`select status from mastery_from_attempts($1, $2)`, [user, o]);
-      assert.equal(f?.status, "Transfer-ready");
+      assert.notEqual(f?.status, "Guided", "the fresh grade raises the level above the stale value");
+      assert.equal(await stored(o), f?.status, "the fresh grade's level survives the recompute");
     });
   }
 
