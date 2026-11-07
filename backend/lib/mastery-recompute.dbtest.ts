@@ -254,6 +254,34 @@ describe("029 recompute", () => {
     assert.equal(b?.status, "Transfer-ready");
   });
 
+  // FAIL-185: each restore statement must be safe on its own and on a re-run,
+  // and skip rows that already hold the backed-up values.
+  test("the restore statements run one at a time, twice, and skip identical rows", async () => {
+    const header = BACKFILL_SQL.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
+    const block = header.slice(header.indexOf("begin;") + 1, header.indexOf("commit;")).join("\n");
+    const statements = block.split(";").map((s) => s.trim()).filter(Boolean);
+    assert.equal(statements.length, 2);
+    // This learner's rows (or one objective's) touched by a statement; the restore is database-wide.
+    const touched = async (stmt: string, objectiveId: string | null = null) =>
+      (await queryOne<{ n: number }>(
+        `with r as (${stmt} returning m.user_id, m.objective_id) select count(*)::int as n from r
+          where user_id = $1 and ($2::uuid is null or objective_id = $2)`,
+        [user, objectiveId]
+      ))!.n;
+    // oneSitting already restored by hand: identical to its backup, untouched since.
+    await query(
+      `update mastery m set status = b.status, score_0_4 = b.score_0_4, evidence = b.evidence, updated_at = b.updated_at
+         from mastery_backup_029 b where b.mastery_id = m.id and m.user_id = $1 and m.objective_id = $2`,
+      [user, o.oneSitting]
+    );
+    // Delete first, then update (the order doesn't matter); the identical row is skipped.
+    await touched(statements[1]);
+    assert.equal(await touched(statements[0], o.oneSitting), 0, "a row already holding its backup is not rewritten");
+    // Run again, one statement at a time: nothing left to do.
+    for (const stmt of [statements[1], statements[0]]) assert.equal(await touched(stmt), 0, stmt.split("\n")[0]);
+    assert.equal(await status(o.oneSitting), "Transfer-ready");
+  });
+
   // FAIL-115: the backup tables had no link to app_users, so a deleted
   // account's mastery and review history stayed behind in them.
   test("deleting the account removes its backup rows", async () => {

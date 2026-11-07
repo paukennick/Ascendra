@@ -23,6 +23,8 @@ export const EXPORT_SECTIONS = {
   // REQ-111.
   misconceptions: "select * from learner_misconceptions where user_id = $1 order by created_at asc",
   prerequisiteRefreshers: "select * from prerequisite_refreshers where user_id = $1 order by opened_at asc",
+  // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
+  lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;
