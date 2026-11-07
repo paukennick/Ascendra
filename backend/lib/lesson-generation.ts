@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { queryOne } from "@/lib/db";
+import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
@@ -44,18 +45,29 @@ export interface ObjectiveRow {
   ctx: CoachContext | null;
 }
 
-export function rowToLesson(row: LessonRow) {
+// REQ-097: what the app is sent for a lesson. Grading is server-side, so the
+// answer keys (*_correct_index) and the explanations of the right answer
+// (*_why) never leave the server before the learner answers; /api/grade
+// returns them with the verdict. Guided choices come in this learner's fixed
+// shuffled order (lib/choice-order.ts). Solo choices are not sent at all:
+// they are a hint, fetched from POST /api/objectives/:id/hint, which records
+// that the hint was used.
+export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveId: string }) {
+  const fadeChoices = Array.isArray(row.fade_choices) && row.fade_problem
+    ? shuffleForPresentation(
+        row.fade_choices,
+        presentationOrder(
+          presentationSeed(viewer.userId, viewer.objectiveId, "fade", row.fade_problem),
+          row.fade_choices.length
+        )
+      )
+    : row.fade_choices;
   return {
     guessPrompt: row.guess_prompt,
     teach: row.teach,
     fadeProblem: row.fade_problem,
-    fadeChoices: row.fade_choices,
-    fadeCorrectIndex: row.fade_correct_index,
-    fadeWhy: row.fade_why,
+    fadeChoices,
     soloCheck: row.solo_check,
-    soloChoices: row.solo_choices,
-    soloCorrectIndex: row.solo_correct_index,
-    soloWhy: row.solo_why,
     model: row.model,
     generatedAt: row.generated_at,
   };

@@ -35,8 +35,10 @@ import {
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
 import {
+  assistNote,
   choiceMarks,
   describeMark,
+  gradeSubmitError,
   offerRereadAfterCheck,
   soloOutcome,
   type ChoiceMark,
@@ -433,9 +435,6 @@ export default function LessonFlow() {
           // practicePending to false, so these are guaranteed populated.
           promptText={lesson.fadeProblem!}
           choices={lesson.fadeChoices!}
-          correctIndex={lesson.fadeCorrectIndex!}
-          why={lesson.fadeWhy!}
-          taughtText={lesson.teach}
           objectiveId={objectiveId}
           unitId={unitId}
           trackId={trackId}
@@ -456,10 +455,8 @@ export default function LessonFlow() {
           // Populated alongside fadeProblem above -- reaching solo means fade
           // already resolved, so these came from the same generation.
           promptText={lesson.soloCheck!}
-          choices={lesson.soloChoices!}
-          correctIndex={lesson.soloCorrectIndex!}
-          why={lesson.soloWhy!}
-          taughtText={lesson.teach}
+          // REQ-097: not in the lesson payload; fetched as a hint on demand.
+          choices={null}
           objectiveId={objectiveId}
           unitId={unitId}
           trackId={trackId}
@@ -578,12 +575,13 @@ export default function LessonFlow() {
 // would never find out why they were stuck at Guided.
 function masteryAdvice(status: MasteryStatus | null): string {
   switch (status) {
+    // REQ-097: matches mastery_from_attempts (backend migration 029).
     case "Transfer-ready":
-      return "Top of the rubric: you've answered in your own words correctly more than once. Spaced review will still bring it back if you ever miss it.";
+      return "Top of the rubric: you've answered on your own, correctly, on separate days. Spaced review will still bring it back if you ever miss it.";
     case "Independent":
-      return "You answered in free response correctly. One more correct free-response answer here makes it Transfer-ready.";
+      return "You answered the solo check on your own. Come back tomorrow or later and answer a fresh question (\"Regenerate lesson\") on your own to make it Transfer-ready.";
     case "Guided":
-      return "Multiple choice tops out here. Revisit and answer in free response to earn Independent.";
+      return "Guided practice, the choices hint, or a question you'd answered before tops out here. Answer a solo check in free response, without the hint, to earn Independent.";
     case "Introduced":
       return "Not there yet -- the explanation is one tap back, and this objective will come up for review.";
     case "Needs review":
@@ -680,10 +678,7 @@ function GuessStep({
 function CheckStep({
   kind,
   promptText,
-  choices,
-  correctIndex,
-  why,
-  taughtText,
+  choices: givenChoices,
   objectiveId,
   unitId,
   trackId,
@@ -696,10 +691,9 @@ function CheckStep({
 }: {
   kind: "fade" | "solo";
   promptText: string;
-  choices: string[];
-  correctIndex: number;
-  why: string;
-  taughtText: string;
+  // Guided: from the lesson, already in this learner's shown order. Solo:
+  // null -- fetched from the hint endpoint only when asked for (REQ-097).
+  choices: string[] | null;
   objectiveId: string;
   unitId?: string;
   trackId: string;
@@ -722,70 +716,88 @@ function CheckStep({
   const [followUpSent, setFollowUpSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A failed submit leaves the answer as it was and offers "Retry", which
+  // resends with the same clientAttemptId; no verdict is shown until the
+  // server has graded it.
+  const [submitFailed, setSubmitFailed] = useState(false);
   const router = useRouter();
 
-  async function submitMC() {
-    if (picked == null) return;
+  // REQ-097: the Solo choices come from the server, which records the hint
+  // before sending them. Re-fetched after a resume (same order, nothing new
+  // recorded) whenever the check is in multiple-choice mode.
+  const [hintChoices, setHintChoices] = useState<string[] | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const choices = givenChoices ?? hintChoices;
+  const loadHint = useCallback(async () => {
+    setHintLoading(true);
+    setError(null);
+    try {
+      const res = await api.post<{ choices: string[] }>(`/api/objectives/${objectiveId}/hint`, { stage: "solo" });
+      setHintChoices(res.choices);
+      return true;
+    } catch (err) {
+      setError(gradeSubmitError(err));
+      return false;
+    } finally {
+      setHintLoading(false);
+    }
+  }, [objectiveId]);
+  useEffect(() => {
+    if (kind === "solo" && mode === "mc" && !hintChoices && !hintLoading && !error) loadHint();
+  }, [kind, mode, hintChoices, hintLoading, error, loadHint]);
+  async function showHint() {
+    if (hintChoices || (await loadHint())) setMode("mc");
+  }
+
+  // Grading is server-side: the request names the check and carries the
+  // answer, nothing else (no question, no key). The verdict, the key and the
+  // explanation come back together.
+  async function submit(format: "mc" | "open") {
+    if (format === "mc" ? picked == null : !openAnswer.trim()) return;
     setBusy(true);
     setError(null);
+    setSubmitFailed(false);
     // Same answer resent after a failure keeps its id, so if the first
     // request did reach the server this one gets that result back instead
     // of a second recorded attempt.
-    const signature = answerSignature("mc", picked, openAnswer);
+    const signature = answerSignature(format, picked, openAnswer);
     const clientAttemptId = attemptIdFor(state, signature, Crypto.randomUUID);
     const sent = { ...state, clientAttemptId, sentSignature: signature };
     onStateChange(sent);
     try {
       const res = await api.post<GradeResult>("/api/grade", {
         clientAttemptId,
-        format: "mc",
+        format,
         kind: "lesson",
         stage: kind,
         objectiveId,
         unitId,
-        question: promptText,
-        chosenIndex: picked,
-        correctIndex,
-        chosenText: choices[picked],
-        why,
+        ...(format === "mc" ? { chosenIndex: picked } : { answer: openAnswer }),
         confidence,
       });
-      onStateChange({ ...sent, result: { verdict: res.verdict, feedback: res.feedback, missedParts: res.missedParts ?? [] } });
+      onStateChange({
+        ...sent,
+        result: {
+          verdict: res.verdict,
+          feedback: res.feedback,
+          missedParts: res.missedParts ?? [],
+          correctIndex: res.correctIndex ?? null,
+          correctAnswer: res.correctAnswer ?? null,
+          why: res.why ?? null,
+          assistReason: res.assistReason ?? null,
+        },
+      });
     } catch (err) {
-      setError((err as Error).message);
+      setError(gradeSubmitError(err));
+      setSubmitFailed(true);
     } finally {
       setBusy(false);
     }
   }
-
-  async function submitOpen() {
-    if (!openAnswer.trim()) return;
-    setBusy(true);
-    setError(null);
-    const signature = answerSignature("open", picked, openAnswer);
-    const clientAttemptId = attemptIdFor(state, signature, Crypto.randomUUID);
-    const sent = { ...state, clientAttemptId, sentSignature: signature };
-    onStateChange(sent);
-    try {
-      const res = await api.post<GradeResult>("/api/grade", {
-        clientAttemptId,
-        format: "open",
-        kind: "lesson",
-        stage: kind,
-        objectiveId,
-        unitId,
-        question: promptText,
-        answer: openAnswer,
-        taughtText,
-        confidence,
-      });
-      onStateChange({ ...sent, result: { verdict: res.verdict, feedback: res.feedback, missedParts: res.missedParts ?? [] } });
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const submitMC = () => submit("mc");
+  const submitOpen = () => submit("open");
+  const submitLabel = submitFailed ? "Retry" : "Submit";
+  const submitIcon = submitFailed ? "refresh-cw" : "send";
 
   // REQ-074: used to send only "Follow-up on graded answer: <text>", so the
   // coach had no idea which question, answer or verdict was being disputed
@@ -794,7 +806,7 @@ function CheckStep({
   async function sendFollowUp() {
     if (!followUp.trim() || !result) return;
     setBusy(true);
-    const answerText = mode === "mc" && picked != null ? choices[picked] : openAnswer;
+    const answerText = mode === "mc" && picked != null && choices ? choices[picked] : openAnswer;
     const message =
       `Follow-up on a graded ${kind === "fade" ? "guided practice" : "solo check"} answer.\n` +
       `Question: ${promptText}\n` +
@@ -829,9 +841,8 @@ function CheckStep({
                 <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
               </View>
               <Muted style={{ fontSize: 12 }}>
-                {mode === "mc"
-                  ? "Multiple choice earns up to Guided. Free response is what earns Independent."
-                  : "Answer in your own words -- a correct free-response answer earns Independent."}
+                Guided practice is scaffolded, so it earns up to Guided in either format. The solo check is where
+                Independent is earned.
               </Muted>
             </>
           ) : (
@@ -845,7 +856,13 @@ function CheckStep({
             </Muted>
           )}
 
-          {mode === "mc" ? (
+          {mode === "mc" && !choices ? (
+            hintLoading ? (
+              <Loading label="Loading the choices..." />
+            ) : (
+              <Button label="Load the choices" icon="refresh-cw" variant="ghost" onPress={loadHint} />
+            )
+          ) : mode === "mc" && choices ? (
             <View style={{ gap: 8 }} accessibilityRole="radiogroup">
               {choices.map((c, i) => (
                 <Pressable
@@ -863,7 +880,7 @@ function CheckStep({
                 </Pressable>
               ))}
               <ConfidencePicker value={confidence} onChange={setConfidence} />
-              <Button label="Submit" icon="send" loading={busy} onPress={submitMC} disabled={busy || picked == null} />
+              <Button label={submitLabel} icon={submitIcon} loading={busy} onPress={submitMC} disabled={busy || picked == null} />
               {kind === "solo" ? (
                 <Button
                   label="Answer in free response instead"
@@ -884,7 +901,7 @@ function CheckStep({
                 style={styles.input}
               />
               <ConfidencePicker value={confidence} onChange={setConfidence} />
-              <Button label="Submit" icon="send" loading={busy} onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
+              <Button label={submitLabel} icon={submitIcon} loading={busy} onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
               {kind === "solo" ? (
                 <>
                   <Button
@@ -893,11 +910,14 @@ function CheckStep({
                     size="sm"
                     fullWidth={false}
                     icon="help-circle"
-                    accessibilityLabel="Show choices as a hint. Multiple choice caps mastery at Guided."
-                    onPress={() => setMode("mc")}
+                    loading={hintLoading}
+                    disabled={hintLoading}
+                    accessibilityLabel="Show choices as a hint. Any answer to this question then counts toward Guided at most."
+                    onPress={showHint}
                   />
                   <Muted style={{ fontSize: 12 }}>
-                    Showing choices is a hint, and a correct multiple-choice answer caps mastery at Guided.
+                    Showing the choices is a hint: any answer to this question after that, in either format, counts
+                    toward Guided at most.
                   </Muted>
                 </>
               ) : null}
@@ -913,18 +933,28 @@ function CheckStep({
         <View style={{ gap: 8 }}>
           {/* REQ-095: the options stay on screen after grading so the learner
               can see which one they chose and which was right. */}
-          {mode === "mc" && picked != null ? (
-            <GradedChoices choices={choices} picked={picked} correctIndex={correctIndex} verdict={result.verdict} />
+          {mode === "mc" && picked != null && choices ? (
+            <GradedChoices choices={choices} picked={picked} correctIndex={result.correctIndex ?? null} verdict={result.verdict} />
           ) : null}
           <VerdictBadge verdict={result.verdict} />
           <Body>{result.feedback}</Body>
           {result.missedParts && result.missedParts.length > 0 ? (
             <Muted>Missed: {result.missedParts.join(", ")}</Muted>
           ) : null}
-          {mode === "mc" && result.verdict === "correct" ? (
+          {/* REQ-097: the key arrives only with the verdict. After a
+              free-response miss, show the expected answer too. */}
+          {mode === "open" && result.verdict !== "correct" && result.correctAnswer ? (
+            <Muted>
+              Expected answer: {result.correctAnswer}
+              {result.why ? ` -- ${result.why}` : ""}
+            </Muted>
+          ) : null}
+          {assistNote(result.assistReason) ? (
+            <Muted style={{ fontSize: 12 }}>{assistNote(result.assistReason)}</Muted>
+          ) : kind === "fade" && result.verdict === "correct" ? (
             <Muted style={{ fontSize: 12 }}>
-              Correct on multiple choice earns Guided. Answer the {kind === "fade" ? "solo check" : "next objective"} in
-              free response to earn Independent.
+              Guided practice earns Guided. The solo check, answered in free response without the hint, is what earns
+              Independent.
             </Muted>
           ) : null}
 
@@ -996,7 +1026,7 @@ function GradedChoices({
 }: {
   choices: string[];
   picked: number;
-  correctIndex: number;
+  correctIndex: number | null;
   verdict: string;
 }) {
   const marks = choiceMarks(choices.length, picked, correctIndex, verdict);

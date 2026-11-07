@@ -1,6 +1,14 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { choiceMarks, describeMark, isMiss, offerRereadAfterCheck, soloOutcome } from "./lessonFeedback.ts";
+import {
+  assistNote,
+  choiceMarks,
+  describeMark,
+  gradeSubmitError,
+  isMiss,
+  offerRereadAfterCheck,
+  soloOutcome,
+} from "./lessonFeedback.ts";
 
 const graded = (verdict: string) => ({ result: { verdict, feedback: "", missedParts: [] as string[] } });
 
@@ -70,5 +78,22 @@ describe("describeMark", () => {
     assert.deepEqual(describeMark("picked-correct"), { tag: "Your answer - correct", a11y: "Your answer, correct", tone: "good" });
     assert.deepEqual(describeMark("correct-answer"), { tag: "Correct answer", a11y: "Correct answer", tone: "good" });
     assert.equal(describeMark("none"), null);
+  });
+});
+
+describe("assistNote / gradeSubmitError (REQ-097)", () => {
+  test("an assisted answer says why it can't raise mastery; an unassisted one says nothing", () => {
+    assert.match(assistNote("repeat") ?? "", /answered this question before/);
+    assert.match(assistNote("hint") ?? "", /Guided at most/);
+    assert.equal(assistNote(null), null);
+    assert.equal(assistNote("other"), null);
+  });
+  test("a failed submit never reads as a grade: no connection asks for a retry, a server error shows its message", () => {
+    const offline = gradeSubmitError(new TypeError("Network request failed"));
+    assert.match(offline, /hasn't been graded/);
+    assert.match(offline, /Retry/);
+    assert.doesNotMatch(offline, /correct|incorrect/i);
+    assert.equal(gradeSubmitError({ status: 429, message: "Too many requests" }), "Too many requests");
+    assert.match(gradeSubmitError(null), /Retry/);
   });
 });

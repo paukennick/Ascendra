@@ -85,14 +85,15 @@ export interface LessonContent {
   // Absent while the practice half is still generating in the background --
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.
+  //
+  // REQ-097: no answer key and no explanation of the right answer are sent
+  // before the learner answers -- POST /api/grade returns them with the
+  // verdict. fadeChoices come in this learner's fixed shuffled order. The
+  // Solo choices are a hint: POST /api/objectives/:id/hint returns them and
+  // records that the hint was used.
   fadeProblem?: string;
   fadeChoices?: string[];
-  fadeCorrectIndex?: number;
-  fadeWhy?: string;
   soloCheck?: string;
-  soloChoices?: string[];
-  soloCorrectIndex?: number;
-  soloWhy?: string;
   model?: string;
   generatedAt?: string;
 }
@@ -102,6 +103,15 @@ export interface GradeResult {
   feedback: string;
   classification: string;
   missedParts: string[];
+  // REQ-097 (lesson checks only): the answer key, revealed with the verdict.
+  // correctIndex is a position in the order the choices were shown.
+  correctIndex?: number | null;
+  correctAnswer?: string | null;
+  why?: string | null;
+  // "hint": the Solo choices were seen. "repeat": this exact question was
+  // answered before. Either way the answer can't lift mastery above Guided.
+  assisted?: boolean;
+  assistReason?: "hint" | "repeat" | null;
 }
 
 export interface Attempt {
@@ -142,6 +152,8 @@ export interface ErrorLogEntry {
   next_review_at: string | null;
   resolved: boolean;
   created_at: string;
+  // REQ-097: set for a missed PBQ, so Review can offer the same scenario again.
+  pbq_scenario_id?: string | null;
 }
 
 // REQ-074: shape returned by POST /api/objectives/:id/lesson/prefetch-next

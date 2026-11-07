@@ -80,6 +80,28 @@ describe("graded checks survive leaving the lesson", () => {
     assert.equal(s?.checks.fade?.picked, 2);
     assert.equal(s?.checks.solo, undefined);
   });
+
+  // REQ-097: the key only ever arrives with the verdict, so it has to be saved
+  // with it or a resumed check could not mark the right option.
+  test("the answer key returned with a verdict is restored with it; junk is dropped", () => {
+    const s = parseSnapshot(
+      snap({
+        checks: {
+          fade: { mode: "mc", picked: 1, openAnswer: "", clientAttemptId: "id-123456", sentSignature: "mc:1",
+                  result: { verdict: "incorrect", feedback: "Not quite.", missedParts: [], correctIndex: 3,
+                            correctAnswer: "right", why: "because", assistReason: "repeat" } },
+          solo: { mode: "open", picked: null, openAnswer: "x", clientAttemptId: null, sentSignature: null,
+                  result: { verdict: "correct", feedback: "", missedParts: [], correctIndex: -1, assistReason: "nope" } },
+        },
+      }),
+      key,
+      now
+    );
+    const f = s?.checks.fade?.result;
+    assert.deepEqual([f?.correctIndex, f?.correctAnswer, f?.why, f?.assistReason], [3, "right", "because", "repeat"]);
+    assert.equal(s?.checks.solo?.result?.correctIndex, null);
+    assert.equal(s?.checks.solo?.result?.assistReason, null);
+  });
 });
 
 describe("Solo defaults to free response (REQ-095)", () => {

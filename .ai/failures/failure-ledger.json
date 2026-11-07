@@ -658,6 +658,226 @@
       "prevention_rules": [],
       "prevention_notes": "Route-level regression test; when work is split across engineers, the lead re-checks the seams (blast-radius item in pre-completion)",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-029",
+      "date": "2026-11-07",
+      "title": "Guided step earned Independent and Transfer-ready in one sitting",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "A correct free-response Guided (fade) answer gave Independent; Guided plus Solo minutes apart gave Transfer-ready",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "suggestStatus looked only at format and verdict, never at stage or time, and status came from the latest answer alone",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/mastery.ts",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "mastery_from_attempts (migration 029): only unassisted Solo free-response successes lift status above Guided; Transfer-ready needs two at least 24 hours apart",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::1. Guided work does not earn Independent or Transfer-ready"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-030",
+      "date": "2026-11-07",
+      "title": "Reopened lesson allowed full-credit resubmission",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "After the answer was shown, reopening the objective and typing the same answer gave Independent",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "Nothing tracked that an item had been answered (and its answer revealed); every attempt counted as unassisted",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "A second answer to the same item (same stage and server-held question) is recorded assisted=repeat and can't lift mastery above Guided",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::2. A reopened lesson can't be resubmitted for full credit"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-031",
+      "date": "2026-11-07",
+      "title": "One correct answer advanced every review entry regardless of due date",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Correct answers on fade and solo in one afternoon collapsed the 1/7/21-day schedule",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "The auto-advance UPDATE had no due-date or stage guard",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Only entries with next_review_at <= current_date advance, and only on a Solo answer or a retry of the same PBQ scenario (not the hint)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::3. Only due review entries advance"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-032",
+      "date": "2026-11-07",
+      "title": "Free-response grader trusted client context and had no answer key",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "question and taughtText came from the request body; the grader never saw the correct option; answers were pasted unfenced",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "The route was written for a general grader, not a lesson check with a stored key",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/grade/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/free-response-grader.ts"
+      ],
+      "fix_summary": "/api/grade grades only lesson checks, loading question, teaching text and answer key from the learner's own stored lesson; the answer is fenced and declared data",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::4. Free-response grading uses only server-held content"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-033",
+      "date": "2026-11-07",
+      "title": "Peeking at the Solo choices was not recorded",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Opening the hint, then answering in free response, counted as unassisted",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "The hint was a client-only mode flip; the choices were already in the lesson payload",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/objectives/[id]/hint/route.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Solo choices are no longer sent with the lesson; POST /api/objectives/:id/hint records the reveal first, and later answers to that item are assisted=hint",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::5. Peeking at the Solo choices is recorded and counts as assisted"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-034",
+      "date": "2026-11-07",
+      "title": "PBQ review entries could not be retested",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A missed PBQ's review entry could only be self-reported or dismissed",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "PBQ attempts have no objective, review entries were linked to nothing retestable, and GET /api/pbq could not fetch a scenario by id",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/pbq/route.ts",
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "fix_summary": "error_log.pbq_scenario_id (029, backfilled), GET /api/pbq?scenarioId=, Review 'Retry scenario', a due correct retry advances the entry",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::6. PBQ review entries can be retested"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-035",
+      "date": "2026-11-07",
+      "title": "Correct answer position biased toward the first choice",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Choices were shown in generated order and the prompt example showed index 0",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "No shuffle anywhere between generation and display",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/choice-order.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts"
+      ],
+      "fix_summary": "Per-learner deterministic shuffle on the server (lib/choice-order.ts); grading maps the shown position back; prompt example no longer shows 0",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::7. Choice order is shuffled per learner and graded in shown order",
+        "backend/lib/choice-order.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-036",
+      "date": "2026-11-07",
+      "title": "Answer keys sent to the app before answering",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The lesson payload carried fadeCorrectIndex, soloCorrectIndex and the why explanations",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "Grading used to happen partly on the client, so the key travelled with the question",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "mobile/src/types/index.ts",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "rowToLesson strips keys and explanations; /api/grade returns them with the verdict (also on idempotent replay); the app saves them with the result",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::8. No answer key reaches the app before it answers",
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-037",
+      "date": "2026-11-07",
+      "title": "Lesson hint texts promised credit the rules no longer give",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Solo said 'Answer the next objective in free response to earn Independent'; Guided said free response earns Independent",
+      "how_detected": "review (teaching-quality audit)",
+      "root_cause": "Copy written for the old rule",
+      "requirement": "REQ-097",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonFeedback.ts"
+      ],
+      "fix_summary": "Texts and done-screen advice match mastery_from_attempts; assisted answers say why they can't raise mastery",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonFeedback.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
+      "recurrence_of": ""
     }
   ]
 }
