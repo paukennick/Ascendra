@@ -7,14 +7,14 @@ export const dynamic = "force-dynamic";
 // GET /api/health — DB connectivity plus a schema check. Does not call
 // Anthropic.
 //
-// REQ-090: also confirms the database has the schema this deploy needs
+// REQ-128: also confirms the database has the schema this deploy needs
 // (lib/schema-status.ts) and answers 503 naming the migrations to apply if
 // not. The daily keepalive workflow treats anything but 200 as a failure,
 // so code deployed ahead of its migration shows up as a red workflow run
 // instead of silent 500s on the course list or on grading. Only migration
 // filenames are exposed -- no data.
 //
-// REQ-098: the result is cached for 30 seconds (lib/health.ts) so this
+// REQ-135: the result is cached for 30 seconds (lib/health.ts) so this
 // unauthenticated route can't be used to load the database, and a
 // connection failure answers a generic 500 (lib/http.ts) instead of the
 // driver's message, which can name the database host or user.

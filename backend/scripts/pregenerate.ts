@@ -1,4 +1,4 @@
-// REQ-094: pre-generate shared catalog lessons through the Message Batches
+// REQ-132: pre-generate shared catalog lessons through the Message Batches
 // API (50% off), so a learner's first visit to an objective is a cache hit
 // instead of a 13-20 second wait.
 //

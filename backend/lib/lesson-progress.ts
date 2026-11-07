@@ -1,5 +1,5 @@
-// REQ-089: validation for the account-level lesson position
-// (lesson_progress, migration 025). The app owns the rules for whether a
+// REQ-127: validation for the account-level lesson position
+// (lesson_progress, migration 027a). The app owns the rules for whether a
 // saved position may be resumed (mobile/src/lib/lessonProgress.ts); the
 // server's job is to store only well-formed, bounded data for the caller.
 
@@ -18,7 +18,7 @@ export interface CheckState {
   openAnswer: string;
   clientAttemptId: string | null;
   sentSignature: string | null;
-  // REQ-097: correctIndex / correctAnswer / why arrive only with the verdict
+  // REQ-134: correctIndex / correctAnswer / why arrive only with the verdict
   // (the lesson payload has no answer key), so they are saved with it.
   result: SavedResult | null;
   // REQ-105: the first, missed result, kept while the learner revises and
@@ -103,14 +103,14 @@ export function sanitizeTeach(v: unknown): TeachState | undefined {
   };
 }
 
-// REQ-098: cleanText rather than slice(): slice could cut an emoji in half
+// REQ-135: cleanText rather than slice(): slice could cut an emoji in half
 // at the limit, and a NUL or lone surrogate in any field made the whole
 // save fail with a 500 (Postgres refuses both in text and jsonb).
 function text(v: unknown, max = MAX_TEXT): string | null {
   return typeof v === "string" ? cleanText(v, max) : null;
 }
 
-// REQ-098: bounds on the account copy. Per-field caps alone allowed about
+// REQ-135: bounds on the account copy. Per-field caps alone allowed about
 // 100k characters per row and no limit on rows, so one account could store
 // thousands of 100 KB rows. The request body is capped before parsing,
 // and each learner keeps at most MAX_PROGRESS_ROWS positions, none older
@@ -196,7 +196,7 @@ export function sanitizeLessonProgress(body: unknown): LessonProgressInput | str
   };
 }
 
-// REQ-098: the stored position's age, so the app can place it on its own
+// REQ-135: the stored position's age, so the app can place it on its own
 // clock. savedAt is the server's clock; a phone whose clock runs more than a
 // minute behind used to reject the account copy as "from the future", and
 // smaller skews could pick the older of the device and account copies.

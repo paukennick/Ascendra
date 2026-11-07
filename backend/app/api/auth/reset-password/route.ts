@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       ]);
       // REQ-116: and every access token already issued.
       await bumpTokenVersion(consumed.user_id, tx);
-      // REQ-098: spend every other outstanding credential that was issued
+      // REQ-135: spend every other outstanding credential that was issued
       // before the reset. Other reset links stayed valid until they expired,
       // so a second link (from a leaked inbox, say) could undo this reset.
       // A pending MFA login challenge was earned with the old password, and

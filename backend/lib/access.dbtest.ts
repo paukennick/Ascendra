@@ -1,4 +1,4 @@
-// REQ-091: access checks and idempotent writes, against a real Postgres with
+// REQ-129: access checks and idempotent writes, against a real Postgres with
 // every migration applied (DATABASE_URL=... PGSSLMODE=disable npm run test:db).
 //
 // These cover the library functions the routes are built on. The routes
@@ -113,7 +113,7 @@ describe("visibility", () => {
   });
 });
 
-// REQ-097: lessonCheckFor replaced cachedCorrectIndex; there is no longer a
+// REQ-134: lessonCheckFor replaced cachedCorrectIndex; there is no longer a
 // fallback to a client-supplied key.
 describe("answer key for lesson checks", () => {
   const key = async (u: string, o: string, stage: unknown) => {

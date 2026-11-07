@@ -166,7 +166,7 @@ export default function LessonFlow() {
   // Mirrors restoredFor for rendering, so the guess screen doesn't flash
   // before jumping to the resumed step.
   const [restoring, setRestoring] = useState(true);
-  // REQ-089: graded state of the Guided and Solo checks, lifted up from
+  // REQ-127: graded state of the Guided and Solo checks, lifted up from
   // CheckStep so it is saved with the position and an answered check comes
   // back answered instead of being asked (and recorded) a second time.
   const [checks, setChecks] = useState<Partial<Record<CheckKind, CheckState>>>({});
@@ -259,7 +259,7 @@ export default function LessonFlow() {
     };
 
     (async () => {
-      // REQ-089: the account copy and the device copy are both read; the
+      // REQ-127: the account copy and the device copy are both read; the
       // newer valid one wins. Either can be missing (first visit, offline,
       // a position saved before this existed) without blocking the lesson.
       // REQ-101: the account copy is waited on for RESUME_SERVER_WAIT_MS at
@@ -675,7 +675,7 @@ export default function LessonFlow() {
           state={checks.fade ?? emptyCheck("fade")}
           onStateChange={(st) => setCheck("fade", st)}
           onDone={() => setStep("solo")}
-          // REQ-095: back to the explanation; the guess and the graded
+          // REQ-133: back to the explanation; the guess and the graded
           // answer are kept, so coming forward again shows the same result.
           onReread={() => setStep("teach")}
         />
@@ -692,7 +692,7 @@ export default function LessonFlow() {
           // Populated alongside fadeProblem above -- reaching solo means fade
           // already resolved, so these came from the same generation.
           promptText={lesson.soloCheck!}
-          // REQ-097: not in the lesson payload; fetched as a hint on demand.
+          // REQ-134: not in the lesson payload; fetched as a hint on demand.
           choices={null}
           objectiveId={objectiveId}
           unitId={unitId}
@@ -708,7 +708,7 @@ export default function LessonFlow() {
 
       {step === "done" && (
         <Card elevated style={{ alignItems: "center", gap: spacing.sm }}>
-          {/* REQ-095: complete vs not-yet is derived from the stored Solo
+          {/* REQ-133: complete vs not-yet is derived from the stored Solo
               result (checks.solo), so it is the same after a resume and is
               never "complete" for a missed or ungraded Solo check. */}
           <View style={notYet ? styles.doneIconNotYet : styles.doneIcon}>
@@ -776,7 +776,7 @@ export default function LessonFlow() {
               icon="arrow-left"
               variant={next || notYet ? "ghost" : "primary"}
               fullWidth={false}
-              // REQ-093: pop back to this course's dashboard when it is the
+              // REQ-131: pop back to this course's dashboard when it is the
               // nearest one in the stack; REQ-101: otherwise push.
               onPress={backToCourse}
             />
@@ -819,7 +819,7 @@ export default function LessonFlow() {
 // would never find out why they were stuck at Guided.
 function masteryAdvice(status: MasteryStatus | null): string {
   switch (status) {
-    // REQ-097: matches mastery_from_attempts (backend migration 029).
+    // REQ-134: matches mastery_from_attempts (backend migration 029).
     case "Transfer-ready":
       return "Top of the rubric: you've answered on your own, correctly, on separate days. Spaced review will still bring it back if you ever miss it.";
     case "Independent":
@@ -976,7 +976,7 @@ function GuessStep({
 // Handles both the "fade" (guided practice) and "solo" (independent) check steps. The
 // learner picks the answer type themselves via the mode toggle below -- both formats
 // grade the same underlying question, so there's no mastery gate on which one is
-// available. Guided defaults to multiple-choice; REQ-095: Solo defaults to free
+// available. Guided defaults to multiple-choice; REQ-133: Solo defaults to free
 // response and shows the choices only behind an explicit "Show choices (hint)".
 // The "guess" step (above) and PBQ scenarios
 // (pbq.tsx) are the two cases where the format isn't a choice: guessing before being
@@ -999,7 +999,7 @@ function CheckStep({
   kind: "fade" | "solo";
   promptText: string;
   // Guided: from the lesson, already in this learner's shown order. Solo:
-  // null -- fetched from the hint endpoint only when asked for (REQ-097).
+  // null -- fetched from the hint endpoint only when asked for (REQ-134).
   choices: string[] | null;
   objectiveId: string;
   unitId?: string;
@@ -1009,12 +1009,12 @@ function CheckStep({
   state: CheckState;
   onStateChange: (s: CheckState) => void;
   onDone: () => void;
-  // REQ-095: back to the explanation after a missed Guided item.
+  // REQ-133: back to the explanation after a missed Guided item.
   onReread?: () => void;
   // REQ-101: a fresh try at a missed Solo check (offerTryAgain).
   onTryAgain?: () => void;
 }) {
-  // REQ-089: answer, mode and graded result live in the parent so they are
+  // REQ-127: answer, mode and graded result live in the parent so they are
   // saved with the lesson position (see LessonFlow).
   const { mode, picked, openAnswer, result } = state;
   // REQ-105: set once the learner chose to revise a missed free-response
@@ -1035,7 +1035,7 @@ function CheckStep({
   const [submitFailed, setSubmitFailed] = useState(false);
   const router = useRouter();
 
-  // REQ-097: the Solo choices come from the server, which records the hint
+  // REQ-134: the Solo choices come from the server, which records the hint
   // before sending them. Re-fetched after a resume (same order, nothing new
   // recorded) whenever the check is in multiple-choice mode.
   const [hintChoices, setHintChoices] = useState<string[] | null>(null);
@@ -1193,7 +1193,7 @@ function CheckStep({
               </Muted>
             </>
           ) : (
-            // REQ-095: Solo is unassisted. Free response first; the choices
+            // REQ-133: Solo is unassisted. Free response first; the choices
             // are an explicit hint the learner has to ask for. The mode
             // (open/mc) is the saved state, so a revealed hint survives resume.
             <Muted style={{ fontSize: 12 }}>
@@ -1280,7 +1280,7 @@ function CheckStep({
 
       {result && (
         <View style={{ gap: 8 }}>
-          {/* REQ-095: the options stay on screen after grading so the learner
+          {/* REQ-133: the options stay on screen after grading so the learner
               can see which one they chose and which was right. */}
           {mode === "mc" && picked != null && choices ? (
             <GradedChoices choices={choices} picked={picked} correctIndex={result.correctIndex ?? null} verdict={result.verdict} />
@@ -1315,7 +1315,7 @@ function CheckStep({
           <RefresherOffer objectiveId={objectiveId} verdict={result.verdict} />
           {/* REQ-114: report a wrong key or unclear question on this check. */}
           <ReportProblem target={{ kind: "lesson", objectiveId, stage: kind }} />
-          {/* REQ-097: the key arrives only with the verdict. After a
+          {/* REQ-134: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
           {mode === "open" && result.verdict !== "correct" && result.correctAnswer ? (
             <Muted>
@@ -1417,7 +1417,7 @@ function CheckStep({
   );
 }
 
-// REQ-095: the answer options after grading. Not interactive. The learner's
+// REQ-133: the answer options after grading. Not interactive. The learner's
 // choice and the correct one are marked with colour AND an icon AND a text
 // tag (and a spoken label), so no mark depends on colour alone. Which option
 // gets which mark is decided by choiceMarks() in src/lib/lessonFeedback.ts.
@@ -1603,7 +1603,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // REQ-095: neutral/warning counterpart for a Solo check that wasn't right.
+  // REQ-133: neutral/warning counterpart for a Solo check that wasn't right.
   doneIconNotYet: {
     width: 56,
     height: 56,

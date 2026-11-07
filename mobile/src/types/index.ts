@@ -120,7 +120,7 @@ export interface LessonContent {
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.
   //
-  // REQ-097: no answer key and no explanation of the right answer are sent
+  // REQ-134: no answer key and no explanation of the right answer are sent
   // before the learner answers -- POST /api/grade returns them with the
   // verdict. fadeChoices come in this learner's fixed shuffled order. The
   // Solo choices are a hint: POST /api/objectives/:id/hint returns them and
@@ -147,7 +147,7 @@ export interface GradeResult {
   // scenario's order. Absent on a replayed retry and from older servers;
   // null when the grader's list could not be matched to the sub-parts.
   partScores?: PartScore[] | null;
-  // REQ-097 (lesson checks only): the answer key, revealed with the verdict.
+  // REQ-134 (lesson checks only): the answer key, revealed with the verdict.
   // correctIndex is a position in the order the choices were shown.
   correctIndex?: number | null;
   correctAnswer?: string | null;
@@ -209,7 +209,7 @@ export interface ErrorLogEntry {
   next_review_at: string | null;
   resolved: boolean;
   created_at: string;
-  // REQ-097: set for a missed PBQ, so Review can offer the same scenario again.
+  // REQ-134: set for a missed PBQ, so Review can offer the same scenario again.
   pbq_scenario_id?: string | null;
 }
 

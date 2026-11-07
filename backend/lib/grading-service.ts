@@ -38,7 +38,7 @@ export interface AttemptInput {
   classification?: string | null;
   missedParts?: string[] | null;
   confidence?: number | null;
-  // REQ-089: one id per submitted answer from the app. A second request
+  // REQ-127: one id per submitted answer from the app. A second request
   // with the same id is a retry, not a new attempt (see findClientAttempt).
   clientAttemptId?: string | null;
   // REQ-109: an assessment_types row (migration 031/038) for answer kinds
@@ -94,7 +94,7 @@ export interface AttemptInput {
 // reopened, or explain-back text copied from the lesson) before answering.
 export type AssistReason = "hint" | "repeat" | "retry" | "reveal";
 
-// REQ-089: the stored attempt for an id the app has already submitted, in
+// REQ-127: the stored attempt for an id the app has already submitted, in
 // the shape /api/grade returns, or null if this id is new.
 export async function findClientAttempt(userId: string, clientAttemptId: string) {
   const row = await queryOne<{
@@ -214,7 +214,7 @@ export async function recordAttemptIdempotent(input: AttemptInput) {
   }
 }
 
-// REQ-098: a client attempt id names ONE submission. The replay used to
+// REQ-135: a client attempt id names ONE submission. The replay used to
 // return whatever was stored under the id, so reusing an id for a different
 // answer, objective or route (/api/pbq after /api/grade) silently dropped
 // the new submission and answered with the old verdict. The replay is now
@@ -229,7 +229,7 @@ export class IdempotencyConflictError extends Error {
   }
 }
 
-// REQ-097 + REQ-098: `question` is optional. /api/grade no longer takes the
+// REQ-134 + REQ-135: `question` is optional. /api/grade no longer takes the
 // question from the request -- it is read from the stored lesson -- so its
 // identity is objective, kind, format, stage and the answer it graded (the
 // text of the chosen stored choice, or the free-response text). A retry
@@ -265,9 +265,9 @@ export function assertSameAttempt(stored: Record<string, unknown>, req: AttemptI
   if (!sameAttempt(stored, req)) throw new IdempotencyConflictError();
 }
 
-// REQ-097: everything needed to grade a lesson's Guided ("fade") or Solo
+// REQ-134: everything needed to grade a lesson's Guided ("fade") or Solo
 // ("solo") check, read from the lesson THIS learner was shown -- their own
-// regenerated lesson if they have one (REQ-091), otherwise the shared one.
+// regenerated lesson if they have one (REQ-129), otherwise the shared one.
 // /api/grade grades only against this; the question, teaching text and answer
 // key are never taken from the request. Indexes here are in stored order; the
 // shuffle the learner saw is applied by the route (lib/choice-order.ts).
@@ -381,7 +381,7 @@ export function gradeLockName(userId: string, objectiveId: string): string {
   return `grade:${userId.toLowerCase()}:${objectiveId.toLowerCase()}`;
 }
 
-// REQ-089: the attempt, the mastery update and the review-log changes are
+// REQ-127: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded
 // (attempt saved, mastery not) would otherwise stay half-done for good.
@@ -417,7 +417,7 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     await query(`select pg_advisory_xact_lock(hashtext($1))`, [gradeLockName(userId, input.objectiveId)]);
   }
 
-  // REQ-097: was this answer given with help? Decided here, under the lock
+  // REQ-134: was this answer given with help? Decided here, under the lock
   // above, so two first answers racing can't both count as the first.
   // FAIL-231 (integration): every kind goes through assistReasonFor, so a
   // PBQ revision is a retry, an exam answer a repeat, an explain-back copy a
@@ -467,7 +467,7 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   );
   const attempt = attemptRows[0];
 
-  // REQ-097 / REQ-100: mastery is recomputed from this learner's whole
+  // REQ-134 / REQ-100: mastery is recomputed from this learner's whole
   // attempt history by mastery_from_attempts() -- the weighted cross-format
   // model written out in migration 031 -- the same function the recompute
   // uses, so the two cannot disagree.
@@ -508,7 +508,7 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     );
   }
 
-  // REQ-084 / REQ-097: a correct answer moves the item's open review entries
+  // REQ-084 / REQ-134: a correct answer moves the item's open review entries
   // on one step (1 -> 7 -> 21 days -> resolved), but only entries due today or
   // overdue: an early review no longer jumps the interval, and because the
   // step sets the next date in the future an entry moves at most once a day.

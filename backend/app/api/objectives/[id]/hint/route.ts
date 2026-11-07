@@ -9,7 +9,7 @@ import { requireCourseAccessForObjective } from "@/lib/entitlements";
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/hint -- the Solo check's answer choices, shown as
-// a hint (REQ-097). The lesson payload no longer carries them, so asking here
+// a hint (REQ-134). The lesson payload no longer carries them, so asking here
 // is the only way to see them, and the reveal is recorded first
 // (lesson_hint_reveals): a later Solo answer to this item, in any format,
 // is graded as assisted and can't lift mastery above Guided. Repeat calls
@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id: rawId } = await params;
     const user = await requireUser(req);
-    // REQ-098: the canonical (lowercase) id from the visibility check, so the
+    // REQ-135: the canonical (lowercase) id from the visibility check, so the
     // shuffle seed and the recorded reveal match however the app spelled it.
     const objective = await visibleObjective(rawId, user.id);
     if (!objective) return notFound("Objective not found");

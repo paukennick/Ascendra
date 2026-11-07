@@ -53,7 +53,7 @@ export interface ObjectiveRow {
   ctx: CoachContext | null;
 }
 
-// REQ-097: what the app is sent for a lesson. Grading is server-side, so the
+// REQ-134: what the app is sent for a lesson. Grading is server-side, so the
 // answer keys (*_correct_index) and the explanations of the right answer
 // (*_why) never leave the server before the learner answers; /api/grade
 // returns them with the verdict. Guided choices come in this learner's fixed
@@ -82,7 +82,7 @@ export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveI
     fadeChoices,
     soloCheck: row.solo_check,
     // Always empty: the real choices come from the hint route. App builds
-    // from before REQ-097 do `lesson.soloChoices!.map(...)` when the learner
+    // from before REQ-134 do `lesson.soloChoices!.map(...)` when the learner
     // opens the hint, and crashed on a missing field; an empty list leaves
     // them with free response only (FAIL-039).
     soloChoices: [] as string[],
@@ -290,7 +290,7 @@ const DEFAULT_POLL_MS = 1_000;
 export const pendingGeneration = new Map<string, GenerationHandle>();
 
 export function pendingKey(objectiveId: string, scope: LessonScope): string {
-  // REQ-098: lowercased so an uppercase copy of the id shares the entry.
+  // REQ-135: lowercased so an uppercase copy of the id shares the entry.
   return `${objectiveId.toLowerCase()}:${scopeKey(scope)}`;
 }
 
@@ -337,7 +337,7 @@ async function runGeneration(
 
   for (;;) {
     if (await tryClaim(objectiveId, scope, token)) {
-      // REQ-098: renew the lease while generating (see renewClaim), so a
+      // REQ-135: renew the lease while generating (see renewClaim), so a
       // generation that runs past CLAIM_LEASE_SECONDS while this instance is
       // alive is not taken over. The heartbeat stops in `finally`.
       let leaseLost = false;
@@ -511,7 +511,7 @@ export async function readLessonForUser(
 // for a learner who wants a different explanation, and stops a loop of taps
 // (or a script) from running up the bill. Same mechanism as grade, pbq, chat
 // and guess-feedback (lib/auth/rateLimit.ts).
-// REQ-098: a FIRST (shared) generation also spends two model calls, and
+// REQ-135: a FIRST (shared) generation also spends two model calls, and
 // prefetch-next starts one for whatever objective comes next -- so walking
 // prefetch-next through the catalog generated every lesson in it with no
 // limit. Starting a new shared generation now counts against this per-learner

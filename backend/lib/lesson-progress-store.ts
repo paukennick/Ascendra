@@ -1,4 +1,4 @@
-// REQ-101: reads and writes of lesson_progress (migration 025) and its
+// REQ-101: reads and writes of lesson_progress (migration 027a) and its
 // tombstones (migration 032), kept out of the route so the ordering rule can
 // be tested against a real database.
 //
@@ -50,7 +50,7 @@ export async function saveLessonProgress(
         JSON.stringify(input.checks),
       ]
     );
-    // REQ-098: keep this learner's saved positions bounded -- drop any the
+    // REQ-135: keep this learner's saved positions bounded -- drop any the
     // app would discard as stale anyway, and beyond the newest
     // MAX_PROGRESS_ROWS. Uses the primary key's user_id prefix.
     await tx.query(

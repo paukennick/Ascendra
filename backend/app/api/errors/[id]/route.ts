@@ -40,11 +40,11 @@ export async function PATCH(
       return ok({ error: row });
     }
 
-    // REQ-091: one guarded UPDATE (see advanceReviewStage) instead of
+    // REQ-129: one guarded UPDATE (see advanceReviewStage) instead of
     // read-then-write, so a retry can't skip a stage and a resolved entry
     // never moves past stage 3. `fromStage` is optional: the stage the
     // learner saw, so a repeat of the same tap is a no-op.
-    // REQ-098: stages are 0..3. A huge integer (2^31) used to pass
+    // REQ-135: stages are 0..3. A huge integer (2^31) used to pass
     // Number.isInteger and fail the $3::int cast as a 500.
     const rawStage = body?.fromStage;
     if (rawStage != null && !(Number.isInteger(rawStage) && rawStage >= 0 && rawStage <= 3)) {

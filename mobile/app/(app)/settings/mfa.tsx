@@ -38,7 +38,7 @@ export default function MfaSettings() {
   statusRef.current = status;
   const [view, setView] = useState<MfaView>("status");
 
-  // REQ-093: leaving with backup codes on screen loses them for good (they
+  // REQ-131: leaving with backup codes on screen loses them for good (they
   // are shown once and never stored), and leaving mid-setup silently drops
   // the setup. A "beforeRemove" listener covers every way out -- header back,
   // Android hardware back, the sidebar, router calls. (expo-router 57 does

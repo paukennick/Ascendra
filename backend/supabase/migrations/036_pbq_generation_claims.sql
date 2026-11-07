@@ -8,7 +8,7 @@
 -- a short-lived lease, one row per (learner, unit), taken before generating:
 -- the holder generates, everyone else waits for it to be released and then
 -- serves what it stored. Same shape and rules as lesson_generation_claims
--- (migration 027): takeover only after the lease expires, heartbeat while
+-- (migration 027c): takeover only after the lease expires, heartbeat while
 -- generating, release by the holder's own token.
 --
 -- A database lease rather than pg_advisory_xact_lock because the model call

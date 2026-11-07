@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // GET /api/account/export — every query below is scoped to the caller's own
 // user_id, so this can only ever return the requesting user's own data.
 //
-// REQ-098: bounded and paged (see lib/account-export.ts). Without
+// REQ-135: bounded and paged (see lib/account-export.ts). Without
 // parameters: the first page of every section, plus `more` naming any
 // section that has further rows and the offset to ask for.
 // ?section=<name>&offset=<n>: the next page of that one section, as

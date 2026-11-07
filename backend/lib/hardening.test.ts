@@ -1,4 +1,4 @@
-// REQ-098 unit tests: health cache, text input bounds, schema probe errors,
+// REQ-135 unit tests: health cache, text input bounds, schema probe errors,
 // idempotency matching. No database.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -125,7 +125,7 @@ describe("idempotency matching", () => {
       assert.equal(sameAttempt(stored, { ...req, ...change }), false, JSON.stringify(change));
     }
   });
-  test("without a question (/api/grade since REQ-097) only objective, kind, format, stage and answer count", () => {
+  test("without a question (/api/grade since REQ-134) only objective, kind, format, stage and answer count", () => {
     const { question: _q, ...graded } = req;
     assert.equal(sameAttempt({ ...stored, question: "regenerated Q" }, graded), true);
     assert.equal(sameAttempt(stored, { ...graded, answer: "B" }), false);

@@ -21,7 +21,7 @@ const RATE_LIMIT_PER_HOUR = 10;
 
 // REQ-119 (FAIL-400): a NUL character or half an emoji (a lone surrogate)
 // in any field reached the INSERT and came back as a 500. textField refuses
-// both with a 400, as every other learner-text route does (REQ-098).
+// both with a 400, as every other learner-text route does (REQ-135).
 function trimmedString(value: unknown, max: number): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();

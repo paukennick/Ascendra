@@ -1,4 +1,4 @@
-// REQ-094: the pure parts of scripts/pregenerate.ts, unit tested.
+// REQ-132: the pure parts of scripts/pregenerate.ts, unit tested.
 import type { z } from "zod";
 
 // Pricing note (estimate only). From platform.claude.com/docs/en/about-claude/pricing

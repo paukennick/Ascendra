@@ -3,7 +3,7 @@
 // same frame both reached onPress, so "Submit" could send twice. This is the
 // guard the Button keeps in a ref, where the state is updated synchronously.
 //
-// REQ-093: while an async handler is still running, further presses are
+// REQ-131: while an async handler is still running, further presses are
 // ignored; and any press within SYNC_WINDOW_MS of the last accepted one is
 // ignored, which covers handlers that return nothing to wait on.
 

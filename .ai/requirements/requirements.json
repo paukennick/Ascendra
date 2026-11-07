@@ -2571,7 +2571,7 @@
       "risk_notes": []
     },
     {
-      "id": "REQ-088",
+      "id": "REQ-126",
       "category": "defect",
       "title": "Lesson position resets when leaving and returning to an objective",
       "description": "Leaving a lesson mid-way (back to the course dashboard, sidebar, review queue) unmounted the lesson screen and its in-memory step state, so reopening the objective always restarted at Guess. Affects every course, not one track. Position (step, guess, guess feedback, confidence) is now saved per objective on the device and restored on return; discarded if the lesson was regenerated, older than 7 days, or the objective was finished.",
@@ -2601,14 +2601,14 @@
       ]
     },
     {
-      "id": "REQ-089",
+      "id": "REQ-127",
       "category": "defect",
       "title": "Lesson position saved to the account; graded checks never recorded twice",
-      "description": "Follows REQ-088. The lesson position is saved to the account (lesson_progress, migration 025; GET/PUT/DELETE /api/objectives/:id/progress) so it follows the learner across devices, with the device copy as offline fallback; the newer valid copy wins. Graded Guided/Solo check state is saved with the position, so answering and leaving before Continue restores the verdict instead of re-asking. /api/grade accepts a clientAttemptId and returns the stored result for an id it has seen (unique index on attempts), so retries after a dropped connection or a double submit never record a second attempt or move mastery twice.",
+      "description": "Follows REQ-126. The lesson position is saved to the account (lesson_progress, migration 027a; GET/PUT/DELETE /api/objectives/:id/progress) so it follows the learner across devices, with the device copy as offline fallback; the newer valid copy wins. Graded Guided/Solo check state is saved with the position, so answering and leaving before Continue restores the verdict instead of re-asking. /api/grade accepts a clientAttemptId and returns the stored result for an id it has seen (unique index on attempts), so retries after a dropped connection or a double submit never record a second attempt or move mastery twice.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
-        "backend/supabase/migrations/025_lesson_progress.sql",
+        "backend/supabase/migrations/027a_lesson_progress.sql",
         "backend/app/api/objectives/[id]/progress/route.ts",
         "backend/lib/lesson-progress.ts",
         "backend/lib/lesson-progress.test.ts",
@@ -2635,12 +2635,12 @@
         "changelog"
       ],
       "risk_notes": [
-        "Migration 025 must be applied before deploying the backend or progress and grading writes fail on the missing column",
+        "Migration 027a must be applied before deploying the backend or progress and grading writes fail on the missing column",
         "Last-write-wins between two devices used at the same time"
       ]
     },
     {
-      "id": "REQ-090",
+      "id": "REQ-128",
       "category": "defect",
       "title": "Data correctness: schema checks, account export, numeric progress",
       "description": "Audit batch A. (1) CI never touched a database: new Database job applies every migration to an empty Postgres, verifies required schema objects, seeds twice, runs integration tests. (2) /api/health and npm run migrate -- --status report missing schema (503 naming migrations) so code deployed ahead of its migration is caught. (3) Account export unpacked 8 queries into 7 names, mislabelling every section from mastery on and dropping study sessions; now keyed by section and includes lesson progress, acknowledgements and support requests. (4) pg returned counts/numerics as strings and the app compared them as text, so 9-of-10 units looked complete; parsed to numbers in lib/db.ts.",
@@ -2681,7 +2681,7 @@
       ]
     },
     {
-      "id": "REQ-091",
+      "id": "REQ-129",
       "category": "defect",
       "title": "Integrity: access checks, idempotent writes, atomic auth tokens",
       "description": "Audit batch B. Access: shared lib/visibility.ts; guess-feedback, grade, PBQ, chat, sessions check the caller can see the objective/unit/track; catalog review agent limited to shared tracks. Grading: MC answer key read server-side from the lesson the learner was shown (their regenerated one if any), not the client. Idempotency: PBQ (clientAttemptId) and chat (clientMessageId, migration 026) replay on retry; one study session per 30 minutes per track; review stage advance is one guarded update with optional fromStage. Auth: refresh rotation, MFA backup codes and login challenge, password reset, email verification/change and MFA-disable codes consumed with guarded updates in transactions so concurrent use succeeds once.",
@@ -2698,7 +2698,7 @@
         "backend/app/api/errors",
         "backend/app/api/catalog",
         "backend/app/api/objectives/[id]/guess-feedback",
-        "backend/supabase/migrations/026_chat_client_message_id.sql",
+        "backend/supabase/migrations/027b_chat_client_message_id.sql",
         "mobile/app/(app)/course/[trackId]/pbq.tsx",
         "mobile/app/(app)/course/[trackId]/chat.tsx",
         "mobile/app/(app)/review.tsx"
@@ -2719,19 +2719,19 @@
         "changelog"
       ],
       "risk_notes": [
-        "Migration 026 must be applied before deploy or chat fails",
+        "Migration 027b must be applied before deploy or chat fails",
         "Two simultaneous refreshes now revoke the session family (app already dedupes refreshes)"
       ]
     },
     {
-      "id": "REQ-092",
+      "id": "REQ-130",
       "category": "feature",
       "title": "Per-learner lesson regeneration",
-      "description": "Regenerate writes the learner's own lesson (lesson_content_overrides, migration 027) instead of replacing the shared catalog lesson for everyone and resetting their saved place. Served override-first. 5 regenerations per 10 minutes. Cross-instance generation claims (lesson_generation_claims) so two servers never generate the same lesson and a learner never sees teach text from one generation with practice from another. Mobile Regenerate has loading, double-tap guard and error message.",
+      "description": "Regenerate writes the learner's own lesson (lesson_content_overrides, migration 027c) instead of replacing the shared catalog lesson for everyone and resetting their saved place. Served override-first. 5 regenerations per 10 minutes. Cross-instance generation claims (lesson_generation_claims) so two servers never generate the same lesson and a learner never sees teach text from one generation with practice from another. Mobile Regenerate has loading, double-tap guard and error message.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
-        "backend/supabase/migrations/027_lesson_overrides.sql",
+        "backend/supabase/migrations/027c_lesson_overrides.sql",
         "backend/lib/lesson-store.ts",
         "backend/lib/lesson-generation.ts",
         "backend/app/api/objectives/[id]/lesson",
@@ -2753,11 +2753,11 @@
         "changelog"
       ],
       "risk_notes": [
-        "Migration 027 must be applied before deploy"
+        "Migration 027c must be applied before deploy"
       ]
     },
     {
-      "id": "REQ-093",
+      "id": "REQ-131",
       "category": "defect",
       "title": "Mobile screen flows: PBQ resume, backup-code guard, fresh screens, navigation, drafts, double taps",
       "description": "Audit batch C. PBQ simulator saves its scenario, answer and result per user and unit and restores them. MFA backup codes get Copy/Share and a leave confirmation; leaving MFA setup part-way asks first. Mastery and history screens reload on focus. Back to course and the sidebar no longer stack duplicate screens. Chat and support drafts survive navigation. Account name field reseeds from the current user. Shared Button ignores repeat presses while a handler runs and within 300ms.",
@@ -2790,7 +2790,7 @@
       ]
     },
     {
-      "id": "REQ-094",
+      "id": "REQ-132",
       "category": "maintenance",
       "title": "AI modernization: 5.5 models, structured output, caching, call log, eval harness, pre-generation script",
       "description": "Phase 0 of the teaching overhaul. Moves defaults to claude-sonnet-5-5 (lessons) and claude-haiku-5-5 (grading, chat, guess feedback, PBQ) before claude-sonnet-4-5 retires (tentatively 2026-11-30); per-model request params (no temperature; Sonnet thinking off = between_tools, Haiku = disabled; output_config.effort; 4.5 models still work); lesson halves generated in parallel; structured output for grading and PBQ; prompt caching of stable system blocks and chat history; every AI call logged to ai_calls (migration 028); PBQ model column fixed; evaluation harness (eval:lessons, eval:grading with 40 draft cases); npm run pregen estimates/submits/collects a Batch API pre-generation of missing catalog lessons (never runs by itself).",
@@ -2833,7 +2833,7 @@
       ]
     },
     {
-      "id": "REQ-095",
+      "id": "REQ-133",
       "category": "defect",
       "title": "Lesson screen tells the truth about graded checks",
       "description": "After grading, MC options stay visible with the learner's pick and the correct option marked (icon + text, not colour only). A wrong or partial Solo answer shows Not yet instead of Objective complete, with Re-read and Try a different question. A missed Guided answer offers Re-read. Solo defaults to free response with choices behind an explicit hint. Shared Button gains accessibility role and state.",
@@ -2890,7 +2890,7 @@
       "risk_notes": []
     },
     {
-      "id": "REQ-097",
+      "id": "REQ-134",
       "category": "defect",
       "title": "Mastery integrity: server-side grading, spaced evidence, recompute",
       "description": "Closes the teaching-quality audit's mastery loopholes. Mastery above Guided needs an unassisted Solo free-response success; Transfer-ready needs two, at least 24 hours apart (one SQL rule, mastery_from_attempts, used by live grading and the recompute). Answers to an item already answered, or after the Solo choices hint, are assisted. Only due review entries advance. Grading is server-side against the learner's own stored lesson: no answer key or explanation is sent before answering, the free-response grader gets the answer key and treats the answer as data, and choice order is a fixed per-learner shuffle. PBQ review entries can be retried. Migration 029 backs up mastery and review state, then recomputes everyone's mastery (owner decision).",
@@ -2944,7 +2944,7 @@
       ]
     },
     {
-      "id": "REQ-098",
+      "id": "REQ-135",
       "category": "security",
       "title": "Audit 2 hardening: errors, rate limits, races, input bounds, indexes",
       "description": "Fixes the backend security, schema and adversarial findings of audit 2 (2026-11-07): generic 500s with a request id; cached /api/health; atomic rate limiter; atomic login lockout; MFA-disable rate limit; lowercase uuid lock keys; NUL/lone-surrogate and length checks as 400s; idempotency ids bound to the submission (409 on mismatch) and chat replay by derived reply id; lesson_progress caps and clock-skew tolerance; per-learner budget on new lesson generation; password reset spends all outstanding tokens; generation lease heartbeat; pool and transaction timeouts; answer-signature cap; stale study sessions closed; paged account export; migration 030 indexes and probes; RLS check documented.",
@@ -2982,7 +2982,7 @@
       ]
     },
     {
-      "id": "REQ-099",
+      "id": "REQ-136",
       "category": "defect",
       "title": "Mobile flows batch B3: background hold, web backup-code guard, support kind and draft, course pop, PBQ retry, history order, share errors, logout cleanup, request timeout",
       "description": "Audit 2 mobile items 2, 3, 4, 5, 6, 10, 12, 13, 14 and the client half of 7. Share sheets and pickers hold off the native background sign-out (bounded). On web, beforeunload and a capture-phase popstate guard protect backup codes. Support kind follows the URL param and the sidebar passes kind=ticket. navPlan only pops to a course dashboard when it is the nearest one. Support form clears before send and restores on failure. Explicit logout and logout-all remove that user's draft, PBQ and lesson-position keys. PBQ Try another scenario keeps the old state on failure. History ignores stale filter responses. Web share AbortError is ignored and copySecret is guarded. api client has a 15 s default timeout (180 s for model routes), overridable per call.",

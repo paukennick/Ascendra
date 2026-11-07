@@ -314,7 +314,7 @@ export function Button({
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.96);
   const isDisabled = disabled || loading;
-  // REQ-093: `disabled`/`loading` only take effect on the next render, so two
+  // REQ-131: `disabled`/`loading` only take effect on the next render, so two
   // taps delivered in the same frame both reached onPress (a double
   // submit). The guard lives in a ref, which updates synchronously. The
   // latest onPress is read through a ref so a re-render between taps still
@@ -333,7 +333,7 @@ export function Button({
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={isDisabled}
-      // REQ-095: announce as a button (with its disabled/busy state) so the
+      // REQ-133: announce as a button (with its disabled/busy state) so the
       // new lesson actions aren't plain text to a screen reader.
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}

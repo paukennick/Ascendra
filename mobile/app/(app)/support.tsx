@@ -79,7 +79,7 @@ export default function Support() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // REQ-093: what's typed here survives leaving the screen. One draft per
+  // REQ-131: what's typed here survives leaving the screen. One draft per
   // user and per kind (a half-written ticket and a half-written course
   // request are separate), so the fields are swapped when the kind changes.
   // A successful send empties the fields, which clears the stored draft.

@@ -40,7 +40,7 @@ export const dynamic = "force-dynamic";
 // ("solo") check and records the attempt, the mastery update and (if not
 // correct) a spaced-review entry. PBQs have their own route (/api/pbq).
 //
-// REQ-097: grading is entirely server-side. The question, the teaching text
+// REQ-134: grading is entirely server-side. The question, the teaching text
 // and the answer key come from the lesson this learner was shown; the app
 // sends only which check it is and its answer. Fields older clients send
 // (question, taughtText, correctIndex, chosenText, why) are ignored. The
@@ -62,7 +62,7 @@ export const dynamic = "force-dynamic";
 //   correctAnswer, why, optionReasons (shown order, or null), attempt,
 //   diagnosis }.
 //
-// REQ-098 on top: the free-response answer is length-capped and must be
+// REQ-135 on top: the free-response answer is length-capped and must be
 // storable text (400, not a 500 from the INSERT); confidence must be 1-5;
 // ids are the canonical lowercase ones from the visibility check; a reused
 // clientAttemptId for a different submission is a 409; the model call is
@@ -101,9 +101,9 @@ export async function POST(req: Request) {
 
     const authUser = await requireUser(req);
 
-    // REQ-091: ids in the body are untrusted; the objective must be in a track
+    // REQ-129: ids in the body are untrusted; the objective must be in a track
     // the caller can see, and a unitId sent alongside must be its own unit.
-    // REQ-098: from here on the id is the canonical (lowercase) one the
+    // REQ-135: from here on the id is the canonical (lowercase) one the
     // visibility check returns, so lock keys, the shuffle seed and replay
     // comparisons match however the client spelled it.
     const objective = await visibleObjective(body.objectiveId, authUser.id);
@@ -143,11 +143,11 @@ export async function POST(req: Request) {
       answer = openAnswer;
     }
 
-    // REQ-089: an id the app already submitted is a retry -- hand back the
+    // REQ-127: an id the app already submitted is a retry -- hand back the
     // stored result rather than grading again. Checked before the rate limit
     // and the model call. The key is added back only if the stored attempt was
     // for the question this lesson still has (a regenerate changes it).
-    // REQ-098: the replay is bound to the submission -- the same objective,
+    // REQ-135: the replay is bound to the submission -- the same objective,
     // stage and format and the same graded answer (chosen stored choice or
     // free-response text). Anything else under a used id is a 409. The
     // question is not part of it: it comes from the stored lesson, not the
@@ -173,7 +173,7 @@ export async function POST(req: Request) {
     if (format === "mc") {
       // FAIL-039: Solo choices are only ever shown by the hint route, which
       // records the reveal. A Solo multiple-choice answer without one came
-      // from an app build older than REQ-097 (its saved position can still
+      // from an app build older than REQ-134 (its saved position can still
       // hold a pick from the old, unshuffled order), so its index can't be
       // trusted. Refuse it plainly; old builds show `error` in a banner.
       if (stage === "solo" && !(await hasHintReveal(authUser.id, objectiveId, stage, check.question))) {

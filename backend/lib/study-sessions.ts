@@ -13,7 +13,7 @@ export const SESSION_WINDOW_MINUTES = 30;
 // touching it keeps that recency honest. Two visits at once are serialised
 // by an advisory lock, so they can't both insert.
 //
-// REQ-098: the lock used to be keyed by the raw track id string, so an
+// REQ-135: the lock used to be keyed by the raw track id string, so an
 // uppercase and a lowercase copy of one id took different locks and both
 // inserted. It is now keyed by the learner alone (lowercased), and the
 // track id is compared as a uuid by Postgres. And the app never ends a session (it has no "stop studying"

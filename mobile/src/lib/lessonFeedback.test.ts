@@ -78,7 +78,7 @@ describe("offerRevision / startRevision", () => {
 
 const graded = (verdict: string) => ({ result: { verdict, feedback: "", missedParts: [] as string[] } });
 
-describe("soloOutcome (REQ-095: done screen never says complete after a miss)", () => {
+describe("soloOutcome (REQ-133: done screen never says complete after a miss)", () => {
   test("only a correct Solo result completes the objective", () => {
     assert.equal(soloOutcome(graded("correct")), "complete");
   });
@@ -148,7 +148,7 @@ describe("describeMark", () => {
   });
 });
 
-describe("assistNote / gradeSubmitError (REQ-097)", () => {
+describe("assistNote / gradeSubmitError (REQ-134)", () => {
   test("an assisted answer says why it can't raise mastery; an unassisted one says nothing", () => {
     assert.match(assistNote("repeat") ?? "", /answered this question before/);
     assert.match(assistNote("hint") ?? "", /Guided at most/);

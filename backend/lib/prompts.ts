@@ -211,7 +211,7 @@ export function withRules(task: string, ctx?: CoachContext): string {
   return flattenSystem(systemWithRules(task, ctx));
 }
 
-// REQ-097 (FAIL-113): learner-written text placed inside a prompt -- a graded
+// REQ-134 (FAIL-113): learner-written text placed inside a prompt -- a graded
 // answer, a PBQ answer, a pre-teaching guess -- is fenced in a tag and
 // HTML-escaped, so it cannot contain a tag of any kind. Stripping the fence
 // tag in one pass was not enough: "</learner_</learner_answer>answer>" left a
@@ -709,7 +709,7 @@ export function gradeFreeResponsePrompt(params: {
   taughtText: string;
   question: string;
   answer: string;
-  // REQ-097: the lesson's own correct option and why it is right. Optional
+  // REQ-134: the lesson's own correct option and why it is right. Optional
   // only because the offline grading eval has cases without one.
   answerKey?: string;
   ctx?: CoachContext;

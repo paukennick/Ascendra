@@ -1,4 +1,4 @@
-// REQ-090: what GET /api/account/export returns, as one table of
+// REQ-128: what GET /api/account/export returns, as one table of
 // section -> query. It used to be eight queries unpacked positionally into
 // seven names, so from "mastery" onward every section held the previous
 // table's rows (favorites under "mastery", mastery under "attempts", ...)
@@ -7,7 +7,7 @@
 //
 // Every query is scoped to the caller's own user_id ($1).
 //
-// REQ-098: bounded. The export used to load every row of every section into
+// REQ-135: bounded. The export used to load every row of every section into
 // memory at once (40k attempts measured at 89 MB of JSON and 175 MB of heap),
 // with the eleven queries on separate pooled connections. Each section now
 // returns at most EXPORT_PAGE_ROWS rows; a section with more is listed under
@@ -62,7 +62,7 @@ export const EXPORT_SECTIONS = {
   errorLog: "select * from error_log where user_id = $1 order by created_at asc, id asc",
   chatMessages: "select * from chat_messages where user_id = $1 order by created_at asc, id asc",
   studySessions: "select * from study_sessions where user_id = $1 order by started_at asc, id asc",
-  // Missing from the export until REQ-090.
+  // Missing from the export until REQ-128.
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc, objective_id asc",
   courseAcknowledgements:
     "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
@@ -75,7 +75,7 @@ export const EXPORT_SECTIONS = {
   misconceptions: "select * from learner_misconceptions where user_id = $1 order by created_at asc, id asc",
   prerequisiteRefreshers: "select * from prerequisite_refreshers where user_id = $1 order by opened_at asc, id asc",
   // REQ-110: study plans, placement checks with their answered items, and
-  // Quiz me turns. Each has a total order (REQ-098 paging).
+  // Quiz me turns. Each has a total order (REQ-135 paging).
   studyPlans: "select * from study_plans where user_id = $1 order by track_id asc",
   placementChecks: `select pc.*, coalesce((select json_agg(pi order by pi.seq) from placement_items pi where pi.placement_id = pc.id and pi.correct is not null), '[]') as items
                       from placement_checks pc where pc.user_id = $1 order by pc.started_at asc, pc.id asc`,
@@ -92,7 +92,7 @@ export const EXPORT_SECTIONS = {
   // position (migration 032) -- their activity, missed from the export.
   lessonProgressTombstones:
     "select * from lesson_progress_tombstones where user_id = $1 order by cleared_at asc, objective_id asc",
-  // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
+  // REQ-134 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
   // REQ-114: questions the learner reported (and key-suspect grades on their
   // answers). Their own input; the automated re-check rows have no user.

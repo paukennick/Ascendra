@@ -1,4 +1,4 @@
-// REQ-090: integration tests against a real Postgres with every migration
+// REQ-128: integration tests against a real Postgres with every migration
 // applied (CI's "Database" job; locally: DATABASE_URL=... PGSSLMODE=disable
 // npm run test:db). Pure-logic tests stay in lib/*.test.ts and need no DB.
 import { test, describe, before, after } from "node:test";

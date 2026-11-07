@@ -1,6 +1,6 @@
 import { Pool, types, type QueryResultRow } from "pg";
 
-// REQ-090: pg hands back count() (bigint) and numeric columns as strings.
+// REQ-128: pg hands back count() (bigint) and numeric columns as strings.
 // Every one in this schema is a small count or a weight/percentage (the
 // only numeric columns are numeric(5,2) weights), so parse them to numbers
 // once, here. The app compared them as strings before -- "9" >= "10" is
@@ -57,7 +57,7 @@ function getPool(): Pool {
       ssl: sslOption(),
       max: 5,
       idleTimeoutMillis: 10_000,
-      // REQ-098: none of these were set, so a stalled database or a full
+      // REQ-135: none of these were set, so a stalled database or a full
       // pool made requests hang until the platform killed them, holding
       // the other four connections meanwhile.
       // - waiting for a free pool connection (or a new one) gives up here;
@@ -107,7 +107,7 @@ export interface TxClient {
   queryOne<T extends QueryResultRow = QueryResultRow>(text: string, params?: unknown[]): Promise<T | null>;
 }
 
-// REQ-089: runs `fn` on one checked-out client inside BEGIN/COMMIT, rolling
+// REQ-127: runs `fn` on one checked-out client inside BEGIN/COMMIT, rolling
 // back if it throws. `query()` above takes a fresh pool client per call, so
 // a multi-statement write built from it can half-succeed; anything that
 // must land all-or-nothing goes through here instead. Works on Supabase's
@@ -126,7 +126,7 @@ export async function withTransaction<R>(
       return rows.length ? rows[0] : null;
     },
   };
-  // REQ-098: a connection whose rollback failed is in an unknown state;
+  // REQ-135: a connection whose rollback failed is in an unknown state;
   // release(err) destroys it instead of returning it to the pool.
   let broken: Error | undefined;
   try {

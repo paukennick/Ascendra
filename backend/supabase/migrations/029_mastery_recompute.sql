@@ -1,4 +1,4 @@
--- REQ-097: mastery integrity -- schema and the rule. The data work (backup,
+-- REQ-134: mastery integrity -- schema and the rule. The data work (backup,
 -- backfills, the first recompute) is in 029b_mastery_backfill.sql, which the
 -- runner applies straight after this file in its own transaction.
 --

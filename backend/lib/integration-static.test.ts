@@ -1,6 +1,6 @@
-// REQ-112 / FAIL-230: REQ-098 replaced "checkRateLimit, then recordAuthEvent"
+// REQ-112 / FAIL-230: REQ-135 replaced "checkRateLimit, then recordAuthEvent"
 // with the atomic consumeRateLimit, but routes written on branches that never
-// saw REQ-098 (labs, exam items, Quiz me, review, unit checks) came back with
+// saw REQ-135 (labs, exam items, Quiz me, review, unit checks) came back with
 // the old two-step pattern when merged, so N requests sent at once each read
 // "under the limit" and all made a model call. This scans the source so a
 // later merge cannot bring it back.

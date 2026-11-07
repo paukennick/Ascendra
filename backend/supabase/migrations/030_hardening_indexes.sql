@@ -1,4 +1,4 @@
--- REQ-098: indexes for queries that scanned whole tables.
+-- REQ-135: indexes for queries that scanned whole tables.
 --
 -- chat_messages: chat history (GET /api/chat), the coach's last-40-turns
 -- history and the replay lookup filter by user and track and order by

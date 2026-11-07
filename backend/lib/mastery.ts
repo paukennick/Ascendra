@@ -38,7 +38,7 @@ export function toDateOnlyString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-// REQ-097 / REQ-100: the status itself is computed in the database by
+// REQ-134 / REQ-100: the status itself is computed in the database by
 // mastery_from_attempts() from the learner's whole attempt history, so live
 // grading and the recompute share one rule. Since migration 031 that rule is
 // a weighted cross-format model; its weights and thresholds live in the

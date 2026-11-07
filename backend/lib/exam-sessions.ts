@@ -326,7 +326,7 @@ export async function createSession(opts: {
     const results = await runLimited(
       todo.map((t) => async () => {
         for (let c = 0; c < t.calls; c++) {
-          // REQ-098 / FAIL-230: count-and-record atomically per call. The
+          // REQ-135 / FAIL-230: count-and-record atomically per call. The
           // budget above is only a plan; two sessions started at once both
           // read it before either records, so the cap is enforced here.
           try {

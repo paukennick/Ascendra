@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const trackId = searchParams.get("trackId");
     if (!trackId) return badRequest("trackId query param is required");
     const user = await requireUser(req);
-    // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+    // REQ-135: a non-uuid id used to reach Postgres and come back as a 500.
     if (!isUuid(trackId)) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
     const rows = await query(
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       return badRequest("trackId and message are required");
     }
     if (unitId != null && typeof unitId !== "string") return badRequest("unitId must be a string");
-    // REQ-098: length cap and storable text (a NUL used to be a 500).
+    // REQ-135: length cap and storable text (a NUL used to be a 500).
     const m = textField(body.message, "message", TEXT_LIMITS.chatMessage, { required: true });
     if (!m.ok) return badRequest(m.error);
     const message = m.value;
@@ -67,12 +67,12 @@ export async function POST(req: Request) {
     const user = await requireUser(req);
     const userId = user.id;
 
-    // REQ-091: the track must be visible to the caller, and a unit must be
+    // REQ-129: the track must be visible to the caller, and a unit must be
     // visible and belong to that track (it is stored on the message and
     // named in the prompt, so a foreign unit id would leak its title).
     const track = await visibleTrack(body.trackId, userId);
     if (!track) return notFound("Track not found");
-    // REQ-098: canonical (lowercase) id from here on.
+    // REQ-135: canonical (lowercase) id from here on.
     const trackId = track.id;
     if (unitId) {
       const unit = await visibleUnit(unitId, userId);
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
     // A message id the app already sent is a retry: hand back the stored
     // reply instead of paying for another one and saving the question twice.
-    // REQ-098: only for the same message on the same track; a reused id
+    // REQ-135: only for the same message on the same track; a reused id
     // with anything else is a 409.
     const clientMessageId = validClientAttemptId(body.clientMessageId);
     if (clientMessageId) {

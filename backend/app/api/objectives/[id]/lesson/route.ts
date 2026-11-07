@@ -51,7 +51,7 @@ export async function GET(
     // lesson, and a cache miss would spend an Anthropic call doing it.
     const user = await requireUser(req);
     const viewer = { userId: user.id, objectiveId: id };
-    // Audit 2: the access check REQ-091 added everywhere else. The disclaimer
+    // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
@@ -87,7 +87,7 @@ export async function GET(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
-    // REQ-098: starting a new generation counts against a per-learner budget.
+    // REQ-135: starting a new generation counts against a per-learner budget.
     try {
       await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
     } catch (err) {
@@ -142,7 +142,7 @@ export async function POST(
     // least as much as the GET does.
     const user = await requireUser(req);
     const viewer = { userId: user.id, objectiveId: id };
-    // Audit 2: the access check REQ-091 added everywhere else. The disclaimer
+    // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");

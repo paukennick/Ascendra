@@ -1,4 +1,4 @@
-// REQ-098: what GET /api/health reports, cached.
+// REQ-135: what GET /api/health reports, cached.
 //
 // /api/health is unauthenticated and each check runs `select 1` plus one
 // query per schema probe, each on its own pooled connection. Uncached, a

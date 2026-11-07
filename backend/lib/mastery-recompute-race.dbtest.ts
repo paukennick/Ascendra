@@ -1,4 +1,4 @@
-// REQ-097, PR #22 second review. The recompute against live grading, the
+// REQ-134, PR #22 second review. The recompute against live grading, the
 // deploy-gap evidence rule, and the 029b status checks -- each against a real
 // Postgres with every migration applied.
 //

@@ -1,7 +1,7 @@
-// REQ-098 (audit 2 hardening) against a real Postgres. Locally:
+// REQ-135 (audit 2 hardening) against a real Postgres. Locally:
 //   DATABASE_URL=postgresql://postgres@localhost:55432/<db> PGSSLMODE=disable npm run test:db
 // Every race here fires the same request concurrently and fails on the code
-// before REQ-098; every input bug has a boundary test. Route handlers are
+// before REQ-135; every input bug has a boundary test. Route handlers are
 // called directly; nothing calls the model.
 process.env.AUTH_JWT_SECRET ??= "hardening-test-secret";
 import { test, describe, before, after } from "node:test";
@@ -59,7 +59,7 @@ async function makeUser(tag: string, extra: { password?: string; mfa?: boolean }
 
 // A private track owned by `owner` with `n` objectives in one unit. With
 // `lessons`, each objective gets a cached lesson: /api/grade grades only
-// against the stored lesson (REQ-097).
+// against the stored lesson (REQ-134).
 const FADE_Q = "Fade: finish it";
 const SOLO_Q = "Solo: explain it";
 async function makeCourse(owner: string, n: number, opts: { lessons?: boolean } = {}) {
@@ -231,7 +231,7 @@ describe("mixed-case uuids share one lock", () => {
   test("two concurrent wrong answers, one with an uppercase objective id, leave mastery current (10 trials)", async () => {
     const u = await makeUser("mixed-grade");
     const { unit, objectives } = await makeCourse(u.id, 10);
-    // Under mastery_from_attempts (migration 029, REQ-097): correct then two
+    // Under mastery_from_attempts (migration 029, REQ-134): correct then two
     // incorrect is 1/3 correct with the latest wrong -> Needs review; a write
     // that missed the other request's attempt sees 1/2 -> Guided.
     // REQ-117 (045): Needs review needs answers on two days, and a repeat of
@@ -309,7 +309,7 @@ describe("mixed-case uuids share one lock", () => {
 
 // ---------------------------------------------------------------- item 7
 describe("NUL characters and lone surrogates are 400s, not 500s", () => {
-  // REQ-097 changed the grade contract: the question, taught text, key and
+  // REQ-134 changed the grade contract: the question, taught text, key and
   // chosen text come from the stored lesson, not the body, so the only free
   // text left to validate is the free-response answer.
   test("grade: NUL or half an emoji in the answer, over-long answer, bad kind/stage/confidence -> 400", async () => {
@@ -437,7 +437,7 @@ describe("idempotency ids are bound to the submission", () => {
     const u = await makeUser("grade-409");
     const { objectives } = await makeCourse(u.id, 2, { lessons: true });
     const id = `hd-${run}-g409`;
-    // REQ-097 contract: the identity is what the route grades -- objective,
+    // REQ-134 contract: the identity is what the route grades -- objective,
     // stage, format and the chosen stored choice -- not client question text.
     const body = { clientAttemptId: id, format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], chosenIndex: 0 };
     assert.equal((await gradePost(jsonReq(body, authHeader(u)))).status, 200);

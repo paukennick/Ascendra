@@ -28,7 +28,7 @@ export default function ProgressScreen() {
       .catch((err) => setError(err.message));
   }, [trackId]);
 
-  // REQ-093: reload every time the screen regains focus, not just on mount.
+  // REQ-131: reload every time the screen regains focus, not just on mount.
   // This screen stays mounted under the lesson/PBQ screens opened from it,
   // so a mount-only load showed the matrix as it was before the learner
   // finished anything. (Same pattern as the course dashboard and review.)

@@ -373,7 +373,7 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-017",
+      "id": "FAIL-520",
       "date": "2026-11-06",
       "title": "Lesson step state lost on navigation",
       "status": "fixed",
@@ -381,7 +381,7 @@
       "symptom": "Returning to a lesson after going back to the course restarts at the Guess step, on every course",
       "how_detected": "user report",
       "root_cause": "Lesson step lived only in useState on the lesson screen; navigating back pops/unmounts it and the mount effect resets step to guess. Nothing persisted the learner's place; only graded attempts are saved server-side.",
-      "requirement": "REQ-088",
+      "requirement": "REQ-126",
       "affected": [
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
       ],
@@ -396,7 +396,7 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-018",
+      "id": "FAIL-521",
       "date": "2026-11-06",
       "title": "Answered lesson check re-asked and recorded twice",
       "status": "fixed",
@@ -404,7 +404,7 @@
       "symptom": "Answering a Guided or Solo check, leaving before Continue, and returning asked the same check again; answering again recorded a second attempt. A retry after a dropped connection could also record twice.",
       "how_detected": "review",
       "root_cause": "Graded result lived only in CheckStep component state, and /api/grade had no way to recognise a resubmission of the same answer, so every POST inserted an attempt and moved mastery.",
-      "requirement": "REQ-089",
+      "requirement": "REQ-127",
       "affected": [
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
         "backend/app/api/grade/route.ts"
@@ -421,7 +421,7 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-019",
+      "id": "FAIL-522",
       "date": "2026-11-06",
       "title": "Account export mislabelled every section from mastery on",
       "status": "fixed",
@@ -429,7 +429,7 @@
       "symptom": "Export file put favorites under mastery, mastery under attempts, etc.; study sessions missing",
       "how_detected": "review",
       "root_cause": "Promise.all of 8 queries destructured positionally into 7 names after favorites query was added in REQ-082",
-      "requirement": "REQ-090",
+      "requirement": "REQ-128",
       "affected": [
         "backend/app/api/account/export/route.ts"
       ],
@@ -452,7 +452,7 @@
       "symptom": "Continue/sidebar could treat a 9-of-10 unit as complete and skip it",
       "how_detected": "review",
       "root_cause": "pg returns bigint count() and numeric as strings; API passed them through; app compared with < as text",
-      "requirement": "REQ-090",
+      "requirement": "REQ-128",
       "affected": [
         "backend/lib/progress-sql.ts",
         "mobile/app/(app)/course/[trackId]/index.tsx",
@@ -474,10 +474,10 @@
       "title": "No CI check that migrations apply or that production schema matches code",
       "status": "mitigated",
       "severity": "high",
-      "symptom": "Code depending on migrations 023/025 could deploy to a database without them and fail with 500s; CI stayed green",
+      "symptom": "Code depending on migrations 023/027a could deploy to a database without them and fail with 500s; CI stayed green",
       "how_detected": "review",
       "root_cause": "CI ran typecheck/unit tests/build only, with a placeholder DATABASE_URL; migrations are applied manually and separately from deploys",
-      "requirement": "REQ-090",
+      "requirement": "REQ-128",
       "affected": [
         ".github/workflows/ci.yml",
         "backend/app/api/health/route.ts"
@@ -502,7 +502,7 @@
       "symptom": "Concurrent refresh with one token minted several live tokens; one backup code, challenge, reset link or email link could create several sessions or changes",
       "how_detected": "review",
       "root_cause": "Select-then-update consumption with no guard on the update",
-      "requirement": "REQ-091",
+      "requirement": "REQ-129",
       "affected": [
         "backend/lib/auth/tokens.ts",
         "backend/lib/auth/mfaChallenge.ts",
@@ -528,7 +528,7 @@
       "symptom": "Lesson-adjacent, grade, PBQ, chat and sessions routes accepted ids from other users' private tracks; catalog agent could write private tracks",
       "how_detected": "review",
       "root_cause": "Acknowledgement gate silently returned for invisible tracks and was treated as an access check",
-      "requirement": "REQ-091",
+      "requirement": "REQ-129",
       "affected": [
         "backend/app/api"
       ],
@@ -551,7 +551,7 @@
       "symptom": "Regenerate on a catalog track changed every learner's lesson and reset their saved place; no rate limit",
       "how_detected": "review",
       "root_cause": "lesson_content keyed only by objective and overwritten by POST after the catalog became shared (REQ-082)",
-      "requirement": "REQ-092",
+      "requirement": "REQ-130",
       "affected": [
         "backend/app/api/objectives/[id]/lesson/route.ts",
         "backend/lib/lesson-generation.ts"
@@ -575,7 +575,7 @@
       "symptom": "Leaving the PBQ screen and returning showed the unit picker; a long answer was gone",
       "how_detected": "review",
       "root_cause": "Scenario/answer/result held only in component state; API cannot re-fetch a scenario by id",
-      "requirement": "REQ-093",
+      "requirement": "REQ-131",
       "affected": [
         "mobile/app/(app)/course/[trackId]/pbq.tsx"
       ],
@@ -598,7 +598,7 @@
       "symptom": "Header back, swipe or hardware back discarded codes shown only once",
       "how_detected": "review",
       "root_cause": "Codes held only in state; no leave guard and no copy/share",
-      "requirement": "REQ-093",
+      "requirement": "REQ-131",
       "affected": [
         "mobile/app/(app)/settings/mfa.tsx"
       ],
@@ -621,7 +621,7 @@
       "symptom": "A wrong Solo answer landed on Objective complete with a green check; the correct option was never shown after a miss",
       "how_detected": "review",
       "root_cause": "Done screen ignored the solo verdict; graded view hid the choices",
-      "requirement": "REQ-095",
+      "requirement": "REQ-133",
       "affected": [
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
       ],
@@ -644,7 +644,7 @@
       "symptom": "GET/POST lesson and prefetch-next served or generated lessons for objectives in another user's private course",
       "how_detected": "audit 2",
       "root_cause": "Batch B split the routes between two engineers; the lesson routes belonged to the regeneration pass, which wasn't asked to add visibility, and the access pass was told not to touch them",
-      "requirement": "REQ-091",
+      "requirement": "REQ-129",
       "affected": [
         "backend/app/api/objectives/[id]/lesson/route.ts",
         "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts"
@@ -668,7 +668,7 @@
       "symptom": "A correct free-response Guided (fade) answer gave Independent; Guided plus Solo minutes apart gave Transfer-ready",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "suggestStatus looked only at format and verdict, never at stage or time, and status came from the latest answer alone",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/mastery.ts",
         "backend/lib/grading-service.ts"
@@ -692,7 +692,7 @@
       "symptom": "After the answer was shown, reopening the objective and typing the same answer gave Independent",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "Nothing tracked that an item had been answered (and its answer revealed); every attempt counted as unassisted",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/grading-service.ts"
       ],
@@ -715,7 +715,7 @@
       "symptom": "Correct answers on fade and solo in one afternoon collapsed the 1/7/21-day schedule",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "The auto-advance UPDATE had no due-date or stage guard",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/grading-service.ts"
       ],
@@ -738,7 +738,7 @@
       "symptom": "question and taughtText came from the request body; the grader never saw the correct option; answers were pasted unfenced",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "The route was written for a general grader, not a lesson check with a stored key",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/app/api/grade/route.ts",
         "backend/lib/prompts.ts",
@@ -763,7 +763,7 @@
       "symptom": "Opening the hint, then answering in free response, counted as unassisted",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "The hint was a client-only mode flip; the choices were already in the lesson payload",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/app/api/objectives/[id]/hint/route.ts",
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
@@ -787,7 +787,7 @@
       "symptom": "A missed PBQ's review entry could only be self-reported or dismissed",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "PBQ attempts have no objective, review entries were linked to nothing retestable, and GET /api/pbq could not fetch a scenario by id",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/app/api/pbq/route.ts",
         "mobile/app/(app)/review.tsx",
@@ -812,7 +812,7 @@
       "symptom": "Choices were shown in generated order and the prompt example showed index 0",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "No shuffle anywhere between generation and display",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/choice-order.ts",
         "backend/lib/lesson-generation.ts",
@@ -838,7 +838,7 @@
       "symptom": "The lesson payload carried fadeCorrectIndex, soloCorrectIndex and the why explanations",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "Grading used to happen partly on the client, so the key travelled with the question",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/lesson-generation.ts",
         "mobile/src/types/index.ts",
@@ -864,7 +864,7 @@
       "symptom": "Solo said 'Answer the next objective in free response to earn Independent'; Guided said free response earns Independent",
       "how_detected": "review (teaching-quality audit)",
       "root_cause": "Copy written for the old rule",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
         "mobile/src/lib/lessonFeedback.ts"
@@ -888,7 +888,7 @@
       "symptom": "PUT /api/objectives/:id/mastery accepted any status, including Transfer-ready, with no graded evidence.",
       "how_detected": "B1 implementation review (Audit 2 follow-up)",
       "root_cause": "An early manual override route (mirroring the artifact apps) was never removed once mastery became evidence-based.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/app/api/objectives/[id]/mastery/route.ts"
       ],
@@ -905,13 +905,13 @@
     {
       "id": "FAIL-039",
       "date": "2026-11-07",
-      "title": "App builds from before REQ-097 crash on the Solo hint",
+      "title": "App builds from before REQ-134 crash on the Solo hint",
       "status": "fixed",
       "severity": "high",
       "symptom": "rowToLesson stopped sending soloChoices; the old lesson screen does lesson.soloChoices!.map(...) when the learner opens Show choices, so old builds crashed. An old build's saved Solo pick (old unshuffled order) was also graded against the new shuffle.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "The payload change was checked only against the new app; nobody read the old screen to see which fields it dereferences without a guard, and the grade route accepted a Solo choice index without the hint the new flow always records first.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/lesson-generation.ts",
         "backend/app/api/grade/route.ts",
@@ -920,7 +920,7 @@
       "fix_summary": "Lesson payload sends soloChoices: [] (old builds fall back to free response). /api/grade refuses a Solo multiple-choice answer with no recorded hint reveal with a 400 whose error text old builds show in their error banner; nothing is recorded.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-integrity.dbtest.ts::9. App builds from before REQ-097 degrade instead of crashing (FAIL-039)"
+        "backend/lib/mastery-integrity.dbtest.ts::9. App builds from before REQ-134 degrade instead of crashing (FAIL-039)"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
@@ -936,7 +936,7 @@
       "symptom": "500 bodies carried Postgres/driver messages; on unauthenticated /api/health a connection failure could name the DB host or pooler user",
       "how_detected": "audit 2",
       "root_cause": "serverError returned err.message verbatim; nothing separated internal from user-facing errors",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/http.ts",
         "backend/app/api/health/route.ts"
@@ -963,7 +963,7 @@
       "symptom": "Each hit ran select 1 plus one query per schema probe on a 5-connection pool, with no caching",
       "how_detected": "audit 2",
       "root_cause": "Health check written for a daily ping, never considered as a public load source; probe errors were also reported as missing migrations",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/health.ts",
         "backend/lib/schema-status.ts"
@@ -990,7 +990,7 @@
       "symptom": "Concurrent requests all read count < max and all got through, including past the 8-guess MFA verify cap",
       "how_detected": "audit 2",
       "root_cause": "checkRateLimit and recordAuthEvent were separate statements with no lock between them",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/auth/rateLimit.ts",
         "backend/app/api"
@@ -1016,7 +1016,7 @@
       "symptom": "Parallel wrong passwords all wrote failed_login_count = 1; the 5-try lockout never triggered",
       "how_detected": "audit 2",
       "root_cause": "Read-modify-write of failed_login_count from a stale read",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/auth/lockout.ts",
         "backend/app/api/auth/login/route.ts"
@@ -1042,7 +1042,7 @@
       "symptom": "A holder of an access token could guess the password and the 6-digit confirmation code without limit, sending an email each time",
       "how_detected": "audit 2",
       "root_cause": "Rate limiting was added per route as each was written; the disable routes were missed",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/app/api/auth/mfa/disable/route.ts",
         "backend/app/api/auth/mfa/email/disable/route.ts"
@@ -1068,7 +1068,7 @@
       "symptom": "Stale mastery 25/25 and duplicate open sessions 15/15 when one request used an uppercase id",
       "how_detected": "audit 2",
       "root_cause": "Lock keys were built from the raw id string while Postgres compares uuids case-insensitively",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/visibility.ts",
         "backend/lib/grading-service.ts",
@@ -1096,7 +1096,7 @@
       "symptom": "\\u0000 or half an emoji in grade, chat or progress text, and slice() at 8000 splitting an emoji, failed the INSERT",
       "how_detected": "audit 2",
       "root_cause": "No validation of text before it reached Postgres, which rejects both",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/text-input.ts",
         "backend/app/api/grade/route.ts",
@@ -1125,7 +1125,7 @@
       "symptom": "Replay of a slow-inserted message returned the reply to the message sent after it (3/3)",
       "how_detected": "audit 2",
       "root_cause": "Reply found by 'first assistant row at or after the user row', a time heuristic",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/chat-store.ts"
       ],
@@ -1150,7 +1150,7 @@
       "symptom": "Same clientAttemptId or clientMessageId with a different answer, objective, route or track returned the old result",
       "how_detected": "audit 2",
       "root_cause": "Replay was keyed by id only, not bound to what was submitted",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/grading-service.ts",
         "backend/app/api/grade/route.ts",
@@ -1178,7 +1178,7 @@
       "symptom": "~100 KB per row with no row cap; fromStage 2^31 failed the int cast; a phone clock >60 s behind discarded the server copy",
       "how_detected": "audit 2",
       "root_cause": "Per-field caps only; Number.isInteger as the only check; savedAt compared across two clocks",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/app/api/objectives/[id]/progress/route.ts",
         "backend/app/api/errors/[id]/route.ts",
@@ -1206,7 +1206,7 @@
       "symptom": "Walking prefetch-next through the catalog generated every lesson; question/answer/taughtText/message had no length cap",
       "how_detected": "audit 2",
       "root_cause": "Only regenerate was rate limited; first generation was assumed to be rare",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/lesson-generation.ts",
         "backend/app/api/objectives/[id]/lesson"
@@ -1232,7 +1232,7 @@
       "symptom": "A second outstanding reset link could set the password again after a reset",
       "how_detected": "audit 2",
       "root_cause": "The reset consumed only the presented token",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/app/api/auth/reset-password/route.ts"
       ],
@@ -1257,7 +1257,7 @@
       "symptom": "A generation running past 120 s could be taken over while alive; a learner's later save overwrote the other",
       "how_detected": "audit 2",
       "root_cause": "Fixed lease with no renewal and no ownership check before save",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/lesson-store.ts",
         "backend/lib/lesson-generation.ts"
@@ -1283,7 +1283,7 @@
       "symptom": "A stalled DB or full pool made requests hang; a failed rollback returned a poisoned connection to the pool",
       "how_detected": "audit 2",
       "root_cause": "Pool created with defaults",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/db.ts"
       ],
@@ -1308,7 +1308,7 @@
       "symptom": "A long resumed answer got a new attempt id and recorded a second attempt",
       "how_detected": "audit 2",
       "root_cause": "The signature embeds the answer and was stored truncated, so it no longer matched",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "mobile/src/lib/lessonProgress.ts",
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
@@ -1335,7 +1335,7 @@
       "symptom": "Open sessions older than the window stayed open forever beside new ones",
       "how_detected": "audit 2",
       "root_cause": "The app never ends sessions and nothing closed them by age",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/study-sessions.ts"
       ],
@@ -1360,7 +1360,7 @@
       "symptom": "40k rows produced 89 MB JSON and 175 MB heap in one response over 11 parallel connections",
       "how_detected": "audit 2",
       "root_cause": "Every section loaded in full at once",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/account-export.ts",
         "backend/app/api/account/export/route.ts",
@@ -1385,10 +1385,10 @@
       "title": "Missing indexes on chat_messages and study_sessions; no probe for the attempts unique index",
       "status": "fixed",
       "severity": "low",
-      "symptom": "Chat history/replay and session queries scanned whole tables; a half-applied 025 would not be detected",
+      "symptom": "Chat history/replay and session queries scanned whole tables; a half-applied 027a would not be detected",
       "how_detected": "audit 2",
       "root_cause": "Indexes were designed before the catalog was shared; probe checked only the column",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/supabase/migrations/030_hardening_indexes.sql",
         "backend/lib/schema-status.ts"
@@ -1414,7 +1414,7 @@
       "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
       "how_detected": "Audit 2 mobile-flows review",
       "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
-      "requirement": "REQ-093",
+      "requirement": "REQ-131",
       "affected": [
         "mobile/src/lib/mfaLeaveGuard.ts",
         "mobile/app/(app)/settings/mfa.tsx"
@@ -1438,7 +1438,7 @@
       "symptom": "A hung request (weak signal, captive portal) left screens spinning forever with no way to retry; a hung progress fetch blocked lesson resume.",
       "how_detected": "Audit 2 mobile review (item 7)",
       "root_cause": "rawRequest called fetch with no AbortSignal and nothing else bounded the wait, so a stalled connect or body read never settled.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/src/api/client.ts",
         "mobile/app/(app)/account.tsx"
@@ -1462,7 +1462,7 @@
       "symptom": "On Android without biometrics, sharing backup codes to another app (or picking a photo, exporting data) took longer than the 1.5 s grace period and the learner came back signed out.",
       "how_detected": "Audit 2 mobile review (item 2)",
       "root_cause": "Android reports background for any activity Ascendra itself launches; the grace period only absorbed brief permission dialogs, and nothing told AuthContext an outbound flow was open.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/src/auth/AuthContext.tsx",
         "mobile/src/lib/backgroundHold.ts",
@@ -1488,7 +1488,7 @@
       "symptom": "On web, the browser back button, refresh or closing the tab discarded backup codes shown once, with no prompt.",
       "how_detected": "Audit 2 mobile review (item 3)",
       "root_cause": "expo-router answers browser back with navigation.resetRoot, which never fires beforeRemove, and unload never reaches React Navigation; the guard only listened to beforeRemove.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/src/lib/webLeaveGuard.ts",
         "mobile/app/(app)/settings/mfa.tsx"
@@ -1512,7 +1512,7 @@
       "symptom": "A later kind param change on a mounted Support screen (popping back with another kind, a deep link, web back/forward) left the other form showing; Submit a ticket carried no params so it could count as the same screen.",
       "how_detected": "Audit 2 mobile review (item 4)",
       "root_cause": "kind was initialised from useLocalSearchParams in useState and never synced; the sidebar's ticket entry had no explicit kind.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/app/(app)/support.tsx",
         "mobile/src/components/Sidebar.tsx",
@@ -1537,7 +1537,7 @@
       "symptom": "With Course B, ..., Course A, Lesson B in the stack, popping to /course/B landed on Course A's screen with its params swapped to B, dropping the history in between.",
       "how_detected": "Audit 2 mobile review (item 5)",
       "root_cause": "POP_TO matches the nearest route by name only and every course dashboard shares one route name; planNavigation's in-stack check compared exact paths, so it found Course B deeper down and chose dismissTo.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/src/lib/navPlan.ts"
       ],
@@ -1560,7 +1560,7 @@
       "symptom": "Leaving Support while a ticket was sending left its draft stored; the next visit offered the already-sent ticket again, inviting a duplicate.",
       "how_detected": "Audit 2 mobile review (item 6)",
       "root_cause": "The form was cleared only after the request succeeded; if the screen had unmounted by then the clear never reached storage.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/app/(app)/support.tsx",
         "mobile/src/lib/drafts.ts"
@@ -1584,7 +1584,7 @@
       "symptom": "If fetching a new PBQ scenario failed, the graded result was gone and the old scenario came back blank; answering again recorded a second attempt under a new id.",
       "how_detected": "Audit 2 mobile review (item 12)",
       "root_cause": "generate() cleared answer, result and the attempt id before the request instead of after a scenario arrived.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/app/(app)/course/[trackId]/pbq.tsx",
         "mobile/src/lib/pbqProgress.ts"
@@ -1608,7 +1608,7 @@
       "symptom": "Switching answer-history filters quickly could fill the list with another filter's attempts.",
       "how_detected": "Audit 2 mobile review (item 13)",
       "root_cause": "Each filter change started a request and every response was applied, so whichever answered last won.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/app/(app)/course/[trackId]/history.tsx",
         "mobile/src/lib/latestRequest.ts"
@@ -1632,7 +1632,7 @@
       "symptom": "Cancelling the browser share dialog showed Couldn't open sharing; a denied clipboard in copySecret produced an unhandled rejection.",
       "how_detected": "Audit 2 mobile review (item 14)",
       "root_cause": "navigator.share rejects with AbortError on cancel and every rejection was treated as failure; copySecret had no try/catch.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/app/(app)/settings/mfa.tsx",
         "mobile/app/(app)/account.tsx",
@@ -1657,7 +1657,7 @@
       "symptom": "Chat, support and PBQ drafts and lesson positions stayed in AsyncStorage/localStorage after Log out and Log out of all devices.",
       "how_detected": "Audit 2 mobile review (item 10)",
       "root_cause": "Logout only cleared tokens; nothing enumerated the per-user ascendra.draft/pbqProgress/lessonProgress keys.",
-      "requirement": "REQ-099",
+      "requirement": "REQ-136",
       "affected": [
         "mobile/src/auth/AuthContext.tsx",
         "mobile/src/lib/localData.ts",
@@ -2165,7 +2165,7 @@
         "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
         "mobile/src/lib/lessonFeedback.ts"
       ],
-      "fix_summary": "'Try again' on the Not yet screen and on a missed Solo result starts a fresh Solo check (new attempt id), with copy saying a repeat won't raise mastery (repeats are assisted by design, REQ-097).",
+      "fix_summary": "'Try again' on the Not yet screen and on a missed Solo result starts a fresh Solo check (new attempt id), with copy saying a repeat won't raise mastery (repeats are assisted by design, REQ-134).",
       "fix_commits": [],
       "regression_tests": [
         "mobile/src/lib/lessonFeedback.test.ts::offerTryAgain (REQ-101",
@@ -2356,7 +2356,7 @@
       "symptom": "Between running 029 and deploying the code, old code inserts attempts with assisted = false and overwrites mastery with its latest-answer rule; mastery_from_attempts trusted the stored flag, so a resubmitted Solo item counted as a fresh success.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "The rule depended on a column only the new code fills, so its correctness depended on deploy timing.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql"
       ],
@@ -2379,7 +2379,7 @@
       "symptom": "recompute_mastery() only visited pairs with attempts, so a Transfer-ready row set through the removed PUT override, with no attempts, kept its level.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "The recompute was driven from attempts, not from the rows it was meant to correct, and mastery_from_attempts returned no row for zero evidence.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/supabase/migrations/029b_mastery_backfill.sql",
@@ -2405,7 +2405,7 @@
       "symptom": "On a 1.9M-attempt fixture 029 ran 44 s in one transaction after ALTER TABLE attempts; reads of attempts and error_log timed out for the whole run.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "Schema changes and data backfill were in one file; the runner applies a file as one transaction, so the ALTER's lock lasted until the backfill committed.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/supabase/migrations/029b_mastery_backfill.sql",
@@ -2430,7 +2430,7 @@
       "symptom": "gradeFreeResponsePrompt stripped <learner_answer> tags in one pass, so </learner_</learner_answer>answer> left a working closing tag; PBQ answers and guesses were not fenced at all.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "Removing a known token is not escaping: removal can reassemble the token from its pieces.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/prompts.ts"
       ],
@@ -2453,7 +2453,7 @@
       "symptom": "The restore put every backed-up mastery and review row back, overwriting grades and Got it taps made after 029, and left rows the recompute had created.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "The restore keyed only on row id, not on whether the row had changed since the backup.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029b_mastery_backfill.sql"
       ],
@@ -2476,7 +2476,7 @@
       "symptom": "mastery_backup_029 and error_log_backup_029 had no foreign key to app_users, so DELETE /api/account left the learner's history behind.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "Account deletion relies on ON DELETE CASCADE; new per-user tables must join it.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029b_mastery_backfill.sql"
       ],
@@ -2499,7 +2499,7 @@
       "symptom": "presentationSeed was the user id, objective id, stage and question, all visible to the app, so the shuffle (and the right answer's position) could be recomputed.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "Determinism was taken for unpredictability; the seed had no secret.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/choice-order.ts",
         "backend/.env.example"
@@ -2523,7 +2523,7 @@
       "symptom": "No test showed that a second user calling POST /api/objectives/:id/hint on someone else's private objective gets 404 and records nothing.",
       "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
       "root_cause": "The route's access check was added with the route but only the happy path was tested.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/app/api/objectives/[id]/hint/route.ts"
       ],
@@ -2534,7 +2534,7 @@
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Every new route gets an other-user test (REQ-091 pattern).",
+      "prevention_notes": "Every new route gets an other-user test (REQ-129 pattern).",
       "recurrence_of": ""
     },
     {
@@ -2546,7 +2546,7 @@
       "symptom": "In the review's race test 245 of 290 grades committed while recompute_mastery() ran were overwritten with the level from before the grade (local re-run: 312/312 lock-less, 297/297 with the grader's lock).",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The recompute was one INSERT ... SELECT: every pair was computed from the snapshot taken when the statement started, and the upsert took no per-pair grading lock, so a grade committed after the snapshot was replaced with a level computed without it.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/lib/grading-service.ts"
@@ -2573,7 +2573,7 @@
       "symptom": "A database with 029 applied and 029b skipped reported current in npm run migrate -- --status and /api/health, with every learner still on the old levels.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "Schema probes only checked objects 029 creates; 029b is data work and nothing probed for it, and nothing compared stored levels with the rule.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/schema-status.ts",
         "backend/supabase/apply-migration.ts"
@@ -2595,10 +2595,10 @@
       "title": "Choice shuffle seeded from the raw objective id",
       "status": "fixed",
       "severity": "high",
-      "symptom": "Found while merging fix/hardening onto feat/mastery-integrity: the lesson GET and hint route seeded the per-learner choice shuffle with the objective id as the app sent it, while /api/grade (after REQ-098 normalization) seeds it with the canonical lowercase id. An iOS client sending an uppercase id would see one order and be graded against another, so a right answer could be marked wrong.",
+      "symptom": "Found while merging fix/hardening onto feat/mastery-integrity: the lesson GET and hint route seeded the per-learner choice shuffle with the objective id as the app sent it, while /api/grade (after REQ-135 normalization) seeds it with the canonical lowercase id. An iOS client sending an uppercase id would see one order and be graded against another, so a right answer could be marked wrong.",
       "how_detected": "merge review",
-      "root_cause": "REQ-097 built presentationSeed from raw id strings; REQ-098 lowercased ids only at lock keys and route edges. Two branches each correct alone disagreed once combined, because a derived string (the seed) depends on id spelling.",
-      "requirement": "REQ-098",
+      "root_cause": "REQ-134 built presentationSeed from raw id strings; REQ-135 lowercased ids only at lock keys and route edges. Two branches each correct alone disagreed once combined, because a derived string (the seed) depends on id spelling.",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/choice-order.ts",
         "backend/app/api/objectives/[id]/hint/route.ts",
@@ -2607,7 +2607,7 @@
       "fix_summary": "presentationSeed lowercases both ids; the hint and grade routes use the canonical id from visibleObjective.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/choice-order.test.ts::presentationSeed ignores the case of the ids (REQ-098)",
+        "backend/lib/choice-order.test.ts::presentationSeed ignores the case of the ids (REQ-135)",
         "backend/lib/hardening.dbtest.ts::the sessions route and grade route accept uppercase ids and treat them as the same row"
       ],
       "no_test_reason": "",
@@ -2626,7 +2626,7 @@
       "symptom": "A free-response retry that differed only by trailing whitespace got 409 instead of replaying the stored grade.",
       "how_detected": "Merge of B1 into B2 (review)",
       "root_cause": "The mobile resend signature trims the answer but the request body does not; the server compared answers exactly.",
-      "requirement": "REQ-098",
+      "requirement": "REQ-135",
       "affected": [
         "backend/lib/grading-service.ts"
       ],
@@ -2821,7 +2821,7 @@
       "symptom": "Every recompute_mastery() call row-locked every existing mastery row, even rows already equal to the rule, so a re-run blocked grades for its whole duration.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "INSERT ... ON CONFLICT DO UPDATE ... WHERE locks the conflicting row even when the WHERE skips the update.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql"
       ],
@@ -2844,7 +2844,7 @@
       "symptom": "The 029b header said it locked only the mastery rows the recompute changed; on the review's fixture it locked every mastery row, and its timing omitted that a grade of a locked row waits until commit.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The lock description was written from the intended behaviour (WHERE skips unchanged rows), not measured; ON CONFLICT DO UPDATE locks skipped rows too.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029b_mastery_backfill.sql",
         "docs/deploy-runbook-mastery.md"
@@ -2866,7 +2866,7 @@
       "symptom": "The review's gap.sql: a forged kind=quiz Solo success two days old plus one lesson Solo success written by the old code in the gap made Transfer-ready after the recompute.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "mastery_from_attempts() filtered only format <> 'pbq'; the old grade route accepted kind from the app, so any kind of row with stage solo counted.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029_mastery_recompute.sql",
         "backend/lib/schema-status.ts"
@@ -2891,7 +2891,7 @@
       "symptom": "The deploy order lived in a migration header, missed the app update, the Vercel auto-deploy on merge, the post-deploy recompute and verification, and gave no rollback order.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "Each review round added a step to the 029 header; no runbook owned the full sequence across database, Vercel and EAS.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "docs/deploy-runbook-mastery.md",
         "README.md",
@@ -2914,7 +2914,7 @@
       "symptom": "grading-cases.json had no prompt-injection, fence-breaking, restated-question, empty, irrelevant or other-language answers, so the fence fix (FAIL-113) was never checked against the live grader.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The eval set was written for grading accuracy on honest answers only.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/scripts/eval/grading-cases.json",
         "backend/scripts/eval/scoring.test.ts"
@@ -2942,7 +2942,7 @@
       "symptom": "The documented restore re-wrote rows that already held their backed-up values and was only described as a begin/commit block.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The update had no is-distinct-from check, and nothing said whether its statements could be run alone or again.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029b_mastery_backfill.sql"
       ],
@@ -2967,7 +2967,7 @@
       "symptom": "With CHOICE_ORDER_SECRET unset, production silently used a key derived from AUTH_JWT_SECRET.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The dev fallback had no environment guard.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/choice-order.ts",
         "backend/.env.example"
@@ -2991,7 +2991,7 @@
       "symptom": "GET /api/account/export did not include the learner's Solo hint reveals added by migration 029.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The new per-user table was not added to EXPORT_SECTIONS.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/lib/account-export.ts"
       ],
@@ -3014,7 +3014,7 @@
       "symptom": "mastery_backup_029 and error_log_backup_029 kept learner data indefinitely with no documented cleanup.",
       "how_detected": "PR#22-second-independent-review",
       "root_cause": "The backup was designed for rollback but its lifetime was never stated.",
-      "requirement": "REQ-097",
+      "requirement": "REQ-134",
       "affected": [
         "backend/supabase/migrations/029b_mastery_backfill.sql",
         "docs/deploy-runbook-mastery.md",
@@ -3268,7 +3268,7 @@
       "severity": "high",
       "symptom": "Lab questions/report (REQ-106), exam item generation (REQ-109), Quiz me (REQ-110), explain-back (REQ-111), review question generation and grading and unit checks (REQ-108) all called checkRateLimit then recordAuthEvent, so N simultaneous requests each read 'under the limit' and all reached the model.",
       "how_detected": "Merge review of every file the merged branches added, then a source scan",
-      "root_cause": "REQ-098 replaced the two-step pattern with consumeRateLimit on fix/hardening, but the feature branches were cut from feat/mastery-model before it and copied the older pattern; the merges had no text conflict in those new files.",
+      "root_cause": "REQ-135 replaced the two-step pattern with consumeRateLimit on fix/hardening, but the feature branches were cut from feat/mastery-model before it and copied the older pattern; the merges had no text conflict in those new files.",
       "requirement": "REQ-112",
       "affected": [
         "backend/app/api/objectives/[id]/lab/report/route.ts",
@@ -3438,7 +3438,7 @@
       "affected": [
         "backend/lib/account-export.ts"
       ],
-      "fix_summary": "Added lessonProgressTombstones (total order for paging) and EXPORT_EXCLUDED_TABLES with a reason for each table deliberately left out; new sections from review-loop, coach-plan and understanding got total orders for REQ-098 paging.",
+      "fix_summary": "Added lessonProgressTombstones (total order for paging) and EXPORT_EXCLUDED_TABLES with a reason for each table deliberately left out; new sections from review-loop, coach-plan and understanding got total orders for REQ-135 paging.",
       "fix_commits": [],
       "regression_tests": [
         "backend/lib/integration-guard.dbtest.ts::every table with a user_id is exported or excluded with a reason"
@@ -3487,7 +3487,7 @@
       "title": "Record-file merges duplicated changelog entries and left docs stale",
       "status": "fixed",
       "severity": "low",
-      "symptom": "Keep-both merging left REQ-100 twice and REQ-097 in three versions in CHANGELOG.md; REQ-108 had no entry; README still said 30 migrations and listed none after 036.",
+      "symptom": "Keep-both merging left REQ-100 twice and REQ-134 in three versions in CHANGELOG.md; REQ-108 had no entry; README still said 30 migrations and listed none after 036.",
       "how_detected": "Reading the merged CHANGELOG and README",
       "root_cause": "The resolver concatenates both sides of a conflicting hunk; the review-loop branch never wrote its entry.",
       "requirement": "REQ-112",
@@ -5253,7 +5253,7 @@
       "severity": "medium",
       "symptom": "Review answer and comparison answer returned the stored replay plus this item's correctIndex/correctAnswer/why for any of the learner's own client ids; nothing was recorded.",
       "how_detected": "Audit 3 security review (RAN unless noted)",
-      "root_cause": "The replay lookup was keyed on the id only; REQ-098's sameAttempt binding was applied to grade and pbq but not to routes added later by feature branches.",
+      "root_cause": "The replay lookup was keyed on the id only; REQ-135's sameAttempt binding was applied to grade and pbq but not to routes added later by feature branches.",
       "requirement": "REQ-116",
       "affected": [
         "backend/lib/review-service.ts",
@@ -6243,7 +6243,7 @@
       "severity": "high",
       "symptom": "Page 1 of /api/account/export was 4.17 MB (5k attempts) and 4.45 MB (26k attempts) on the audit fixture: 5,000-row pages, 28 sections, pretty-printed JSON.",
       "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
-      "root_cause": "REQ-098 bounded rows per section but not bytes per response, and the page size was chosen against memory, not the platform's response limit.",
+      "root_cause": "REQ-135 bounded rows per section but not bytes per response, and the page size was chosen against memory, not the platform's response limit.",
       "requirement": "REQ-118",
       "affected": [
         "backend/lib/account-export.ts",
@@ -6815,7 +6815,7 @@
       "severity": "medium",
       "symptom": "POST /api/support with a NUL character or half an emoji in subject, body or course name failed the INSERT (invalid byte sequence for encoding UTF8: 0x00) and returned 500.",
       "how_detected": "Re-verifying Audit 3 product L2 (Request a course) against the code; fail-before test",
-      "root_cause": "The route validated with its own trimmedString (type and length only) instead of lib/text-input.ts textField, which every other learner-text route adopted in REQ-098; the support route predates that and was never moved over.",
+      "root_cause": "The route validated with its own trimmedString (type and length only) instead of lib/text-input.ts textField, which every other learner-text route adopted in REQ-135; the support route predates that and was never moved over.",
       "requirement": "REQ-119",
       "affected": [
         "backend/app/api/support/route.ts"
@@ -6841,7 +6841,7 @@
       "severity": "low",
       "symptom": "Requests sent at once all counted the last hour's rows under the cap of 10 and all inserted, each emailing a human.",
       "how_detected": "Re-verification while adding Explore's Request a course; fail-before test with 14 concurrent requests",
-      "root_cause": "Count-then-insert in two statements with no lock; consumeRateLimit (REQ-098) exists for exactly this but the support route kept its own check.",
+      "root_cause": "Count-then-insert in two statements with no lock; consumeRateLimit (REQ-135) exists for exactly this but the support route kept its own check.",
       "requirement": "REQ-119",
       "affected": [
         "backend/app/api/support/route.ts"

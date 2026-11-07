@@ -1,4 +1,4 @@
-// REQ-097: per-learner shuffle of lesson choices.
+// REQ-134: per-learner shuffle of lesson choices.
 process.env.AUTH_JWT_SECRET ??= "choice-order-test-secret";
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
@@ -42,7 +42,7 @@ describe("presentationOrder", () => {
   });
 });
 
-test("presentationSeed ignores the case of the ids (REQ-098)", () => {
+test("presentationSeed ignores the case of the ids (REQ-135)", () => {
   const u = "6F9619FF-8B86-D011-B42D-00C04FC964FF";
   const o = "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11";
   assert.equal(presentationSeed(u, o, "fade", "q"), presentationSeed(u.toLowerCase(), o.toLowerCase(), "fade", "q"));

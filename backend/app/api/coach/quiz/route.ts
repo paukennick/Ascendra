@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     const result = await nextQuizTurn(user.id, trackId, {
       beforeGenerate: async () => {
-        // REQ-098 / FAIL-230: atomic count-and-record.
+        // REQ-135 / FAIL-230: atomic count-and-record.
         await consumeRateLimit(QUIZ_GENERATE_EVENT, user.id, QUIZ_GENERATE_LIMIT, { userId: user.id });
       },
     });

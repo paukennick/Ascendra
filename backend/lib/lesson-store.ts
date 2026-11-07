@@ -2,7 +2,7 @@ import { lessonServableSql } from "@/lib/item-quality";
 import { query, queryOne } from "./db";
 import type { LessonIntroContent, LessonPracticeContent } from "./prompts";
 
-// Storage for lesson text (migration 027). Pure database access -- nothing
+// Storage for lesson text (migration 027c). Pure database access -- nothing
 // here calls the model -- so the selection and claim rules can be tested
 // against a real Postgres (lib/lesson-regen.dbtest.ts).
 //
@@ -53,7 +53,7 @@ export const SHARED: LessonScope = { kind: "shared" };
 // Stable string for a scope: the claim table's `scope` column and the
 // in-memory map key.
 export function scopeKey(scope: LessonScope): string {
-  // REQ-098: lowercased; the claim row's scope is a string, not a uuid.
+  // REQ-135: lowercased; the claim row's scope is a string, not a uuid.
   return scope.kind === "shared" ? "shared" : `user:${scope.userId.toLowerCase()}`;
 }
 
@@ -220,7 +220,7 @@ export async function tryClaim(objectiveId: string, scope: LessonScope, token: s
   return rows.length > 0;
 }
 
-// REQ-098: heartbeat. The holder pushes its lease forward while it is still
+// REQ-135: heartbeat. The holder pushes its lease forward while it is still
 // generating, so a slow generation (model retries, a slow API) is not taken
 // over at CLAIM_LEASE_SECONDS by a second instance while the first is alive.
 // Only the holder's own token renews; false means the lease was lost (this

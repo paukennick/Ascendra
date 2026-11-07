@@ -1,4 +1,4 @@
--- REQ-097, part 2 of 029: back up mastery and review state, backfill the new
+-- REQ-134, part 2 of 029: back up mastery and review state, backfill the new
 -- columns from history, and recompute every learner's mastery under the rule
 -- in 029_mastery_recompute.sql. Read that header first. Deploy and rollback
 -- order: docs/deploy-runbook-mastery.md (after deploying the backend, run

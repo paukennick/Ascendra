@@ -49,7 +49,7 @@ import { whenLabel } from "@/lib/time";
 // REQ-107: a plain open serves a scenario this learner hasn't attempted yet,
 // and the graded result shows the grader's score for each sub-part (met,
 // partly met, missed) with its one-line comment, plus an "N of M" summary.
-// REQ-093: the scenario, the unsent answer and the graded result are kept on
+// REQ-131: the scenario, the unsent answer and the graded result are kept on
 // the device (src/lib/pbqProgress.ts), so leaving the screen and coming back
 // shows the same scenario instead of starting over.
 // Icon, colour and label per sub-part state. The label is words, not only
@@ -71,7 +71,7 @@ export default function PBQScreen() {
     trackId: string;
     unitId?: string;
     trackTitle?: string;
-    // REQ-097: "Retry scenario" from Review -- load exactly this scenario.
+    // REQ-134: "Retry scenario" from Review -- load exactly this scenario.
     scenarioId?: string;
   }>();
   const [unitId, setUnitId] = useState<string | undefined>(unitIdParam);

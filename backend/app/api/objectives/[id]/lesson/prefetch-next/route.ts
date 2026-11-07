@@ -80,7 +80,7 @@ export async function POST(
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    // Audit 2: the access check REQ-091 added everywhere else. The disclaimer
+    // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
@@ -124,7 +124,7 @@ export async function POST(
     const objRow = await loadObjective(nextId);
     if (!objRow) return notFound("Next objective not found");
 
-    // REQ-098: a prefetch that would start a generation spends the same
+    // REQ-135: a prefetch that would start a generation spends the same
     // per-learner budget as a lesson GET. Over it, the prefetch is skipped
     // (it is best-effort); the real visit will generate if the budget allows.
     try {

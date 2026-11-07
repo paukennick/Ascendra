@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     const conditions = ["user_id = $1"];
     const values: unknown[] = [user.id];
     if (trackId) {
-      // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+      // REQ-135: a non-uuid id used to reach Postgres and come back as a 500.
       if (!isUuid(trackId)) return ok({ sessions: [] });
       conditions.push(`track_id = $${values.length + 1}`);
       values.push(trackId);
@@ -41,10 +41,10 @@ export async function POST(req: Request) {
     const { trackId } = body ?? {};
     if (!trackId || typeof trackId !== "string") return badRequest("trackId is required");
     const user = await requireUser(req);
-    // REQ-091: a session can only be logged against a track the caller can see.
+    // REQ-129: a session can only be logged against a track the caller can see.
     const track = await visibleTrack(trackId, user.id);
     if (!track) return notFound("Track not found");
-    // REQ-098: the canonical (lowercase) id, however the client spelled it.
+    // REQ-135: the canonical (lowercase) id, however the client spelled it.
     const { session, created } = await startOrTouchSession(user.id, track.id);
     return ok({ session }, created ? 201 : 200);
   } catch (err) {

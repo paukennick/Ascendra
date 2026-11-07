@@ -37,7 +37,7 @@ export async function checkRateLimit(
   }
 }
 
-// REQ-098: turning MFA off (either method) checks the password and, for the
+// REQ-135: turning MFA off (either method) checks the password and, for the
 // last method, a 6-digit emailed code, and each first call sends an email.
 // None of that was limited, so a stolen 15-minute access token allowed
 // unlimited password and code guesses. One budget per user covers both
@@ -53,7 +53,7 @@ export const MFA_USER_LOCKED_MESSAGE =
   "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
   "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
 
-// REQ-098: check-and-record as one atomic step. checkRateLimit followed by
+// REQ-135: check-and-record as one atomic step. checkRateLimit followed by
 // recordAuthEvent is two statements, so N requests sent at once all read
 // "under the limit" before any of them records, and all N get through --
 // N model calls on grade/chat/pbq, N guesses past the 8-guess cap on an MFA

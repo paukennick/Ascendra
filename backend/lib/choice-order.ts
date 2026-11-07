@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 
-// REQ-097: the order a lesson check's choices are shown in, and the identity
+// REQ-134: the order a lesson check's choices are shown in, and the identity
 // of a check item.
 //
 // Choices are stored in the order the model wrote them, and the model tends to
@@ -34,7 +34,7 @@ export function presentationOrder(seed: string, n: number): number[] {
 // question text are all in the app). Without the secret, "seed = the ids"
 // let anyone recompute the shuffle and read the answer's position off the
 // stored order the model tends to use. Stable for one learner, objective,
-// stage and question as long as the secret doesn't change. REQ-098: ids are
+// stage and question as long as the secret doesn't change. REQ-135: ids are
 // lowercased first, so iOS's uppercase UUIDs give the same order.
 //
 // Key: CHOICE_ORDER_SECRET if set, otherwise a key derived from

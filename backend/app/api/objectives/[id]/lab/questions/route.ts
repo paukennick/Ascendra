@@ -28,7 +28,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // Cached after the first call, but a first call spends a model call, so
     // repeated asks are limited like every other model-backed route.
     try {
-      // REQ-098 / FAIL-230: atomic count-and-record.
+      // REQ-135 / FAIL-230: atomic count-and-record.
       await consumeRateLimit("lab_questions", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);

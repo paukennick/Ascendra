@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 
-// REQ-091: storage half of POST /api/chat, split out so the idempotency
+// REQ-129: storage half of POST /api/chat, split out so the idempotency
 // rules can be tested against a real database without Anthropic or HTTP.
 
-// REQ-098: the reply row's id is derived from the learner's row id, so a
+// REQ-135: the reply row's id is derived from the learner's row id, so a
 // replay finds exactly the reply saved with that message. The replay used to
 // take "the first assistant row at or after the learner's row", which picks
 // another turn's reply when two messages on one track overlap (a slow
@@ -21,7 +21,7 @@ export interface StoredChatTurn {
 }
 
 // The turn already stored for a client message id, or null if the id is new.
-// Rows saved before REQ-098 have no derived reply id; for those the old
+// Rows saved before REQ-135 have no derived reply id; for those the old
 // "first assistant row at or after it" rule is the fallback.
 export async function findChatTurn(userId: string, clientMessageId: string): Promise<StoredChatTurn | null> {
   const row = await queryOne<{ reply: string | null; track_id: string; message: string }>(
@@ -47,7 +47,7 @@ export async function findChatReply(userId: string, clientMessageId: string): Pr
   return (await findChatTurn(userId, clientMessageId))?.reply ?? null;
 }
 
-// REQ-098: a client message id names one message. Reusing it for a
+// REQ-135: a client message id names one message. Reusing it for a
 // different message or another track used to return the stored reply and
 // drop the new message; the route now answers 409 instead.
 export class ChatIdConflictError extends Error {

@@ -1,5 +1,5 @@
 // Per-learner lesson regeneration and cross-instance generation claims
-// (migration 027) against a real Postgres. The model is replaced by a fake
+// (migration 027c) against a real Postgres. The model is replaced by a fake
 // generator, so nothing here calls Anthropic. Run with:
 //   DATABASE_URL=... PGSSLMODE=disable npm run test:db
 import { test, describe, before, after } from "node:test";

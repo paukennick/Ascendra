@@ -1,4 +1,4 @@
-// REQ-097: regression tests for the mastery-integrity audit findings, against
+// REQ-134: regression tests for the mastery-integrity audit findings, against
 // a real Postgres with every migration applied. The grade, lesson, hint and
 // PBQ route handlers are called directly; the model is a fake client that
 // records what it was sent and answers with a fixed verdict.
@@ -459,7 +459,7 @@ describe("8. No answer key reaches the app before it answers", () => {
     assert.equal(replay.body.replayed, true);
     assert.equal(replay.body.verdict, "incorrect", "replay returns the stored grade, not a regrade");
     assert.equal(replay.body.correctIndex, shownCorrect(u, o, "fade"));
-    // REQ-098: the id is bound to the submission. Reusing it with a different
+    // REQ-135: the id is bound to the submission. Reusing it with a different
     // choice (here the right one, after seeing the key) is a 409, not a regrade
     // and not a replay.
     const reused = await grade(u, { format: "mc", stage: "fade", objectiveId: o, chosenIndex: shownCorrect(u, o, "fade"), clientAttemptId: id });
@@ -473,7 +473,7 @@ describe("8. No answer key reaches the app before it answers", () => {
 const countAttempts = async (u: string, o: string) =>
   (await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and objective_id = $2`, [u, o]))!.n;
 
-describe("9. App builds from before REQ-097 degrade instead of crashing (FAIL-039)", () => {
+describe("9. App builds from before REQ-134 degrade instead of crashing (FAIL-039)", () => {
   test("the lesson still carries soloChoices, as a list an old build can .map()", async () => {
     const u = await newUser();
     const l = JSON.parse((await lesson(u, objs[12])).text).lesson as Record<string, unknown>;

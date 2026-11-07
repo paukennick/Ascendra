@@ -1,4 +1,4 @@
-// REQ-090: does the live database have the schema this code needs?
+// REQ-128: does the live database have the schema this code needs?
 //
 // Migrations are applied by hand (`npm run migrate`), separately from the
 // Vercel deploy, so code can go live ahead of its migration. When that
@@ -40,12 +40,12 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from education_subcategories where slug = 'health-informatics') as ok`,
   },
   {
-    migration: "025_lesson_progress.sql",
+    migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
   },
   {
-    migration: "025_lesson_progress.sql",
+    migration: "027a_lesson_progress.sql",
     what: "attempts.client_attempt_id column (every graded answer)",
     sql: `select exists(
             select 1 from information_schema.columns
@@ -53,17 +53,17 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
           ) as ok`,
   },
   {
-    migration: "026_chat_client_message_id.sql",
+    migration: "027b_chat_client_message_id.sql",
     what: "chat_messages.client_message_id unique index (every chat message)",
     sql: `select to_regclass('public.chat_messages_user_client_message_unique') is not null as ok`,
   },
   {
-    migration: "027_lesson_overrides.sql",
+    migration: "027c_lesson_overrides.sql",
     what: "lesson_content_overrides table (per-learner regenerated lessons)",
     sql: `select to_regclass('public.lesson_content_overrides') is not null as ok`,
   },
   {
-    migration: "027_lesson_overrides.sql",
+    migration: "027c_lesson_overrides.sql",
     what: "lesson_generation_claims table (lesson generation across servers)",
     sql: `select to_regclass('public.lesson_generation_claims') is not null as ok`,
   },
@@ -73,11 +73,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.ai_calls') is not null as ok`,
   },
   {
-    // The 025 probe above only checks the column. Without this unique index
+    // The 027a probe above only checks the column. Without this unique index
     // a retried answer would insert a second attempt silently instead of
-    // replaying the first (REQ-089). The CLI applies 025 in one transaction,
-    // so this can only be missing if 025 was pasted by hand and half-applied.
-    migration: "025_lesson_progress.sql",
+    // replaying the first (REQ-127). The CLI applies 027a in one transaction,
+    // so this can only be missing if 027a was pasted by hand and half-applied.
+    migration: "027a_lesson_progress.sql",
     what: "attempts (user_id, client_attempt_id) unique index (retried answers count once)",
     sql: `select to_regclass('public.attempts_user_client_attempt_unique') is not null as ok`,
   },

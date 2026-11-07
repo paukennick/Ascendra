@@ -32,7 +32,7 @@ describe("sanitizeLessonProgress", () => {
     assert.deepEqual(r.checks.solo.result.missedParts, ["p"]);
     assert.equal("extra" in r.checks, false);
   });
-  test("keeps the answer key that came back with a verdict (REQ-097), and drops junk", () => {
+  test("keeps the answer key that came back with a verdict (REQ-134), and drops junk", () => {
     const r = sanitizeLessonProgress({
       ...base,
       checks: {

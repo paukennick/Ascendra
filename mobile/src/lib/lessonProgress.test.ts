@@ -107,7 +107,7 @@ describe("graded checks survive leaving the lesson", () => {
     assert.equal(s?.checks.solo, undefined);
   });
 
-  // REQ-097: the key only ever arrives with the verdict, so it has to be saved
+  // REQ-134: the key only ever arrives with the verdict, so it has to be saved
   // with it or a resumed check could not mark the right option.
   test("the answer key returned with a verdict is restored with it; junk is dropped", () => {
     const s = parseSnapshot(
@@ -130,7 +130,7 @@ describe("graded checks survive leaving the lesson", () => {
   });
 });
 
-describe("Solo defaults to free response (REQ-095)", () => {
+describe("Solo defaults to free response (REQ-133)", () => {
   const res = { verdict: "incorrect", feedback: "x", missedParts: [] };
   const solo = (c: Record<string, unknown>) =>
     parseSnapshot(snap({ step: "solo", checks: { solo: c } }), key, now)?.checks.solo;

@@ -1,4 +1,4 @@
-// REQ-098: clock skew on the account copy, the answer-signature cap, and
+// REQ-135: clock skew on the account copy, the answer-signature cap, and
 // the paged account export.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";

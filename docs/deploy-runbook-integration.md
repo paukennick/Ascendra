@@ -3,7 +3,7 @@
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
 than one of the migrations below, which is the case for the
-`integration/all` release (REQ-097 through REQ-112). Everything in the
+`integration/all` release (REQ-100 through REQ-112, plus REQ-134 to REQ-136, which were REQ-097 to REQ-099 before the 2026-11-07 merge). Everything in the
 mastery runbook's "Before you start" still applies: a quiet window,
 `CHOICE_ORDER_SECRET` set in Vercel before the backend deploy, and knowing
 how your Vercel project promotes a deploy.

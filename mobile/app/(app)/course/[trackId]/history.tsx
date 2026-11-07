@@ -37,7 +37,7 @@ export default function HistoryScreen() {
       });
   }, [trackId, kind, requests]);
 
-  // REQ-093: reload on every focus (and when the filter changes, since `load`
+  // REQ-131: reload on every focus (and when the filter changes, since `load`
   // changes with it), not just on mount -- answers given in a lesson opened
   // from this list weren't showing when the learner came back to it.
   useFocusEffect(

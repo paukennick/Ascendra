@@ -3,7 +3,7 @@
 // navigation "beforeRemove" event (back button, header back, Android
 // hardware back, or any router call that would remove the screen).
 //
-// REQ-093:
+// REQ-131:
 //  - "codes": backup codes are on screen. They are shown once and are never
 //    stored, so leaving without saving them locks the learner out of the
 //    recovery path for good.

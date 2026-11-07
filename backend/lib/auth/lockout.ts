@@ -1,6 +1,6 @@
 import { queryOne, query } from "../db";
 
-// REQ-098: login lockout without a read-then-write race.
+// REQ-135: login lockout without a read-then-write race.
 //
 // The login route used to read failed_login_count, verify the password, and
 // write back count + 1. Wrong-password guesses sent in parallel all read the

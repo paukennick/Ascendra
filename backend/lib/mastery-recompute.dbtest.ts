@@ -1,4 +1,4 @@
-// REQ-097: migration 029 (schema, the rule) and 029b (backup, backfill,
+// REQ-134: migration 029 (schema, the rule) and 029b (backup, backfill,
 // recompute) back up mastery and review state, then recompute mastery from
 // attempt history under the new rules. These run the migration files
 // themselves (again -- CI already applied them to the empty database) over a

@@ -1,6 +1,6 @@
--- REQ-089: lesson position saved to the account, and idempotent grading.
+-- REQ-127: lesson position saved to the account, and idempotent grading.
 --
--- REQ-088 saved a learner's place inside a lesson (Teach / Guided / Solo,
+-- REQ-126 saved a learner's place inside a lesson (Teach / Guided / Solo,
 -- their guess, its feedback, their confidence) on the device only, so it
 -- did not follow the account to another phone or to the web build. This
 -- table is the account-level copy; the app keeps a device copy as an

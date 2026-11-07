@@ -31,7 +31,7 @@ import { reviewEmpty } from "@/lib/emptyStates";
 //    The session itself is app/(app)/review-session.tsx.
 // 2. Unit checks ready -- a few units whose objectives have all been
 //    studied, each with a short transfer scenario from the unit's gate.
-// 3. Missed scenarios -- a missed PBQ still has "Retry scenario" (REQ-097),
+// 3. Missed scenarios -- a missed PBQ still has "Retry scenario" (REQ-134),
 //    since a scenario is not part of the daily question session.
 //
 // Missed lesson questions used to be listed here one card each; they are now

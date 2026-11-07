@@ -9,7 +9,7 @@
 // saved, and the rules for whether a saved snapshot may be resumed. The
 // lesson screen does the reads/writes.
 //
-// REQ-089: the position is saved to the account (GET/PUT/DELETE
+// REQ-127: the position is saved to the account (GET/PUT/DELETE
 // /api/objectives/:id/progress) so it follows the learner across devices,
 // with a device copy kept as the offline fallback. It also carries each
 // graded check's state, so answering and then leaving before "Continue"
@@ -54,7 +54,7 @@ export interface CheckResult {
   verdict: string;
   feedback: string;
   missedParts: string[];
-  // REQ-097: the lesson payload has no answer key; these come back with the
+  // REQ-134: the lesson payload has no answer key; these come back with the
   // verdict and are saved with it so a resumed check shows the same marks.
   // correctIndex is a position in the order the choices were shown.
   correctIndex?: number | null;
@@ -106,7 +106,7 @@ export interface LessonSnapshot {
   savedAt: number;
 }
 
-// REQ-095: Solo is unassisted -- it starts in free response, and the choices
+// REQ-133: Solo is unassisted -- it starts in free response, and the choices
 // are an explicit opt-in hint (mode "mc"). Guided keeps multiple choice first.
 export function defaultMode(kind: CheckKind): CheckState["mode"] {
   return kind === "solo" ? "open" : "mc";
@@ -242,7 +242,7 @@ export function answerSignature(mode: "mc" | "open", picked: number | null, open
   return mode === "mc" ? `mc:${picked ?? ""}` : `open:${openAnswer.trim().slice(0, OPEN_ANSWER_MAX)}`;
 }
 
-// REQ-098: the free-response input is capped at this length. The server
+// REQ-135: the free-response input is capped at this length. The server
 // stores openAnswer and sentSignature (which embeds the answer) cut at 8000
 // characters, so an answer longer than that came back from the account copy
 // with a signature that no longer matched -- and the resumed answer was sent
@@ -250,7 +250,7 @@ export function answerSignature(mode: "mc" | "open", picked: number | null, open
 // under the server's limit, so what is signed is exactly what is stored.
 export const OPEN_ANSWER_MAX = 4000;
 
-// REQ-098: the account copy's savedAt is the server's clock. A phone clock
+// REQ-135: the account copy's savedAt is the server's clock. A phone clock
 // more than a minute behind rejected it as "from the future" (parseSnapshot),
 // and smaller skews could pick the older of the two copies. The server also
 // sends ageMs (how long ago it was saved); this restates savedAt on the

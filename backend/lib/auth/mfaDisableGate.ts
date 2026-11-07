@@ -9,7 +9,7 @@ import { checkReauth, reauthFailure } from "./reauth";
 // they change anything. Returns "proceed" or the response to send.
 //
 // Accounts with a password: the password, and for the LAST remaining method
-// also an emailed confirmation code (unchanged since REQ-098).
+// also an emailed confirmation code (unchanged since REQ-135).
 //
 // REQ-116 (audit 3, low): accounts without a password (Google-only) could
 // never turn MFA off -- the routes demanded a password they don't have.

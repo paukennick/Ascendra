@@ -1,4 +1,4 @@
-// REQ-095: pure decisions behind the lesson screen's honesty fixes, kept out
+// REQ-133: pure decisions behind the lesson screen's honesty fixes, kept out
 // of the component so they can be tested without a device.
 //
 //  - whether the finished lesson reads as "Objective complete" or "Not yet"
@@ -31,7 +31,7 @@ export function offerRereadAfterCheck(kind: "fade" | "solo", verdict: string | n
 // REQ-101 (FAIL-095): after a missed Solo check, "Re-read" led back to the
 // graded answer with only "Continue". A fresh try at the same question is
 // offered instead. On the server a repeat answer to a question already
-// answered counts as assisted (REQ-097), so the copy says it won't raise
+// answered counts as assisted (REQ-134), so the copy says it won't raise
 // mastery rather than implying it counts.
 export function offerTryAgain(kind: "fade" | "solo", verdict: string | null | undefined): boolean {
   return kind === "solo" && isMiss(verdict);
@@ -47,7 +47,7 @@ function validIndex(i: number | null | undefined, count: number): i is number {
 
 // How each option should be marked after grading. The server's verdict is the
 // authority on whether the learner's pick was right (it grades against its own
-// answer key); the correctIndex it returned with the verdict (REQ-097: the
+// answer key); the correctIndex it returned with the verdict (REQ-134: the
 // lesson payload carries none) is only used to point at the right option when
 // it agrees with that verdict. If they disagree the screen says nothing it
 // can't stand behind:
@@ -68,7 +68,7 @@ export function choiceMarks(
   return marks;
 }
 
-// REQ-097: why a graded answer could not raise mastery, if it couldn't.
+// REQ-134: why a graded answer could not raise mastery, if it couldn't.
 export function assistNote(assistReason: string | null | undefined): string | null {
   // REQ-105: a revision is assisted by design -- the feedback was on screen.
   if (assistReason === "retry") return REVISED_NOTE;
@@ -81,7 +81,7 @@ export function assistNote(assistReason: string | null | undefined): string | nu
   return null;
 }
 
-// REQ-097: grading happens only on the server, so a failed submit never shows
+// REQ-134: grading happens only on the server, so a failed submit never shows
 // a verdict. A server answer (it has a status) shows its own message; anything
 // else is treated as no connection, and the answer is kept for a retry, which
 // reuses the same attempt id.

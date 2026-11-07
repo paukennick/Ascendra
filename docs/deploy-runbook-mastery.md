@@ -1,4 +1,4 @@
-# Deploy runbook: mastery integrity (REQ-097, migrations 029 and 029b)
+# Deploy runbook: mastery integrity (REQ-134, migrations 029 and 029b)
 
 Follow this in order, one step at a time. The headers of
 `backend/supabase/migrations/029_mastery_recompute.sql` and

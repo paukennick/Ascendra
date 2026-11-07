@@ -7,18 +7,18 @@ import { visibleObjective, isUuid } from "@/lib/visibility";
 
 export const dynamic = "force-dynamic";
 
-// REQ-089: the caller's saved place inside one objective's lesson, so it
-// follows the account across devices. See migration 025.
+// REQ-127: the caller's saved place inside one objective's lesson, so it
+// follows the account across devices. See migration 027a.
 
 // GET /api/objectives/:id/progress -> { progress: {...} | null }
-// progress.savedAt is the server's clock; progress.ageMs (REQ-098) is how
+// progress.savedAt is the server's clock; progress.ageMs (REQ-135) is how
 // long ago it was saved, which the app uses so its own clock's skew
 // doesn't matter.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+    // REQ-135: a non-uuid id used to reach Postgres and come back as a 500.
     if (!isUuid(id)) return ok({ progress: null });
     const row = await queryOne<{
       step: string;
@@ -60,7 +60,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    // REQ-098: cap the body before parsing it (see lib/lesson-progress.ts).
+    // REQ-135: cap the body before parsing it (see lib/lesson-progress.ts).
     const declared = Number(req.headers.get("content-length") ?? 0);
     if (declared > MAX_PROGRESS_BODY_CHARS * 4) return badRequest("Saved position is too large");
     const raw = await req.text();
@@ -75,7 +75,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (typeof input === "string") return badRequest(input);
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     // REQ-101: ordered against deletes by the app's savedAt (tombstones);
-    // REQ-098: the store also keeps this learner's saved positions bounded.
+    // REQ-135: the store also keeps this learner's saved positions bounded.
     const savedAt = validClientTime((body as Record<string, unknown>).savedAt);
     return ok(await saveLessonProgress(user.id, id, input, savedAt));
   } catch (err) {
@@ -90,7 +90,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    // REQ-098: nothing to clear for a non-uuid id (used to be a 500).
+    // REQ-135: nothing to clear for a non-uuid id (used to be a 500).
     if (!isUuid(id)) return ok({ cleared: true });
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     await clearLessonProgressAt(user.id, id, validClientTime(body?.clearedAt));

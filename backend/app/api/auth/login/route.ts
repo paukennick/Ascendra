@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       return unauthorized(LOGIN_FAILED);
     }
 
-    // REQ-098: reserve this password check before running it (one guarded
+    // REQ-135: reserve this password check before running it (one guarded
     // UPDATE, see lib/auth/lockout.ts). Since REQ-116 this per-account count
     // is the backstop against guessing spread over many IPs.
     if (!(await reserveLoginAttempt(user.id))) {

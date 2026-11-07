@@ -3,7 +3,7 @@
 // Home twice in the stack (back then returned to the same screen). This picks
 // how to navigate to a destination; the sidebar performs it.
 //
-// REQ-093: expo-router's dismissTo (a POP_TO action) pops back to the nearest
+// REQ-131: expo-router's dismissTo (a POP_TO action) pops back to the nearest
 // earlier route of the same *name* -- but if there is none it REPLACES the
 // current screen (checked in react-navigation's StackRouter as bundled with
 // expo-router 57). From Home that would delete Home from the history when

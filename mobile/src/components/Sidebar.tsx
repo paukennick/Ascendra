@@ -60,7 +60,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
     });
   }, [visible, translateX]);
 
-  // REQ-093: this used to push every time, so choosing the screen you were
+  // REQ-131: this used to push every time, so choosing the screen you were
   // already on stacked a copy of it, and Home/Account/Settings/Support/a
   // course dashboard piled up on each visit. See src/lib/navPlan.ts:
   // the current screen is skipped, a top-level destination already in the

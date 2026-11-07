@@ -5,7 +5,7 @@
 -- lesson" used to overwrite it, so one learner's tap replaced the lesson for
 -- everyone on the track -- and, because the app saves each learner's place in a
 -- lesson against a fingerprint of the lesson text (lesson_progress.lesson_key,
--- migration 025), it also threw away every other learner's saved position.
+-- migration 027a), it also threw away every other learner's saved position.
 --
 -- lesson_content_overrides is the per-learner copy. A learner's regenerate
 -- writes only their own row here; lesson_content is never touched by it. Reads

@@ -7,7 +7,7 @@ import { localDataGuard } from "@/lib/localData";
 // the pure rules). Used by the chat box, the support form and the PBQ
 // simulator.
 //
-// REQ-093:
+// REQ-131:
 //  - `key` null means "don't persist" (no signed-in user, or no unit chosen).
 //  - `payload` is the current state as a stable string, or null for "nothing
 //    worth keeping", which removes the stored entry. Clearing after a

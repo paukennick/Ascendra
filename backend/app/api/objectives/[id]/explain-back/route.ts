@@ -119,7 +119,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // grader call (lib/grading-claims.ts); the others replay the stored result.
     const gradeAndRecord = async () => {
       try {
-        // REQ-098 / FAIL-230: atomic count-and-record.
+        // REQ-135 / FAIL-230: atomic count-and-record.
         await consumeRateLimit("explain_back", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
       } catch (err) {
         if (err instanceof RateLimitError) return tooManyRequests(err.message);

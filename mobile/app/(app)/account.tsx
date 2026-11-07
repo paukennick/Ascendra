@@ -178,7 +178,7 @@ export default function Account() {
   async function exportData() {
     setExportBusy(true);
     try {
-      // REQ-098: the export is paged; this fetches and merges every page.
+      // REQ-135: the export is paged; this fetches and merges every page.
       // FAIL-061: each page is bigger than an ordinary request, so it gets
       // the longer timeout.
       const data = await fetchFullExport((path) =>
@@ -252,7 +252,7 @@ export default function Account() {
           </View>
         ) : (
           <Pressable
-            // REQ-093: nameInput was seeded from `user` once, at first mount,
+            // REQ-131: nameInput was seeded from `user` once, at first mount,
             // so a name changed elsewhere (another device, after the profile
             // reloaded) showed up stale here. Reseed when editing starts.
             onPress={() => {

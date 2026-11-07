@@ -4,7 +4,7 @@
 // timestamp, and the rules for whether a stored draft may be restored. The
 // screens (and src/lib/useStoredDraft.ts) do the reads and writes.
 //
-// REQ-093: a draft is device-local, per user (two accounts on one device
+// REQ-131: a draft is device-local, per user (two accounts on one device
 // never see each other's text) and per thread (a course for chat, a request
 // kind for support).
 

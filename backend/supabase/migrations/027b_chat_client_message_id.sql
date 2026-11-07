@@ -1,4 +1,4 @@
--- REQ-091: idempotent coach chat messages.
+-- REQ-129: idempotent coach chat messages.
 --
 -- POST /api/chat calls Anthropic (several seconds) and only then saves the
 -- learner's message and the reply. A request that timed out on the phone but

@@ -45,7 +45,7 @@ jobs:
       - run: npm audit --audit-level=high
         working-directory: backend
 
-  # REQ-090: nothing in CI touched a database before, so a migration that
+  # REQ-128: nothing in CI touched a database before, so a migration that
   # didn't apply, SQL that named a missing column, or code that needed a
   # migration production hadn't run could all ship green. This builds the
   # schema from zero exactly as `npm run migrate -- --all` would in
@@ -127,7 +127,7 @@ jobs:
       - name: Apply 001-028 (the schema the backfills start from)
         working-directory: backend
         run: |
-          for f in $(ls supabase/migrations | sort); do
+          for f in $(ls supabase/migrations | LC_ALL=C sort); do
             [[ "$f" > "029" ]] && break
             npm run -s migrate -- "$f"
           done

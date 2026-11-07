@@ -201,7 +201,7 @@ describe("structured-output schemas", () => {
   });
 });
 
-// REQ-097: free-response grading is grounded in the lesson's answer key and
+// REQ-134: free-response grading is grounded in the lesson's answer key and
 // treats the learner's answer as data.
 describe("gradeFreeResponsePrompt", () => {
   test("includes the reference answer when given, and fences the learner's answer", () => {

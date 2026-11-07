@@ -29,12 +29,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await readJson(req);
     const guess = typeof body?.guess === "string" ? body.guess.trim() : "";
     if (!guess) return badRequest("guess is required");
-    // REQ-098: bounded before it goes into a model prompt.
+    // REQ-135: bounded before it goes into a model prompt.
     const g = textField(guess, "guess", TEXT_LIMITS.answer, { required: true });
     if (!g.ok) return badRequest(g.error);
 
     const user = await requireUser(req);
-    // REQ-091: 404 for an objective in another user's private track, before
+    // REQ-129: 404 for an objective in another user's private track, before
     // anything is read, rate-limited or sent to Anthropic.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);

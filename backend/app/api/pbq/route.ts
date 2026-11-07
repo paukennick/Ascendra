@@ -46,7 +46,7 @@ export async function GET(req: Request) {
     const authUser = await requireUser(req);
     const { searchParams } = new URL(req.url);
 
-    // REQ-097: ?scenarioId= returns that exact scenario, so a missed PBQ on
+    // REQ-134: ?scenarioId= returns that exact scenario, so a missed PBQ on
     // the Review screen can be retried (a correct retry advances its review
     // entry once it is due -- see recordAttemptTx).
     const scenarioId = searchParams.get("scenarioId");
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
     if (!scenarioId || typeof scenarioId !== "string" || !body?.answer || typeof body.answer !== "string") {
       return badRequest("scenarioId and answer are required");
     }
-    // REQ-098: length cap and storable text (400, not a 500 from the INSERT).
+    // REQ-135: length cap and storable text (400, not a 500 from the INSERT).
     const a = textField(body.answer, "answer", TEXT_LIMITS.pbqAnswer, { required: true });
     if (!a.ok) return badRequest(a.error);
     const answer = a.value;
@@ -162,7 +162,7 @@ export async function POST(req: Request) {
 
     const authUser = await requireUser(req);
 
-    // REQ-091: reach the scenario through its unit and track so a scenario in
+    // REQ-129: reach the scenario through its unit and track so a scenario in
     // another user's private track is a 404, and gate on the scenario's own
     // unit -- not on whatever unitId the client chose to send (or omit).
     const scenario = await visibleScenario(scenarioId, authUser.id);
@@ -176,7 +176,7 @@ export async function POST(req: Request) {
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.
     const clientAttemptId = validClientAttemptId(body.clientAttemptId);
-    // REQ-098: only a replay of the same scenario and answer; anything else
+    // REQ-135: only a replay of the same scenario and answer; anything else
     // under a used id is a 409 instead of the old result.
     if (clientAttemptId) {
       const prior = await findClientAttempt(authUser.id, clientAttemptId);

@@ -217,7 +217,7 @@ async function prepareItems(userId: string, sessionId: string, planned?: Session
     byTrack.set(w.item.track_id, g);
   }
   for (const [trackId, group] of byTrack) {
-    // REQ-098 / FAIL-230: count-and-record atomically, once per call.
+    // REQ-135 / FAIL-230: count-and-record atomically, once per call.
     try {
       await consumeRateLimit("review_generate", userId, { max: 10, windowMinutes: 60 }, { userId });
     } catch (err) {

@@ -1,4 +1,4 @@
-// REQ-098: GET /api/account/export returns at most a page of rows per
+// REQ-135: GET /api/account/export returns at most a page of rows per
 // section and lists, under `more`, each section that has further rows with
 // the offset to ask for next. This fetches those pages and merges them, so
 // the learner still gets everything in one export. Pure apart from `get`, so

@@ -5,14 +5,14 @@ import { checkSchema, migrationsToApply, SCHEMA_PROBES } from "./schema-status";
 describe("checkSchema", () => {
   test("reports the migrations behind failed and erroring probes, deduplicated and in order", async () => {
     const s = await checkSchema(async (sql) => {
-      // The 025 table only (032's lesson_progress_tombstones shares the prefix).
+      // The 027a table only (032's lesson_progress_tombstones shares the prefix).
       if (sql.includes("'public.lesson_progress'")) return [{ ok: false }];
       if (sql.includes("client_attempt_id")) throw new Error("relation does not exist");
       return [{ ok: true }];
     });
     assert.equal(s.current, false);
     assert.equal(s.missing.length, 2);
-    assert.deepEqual(migrationsToApply(s), ["025_lesson_progress.sql"]);
+    assert.deepEqual(migrationsToApply(s), ["027a_lesson_progress.sql"]);
   });
   test("an empty result counts as missing, not present", async () => {
     const s = await checkSchema(async () => []);

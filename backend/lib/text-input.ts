@@ -1,4 +1,4 @@
-// REQ-098: bounds and well-formedness for text that learners send.
+// REQ-135: bounds and well-formedness for text that learners send.
 //
 // Postgres refuses two things a JSON body can carry: a NUL character
 // (U+0000, rejected in text and jsonb) and a lone UTF-16 surrogate (half of

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
     const body = (await readJson(req)) ?? {};
-    // REQ-098: password and confirmation-code guesses are limited per user.
+    // REQ-135: password and confirmation-code guesses are limited per user.
     try {
       await consumeRateLimit(MFA_DISABLE_EVENT, user.id, MFA_DISABLE_LIMIT, { userId: user.id });
     } catch (err) {

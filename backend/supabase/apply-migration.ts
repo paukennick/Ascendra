@@ -7,7 +7,7 @@
 // Usage (from backend/):
 //   npm run migrate -- 023_shared_catalog.sql
 //   npm run migrate -- --all        # every file not yet recorded, in order
-//   npm run migrate -- --status     # what this database is missing (REQ-090)
+//   npm run migrate -- --status     # what this database is missing (REQ-128)
 //
 // Every migration in this repo is additive and written with IF NOT EXISTS /
 // ON CONFLICT guards, so re-running one by hand remains safe; the ledger is
@@ -49,7 +49,7 @@ async function main() {
         : []
     );
 
-    // REQ-090: read-only report. Probes the objects the code needs (see
+    // REQ-128: read-only report. Probes the objects the code needs (see
     // lib/schema-status.ts) -- those are reliable even for migrations that
     // were pasted into the SQL editor and never recorded in the ledger --
     // and lists repo migrations the ledger hasn't seen, for context.

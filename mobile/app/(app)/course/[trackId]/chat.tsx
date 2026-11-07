@@ -36,7 +36,7 @@ export default function ChatScreen() {
   // reach the server the stored reply comes back instead of a duplicate.
   const pendingRef = useRef<{ id: string; text: string } | null>(null);
 
-  // REQ-093: an unsent message survives leaving the screen. Per user and
+  // REQ-131: an unsent message survives leaving the screen. Per user and
   // course; a prefill from the lesson shortcut wins over an older draft, and
   // emptying the box (what a send does) clears it.
   const { user } = useAuth();

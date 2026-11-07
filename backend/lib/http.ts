@@ -28,7 +28,7 @@ export function forbidden(message = "Forbidden") {
 
 // The request conflicts with what is already recorded: a second revision of
 // the same answer (REQ-105), or an idempotency id reused for a different
-// submission (REQ-098).
+// submission (REQ-135).
 export function conflict(message: string) {
   return NextResponse.json({ error: message }, { status: 409 });
 }
@@ -73,7 +73,7 @@ export async function readJson(req: Request): Promise<any> {
 // 22001 is a value longer than its varchar column.
 const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001"]);
 
-// Audit 2 (REQ-098): this used to send err.message to the client. That is
+// Audit 2 (REQ-135): this used to send err.message to the client. That is
 // Postgres text (constraint names, "invalid input syntax for type uuid",
 // and on the unauthenticated /api/health a connection failure that can name
 // the database host or pooler user). The detail is now logged server-side
