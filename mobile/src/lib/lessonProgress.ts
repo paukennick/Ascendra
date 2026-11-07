@@ -16,6 +16,38 @@
 // brings back the verdict instead of asking again.
 
 export type ResumableStep = "teach" | "fade" | "solo";
+
+// REQ-106: Teach-step state (which card, the self-explanation answer, the
+// guess-match signal). Lives here, beside the position it is saved with.
+export type GuessMatch = "close" | "partial" | "off";
+
+// Saved with the lesson position (device copy, and the account copy's
+// existing checks jsonb). The self-explanation is never graded and never
+// mastery evidence; it goes when the lesson is finished, like the rest of the
+// position.
+export interface TeachState {
+  card: number;
+  explain: string;
+  explainDone: boolean;
+  guessMatch: GuessMatch | null;
+}
+
+export const EMPTY_TEACH: TeachState = { card: 0, explain: "", explainDone: false, guessMatch: null };
+
+const MAX_EXPLAIN = 2000;
+const GUESS_MATCHES: readonly string[] = ["close", "partial", "off"];
+
+export function parseTeachState(v: unknown): TeachState {
+  if (!v || typeof v !== "object") return EMPTY_TEACH;
+  const o = v as Record<string, unknown>;
+  return {
+    card: Number.isInteger(o.card) && (o.card as number) >= 0 && (o.card as number) < 10 ? (o.card as number) : 0,
+    explain: typeof o.explain === "string" ? o.explain.slice(0, MAX_EXPLAIN) : "",
+    explainDone: o.explainDone === true,
+    guessMatch: typeof o.guessMatch === "string" && GUESS_MATCHES.includes(o.guessMatch) ? (o.guessMatch as GuessMatch) : null,
+  };
+}
+
 export type CheckKind = "fade" | "solo";
 
 export interface CheckResult {
@@ -66,6 +98,9 @@ export interface LessonSnapshot {
   // learner was never taught, so a mismatch discards the snapshot.
   lessonKey: string;
   checks: Partial<Record<CheckKind, CheckState>>;
+  // REQ-106. Optional so positions saved before it still parse. The account
+  // copy stores it inside its checks jsonb (checks.teach).
+  teach?: TeachState;
   savedAt: number;
 }
 
@@ -136,6 +171,7 @@ export function parseSnapshot(raw: unknown, currentLessonKey: string, now: numbe
     confidence,
     lessonKey: currentLessonKey,
     checks,
+    teach: parseTeachState(o.teach ?? checksIn.teach),
     savedAt: o.savedAt,
   };
 }
@@ -246,16 +282,21 @@ export interface Position {
   guess: string;
   confidence: number | null;
   checks: Partial<Record<CheckKind, CheckState>>;
+  // REQ-106: moving between Teach cards or typing the self-explanation is a
+  // move too, so the saved position remembers the card.
+  teach: TeachState;
 }
 
-export const FRESH_POSITION: Position = { step: "guess", guess: "", confidence: null, checks: {} };
+export const FRESH_POSITION: Position = { step: "guess", guess: "", confidence: null, checks: {}, teach: EMPTY_TEACH };
 
 export function samePosition(a: Position, b: Position): boolean {
   return (
     a.step === b.step &&
     a.guess === b.guess &&
     a.confidence === b.confidence &&
-    JSON.stringify(a.checks) === JSON.stringify(b.checks)
+    JSON.stringify(a.checks) === JSON.stringify(b.checks) &&
+    // A position built without teach state (older callers) is at card 1.
+    JSON.stringify(a.teach ?? EMPTY_TEACH) === JSON.stringify(b.teach ?? EMPTY_TEACH)
   );
 }
 

@@ -181,19 +181,164 @@ Previous soloCheck: "${avoid.soloCheck}"`;
 // stop_reason end_turn (a raw, unescaped newline inside a string value).
 // Structured outputs close all three at the API level instead of patching
 // each symptom as it's found.
+// REQ-106 (research #14): Teach is generated as four short cards instead of
+// one block -- what it is, why it matters, a worked example in numbered
+// steps, and the common mistake -- plus ONE self-explanation question about a
+// step of that example (research #13). The model writes the cards only; the
+// flat `teach` text that grading, guess feedback and regenerate still read is
+// derived from them (teachFromCards), so no field is generated twice and the
+// output stays about the size of the old single block.
 export const lessonIntroSchema = z.object({
   guessPrompt: z
     .string()
     .describe(
       "A short, concrete question in the form of the objective the learner can genuinely attempt from intuition or prior knowledge BEFORE any teaching -- not a trick question."
     ),
-  teach: z
+  definition: z
+    .string()
+    .describe("Card 1, 'What it is': the direct definition of every named term in the objective, plainly. 2-5 sentences."),
+  whyItMatters: z
     .string()
     .describe(
-      "The actual teaching: definition(s) of every named term, why it works, ONE short worked example traced step by step, one common mistake/misconception, complexity/systems implications if relevant. Do not end this with a question."
+      "Card 2, 'Why it matters': why it works and where it shows up (on the exam and in practice), with systems or tradeoff implications if relevant. 2-4 sentences."
     ),
+  exampleSetup: z.string().describe("Card 3, the worked example's setup: one concrete scenario in 1-2 sentences."),
+  exampleSteps: z
+    .array(z.string())
+    .describe("The worked example traced step by step: 2 to 5 steps, one short sentence or two each, in order. No step numbers in the text."),
+  commonMistake: z
+    .string()
+    .describe("Card 4, 'Common mistake': one common mistake or misconception and how to avoid it. 1-3 sentences. Do not end with a question."),
+  selfExplainStep: z
+    .number()
+    .int()
+    .describe("The 1-based number of the example step the learner is asked to explain -- a step whose reason is not stated in the step itself."),
+  selfExplainQuestion: z
+    .string()
+    .describe("One short question asking WHY that step follows (e.g. 'Why does step 2 follow from step 1?'). Asks for the reason, not a restatement."),
+  selfExplainAnswer: z
+    .string()
+    .describe("A model explanation of that step in 1-2 sentences, shown to the learner after they try."),
 });
-export type LessonIntroContent = z.infer<typeof lessonIntroSchema>;
+export type LessonIntroModelOutput = z.infer<typeof lessonIntroSchema>;
+
+export type TeachCardKind = "definition" | "why" | "example" | "mistake";
+export interface TeachCard {
+  kind: TeachCardKind;
+  title: string;
+  body: string;
+  // Only the worked example has steps; `body` is then its setup.
+  steps?: string[];
+}
+export interface SelfExplainPrompt {
+  // 1-based index into the example card's steps.
+  step: number;
+  question: string;
+  modelExplanation: string;
+}
+export interface TeachCards {
+  cards: TeachCard[];
+  selfExplain: SelfExplainPrompt | null;
+}
+
+// What the rest of the server works with. teachCards is absent for lessons
+// cached before REQ-106 and for a local model that returns the old shape.
+export interface LessonIntroContent {
+  guessPrompt: string;
+  teach: string;
+  teachCards?: TeachCards | null;
+}
+
+const CARD_TITLES: Record<TeachCardKind, string> = {
+  definition: "What it is",
+  why: "Why it matters",
+  example: "Worked example",
+  mistake: "Common mistake",
+};
+
+const MAX_STEPS = 6;
+
+// Builds the cards from the model's output, dropping anything empty: a card
+// with no text is left out (so a lesson can have 3 cards), and a
+// self-explanation question that points at a step that does not exist is
+// dropped rather than shown against the wrong step. Null when there is not
+// enough for cards at all; the caller then serves flat teach text.
+export function cardsFromModel(o: Partial<LessonIntroModelOutput>): TeachCards | null {
+  const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const steps = (Array.isArray(o.exampleSteps) ? o.exampleSteps : []).map(clean).filter(Boolean).slice(0, MAX_STEPS);
+  const cards: TeachCard[] = [];
+  const add = (kind: TeachCardKind, body: string, extra?: Partial<TeachCard>) => {
+    if (body || extra?.steps?.length) cards.push({ kind, title: CARD_TITLES[kind], body, ...extra });
+  };
+  add("definition", clean(o.definition));
+  add("why", clean(o.whyItMatters));
+  if (steps.length) add("example", clean(o.exampleSetup), { steps });
+  add("mistake", clean(o.commonMistake));
+  if (cards.length < 3 || !cards.some((c) => c.kind === "definition")) return null;
+  const step = Number(o.selfExplainStep);
+  const question = clean(o.selfExplainQuestion);
+  const answer = clean(o.selfExplainAnswer);
+  const selfExplain =
+    steps.length && Number.isInteger(step) && step >= 1 && step <= steps.length && question && answer
+      ? { step, question, modelExplanation: answer }
+      : null;
+  return { cards, selfExplain };
+}
+
+// The flat teaching text, in the same order the cards are shown. This is
+// what grading (taughtText), guess feedback and regenerate's "avoid" read.
+export function teachFromCards(t: TeachCards): string {
+  return t.cards
+    .map((c) => {
+      if (c.kind === "example") {
+        const steps = (c.steps ?? []).map((s, i) => `Step ${i + 1}: ${s}`).join("\n");
+        return `${c.title}: ${c.body}${c.body ? "\n" : ""}${steps}`;
+      }
+      if (c.kind === "definition") return c.body;
+      return `${c.title}: ${c.body}`;
+    })
+    .join("\n\n");
+}
+
+// Normalizes the intro the model returned. A local model may still answer in
+// the old `{ guessPrompt, teach }` shape; that is kept as flat text.
+export function introFromModel(o: Partial<LessonIntroModelOutput> & { teach?: unknown }): LessonIntroContent {
+  const teachCards = cardsFromModel(o);
+  const guessPrompt = typeof o.guessPrompt === "string" ? o.guessPrompt : "";
+  if (teachCards) return { guessPrompt, teach: teachFromCards(teachCards), teachCards };
+  return { guessPrompt, teach: typeof o.teach === "string" ? o.teach : "", teachCards: null };
+}
+
+// Reads a stored lesson_content.teach_cards value back. Anything malformed
+// is treated as absent, so the lesson falls back to its flat teach text.
+export function parseTeachCards(v: unknown): TeachCards | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  if (!Array.isArray(o.cards)) return null;
+  const kinds: TeachCardKind[] = ["definition", "why", "example", "mistake"];
+  const cards: TeachCard[] = [];
+  for (const c of o.cards) {
+    if (!c || typeof c !== "object") return null;
+    const r = c as Record<string, unknown>;
+    if (!kinds.includes(r.kind as TeachCardKind) || typeof r.title !== "string" || typeof r.body !== "string") return null;
+    const steps = Array.isArray(r.steps) ? r.steps.filter((s): s is string => typeof s === "string") : undefined;
+    cards.push({ kind: r.kind as TeachCardKind, title: r.title, body: r.body, ...(steps ? { steps } : {}) });
+  }
+  if (cards.length < 3) return null;
+  const se = o.selfExplain as Record<string, unknown> | null | undefined;
+  const example = cards.find((c) => c.kind === "example");
+  const selfExplain =
+    se &&
+    typeof se === "object" &&
+    Number.isInteger(se.step) &&
+    (se.step as number) >= 1 &&
+    (se.step as number) <= (example?.steps?.length ?? 0) &&
+    typeof se.question === "string" &&
+    typeof se.modelExplanation === "string"
+      ? { step: se.step as number, question: se.question, modelExplanation: se.modelExplanation }
+      : null;
+  return { cards, selfExplain };
+}
 
 export function lessonIntroPrompt(params: {
   trackTitle: string;
@@ -214,10 +359,21 @@ straight explanation.`,
 Unit: ${params.unitTitle}
 Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
 
+The teaching is shown as four short cards the learner moves through one at a time on a phone, so
+keep each card short and self-contained. Together they must still define every named term, say why it
+works, trace ONE worked example step by step, and name one common mistake.
+
 Produce ONLY a JSON object with exactly these fields, no prose outside the JSON, no markdown fence:
 {
   "guessPrompt": "a short, concrete question form of this objective the learner can genuinely attempt from intuition or prior knowledge BEFORE any teaching — not a trick question",
-  "teach": "the actual teaching: definition(s) of every named term, why it works, ONE short worked example traced step by step, one common mistake/misconception, complexity/systems implications if relevant. Do not end this with a question."
+  "definition": "card 1: plain definition of every named term (2-5 sentences)",
+  "whyItMatters": "card 2: why it works and where it shows up, systems/tradeoff implications if relevant (2-4 sentences)",
+  "exampleSetup": "card 3: the worked example's concrete scenario (1-2 sentences)",
+  "exampleSteps": ["2 to 5 steps tracing that example, in order, one short sentence or two each, no numbering"],
+  "commonMistake": "card 4: one common mistake or misconception and how to avoid it (1-3 sentences, not a question)",
+  "selfExplainStep": "<1-based number of one example step whose reason is not spelled out in the step itself>",
+  "selfExplainQuestion": "one short question asking why that step follows, e.g. 'Why does step 2 follow from step 1?'",
+  "selfExplainAnswer": "a 1-2 sentence model explanation of that step"
 }`;
 
   return { system, user };
@@ -244,8 +400,20 @@ export const guessFeedbackSchema = z.object({
         "flag the gap the upcoming teaching will close. Never call it 'correct' or 'incorrect' -- this " +
         "is a comparison on an intuition check before any teaching happened, not a graded answer."
     ),
+  // REQ-106 (research #12): a coarse signal the app uses only to suggest
+  // skipping or lengthening Guided practice. Never shown as a verdict, never
+  // stored as an attempt, never mastery evidence. A few output tokens.
+  guessMatch: z
+    .enum(["close", "partial", "off"])
+    .describe(
+      "How close the guess is to what's actually true: close = the core idea is right; partial = part of it; off = mostly wrong, unrelated or blank. Internal only -- never mention it in feedback."
+    ),
 });
-export type GuessFeedback = z.infer<typeof guessFeedbackSchema>;
+// guessMatch is optional in the type: a local model may omit it, and the app
+// then makes no suggestion.
+export type GuessFeedback = Omit<z.infer<typeof guessFeedbackSchema>, "guessMatch"> & {
+  guessMatch?: "close" | "partial" | "off";
+};
 
 export function guessFeedbackPrompt(params: {
   objectiveTitle: string;
@@ -273,7 +441,8 @@ ${fenceLearnerText("learner_guess", params.guess)}
 
 Produce ONLY a JSON object, no markdown fence:
 {
-  "feedback": "2-4 sentences, warm and encouraging, comparing the guess to what's actually true"
+  "feedback": "2-4 sentences, warm and encouraging, comparing the guess to what's actually true",
+  "guessMatch": "close" | "partial" | "off"
 }`;
 
   return { system, user };
@@ -517,6 +686,89 @@ Produce ONLY a JSON object, no markdown fence:
   "fixNext": "one short sentence: the single most useful thing to fix next, phrased as a next step"
 }`;
   return { system, user };
+}
+
+// REQ-106 (research #7): the optional hands-on lab on a lesson's Done card.
+// After doing it the learner answers up to three short report questions.
+// The questions are generated once per objective (and lab text) and shared by
+// every learner, so their cost does not grow with the number of learners.
+export const MAX_LAB_QUESTIONS = 3;
+
+export const labQuestionsSchema = z.object({
+  questions: z
+    .array(z.string())
+    .describe(
+      "2 or 3 short report questions about what the learner saw while doing the lab, each answerable in a sentence or by pasting one line of output, e.g. 'Which TLS version did the connection use?' or 'What did the root CA's subject say?'. Each asks for a specific observation or what it means -- never for secrets, passwords, private keys, personal data or anything from a system they do not own."
+    ),
+});
+
+export function labQuestionsPrompt(params: {
+  objectiveTitle: string;
+  labPrompt: string;
+  ctx?: CoachContext;
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
+    `You are writing a short lab report for an optional hands-on lab the learner does on their own machine or a
+free-tier account. The questions check they actually did it and understood what they saw. Keep each question
+short and specific to this lab. Never ask for passwords, keys, tokens, personal data or anything from a system
+they do not own.`,
+    params.ctx
+  );
+  const user = `Objective: ${params.objectiveTitle}
+Lab: ${params.labPrompt}
+
+Produce ONLY a JSON object, no markdown fence:
+{
+  "questions": ["2 or 3 short report questions about what the learner observed doing this lab"]
+}`;
+  return { system, user };
+}
+
+// Cleans the generated list: trimmed, non-empty, de-duplicated, at most
+// MAX_LAB_QUESTIONS. Falls back to three fixed questions when the model gave
+// nothing usable, so a lab report never depends on it.
+export function cleanLabQuestions(questions: unknown): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const q of Array.isArray(questions) ? questions : []) {
+    if (typeof q !== "string") continue;
+    const t = q.trim().slice(0, 300);
+    if (!t || seen.has(t.toLowerCase())) continue;
+    seen.add(t.toLowerCase());
+    out.push(t);
+    if (out.length === MAX_LAB_QUESTIONS) break;
+  }
+  return out.length ? out : fallbackLabQuestions();
+}
+
+export function fallbackLabQuestions(): string[] {
+  return [
+    "What did you run or click? List the main commands or steps.",
+    "What was the key result you saw? Paste one line or describe it.",
+    "What does that result tell you, and what would you check next?",
+  ];
+}
+
+// The text the free-response grader is given as "already taught" for a lab
+// report: the lab itself, and how to judge a self-reported observation.
+export function labReportTaughtText(objectiveTitle: string, labPrompt: string): string {
+  return `Objective: ${objectiveTitle}
+Optional hands-on lab the learner says they did on their own machine or a free-tier account: ${labPrompt}
+
+This is a lab report. You cannot see their screen, so judge whether each answer is a specific, plausible
+observation for this lab and shows they understood what it means. A plausible result that differs from a
+textbook default (a different version, port or name on their machine) is fine. A vague or generic answer
+that could be written without doing the lab is partial at best.`;
+}
+
+// The report questions as one numbered multi-part question, so one grading
+// call covers the whole report and names any part that was missed.
+export function labReportQuestion(questions: string[]): string {
+  return `Lab report. Answer each part:\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}`;
+}
+
+export function labReportAnswer(answers: string[]): string {
+  return answers.map((a, i) => `Part ${i + 1}: ${a.trim() || "(no answer)"}`).join("\n\n");
 }
 
 export function chatSystemPrompt(params: {

@@ -73,6 +73,27 @@ describe("sanitizeLessonProgress", () => {
     const r = sanitizeLessonProgress({ ...base, guess: "x".repeat(20000) }) as { guess: string };
     assert.equal(r.guess.length, 8000);
   });
+  test("REQ-106: keeps the Teach card, the self-explanation and the guess match under checks.teach", () => {
+    const top = sanitizeLessonProgress({
+      ...base,
+      step: "teach",
+      teach: { card: 2, explain: "because the leaf names its issuer", explainDone: true, guessMatch: "close" },
+    }) as { checks: { teach?: unknown } };
+    assert.deepEqual(top.checks.teach, { card: 2, explain: "because the leaf names its issuer", explainDone: true, guessMatch: "close" });
+    // The server copy stores it inside checks; reading that back works too.
+    const nested = sanitizeLessonProgress({ ...base, checks: { teach: { card: 1 } } }) as { checks: { teach?: unknown } };
+    assert.deepEqual(nested.checks.teach, { card: 1, explain: "", explainDone: false, guessMatch: null });
+    const junk = sanitizeLessonProgress({
+      ...base,
+      teach: { card: 99, explain: "x".repeat(5000), explainDone: "yes", guessMatch: "correct" },
+    }) as { checks: { teach: { card: number; explain: string; explainDone: boolean; guessMatch: unknown } } };
+    assert.equal(junk.checks.teach.card, 0);
+    assert.equal(junk.checks.teach.explain.length, 2000);
+    assert.equal(junk.checks.teach.explainDone, false);
+    assert.equal(junk.checks.teach.guessMatch, null);
+    const none = sanitizeLessonProgress(base) as { checks: { teach?: unknown } };
+    assert.equal(none.checks.teach, undefined);
+  });
 });
 
 describe("validClientAttemptId", () => {

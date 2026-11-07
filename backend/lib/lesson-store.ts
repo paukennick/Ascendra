@@ -28,6 +28,9 @@ export interface LessonRow {
   // the lesson payload.
   fade_option_reasons: string[] | null;
   solo_option_reasons: string[] | null;
+  // REQ-106 (migration 035): Teach as short cards plus one self-explanation
+  // prompt. Null for lessons cached before it; they keep their flat `teach`.
+  teach_cards: unknown | null;
   model: string;
   generated_at: string;
 }
@@ -59,7 +62,7 @@ export function scopeKey(scope: LessonScope): string {
 export const CLAIM_LEASE_SECONDS = 120;
 
 const LESSON_COLUMNS = `guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-  solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model, generated_at`;
+  solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, teach_cards, model, generated_at`;
 
 export type LessonSource = "override" | "shared";
 
@@ -109,6 +112,7 @@ function contentParams(content: LessonContent, model: string): unknown[] {
     content.soloWhy,
     jsonOrNull(optionReasonsFor(content.fadeOptionReasons, content.fadeChoices)),
     jsonOrNull(optionReasonsFor(content.soloOptionReasons, content.soloChoices)),
+    jsonOrNull(content.teachCards ?? null),
     model,
   ];
 }
@@ -135,8 +139,8 @@ export async function saveLesson(
     const rows = await query<LessonRow>(
       `insert into lesson_content
         (objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-         solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+         solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, teach_cards, model)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        on conflict (objective_id) do nothing
        returning ${LESSON_COLUMNS}`,
       [objectiveId, ...params]
@@ -149,8 +153,8 @@ export async function saveLesson(
   const rows = await query<LessonRow>(
     `insert into lesson_content_overrides
       (user_id, objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-       solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, teach_cards, model)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
      on conflict (user_id, objective_id) do update set
        guess_prompt = excluded.guess_prompt,
        teach = excluded.teach,
@@ -164,6 +168,7 @@ export async function saveLesson(
        solo_why = excluded.solo_why,
        fade_option_reasons = excluded.fade_option_reasons,
        solo_option_reasons = excluded.solo_option_reasons,
+       teach_cards = excluded.teach_cards,
        model = excluded.model,
        generated_at = now()
      returning ${LESSON_COLUMNS}`,
