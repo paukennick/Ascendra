@@ -37,8 +37,13 @@ function cannedFor(body: any): unknown {
   if (has("rubric")) return { ...grade, verdict: "incorrect", rubric: { correct: false, complete: false, keyTerms: false, noMisconception: false }, misconception: "", confusedWith: "" };
   if (has("parts")) {
     const content = String(body.messages?.[0]?.content ?? "");
-    const block = /Sub-parts required: ([\s\S]*?)\n\n/.exec(content)?.[1] ?? "";
-    const labels = block.split("\n").map((l) => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean);
+    // PBQ / unit check: "Sub-parts required:"; REQ-123 lab step: "Rubric parts:"
+    // with each label on a numbered line followed by its criteria.
+    const lab = /Rubric parts:\n([\s\S]*?)\n\n/.exec(content)?.[1];
+    const block = lab ?? /Sub-parts required: ([\s\S]*?)\n\n/.exec(content)?.[1] ?? "";
+    const labels = lab
+      ? [...lab.matchAll(/^\d+\.\s*(.+)$/gm)].map((m) => m[1].trim())
+      : block.split("\n").map((l) => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean);
     return { ...grade, missedParts: labels.slice(1), parts: labels.map((p, i) => ({ part: p, score: i === 0 ? "met" : "missed", comment: "mock" })) };
   }
   if (has("misconception")) return { ...grade, misconception: "", confusedWith: "" };

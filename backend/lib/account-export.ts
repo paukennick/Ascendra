@@ -104,6 +104,10 @@ export const EXPORT_SECTIONS = {
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
+  // REQ-123 (migration 050): lab runs and every graded step with the
+  // learner's answers. A finished run's attempt is also under attempts.
+  labRuns: "select * from lab_runs where user_id = $1 order by started_at asc, id asc",
+  labRunSteps: "select * from lab_run_steps where user_id = $1 order by created_at asc, run_id asc, step_index asc",
   // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with
   // the IP addresses recorded. Events are matched by user id or by the
   // account's address (events before sign-in carry only the address).

@@ -2,6 +2,7 @@ import { queryOne } from "@/lib/db";
 import { lessonCheckFor } from "@/lib/grading-service";
 import { requireAcknowledgementForObjective, requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
 import { isUuid, visibleObjective, visibleTrack } from "@/lib/visibility";
+import { visibleLab } from "@/lib/labs";
 import { textField } from "@/lib/text-input";
 import { FLAG_REASONS, flagItem, lessonItemId, type FlagReason, type ItemRef, type RecheckResult } from "@/lib/item-quality";
 import type { FactChecker } from "@/lib/fact-check";
@@ -110,8 +111,17 @@ export async function resolveReport(userId: string, body: Record<string, unknown
       ref = { kind: "comparison", itemId: r.id, objectiveId: r.objective_id, question: r.scenario };
       break;
     }
+    case "lab": {
+      // REQ-123: a verifiable lab, by its id, if this learner can open it.
+      if (!isUuid(b.labId)) throw new ReportError(400, "labId is required");
+      const lab = await visibleLab(b.labId, userId);
+      if (!lab) throw notFound();
+      await requireAcknowledgementForObjective(lab.objective_id, userId);
+      ref = { kind: "lab", itemId: lab.id, objectiveId: lab.objective_id, question: lab.title };
+      break;
+    }
     default:
-      throw new ReportError(400, "kind must be one of lesson, review, exam, quiz, comparison");
+      throw new ReportError(400, "kind must be one of lesson, review, exam, quiz, comparison, lab");
   }
   return { ref, reason: reason as FlagReason, note };
 }

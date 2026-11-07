@@ -28,7 +28,7 @@ export interface AttemptInput {
   unitId?: string | null;
   objectiveId?: string | null;
   pbqScenarioId?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review" | "labtask";
   stage?: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -80,6 +80,11 @@ export interface AttemptInput {
   // REQ-108: false skips the error_log row for a miss (unit checks are
   // offered again from Review instead).
   errorLog?: boolean;
+  // REQ-123: a verifiable lab (kind 'labtask', migration 050): the lab
+  // (attempts.lab_id) and the run being finished. The run decides the
+  // repeat rule (see labAssistReason).
+  labId?: string | null;
+  labRunId?: string | null;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
@@ -394,6 +399,14 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (input.kind === "lab" && input.objectiveId) {
     throw new Error("A lab attempt is linked through labObjectiveId, never objectiveId (it is not mastery evidence)");
   }
+  // REQ-123 (FAIL-480): a verifiable lab's answer always names its lab and
+  // the objective it is evidence for. Enforced here rather than by the
+  // attempts_labtask_shape check, which must still allow objective_id to be
+  // cleared (SET NULL) when a course is deleted; attempts.lab_id has no
+  // foreign key (migration 050, FAIL-481).
+  if (input.kind === "labtask" && (!input.labId || !input.objectiveId)) {
+    throw new Error("A labtask attempt names its lab (labId) and its objective (objectiveId)");
+  }
 
   // Serialise grades for the same learner and objective, so two at once
   // can't each compute accuracy without the other's attempt and have the
@@ -415,6 +428,8 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const extraCols: { col: string; value: unknown }[] = [];
   if (input.unitCheckItemId) extraCols.push({ col: "unit_check_item_id", value: input.unitCheckItemId });
   if (input.partScores && input.partScores.length) extraCols.push({ col: "part_scores", value: JSON.stringify(cleanDeep(input.partScores)) });
+  // REQ-123: lab_id (migration 050), only named when set.
+  if (input.labId) extraCols.push({ col: "lab_id", value: input.labId });
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
@@ -615,6 +630,8 @@ async function assistReasonFor(
 ): Promise<AssistReason | null> {
   if (input.retryOf) return "retry";
   if (input.assist) return input.assist;
+  // REQ-123: a finished lab run (kind 'labtask').
+  if (input.labId) return labAssistReason(query, input);
   // REQ-117 (Audit 3 A1, FAIL-356): a unit-wide answer (PBQ or unit check)
   // to a scenario or item this learner already answered -- and so saw graded,
   // with the model answer -- is a repeat, as a lesson item is. It used to be
@@ -655,6 +672,22 @@ async function assistReasonFor(
     [input.userId, input.objectiveId, input.stage, input.question]
   );
   return before.length ? "repeat" : null;
+}
+
+// REQ-123: a lab run is a 'repeat' when this learner had any graded step of
+// the same lab in another run (finished or abandoned) or an earlier recorded
+// attempt on it: each graded step showed that step's model answer, so the
+// next run can be answered from memory of the key. Runs under the grade lock.
+async function labAssistReason(query: TxClient["query"], input: AttemptInput): Promise<AssistReason | null> {
+  const seen = await query(
+    `select 1 from lab_run_steps s join lab_runs r on r.id = s.run_id
+      where r.user_id = $1 and r.lab_id = $2 and r.id is distinct from $3::uuid
+     union all
+     select 1 from attempts a where a.user_id = $1 and a.lab_id = $2 and a.verdict is not null
+     limit 1`,
+    [input.userId, input.labId, input.labRunId ?? null]
+  );
+  return seen.length ? "repeat" : null;
 }
 
 // REQ-111: the same rules for an answer with an explicit assessment type.

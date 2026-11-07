@@ -215,6 +215,21 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.allowance_uses_user_kind_idx') is not null as ok`,
   },
   {
+    // REQ-123: the lab routes, the coach guard's open lab steps, the export
+    // and "Report a problem" on a lab all read these.
+    migration: "050_lab_engine.sql",
+    what: "labs / lab_runs / lab_run_steps, attempts.lab_id, kind 'labtask', the lab_build and lab_case types and the 'lab' item kind (verifiable labs)",
+    sql: `select to_regclass('public.labs') is not null
+             and to_regclass('public.lab_runs') is not null
+             and to_regclass('public.lab_run_steps') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'lab_id')
+             and exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                         where t.typname = 'attempt_kind' and e.enumlabel = 'labtask')
+             and (select count(*) from assessment_types where type_name in ('lab_build', 'lab_case')) = 2
+             and exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_050') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

@@ -1,4 +1,4 @@
-# Deploy runbook: integration release (migrations 029 to 049)
+# Deploy runbook: integration release (migrations 029 to 050)
 
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
@@ -50,6 +50,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 | 048 | REQ-119: `terms_acceptances`, `learner_onboarding` (existing accounts marked past first run), `learner_events` with AFTER triggers on attempts, lesson_progress, review_sessions, exam_sessions, placement_checks, and `exam_outcomes` | not timed on the fixture (one insert per account for the backfill) | no | (instant SHARE ROW EXCLUSIVE per trigger, 5 s lock_timeout) |
 | 049 | REQ-122: paid tiers, built but off -- `entitlements`, `billing_events`, `free_course_choice`, `allowance_uses` (four new tables, nothing existing altered). Apply BEFORE the backend deploy: the account export reads these tables, and `/api/health` probes them, even while `BILLING_ENABLED` is off (docs/billing.md) | not timed on the fixture (empty tables, no backfill) | no | (new tables only, 5 s lock_timeout) |
+| 050 | REQ-123: verifiable labs -- `labs`, `lab_runs`, `lab_run_steps`, attempt kind `labtask`, assessment types `lab_build` / `lab_case`, `attempts.lab_id` (no foreign key) with a NOT VALID check, the `lab` item kind. No rule change, no recompute. See "Migration 050" below | not timed on the fixture (new tables; one partial index on attempts) | no, if its index is built CONCURRENTLY first | the partial index `idx_attempts_user_lab` blocks attempt inserts while it builds inside the migration; build it first (below) and the migration skips it |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
@@ -196,6 +197,42 @@ drop table if exists mastery_backup_045;   -- probe: 045b_mastery_honesty_backfi
 Not verified from this repo: production's real row counts (scale the times
 above), whether the Vercel Git integration promotes on merge, and Supabase's
 SQL editor with `CALL` and internal commits (use psql).
+
+## Migration 050: verifiable labs (REQ-123)
+
+Additive: no mastery rule change and no backfill, so nothing to recompute
+and nothing to restore. Before applying it on a large `attempts` table, build
+its one index without blocking writes (over the direct connection, outside a
+transaction):
+
+```sql
+create index concurrently if not exists idx_attempts_user_lab
+  on attempts (user_id, lab_id) where lab_id is not null;
+```
+
+The migration's `create index if not exists` then does nothing. A later
+quiet moment can run `alter table attempts validate constraint
+attempts_labtask_shape;` (nothing old can fail it).
+
+**Lab content is not served until it is reviewed.** Every pilot lab is
+seeded as `needs_expert_review`; the backend serves only `approved` labs
+unless `LABS_SERVE_UNREVIEWED=on` is set (local development, or a closed
+beta the owner chooses). Approve a lab after a subject expert has read it
+(docs/labs.md, "Expert review before launch"):
+
+```sql
+update labs set review_status = 'approved', reviewed_by = '<name, credential>', reviewed_at = now(), review_note = '<what was checked>'
+ where id = '<lab id>';
+```
+
+A seed run that changes an approved lab's content sends it back to
+`needs_expert_review` by itself.
+
+Rollback: deploy the previous backend; the tables, the enum value and the
+assessment types stay and are ignored by older code. Lab answers already
+recorded keep counting toward mastery under the current rule (they carry an
+`assessment_type`); to stop that, set `cognitive_weight = 0` on `lab_build`
+and `lab_case` and run `call recompute_mastery_batched();`.
 
 ## Migration 044: auth hardening (REQ-116, audit 3 security)
 

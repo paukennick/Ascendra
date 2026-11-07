@@ -48,6 +48,11 @@ export type AiPurpose =
   // generation batch) and the one automated re-check of a flagged item.
   | "fact_check"
   | "item_recheck"
+  // REQ-123: verifiable labs -- one grading call per lab step answered, and
+  // the generator's batch writes plus its fact-check (scripts/generate-labs.ts).
+  | "lab_step_grade"
+  | "lab_generate"
+  | "lab_fact_check"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"
@@ -57,6 +62,7 @@ export type AiPurpose =
   | "eval_pbq"
   | "eval_unitcheck"
   | "eval_explain_back"
+  | "eval_lab"
   | "eval_generation"
   | "eval_cache";
 

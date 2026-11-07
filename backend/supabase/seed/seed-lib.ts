@@ -4,6 +4,8 @@
 import type { Pool } from "pg";
 import type { SeedTrack, SeedCredential } from "./data";
 import { activeUnits } from "./catalog";
+import type { SeedLabSet } from "./labs/types";
+import { labContentHash, labContentProblems, type LabContent } from "../../lib/lab-content";
 
 // Resolves a taxonomy subcategory by slug. Subcategory slugs are unique within
 // a category rather than globally, so an ambiguous slug is something the seed
@@ -336,4 +338,73 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
   console.log(
     `  seeded ${track.units.length} units for ${track.code}${retired ? ` (${retired} retired, history kept)` : ""}`
   );
+}
+
+// REQ-123: authored labs (migration 050). Upserted by (objective, slug). A
+// lab whose content changed goes back to needs_expert_review (its hash
+// moved); an unchanged lab keeps whatever review a person gave it. Authored
+// labs the seed no longer lists for a track are retired (their runs and
+// attempts stay). Throws on a lab whose objective title is not in the track
+// or whose content breaks the rules (lib/labs.ts labContentProblems).
+export function seedLabContent(lab: SeedLabSet["labs"][number]): LabContent {
+  return {
+    kind: lab.kind,
+    title: lab.title,
+    brief: lab.brief,
+    safetyNote: lab.safetyNote ?? null,
+    steps: lab.steps.map((s) => ({ text: s.text, ask: s.ask })),
+    rubric: lab.steps.map((s) => ({ parts: s.parts.map((p) => ({ label: p.label, criteria: p.criteria, modelAnswer: p.modelAnswer })) })),
+  };
+}
+
+export async function seedLabs(pool: Pool, set: SeedLabSet): Promise<number> {
+  const objs = await pool.query<{ id: string; title: string }>(
+    `select o.id, o.title from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
+      where st.code = $1 and st.user_id is null and o.retired_at is null and cu.retired_at is null`,
+    [set.trackCode]
+  );
+  const byTitle = new Map(objs.rows.map((r) => [r.title, r.id]));
+  const kept: string[] = [];
+  for (const lab of set.labs) {
+    const objectiveId = byTitle.get(lab.objective);
+    if (!objectiveId) throw new Error(`labs: ${set.trackCode} has no active objective titled "${lab.objective}" (lab ${lab.slug})`);
+    const content = seedLabContent(lab);
+    const problems = labContentProblems(content);
+    if (problems.length) throw new Error(`labs: ${set.trackCode}/${lab.slug}: ${problems.join("; ")}`);
+    const hash = labContentHash(content);
+    const res = await pool.query<{ id: string }>(
+      `insert into labs (objective_id, slug, kind, title, brief, steps, rubric, safety_note, sources, source, review_status, content_hash)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'authored', 'needs_expert_review', $10)
+       on conflict (objective_id, slug) do update set
+         kind = excluded.kind, title = excluded.title, brief = excluded.brief, steps = excluded.steps,
+         rubric = excluded.rubric, safety_note = excluded.safety_note, sources = excluded.sources,
+         review_status = case when labs.content_hash <> excluded.content_hash then 'needs_expert_review' else labs.review_status end,
+         reviewed_by = case when labs.content_hash <> excluded.content_hash then null else labs.reviewed_by end,
+         reviewed_at = case when labs.content_hash <> excluded.content_hash then null else labs.reviewed_at end,
+         content_hash = excluded.content_hash, retired_at = null,
+         updated_at = case when labs.content_hash <> excluded.content_hash or labs.retired_at is not null then now() else labs.updated_at end
+       returning id`,
+      [
+        objectiveId,
+        lab.slug,
+        content.kind,
+        content.title,
+        content.brief,
+        JSON.stringify(content.steps),
+        JSON.stringify(content.rubric),
+        content.safetyNote ?? null,
+        JSON.stringify(set.sources),
+        hash,
+      ]
+    );
+    kept.push(res.rows[0].id as string);
+  }
+  await pool.query(
+    `update labs l set retired_at = now()
+       from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
+      where l.objective_id = o.id and st.code = $1 and st.user_id is null
+        and l.source = 'authored' and l.retired_at is null and not (l.id = any($2::uuid[]))`,
+    [set.trackCode, kept]
+  );
+  return kept.length;
 }

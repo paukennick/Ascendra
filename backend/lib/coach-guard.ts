@@ -14,7 +14,7 @@ import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 // REQ-112 (f): every kind of item a learner can have open, in one list, so
 // a new item kind cannot be added without the guard knowing it. Each kind
 // has a regression test in lib/integration-guard.dbtest.ts.
-export const OPEN_ITEM_KINDS = ["lesson", "pbq", "review", "unit_check", "comparison", "quiz", "exam"] as const;
+export const OPEN_ITEM_KINDS = ["lesson", "pbq", "review", "unit_check", "comparison", "quiz", "exam", "lab"] as const;
 export type OpenItemKind = (typeof OPEN_ITEM_KINDS)[number];
 
 export interface OpenItem {
@@ -26,6 +26,7 @@ export interface OpenItem {
   // comparison: a comparison-card question they have not answered (REQ-111).
   // quiz: an open "Quiz me" question (REQ-110).
   // exam: a question in a sprint or mock exam in progress (REQ-109).
+  // lab: the current step of a lab run in progress (REQ-123).
   kind: OpenItemKind;
   label: string; // objective, unit or scenario title
   question: string;
@@ -241,6 +242,28 @@ async function examItems(userId: string, trackId: string): Promise<OpenItem[]> {
   });
 }
 
+// REQ-123: the step a learner is on in each open lab run (the next step not
+// yet graded). Open-ended, with no single key: named so the model holds back
+// from writing the answer, and the reply judge covers it.
+async function labItems(userId: string, trackId: string, unitId: string | null): Promise<OpenItem[]> {
+  const rows = await query<Row>(
+    `select l.title as label,
+            (l.steps -> n.done ->> 'text') || ' ' || (l.steps -> n.done ->> 'ask') as question,
+            null::text as answer_key
+       from lab_runs r
+       join labs l on l.id = r.lab_id
+       join objectives o on o.id = l.objective_id
+       join course_units cu on cu.id = o.unit_id
+       cross join lateral (select count(*)::int as done from lab_run_steps s where s.run_id = r.id) n
+      where r.user_id = $1 and cu.track_id = $2 and ($3::uuid is null or cu.id = $3::uuid)
+        and r.completed_at is null and r.abandoned_at is null
+        and n.done < jsonb_array_length(l.steps)
+      order by r.started_at, r.id`,
+    [userId, trackId, unitId]
+  ).catch(() => [] as Row[]); // before migration 050 the tables are missing; the rest still applies
+  return items("lab", rows.map((r) => ({ ...r, question: r.question.trim() })));
+}
+
 // Audit 3 H3: a timed mock exam in progress (any course). The coach is
 // closed until it is submitted or its time runs out -- an exam is the one
 // place where even a good hint changes the result. Untimed mocks (the
@@ -272,6 +295,7 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
     pbqItems(userId, trackId, u),
     unitCheckItems(userId, trackId, u),
     comparisonItems(userId, trackId),
+    labItems(userId, trackId, u),
   ]);
   return parts.flat();
 }
@@ -475,6 +499,7 @@ export function openItemsBlock(items: OpenItem[], matched: OpenItem[]): string {
     comparison: "comparison-card question, not answered yet",
     quiz: "Quiz me question, not answered yet",
     exam: "question in a practice exam they are taking now",
+    lab: "lab step they are working on now",
   };
   const inPlay = items.filter((it) => matched.includes(it));
   const listed = [...inPlay, ...items.filter((it) => !matched.includes(it))].slice(0, Math.max(MAX_LISTED, inPlay.length));

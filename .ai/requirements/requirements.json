@@ -4017,6 +4017,69 @@
         "Adding react-native-purchases changes the runtime fingerprint so OTA updates do not reach older builds (a store build is already required)",
         "Account export and /api/health need migration 049 before the backend deploy"
       ]
+    },
+    {
+      "id": "REQ-123",
+      "category": "feature",
+      "title": "Verifiable labs (build and case) as mastery evidence, with pilot labs for AWS SAA, NCLEX-RN, PMP, NASM-CPT and CCRN",
+      "description": "A lab engine with two verifiable kinds beside the self-reported one: build (a professional artifact graded per rubric part) and case (an unfolding case in 2-4 authored steps, each graded per part, with an end summary). A finished run records one attempt (kind labtask, assessment types lab_build / lab_case at weight 1.5, family performance, application level, on the lab's objective only); a run after any graded step of an earlier run is a repeat. Migration 050 (labs, lab_runs, lab_run_steps, attempts.lab_id, item kind lab) with a schema probe and runbook row; routes to list, open, start a run, submit a step and read progress with replay binding, grading claims, rate limit, text caps and visibility; labs in Report a problem, quarantine and voiding and in the coach guard's open items; a Batch-API generator (dry-run default, fact-check gated, mock-tested); authored pilot content (58 labs, needs_expert_review, not served in production until approved); mobile labs list and lab screen with per-part results, model answers and on-device drafts; docs/labs.md with the density analysis.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/050_lab_engine.sql",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-content.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/lab-generation.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/app/api/labs",
+        "backend/lib/grading-service.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/item-report.ts",
+        "backend/lib/coach-guard.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/seed",
+        "backend/scripts/generate-labs.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/scripts/eval",
+        "mobile/app/(app)/course/[trackId]/labs.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/src/lib/labs.ts",
+        "mobile/src/lib/useLabDraft.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/reportProblem.ts",
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "A first-run lab win counts on its objective only and a repeat after the model answer does not lift the level (lib/labs.dbtest.ts)",
+        "A case's later steps and every rubric stay hidden until earlier steps are graded",
+        "Replays of a graded id return the stored result; the id on anything else is the shared 409 with nothing written; racing copies share one model call",
+        "Labs flow through Report a problem with quarantine and voiding",
+        "The generator is dry-run by default and holds back uncertain / malformed / disputed / unchecked content",
+        "Every pilot lab passes the content rules; names a real objective; carries safety framing; and follows the recommended density"
+      ],
+      "validation_required": [
+        "npm run migrate -- --all and --status (drift 0) on a fresh DB",
+        "npm run seed twice",
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Pilot clinical and fitness content needs expert review before it is served",
+        "Density heuristic for performance objectives is wording-based and only sizes plans",
+        "Generator never run live"
+      ]
     }
   ]
 }

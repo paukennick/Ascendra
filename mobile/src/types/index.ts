@@ -179,7 +179,7 @@ export interface Attempt {
   unit_title?: string;
   // REQ-075: lets History navigate straight into the objective's lesson.
   track_id?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review" | "labtask"; // labtask: a build or case lab (REQ-123)
   stage: string | null;
   format: "mc" | "open" | "pbq";
   question: string;

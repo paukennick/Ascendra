@@ -68,6 +68,11 @@
   `backend/lib/schema-status.ts`.
 - A new foreign key into `app_users` or `attempts` has an index led by its
   column (FAIL-393; account deletion otherwise scans the table per row).
+- A new check, key or column rule on `attempts` still holds after every
+  ON DELETE action on attempts' existing keys (objective_id, unit_id and the
+  item keys are SET NULL): test deleting a course that has the new rows
+  (FAIL-480). No deferrable constraint on `attempts` -- it queues an event
+  per insert and breaks later DDL in the same transaction (FAIL-481).
   Hot paths keep their query budgets (REQ-118, `lib/perf-audit3.dbtest.ts`).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
