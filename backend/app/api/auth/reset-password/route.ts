@@ -49,6 +49,23 @@ export async function POST(req: Request) {
       await tx.query(`update refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null`, [
         consumed.user_id,
       ]);
+      // REQ-098: spend every other outstanding credential that was issued
+      // before the reset. Other reset links stayed valid until they expired,
+      // so a second link (from a leaked inbox, say) could undo this reset.
+      // A pending MFA login challenge was earned with the old password, and
+      // a pending email change was requested from a session that is now
+      // revoked; neither should survive a reset.
+      await tx.query(
+        `update password_reset_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`,
+        [consumed.user_id]
+      );
+      await tx.query(`update login_challenges set consumed_at = now() where user_id = $1 and consumed_at is null`, [
+        consumed.user_id,
+      ]);
+      await tx.query(
+        `update email_change_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`,
+        [consumed.user_id]
+      );
       return true;
     });
     if (!reset) {

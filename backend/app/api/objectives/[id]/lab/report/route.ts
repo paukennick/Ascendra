@@ -2,7 +2,7 @@ import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, ser
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
@@ -55,7 +55,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     try {
-      await checkRateLimit("grade_open", user.id, { max: 40, windowMinutes: 10 });
+      // REQ-098 / FAIL-230: atomic count-and-record (was check, then record later).
+      await consumeRateLimit("grade_open", user.id, { max: 40, windowMinutes: 10 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
@@ -65,7 +66,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
     const answers = labAnswersFor(body?.answers, questions.length);
     if (typeof answers === "string") return badRequest(answers);
-    await recordAuthEvent("grade_open", user.id);
 
     const question = labReportQuestion(questions);
     const answer = labReportAnswer(answers);

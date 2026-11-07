@@ -129,11 +129,21 @@ export interface LessonContent {
   generatedAt?: string;
 }
 
+export interface PartScore {
+  part: string;
+  score: "met" | "partial" | "missed";
+  comment: string;
+}
+
 export interface GradeResult {
   verdict: "correct" | "partial" | "incorrect";
   feedback: string;
   classification: string;
   missedParts: string[];
+  // REQ-107 (PBQ only): the grader's score for each sub-part, in the
+  // scenario's order. Absent on a replayed retry and from older servers;
+  // null when the grader's list could not be matched to the sub-parts.
+  partScores?: PartScore[] | null;
   // REQ-097 (lesson checks only): the answer key, revealed with the verdict.
   // correctIndex is a position in the order the choices were shown.
   correctIndex?: number | null;

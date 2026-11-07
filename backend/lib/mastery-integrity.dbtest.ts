@@ -443,10 +443,15 @@ describe("8. No answer key reaches the app before it answers", () => {
     assert.equal(first.body.verdict, "incorrect");
     assert.equal(first.body.correctIndex, shownCorrect(u, o, "fade"));
     assert.equal(first.body.why, "FADE-WHY");
-    const replay = await grade(u, { format: "mc", stage: "fade", objectiveId: o, chosenIndex: shownCorrect(u, o, "fade"), clientAttemptId: id });
+    const replay = await grade(u, { format: "mc", stage: "fade", objectiveId: o, chosenIndex: shownWrong(u, o, "fade"), clientAttemptId: id });
     assert.equal(replay.body.replayed, true);
     assert.equal(replay.body.verdict, "incorrect", "replay returns the stored grade, not a regrade");
     assert.equal(replay.body.correctIndex, shownCorrect(u, o, "fade"));
+    // REQ-098: the id is bound to the submission. Reusing it with a different
+    // choice (here the right one, after seeing the key) is a 409, not a regrade
+    // and not a replay.
+    const reused = await grade(u, { format: "mc", stage: "fade", objectiveId: o, chosenIndex: shownCorrect(u, o, "fade"), clientAttemptId: id });
+    assert.equal(reused.status, 409);
     const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and client_attempt_id = $2`, [u, id]);
     assert.equal(n?.n, 1);
   });

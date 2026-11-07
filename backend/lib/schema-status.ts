@@ -73,6 +73,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.ai_calls') is not null as ok`,
   },
   {
+    // The 025 probe above only checks the column. Without this unique index
+    // a retried answer would insert a second attempt silently instead of
+    // replaying the first (REQ-089). The CLI applies 025 in one transaction,
+    // so this can only be missing if 025 was pasted by hand and half-applied.
+    migration: "025_lesson_progress.sql",
+    what: "attempts (user_id, client_attempt_id) unique index (retried answers count once)",
+    sql: `select to_regclass('public.attempts_user_client_attempt_unique') is not null as ok`,
+  },
+  {
     migration: "029_mastery_recompute.sql",
     what: "attempts.assisted / assist_reason columns (every graded answer)",
     sql: `select count(*) = 2 as ok from information_schema.columns
@@ -207,6 +216,21 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
               and exists(select 1 from pg_constraint where conname = 'attempts_lab_not_mastery_evidence') as ok`,
   },
   {
+    migration: "030_hardening_indexes.sql",
+    what: "chat_messages (user_id, track_id, created_at) index (chat history and replay)",
+    sql: `select to_regclass('public.idx_chat_messages_user_track_created') is not null as ok`,
+  },
+  {
+    migration: "030_hardening_indexes.sql",
+    what: "study_sessions (user_id, track_id, started_at) index (sessions, Continue studying)",
+    sql: `select to_regclass('public.idx_study_sessions_user_track_started') is not null as ok`,
+  },
+  {
+    migration: "036_pbq_generation_claims.sql",
+    what: "pbq_generation_claims table (new PBQ scenarios; serving stored ones still works without it)",
+    sql: `select to_regclass('public.pbq_generation_claims') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are
@@ -233,12 +257,25 @@ export async function checkSchema(run: QueryFn, probes: SchemaProbe[] = SCHEMA_P
     let ok = false;
     try {
       ok = (await run(p.sql))[0]?.ok === true;
-    } catch {
+    } catch (err) {
+      // A lost connection is an outage, not a missing migration: rethrow so
+      // /api/health answers 500 instead of naming migrations to apply.
+      if (isConnectionError(err)) throw err;
       ok = false; // e.g. the probe's table itself doesn't exist yet
     }
     if (!ok) missing.push({ migration: p.migration, what: p.what });
   }
   return { current: missing.length === 0, missing };
+}
+
+// SQLSTATE classes 08 (connection exception), 57P (operator intervention,
+// e.g. admin shutdown) and 53300 (too many connections), plus Node socket
+// errors. Anything else -- undefined_table above all -- means the object
+// the probe looks for is missing.
+export function isConnectionError(err: unknown): boolean {
+  const code = (err as { code?: unknown } | null)?.code;
+  if (typeof code !== "string") return false;
+  return code.startsWith("08") || code.startsWith("57P") || code === "53300" || code.startsWith("E");
 }
 
 // Migrations named by the missing probes, deduplicated, in apply order.

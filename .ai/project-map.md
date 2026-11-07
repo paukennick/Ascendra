@@ -7,6 +7,7 @@ to inspect next without reading the whole repository.
 - Generated at: `2026-11-07T11:35:47+00:00`
 - Generated at: `2026-11-07T11:25:02+00:00`
 - Generated at: `2026-11-07T11:28:36+00:00`
+- Generated at: `2026-11-07T11:24:59+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -97,6 +98,7 @@ backend/
       avatar.ts
       crypto.ts
       emailTokens.ts
+      lockout.ts
       mfa.ts
       mfaChallenge.ts
       oauth.ts
@@ -142,6 +144,9 @@ backend/
     free-response-grader.ts
     grading-service.test.ts
     grading-service.ts
+    hardening.dbtest.ts
+    hardening.test.ts
+    health.ts
     http.ts
     integration.dbtest.ts
     lesson-experience.dbtest.ts
@@ -162,6 +167,8 @@ backend/
     mastery-recompute.dbtest.ts
     mastery.test.ts
     mastery.ts
+    pbq-scenarios.dbtest.ts
+    pbq-scenarios.ts
     progress-sql.ts
     prompts.test.ts
     prompts.ts
@@ -173,6 +180,7 @@ backend/
     schema-status.test.ts
     schema-status.ts
     study-sessions.ts
+    text-input.ts
     visibility.ts
   public/
     .well-known/
@@ -231,6 +239,8 @@ backend/
       032_lesson_progress_tombstone.sql
       034_rich_feedback.sql
       035_lesson_experience.sql
+      030_hardening_indexes.sql
+      036_pbq_generation_claims.sql
     seed/
       tracks/
       catalog.ts
@@ -322,6 +332,7 @@ mobile/
     content/
       disclaimers.ts
     lib/
+      accountExport.ts
       alert.tsx
       biometric.ts
       courseReturn.test.ts
@@ -332,6 +343,7 @@ mobile/
       examPractice.ts
       lessonExperience.test.ts
       lessonExperience.ts
+      hardening.test.ts
       lessonFeedback.test.ts
       lessonFeedback.ts
       lessonProgress.test.ts

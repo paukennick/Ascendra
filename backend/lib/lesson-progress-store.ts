@@ -8,7 +8,7 @@
 // user+objective take the same transaction-scoped advisory lock, so the
 // check and the write cannot interleave with a delete.
 import { withTransaction, type TxClient } from "./db";
-import type { LessonProgressInput } from "./lesson-progress";
+import { MAX_PROGRESS_ROWS, PROGRESS_MAX_AGE_DAYS, type LessonProgressInput } from "./lesson-progress";
 
 async function lockPosition(tx: TxClient, userId: string, objectiveId: string): Promise<void> {
   await tx.query(`select pg_advisory_xact_lock(hashtextextended($1, 0))`, [`lesson_progress:${userId}:${objectiveId}`]);
@@ -49,6 +49,19 @@ export async function saveLessonProgress(
         input.lessonKey,
         JSON.stringify(input.checks),
       ]
+    );
+    // REQ-098: keep this learner's saved positions bounded -- drop any the
+    // app would discard as stale anyway, and beyond the newest
+    // MAX_PROGRESS_ROWS. Uses the primary key's user_id prefix.
+    await tx.query(
+      `delete from lesson_progress
+        where user_id = $1
+          and (updated_at < now() - make_interval(days => $2)
+               or objective_id in (
+                 select objective_id from lesson_progress where user_id = $1
+                  order by updated_at desc offset $3
+               ))`,
+      [userId, PROGRESS_MAX_AGE_DAYS, MAX_PROGRESS_ROWS]
     );
     return { saved: true };
   });

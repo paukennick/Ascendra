@@ -683,9 +683,72 @@ Produce ONLY a JSON object, no markdown fence:
   "classification": "short tag, e.g. 'misconception', 'incomplete', 'off-scope', 'none'",
   "missedParts": ["sub-part labels, from the list above, that were not adequately addressed — empty array if all were addressed"],
   "modelAnswer": "a concise model answer: one short line per sub-part above, labelled with its name",
-  "fixNext": "one short sentence: the single most useful thing to fix next, phrased as a next step"
-}`;
+  "fixNext": "one short sentence: the single most useful thing to fix next, phrased as a next step",
+  "parts": [{ "part": "the sub-part label exactly as listed", "score": "met" | "partial" | "missed", "comment": "one sentence on this sub-part" }]
+}
+"parts" has exactly one entry per sub-part, in the order listed above.`;
   return { system, user };
+}
+
+// REQ-107: the PBQ grader already judges every sub-part by name; this asks
+// it to return that judgement per part so the result can show a score for
+// each one, rather than the app guessing hits from missedParts by matching
+// label text. Only the PBQ route uses this schema; free-response grading
+// keeps gradeResultSchema.
+export const PART_SCORES = ["met", "partial", "missed"] as const;
+export type PartScore = (typeof PART_SCORES)[number];
+
+export const pbqGradeResultSchema = gradeResultSchema.extend({
+  parts: z
+    .array(
+      z.object({
+        part: z.string().describe("The sub-part label exactly as listed."),
+        score: z.enum(PART_SCORES).describe("met = fully addressed; partial = addressed with a gap; missed = not addressed or wrong."),
+        comment: z.string().describe("One sentence on this sub-part."),
+      })
+    )
+    .describe("Exactly one entry per sub-part, in the order listed."),
+});
+export type PbqGradeResult = z.infer<typeof pbqGradeResultSchema>;
+
+export interface PartResult {
+  part: string;
+  score: PartScore;
+  comment: string;
+}
+
+const normLabel = (s: string) => s.trim().toLowerCase();
+
+// Lines the model's per-part scores up with the scenario's own sub-parts,
+// so the app can show them in order under the stored labels. Matched by
+// label first, then by position when the count agrees; a sub-part the model
+// left out is "missed" if missedParts names it, otherwise it has no score
+// and the whole list is dropped (null) rather than showing a guess.
+export function normalizePartScores(
+  subParts: string[],
+  parts: { part: string; score: string; comment?: string }[] | undefined,
+  missedParts: string[] = []
+): PartResult[] | null {
+  if (!Array.isArray(parts) || parts.length === 0 || subParts.length === 0) return null;
+  const valid = parts.filter((p): p is PartResult =>
+    !!p && typeof p.part === "string" && (PART_SCORES as readonly string[]).includes(p.score)
+  );
+  const byLabel = new Map(valid.map((p) => [normLabel(p.part), p]));
+  const missed = new Set(missedParts.map(normLabel));
+  const positional = valid.length === subParts.length;
+  const out: PartResult[] = [];
+  for (let i = 0; i < subParts.length; i++) {
+    const label = subParts[i];
+    const hit = byLabel.get(normLabel(label)) ?? (positional ? valid[i] : undefined);
+    if (hit) {
+      out.push({ part: label, score: hit.score, comment: typeof hit.comment === "string" ? hit.comment : "" });
+    } else if (missed.has(normLabel(label))) {
+      out.push({ part: label, score: "missed", comment: "" });
+    } else {
+      return null;
+    }
+  }
+  return out;
 }
 
 // REQ-100: coach guardrails. Constant text (no per-learner content), so it

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { queryOne } from "@/lib/db";
+import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
@@ -21,6 +22,8 @@ import {
   getSharedLesson,
   isClaimLive,
   releaseClaim,
+  renewClaim,
+  CLAIM_LEASE_SECONDS,
   saveLesson,
   scopeKey,
   tryClaim,
@@ -202,7 +205,12 @@ export interface GenerationOptions {
   pending?: Map<string, GenerationHandle>;
   waitMs?: number;
   pollMs?: number;
+  heartbeatMs?: number;
 }
+
+// Lease renewal interval: a quarter of the lease, so two missed beats in a
+// row still leave the lease live.
+const HEARTBEAT_MS = (CLAIM_LEASE_SECONDS * 1000) / 4;
 
 const DEFAULT_WAIT_MS = 90_000;
 const DEFAULT_POLL_MS = 1_000;
@@ -229,7 +237,8 @@ const DEFAULT_POLL_MS = 1_000;
 export const pendingGeneration = new Map<string, GenerationHandle>();
 
 export function pendingKey(objectiveId: string, scope: LessonScope): string {
-  return `${objectiveId}:${scopeKey(scope)}`;
+  // REQ-098: lowercased so an uppercase copy of the id shares the entry.
+  return `${objectiveId.toLowerCase()}:${scopeKey(scope)}`;
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -258,7 +267,7 @@ async function waitForOtherGeneration(
       return getOverrideLesson(scope.userId, objectiveId);
     }
   }
-  throw new Error("Lesson generation is taking longer than expected. Please try again in a moment.");
+  throw new UserFacingError("Lesson generation is taking longer than expected. Please try again in a moment.");
 }
 
 async function runGeneration(
@@ -275,6 +284,17 @@ async function runGeneration(
 
   for (;;) {
     if (await tryClaim(objectiveId, scope, token)) {
+      // REQ-098: renew the lease while generating (see renewClaim), so a
+      // generation that runs past CLAIM_LEASE_SECONDS while this instance is
+      // alive is not taken over. The heartbeat stops in `finally`.
+      let leaseLost = false;
+      const heartbeat = setInterval(() => {
+        renewClaim(objectiveId, scope, token)
+          .then((held) => {
+            if (!held) leaseLost = true;
+          })
+          .catch(() => {});
+      }, opts.heartbeatMs ?? HEARTBEAT_MS);
       try {
         if (scope.kind === "shared") {
           // Another instance may have finished between the caller's read of
@@ -301,8 +321,16 @@ async function runGeneration(
         const intro = await introCall;
         settleIntro(intro);
         const practice = await practiceCall;
+        // A learner's override is an upsert, so a holder that lost its lease
+        // (stalled past it; another instance took over) must not overwrite
+        // the successor's result. A shared save is insert-if-absent, so the
+        // first one stored wins either way and the check is not needed there.
+        if (scope.kind === "user" && (leaseLost || !(await renewClaim(objectiveId, scope, token)))) {
+          throw new UserFacingError("The lesson regeneration did not complete. Please try again.");
+        }
         return await saveLesson(scope, objectiveId, { ...intro, ...practice }, gen.model());
       } finally {
+        clearInterval(heartbeat);
         // Success or failure: release so a waiter can proceed immediately
         // rather than after the lease times out.
         await releaseClaim(objectiveId, scope, token).catch(() => {});
@@ -316,7 +344,7 @@ async function runGeneration(
     if (scope.kind !== "shared") {
       // The in-flight regenerate failed. Do not silently start another one:
       // that would be a second regenerate the learner did not ask for.
-      throw new Error("The lesson regeneration did not complete. Please try again.");
+      throw new UserFacingError("The lesson regeneration did not complete. Please try again.");
     }
     // Shared first generation whose owner failed: loop and claim it ourselves.
   }
@@ -420,5 +448,15 @@ export async function readLessonForUser(
 // for a learner who wants a different explanation, and stops a loop of taps
 // (or a script) from running up the bill. Same mechanism as grade, pbq, chat
 // and guess-feedback (lib/auth/rateLimit.ts).
+// REQ-098: a FIRST (shared) generation also spends two model calls, and
+// prefetch-next starts one for whatever objective comes next -- so walking
+// prefetch-next through the catalog generated every lesson in it with no
+// limit. Starting a new shared generation now counts against this per-learner
+// budget, on the lesson GET and on prefetch. Serving a cached lesson, or
+// joining a generation already in flight, is free. A learner opening one
+// lesson every few minutes, with a prefetch each, stays well inside it.
+export const GENERATE_RATE_EVENT = "lesson_generate";
+export const GENERATE_LIMIT = { max: 20, windowMinutes: 10 };
+
 export const REGEN_RATE_EVENT = "lesson_regenerate";
 export const REGEN_LIMIT = { max: 5, windowMinutes: 10 };

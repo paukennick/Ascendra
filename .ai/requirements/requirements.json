@@ -2944,6 +2944,44 @@
       ]
     },
     {
+      "id": "REQ-098",
+      "category": "security",
+      "title": "Audit 2 hardening: errors, rate limits, races, input bounds, indexes",
+      "description": "Fixes the backend security, schema and adversarial findings of audit 2 (2026-11-07): generic 500s with a request id; cached /api/health; atomic rate limiter; atomic login lockout; MFA-disable rate limit; lowercase uuid lock keys; NUL/lone-surrogate and length checks as 400s; idempotency ids bound to the submission (409 on mismatch) and chat replay by derived reply id; lesson_progress caps and clock-skew tolerance; per-learner budget on new lesson generation; password reset spends all outstanding tokens; generation lease heartbeat; pool and transaction timeouts; answer-signature cap; stale study sessions closed; paged account export; migration 030 indexes and probes; RLS check documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib",
+        "backend/app/api",
+        "backend/supabase/migrations/030_hardening_indexes.sql",
+        "mobile/src/lib",
+        "mobile/app/(app)",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Each race has a concurrent integration test that fails on the old code",
+        "Each input bug has a boundary test",
+        "Migration 030 applies and its probes pass",
+        "No raw error text in 500 responses"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test",
+        "tsc backend and mobile",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Supabase RLS state unverified in production",
+        "query_timeout is client-side only for non-transaction queries"
+      ]
+    },
+    {
       "id": "REQ-100",
       "category": "feature",
       "title": "Weighted cross-format mastery, blueprint readiness, coach guardrails",
@@ -3271,6 +3309,52 @@
         "weighted mastery owner must decide whether and how to read attempts.lab_objective_id",
         "the 035 check constraint is NOT VALID (enforced for new rows; validate later)",
         "guessMatch is a model judgement and only steers a suggestion"
+      ]
+    },
+    {
+      "id": "REQ-107",
+      "category": "feature",
+      "title": "PBQ scenarios per learner, with per-part scores",
+      "description": "GET /api/pbq?unitId= serves the newest scenario for the unit that the learner can see and has not attempted (stored catalog scenarios reused before generating; private-course scenarios never reach another learner), generates only when none is unseen, and keeps ?scenarioId= and fresh=1. A per-(learner, unit) lease (migration 036, pbq_generation_claims) makes simultaneous requests generate once. The PBQ grader returns a score per sub-part, shown on the result. From audit 2 learning research item 11.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/pbq-scenarios.ts",
+        "backend/lib/pbq-scenarios.dbtest.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/prompts.test.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/036_pbq_generation_claims.sql",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/src/lib/pbqProgress.ts",
+        "mobile/src/lib/pbqProgress.test.ts",
+        "mobile/src/types/index.ts",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A plain request never serves a scenario the learner has attempted",
+        "Stored unseen scenarios are served before the model is called",
+        "5 concurrent requests by one learner for one unit generate one scenario",
+        "A private-course scenario is never served to another learner",
+        "Graded PBQ shows a score per sub-part",
+        "Migration 036 applies and its probe passes"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test",
+        "tsc backend and mobile",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Per-part scores are not stored so a replayed retry shows the missedParts fallback",
+        "A dead lease holder makes the learner wait up to the 120 s lease (waiters give up at 90 s)"
       ]
     },
     {

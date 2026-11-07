@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { sendEmailChangeConfirmation } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +17,11 @@ export async function POST(req: Request) {
     const authUser = await requireUser(req);
 
     try {
-      await checkRateLimit("email_change_request", authUser.id, { max: 5, windowMinutes: 60 });
+      await consumeRateLimit("email_change_request", authUser.id, { max: 5, windowMinutes: 60 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("email_change_request", authUser.id);
 
     const body = await req.json();
     const newEmail = typeof body?.newEmail === "string" ? body.newEmail.toLowerCase().trim() : "";

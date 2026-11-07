@@ -5,7 +5,7 @@ import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, Challe
 import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +29,11 @@ export async function POST(req: Request) {
     // owner is doing.
     const challengeKey = crypto.createHash("sha256").update(challengeToken).digest("hex");
     try {
-      await checkRateLimit("mfa_verify_attempt", challengeKey, { max: 8, windowMinutes: 10 });
+      await consumeRateLimit("mfa_verify_attempt", challengeKey, { max: 8, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return new Response(JSON.stringify({ error: err.message }), { status: 429 });
       throw err;
     }
-    await recordAuthEvent("mfa_verify_attempt", challengeKey);
 
     let challenge;
     try {

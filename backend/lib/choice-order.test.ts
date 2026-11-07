@@ -42,6 +42,12 @@ describe("presentationOrder", () => {
   });
 });
 
+test("presentationSeed ignores the case of the ids (REQ-098)", () => {
+  const u = "6F9619FF-8B86-D011-B42D-00C04FC964FF";
+  const o = "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11";
+  assert.equal(presentationSeed(u, o, "fade", "q"), presentationSeed(u.toLowerCase(), o.toLowerCase(), "fade", "q"));
+});
+
 // FAIL-116: the seed used to be the ids themselves, all of which the app can
 // see, so anyone could recompute a learner's shuffle.
 describe("presentationSeed", () => {

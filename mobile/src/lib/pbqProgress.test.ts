@@ -1,6 +1,14 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { PBQ_ANSWER_MAX, PBQ_SUB_PARTS_MAX, parsePbqPayload, pbqPayload, type PbqSnapshot } from "./pbqProgress.ts";
+import {
+  PBQ_ANSWER_MAX,
+  PBQ_SUB_PARTS_MAX,
+  parsePbqPayload,
+  pbqPartRows,
+  pbqPartSummary,
+  pbqPayload,
+  type PbqSnapshot,
+} from "./pbqProgress.ts";
 import { DRAFT_MAX_AGE_MS, decodeDraft, encodeDraft } from "./drafts.ts";
 
 const now = 1_800_000_000_000;
@@ -107,5 +115,51 @@ describe("PBQ snapshot", () => {
     const payload = pbqPayload(snap())!;
     assert.notEqual(decodeDraft(encodeDraft(payload, now - 1000), now), null);
     assert.equal(decodeDraft(encodeDraft(payload, now - DRAFT_MAX_AGE_MS - 1), now), null);
+  });
+});
+
+// REQ-107: per-part scores on the graded result.
+describe("PBQ per-part rows", () => {
+  const parts = ["Block public access", "Enable logging", "Rotate keys"];
+  const grade = { verdict: "partial" as const, feedback: "f", classification: "incomplete", missedParts: ["Rotate keys"] };
+
+  test("before grading every part is pending and there is no summary", () => {
+    const rows = pbqPartRows(parts, null);
+    assert.deepEqual(rows.map((r) => r.state), ["pending", "pending", "pending"]);
+    assert.equal(pbqPartSummary(rows), null);
+  });
+  test("uses the grader's per-part scores and comments when present", () => {
+    const rows = pbqPartRows(parts, {
+      ...grade,
+      partScores: [
+        { part: parts[0], score: "met", comment: "right setting" },
+        { part: parts[1], score: "partial", comment: "no retention" },
+        { part: parts[2], score: "missed", comment: "" },
+      ],
+    });
+    assert.deepEqual(rows.map((r) => r.state), ["met", "partial", "missed"]);
+    assert.equal(rows[1].comment, "no retention");
+    assert.equal(pbqPartSummary(rows), "1 of 3 parts met, 1 partly");
+  });
+  test("falls back to missedParts (case and spacing ignored) without scores", () => {
+    for (const partScores of [undefined, null, [{ part: "x", score: "met" as const, comment: "" }]]) {
+      const rows = pbqPartRows(parts, { ...grade, missedParts: [" rotate KEYS"], partScores });
+      assert.deepEqual(rows.map((r) => r.state), ["met", "met", "missed"]);
+    }
+    assert.equal(pbqPartSummary(pbqPartRows(parts, grade)), "2 of 3 parts met");
+  });
+  test("a saved result keeps valid part scores and drops malformed ones", () => {
+    const partScores = [
+      { part: "Block public access", score: "met", comment: "ok" },
+      { part: "Enable logging", score: "missed", comment: "" },
+    ];
+    const kept = parsePbqPayload(raw({ ...snap(), result: { ...grade, partScores } }), "u1");
+    assert.deepEqual(kept?.result?.partScores, partScores);
+    const bad = parsePbqPayload(
+      raw({ ...snap(), result: { ...grade, partScores: [{ part: "x", score: "great", comment: "" }] } }),
+      "u1"
+    );
+    assert.equal(bad?.result?.partScores, null);
+    assert.equal(bad?.result?.verdict, "partial", "the rest of the result survives");
   });
 });

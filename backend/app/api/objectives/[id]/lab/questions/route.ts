@@ -2,7 +2,7 @@ import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } f
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { labObjective, labQuestionsFor } from "@/lib/lesson-experience";
 
@@ -25,12 +25,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // Cached after the first call, but a first call spends a model call, so
     // repeated asks are limited like every other model-backed route.
     try {
-      await checkRateLimit("lab_questions", user.id, { max: 20, windowMinutes: 10 });
+      // REQ-098 / FAIL-230: atomic count-and-record.
+      await consumeRateLimit("lab_questions", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("lab_questions", user.id);
     const ctx = await coachContextForObjective(id);
     return ok({ questions: await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined) });
   } catch (err) {

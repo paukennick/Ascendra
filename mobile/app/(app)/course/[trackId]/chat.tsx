@@ -7,7 +7,7 @@ import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
 import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
-import { chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
+import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 
@@ -149,6 +149,7 @@ export default function ChatScreen() {
             style={styles.input}
             multiline
             placeholder="Ask anything about this track..."
+            maxLength={CHAT_DRAFT_MAX}
             placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}

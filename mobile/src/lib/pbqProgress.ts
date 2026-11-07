@@ -5,11 +5,12 @@
 // what gets saved, and the rules for whether it may be shown again. The
 // screen does the reads and writes (via src/lib/useStoredDraft.ts).
 //
-// REQ-093: GET /api/pbq can only return a unit's *latest* scenario, never one
-// by id, so the whole scenario is stored rather than just its id -- an older
-// scenario (after "Try another") can't be fetched back.
+// REQ-093: the whole scenario is stored rather than just its id, so the
+// screen comes back without a round trip. (A plain GET /api/pbq returns an
+// unattempted scenario -- REQ-107 -- so it would not hand this one back once
+// it has been answered.)
 
-import type { GradeResult, PBQScenario } from "@/types";
+import type { GradeResult, PartScore, PBQScenario } from "@/types";
 
 export interface PbqSnapshot {
   unitId: string;
@@ -29,6 +30,55 @@ export const PBQ_ANSWER_MAX = 20_000;
 export const PBQ_SUB_PARTS_MAX = 12;
 
 const VERDICTS: readonly string[] = ["correct", "partial", "incorrect"];
+const PART_SCORES: readonly string[] = ["met", "partial", "missed"];
+
+// REQ-107: one row per sub-part for the graded result. The grader's own
+// per-part scores when the server sent them; otherwise (a replayed retry, an
+// older server, a saved result from before) each part is met or missed by
+// matching missedParts, as the screen did before. Before grading every row
+// is "pending".
+export type PartRowState = "pending" | PartScore["score"];
+export interface PartRow {
+  part: string;
+  state: PartRowState;
+  comment: string;
+}
+
+export function pbqPartRows(subParts: string[], result: GradeResult | null): PartRow[] {
+  if (!result) return subParts.map((part) => ({ part, state: "pending", comment: "" }));
+  const scores = result.partScores;
+  if (Array.isArray(scores) && scores.length === subParts.length) {
+    return subParts.map((part, i) => ({ part, state: scores[i].score, comment: scores[i].comment ?? "" }));
+  }
+  const missed = new Set((result.missedParts ?? []).map((p) => p.trim().toLowerCase()));
+  return subParts.map((part) => ({
+    part,
+    state: missed.has(part.trim().toLowerCase()) ? "missed" : "met",
+    comment: "",
+  }));
+}
+
+// "2 of 3 parts met" -- partial counts as half, so the summary agrees with
+// the rows. null before grading.
+export function pbqPartSummary(rows: PartRow[]): string | null {
+  if (!rows.length || rows[0].state === "pending") return null;
+  const met = rows.filter((r) => r.state === "met").length;
+  const partial = rows.filter((r) => r.state === "partial").length;
+  const tail = partial ? `, ${partial} partly` : "";
+  return `${met} of ${rows.length} part${rows.length === 1 ? "" : "s"} met${tail}`;
+}
+
+function parsePartScores(v: unknown): PartScore[] | null {
+  if (!Array.isArray(v) || v.length > PBQ_SUB_PARTS_MAX) return null;
+  const out: PartScore[] = [];
+  for (const p of v) {
+    if (!p || typeof p !== "object") return null;
+    const r = p as Record<string, unknown>;
+    if (typeof r.part !== "string" || typeof r.score !== "string" || !PART_SCORES.includes(r.score)) return null;
+    out.push({ part: r.part, score: r.score as PartScore["score"], comment: typeof r.comment === "string" ? r.comment : "" });
+  }
+  return out;
+}
 
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 
@@ -46,6 +96,7 @@ function parsePbqResult(v: unknown): GradeResult | null {
     modelAnswer: str(rr.modelAnswer),
     fixNext: str(rr.fixNext),
     assistReason: rr.assistReason === "hint" || rr.assistReason === "repeat" || rr.assistReason === "retry" ? rr.assistReason : null,
+    partScores: parsePartScores(rr.partScores),
     ...(Array.isArray(rr.revisedParts) ? { revisedParts: strings(rr.revisedParts) } : {}),
     ...(attemptId ? { attempt: { id: attemptId } } : {}),
   };

@@ -3,7 +3,7 @@ import { query, queryOne, withTransaction } from "@/lib/db";
 import { examBlueprintForTrack } from "@/lib/exam-blueprint";
 import { courseReadiness } from "@/lib/readiness";
 import { recordAttemptIdempotent } from "@/lib/grading-service";
-import { recordAuthEvent } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import {
   answerText,
   attemptQuestionText,
@@ -322,10 +322,20 @@ export async function createSession(opts: {
       t.calls += extra;
       budget -= extra;
     }
+    let madeCalls = 0;
     const results = await runLimited(
       todo.map((t) => async () => {
         for (let c = 0; c < t.calls; c++) {
-          await recordAuthEvent("exam_generate", userId);
+          // REQ-098 / FAIL-230: count-and-record atomically per call. The
+          // budget above is only a plan; two sessions started at once both
+          // read it before either records, so the cap is enforced here.
+          try {
+            await consumeRateLimit("exam_generate", userId, GENERATION_RATE, { userId });
+          } catch (err) {
+            if (err instanceof RateLimitError) return;
+            throw err;
+          }
+          madeCalls++;
           await generateForObjective({
             objectiveId: t.id,
             formats: generationFormats(profile.formats),
@@ -337,7 +347,7 @@ export async function createSession(opts: {
       }),
       GENERATION_CONCURRENCY
     );
-    generatedCalls = todo.reduce((a, t) => a + t.calls, 0);
+    generatedCalls = madeCalls;
     generationFailed = results.some((r) => r.status === "rejected");
     if (generationFailed) {
       const first = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
