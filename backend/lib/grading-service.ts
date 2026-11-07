@@ -274,6 +274,14 @@ export async function hasHintReveal(userId: string, objectiveId: string, stage: 
   ));
 }
 
+// The name hashed for the per-pair grading lock. Must stay identical to
+// grade_lock_key() in migration 029 (which hashes uuid::text, always
+// lowercase), so ids are lowercased here: an upper-case id in a request would
+// otherwise take a different lock from the recompute.
+export function gradeLockName(userId: string, objectiveId: string): string {
+  return `grade:${userId.toLowerCase()}:${objectiveId.toLowerCase()}`;
+}
+
 // REQ-089: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded
@@ -289,8 +297,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // Serialise grades for the same learner and objective, so two at once
   // can't each compute accuracy without the other's attempt and have the
   // later write overwrite mastery with a stale status. Released at commit.
+  // recompute_mastery_pair() (migration 029) takes the same lock, through
+  // grade_lock_key(), so a recompute never overwrites a grade (FAIL-118).
   if (input.objectiveId) {
-    await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade:${userId}:${input.objectiveId}`]);
+    await query(`select pg_advisory_xact_lock(hashtext($1))`, [gradeLockName(userId, input.objectiveId)]);
   }
 
   // REQ-097: was this answer given with help? Decided here, under the lock
