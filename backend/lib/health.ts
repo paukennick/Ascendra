@@ -13,25 +13,50 @@
 // database, which is what keeps the Supabase project awake.
 
 import { checkSchema, migrationsToApply, type SchemaStatus } from "./schema-status";
+import { formatEnvProblems, requiredEnvProblems } from "./required-env";
 
 export const HEALTH_CACHE_MS = 30_000;
 export const HEALTH_ERROR_CACHE_MS = 5_000;
 
 export type HealthResult =
-  | { kind: "ok" }
+  | { kind: "ok"; warnings?: string[] }
   | { kind: "schema_incomplete"; applyMigrations: string[]; missing: SchemaStatus["missing"] }
+  // REQ-118: production is missing a required setting (names only).
+  | { kind: "misconfigured"; env: string[] }
   | { kind: "error"; error: unknown };
+
+// REQ-118 (Audit 3 HIGH-1): with Postgres JIT on (the stock default), the
+// course view's readiness query JIT-compiled ~155 functions on every request:
+// 10-100x slower (e.g. 2.6 s vs 28 ms). Supabase may already turn it off;
+// this makes it visible either way. Fix: docs/operations-runbook.md
+// ("Postgres settings"), `alter role <app role> set jit = off`.
+export const JIT_SQL = `select current_setting('jit') = 'on' as ok`;
+export const JIT_WARNING =
+  "Postgres jit is on: course readiness is 10-100x slower. Run `alter role <app role> set jit = off` (docs/operations-runbook.md).";
 
 type QueryFn = (sql: string) => Promise<Array<{ ok: boolean }>>;
 
-export async function computeHealth(run: QueryFn): Promise<HealthResult> {
+export async function computeHealth(
+  run: QueryFn,
+  env: Record<string, string | undefined> = process.env
+): Promise<HealthResult> {
   try {
+    // REQ-118: required settings first (no database needed). Fatal in
+    // production; elsewhere (local dev, tests) only a warning.
+    const envProblems = formatEnvProblems(requiredEnvProblems(env));
+    if (envProblems.length && env.NODE_ENV === "production") return { kind: "misconfigured", env: envProblems };
     await run("select 1 as ok");
     const schema = await checkSchema(run);
     if (!schema.current) {
       return { kind: "schema_incomplete", applyMigrations: migrationsToApply(schema), missing: schema.missing };
     }
-    return { kind: "ok" };
+    const warnings = [...envProblems];
+    try {
+      if ((await run(JIT_SQL))[0]?.ok === true) warnings.push(JIT_WARNING);
+    } catch {
+      // informational only
+    }
+    return warnings.length ? { kind: "ok", warnings } : { kind: "ok" };
   } catch (error) {
     return { kind: "error", error };
   }

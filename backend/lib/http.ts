@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/error-tracker";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
@@ -60,5 +61,7 @@ export function serverError(err: unknown) {
   }
   // eslint-disable-next-line no-console
   console.error(`[request ${requestId}]`, err);
+  // REQ-118: and to the error tracker when one is configured (no-op otherwise).
+  reportError(err, { requestId });
   return NextResponse.json({ error: GENERIC_SERVER_ERROR, requestId }, { status: 500 });
 }

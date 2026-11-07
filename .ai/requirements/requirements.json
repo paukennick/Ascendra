@@ -3617,6 +3617,39 @@
         "041b recompute holds row locks on changed mastery rows until commit: run in a quiet window",
         "Discrimination evidence lands on the right concept's objective so two-option cards need two scenarios with the same answer concept before format evidence is possible"
       ]
+    },
+    {
+      "id": "REQ-118",
+      "category": "performance",
+      "title": "Audit 3 performance, infra and CI fixes",
+      "description": "Fix the Audit 3 performance/infra/CI findings not owned by sibling branches: JIT visibility (health warning, --status, runbook), bounded account export (500-row and byte-budgeted pages, compact JSON; app follows deferred sections), review session start and review/today round trips (batched lookups, multi-row insert, answered-today index), course view to 3 queries with a stamp-invalidated readiness cache, paged GET /api/errors, migration 046 indexes (attempts user/unit, attempts.unit_id, auth_events.user_id, ai_calls user/created_at, answered review items) with a schema probe, rate limiter and transaction start round trips, ai_calls written via after(), an error-tracker hook (no-op without ERROR_TRACKER_DSN), required-env validation in /api/health, CI backfill job over a synthetic history, expo-doctor (report-only), npm ci on Vercel, engines, restore drill, backup-age reminder, @types/node 22.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Each defect has a test or a recorded benchmark",
+        "Fresh plan <= 10 queries with cached questions",
+        "Warm course view <= 3 queries",
+        "Export first page well under 4.5 MB for a 26k-attempt learner",
+        "Load test at 20 and 50 clients with 15 ms injected latency recorded before and after",
+        "Fresh DB migrate --all and --status current; test:db passes"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md"
+      ],
+      "risk_notes": [
+        "Readiness cache is per instance (documented); a catalog or retirement change can show stale readiness for up to 60 s",
+        "046 must be built CONCURRENTLY on production before the migration records it",
+        "ERROR_TRACKER_DSN and jit off need Nick's action in production"
+      ]
     }
   ]
 }

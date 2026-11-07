@@ -62,21 +62,26 @@ export async function consumeRateLimit(
   opts: { userId?: string | null; ip?: string | null } = {}
 ): Promise<void> {
   const id = identifier.toLowerCase();
-  await withTransaction(async (tx) => {
+  // REQ-118 (Audit 3 MEDIUM-8): count and record are one statement (the
+  // insert only happens when the count is under the limit), so a call is
+  // four round trips (begin, lock, count-and-record, commit) instead of six.
+  // Still atomic: the lock is its own, earlier statement, so the counting
+  // statement's snapshot is taken after the previous holder committed.
+  const recorded = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`rate:${eventType}:${id}`]);
-    const row = await tx.queryOne<{ count: number }>(
-      `select count(*)::int as count from auth_events
-        where event_type = $1 and identifier = $2 and created_at > now() - make_interval(mins => $3)`,
-      [eventType, id, limit.windowMinutes]
+    const row = await tx.queryOne<{ recorded: boolean }>(
+      `with c as (
+         select count(*)::int as n from auth_events
+          where event_type = $1 and identifier = $2 and created_at > now() - make_interval(mins => $3)
+       ), ins as (
+         insert into auth_events (event_type, identifier, user_id, ip)
+         select $1, $2, $5::uuid, $6::varchar from c where c.n < $4::int
+         returning 1
+       )
+       select exists (select 1 from ins) as recorded`,
+      [eventType, id, limit.windowMinutes, limit.max, opts.userId ?? null, opts.ip ?? null]
     );
-    if ((row?.count ?? 0) >= limit.max) {
-      throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
-    }
-    await tx.query(`insert into auth_events (event_type, identifier, user_id, ip) values ($1, $2, $3, $4)`, [
-      eventType,
-      id,
-      opts.userId ?? null,
-      opts.ip ?? null,
-    ]);
+    return row?.recorded === true;
   });
+  if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
 }

@@ -34,6 +34,9 @@
   unit tests.
 - A new migration the code depends on has a probe in
   `backend/lib/schema-status.ts`.
+- A new foreign key into `app_users` or `attempts` has an index led by its
+  column (FAIL-393; account deletion otherwise scans the table per row).
+  Hot paths keep their query budgets (REQ-118, `lib/perf-audit3.dbtest.ts`).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

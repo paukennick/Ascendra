@@ -36,7 +36,7 @@ ENV_LOCAL_BAK="$MOBILE_DIR/.env.local.bak"
 
 if [ ! -d "$MOBILE_DIR/node_modules" ]; then
   echo "Installing mobile/ dependencies (not cached in this build)..."
-  npm install --prefix "$MOBILE_DIR"
+  npm ci --prefix "$MOBILE_DIR"
 fi
 
 # `env -u` alone doesn't work here -- Expo's own dotenv loader reads

@@ -60,8 +60,9 @@ export default function Home() {
       .catch((err) => setError(err.message))
       .finally(() => setRefreshing(false));
     api
-      .get<{ errors: ErrorLogEntry[] }>("/api/errors?due=1")
-      .then((res) => setDueCount(res.errors.length))
+      // REQ-118: the list is paged now; `total` is the full count.
+      .get<{ errors: ErrorLogEntry[]; total?: number | null }>("/api/errors?due=1")
+      .then((res) => setDueCount(res.total ?? res.errors.length))
       .catch(() => setDueCount(null));
   }, []);
 

@@ -64,4 +64,19 @@ describe("paged account export", () => {
     assert.equal("more" in out, false);
     assert.equal(seen.length, 3);
   });
+
+  // REQ-118 (FAIL-370): a first page over the size budget leaves whole
+  // sections out and lists them with nextOffset 0.
+  test("a section left off the first page (nextOffset 0) is fetched from the start", async () => {
+    const pages: Record<string, Record<string, unknown>> = {
+      "/api/account/export": { exportedAt: "t", profile: { id: "u" }, attempts: [1], more: { attempts: { nextOffset: 1 }, reviewLog: { nextOffset: 0 } } },
+      "/api/account/export?section=attempts&offset=1": { rows: [2], nextOffset: null },
+      "/api/account/export?section=reviewLog&offset=0": { rows: ["a", "b"], nextOffset: 2 },
+      "/api/account/export?section=reviewLog&offset=2": { rows: ["c"], nextOffset: null },
+    };
+    const out = await fetchFullExport(async (p) => pages[p]);
+    assert.deepEqual(out.attempts, [1, 2]);
+    assert.deepEqual(out.reviewLog, ["a", "b", "c"]);
+    assert.equal(out.incomplete, undefined);
+  });
 });

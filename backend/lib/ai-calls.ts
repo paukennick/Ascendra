@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { after } from "next/server";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
 // failure rate and prompt-cache hit rate can be read from the database instead
@@ -151,12 +152,33 @@ function loggingEnabled(): boolean {
 
 // Hands the record to the sink and returns immediately. Never throws, whether
 // the sink throws synchronously or rejects later.
+//
+// REQ-118 (Audit 3 MEDIUM-10): inside a request the write is scheduled with
+// Next's after(), which keeps the function alive until it finishes. A bare
+// fire-and-forget promise can be frozen with the function once the response
+// is sent (Vercel), losing the row and undercounting cost. Outside a request
+// (scripts, tests, a stream that outlived its request) after() throws and the
+// write starts straight away, as before.
 export function logAiCall(record: AiCallRecord): void {
   if (!loggingEnabled()) return;
+  const write = () => {
+    try {
+      return Promise.resolve(sink(record)).catch(warnLogFailure);
+    } catch (err) {
+      warnLogFailure(err);
+      return Promise.resolve();
+    }
+  };
+  if (!scheduleAfterResponse(write)) void write();
+}
+
+// after() when there is a request to attach to; false when there is not.
+export function scheduleAfterResponse(task: () => Promise<unknown>): boolean {
   try {
-    Promise.resolve(sink(record)).catch(warnLogFailure);
-  } catch (err) {
-    warnLogFailure(err);
+    after(task);
+    return true;
+  } catch {
+    return false;
   }
 }
 

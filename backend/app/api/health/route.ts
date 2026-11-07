@@ -27,5 +27,9 @@ export async function GET() {
       503
     );
   }
-  return ok({ status: "ok", schema: "current" });
+  // REQ-118: a deploy missing a required setting fails here (names only,
+  // never values) instead of on a learner's first sign-in or grade.
+  if (result.kind === "misconfigured") return ok({ status: "misconfigured", env: result.env }, 503);
+  // Non-fatal findings (e.g. Postgres jit on) ride along on a 200.
+  return ok(result.warnings?.length ? { status: "ok", schema: "current", warnings: result.warnings } : { status: "ok", schema: "current" });
 }

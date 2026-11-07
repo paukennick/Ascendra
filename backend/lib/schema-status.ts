@@ -326,6 +326,24 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "mastery_backup_029 table (029b backup, backfill and first recompute ran)",
     sql: `select to_regclass('public.mastery_backup_029') is not null as ok`,
   },
+  {
+    // REQ-118 (Audit 3 performance): without these the code still works, but
+    // review/today, account deletion and the history screen read whole
+    // tables or a learner's whole history. Kept last so the merge with other
+    // branches' probes (044, 045) stays clean.
+    migration: "046_perf_indexes.sql",
+    what: "performance indexes on attempts, auth_events, ai_calls, review items and the attempt_id foreign keys (account deletion)",
+    sql: `select to_regclass('public.attempts_user_unit_created') is not null
+             and to_regclass('public.attempts_unit') is not null
+             and to_regclass('public.auth_events_user') is not null
+             and to_regclass('public.ai_calls_user_created') is not null
+             and to_regclass('public.review_session_items_answered') is not null
+             and to_regclass('public.error_log_attempt') is not null
+             and to_regclass('public.review_log_attempt') is not null
+             and to_regclass('public.review_session_items_attempt') is not null
+             and to_regclass('public.exam_session_items_attempt') is not null
+             and to_regclass('public.placement_items_attempt') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {
