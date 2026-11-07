@@ -1,3 +1,4 @@
+import { hasUnstorableText } from "@/lib/text-input";
 import { ok, badRequest, notFound } from "@/lib/http";
 import { requireUser } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForUnit } from "@/lib/auth/requireAcknowledgement";
@@ -41,6 +42,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!isUuid(body?.checkId)) return badRequest("checkId is required");
     if (typeof body.answer !== "string" || !body.answer.trim()) return badRequest("answer is required");
     if (body.answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+    // REQ-116's rule, as on review answers and explain-back: refused before the
+    // billed grader call, not after it.
+    if (hasUnstorableText(body.answer)) return badRequest("answer contains characters that can't be stored");
     const status = await unitCheckStatus(user.id, id);
     if (!status) return notFound("Unit not found");
     await requireAcknowledgementForUnit(id, user.id);

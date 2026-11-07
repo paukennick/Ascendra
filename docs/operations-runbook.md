@@ -49,7 +49,8 @@ query that crosses the threshold.
 
 ## 046 indexes without blocking writes
 
-`046_perf_indexes.sql` creates ten indexes. The migration runner applies a
+`046_perf_indexes.sql` creates nine indexes (the per-learner `auth_events` and
+`ai_calls` indexes come from 044 and 043). The migration runner applies a
 file inside a transaction, where `CREATE INDEX CONCURRENTLY` is not allowed,
 and a plain `CREATE INDEX` blocks inserts into that table while it builds.
 On production, build them first, one at a time, over the **direct**
@@ -76,8 +77,6 @@ the file. If a concurrent build fails it leaves an INVALID index; drop it
 Fixture build times with CONCURRENTLY (2.75M attempts, 6M auth_events,
 1.2M ai_calls, 1.2M review_log; local Postgres 16, 2 vCPU, other agents on
 the box): attempts_user_unit_created 3.1 s, attempts_unit 2.0 s,
-auth_events_user 0.6 s (the fixture's rows have no user_id; production's
-will take longer), ai_calls_user_created 1.2 s,
 review_session_items_answered 1.1 s, the five attempt_id indexes 0.1-0.3 s
 each. The migration afterwards: under a second.
 
@@ -97,9 +96,8 @@ What is sent: error type, message (500 chars), stack, request id, route,
 environment. Never request bodies, headers, tokens or learner ids. The
 transport is a plain `fetch` to Sentry's store endpoint; replacing it with
 `@sentry/nextjs` later changes only that file. Errors a route does not catch
-reach Next's `onRequestError` instrumentation hook, not this one; after the
-`fix/audit3-security` branch (which adds `instrumentation.ts`) is merged, add
-`export const onRequestError = (err) => reportError(err)` there.
+reach Next's `onRequestError` hook in `instrumentation.ts`, which passes them
+to the same tracker with the route path only.
 
 ## Health check: required settings
 

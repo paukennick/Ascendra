@@ -297,6 +297,29 @@ describe("voided answers (H2: a confirmed-wrong key)", () => {
   });
 });
 
+describe("voiding a comparison card stays on its objective (PR #36 review)", () => {
+  test("another objective's card with the same scenario text keeps its answers", async () => {
+    const u = await newUser();
+    const scenario = `Shared scenario ${randomUUID()}`;
+    for (const o of [objs[2], objs[3]]) {
+      await recordAttemptAndUpdateMastery({
+        userId: u, unitId: unit, objectiveId: o, kind: "quiz", stage: "discriminate", format: "mc",
+        question: scenario, answer: "a", verdict: "correct", assessmentType: "discrimination",
+      } as Parameters<typeof recordAttemptAndUpdateMastery>[0]);
+    }
+    const voided = await confirmItemWrong({ kind: "comparison", itemId: randomUUID(), objectiveId: objs[2], question: scenario }, "card key wrong");
+    assert.equal(voided, 1);
+    const left = await query<{ objective_id: string; voided_at: string | null }>(
+      `select objective_id, voided_at from attempts where user_id = $1 and question = $2 order by objective_id`,
+      [u, scenario]
+    );
+    assert.deepEqual(
+      left.map((r) => [r.objective_id === objs[2], r.voided_at !== null]).sort(),
+      [[false, false], [true, true]]
+    );
+  });
+});
+
 describe("key-suspect (H3)", () => {
   test("the grader grades on the facts, the attempt counts, and the shared check is flagged and re-checked", async () => {
     const u = await newUser();

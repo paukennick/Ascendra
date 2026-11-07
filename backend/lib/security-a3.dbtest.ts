@@ -18,6 +18,7 @@ import { setAiCallSink } from "./ai-calls";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
 import { POST as reviewStart } from "../app/api/review/sessions/route";
 import { POST as reviewAnswer } from "../app/api/review/sessions/[id]/items/[position]/answer/route";
+import { POST as unitCheckPost } from "../app/api/units/[id]/check/route";
 import { GET as cmpQuestion } from "../app/api/comparisons/[setId]/question/route";
 import { POST as cmpAnswer } from "../app/api/comparison-items/[itemId]/answer/route";
 import { POST as explainPost } from "../app/api/objectives/[id]/explain-back/route";
@@ -195,6 +196,17 @@ describe("low: text a database can't store is refused before the model is called
     const before = modelCalls;
     const r = await call(explainPost, u, { body: { answer: "this is a long enough answer with several words \u0000 in it for sure" }, params: { id: objs[2] } });
     assert.equal(r.status, 400);
+    assert.equal(modelCalls, before);
+  });
+});
+
+describe("low: unit-check answers are checked for unstorable text too (PR #36 review)", () => {
+  test("unit check answer with NUL: 400 before any unit lookup or model call", async () => {
+    const u = await newUser();
+    const before = modelCalls;
+    const r = await call(unitCheckPost, u, { body: { checkId: randomUUID(), answer: "I would isolate \u0000 the host" }, params: { id: unit } });
+    assert.equal(r.status, 400);
+    assert.match(JSON.stringify(r.body), /can't be stored/);
     assert.equal(modelCalls, before);
   });
 });

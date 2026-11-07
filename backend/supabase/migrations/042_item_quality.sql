@@ -38,7 +38,7 @@
 -- (catalog only, no rewrite), CREATE OR REPLACE FUNCTION. Nothing scans
 -- attempts. Safe to run while serving.
 
-set lock_timeout = '5s';
+set local lock_timeout = '5s';
 
 create table if not exists item_quality_params (
     name varchar(60) primary key,

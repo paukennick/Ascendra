@@ -1,4 +1,4 @@
-# Deploy runbook: integration release (migrations 029 to 045b)
+# Deploy runbook: integration release (migrations 029 to 048)
 
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
@@ -46,6 +46,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 044 | auth hardening columns and two `auth_events` indexes (REQ-116); apply BEFORE the backend deploy (see below) | not timed on the fixture | no | builds indexes on `auth_events` |
 | 045 | Audit 3 mastery rule, `review_state()`, `grading_claims`, two partial indexes on attempts (REQ-117) | 3.7 s | no | reads ≤ 13 ms; attempt inserts waited up to 2.5 s while the indexes built |
 | **045b** | backup to `mastery_backup_045`, recompute under 045 | **370 s** | **yes** | ≤ 54 ms / ≤ 770 ms, none failed |
+| 046 | nine performance indexes (REQ-118). **Build them CONCURRENTLY first** (step 1a); then the migration only records the file | under 1 s after step 2a (6 s of index builds on the fixture) | no, after step 1a | a plain build blocks attempt inserts while it runs |
 | 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 | 048 | REQ-119: `terms_acceptances`, `learner_onboarding` (existing accounts marked past first run), `learner_events` with AFTER triggers on attempts, lesson_progress, review_sessions, exam_sessions, placement_checks, and `exam_outcomes` | not timed on the fixture (one insert per account for the backfill) | no | (instant SHARE ROW EXCLUSIVE per trigger, 5 s lock_timeout) |
 
@@ -89,9 +90,17 @@ long query: if one fails on a lock timeout, run `--all` again.
    files above (from wherever production is) to be listed as missing, and
    nothing else.
 
+1a. **Build 046's indexes without blocking writes** (any time before step
+   2, no quiet window needed): run the `create index concurrently` statements
+   in [operations-runbook.md](operations-runbook.md), "046 indexes without
+   blocking writes", over the direct connection. While there, run
+   `show jit;` and follow that page's "Postgres settings" if it says `on`.
+
 2. **Apply every migration** in the quiet window:
    `npm run migrate -- --all`
-   About 15 minutes on the fixture; scale with your attempt count.
+   About 15 minutes on the fixture; scale with your attempt count. 044 and
+   047 must be in before the backend deploys (every signed-in route reads
+   044's column; exam saves read 047's).
 
 3. **Deploy the backend** straight after (merge the release; Vercel deploys
    `master`). Keep the gap short. Until it is live the old backend is still
@@ -108,9 +117,20 @@ long query: if one fails on a lock timeout, run `--all` again.
    045's rule by now, and since 041 `mastery_pairs()` also visits pairs that
    only have exam, review or comparison-card answers.
 
-5. **Publish the app update.** `cd mobile && npx eas update --channel production`
-   (or a store build if native code changed; the mastery runbook explains the
-   fingerprint policy). The new app needs the new backend.
+5. **Publish the app update.** This release needs a **store build**, not an
+   over-the-air update: REQ-119 added a native module (`expo-notifications`),
+   and `runtimeVersion` uses the fingerprint policy (the mastery runbook
+   explains it), so `eas update` cannot reach installed binaries.
+   `cd mobile && npm ci && npx eas build --platform all --profile production`,
+   then submit. Until learners install it, the old app runs against the new
+   backend. Known and accepted for that window:
+   - the mobile fixes (ordered exam saves, per-part unit checks, terms
+     prompt, first run, reminders, Report a problem) aren't on their phones;
+   - a learner with nothing new left sees a plan step labelled
+     "undefined: <title>" (the new `stretch` step kind); tapping it still
+     opens the lesson;
+   - the error-log list shows at most 200 entries per page.
+   Every old-app request keeps working: the backend changes are additive.
 
 6. **Verify.**
    - `GET /api/health` answers 200.

@@ -372,7 +372,8 @@ function attemptsSql(ref: ItemRef): { sql: string; params: unknown[] } {
         params: [ref.objectiveId, ref.question],
       };
     case "comparison":
-      return { sql: `assessment_type = 'discrimination' and question = $1`, params: [ref.question] };
+      // Scoped to the card's objective: two cards can share scenario text.
+      return { sql: `assessment_type = 'discrimination' and ($1::uuid is null or objective_id = $1::uuid) and question = $2`, params: [ref.objectiveId, ref.question] };
   }
 }
 
