@@ -23,6 +23,7 @@ import {
   GENERATE_RATE_EVENT,
 } from "@/lib/lesson-generation";
 import { learnerHistoryFor } from "@/lib/lesson-experience";
+import { tryItFields, tryItLab } from "@/lib/lab-attempts";
 import { SHARED } from "@/lib/lesson-store";
 import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
 
@@ -62,26 +63,33 @@ export async function GET(
     // for the adaptive Guided suggestion. Started now, read with each reply;
     // a failure only means no suggestion.
     const historyRead = learnerHistoryFor(user.id, id).catch(() => null);
+    // REQ-096: the objective's optional "Try it" step, beside `lesson`
+    // because it lives on the objective and is not regenerated. Merged
+    // 2026-11-07 behind line A's lab rules (lib/lab-attempts.ts tryItLab):
+    // not offered when the plan has no labs (REQ-122) or before a clinical /
+    // fitness learner has accepted the lab disclaimer (REQ-125); otherwise
+    // sent with that disclaimer. A failure only means no Try it step.
+    const tryIt = tryItLab(user.id, id).catch(() => null);
 
     // This learner's own regenerate still running in this process: wait for
     // it rather than serve the lesson they just replaced.
     const ownRegen = pendingGeneration.get(pendingKey(id, { kind: "user", userId: user.id }));
     if (ownRegen) {
       const generated = await ownRegen.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
 
     // Their own regenerated lesson if they have one, else the shared one.
     // (Waits first if their regenerate is running on another instance.)
     const existing = await readLessonForUser(user.id, id);
-    if (existing) return ok({ lesson: rowToLesson(existing.row, viewer), cached: true, learnerHistory: await historyRead });
+    if (existing) return ok({ lesson: rowToLesson(existing.row, viewer), cached: true, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
 
     // Shared first generation already running in this process (a prefetch,
     // or another learner's first visit): wait for that same one.
     const inFlight = pendingGeneration.get(pendingKey(id, SHARED));
     if (inFlight) {
       const generated = await inFlight.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
 
     const objRow = await loadObjective(id);
@@ -104,7 +112,7 @@ export async function GET(
     // learner sees comes from one generation.
     if (!intro) {
       const generated = await handle.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
     after(() => handle.fullPromise.catch(() => {}));
 
@@ -113,6 +121,7 @@ export async function GET(
       cached: false,
       practicePending: true,
       learnerHistory: await historyRead,
+      ...tryItFields(await tryIt),
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

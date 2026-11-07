@@ -8,6 +8,7 @@ import { LABS_FEATURE } from "@/lib/labs";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { labSafetyFamily } from "@/lib/lab-grading";
 import { labDisclaimerFor } from "@/lib/lab-disclaimer";
+import { findLabObjective, recordLabCompletion, tryItLab } from "@/lib/lab-attempts";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,38 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     // no expert-review state, so no "not reviewed" line).
     const disclaimer = await labDisclaimerFor(user.id, labSafetyFamily(await coachContextForObjective(id)), null);
     return ok({ lab: { prompt, disclaimer }, report: reportShape(await latestLabReport(user.id, id)) });
+  } catch (err) {
+    if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    return serverError(err);
+  }
+}
+
+// POST /api/objectives/:id/lab -- the learner says they did the objective's
+// optional hands-on lab from the lesson's Try it step (REQ-096, line B;
+// merged into this route 2026-11-07 beside A's GET). Records one attempt of
+// kind 'lab', format 'lab', with no verdict. It never touches mastery or the
+// spaced-review error log: the app can't check a hands-on task, so a
+// self-report must not move either.
+//
+// No body is read. The question stored is the objective's own lab_prompt,
+// loaded here, so a caller can't write arbitrary text into the history.
+// Repeat calls within a few minutes are a no-op (`recorded: false`) so a
+// double tap or retry doesn't stack rows. 404 for a malformed id, an id in
+// someone else's track, an objective with no lab, or a lab the Try it step
+// would not offer (lib/lab-attempts.ts tryItLab: plan without labs, or a
+// clinical / fitness lab before its disclaimer is accepted) -- one answer
+// for all, so the route can't be used to probe which objective ids exist.
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const user = await requireUser(req);
+    const objective = await findLabObjective(id, user.id);
+    if (!objective || !objective.lab_prompt?.trim()) return notFound("No lab for this objective");
+    await requireAcknowledgementForObjective(objective.id, user.id);
+    if (!(await tryItLab(user.id, objective.id))) return notFound("No lab for this objective");
+    const { recorded } = await recordLabCompletion(user.id, objective);
+    return ok({ ok: true, recorded });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

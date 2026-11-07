@@ -21,9 +21,11 @@ import {
   Loading,
   Muted,
   Screen,
+  SectionHeader,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
+import { normalizeLabPrompt, stepAfterSolo, stepsFor, type ProgressStep, type Step } from "@/lib/lesson-steps";
 import {
   EMPTY_TEACH,
   FRESH_POSITION,
@@ -86,8 +88,9 @@ import {
 // the first time a lesson opens in this app run.
 let anonKeysCleared = false;
 
-type Step = "guess" | "teach" | "fade" | "solo" | "done";
-const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
+// REQ-096: the step list is no longer fixed -- an objective with a lab
+// prompt the learner may be shown gets a fifth, optional "Try it" step after
+// the solo check (src/lib/lesson-steps.ts).
 
 export default function LessonFlow() {
   const { trackId, objectiveId, unitId, objectiveTitle } = useLocalSearchParams<{
@@ -198,17 +201,32 @@ export default function LessonFlow() {
       .catch(() => {});
   }, []);
 
+  // REQ-096: the objective's optional hands-on lab text and the lab
+  // disclaimer shown with it, or null. From the lesson GET (beside `lesson`),
+  // so it survives a regenerate. The server leaves it out when the lab card's
+  // rules (plan, clinical / fitness acknowledgement) wouldn't show it.
+  const [labPrompt, setLabPrompt] = useState<string | null>(null);
+  const [labDisclaimerLines, setLabDisclaimerLines] = useState<string[]>([]);
+  const [labSaving, setLabSaving] = useState(false);
+  const [labError, setLabError] = useState<string | null>(null);
+
   const loadLesson = useCallback(() => {
     setError(null);
     setLesson(null);
     api
-      .get<{ lesson: LessonContent; practicePending?: boolean; learnerHistory?: LearnerHistory | null }>(
-        `/api/objectives/${objectiveId}/lesson`
-      )
+      .get<{
+        lesson: LessonContent;
+        practicePending?: boolean;
+        learnerHistory?: LearnerHistory | null;
+        labPrompt?: string | null;
+        labDisclaimer?: { lines?: string[] } | null;
+      }>(`/api/objectives/${objectiveId}/lesson`)
       .then((res) => {
         setLesson(res.lesson);
         setPracticePending(!!res.practicePending);
         setLearnerHistory(res.learnerHistory ?? null);
+        setLabPrompt(normalizeLabPrompt(res.labPrompt));
+        setLabDisclaimerLines(Array.isArray(res.labDisclaimer?.lines) ? res.labDisclaimer!.lines! : []);
       })
       .catch((err) => setError(friendlyError(err)));
   }, [objectiveId]);
@@ -222,6 +240,10 @@ export default function LessonFlow() {
     setGuessFeedbackLoading(false);
     setTeachState(EMPTY_TEACH);
     setLearnerHistory(null);
+    setLabPrompt(null);
+    setLabDisclaimerLines([]);
+    setLabSaving(false);
+    setLabError(null);
     setNext(null);
     setReached(null);
     setChecks({});
@@ -524,7 +546,7 @@ export default function LessonFlow() {
   // REQ-106 (research #12): a suggestion only; the learner always chooses.
   const plan = fadingPlan({ guessed: !!guess.trim(), guessMatch: teachState.guessMatch, history: learnerHistory });
   const cards = lesson ? usableCards(lesson.teachCards) : null;
-  const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "done");
+  const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "lab" || step === "done");
   const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
   async function goToGuided() {
     practiceNext.current = "fade";
@@ -561,7 +583,7 @@ export default function LessonFlow() {
   return (
     <Screen scrollRef={scrollRef}>
       <Stack.Screen options={{ title: headerTitle }} />
-      <StepHeader step={step} guidedSkipped={guidedSkipped} />
+      <StepHeader step={step} steps={stepsFor(labPrompt)} guidedSkipped={guidedSkipped} />
 
       {step === "guess" && (
         <GuessStep
@@ -702,10 +724,33 @@ export default function LessonFlow() {
           setConfidence={setConfidence}
           state={checks.solo ?? emptyCheck("solo")}
           onStateChange={(st) => setCheck("solo", st)}
-          onDone={() => setStep("done")}
+          onDone={() => setStep(stepAfterSolo(labPrompt))}
           onTryAgain={tryAgain}
         />
       )}
+
+      {step === "lab" && labPrompt ? (
+        <LabStep
+          prompt={labPrompt}
+          disclaimer={labDisclaimerLines}
+          saving={labSaving}
+          error={labError}
+          onSkip={() => setStep("done")}
+          onDid={async () => {
+            setLabSaving(true);
+            setLabError(null);
+            try {
+              await api.post(`/api/objectives/${objectiveId}/lab`);
+              setStep("done");
+            } catch (err) {
+              // Skip stays available: a failed save must never trap the learner.
+              setLabError(friendlyError(err));
+            } finally {
+              setLabSaving(false);
+            }
+          }}
+        />
+      ) : null}
 
       {step === "done" && (
         <Card elevated style={{ alignItems: "center", gap: spacing.sm }}>
@@ -845,14 +890,18 @@ const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof
   teach: { label: "Teach", icon: "book-open" },
   fade: { label: "Guided", icon: "compass" },
   solo: { label: "Solo", icon: "check-circle" },
+  lab: { label: "Try it", icon: "terminal" },
   done: { label: "Done", icon: "flag" },
 };
 
-function StepHeader({ step, guidedSkipped }: { step: Step; guidedSkipped: boolean }) {
-  const activeIndex = STEPS.indexOf(step === "done" ? "solo" : step) + (step === "done" ? 1 : 0);
+function StepHeader({ step, steps, guidedSkipped }: { step: Step; steps: ProgressStep[]; guidedSkipped: boolean }) {
+  // "done" isn't in the list, so every step reads as past once it's reached.
+  const activeIndex = step === "done" ? steps.length : steps.indexOf(step as ProgressStep);
+  // REQ-096: five items at the usual width crowd a 320dp screen.
+  const itemWidth = steps.length > 4 ? 52 : undefined;
   return (
     <View style={styles.stepper}>
-      {STEPS.map((s, i) => {
+      {steps.map((s, i) => {
         const meta = STEP_META[s];
         const isActive = s === step;
         const isPast = activeIndex > i;
@@ -862,7 +911,7 @@ function StepHeader({ step, guidedSkipped }: { step: Step; guidedSkipped: boolea
         return (
           <React.Fragment key={s}>
             <View
-              style={styles.stepItem}
+              style={[styles.stepItem, itemWidth ? { width: itemWidth } : null]}
               accessible
               accessibilityLabel={`${meta.label}: ${isActive ? "current step" : skipped ? "skipped" : isPast ? "done" : "not started"}`}
             >
@@ -880,13 +929,52 @@ function StepHeader({ step, guidedSkipped }: { step: Step; guidedSkipped: boolea
               </View>
               <Muted style={{ color, fontSize: 11 }}>{meta.label}</Muted>
             </View>
-            {i < STEPS.length - 1 ? (
+            {i < steps.length - 1 ? (
               <View style={[styles.stepLine, { backgroundColor: isPast ? colors.good : colors.border }]} />
             ) : null}
           </React.Fragment>
         );
       })}
     </View>
+  );
+}
+
+// REQ-096: the optional hands-on lab. Nothing here is graded or checked --
+// the note says so plainly, and "I did it" is only a record that the learner
+// did it. Merged 2026-11-07: the lab disclaimer (REQ-125) is shown with it,
+// as on every lab. One calm card, one primary action; Skip is the quieter
+// ghost button, and no motion beyond the buttons' own press feedback.
+function LabStep({
+  prompt,
+  disclaimer,
+  saving,
+  error,
+  onSkip,
+  onDid,
+}: {
+  prompt: string;
+  disclaimer: string[];
+  saving: boolean;
+  error: string | null;
+  onSkip: () => void;
+  onDid: () => void;
+}) {
+  return (
+    <Card elevated>
+      <SectionHeader label="Try it yourself · optional" style={{ marginTop: 0, marginBottom: 0 }} />
+      <Body>{prompt}</Body>
+      <Muted style={{ fontSize: 12 }}>Your mastery won't change. This is practice the app can't check.</Muted>
+      {disclaimer.map((line, i) => (
+        <Muted key={i} style={{ fontSize: 12 }}>
+          {line}
+        </Muted>
+      ))}
+      {error ? <ErrorBanner message={error} /> : null}
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        <Button label="I did it" icon="check" fullWidth={false} loading={saving} onPress={onDid} />
+        <Button label="Skip" variant="ghost" fullWidth={false} disabled={saving} onPress={onSkip} />
+      </View>
+    </Card>
   );
 }
 

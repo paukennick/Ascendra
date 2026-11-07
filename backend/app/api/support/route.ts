@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // REQ-093: "content_report" is the in-lesson "Report a problem" button, tied
 // to the objective and lesson step so the reviewer can find it.
 const KINDS = ["ticket", "course_request", "content_report"] as const;
-const STAGES = ["guess", "teach", "fade", "solo"] as const;
+const STAGES = ["guess", "teach", "fade", "solo", "lab"] as const;
 type Kind = (typeof KINDS)[number];
 
 const MAX_SUBJECT = 200;

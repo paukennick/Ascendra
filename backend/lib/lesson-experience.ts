@@ -130,6 +130,7 @@ export async function latestLabReport(userId: string, objectiveId: string) {
   return queryOne<Record<string, unknown>>(
     `select id, question, answer, verdict, feedback, missed_parts, model_answer, fix_next, created_at
        from attempts where user_id = $1 and lab_objective_id = $2 and kind = 'lab'
+        and format::text <> 'lab' -- not a Try it self-report (REQ-096, merged 2026-11-07)
       order by created_at desc, id desc limit 1`,
     [userId, objectiveId]
   );

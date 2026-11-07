@@ -24,7 +24,7 @@ export function ReportLessonProblem({
 }: {
   objectiveId: string;
   objectiveTitle: string;
-  stage: "guess" | "teach" | "fade" | "solo" | "done";
+  stage: "guess" | "teach" | "fade" | "solo" | "lab" | "done";
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<(typeof REASONS)[number] | null>(null);
