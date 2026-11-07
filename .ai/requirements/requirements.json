@@ -2942,6 +2942,47 @@
         "Pre-029 hint peeks are not visible in history",
         "PR #22 review fixes (FAIL-039, FAIL-110..117): 029 split into 029 (schema, lock_timeout 5s, ~1 s) and 029b (backup, backfill, recompute; row locks only, ~61 s at 1.9M attempts). After deploying the code run select recompute_mastery() once. Backend rollback needs an OTA app rollback (new app vs old backend -> 400 on grade). A DB that applied the pre-fix 029 must re-run both files."
       ]
+    },
+    {
+      "id": "REQ-101",
+      "category": "bugfix",
+      "title": "Lesson screen: resume, save ordering, logout, retry and back-to-course fixes (B3b)",
+      "description": "Batch B3b. Resume stops waiting on the account copy after 4 s and uses the device copy, adopting a later, newer account copy only if the learner has not moved; saves carry savedAt and deletes clearedAt so the server ignores a save overtaken by the delete (migration 032 tombstones); no saves without a signed-in user and old anon device copies removed; restore keyed on the lesson fingerprint; Try again after a missed Solo check with honest copy that a repeat will not raise mastery; Back to course pops only when the nearest dashboard is this course.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonFeedback.ts",
+        "mobile/src/lib/courseReturn.ts",
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/lesson-progress-store.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/032_lesson_progress_tombstone.sql"
+      ],
+      "acceptance_criteria": [
+        "Resume never blocks more than ~4 s on the account read",
+        "A save older than the last delete is ignored (DB test)",
+        "No lessonProgress.anon keys written and existing ones removed",
+        "Progress fetched once per lesson open",
+        "Missed Solo offers Try again with non-mastery copy",
+        "Back to course never lands on another course's dashboard"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model"
+      ],
+      "risk_notes": [
+        "Late-adopt and logout paths need a device check",
+        "Client clocks order save vs delete; cross-device clock skew can drop or keep a save",
+        "Migration 032 must be applied before deploy (schema probe added)"
+      ]
     }
   ]
 }

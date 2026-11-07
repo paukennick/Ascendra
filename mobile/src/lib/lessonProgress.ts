@@ -191,3 +191,63 @@ export function attemptIdFor(
 export function isResumable(step: string): step is ResumableStep {
   return RESUMABLE.includes(step);
 }
+
+// REQ-101 (FAIL-091): resuming waited on the account copy with no limit, so
+// a bad connection left the lesson on "Picking up where you left off..."
+// until the request gave up. The device copy is used after this long; the
+// account copy is still applied if it arrives later, is newer, and the
+// learner hasn't moved yet (shouldAdoptLateServer).
+export const RESUME_SERVER_WAIT_MS = 4000;
+
+export type Settled<T> = { settled: true; value: T } | { settled: false; later: Promise<T> };
+
+// Waits up to `ms` for `p`. Either way `p` keeps running; on a timeout the
+// caller gets it back as `later`. `p` must not reject (callers catch first).
+export function settleWithin<T>(p: Promise<T>, ms: number): Promise<Settled<T>> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve({ settled: false, later: p }), ms);
+    p.then((value) => {
+      clearTimeout(timer);
+      resolve({ settled: true, value });
+    });
+  });
+}
+
+// The learner-visible place in a lesson, compared to tell "nothing has moved
+// since the restore" from a real change. guessFeedback is left out: it fills
+// in on its own after a guess.
+export interface Position {
+  step: string;
+  guess: string;
+  confidence: number | null;
+  checks: Partial<Record<CheckKind, CheckState>>;
+}
+
+export const FRESH_POSITION: Position = { step: "guess", guess: "", confidence: null, checks: {} };
+
+export function samePosition(a: Position, b: Position): boolean {
+  return (
+    a.step === b.step &&
+    a.guess === b.guess &&
+    a.confidence === b.confidence &&
+    JSON.stringify(a.checks) === JSON.stringify(b.checks)
+  );
+}
+
+// A late account copy replaces what was restored only if it is newer and
+// the learner is still exactly where the restore put them.
+export function shouldAdoptLateServer(
+  late: LessonSnapshot | null,
+  applied: LessonSnapshot | null,
+  learnerMoved: boolean
+): late is LessonSnapshot {
+  if (!late || learnerMoved) return false;
+  return !applied || late.savedAt > applied.savedAt;
+}
+
+// REQ-101 (FAIL-093): with no signed-in user the screen used to save under
+// "anon". Those keys are never read back, so they are removed.
+const ANON_PREFIX = "ascendra.lessonProgress.anon.";
+export function anonSnapshotKeys(keys: readonly string[]): string[] {
+  return keys.filter((k) => k.startsWith(ANON_PREFIX));
+}

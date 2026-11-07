@@ -880,30 +880,6 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-060",
-      "date": "2026-11-07",
-      "title": "MFA leave guard blocked sign-out and lock",
-      "status": "fixed",
-      "severity": "high",
-      "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
-      "how_detected": "Audit 2 mobile-flows review",
-      "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
-      "requirement": "REQ-093",
-      "affected": [
-        "mobile/src/lib/mfaLeaveGuard.ts",
-        "mobile/app/(app)/settings/mfa.tsx"
-      ],
-      "fix_summary": "Guard takes the auth status and never blocks when not signed in.",
-      "fix_commits": [],
-      "regression_tests": [
-        "mobile/src/lib/mfaLeaveGuard.test.ts"
-      ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
-      "recurrence_of": ""
-    },
-    {
       "id": "FAIL-038",
       "date": "2026-11-07",
       "title": "Learners could set their own mastery level",
@@ -949,6 +925,177 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Before removing or reshaping a response field, read the previous released screen (git show <last release>:mobile/...) for unguarded dereferences of it, and keep the field with a safe empty value.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-060",
+      "date": "2026-11-07",
+      "title": "MFA leave guard blocked sign-out and lock",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
+      "how_detected": "Audit 2 mobile-flows review",
+      "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
+      "requirement": "REQ-093",
+      "affected": [
+        "mobile/src/lib/mfaLeaveGuard.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Guard takes the auth status and never blocks when not signed in.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mfaLeaveGuard.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-091",
+      "date": "2026-11-07",
+      "title": "Lesson resume hung on a bad connection",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Opening a lesson on a slow or dropped connection stayed on 'Picking up where you left off...' until the progress GET gave up, even with a valid device copy.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "The restore awaited Promise.all of the account read and the device read, and the API client has no timeout, so the slowest source gated the screen.",
+      "requirement": "REQ-101",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "The account read is waited on for 4 s (settleWithin); after that the device copy is used, and a late account copy is adopted only if newer and the learner has not moved (shouldAdoptLateServer). Saving is skipped while the position is still the restored one, so a restore no longer re-stamps an old place with a new savedAt.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts::REQ-101 resume on a bad connection (FAIL-091)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Network reads that gate a screen get an explicit wait budget and a fallback; the rule lives beside the code in lessonProgress.ts.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-092",
+      "date": "2026-11-07",
+      "title": "A save in flight could resurrect a finished lesson",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "After finishing a lesson, reopening it could resume at Solo: a progress PUT sent just before 'done' reached the server after the DELETE and its upsert recreated the row.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "PUT and DELETE carried no ordering, so the server applied whichever arrived last.",
+      "requirement": "REQ-101",
+      "affected": [
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/lib/lesson-progress-store.ts",
+        "backend/supabase/migrations/032_lesson_progress_tombstone.sql",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "PUT carries the client's savedAt and DELETE its clearedAt; DELETE records a tombstone (migration 032) and a save not after it is ignored, under a per-user+objective advisory lock.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-progress-tombstone.dbtest.ts",
+        "backend/lib/lesson-progress.test.ts::validClientTime (REQ-101)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Last-writer-wins upserts that race a delete carry a client timestamp and are checked against a tombstone; a schema probe makes a missing 032 fail /api/health.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-093",
+      "date": "2026-11-07",
+      "title": "Logout wrote anon lesson progress and a 401 save",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On logout the lesson screen re-rendered with no user, wrote ascendra.lessonProgress.anon.<id> and sent a progress PUT that 401'd.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "userId fell back to the string 'anon', so the save effect treated a signed-out render as a user.",
+      "requirement": "REQ-101",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "No fallback: with no user nothing is read or saved and the pending save is dropped; the send also checks the user is unchanged; existing anon keys are removed once per app run.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts::REQ-101 no anonymous saves (FAIL-093)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Per-user storage keys never get a placeholder identity; code waits for a real user instead.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-094",
+      "date": "2026-11-07",
+      "title": "Lesson progress fetched twice on resume",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Resuming at Guided or Solo while practice content was still generating fetched the saved position twice.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "The restore effect depended on the lesson object; ensurePracticeReady replaced it with the same content, cancelling and re-running the restore.",
+      "requirement": "REQ-101",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "The restore effect keys on lessonFingerprint(lesson), which does not change when practice content fills in.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts::REQ-101 restore runs once per lesson content (FAIL-094)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Effects that must run once per content key depend on a stable key, not an object that is replaced.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-095",
+      "date": "2026-11-07",
+      "title": "No retry after a missed Solo check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After 'Not yet', Re-read led back to Solo showing the old graded answer with only Continue; there was no way to answer again.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "The graded Solo state is kept on purpose for resume, and nothing offered to clear it.",
+      "requirement": "REQ-101",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonFeedback.ts"
+      ],
+      "fix_summary": "'Try again' on the Not yet screen and on a missed Solo result starts a fresh Solo check (new attempt id), with copy saying a repeat won't raise mastery (repeats are assisted by design, REQ-097).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonFeedback.test.ts::offerTryAgain (REQ-101",
+        "FAIL-095)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every graded miss offers a next action; UI copy states whether it can raise mastery.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-096",
+      "date": "2026-11-07",
+      "title": "Back to course could land on another course",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With Course B, Course A, Lesson B in the stack, 'Back to course' popped to Course A's dashboard with B's params.",
+      "how_detected": "audit (re-verified on feat/mastery-integrity)",
+      "root_cause": "router.dismissTo pops to the nearest route with the same name, and every course dashboard shares one route name.",
+      "requirement": "REQ-101",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/courseReturn.ts"
+      ],
+      "fix_summary": "planCourseReturn: dismissTo only when the nearest dashboard in the stack is this course, else push (same rule as FAIL-065 on fix/mobile-flows-2).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/courseReturn.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "dismissTo is only used after checking the nearest same-named route is the target.",
       "recurrence_of": ""
     },
     {

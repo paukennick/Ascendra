@@ -28,6 +28,17 @@ export function offerRereadAfterCheck(kind: "fade" | "solo", verdict: string | n
   return kind === "fade" && isMiss(verdict);
 }
 
+// REQ-101 (FAIL-095): after a missed Solo check, "Re-read" led back to the
+// graded answer with only "Continue". A fresh try at the same question is
+// offered instead. On the server a repeat answer to a question already
+// answered counts as assisted (REQ-097), so the copy says it won't raise
+// mastery rather than implying it counts.
+export function offerTryAgain(kind: "fade" | "solo", verdict: string | null | undefined): boolean {
+  return kind === "solo" && isMiss(verdict);
+}
+
+export const TRY_AGAIN_NOTE = "Practice again — this one won't raise your level; a new question will.";
+
 export type ChoiceMark = "none" | "picked-correct" | "picked-incorrect" | "correct-answer";
 
 function validIndex(i: number | null | undefined, count: number): i is number {

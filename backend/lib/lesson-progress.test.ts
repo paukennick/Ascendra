@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { sanitizeLessonProgress, validClientAttemptId } from "./lesson-progress";
+import { sanitizeLessonProgress, validClientAttemptId, validClientTime } from "./lesson-progress";
 
 const base = { step: "fade", guess: "g", guessFeedback: null, confidence: 3, lessonKey: "12:abc", checks: {} };
 
@@ -59,5 +59,13 @@ describe("validClientAttemptId", () => {
     assert.equal(validClientAttemptId("short"), null);
     assert.equal(validClientAttemptId("'; drop table attempts; --"), null);
     assert.equal(validClientAttemptId(42), null);
+  });
+});
+
+describe("validClientTime (REQ-101)", () => {
+  test("accepts a millisecond timestamp, rejects anything else", () => {
+    assert.equal(validClientTime(1762500000000), 1762500000000);
+    assert.equal(validClientTime(1762500000000.7), 1762500000000);
+    for (const v of [undefined, null, "1762500000000", 0, -5, NaN, Infinity, 1e15]) assert.equal(validClientTime(v), null);
   });
 });

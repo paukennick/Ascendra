@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
@@ -21,6 +21,9 @@ import {
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
 import {
+  FRESH_POSITION,
+  RESUME_SERVER_WAIT_MS,
+  anonSnapshotKeys,
   answerSignature,
   attemptIdFor,
   emptyCheck,
@@ -28,22 +31,34 @@ import {
   lessonFingerprint,
   newerSnapshot,
   parseSnapshot,
+  samePosition,
+  settleWithin,
+  shouldAdoptLateServer,
   snapshotStorageKey,
   type CheckKind,
   type CheckState,
   type LessonSnapshot,
+  type Position,
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
+import { planCourseReturn } from "@/lib/courseReturn";
+import { routePath } from "@/lib/navPlan";
 import {
+  TRY_AGAIN_NOTE,
   assistNote,
   choiceMarks,
   describeMark,
   gradeSubmitError,
   offerRereadAfterCheck,
+  offerTryAgain,
   soloOutcome,
   type ChoiceMark,
   type MarkTone,
 } from "@/lib/lessonFeedback";
+
+// REQ-101 (FAIL-093): device copies once written under "anon" are removed
+// the first time a lesson opens in this app run.
+let anonKeysCleared = false;
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -56,8 +71,15 @@ export default function LessonFlow() {
     objectiveTitle?: string;
   }>();
   const router = useRouter();
+  const navigation = useNavigation();
   const { user } = useAuth();
-  const userId = user?.id ?? "anon";
+  // REQ-101 (FAIL-093): no "anon" fallback. Logging out re-renders this
+  // screen with no user before it is navigated away; with the fallback it
+  // wrote a device copy under "anon" and sent a save that 401'd. Nothing is
+  // read or saved without a signed-in user.
+  const userId = user?.id ?? null;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   const [lesson, setLesson] = useState<LessonContent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +135,29 @@ export default function LessonFlow() {
   const setCheck = useCallback((kind: CheckKind, state: CheckState) => {
     setChecks((prev) => ({ ...prev, [kind]: state }));
   }, []);
+  // REQ-101 (FAIL-094): the restore keys on the lesson's fingerprint, not the
+  // lesson object. ensurePracticeReady replaces the object with the same
+  // content (plus fade/solo), which re-ran the restore and fetched the
+  // position a second time.
+  const lessonKey = lesson ? lessonFingerprint(lesson) : null;
+  // REQ-101 (FAIL-091): where the restore left the learner (null once they
+  // have moved), and the snapshot it applied. Saving is skipped while the
+  // position is still the restored one -- re-saving it would only stamp an
+  // old place with a new savedAt -- and a late account copy is adopted only
+  // while this is non-null.
+  const restoredPosition = useRef<Position | null>(FRESH_POSITION);
+  const appliedSnapshot = useRef<LessonSnapshot | null>(null);
+
+  useEffect(() => {
+    if (anonKeysCleared) return;
+    anonKeysCleared = true;
+    AsyncStorage.getAllKeys()
+      .then((keys) => {
+        const anon = anonSnapshotKeys(keys);
+        return anon.length ? AsyncStorage.multiRemove(anon) : undefined;
+      })
+      .catch(() => {});
+  }, []);
 
   const loadLesson = useCallback(() => {
     setError(null);
@@ -138,62 +183,94 @@ export default function LessonFlow() {
     setChecks({});
     restoredFor.current = null;
     lastSavedStep.current = null;
+    restoredPosition.current = FRESH_POSITION;
+    appliedSnapshot.current = null;
     setRestoring(true);
   }, [loadLesson]);
 
   // Resume where the learner left off (see src/lib/lessonProgress.ts).
   // Runs once per objective, after its lesson content has loaded.
   useEffect(() => {
-    if (!lesson || restoredFor.current === objectiveId) return;
+    if (!lessonKey || !userId || restoredFor.current === objectiveId) return;
     let cancelled = false;
     const key = snapshotStorageKey(userId, objectiveId);
-    const lessonKey = lessonFingerprint(lesson);
+
+    // Puts the learner at `snap`. fade/solo need the practice content; if
+    // it's still generating, wait for it the same way the "Next" button
+    // does, and fall back to the teach step if it can't be had. Returns the
+    // step landed on, or null if the effect was cancelled meanwhile.
+    const apply = async (snap: LessonSnapshot): Promise<Position | null> => {
+      setGuess(snap.guess);
+      setGuessFeedback(snap.guessFeedback);
+      setConfidence(snap.confidence);
+      setChecks(snap.checks);
+      let target = snap.step;
+      if (target !== "teach" && practicePending) {
+        const ready = await ensurePracticeReady();
+        if (cancelled) return null;
+        if (!ready) target = "teach";
+      }
+      setStep(target);
+      return { step: target, guess: snap.guess, confidence: snap.confidence, checks: snap.checks };
+    };
+
     (async () => {
       // REQ-089: the account copy and the device copy are both read; the
       // newer valid one wins. Either can be missing (first visit, offline,
       // a position saved before this existed) without blocking the lesson.
-      const [server, local] = await Promise.all([
-        api
-          .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
-          .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
-          .catch(() => null),
+      // REQ-101: the account copy is waited on for RESUME_SERVER_WAIT_MS at
+      // most; after that the device copy is used and the account copy is
+      // considered again when it arrives.
+      const serverRead = api
+        .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
+        .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
+        .catch(() => null);
+      const [first, local] = await Promise.all([
+        settleWithin(serverRead, RESUME_SERVER_WAIT_MS),
         AsyncStorage.getItem(key)
           .then((raw) => parseSnapshot(raw, lessonKey, Date.now()))
           .catch(() => null),
       ]);
-      const snap = newerSnapshot(server, local);
       if (cancelled) return;
+      const snap = newerSnapshot(first.settled ? first.value : null, local);
+      let position: Position | null = FRESH_POSITION;
       if (snap) {
-        setGuess(snap.guess);
-        setGuessFeedback(snap.guessFeedback);
-        setConfidence(snap.confidence);
-        setChecks(snap.checks);
-        // fade/solo need the practice content; if it's still generating,
-        // wait for it the same way the "Next" button does, and fall back to
-        // the teach step if it can't be had.
-        let target = snap.step;
-        if (target !== "teach" && practicePending) {
-          const ready = await ensurePracticeReady();
-          if (cancelled) return;
-          if (!ready) target = "teach";
-        }
-        setStep(target);
+        // Set before applying, so the save effect doesn't take the restore
+        // itself for a move.
+        restoredPosition.current = { step: snap.step, guess: snap.guess, confidence: snap.confidence, checks: snap.checks };
+        position = await apply(snap);
+        if (!position) return;
       } else {
         // Only the device copy is cleared here. An unreadable account copy
         // may just mean the request failed, and deleting on that basis could
         // wipe a place saved from another device.
         AsyncStorage.removeItem(key).catch(() => {});
       }
+      restoredPosition.current = position;
+      appliedSnapshot.current = snap;
       lastSavedStep.current = snap ? snap.step : null;
       restoredFor.current = objectiveId;
       setRestoring(false);
+
+      if (first.settled) return;
+      const late = await first.later;
+      if (cancelled) return;
+      if (!shouldAdoptLateServer(late, appliedSnapshot.current, restoredPosition.current === null)) return;
+      restoredPosition.current = { step: late.step, guess: late.guess, confidence: late.confidence, checks: late.checks };
+      const adopted = await apply(late);
+      if (!adopted) return;
+      // The account copy already holds this place; it only needs saving again
+      // if the practice fallback moved it to "teach".
+      if (adopted.step === late.step) restoredPosition.current = adopted;
+      appliedSnapshot.current = late;
+      lastSavedStep.current = late.step;
     })();
     return () => {
       cancelled = true;
     };
     // ensurePracticeReady/practicePending are read once at restore time on purpose.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson, objectiveId, userId]);
+  }, [lessonKey, objectiveId, userId]);
 
   // Persist the position on every change once restored. "guess" and "done"
   // clear it: nothing to resume before the guess, and a finished objective
@@ -213,16 +290,31 @@ export default function LessonFlow() {
   useEffect(() => flushServerSave, [flushServerSave, objectiveId]);
 
   useEffect(() => {
-    if (!lesson || restoredFor.current !== objectiveId) return;
+    const cancelPending = () => {
+      if (pendingServerSave.current) {
+        clearTimeout(pendingServerSave.current.timer);
+        pendingServerSave.current = null;
+      }
+    };
+    // Signed out (FAIL-093): drop the pending save rather than send it.
+    if (!userId) {
+      cancelPending();
+      return;
+    }
+    if (!lessonKey || restoredFor.current !== objectiveId) return;
+    const position: Position = { step, guess, confidence, checks };
+    if (restoredPosition.current && samePosition(position, restoredPosition.current)) return;
+    restoredPosition.current = null;
     const key = snapshotStorageKey(userId, objectiveId);
     const path = `/api/objectives/${objectiveId}/progress`;
-    if (pendingServerSave.current) {
-      clearTimeout(pendingServerSave.current.timer);
-      pendingServerSave.current = null;
-    }
+    cancelPending();
     if (!isResumable(step)) {
       AsyncStorage.removeItem(key).catch(() => {});
-      if (lastSavedStep.current && isResumable(lastSavedStep.current)) api.delete(path).catch(() => {});
+      // REQ-101 (FAIL-092): clearedAt lets the server ignore a save that was
+      // sent before this delete but arrives after it.
+      if (lastSavedStep.current && isResumable(lastSavedStep.current)) {
+        api.delete(path, { clearedAt: Date.now() }).catch(() => {});
+      }
       lastSavedStep.current = step;
       return;
     }
@@ -233,16 +325,17 @@ export default function LessonFlow() {
       guess,
       guessFeedback,
       confidence,
-      lessonKey: lessonFingerprint(lesson),
+      lessonKey,
       checks,
       savedAt: Date.now(),
     };
     AsyncStorage.setItem(key, JSON.stringify(snap)).catch(() => {});
     const send = () => {
+      if (userIdRef.current !== userId) return;
       api.put(path, snap).catch(() => {});
     };
     pendingServerSave.current = { timer: setTimeout(flushServerSave, 800), send };
-  }, [lesson, objectiveId, userId, step, guess, guessFeedback, confidence, checks, flushServerSave]);
+  }, [lessonKey, objectiveId, userId, step, guess, guessFeedback, confidence, checks, flushServerSave]);
 
   useEffect(() => {
     // Fire-and-forget: nudges the server to start warming the cache for
@@ -338,6 +431,25 @@ export default function LessonFlow() {
 
   function skipGuess() {
     setStep("teach");
+  }
+
+  // REQ-101 (FAIL-095): a fresh, ungraded Solo check on the same question.
+  // The new clientAttemptId makes it a new attempt; the server records it as
+  // a repeat (assisted), which TRY_AGAIN_NOTE tells the learner up front.
+  function tryAgain() {
+    setCheck("solo", emptyCheck("solo"));
+    setStep("solo");
+  }
+
+  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
+  function backToCourse() {
+    const state = navigation.getState();
+    const stackPaths = (state?.routes ?? [])
+      .slice(0, (state?.index ?? 0) + 1)
+      .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
+      .filter((p): p is string => p !== null);
+    if (planCourseReturn(trackId, stackPaths) === "dismissTo") router.dismissTo(`/course/${trackId}`);
+    else router.push(`/course/${trackId}`);
   }
 
   const headerTitle = objectiveTitle ?? "Lesson";
@@ -465,6 +577,7 @@ export default function LessonFlow() {
           state={checks.solo ?? emptyCheck("solo")}
           onStateChange={(st) => setCheck("solo", st)}
           onDone={() => setStep("done")}
+          onTryAgain={tryAgain}
         />
       )}
 
@@ -490,11 +603,15 @@ export default function LessonFlow() {
           {notYet ? null : <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>}
           {notYet ? (
             <>
+              <Button label="Try again" icon="rotate-ccw" onPress={tryAgain} />
+              <Muted style={{ textAlign: "center", fontSize: 12 }}>{TRY_AGAIN_NOTE}</Muted>
               <Button
                 label="Re-read the explanation"
                 icon="book-open"
+                variant="ghost"
                 // Keeps the guess and the graded checks (all lifted state),
-                // so this is a detour, not a reset.
+                // so this is a detour, not a reset. The Solo step then
+                // offers "Try again" (offerTryAgain).
                 onPress={() => setStep("teach")}
               />
               <Button
@@ -533,10 +650,9 @@ export default function LessonFlow() {
               icon="arrow-left"
               variant={next || notYet ? "ghost" : "primary"}
               fullWidth={false}
-              // REQ-093: pop back to the dashboard already in the stack
-              // (or replace this screen with it) -- push stacked a second
-              // dashboard, so Back from it returned to the same screen.
-              onPress={() => router.dismissTo(`/course/${trackId}`)}
+              // REQ-093: pop back to this course's dashboard when it is the
+              // nearest one in the stack; REQ-101: otherwise push.
+              onPress={backToCourse}
             />
             <Button
               label="Ask the coach"
@@ -688,6 +804,7 @@ function CheckStep({
   onStateChange,
   onDone,
   onReread,
+  onTryAgain,
 }: {
   kind: "fade" | "solo";
   promptText: string;
@@ -704,6 +821,8 @@ function CheckStep({
   onDone: () => void;
   // REQ-095: back to the explanation after a missed Guided item.
   onReread?: () => void;
+  // REQ-101: a fresh try at a missed Solo check (offerTryAgain).
+  onTryAgain?: () => void;
 }) {
   // REQ-089: answer, mode and graded result live in the parent so they are
   // saved with the lesson position (see LessonFlow).
@@ -961,6 +1080,22 @@ function CheckStep({
           {onReread && offerRereadAfterCheck(kind, result.verdict) ? (
             <>
               <Button label="Re-read the explanation" icon="book-open" onPress={onReread} />
+              <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
+            </>
+          ) : onTryAgain && offerTryAgain(kind, result.verdict) ? (
+            <>
+              <Button
+                label="Try again"
+                icon="rotate-ccw"
+                onPress={() => {
+                  setFollowUp("");
+                  setFollowUpSent(false);
+                  setError(null);
+                  setSubmitFailed(false);
+                  onTryAgain();
+                }}
+              />
+              <Muted style={{ fontSize: 12 }}>{TRY_AGAIN_NOTE}</Muted>
               <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
             </>
           ) : (

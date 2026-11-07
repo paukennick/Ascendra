@@ -112,6 +112,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
           ) as ok`,
   },
   {
+    migration: "032_lesson_progress_tombstone.sql",
+    what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
+    sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

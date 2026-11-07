@@ -1,7 +1,8 @@
-import { query, queryOne } from "@/lib/db";
+import { queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { sanitizeLessonProgress } from "@/lib/lesson-progress";
+import { sanitizeLessonProgress, validClientTime } from "@/lib/lesson-progress";
+import { clearLessonProgressAt, saveLessonProgress } from "@/lib/lesson-progress-store";
 import { visibleObjective } from "@/lib/visibility";
 
 export const dynamic = "force-dynamic";
@@ -45,46 +46,33 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-// PUT /api/objectives/:id/progress  Body: { step, guess, guessFeedback, confidence, lessonKey, checks }
+// PUT /api/objectives/:id/progress  Body: { step, guess, guessFeedback, confidence, lessonKey, checks, savedAt }
+// REQ-101: a save whose savedAt is not after the last DELETE is ignored
+// ({ saved: false }) -- it was overtaken by the delete and is stale.
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const input = sanitizeLessonProgress(await req.json().catch(() => null));
+    const body = await req.json().catch(() => null);
+    const input = sanitizeLessonProgress(body);
     if (typeof input === "string") return badRequest(input);
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
-    await query(
-      `insert into lesson_progress
-         (user_id, objective_id, step, guess, guess_feedback, confidence, lesson_key, checks, updated_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8, now())
-       on conflict (user_id, objective_id) do update set
-         step = excluded.step, guess = excluded.guess, guess_feedback = excluded.guess_feedback,
-         confidence = excluded.confidence, lesson_key = excluded.lesson_key,
-         checks = excluded.checks, updated_at = now()`,
-      [
-        user.id,
-        id,
-        input.step,
-        input.guess,
-        input.guessFeedback,
-        input.confidence,
-        input.lessonKey,
-        JSON.stringify(input.checks),
-      ]
-    );
-    return ok({ saved: true });
+    const savedAt = validClientTime((body as Record<string, unknown>).savedAt);
+    return ok(await saveLessonProgress(user.id, id, input, savedAt));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
   }
 }
 
-// DELETE /api/objectives/:id/progress -- finished, regenerated, or abandoned.
+// DELETE /api/objectives/:id/progress  Body (optional): { clearedAt }
+// Finished, regenerated, or abandoned.
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    await query(`delete from lesson_progress where user_id = $1 and objective_id = $2`, [user.id, id]);
+    const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+    await clearLessonProgressAt(user.id, id, validClientTime(body?.clearedAt));
     return ok({ cleared: true });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
