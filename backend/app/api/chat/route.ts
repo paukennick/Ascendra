@@ -14,6 +14,8 @@ import {
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForTrack } from "@/lib/coach-context";
 import { fenceLearnerText, guardedReply, matchOpenItems, openItemsBlock, openItemsFor } from "@/lib/coach-guard";
+import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
+import { openQuizItemsFor } from "@/lib/coach-quiz";
 
 export const dynamic = "force-dynamic";
 
@@ -133,7 +135,8 @@ export async function POST(req: Request) {
     // REQ-100: items this learner has not answered yet are named to the model
     // (questions only, never the key), and the reply is checked against their
     // answer keys before it is saved or sent (lib/coach-guard.ts).
-    const openItems = await openItemsFor(userId, trackId, unitId ?? null);
+    // REQ-110: an open "Quiz me" question is held back the same way.
+    const openItems = [...(await openItemsFor(userId, trackId, unitId ?? null)), ...(await openQuizItemsFor(userId, trackId))];
     const matched = matchOpenItems(message, openItems);
     const ctx = await coachContextForTrack(trackId);
     const system = chatSystemPrompt({
@@ -141,6 +144,9 @@ export async function POST(req: Request) {
       unitTitle,
       ctx: ctx ?? undefined,
       openItems: openItemsBlock(openItems, matched),
+      // REQ-110: weakest objectives and recent mistake kinds, per call (never
+      // in the cached stable block), fenced as data.
+      learnerProfile: learnerProfileBlock(await learnerProfileFor(userId, trackId)),
     });
     const { reply } = await guardedReply(
       (extraNote) =>

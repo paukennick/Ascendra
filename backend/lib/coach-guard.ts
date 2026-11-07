@@ -9,7 +9,8 @@ import { query } from "@/lib/db";
 // fenced so it is read as data, not instructions.
 
 export interface OpenItem {
-  kind: "lesson" | "pbq" | "review" | "exam";
+  // "quiz": an open "Quiz me" question (REQ-110, lib/coach-quiz.ts).
+  kind: "lesson" | "pbq" | "review" | "exam" | "quiz";
   label: string; // objective or scenario title
   question: string;
   // Correct option text for a lesson item. Server-side only: used to check
@@ -164,6 +165,7 @@ export function openItemsBlock(items: OpenItem[], matched: OpenItem[]): string {
     pbq: "PBQ, not answered yet",
     review: "pending review retest",
     exam: "question in a practice exam they are taking now",
+    quiz: "Quiz me question, not answered yet",
   };
   const list = items
     .map((it, i) => {

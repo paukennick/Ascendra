@@ -33,6 +33,8 @@ export type AiPurpose =
   | "prereq_map"
   | "learned_set"
   | "explain_back"
+  // REQ-110: one shared "Quiz me" question per objective (lib/coach-quiz.ts).
+  | "coach_quiz"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

@@ -3439,6 +3439,53 @@
       ]
     },
     {
+      "id": "REQ-110",
+      "category": "feature",
+      "title": "Learner-aware coach with Quiz me, study plan from exam date, session choice and kept view, placement check",
+      "description": "Research items #8 and #15 plus study plan and placement: pass weakest objectives and mistake tags into the per-call coach prompt; Quiz me with graded hints recorded as zero-weight coach_quiz evidence; deterministic study plan built back from exam date with feasibility options; session choice with winnable default after a rough session; kept-vs-completed view; optional adaptive placement check from cached items recorded as placement evidence (never Independent/Transfer-ready alone).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/{coach-quiz",
+        "learner-profile",
+        "placement",
+        "practice-attempts",
+        "study-plan",
+        "study-plan-store}.ts",
+        "backend/app/api/coach/quiz",
+        "backend/app/api/courses/[id]/{plan",
+        "placement}",
+        "backend/app/api/chat/route.ts",
+        "backend/supabase/migrations/039_coach_plan.sql",
+        "mobile/app/(app)/course/[trackId]/{plan",
+        "placement",
+        "quiz}.tsx",
+        "mobile/src/components/CoursePlanPanel.tsx",
+        "mobile/src/lib/studyPlan.ts"
+      ],
+      "acceptance_criteria": [
+        "coach prompt per-call block names weak spots fenced",
+        "quiz answers recorded with assessment_type coach_quiz weight 0 and never format evidence",
+        "plan recomputed deterministically with mock exam and light day and kind feasibility options",
+        "session choice defaults to winnable step after rough session",
+        "kept vs completed shown",
+        "placement answers never lift to Independent and skip ahead in plan"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "test:db"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "time estimates are documented guesses",
+        "mock exam step has no in-app mock yet",
+        "coach quiz first try can move Needs review to Guided"
+      ]
+    },
+    {
       "id": "REQ-111",
       "category": "feature",
       "title": "Deep understanding: comparison cards, explain-it-back, misconception diagnosis, prerequisite refreshers",

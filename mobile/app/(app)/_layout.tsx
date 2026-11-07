@@ -30,6 +30,9 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/exam" options={{ title: "Practice exam" }} />
       <Stack.Screen name="course/[trackId]/compare" options={{ title: "Compare look-alikes" }} />
       <Stack.Screen name="course/[trackId]/explain/[objectiveId]" options={{ title: "Explain it back" }} />
+      <Stack.Screen name="course/[trackId]/plan" options={{ title: "Study plan" }} />
+      <Stack.Screen name="course/[trackId]/placement" options={{ title: "Placement check" }} />
+      <Stack.Screen name="course/[trackId]/quiz" options={{ title: "Quiz me" }} />
     </Stack>
   );
 }

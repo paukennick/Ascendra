@@ -40,6 +40,13 @@ export const EXPORT_SECTIONS = {
   // REQ-111: what the learner has misdiagnosed, and refreshers opened.
   misconceptions: "select * from learner_misconceptions where user_id = $1 order by created_at asc, id asc",
   prerequisiteRefreshers: "select * from prerequisite_refreshers where user_id = $1 order by opened_at asc, id asc",
+  // REQ-110: study plans, placement checks with their answered items, and
+  // Quiz me turns. Each has a total order (REQ-098 paging).
+  studyPlans: "select * from study_plans where user_id = $1 order by track_id asc",
+  placementChecks: `select pc.*, coalesce((select json_agg(pi order by pi.seq) from placement_items pi where pi.placement_id = pc.id and pi.correct is not null), '[]') as items
+                      from placement_checks pc where pc.user_id = $1 order by pc.started_at asc, pc.id asc`,
+  coachQuizTurns: `select t.*, i.question, i.objective_id from coach_quiz_turns t join coach_quiz_items i on i.id = t.item_id
+                    where t.user_id = $1 order by t.created_at asc, t.id asc`,
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
 } as const;

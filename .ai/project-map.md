@@ -10,6 +10,7 @@ to inspect next without reading the whole repository.
 - Generated at: `2026-11-07T11:24:59+00:00`
 - Generated at: `2026-11-07T09:56:43+00:00`
 - Generated at: `2026-11-07T11:29:39+00:00`
+- Generated at: `2026-11-07T11:30:25+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -79,6 +80,7 @@ backend/
       chat/
       comparison-items/
       comparisons/
+      coach/
       courses/
       errors/
       exam/
@@ -131,6 +133,9 @@ backend/
     coach-guard.test.ts
     coach-guard.ts
     comptia-v8-coverage.test.ts
+    coach-plan.dbtest.ts
+    coach-plan.test.ts
+    coach-quiz.ts
     db.ts
     email.ts
     exam-blueprint.ts
@@ -156,6 +161,7 @@ backend/
     lesson-experience.dbtest.ts
     lesson-experience.test.ts
     lesson-experience.ts
+    learner-profile.ts
     lesson-generation.ts
     lesson-progress-store.ts
     lesson-progress-tombstone.dbtest.ts
@@ -173,6 +179,8 @@ backend/
     mastery.ts
     pbq-scenarios.dbtest.ts
     pbq-scenarios.ts
+    placement.ts
+    practice-attempts.ts
     progress-sql.ts
     prompts.test.ts
     prompts.ts
@@ -183,6 +191,9 @@ backend/
     rich-feedback.dbtest.ts
     schema-status.test.ts
     schema-status.ts
+    study-plan-store.ts
+    study-plan.test.ts
+    study-plan.ts
     study-sessions.ts
     text-input.ts
     understanding-ai.ts
@@ -253,6 +264,7 @@ backend/
       030_hardening_indexes.sql
       036_pbq_generation_claims.sql
       040_deep_understanding.sql
+      039_coach_plan.sql
     seed/
       tracks/
       catalog.ts
@@ -333,6 +345,7 @@ mobile/
       googleSignIn.ts
     components/
       CourseCard.tsx
+      CoursePlanPanel.tsx
       DisclaimerGate.tsx
       ExamQuestion.tsx
       feedback.tsx
@@ -379,6 +392,8 @@ mobile/
       regenerateError.test.ts
       regenerateError.ts
       secureStorage.ts
+      studyPlan.test.ts
+      studyPlan.ts
       theme.ts
       time.test.ts
       time.ts
@@ -390,6 +405,7 @@ mobile/
     types/
       exam.ts
       index.ts
+      plan.ts
     updates/
       useAppUpdates.ts
   .gitignore
