@@ -5,6 +5,7 @@ adopter project's repository structure so an assistant can choose where
 to inspect next without reading the whole repository.
 
 - Generated at: `2026-11-07T11:08:23+00:00`
+- Generated at: `2026-11-07T11:18:04+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -136,6 +137,7 @@ backend/
     mastery-integrity.dbtest.ts
     mastery-model.dbtest.ts
     mastery-put-removed.dbtest.ts
+    mastery-recompute-race.dbtest.ts
     mastery-recompute.dbtest.ts
     mastery.test.ts
     mastery.ts
@@ -223,6 +225,7 @@ docs/
   catalog-backlog.md
   catalog-builder-agent.md
   catalog-review-agent.md
+  deploy-runbook-mastery.md
   education-taxonomy.md
 managed-agents/
   agents/
