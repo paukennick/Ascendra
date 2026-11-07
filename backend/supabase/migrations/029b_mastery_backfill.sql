@@ -1,22 +1,39 @@
 -- REQ-097, part 2 of 029: back up mastery and review state, backfill the new
 -- columns from history, and recompute every learner's mastery under the rule
--- in 029_mastery_recompute.sql. Read that header first, including the deploy
--- order: after deploying the code, run `select recompute_mastery()` once.
+-- in 029_mastery_recompute.sql. Read that header first. Deploy and rollback
+-- order: docs/deploy-runbook-mastery.md (after deploying the backend, run
+-- `call recompute_mastery_batched();`).
+--
+-- RUN IT IN A QUIET WINDOW (low traffic), straight before the backend deploy
+-- (FAIL-181: the lock description and timing below were re-measured).
 --
 -- LOCKING. Kept apart from 029 so the slow part holds no lock that blocks
 -- reads. The runner (supabase/apply-migration.ts) sorts file names and
 -- applies each file in its own transaction, so this runs straight after 029
 -- ('_' sorts before 'b') and before 030, and is recorded in
--- schema_migrations as 029b_mastery_backfill.sql. Being one transaction, it
--- cannot commit in batches; what it holds instead:
---   - attempts, error_log: ROW EXCLUSIVE and row locks on the rows it
---     updates. Reads of every table, and inserts, are not blocked.
---   - mastery: row locks on the rows the recompute changes; a live grade of
---     one of those pairs waits until this commits.
--- Measured on a 1.9M-attempt / 320k-mastery fixture (local Postgres 16):
--- about 52-61 s over two runs, with reads of attempts, error_log and mastery, and attempts
--- inserts, all answering within 0.5 s throughout. Before the split, 029 took
--- 44 s holding ACCESS EXCLUSIVE on attempts, and those reads timed out.
+-- schema_migrations as 029b_mastery_backfill.sql. /api/health and
+-- `npm run migrate -- --status` report it missing until mastery_backup_029
+-- exists (FAIL-119). Being one transaction, it cannot commit in batches; what
+-- it holds until it commits:
+--   - attempts, error_log: ROW EXCLUSIVE and row locks on the rows the
+--     backfills update. Reads of every table, and inserts, are not blocked.
+--   - mastery: a row lock on every row whose level, score or evidence text
+--     changes. Rows already equal to the rule are skipped before any lock
+--     (FAIL-180). On the FIRST run on real data that is still nearly every
+--     row with graded history: the evidence text is new, so every row the old
+--     code wrote differs. A grade of a locked pair waits until this commits
+--     (the new grader takes the pair's advisory lock, released per pair here,
+--     then waits on the row). The old code, still live during this run, does
+--     not take the advisory lock; a grade it writes in this window is
+--     re-derived by the batched recompute after the deploy.
+-- Measured on a 1.9M-attempt / 320k-mastery fixture (local Postgres 16), every
+-- mastery row needing a change: 58 s in all (the recompute about half of it).
+-- Concurrent reads of attempts, error_log and mastery answered in 21 ms or
+-- less, attempt and review-entry inserts in 135 ms or less; a write to a
+-- mastery row the run had already changed waited until the commit (a 30 s
+-- statement timeout fired once). A re-run changes and locks nothing. Before
+-- the split, 029 took 44 s holding ACCESS EXCLUSIVE on attempts, and those
+-- reads timed out.
 --
 -- ORDER OF WORK, and why it is safe to run twice:
 --   1. BACKUP of mastery and review state, before anything changes. One row
@@ -43,11 +60,14 @@
 --
 -- RESTORE (puts mastery back to what it was just before this migration;
 -- only meaningful together with rolling the code back, because the next
--- graded answer recomputes from the new rules). It only touches rows whose
--- updated_at is not later than their backed_up_at. A row changed after the
--- backup holds real progress (a graded answer, or a later recompute_mastery()
--- call) and is left as it is. Rows the recompute created are deleted if
--- untouched since, which reads as Not started, as before.
+-- graded answer recomputes from the new rules -- runbook, "Rollback"). It
+-- only touches rows whose updated_at is not later than their backed_up_at. A
+-- row changed after the backup holds real progress (a graded answer, or a
+-- later recompute) and is left as it is. Rows the recompute created are
+-- deleted if untouched since, which reads as Not started, as before.
+-- Each statement below is complete on its own: safe to run one at a time (in
+-- either order), to stop between them, and to run again. Rows that already
+-- hold the backed-up values are skipped (FAIL-185).
 --
 --   begin;
 --   update mastery m
@@ -55,12 +75,21 @@
 --          evidence = b.evidence, updated_at = b.updated_at
 --     from mastery_backup_029 b
 --    where b.mastery_id = m.id and not b.created_by_029
---      and m.updated_at <= b.backed_up_at;
+--      and m.updated_at <= b.backed_up_at
+--      and (m.status, m.score_0_4, m.evidence, m.updated_at)
+--          is distinct from (b.status, b.score_0_4, b.evidence, b.updated_at);
 --   delete from mastery m
 --    using mastery_backup_029 b
 --    where b.mastery_id = m.id and b.created_by_029
 --      and m.updated_at <= b.backed_up_at;
 --   commit;
+--
+-- DROP THE BACKUPS after 30 days (by hand, never automatic; runbook step
+-- "Cleanup"), once a rollback is no longer on the table:
+--   drop table if exists mastery_backup_029;
+--   drop table if exists error_log_backup_029;
+-- Dropping them makes /api/health report 029b as missing; remove the
+-- 029b probe in backend/lib/schema-status.ts in the same change.
 --
 -- To see whose level changed:
 --   select b.user_id, b.objective_id, b.status as before, m.status as after
