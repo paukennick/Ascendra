@@ -22,6 +22,11 @@ export type AiPurpose =
   | "pbq_grade"
   | "chat"
   | "guess_feedback"
+  // REQ-108: Today's review and unit checks.
+  | "review_generate"
+  | "review_grade"
+  | "unitcheck_generate"
+  | "unitcheck_grade"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

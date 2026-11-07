@@ -146,7 +146,7 @@ export interface Attempt {
   unit_title?: string;
   // REQ-075: lets History navigate straight into the objective's lesson.
   track_id?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
   stage: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -241,4 +241,74 @@ export interface SupportRequest {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// REQ-108: Today's review, unit checks and term coverage.
+export interface ReviewToday {
+  dueCount: number;
+  forToday: number;
+  nextDueOn: string | null;
+  unitChecks: { unitId: string; unitTitle: string; trackId: string; trackTitle: string; lastVerdict: string | null }[];
+}
+
+export interface ReviewSessionItem {
+  position: number;
+  objectiveId: string;
+  objectiveTitle: string;
+  unitTitle: string;
+  trackTitle: string;
+  question: string;
+  answered: boolean;
+  verdict: "correct" | "partial" | "incorrect" | null;
+}
+
+export interface ReviewSession {
+  id: string;
+  gentleStart: boolean;
+  total: number;
+  answered: number;
+  items: ReviewSessionItem[];
+}
+
+export interface ReviewAnswerResult {
+  verdict: "correct" | "partial" | "incorrect";
+  feedback: string;
+  missedParts: string[];
+  assisted: boolean;
+  correctIndex: number | null;
+  correctAnswer: string | null;
+  why: string | null;
+  terms: string[];
+  termsCredited?: string[];
+  nextDueOn?: string | null;
+  advanced?: boolean;
+  replayed?: boolean;
+}
+
+export interface UnitCheckStatus {
+  unitId: string;
+  unitTitle: string;
+  trackId: string;
+  gate: string | null;
+  total: number;
+  studied: number;
+  eligible: boolean;
+  passed: boolean;
+  lastVerdict: string | null;
+}
+
+export interface UnitCheck {
+  id: string;
+  unit_id: string;
+  title: string;
+  scenario: string;
+  sub_parts: string[];
+}
+
+export interface TermCoverage {
+  objectiveId: string;
+  title: string;
+  unitTitle: string;
+  trackTitle: string;
+  terms: { term: string; covered: boolean }[];
 }

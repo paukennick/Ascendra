@@ -20,6 +20,13 @@ export const EXPORT_SECTIONS = {
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc",
   courseAcknowledgements: "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc",
+  // REQ-108: the review loop.
+  reviewSchedule: "select * from review_schedule where user_id = $1 order by enrolled_at asc",
+  reviewLog: "select * from review_log where user_id = $1 order by reviewed_at asc",
+  reviewSessions: "select * from review_sessions where user_id = $1 order by created_at asc",
+  reviewSessionItems:
+    "select si.* from review_session_items si join review_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at, si.position",
+  termCoverage: "select * from learner_term_coverage where user_id = $1 order by first_correct_at asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

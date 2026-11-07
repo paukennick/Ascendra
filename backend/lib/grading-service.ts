@@ -25,7 +25,7 @@ export interface AttemptInput {
   unitId?: string | null;
   objectiveId?: string | null;
   pbqScenarioId?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
   stage?: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -38,6 +38,17 @@ export interface AttemptInput {
   // REQ-089: one id per submitted answer from the app. A second request
   // with the same id is a retry, not a new attempt (see findClientAttempt).
   clientAttemptId?: string | null;
+  // REQ-108: explicit assessment type (attempts.assessment_type), so a kind
+  // other than lesson/pbq counts in the weighted model. Null: derived.
+  assessmentType?: string | null;
+  // REQ-108: for kinds other than lesson, the caller decides the assist
+  // (e.g. a review answer typed after the choices were shown is a hint).
+  // Lesson answers always derive it here (assistReasonFor).
+  assistReason?: AssistReason | null;
+  unitCheckItemId?: string | null;
+  // REQ-108: false skips the error_log row for a miss (unit checks are
+  // offered again from Review instead).
+  errorLog?: boolean;
 }
 
 export type AssistReason = "hint" | "repeat";
@@ -194,7 +205,9 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
   return withTransaction((tx) => recordAttemptTx(tx, input));
 }
 
-async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
+// Exported for callers that add their own writes to the same transaction
+// (REQ-108: lib/review-store.ts).
+export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const query = tx.query.bind(tx);
   const userId = input.userId;
 
@@ -207,13 +220,14 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
 
   // REQ-097: was this answer given with help? Decided here, under the lock
   // above, so two first answers racing can't both count as the first.
-  const assistReason = await assistReasonFor(query, input);
+  const assistReason = input.kind === "lesson" ? await assistReasonFor(query, input) : input.assistReason ?? null;
 
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
+       assessment_type${input.unitCheckItemId ? ", unit_check_item_id" : ""})
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18${input.unitCheckItemId ? ",$19" : ""})
      returning *`,
     [
       userId,
@@ -233,6 +247,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.clientAttemptId ?? null,
       assistReason !== null,
       assistReason,
+      input.assessmentType ?? null,
+      // unit_check_item_id (037) is only named when set, so lesson and PBQ
+      // grading keep working on a database 037 has not reached yet.
+      ...(input.unitCheckItemId ? [input.unitCheckItemId] : []),
     ]
   );
   const attempt = attemptRows[0];
@@ -309,7 +327,7 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
 
   // Any non-correct verdict goes into the spaced-review error log (1/7/21 days out),
   // seeded with review_stage 0 (first review due in 1 day).
-  if (input.verdict !== "correct") {
+  if (input.verdict !== "correct" && input.errorLog !== false) {
     const next = new Date();
     next.setDate(next.getDate() + 1);
     await query(

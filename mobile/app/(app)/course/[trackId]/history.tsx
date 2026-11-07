@@ -7,7 +7,7 @@ import { Body, Card, Chip, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, 
 import { spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 
-const KINDS = ["all", "lesson", "quiz", "pbq", "unitcheck", "lab"] as const;
+const KINDS = ["all", "lesson", "review", "pbq", "unitcheck", "quiz", "lab"] as const;
 
 
 export default function HistoryScreen() {
