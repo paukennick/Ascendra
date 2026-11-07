@@ -1,4 +1,4 @@
-import { query, queryOne } from "@/lib/db";
+import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import {
   accuracyFromAttempts,
   suggestStatus,
@@ -74,8 +74,24 @@ export function isDuplicateClientAttempt(err: unknown): boolean {
   return e?.code === "23505" && (e.constraint ?? "").includes("client_attempt");
 }
 
+// REQ-089: the attempt, the mastery update and the review-log changes are
+// one transaction. With client attempt ids, a retry replays the stored
+// attempt instead of re-running this -- so a write that half-succeeded
+// (attempt saved, mastery not) would otherwise stay half-done for good.
 export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
+  return withTransaction((tx) => recordAttemptTx(tx, input));
+}
+
+async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
+  const query = tx.query.bind(tx);
   const userId = input.userId;
+
+  // Serialise grades for the same learner and objective, so two at once
+  // can't each compute accuracy without the other's attempt and have the
+  // later write overwrite mastery with a stale status. Released at commit.
+  if (input.objectiveId) {
+    await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade:${userId}:${input.objectiveId}`]);
+  }
 
   const attemptRows = await query(
     `insert into attempts
