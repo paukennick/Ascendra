@@ -33,6 +33,8 @@ export const EXPORT_SECTIONS = {
   courseAcknowledgements:
     "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc, id asc",
+  // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
+  lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

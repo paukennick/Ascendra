@@ -91,6 +91,17 @@ describe("presentationSeed", () => {
     assert.equal(choiceOrderKey({ AUTH_JWT_SECRET: "s" }).length, 32);
     assert.throws(() => choiceOrderKey({}), /CHOICE_ORDER_SECRET or AUTH_JWT_SECRET/);
   });
+
+  // FAIL-186: production must not fall back to a key derived from the JWT secret.
+  test("production requires CHOICE_ORDER_SECRET; development keeps the derived fallback", () => {
+    assert.throws(
+      () => choiceOrderKey({ NODE_ENV: "production", AUTH_JWT_SECRET: "s" }),
+      /CHOICE_ORDER_SECRET is not set\. It is required in production/
+    );
+    assert.deepEqual(choiceOrderKey({ NODE_ENV: "production", CHOICE_ORDER_SECRET: "own" }), Buffer.from("own"));
+    assert.equal(choiceOrderKey({ NODE_ENV: "development", AUTH_JWT_SECRET: "s" }).length, 32);
+    assert.equal(choiceOrderKey({ NODE_ENV: "test", AUTH_JWT_SECRET: "s" }).length, 32);
+  });
 });
 
 test("lessonItemKey depends on stage and question", () => {

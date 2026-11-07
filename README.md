@@ -128,6 +128,8 @@ Set these in Vercel (**Project Settings → Environment Variables**, all three e
 
 Import the repo in Vercel with **Root Directory** set to `backend`. Sanity check after deploy: `GET /api/health` → `{"status":"ok"}`.
 
+**Deploying migrations 029/029b (mastery integrity, REQ-097):** follow [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) step by step — migrations before the backend deploy, then the batched recompute, then the app update, and the reverse order to roll back. Production also needs `CHOICE_ORDER_SECRET` set (see `backend/.env.example`).
+
 ### 4. Mobile app
 
 ```bash
@@ -155,6 +157,7 @@ Staying current is the harder, ongoing half. A **Claude API Managed Agent** runs
 | [CHANGELOG.md](CHANGELOG.md) | Every requirement (`REQ-###`), newest first, with the reasoning behind it |
 | [docs/education-taxonomy.md](docs/education-taxonomy.md) | Category/subcategory model, freshness models, publication rules |
 | [docs/catalog-review-agent.md](docs/catalog-review-agent.md) | The quarterly agent's resources, credential rotation, manual testing, troubleshooting |
+| [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) | Deploy and rollback order for migrations 029/029b (mastery integrity), backup cleanup |
 | [`.ai/`](.ai/context-brief.md) | AI-assistant working rules — requirement tracking, playbooks, project map |
 | `backend/AGENTS.md`, `backend/CLAUDE.md` | Backend-specific notes for AI coding assistants (this Next.js version has its own quirks) |
 

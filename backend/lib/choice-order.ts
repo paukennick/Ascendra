@@ -41,9 +41,21 @@ export function presentationOrder(seed: string, n: number): number[] {
 // AUTH_JWT_SECRET (an HMAC of a fixed label, so the JWT secret itself is
 // never used directly for a second purpose). Rotating either reshuffles
 // every learner's choices, which only matters for a lesson open mid-answer.
+//
+// FAIL-186: in production (NODE_ENV=production) CHOICE_ORDER_SECRET is
+// required and the derived fallback is refused, so the shuffle key can't
+// silently follow a JWT-secret rotation or be shared with it. Checked on first
+// use (the first lesson or grade), with a message naming the variable. The
+// fallback stays for development and tests.
 export function choiceOrderKey(env: Record<string, string | undefined> = process.env): Buffer {
   const own = env.CHOICE_ORDER_SECRET;
   if (own) return Buffer.from(own, "utf8");
+  if (env.NODE_ENV === "production") {
+    throw new Error(
+      "CHOICE_ORDER_SECRET is not set. It is required in production (lesson answer-choice order); " +
+        "set it in Vercel -> Project Settings -> Environment Variables (see backend/.env.example)."
+    );
+  }
   const jwt = env.AUTH_JWT_SECRET;
   if (!jwt) throw new Error("CHOICE_ORDER_SECRET or AUTH_JWT_SECRET must be set to order lesson choices.");
   return createHmac("sha256", jwt).update("ascendra/choice-order/v1", "utf8").digest();
