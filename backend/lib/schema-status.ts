@@ -63,6 +63,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                              where n.nspname = 'public' and c.relkind in ('r', 'p') and not c.relrowsecurity) as ok`,
   },
   {
+    // REQ-096 (PR #12): the Try it step's "I did it" writes format 'lab'.
+    migration: "053_attempt_format_lab.sql",
+    what: "attempt format 'lab' (the lesson's Try it step, POST /api/objectives/:id/lab)",
+    sql: `select exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                     where t.typname = 'attempt_format' and e.enumlabel = 'lab') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

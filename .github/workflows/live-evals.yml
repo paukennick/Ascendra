@@ -78,6 +78,9 @@ jobs:
             echo "::error::Add the repository secret ANTHROPIC_API_KEY first (Settings -> Secrets and variables -> Actions)."
             exit 1
           fi
+      - name: Supabase's API roles (026 and 052 revoke from them)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/supabase-roles.sql
+        working-directory: backend
       - name: Apply every migration
         run: npm run migrate -- --all
         working-directory: backend

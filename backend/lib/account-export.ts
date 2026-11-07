@@ -102,7 +102,7 @@ export const EXPORT_SECTIONS = {
   // to, how and when (legal_acceptances, migration 027; source from 052).
   // Then REQ-119's first-run record, learning events and exam results.
   legalAcceptances:
-    "select document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
+    "select user_id, document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",

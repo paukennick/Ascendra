@@ -4582,6 +4582,51 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-138",
+      "category": "release",
+      "title": "Release 2026-11-07: reconcile line A and line B into one release with a tested rollback",
+      "description": "Merge line B (PRs #5-#13, REQ-088..REQ-099, migrations 025-027 already run in production) into integration/all (line A, PRs #14-#39). B's ids win: A's migrations 025/026/027 become 027a/027b/027c, A's REQ-088..095/097..099 become REQ-126..136 and A's REQ-096 REQ-137, A's FAIL-017..019 become FAIL-520..522; #12's 028 becomes 053. Where both built the same feature, one data model with both sides' guarantees (migration 052: legal_acceptances with A's source, option reasons, RLS everywhere). backend/scripts/rehearse-production-migration.sh rebuilds production's state and proves forward migration, old-code compatibility, rollback and a fresh build; scripts/rollback-release-2026-11-07.sql is the tested down path; docs/release-2026-11-07.md and docs/deploy-runbook-integration.md carry the inventory and the ordered deploy and rollback steps.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations",
+        "backend/scripts",
+        "backend/lib",
+        "backend/app/api",
+        "mobile/src",
+        "mobile/app",
+        "docs/release-2026-11-07.md",
+        "docs/deploy-runbook-integration.md",
+        ".github/workflows"
+      ],
+      "acceptance_criteria": [
+        "Production-state rehearsal: --status lists exactly the new files; --all; schema current; drift 0",
+        "Master @ c3e13ab routes work on the migrated schema",
+        "Rollback script restores the production-state schema except enum values and master routes work again",
+        "Fresh database identical to migrated production",
+        "All tests and omni gate pass"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on fresh and rehearsal databases",
+        "mobile typecheck",
+        "mobile tests",
+        "rehearsal script",
+        "omni failure check",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/release-2026-11-07.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "Not run against production; production's real row counts and ledger contents must be checked at step 1 of the runbook",
+        "Enum values cannot be rolled back (harmless to old code)"
+      ]
     }
   ]
 }

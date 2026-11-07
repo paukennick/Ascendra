@@ -1,4 +1,4 @@
-# Deploy runbook: integration release (migrations 029 to 050)
+# Deploy runbook: integration release (migrations 027a to 053)
 
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
@@ -7,6 +7,172 @@ than one of the migrations below, which is the case for the
 mastery runbook's "Before you start" still applies: a quiet window,
 `CHOICE_ORDER_SECRET` set in Vercel before the backend deploy, and knowing
 how your Vercel project promotes a deploy.
+
+**Shipping `release/2026-11-07`** (line A + line B, docs/release-2026-11-07.md):
+follow the next section from top to bottom. The sections after it explain
+individual migrations and stay true; where they give an order, the next
+section's order wins.
+
+## Release 2026-11-07: the ordered deploy, and the way back
+
+Production today: master @ c3e13ab's code on Vercel; a database with
+001-024 plus line B's 025/026/027, whose `schema_migrations` lists only
+023-027; 3 accounts and about 25 attempts. Times below are for that size;
+the 1.9-million-attempt fixture timings further down are for scale only.
+Every step was rehearsed end to end on a copy of that state
+(`backend/scripts/rehearse-production-migration.sh`, CI job "Database
+(production-state rehearsal and rollback)"); nothing here has been run
+against production.
+
+`$DATABASE_URL` is the production database over the **direct** connection
+(port 5432, `sslmode=require`), not the transaction pooler; every command
+runs from `backend/`.
+
+### 0. Before the window (any time, ~10 min)
+
+- Write down the deployment Vercel would roll back to: Vercel -> the backend
+  project -> Deployments -> filter "Production" -> the one marked Current,
+  whose commit is **c3e13ab** ("Merge pull request #4 from
+  paukennick/catalog/ccrn-health-informatics"). Note its deployment URL
+  (`<project>-<hash>-<team>.vercel.app`) and ID; that is "previous" in
+  step 7.
+- Vercel environment variables (Production): `CHOICE_ORDER_SECRET` (new, a
+  long random value; mastery runbook), `CRON_SECRET` (new, a long random
+  value; the daily purge in `vercel.json` refuses to run without it). Check
+  no variable still has its `.env.example` placeholder: the new backend
+  refuses to start if one does (`lib/env-check.ts`).
+- `psql` and `pg_dump` 16 or newer on the machine you run from.
+
+### 1. Backup (~1 min at this size)
+
+Supabase's Free plan has no point-in-time recovery and its daily backups
+cannot be downloaded, so take your own, of the app's schema only:
+
+```sh
+pg_dump "$DATABASE_URL" -Fc --no-owner --no-privileges --schema=public \
+  -f ascendra-pre-20261107.dump
+pg_restore --list ascendra-pre-20261107.dump | grep -c 'TABLE DATA'   # one per table: 32 before the release
+```
+
+Keep the file off the laptop as well (it holds password hashes and
+learners' answers: encrypted storage only, delete after 30 days).
+
+### 2. Baseline the ledger and check the starting point (~1 min)
+
+```sh
+npm ci
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/release-2026-11-07-baseline-ledger.sql
+npm run migrate -- --status
+```
+
+The baseline records 001-027 as applied -- only if the database really has
+the objects through 024 and 027, otherwise it stops with an error and
+changes nothing. Without it, `--all` would try to re-run 001-022, which
+were pasted into the SQL editor and never recorded. `--status` must then end
+with "Not in the schema_migrations ledger (34)" listing exactly
+027a_lesson_progress.sql through 053_attempt_format_lab.sql (exit code 2,
+"Schema is MISSING ..."). Anything else listed: stop and ask.
+
+### 3. Migrate (~1 min at this size; 1 s on the local copy)
+
+```sh
+npm run migrate -- --all
+npm run migrate -- --status    # "Schema is current" and "every stored level matches"
+```
+
+Each file is its own transaction; a failure rolls that file back and stops
+(re-run `--all` after fixing the cause; recorded files are skipped). At
+this size step 1a (building 046's indexes concurrently) and the quiet
+window are not needed: the backfills touch nine mastery rows. The old
+backend keeps working on the new schema (rehearsal step C: 39/39 of
+master's routes), so there is no outage between steps 3 and 4.
+
+### 4. Deploy the backend (~3-5 min; Vercel build time, not measured here)
+
+Merge `release/2026-11-07` into master; Vercel builds and promotes it.
+Check the new deployment is Current and its commit is the merge commit.
+
+### 5. Seed the catalog (minutes over the network; 4 s locally)
+
+```sh
+npm run seed
+```
+
+Retitles the CompTIA courses, adds the new courses, units, objectives and
+labs, and sets `retired_at` on the CS0-003 units. Safe to re-run.
+
+### 6. Recompute and verify (~5 min)
+
+```sh
+psql "$DATABASE_URL" -c "call recompute_mastery_batched();"
+npm run migrate -- --status    # current; every stored level matches
+curl -fsS https://<backend>/api/health
+```
+
+In the app (signed in): you are asked once to agree to the updated Terms
+and Privacy Policy; a lesson check grades; Today's review opens; Account ->
+Export my data downloads and lists `legalAcceptances`; Support -> a ticket
+sends. The mobile app needs a store build for the new native module
+(section "Forward order" step 5 below); until learners install it the old
+app keeps working against the new backend.
+
+**Total: about 15-20 minutes**, most of it waiting for the Vercel build and
+the seed.
+
+### 7. Rollback, if needed (the way back, in order)
+
+1. **Code (~1 min), always enough on its own.** Vercel -> Deployments ->
+   the c3e13ab deployment noted in step 0 -> "..." -> Instant Rollback
+   (or `vercel rollback <that deployment URL>`). Every release migration is
+   additive and the old backend was tested on the migrated schema, so leave
+   the database as it is. Vercel stops auto-promoting new master deploys
+   after an Instant Rollback until you promote one again. The release's
+   tables, columns and enum values stay and are ignored; the old code grades
+   with its own mastery rule from then on (each graded answer re-derives
+   that objective's level), so levels drift back toward master's rule.
+   Rolling forward later: promote the release deployment, then step 6.
+2. **Mastery levels (optional, ~1 min).** To put pre-release levels back on
+   rows nobody has changed since, run the RESTORE blocks newest first (045b,
+   041b, 031b, 029b headers) -- or run step 3, which does exactly that first.
+3. **Schema (only if the release's schema itself must go; destroys the
+   release's data).** After a fresh `pg_dump` (step 1 again, new file name):
+   `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rollback-release-2026-11-07.sql`.
+   One transaction: restores levels, puts B's 025 columns and master's two
+   rollup views back, drops the release's triggers, functions, 55 tables and
+   the columns it added to pre-release tables, and removes 027a-053 from the
+   ledger. Rehearsed: afterwards the schema equals the pre-release one apart
+   from three enum values Postgres cannot drop (`attempt_kind` review and
+   labtask, `attempt_format` lab; old code never writes them), and master's
+   routes pass. To roll forward again: step 2's `--all`, then steps 5-6.
+4. **Full restore to the moment of the backup (loses everything since).**
+   Only after the code rollback and step 3:
+   ```sh
+   pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
+     -d "$DATABASE_URL" ascendra-pre-20261107.dump
+   ```
+   Rehearsed: schema (enum values included) and row counts equal the
+   backup, and master's routes pass.
+
+Down path per migration group (what step 3 removes; each group is additive,
+so leaving it in place is always safe for the old code):
+
+| Group | Removes | Data lost |
+|---|---|---|
+| 027a-027c, 032 | lesson_progress (+tombstones), attempts.client_attempt_id, chat_messages.client_message_id, lesson_content_overrides, lesson_generation_claims | saved lesson positions, per-learner regenerated lessons |
+| 028, 043 | ai_calls | AI call counts |
+| 029-031b, 041-041b, 045-045b | assisted / assist_reason, error_log.pbq_scenario_id, lesson_hint_reveals, mastery_model_params, assessment_types, attempts.assessment_type, the rule functions and `recompute_mastery_batched`, grading_claims, the backups (after restoring levels from them) | hint reveals; levels revert where untouched |
+| 030, 046 | performance indexes | none |
+| 033 | retired_at on units and objectives (views put back first) | retirement dates (the old code lists retired units again) |
+| 034-035 | option reasons, model_answer / fix_next / retry_of, teach_cards, lab_report_questions, lab_objective_id | rich feedback, revisions, lab reports |
+| 036, 038, 047 | pbq_generation_claims, exam_items / exam_sessions / exam_session_items | practice exams |
+| 037-037b | review loop tables, unit_check_items, the enrol trigger | Today's review history and schedule |
+| 039-040 | study plans, placement, Quiz me, comparison cards, prerequisites, misconceptions | those learners' records |
+| 042 | item_flags / item_status / item_holdbacks / item_quality_params, voided_at | question reports and quarantines |
+| 044 | token_version, totp_pending_reauth_at, email-change cancel columns, set_password, two auth_events indexes | pending email-change cancel links |
+| 048 | learner_onboarding, learner_events (+5 triggers), exam_outcomes | milestones, first-run state, reported exam results |
+| 049 | entitlements, billing_events, free_course_choice, allowance_uses | plan records (none while billing is off) |
+| 050-051, 053 | labs, lab_runs, lab_run_steps, attempts.lab_id, lab_disclaimer_acknowledgements (enum values stay) | lab runs and acknowledgements |
+| 052 | legal_acceptances.source; B's *_choice_feedback columns come back, filled from option reasons | how each acceptance was given |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the direct connection (port 5432), not the
@@ -24,6 +190,8 @@ including `psql` start-up (about 50-80 ms of each figure).
 
 | File | What it does | Fixture time | Quiet window? | Reads / inserts during it |
 |---|---|---|---|---|
+| 025, 026, 027 | line B (REQ-089, REQ-092, REQ-093): `*_choice_feedback`, RLS lock-out, legal_acceptances and lesson reports. **Already in production**; the ledger baseline (release step 2) records them | -- | -- | -- |
+| 027a, 027b, 027c, 028 | line A's lesson positions, chat message ids, per-learner lessons and claims, AI call log (were 025-028 on integration/all) | instant at production's size | no | new tables, two partial unique indexes |
 | 029 | assisted attempts, hint reveals, the 029 rule, recompute functions | 0.9 s | no | ≤ 120 ms / ≤ 340 ms |
 | **029b** | backup, backfills, first recompute (one transaction) | **69 s** | **yes** | ≤ 180 ms / ≤ 380 ms, none failed |
 | 030 | two indexes (chat, study sessions) | 0.3 s | no | (too short to sample) |
@@ -53,6 +221,8 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 050 | REQ-123: verifiable labs -- `labs`, `lab_runs`, `lab_run_steps`, attempt kind `labtask`, assessment types `lab_build` / `lab_case`, `attempts.lab_id` (no foreign key) with a NOT VALID check, the `lab` item kind. No rule change, no recompute. See "Migration 050" below | not timed on the fixture (new tables; one partial index on attempts) | no, if its index is built CONCURRENTLY first | the partial index `idx_attempts_user_lab` blocks attempt inserts while it builds inside the migration; build it first (below) and the migration skips it |
 | (REQ-124, no migration) | Plans and labs combined with Nick's decisions: no schema change -- a downgrade's kept paid period is an extra `entitlements` row (`external_id` `held:...`); 80 authored labs come from `npm run seed` (22 new CCRN Pediatric and Neonatal labs, all `needs_expert_review`). Deploy after 049 and 050. With `BILLING_ENABLED` off nothing a learner sees changes except that labs on clinical and fitness courses are never served unreviewed, even with `LABS_SERVE_UNREVIEWED` on, and a first-try lab run now moves the objective's review schedule. At switch-on run `npm run billing:grant -- --launch-comp` (dry run), then `--apply` (docs/billing.md, "Turning it on") | not applicable | no | none |
 | 051 | REQ-125: `lab_disclaimer_acknowledgements` (learner, family `clinical`/`fitness`, version, time; on delete cascade) -- the one-time practice-lab disclaimer acknowledgement before a learner's first clinical or fitness lab. One new empty table, additive. Deploy with the backend that reads it: from this backend on, unreviewed labs are served by default in every subject (`LABS_SERVE_UNREVIEWED` defaults on; set it `off` to keep serving approved labs only), and starting a clinical or fitness lab returns 403 until the learner accepts the disclaimer. Schema probe `051_lab_disclaimer_ack.sql` in `lib/schema-status.ts` | instant (empty table) | no | none |
+| 052 | Release 2026-11-07 reconcile (REQ-138): `legal_acceptances.source`, `terms_acceptances` folded in and dropped, `*_choice_feedback` folded into `*_option_reasons` and dropped, RLS on and anon/authenticated stripped for every table | instant at production's size | no | catalog changes and a few rows |
+| 053 | REQ-096 (#12, was 028 on its branch): attempt format `lab` for the Try it self-report | instant | no | enum value |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
@@ -88,7 +258,7 @@ so a re-run locks nothing. The schema files hold ACCESS EXCLUSIVE only for an
 instant and give up after `lock_timeout` 5 s rather than queue reads behind a
 long query: if one fails on a lock timeout, run `--all` again.
 
-## Forward order
+## Forward order (integration/all before the merge; the release follows the section above)
 
 1. **Check the starting point.** `npm run migrate -- --status`. Expect the
    files above (from wherever production is) to be listed as missing, and
@@ -146,7 +316,7 @@ long query: if one fails on a lock timeout, run `--all` again.
      comparison card and "Quiz me" each record an answer; the study plan's
      mock-exam step opens Practice exam.
 
-## Rollback order (reverse)
+## Rollback order (reverse; for the release, step 7 above)
 
 1. **App first.** Roll the OTA back (`npx eas update:rollback`, or republish
    the previous update group). The new app cannot grade against an old

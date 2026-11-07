@@ -11,12 +11,13 @@ import { join } from "node:path";
 import { query, queryOne, closePool, withTransaction } from "./db";
 import { signAccessToken } from "./auth/tokens";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
-import { CURRENT_TERMS_VERSION, recordSignupTermsAcceptance } from "./legal";
+import { CURRENT_TERMS_VERSION, LEGAL_VERSIONS, recordSignupTermsAcceptance, signupAcceptedVersion } from "./legal";
 import { buildAccountExport, EXPORT_SECTIONS } from "./account-export";
 import { MAX_OUTCOMES_PER_USER } from "./exam-outcomes";
 import { metricsSummary, formatMetrics } from "./metrics";
 import { GET as onboardingGet } from "../app/api/onboarding/route";
 import { POST as termsPost } from "../app/api/onboarding/terms/route";
+import { POST as legalAcceptPost } from "../app/api/legal/accept/route";
 import { POST as firstRunPost } from "../app/api/onboarding/first-run/route";
 import { GET as outcomesGet, POST as outcomesPost } from "../app/api/exam-outcomes/route";
 import { PATCH as outcomePatch, DELETE as outcomeDelete } from "../app/api/exam-outcomes/[id]/route";
@@ -109,13 +110,44 @@ describe("terms acceptance (H5)", () => {
     const first = s.terms.acceptedAt;
     s = await json(await termsPost(req(u, "/api/onboarding/terms", "POST", { version: CURRENT_TERMS_VERSION })));
     assert.equal(s.terms.acceptedAt, first);
-    const rows = await query(`select source from terms_acceptances where user_id = $1`, [u]);
-    assert.deepEqual(rows, [{ source: "prompt" }]);
+    // Merged 2026-11-07: one row per document in legal_acceptances (027 + 052).
+    const rows = await query(`select document, version, source from legal_acceptances where user_id = $1 order by document`, [u]);
+    assert.deepEqual(rows, [
+      { document: "privacy", version: LEGAL_VERSIONS.privacy, source: "prompt" },
+      { document: "terms", version: LEGAL_VERSIONS.terms, source: "prompt" },
+    ]);
+  });
+
+  test("line B's per-document form: one changed document is asked again on its own (REQ-093, merged)", async () => {
+    const u = await newUser();
+    await query(
+      `insert into legal_acceptances (user_id, document, version, source) values ($1, 'terms', $2, 'prompt'), ($1, 'privacy', '2020-01-01', 'prompt')`,
+      [u, LEGAL_VERSIONS.terms]
+    );
+    const s = await json(await onboardingGet(req(u, "/api/onboarding")));
+    assert.equal(s.terms.needsAcceptance, true);
+    assert.deepEqual(s.terms.pending, ["privacy"]);
+    // POST /api/legal/accept with both versions clears it, recorded as a prompt.
+    await json(await legalAcceptPost(req(u, "/api/legal/accept", "POST", { termsVersion: "2020-01-01", privacyVersion: LEGAL_VERSIONS.privacy })), 400);
+    await json(await legalAcceptPost(req(u, "/api/legal/accept", "POST", { termsVersion: LEGAL_VERSIONS.terms, privacyVersion: LEGAL_VERSIONS.privacy })));
+    const after = await json(await onboardingGet(req(u, "/api/onboarding")));
+    assert.equal(after.terms.needsAcceptance, false);
+    assert.deepEqual(after.terms.pending, []);
+  });
+
+  test("sign-up accepts either client form (signupAcceptedVersion)", () => {
+    assert.equal(signupAcceptedVersion({ acceptedTermsVersion: CURRENT_TERMS_VERSION }), CURRENT_TERMS_VERSION);
+    assert.equal(signupAcceptedVersion({ termsVersion: LEGAL_VERSIONS.terms, privacyVersion: LEGAL_VERSIONS.privacy }), CURRENT_TERMS_VERSION);
+    assert.equal(signupAcceptedVersion({ termsVersion: "2020-01-01", privacyVersion: LEGAL_VERSIONS.privacy }), undefined);
+    assert.equal(signupAcceptedVersion({}), undefined);
   });
 
   test("an account that accepted an older version is asked again", async () => {
     const u = await newUser();
-    await query(`insert into terms_acceptances (user_id, terms_version, source) values ($1, '2020-01-01', 'register')`, [u]);
+    await query(
+      `insert into legal_acceptances (user_id, document, version, source) values ($1, 'terms', '2020-01-01', 'register'), ($1, 'privacy', '2020-01-01', 'register')`,
+      [u]
+    );
     const s = await json(await onboardingGet(req(u, "/api/onboarding")));
     assert.equal(s.terms.needsAcceptance, true);
     assert.equal(s.terms.acceptedVersion, "2020-01-01");
@@ -128,11 +160,14 @@ describe("terms acceptance (H5)", () => {
     assert.equal(await recordSignupTermsAcceptance(a, CURRENT_TERMS_VERSION, "register"), true);
     assert.equal(await recordSignupTermsAcceptance(b, "2020-01-01", "google_signup"), false);
     assert.equal(await recordSignupTermsAcceptance(c, undefined, "register"), false);
-    const rows = await query<{ user_id: string; source: string; terms_version: string }>(
-      `select user_id, source, terms_version from terms_acceptances where user_id = any($1::uuid[])`,
+    const rows = await query<{ user_id: string; source: string; document: string; version: string }>(
+      `select user_id, source, document, version from legal_acceptances where user_id = any($1::uuid[]) order by document`,
       [[a, b, c]]
     );
-    assert.deepEqual(rows.map((r) => [r.user_id, r.source, r.terms_version]), [[a, "register", CURRENT_TERMS_VERSION]]);
+    assert.deepEqual(rows.map((r) => [r.user_id, r.source, r.document, r.version]), [
+      [a, "register", "privacy", LEGAL_VERSIONS.privacy],
+      [a, "register", "terms", LEGAL_VERSIONS.terms],
+    ]);
   });
 
   test("the register and Google sign-up routes both record the acceptance they are sent", () => {
@@ -341,7 +376,7 @@ describe("export and deletion", () => {
     assert.deepEqual(out.learnerEvents.map((e) => e.event).sort(), ["exam_outcome", "first_run_completed"]);
 
     await query(`delete from app_users where id = $1`, [u]);
-    for (const t of ["terms_acceptances", "learner_onboarding", "learner_events", "exam_outcomes"]) {
+    for (const t of ["legal_acceptances", "learner_onboarding", "learner_events", "exam_outcomes"]) {
       const n = await queryOne<{ n: number }>(`select count(*)::int as n from ${t} where user_id = $1`, [u]);
       assert.equal(n?.n, 0, t);
     }

@@ -77,6 +77,9 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
+      - name: Supabase's API roles (026 and 052 revoke from them)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/supabase-roles.sql
+        working-directory: backend
       - name: Apply every migration to an empty database
         run: npm run migrate -- --all
         working-directory: backend
@@ -124,6 +127,9 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
+      - name: Supabase's API roles (026 and 052 revoke from them)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/supabase-roles.sql
+        working-directory: backend
       - name: Apply 001-028 (the schema the backfills start from)
         working-directory: backend
         run: |
@@ -142,6 +148,43 @@ jobs:
         working-directory: backend
       - name: Backfills did real work and levels match the rule
         run: psql "$DATABASE_URL" -f scripts/ci/backfill-check.sql
+        working-directory: backend
+
+  # Release 2026-11-07: production is master @ c3e13ab's schema plus line B's
+  # 025-027. This rebuilds that state (master's own migrations, seed and
+  # routes making 3 accounts and 25 answers), then: the release's --status
+  # lists exactly its new files, --all, schema current with no mastery
+  # drift, the batched recompute, the release seed; master's routes still
+  # work on the migrated schema; the rollback script restores the
+  # production-state schema (enum values aside) and master's routes work
+  # again; and a fresh database ends identical. About 3 minutes.
+  rehearsal:
+    name: Database (production-state rehearsal and rollback)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      PGSSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needs master @ c3e13ab and line B's branch
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: bash scripts/rehearse-production-migration.sh
         working-directory: backend
 
   mobile:

@@ -7383,6 +7383,83 @@
       "prevention_rules": [],
       "prevention_notes": "Section name and query live in one record so they cannot drift apart; integration test checks each section's rows",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-523",
+      "date": "2026-11-07",
+      "title": "Line B's Try it self-report would break on line A's lab constraint",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Merging #12 as written: POST /api/objectives/:id/lab inserted a kind 'lab' attempt with objective_id set, which A's 035 check attempts_lab_not_mastery_evidence (kind <> 'lab' or objective_id is null) rejects, so every 'I did it' would 500; A's latestLabReport would also have shown the self-report as a lab report.",
+      "how_detected": "merge review of A's constraints against B's insert",
+      "root_cause": "The two lines modelled the same kind 'lab' attempt differently and were developed apart: B kept the objective in objective_id; A moved lab rows to lab_objective_id precisely so they can never be read as mastery evidence. A textual merge has no conflict there, so nothing flagged it.",
+      "requirement": "REQ-138",
+      "affected": [
+        "backend/lib/lab-attempts.ts",
+        "backend/lib/lesson-experience.ts"
+      ],
+      "fix_summary": "recordLabCompletion writes lab_objective_id with objective_id null and format 'lab'; latestLabReport skips format 'lab'; the Try it step follows A's lab rules (plan, clinical/fitness acknowledgement).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/release-merge.dbtest.ts",
+        "backend/lib/lab-attempts.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "When merging two lines, check every new INSERT against the other line's constraints on the same table; the release-merge dbtest runs the real insert against the merged schema.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-524",
+      "date": "2026-11-07",
+      "title": "Rollback could not drop retired_at: a pre-release view depends on it",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first rehearsal of scripts/rollback-release-2026-11-07.sql failed: cannot drop column retired_at of table course_units because view view_track_progress depends on it.",
+      "how_detected": "rehearsal step D (rollback on the production-state database)",
+      "root_cause": "033 redefined two pre-release views (001/022) to read retired_at; a catalog diff of tables, columns, constraints, indexes, functions and triggers does not show a changed view definition.",
+      "requirement": "REQ-138",
+      "affected": [
+        "backend/scripts/rollback-release-2026-11-07.sql"
+      ],
+      "fix_summary": "The rollback restores master's view_unit_mastery and view_track_progress definitions before dropping the columns; the rehearsal compares full schema dumps, so any other changed definition fails it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/rehearse-production-migration.sh"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Rollback scripts are tested by a full pg_dump --schema-only comparison, not a hand-written object list.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-525",
+      "date": "2026-11-07",
+      "title": "Line B's 026 cannot run on plain Postgres (CI) without Supabase's roles",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "026_enable_rls.sql revokes from anon and authenticated; on the CI postgres:16 service those roles do not exist, so migrate --all would fail with 'role anon does not exist' and the database jobs would go red after the merge.",
+      "how_detected": "merge review against A's CI database jobs",
+      "root_cause": "Line B had no database CI job; the migration assumed Supabase, where the roles always exist.",
+      "requirement": "REQ-138",
+      "affected": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/live-evals.yml",
+        "backend/scripts/ci/supabase-roles.sql"
+      ],
+      "fix_summary": "CI (database, backfill, rehearsal, live evals) creates the two roles NOLOGIN before migrating; 052 guards its own revoke on their existence. 026 itself is unchanged (production recorded it).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "CI configuration; exercised by the rehearsal script, which creates the roles the same way.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every database job applies migrations to a plain Postgres with the Supabase roles present.",
+      "recurrence_of": ""
     }
   ]
 }
