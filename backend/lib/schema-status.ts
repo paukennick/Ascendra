@@ -67,6 +67,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "lesson_generation_claims table (lesson generation across servers)",
     sql: `select to_regclass('public.lesson_generation_claims') is not null as ok`,
   },
+  {
+    migration: "028_ai_calls.sql",
+    what: "ai_calls table (AI call log; calls still work without it, but cost and latency go unrecorded)",
+    sql: `select to_regclass('public.ai_calls') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {
