@@ -333,7 +333,7 @@ describe("export and deletion", () => {
       await json(await outcomesPost(req(who, "/api/exam-outcomes", "POST", { trackId: track, examDate: isoDay(0), result: "passed" })), 201);
     }
     const out = (await withTransaction((tx) => buildAccountExport(u, (sql, p) => tx.query(sql, p)), { readOnlySnapshot: true })) as Record<string, any[]>;
-    for (const section of ["termsAcceptances", "onboarding", "learnerEvents", "examOutcomes"]) {
+    for (const section of ["legalAcceptances", "onboarding", "learnerEvents", "examOutcomes"]) {
       assert.ok(section in EXPORT_SECTIONS, section);
       assert.ok(out[section].length >= 1, section);
       assert.ok(out[section].every((r) => r.user_id === u), section);

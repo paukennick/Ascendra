@@ -40,6 +40,29 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from education_subcategories where slug = 'health-informatics') as ok`,
   },
   {
+    // Line B (REQ-093). Production already has it; listed so a fresh or
+    // restored database that lacks it is reported.
+    migration: "027_legal_acceptances_and_content_reports.sql",
+    what: "legal_acceptances table and support_requests.objective_id / lesson_stage (sign-up, Terms prompt, Report a problem with this lesson, export)",
+    sql: `select to_regclass('public.legal_acceptances') is not null
+             and (select count(*) from information_schema.columns
+                   where table_schema = 'public' and table_name = 'support_requests'
+                     and column_name in ('objective_id', 'lesson_stage')) = 2 as ok`,
+  },
+  {
+    // Release 2026-11-07 reconcile: one legal-acceptance table with A's
+    // source column, one per-option explanation column, RLS everywhere.
+    migration: "052_release_reconcile.sql",
+    what: "legal_acceptances.source, terms_acceptances folded in, *_choice_feedback folded into *_option_reasons, RLS on every public table",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'legal_acceptances' and column_name = 'source')
+             and to_regclass('public.terms_acceptances') is null
+             and not exists(select 1 from information_schema.columns
+                             where table_schema = 'public' and column_name like '%\\_choice\\_feedback')
+             and not exists(select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                             where n.nspname = 'public' and c.relkind in ('r', 'p') and not c.relrowsecurity) as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
@@ -198,9 +221,10 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
   },
   {
     migration: "048_product_basics.sql",
-    what: "terms_acceptances, learner_onboarding, learner_events (+ triggers) and exam_outcomes (sign-up, launch, first run, exam results, export)",
-    sql: `select to_regclass('public.terms_acceptances') is not null
-             and to_regclass('public.learner_onboarding') is not null
+    // terms_acceptances is not probed: 052 moves its rows into
+    // legal_acceptances (027) and drops it (release 2026-11-07).
+    what: "learner_onboarding, learner_events (+ triggers) and exam_outcomes (launch, first run, exam results, export)",
+    sql: `select to_regclass('public.learner_onboarding') is not null
              and to_regclass('public.exam_outcomes') is not null
              and to_regclass('public.learner_events_lesson_once') is not null
              and (select count(*) from pg_trigger where tgname in ('learner_events_attempt', 'learner_events_lesson_progress',

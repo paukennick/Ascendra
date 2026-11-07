@@ -2571,296 +2571,256 @@
       "risk_notes": []
     },
     {
-      "id": "REQ-126",
-      "category": "defect",
-      "title": "Lesson position resets when leaving and returning to an objective",
-      "description": "Leaving a lesson mid-way (back to the course dashboard, sidebar, review queue) unmounted the lesson screen and its in-memory step state, so reopening the objective always restarted at Guess. Affects every course, not one track. Position (step, guess, guess feedback, confidence) is now saved per objective on the device and restored on return; discarded if the lesson was regenerated, older than 7 days, or the objective was finished.",
-      "priority": "high",
-      "status": "needs_review",
+      "id": "REQ-088",
+      "category": "content",
+      "title": "Deepen CCRN and MS Health Informatics courses from open textbooks under a source reliability standard",
+      "description": "Append open-textbook-sourced objectives to CCRN Adult/Pediatric/Neonatal and MSHI (154->271, 60->135, 62->136, 75->134), adopt docs/source-reliability-standard.md, grade every source against it, resolve source disagreements against Tier 1 guidelines, and restore data-warehouse and health-information-behaviour coverage with qualifying sources. Append-only: existing objectives keep unit, position and wording because the seed matches by sort order.",
+      "priority": "medium",
+      "status": "completed",
       "minimum_access_scope": [
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "mobile/src/lib/lessonProgress.ts",
-        "mobile/src/lib/lessonProgress.test.ts"
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/seed/tracks/informatics.ts",
+        "docs/source-reliability-standard.md",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
       ],
       "acceptance_criteria": [
-        "Leaving at Teach/Guided/Solo and reopening the same objective resumes that step",
-        "Regenerated lesson or finished objective starts fresh at Guess",
-        "Snapshots older than 7 days are ignored"
+        "Every objective traces to a Tier 1 or Tier 2 source",
+        "Disagreements resolved against Tier 1 or the disputed value omitted",
+        "Objectives live before the change keep text and position",
+        "Tracks seeded live"
       ],
       "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "manual_verification"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Position is per device (AsyncStorage) not per account; an answered-but-not-continued check step is re-asked on resume",
-        "recording a second attempt"
-      ]
-    },
-    {
-      "id": "REQ-127",
-      "category": "defect",
-      "title": "Lesson position saved to the account; graded checks never recorded twice",
-      "description": "Follows REQ-126. The lesson position is saved to the account (lesson_progress, migration 027a; GET/PUT/DELETE /api/objectives/:id/progress) so it follows the learner across devices, with the device copy as offline fallback; the newer valid copy wins. Graded Guided/Solo check state is saved with the position, so answering and leaving before Continue restores the verdict instead of re-asking. /api/grade accepts a clientAttemptId and returns the stored result for an id it has seen (unique index on attempts), so retries after a dropped connection or a double submit never record a second attempt or move mastery twice.",
-      "priority": "high",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "backend/supabase/migrations/027a_lesson_progress.sql",
-        "backend/app/api/objectives/[id]/progress/route.ts",
-        "backend/lib/lesson-progress.ts",
-        "backend/lib/lesson-progress.test.ts",
-        "backend/lib/grading-service.ts",
-        "backend/app/api/grade/route.ts",
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "mobile/src/lib/lessonProgress.ts",
-        "mobile/src/lib/lessonProgress.test.ts"
-      ],
-      "acceptance_criteria": [
-        "Position saved on one device resumes on another for the same account",
-        "Answered check restored with its verdict after leaving and returning",
-        "Same clientAttemptId sent twice records one attempt",
-        "Failed account read never deletes the saved position"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "build",
-        "migration_applied",
-        "manual_verification"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Migration 027a must be applied before deploying the backend or progress and grading writes fail on the missing column",
-        "Last-write-wins between two devices used at the same time"
-      ]
-    },
-    {
-      "id": "REQ-128",
-      "category": "defect",
-      "title": "Data correctness: schema checks, account export, numeric progress",
-      "description": "Audit batch A. (1) CI never touched a database: new Database job applies every migration to an empty Postgres, verifies required schema objects, seeds twice, runs integration tests. (2) /api/health and npm run migrate -- --status report missing schema (503 naming migrations) so code deployed ahead of its migration is caught. (3) Account export unpacked 8 queries into 7 names, mislabelling every section from mastery on and dropping study sessions; now keyed by section and includes lesson progress, acknowledgements and support requests. (4) pg returned counts/numerics as strings and the app compared them as text, so 9-of-10 units looked complete; parsed to numbers in lib/db.ts.",
-      "priority": "high",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        ".github/workflows/ci.yml",
-        "backend/lib/db.ts",
-        "backend/lib/schema-status.ts",
-        "backend/lib/schema-status.test.ts",
-        "backend/lib/account-export.ts",
-        "backend/lib/integration.dbtest.ts",
-        "backend/app/api/health/route.ts",
-        "backend/app/api/account/export/route.ts",
-        "backend/supabase/apply-migration.ts",
-        "backend/supabase/seed/seed.ts",
-        "backend/package.json",
-        "README.md"
-      ],
-      "acceptance_criteria": [
-        "CI applies all migrations to an empty database and fails if any required object is missing",
-        "Health returns 503 naming migrations when schema is behind",
-        "Export sections each hold their own table's rows",
-        "Progress counts are JSON numbers"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "integration_tests",
-        "build"
+        "backend typecheck",
+        "append-only diff against HEAD",
+        "npm run seed"
       ],
       "documentation_required": [
         "changelog",
-        "readme"
+        "source reliability standard"
       ],
       "risk_notes": [
-        "Health now returns 503 until production has migrations 023-025; the keepalive workflow will go red until they are applied (intended signal)"
+        "2026-11-02 mitigation: restore data warehouses and health-information-behaviour models with qualifying sources; add the ACC/AHA acute-aortic-syndrome exception because AACN explicitly tests aortic dissection; commit and open a PR."
       ]
     },
     {
-      "id": "REQ-129",
-      "category": "defect",
-      "title": "Integrity: access checks, idempotent writes, atomic auth tokens",
-      "description": "Audit batch B. Access: shared lib/visibility.ts; guess-feedback, grade, PBQ, chat, sessions check the caller can see the objective/unit/track; catalog review agent limited to shared tracks. Grading: MC answer key read server-side from the lesson the learner was shown (their regenerated one if any), not the client. Idempotency: PBQ (clientAttemptId) and chat (clientMessageId, migration 026) replay on retry; one study session per 30 minutes per track; review stage advance is one guarded update with optional fromStage. Auth: refresh rotation, MFA backup codes and login challenge, password reset, email verification/change and MFA-disable codes consumed with guarded updates in transactions so concurrent use succeeds once.",
+      "id": "REQ-089",
+      "category": "learning",
+      "title": "Lesson quick fixes: shuffled choices, server-side grading, per-option feedback, reasoning-step guided questions",
+      "description": "From docs/lesson-quality-evaluation.md: the right answer sat first in 49 of 52 cached questions and the app told the server which answer was right. Choices are now shuffled on every serve, the answer key stays on the server and /api/grade grades by chosen text against the cached lesson, every option gets its own explanation (migration 025), and the practice prompt now sees the teaching text and must leave a reasoning step rather than a label. Four lessons with content errors were deleted so they regenerate.",
       "priority": "high",
-      "status": "needs_review",
+      "status": "completed",
       "minimum_access_scope": [
-        "backend/lib/visibility.ts",
-        "backend/lib/auth",
-        "backend/app/api/auth",
-        "backend/app/api/grade",
-        "backend/app/api/pbq",
-        "backend/app/api/chat",
-        "backend/app/api/sessions",
-        "backend/app/api/errors",
-        "backend/app/api/catalog",
-        "backend/app/api/objectives/[id]/guess-feedback",
-        "backend/supabase/migrations/027b_chat_client_message_id.sql",
-        "mobile/app/(app)/course/[trackId]/pbq.tsx",
-        "mobile/app/(app)/course/[trackId]/chat.tsx",
-        "mobile/app/(app)/review.tsx"
-      ],
-      "acceptance_criteria": [
-        "Concurrent use of any single-use auth secret succeeds once",
-        "Private track content is 404 to other users on every route",
-        "Retried PBQ/chat/grade records once",
-        "MC graded against server key"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "integration_tests",
-        "build"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Migration 027b must be applied before deploy or chat fails",
-        "Two simultaneous refreshes now revoke the session family (app already dedupes refreshes)"
-      ]
-    },
-    {
-      "id": "REQ-130",
-      "category": "feature",
-      "title": "Per-learner lesson regeneration",
-      "description": "Regenerate writes the learner's own lesson (lesson_content_overrides, migration 027c) instead of replacing the shared catalog lesson for everyone and resetting their saved place. Served override-first. 5 regenerations per 10 minutes. Cross-instance generation claims (lesson_generation_claims) so two servers never generate the same lesson and a learner never sees teach text from one generation with practice from another. Mobile Regenerate has loading, double-tap guard and error message.",
-      "priority": "high",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "backend/supabase/migrations/027c_lesson_overrides.sql",
-        "backend/lib/lesson-store.ts",
-        "backend/lib/lesson-generation.ts",
-        "backend/app/api/objectives/[id]/lesson",
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "mobile/src/lib/regenerateError.ts"
-      ],
-      "acceptance_criteria": [
-        "One learner's regenerate never changes another learner's lesson or saved place",
-        "First generation stays shared",
-        "Concurrent generation runs once"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "integration_tests",
-        "build"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Migration 027c must be applied before deploy"
-      ]
-    },
-    {
-      "id": "REQ-131",
-      "category": "defect",
-      "title": "Mobile screen flows: PBQ resume, backup-code guard, fresh screens, navigation, drafts, double taps",
-      "description": "Audit batch C. PBQ simulator saves its scenario, answer and result per user and unit and restores them. MFA backup codes get Copy/Share and a leave confirmation; leaving MFA setup part-way asks first. Mastery and history screens reload on focus. Back to course and the sidebar no longer stack duplicate screens. Chat and support drafts survive navigation. Account name field reseeds from the current user. Shared Button ignores repeat presses while a handler runs and within 300ms.",
-      "priority": "high",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "mobile/app",
-        "mobile/src/components/ui.tsx",
-        "mobile/src/components/Sidebar.tsx",
-        "mobile/src/lib"
-      ],
-      "acceptance_criteria": [
-        "Leaving the PBQ simulator and returning restores the scenario and answer",
-        "Backup codes cannot be dismissed without confirmation",
-        "Mastery/history show current data on return",
-        "No duplicate dashboard after Back to course"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "manual_verification"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Verified by reading and unit tests only; navigation guards and drafts need a device check",
-        "PBQ progress is per device (AsyncStorage)",
-        "not per account"
-      ]
-    },
-    {
-      "id": "REQ-132",
-      "category": "maintenance",
-      "title": "AI modernization: 5.5 models, structured output, caching, call log, eval harness, pre-generation script",
-      "description": "Phase 0 of the teaching overhaul. Moves defaults to claude-sonnet-5-5 (lessons) and claude-haiku-5-5 (grading, chat, guess feedback, PBQ) before claude-sonnet-4-5 retires (tentatively 2026-11-30); per-model request params (no temperature; Sonnet thinking off = between_tools, Haiku = disabled; output_config.effort; 4.5 models still work); lesson halves generated in parallel; structured output for grading and PBQ; prompt caching of stable system blocks and chat history; every AI call logged to ai_calls (migration 028); PBQ model column fixed; evaluation harness (eval:lessons, eval:grading with 40 draft cases); npm run pregen estimates/submits/collects a Batch API pre-generation of missing catalog lessons (never runs by itself).",
-      "priority": "critical",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "backend/lib/anthropic.ts",
-        "backend/lib/ai-calls.ts",
+        "backend/lib/lesson-choices.ts",
+        "backend/lib/lesson-choices.test.ts",
         "backend/lib/lesson-generation.ts",
         "backend/lib/prompts.ts",
-        "backend/lib/free-response-grader.ts",
-        "backend/app/api/grade",
-        "backend/app/api/pbq",
-        "backend/app/api/chat",
-        "backend/supabase/migrations/028_ai_calls.sql",
-        "backend/scripts/eval",
-        "backend/scripts/pregenerate.ts",
-        "backend/scripts/pregenerate-lib.ts"
+        "backend/app/api/grade/route.ts",
+        "backend/supabase/migrations/025_lesson_choice_feedback.sql",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/types/index.ts",
+        "docs/lesson-quality-evaluation.md",
+        "CHANGELOG.md"
       ],
       "acceptance_criteria": [
-        "No request sends temperature or a rejected thinking type",
-        "Lesson halves start together",
-        "Every AI call logged without failing the request",
-        "pregen defaults to estimate"
+        "Served lessons carry no answer key",
+        "Grading uses the cached lesson not the request",
+        "A wrong pick is told why it is wrong",
+        "Older app builds still grade"
       ],
       "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "integration_tests",
-        "build",
-        "manual_verification"
+        "backend and mobile typecheck",
+        "npm test",
+        "migration 025 applied"
       ],
       "documentation_required": [
         "changelog"
       ],
-      "risk_notes": [
-        "Live API acceptance of request shapes unverified (no key here); run eval:lessons and eval:grading before deploying",
-        "Migration 028 needed for logging (calls still succeed without it)",
-        "Grading cases are a draft for owner review"
-      ]
+      "risk_notes": []
     },
     {
-      "id": "REQ-133",
-      "category": "defect",
-      "title": "Lesson screen tells the truth about graded checks",
-      "description": "After grading, MC options stay visible with the learner's pick and the correct option marked (icon + text, not colour only). A wrong or partial Solo answer shows Not yet instead of Objective complete, with Re-read and Try a different question. A missed Guided answer offers Re-read. Solo defaults to free response with choices behind an explicit hint. Shared Button gains accessibility role and state.",
-      "priority": "high",
-      "status": "needs_review",
+      "id": "REQ-090",
+      "category": "content",
+      "title": "Deepen the six nursing courses from open textbooks under the source reliability standard",
+      "description": "Append sourced objectives to NCLEX-RN, NCLEX-PN, CNA, LPN/VN, ADN and BSN (259->452, 180->322, 70->127, 98->176, 101->178, 100->179) following docs/source-reliability-standard.md, with sources, tiers and disagreements in the nursing.ts header. Append-only: existing objectives keep unit and position. Corrects the stale PN-scope comment against the 2026 NCLEX-PN plan.",
+      "priority": "medium",
+      "status": "completed",
       "minimum_access_scope": [
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "mobile/src/lib/lessonFeedback.ts",
-        "mobile/src/lib/lessonProgress.ts",
-        "mobile/src/components/ui.tsx"
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
       ],
       "acceptance_criteria": [
-        "Wrong Solo never shows Objective complete",
-        "Correct option visible after a miss",
-        "Solo opens in free response"
+        "Every new objective cites a Tier 1 or Tier 2 source",
+        "Objectives live before the change keep text and position",
+        "Disputed values omitted unless Tier 1 settles them",
+        "Tracks seeded live"
       ],
       "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "manual_verification"
+        "backend typecheck",
+        "append-only diff against HEAD",
+        "npm run seed",
+        "live objective count"
       ],
       "documentation_required": [
         "changelog"
       ],
-      "risk_notes": [
-        "Not run on a device"
-      ]
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-091",
+      "category": "security",
+      "title": "Upgrade Next.js to 16.3.8 to clear backend audit advisories (commit 0d3d768, mislabelled REQ-086)",
+      "description": "Commit 0d3d768 (2026-10-09) upgraded Next.js 16.3.5 -> 16.3.8 to clear a critical advisory and transitive highs, and labelled itself REQ-086 without registering it. REQ-086 was later issued to the CCRN and MS Health Informatics courses. This entry gives the upgrade its own ID; the commit message cannot be changed because it is already on master, so read REQ-086 in that one commit as REQ-091. Superseded by REQ-087 (Next.js 16.4.3).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/package.json",
+        "backend/package-lock.json",
+        "backend/next-env.d.ts"
+      ],
+      "acceptance_criteria": [
+        "npm audit clean at the time",
+        "typecheck and tests pass"
+      ],
+      "validation_required": [
+        "npm audit",
+        "tsc",
+        "npm test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-092",
+      "category": "security",
+      "title": "Enable RLS and revoke Supabase Data API access on every public table",
+      "description": "Supabase's anon and authenticated roles could read all 36 public tables and views through the project's REST API, including password hashes, refresh tokens and MFA secrets; only 7 catalog tables had RLS. The app never uses that API (the backend connects as postgres, which bypasses RLS). Migration 026 enables RLS on every table, revokes all anon/authenticated privileges on tables, views, sequences and functions, and revokes default privileges so new tables start locked. Applied live.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/026_enable_rls.sql",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "anon and authenticated can read no public table or view",
+        "Backend queries unaffected",
+        "New tables start locked"
+      ],
+      "validation_required": [
+        "pg privilege query",
+        "set role anon read denied",
+        "live login path returns normal 401"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-093",
+      "category": "legal",
+      "title": "Codify legal documents, privacy notices, consent records, data retention and lesson feedback",
+      "description": "One versioned source for Terms, Privacy, Cookies, Disclaimer, FAQ and new About and Sources & Trademarks pages (mobile/src/content/legal.ts), rewritten against a checked data inventory (docs/legal/data-inventory.md). Consent is now recorded: sign-up sends the shown versions, legal_acceptances stores each acceptance, and users who have not accepted the current versions get an accept prompt. Daily retention cron enforces the stated periods; account deletion now removes the sign-in log. Data export covers every personal-data table. Lessons get a Report a problem button (support kind content_report) and docs/support-process.md sets triage. Migration 027 applied live. Owner placeholders (operator, contact, governing law, minimum age) remain visible until decided.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/components/LegalPage.tsx",
+        "mobile/src/components/LegalAcceptGate.tsx",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/app/(legal)",
+        "backend/lib/legal.ts",
+        "backend/lib/retention.ts",
+        "backend/app/api/legal/accept/route.ts",
+        "backend/app/api/cron/retention/route.ts",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/account",
+        "backend/supabase/migrations/027_legal_acceptances_and_content_reports.sql",
+        "docs/legal/data-inventory.md",
+        "docs/support-process.md"
+      ],
+      "acceptance_criteria": [
+        "Every privacy statement matches the code",
+        "Consent recorded with version and time",
+        "Stated retention periods enforced and tested",
+        "Export covers every personal-data table",
+        "Lesson problems reportable with objective and step"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test",
+        "migration 027 applied"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data inventory",
+        "support process"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-094",
+      "category": "release",
+      "title": "Play Store preparation: drop microphone permission, public account-deletion page, auto build numbers, listing draft",
+      "description": "The image picker plugin added android.permission.RECORD_AUDIO by default though the app never records audio; microphonePermission false removes it. New public /delete-account page on the backend satisfies Play's account-deletion URL requirement. eas.json now uses remote app versions with autoIncrement on production so each upload gets a new versionCode (both prior store builds were versionCode 1). docs/play-store/listing-draft.md drafts the listing, content and Data safety answers from the data inventory.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/app.json",
+        "mobile/eas.json",
+        "backend/app/delete-account/page.tsx",
+        "docs/play-store/listing-draft.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Resolved Android permissions exclude RECORD_AUDIO",
+        "Deletion page reachable without sign-in",
+        "Production builds auto-increment versionCode"
+      ],
+      "validation_required": [
+        "expo config permissions",
+        "backend typecheck"
+      ],
+      "documentation_required": [
+        "changelog",
+        "listing draft"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-095",
+      "category": "content",
+      "title": "Deepen the 13 physical therapy courses from open sources under the source reliability standard",
+      "description": "Append sourced objectives to NPTE-PT 38->80, NPTE-PTA 26->55, DPT 59->110 and the ten ABPTS specialist courses 221->443 (344->688 total), following docs/source-reliability-standard.md, with sources, tiers and disagreements in each file header. Append-only: existing objectives, units, weights, range labels and gates unchanged. PTA objectives stay within PTA scope.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Every new objective cites a Tier 1 or Tier 2 source",
+        "Objectives live before the change keep text and position",
+        "Disputed values omitted unless Tier 1 settles them",
+        "Tracks seeded live"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "append-only diff against master",
+        "number check against source text",
+        "npm run seed"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     },
     {
       "id": "REQ-096",
@@ -2890,138 +2850,95 @@
       "risk_notes": []
     },
     {
-      "id": "REQ-134",
-      "category": "defect",
-      "title": "Mastery integrity: server-side grading, spaced evidence, recompute",
-      "description": "Closes the teaching-quality audit's mastery loopholes. Mastery above Guided needs an unassisted Solo free-response success; Transfer-ready needs two, at least 24 hours apart (one SQL rule, mastery_from_attempts, used by live grading and the recompute). Answers to an item already answered, or after the Solo choices hint, are assisted. Only due review entries advance. Grading is server-side against the learner's own stored lesson: no answer key or explanation is sent before answering, the free-response grader gets the answer key and treats the answer as data, and choice order is a fixed per-learner shuffle. PBQ review entries can be retried. Migration 029 backs up mastery and review state, then recomputes everyone's mastery (owner decision).",
-      "priority": "critical",
-      "status": "completed",
-      "minimum_access_scope": [
-        "backend/lib/grading-service.ts",
-        "backend/lib/choice-order.ts",
-        "backend/lib/lesson-generation.ts",
-        "backend/lib/prompts.ts",
-        "backend/lib/free-response-grader.ts",
-        "backend/lib/lesson-progress.ts",
-        "backend/lib/mastery.ts",
-        "backend/lib/schema-status.ts",
-        "backend/app/api/grade/route.ts",
-        "backend/app/api/objectives/[id]/lesson/route.ts",
-        "backend/app/api/objectives/[id]/hint/route.ts",
-        "backend/app/api/pbq/route.ts",
-        "backend/supabase/migrations/029_mastery_recompute.sql",
-        "mobile/src/types/index.ts",
-        "mobile/src/lib/lessonProgress.ts",
-        "mobile/src/lib/lessonFeedback.ts",
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "mobile/app/(app)/review.tsx",
-        "mobile/app/(app)/course/[trackId]/pbq.tsx"
-      ],
-      "acceptance_criteria": [
-        "Guided answers cap at Guided; Transfer-ready needs spaced unassisted evidence",
-        "Repeat and hinted answers are assisted",
-        "Only due review entries advance",
-        "Grading ignores client question/key context",
-        "Lesson payload carries no answer key",
-        "Choices shuffled per learner",
-        "PBQ review entries retestable",
-        "029 backs up then recomputes and is idempotent"
-      ],
-      "validation_required": [
-        "test",
-        "typecheck",
-        "data_validation"
-      ],
-      "documentation_required": [
-        "changelog",
-        "data_model"
-      ],
-      "risk_notes": [
-        "Learners' levels drop after the recompute",
-        "Transfer-ready now needs a regenerated lesson on a later day",
-        "Pre-029 hint peeks are not visible in history",
-        "PR #22 review fixes (FAIL-039, FAIL-110..117): 029 split into 029 (schema, lock_timeout 5s, ~1 s) and 029b (backup, backfill, recompute; row locks only, ~61 s at 1.9M attempts). After deploying the code run select recompute_mastery() once. Backend rollback needs an OTA app rollback (new app vs old backend -> 400 on grade). A DB that applied the pre-fix 029 must re-run both files."
-      ]
-    },
-    {
-      "id": "REQ-135",
-      "category": "security",
-      "title": "Audit 2 hardening: errors, rate limits, races, input bounds, indexes",
-      "description": "Fixes the backend security, schema and adversarial findings of audit 2 (2026-11-07): generic 500s with a request id; cached /api/health; atomic rate limiter; atomic login lockout; MFA-disable rate limit; lowercase uuid lock keys; NUL/lone-surrogate and length checks as 400s; idempotency ids bound to the submission (409 on mismatch) and chat replay by derived reply id; lesson_progress caps and clock-skew tolerance; per-learner budget on new lesson generation; password reset spends all outstanding tokens; generation lease heartbeat; pool and transaction timeouts; answer-signature cap; stale study sessions closed; paged account export; migration 030 indexes and probes; RLS check documented.",
-      "priority": "high",
-      "status": "completed",
-      "minimum_access_scope": [
-        "backend/lib",
-        "backend/app/api",
-        "backend/supabase/migrations/030_hardening_indexes.sql",
-        "mobile/src/lib",
-        "mobile/app/(app)",
-        "README.md",
-        "CHANGELOG.md"
-      ],
-      "acceptance_criteria": [
-        "Each race has a concurrent integration test that fails on the old code",
-        "Each input bug has a boundary test",
-        "Migration 030 applies and its probes pass",
-        "No raw error text in 500 responses"
-      ],
-      "validation_required": [
-        "npm run test:db",
-        "npm test",
-        "tsc backend and mobile",
-        "mobile npm test",
-        "omni gate"
-      ],
-      "documentation_required": [
-        "README.md",
-        "CHANGELOG.md"
-      ],
-      "risk_notes": [
-        "Supabase RLS state unverified in production",
-        "query_timeout is client-side only for non-transaction queries"
-      ]
-    },
-    {
-      "id": "REQ-136",
-      "category": "defect",
-      "title": "Mobile flows batch B3: background hold, web backup-code guard, support kind and draft, course pop, PBQ retry, history order, share errors, logout cleanup, request timeout",
-      "description": "Audit 2 mobile items 2, 3, 4, 5, 6, 10, 12, 13, 14 and the client half of 7. Share sheets and pickers hold off the native background sign-out (bounded). On web, beforeunload and a capture-phase popstate guard protect backup codes. Support kind follows the URL param and the sidebar passes kind=ticket. navPlan only pops to a course dashboard when it is the nearest one. Support form clears before send and restores on failure. Explicit logout and logout-all remove that user's draft, PBQ and lesson-position keys. PBQ Try another scenario keeps the old state on failure. History ignores stale filter responses. Web share AbortError is ignored and copySecret is guarded. api client has a 15 s default timeout (180 s for model routes), overridable per call.",
+      "id": "REQ-097",
+      "category": "content",
+      "title": "Retitle the 17 CompTIA courses to follow CompTIA's trademark rules",
+      "description": "CompTIA's trademark page (comptia.org/en-us/legal/trademarks) says a certification name must always carry the word CompTIA and a training course must not be named after the certification; it should make a true statement that it helps learners prepare for it. Retitle all 17 CompTIA tracks from '<cert> Coach' to 'Prep for CompTIA <cert>' (A+ cores as 'Prep for CompTIA A+ (Core 1)'). Titles only; codes, descriptions, units and objectives unchanged. Not legal advice; needs a lawyer's review before Play Store launch. REQ-096 is taken by labs/step-zero (PR #12), hence 097.",
       "priority": "medium",
-      "status": "needs_review",
+      "status": "completed",
       "minimum_access_scope": [
-        "mobile/src/api/client.ts",
-        "mobile/src/auth/AuthContext.tsx",
-        "mobile/src/lib",
-        "mobile/src/components/Sidebar.tsx",
-        "mobile/app/(app)/support.tsx",
-        "mobile/app/(app)/account.tsx",
-        "mobile/app/(app)/settings/mfa.tsx",
-        "mobile/app/(app)/course/[trackId]/pbq.tsx",
-        "mobile/app/(app)/course/[trackId]/history.tsx"
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/tracks/comptia.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
       ],
       "acceptance_criteria": [
-        "Sharing backup codes on Android does not sign the learner out",
-        "Web back/refresh/close with backup codes on screen asks first",
-        "Support form matches its kind param",
-        "Back to a course never lands on another course's screen",
-        "No sent ticket is restored as a draft",
-        "Logout removes the user's local drafts and progress",
-        "Failed Try another scenario keeps the graded result",
-        "History shows the selected filter's attempts",
-        "A hung request ends with a retryable error"
+        "All 17 CompTIA track titles put CompTIA before the mark",
+        "No title is the bare certification name",
+        "Track codes unchanged so the seed updates existing rows in place"
       ],
       "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "manual_verification"
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
       ],
       "documentation_required": [
         "changelog"
       ],
       "risk_notes": [
-        "Android share/picker hold and web history guard verified by unit tests only; need a device and a browser check",
-        "Lesson screen items 7 (fallback) 8 9 11 15 and its Back to course are deferred to the lesson rewrite",
-        "Model-route timeout of 180 s is a judgment call; server has no explicit limit"
+        "Not reviewed by a lawyer",
+        "Live titles change only on the next npm run seed",
+        "17 titles changed; backend typecheck, 36/36 tests, omni gate pass. Not seeded live; lawyer review pending."
+      ]
+    },
+    {
+      "id": "REQ-098",
+      "category": "content",
+      "title": "Settle three open content decisions: PTA supervision, NPTE range, CNA after-death care",
+      "description": "Nick's 2026-11-06 picks. (1) PTA private-practice supervision objectives in pt.ts and pt-dpt.ts now teach general supervision under 42 CFR 410.60(c)(2) (effective 2025-01-01), with state law, payers or facilities possibly stricter; the CMS manual's direct-supervision text is stale. (2) NPTE musculoskeletal stays 45-54 (2025.02 handbook is newer than the 2024 outline); no data change. (3) CNA care-after-death objective reworded to 'help the nurse with', so the aide assists rather than leads. All edits are rewordings in place; positions unchanged.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-dpt.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "Supervision objectives cite 42 CFR 410.60(c)(2)",
+        "No objective added removed or moved",
+        "CNA objective says the aide helps the nurse"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Typecheck, tests, gate pass; not seeded live."
+      ]
+    },
+    {
+      "id": "REQ-099",
+      "category": "content",
+      "title": "Rename the 10 BSN units in our own words",
+      "description": "AACN's Essentials terms bar derivative works without permission. Rename the BSN course's 10 units from AACN's domain names to common nursing-course names learners recognise (e.g. Population Health -> Community and Public Health Nursing), keeping one unit per domain in AACN's order with the domain number noted in source. Titles only; units are matched by position so progress is unaffected. Replaces the planned AACN permission email.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/nursing.ts",
+        "CHANGELOG.md",
+        "docs/catalog-backlog.md"
+      ],
+      "acceptance_criteria": [
+        "No BSN unit title reuses an AACN domain name",
+        "Each unit maps to one domain in order",
+        "Unit count and order unchanged"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Typecheck, tests, gate pass; not seeded live."
       ]
     },
     {
@@ -4189,6 +4106,433 @@
         "Free and Plus get no sample lab until some lab in the course is approved (the sample is the first APPROVED lab; unchanged by request)",
         "The disclaimer wording and Terms clause are drafts that need the lawyer's review",
         "Unreviewed clinical and fitness content now reaches learners; the disclaimer and acknowledgement mitigate but do not replace expert review"
+      ]
+    },
+    {
+      "id": "REQ-126",
+      "category": "defect",
+      "title": "Lesson position resets when leaving and returning to an objective",
+      "description": "Leaving a lesson mid-way (back to the course dashboard, sidebar, review queue) unmounted the lesson screen and its in-memory step state, so reopening the objective always restarted at Guess. Affects every course, not one track. Position (step, guess, guess feedback, confidence) is now saved per objective on the device and restored on return; discarded if the lesson was regenerated, older than 7 days, or the objective was finished.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Leaving at Teach/Guided/Solo and reopening the same objective resumes that step",
+        "Regenerated lesson or finished objective starts fresh at Guess",
+        "Snapshots older than 7 days are ignored"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Position is per device (AsyncStorage) not per account; an answered-but-not-continued check step is re-asked on resume",
+        "recording a second attempt"
+      ]
+    },
+    {
+      "id": "REQ-127",
+      "category": "defect",
+      "title": "Lesson position saved to the account; graded checks never recorded twice",
+      "description": "Follows REQ-126. The lesson position is saved to the account (lesson_progress, migration 027a; GET/PUT/DELETE /api/objectives/:id/progress) so it follows the learner across devices, with the device copy as offline fallback; the newer valid copy wins. Graded Guided/Solo check state is saved with the position, so answering and leaving before Continue restores the verdict instead of re-asking. /api/grade accepts a clientAttemptId and returns the stored result for an id it has seen (unique index on attempts), so retries after a dropped connection or a double submit never record a second attempt or move mastery twice.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/027a_lesson_progress.sql",
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/lesson-progress.test.ts",
+        "backend/lib/grading-service.ts",
+        "backend/app/api/grade/route.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Position saved on one device resumes on another for the same account",
+        "Answered check restored with its verdict after leaving and returning",
+        "Same clientAttemptId sent twice records one attempt",
+        "Failed account read never deletes the saved position"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "build",
+        "migration_applied",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 027a must be applied before deploying the backend or progress and grading writes fail on the missing column",
+        "Last-write-wins between two devices used at the same time"
+      ]
+    },
+    {
+      "id": "REQ-128",
+      "category": "defect",
+      "title": "Data correctness: schema checks, account export, numeric progress",
+      "description": "Audit batch A. (1) CI never touched a database: new Database job applies every migration to an empty Postgres, verifies required schema objects, seeds twice, runs integration tests. (2) /api/health and npm run migrate -- --status report missing schema (503 naming migrations) so code deployed ahead of its migration is caught. (3) Account export unpacked 8 queries into 7 names, mislabelling every section from mastery on and dropping study sessions; now keyed by section and includes lesson progress, acknowledgements and support requests. (4) pg returned counts/numerics as strings and the app compared them as text, so 9-of-10 units looked complete; parsed to numbers in lib/db.ts.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        "backend/lib/db.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/schema-status.test.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/integration.dbtest.ts",
+        "backend/app/api/health/route.ts",
+        "backend/app/api/account/export/route.ts",
+        "backend/supabase/apply-migration.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/package.json",
+        "README.md"
+      ],
+      "acceptance_criteria": [
+        "CI applies all migrations to an empty database and fails if any required object is missing",
+        "Health returns 503 naming migrations when schema is behind",
+        "Export sections each hold their own table's rows",
+        "Progress counts are JSON numbers"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Health now returns 503 until production has migrations 023-025; the keepalive workflow will go red until they are applied (intended signal)"
+      ]
+    },
+    {
+      "id": "REQ-129",
+      "category": "defect",
+      "title": "Integrity: access checks, idempotent writes, atomic auth tokens",
+      "description": "Audit batch B. Access: shared lib/visibility.ts; guess-feedback, grade, PBQ, chat, sessions check the caller can see the objective/unit/track; catalog review agent limited to shared tracks. Grading: MC answer key read server-side from the lesson the learner was shown (their regenerated one if any), not the client. Idempotency: PBQ (clientAttemptId) and chat (clientMessageId, migration 026) replay on retry; one study session per 30 minutes per track; review stage advance is one guarded update with optional fromStage. Auth: refresh rotation, MFA backup codes and login challenge, password reset, email verification/change and MFA-disable codes consumed with guarded updates in transactions so concurrent use succeeds once.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/visibility.ts",
+        "backend/lib/auth",
+        "backend/app/api/auth",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/app/api/chat",
+        "backend/app/api/sessions",
+        "backend/app/api/errors",
+        "backend/app/api/catalog",
+        "backend/app/api/objectives/[id]/guess-feedback",
+        "backend/supabase/migrations/027b_chat_client_message_id.sql",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/app/(app)/review.tsx"
+      ],
+      "acceptance_criteria": [
+        "Concurrent use of any single-use auth secret succeeds once",
+        "Private track content is 404 to other users on every route",
+        "Retried PBQ/chat/grade records once",
+        "MC graded against server key"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 027b must be applied before deploy or chat fails",
+        "Two simultaneous refreshes now revoke the session family (app already dedupes refreshes)"
+      ]
+    },
+    {
+      "id": "REQ-130",
+      "category": "feature",
+      "title": "Per-learner lesson regeneration",
+      "description": "Regenerate writes the learner's own lesson (lesson_content_overrides, migration 027c) instead of replacing the shared catalog lesson for everyone and resetting their saved place. Served override-first. 5 regenerations per 10 minutes. Cross-instance generation claims (lesson_generation_claims) so two servers never generate the same lesson and a learner never sees teach text from one generation with practice from another. Mobile Regenerate has loading, double-tap guard and error message.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/027c_lesson_overrides.sql",
+        "backend/lib/lesson-store.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "acceptance_criteria": [
+        "One learner's regenerate never changes another learner's lesson or saved place",
+        "First generation stays shared",
+        "Concurrent generation runs once"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 027c must be applied before deploy"
+      ]
+    },
+    {
+      "id": "REQ-131",
+      "category": "defect",
+      "title": "Mobile screen flows: PBQ resume, backup-code guard, fresh screens, navigation, drafts, double taps",
+      "description": "Audit batch C. PBQ simulator saves its scenario, answer and result per user and unit and restores them. MFA backup codes get Copy/Share and a leave confirmation; leaving MFA setup part-way asks first. Mastery and history screens reload on focus. Back to course and the sidebar no longer stack duplicate screens. Chat and support drafts survive navigation. Account name field reseeds from the current user. Shared Button ignores repeat presses while a handler runs and within 300ms.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app",
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/lib"
+      ],
+      "acceptance_criteria": [
+        "Leaving the PBQ simulator and returning restores the scenario and answer",
+        "Backup codes cannot be dismissed without confirmation",
+        "Mastery/history show current data on return",
+        "No duplicate dashboard after Back to course"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by reading and unit tests only; navigation guards and drafts need a device check",
+        "PBQ progress is per device (AsyncStorage)",
+        "not per account"
+      ]
+    },
+    {
+      "id": "REQ-132",
+      "category": "maintenance",
+      "title": "AI modernization: 5.5 models, structured output, caching, call log, eval harness, pre-generation script",
+      "description": "Phase 0 of the teaching overhaul. Moves defaults to claude-sonnet-5-5 (lessons) and claude-haiku-5-5 (grading, chat, guess feedback, PBQ) before claude-sonnet-4-5 retires (tentatively 2026-11-30); per-model request params (no temperature; Sonnet thinking off = between_tools, Haiku = disabled; output_config.effort; 4.5 models still work); lesson halves generated in parallel; structured output for grading and PBQ; prompt caching of stable system blocks and chat history; every AI call logged to ai_calls (migration 028); PBQ model column fixed; evaluation harness (eval:lessons, eval:grading with 40 draft cases); npm run pregen estimates/submits/collects a Batch API pre-generation of missing catalog lessons (never runs by itself).",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/anthropic.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/free-response-grader.ts",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/app/api/chat",
+        "backend/supabase/migrations/028_ai_calls.sql",
+        "backend/scripts/eval",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts"
+      ],
+      "acceptance_criteria": [
+        "No request sends temperature or a rejected thinking type",
+        "Lesson halves start together",
+        "Every AI call logged without failing the request",
+        "pregen defaults to estimate"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Live API acceptance of request shapes unverified (no key here); run eval:lessons and eval:grading before deploying",
+        "Migration 028 needed for logging (calls still succeed without it)",
+        "Grading cases are a draft for owner review"
+      ]
+    },
+    {
+      "id": "REQ-133",
+      "category": "defect",
+      "title": "Lesson screen tells the truth about graded checks",
+      "description": "After grading, MC options stay visible with the learner's pick and the correct option marked (icon + text, not colour only). A wrong or partial Solo answer shows Not yet instead of Objective complete, with Re-read and Try a different question. A missed Guided answer offers Re-read. Solo defaults to free response with choices behind an explicit hint. Shared Button gains accessibility role and state.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonFeedback.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/components/ui.tsx"
+      ],
+      "acceptance_criteria": [
+        "Wrong Solo never shows Objective complete",
+        "Correct option visible after a miss",
+        "Solo opens in free response"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not run on a device"
+      ]
+    },
+    {
+      "id": "REQ-134",
+      "category": "defect",
+      "title": "Mastery integrity: server-side grading, spaced evidence, recompute",
+      "description": "Closes the teaching-quality audit's mastery loopholes. Mastery above Guided needs an unassisted Solo free-response success; Transfer-ready needs two, at least 24 hours apart (one SQL rule, mastery_from_attempts, used by live grading and the recompute). Answers to an item already answered, or after the Solo choices hint, are assisted. Only due review entries advance. Grading is server-side against the learner's own stored lesson: no answer key or explanation is sent before answering, the free-response grader gets the answer key and treats the answer as data, and choice order is a fixed per-learner shuffle. PBQ review entries can be retried. Migration 029 backs up mastery and review state, then recomputes everyone's mastery (owner decision).",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/grading-service.ts",
+        "backend/lib/choice-order.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/free-response-grader.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/mastery.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/hint/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "mobile/src/types/index.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonFeedback.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "acceptance_criteria": [
+        "Guided answers cap at Guided; Transfer-ready needs spaced unassisted evidence",
+        "Repeat and hinted answers are assisted",
+        "Only due review entries advance",
+        "Grading ignores client question/key context",
+        "Lesson payload carries no answer key",
+        "Choices shuffled per learner",
+        "PBQ review entries retestable",
+        "029 backs up then recomputes and is idempotent"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model"
+      ],
+      "risk_notes": [
+        "Learners' levels drop after the recompute",
+        "Transfer-ready now needs a regenerated lesson on a later day",
+        "Pre-029 hint peeks are not visible in history",
+        "PR #22 review fixes (FAIL-039, FAIL-110..117): 029 split into 029 (schema, lock_timeout 5s, ~1 s) and 029b (backup, backfill, recompute; row locks only, ~61 s at 1.9M attempts). After deploying the code run select recompute_mastery() once. Backend rollback needs an OTA app rollback (new app vs old backend -> 400 on grade). A DB that applied the pre-fix 029 must re-run both files."
+      ]
+    },
+    {
+      "id": "REQ-135",
+      "category": "security",
+      "title": "Audit 2 hardening: errors, rate limits, races, input bounds, indexes",
+      "description": "Fixes the backend security, schema and adversarial findings of audit 2 (2026-11-07): generic 500s with a request id; cached /api/health; atomic rate limiter; atomic login lockout; MFA-disable rate limit; lowercase uuid lock keys; NUL/lone-surrogate and length checks as 400s; idempotency ids bound to the submission (409 on mismatch) and chat replay by derived reply id; lesson_progress caps and clock-skew tolerance; per-learner budget on new lesson generation; password reset spends all outstanding tokens; generation lease heartbeat; pool and transaction timeouts; answer-signature cap; stale study sessions closed; paged account export; migration 030 indexes and probes; RLS check documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib",
+        "backend/app/api",
+        "backend/supabase/migrations/030_hardening_indexes.sql",
+        "mobile/src/lib",
+        "mobile/app/(app)",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Each race has a concurrent integration test that fails on the old code",
+        "Each input bug has a boundary test",
+        "Migration 030 applies and its probes pass",
+        "No raw error text in 500 responses"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test",
+        "tsc backend and mobile",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Supabase RLS state unverified in production",
+        "query_timeout is client-side only for non-transaction queries"
+      ]
+    },
+    {
+      "id": "REQ-136",
+      "category": "defect",
+      "title": "Mobile flows batch B3: background hold, web backup-code guard, support kind and draft, course pop, PBQ retry, history order, share errors, logout cleanup, request timeout",
+      "description": "Audit 2 mobile items 2, 3, 4, 5, 6, 10, 12, 13, 14 and the client half of 7. Share sheets and pickers hold off the native background sign-out (bounded). On web, beforeunload and a capture-phase popstate guard protect backup codes. Support kind follows the URL param and the sidebar passes kind=ticket. navPlan only pops to a course dashboard when it is the nearest one. Support form clears before send and restores on failure. Explicit logout and logout-all remove that user's draft, PBQ and lesson-position keys. PBQ Try another scenario keeps the old state on failure. History ignores stale filter responses. Web share AbortError is ignored and copySecret is guarded. api client has a 15 s default timeout (180 s for model routes), overridable per call.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/app/(app)/support.tsx",
+        "mobile/app/(app)/account.tsx",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/app/(app)/course/[trackId]/history.tsx"
+      ],
+      "acceptance_criteria": [
+        "Sharing backup codes on Android does not sign the learner out",
+        "Web back/refresh/close with backup codes on screen asks first",
+        "Support form matches its kind param",
+        "Back to a course never lands on another course's screen",
+        "No sent ticket is restored as a draft",
+        "Logout removes the user's local drafts and progress",
+        "Failed Try another scenario keeps the graded result",
+        "History shows the selected filter's attempts",
+        "A hung request ends with a retryable error"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Android share/picker hold and web history guard verified by unit tests only; need a device and a browser check",
+        "Lesson screen items 7 (fallback) 8 9 11 15 and its Back to course are deferred to the lesson rewrite",
+        "Model-route timeout of 180 s is a judgment call; server has no explicit limit"
       ]
     }
   ]

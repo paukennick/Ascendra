@@ -371,9 +371,9 @@ const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // weights (12 / 22 / 18 / 28 / 20).
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
-  title: "Security+ Coach",
+  title: "Prep for CompTIA Security+",
   description:
-    "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Security+ V8 Coach.",
+    "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Prep for CompTIA Security+ (V8).",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
@@ -538,9 +538,9 @@ const SECPLUS_V8_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const SECPLUSV8_TRACK: SeedTrack = {
   code: "SECPLUSV8",
-  title: "Security+ V8 Coach",
+  title: "Prep for CompTIA Security+ (V8)",
   description:
-    "CompTIA Security+ SY0-801 (V8) exam prep across 5 weighted domains -- including the new AI threats and AI-assisted operations objectives -- with PBQ scenario drilling. For SY0-701 (bookable in English until 2027-06-11) take Security+ Coach.",
+    "CompTIA Security+ SY0-801 (V8) exam prep across 5 weighted domains -- including the new AI threats and AI-assisted operations objectives -- with PBQ scenario drilling. For SY0-701 (bookable in English until 2027-06-11) take Prep for CompTIA Security+.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
   freshnessModel: "certification_aligned",
@@ -1109,7 +1109,7 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const LINUXPLUS_TRACK: SeedTrack = {
   code: "LINUXPLUS",
-  title: "Linux+ Coach",
+  title: "Prep for CompTIA Linux+",
   description: "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -1304,7 +1304,7 @@ const CYSA_V4_VERIFIED_AT = "2026-11-07T00:00:00Z";
 
 export const CYSAPLUS_TRACK: SeedTrack = {
   code: "CYSAPLUS",
-  title: "CySA+ Coach",
+  title: "Prep for CompTIA CySA+",
   description:
     "CompTIA CySA+ CS0-004 (V4) exam prep across 4 weighted domains -- SOC analysis with real tools, vulnerability prioritization, incident response, and reporting -- with SOC-analyst drilling. CS0-003 units stay listed until English CS0-003 retires on 2026-12-22. Sitting a translated CS0-003 exam (available until 2027-03-23)? Its units leave this course on 2026-12-23, so finish them before then.",
   trackType: "certification",
@@ -1585,7 +1585,7 @@ export const CYSAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PENTESTPLUS_TRACK: SeedTrack = {
   code: "PENTESTPLUS",
-  title: "PenTest+ Coach",
+  title: "Prep for CompTIA PenTest+",
   description: "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
@@ -1697,7 +1697,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SECURITYX_TRACK: SeedTrack = {
   code: "SECURITYX",
-  title: "SecurityX Coach",
+  title: "Prep for CompTIA SecurityX",
   description: "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",

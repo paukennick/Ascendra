@@ -1,6 +1,7 @@
 // REQ-119 (Audit 3 product H5): the Terms of Service + Privacy Policy
-// version this app shows. Must equal CURRENT_TERMS_VERSION in
-// backend/lib/legal.ts (src/lib/productBasics.test.ts checks it): the app
+// version this app shows: the newest of the Terms and Privacy versions in
+// src/content/legal.ts, and equal to CURRENT_TERMS_VERSION in
+// backend/lib/legal.ts (src/lib/productBasics.test.ts checks both): the app
 // sends it when someone signs up, and the server records it only if it is
 // the current one. Change both, together with the pages, when the text
 // changes in a way people should agree to again.
@@ -11,6 +12,9 @@ export interface TermsState {
   acceptedVersion: string | null;
   acceptedAt: string | null;
   needsAcceptance: boolean;
+  // REQ-093: which documents changed since the account last agreed (absent
+  // from a server older than the 2026-11-07 release).
+  pending?: ("terms" | "privacy")[];
 }
 
 export interface FirstRunState {

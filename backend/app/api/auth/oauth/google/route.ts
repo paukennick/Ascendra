@@ -6,7 +6,7 @@ import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
-import { recordSignupTermsAcceptance } from "@/lib/legal";
+import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,8 @@ interface UserRow {
 export async function POST(req: Request) {
   try {
     const body = await readJson(req);
-    const { idToken, deviceLabel, acceptedTermsVersion } = body ?? {};
+    const { idToken, deviceLabel } = body ?? {};
+    const acceptedTermsVersion = signupAcceptedVersion(body);
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
     }

@@ -35,9 +35,19 @@ const state = (needsAcceptance: boolean, needed: boolean): OnboardingState => ({
 });
 
 describe("terms version and the launch gate (H5, M2)", () => {
-  test("the app's terms version is the server's current one", () => {
-    const m = read("backend/lib/legal.ts").match(/CURRENT_TERMS_VERSION = "([^"]+)"/);
-    assert.equal(m?.[1], TERMS_VERSION);
+  test("the app's terms version is the server's current one, and the newest legal text version", () => {
+    // Since the 2026-11-07 merge the server derives CURRENT_TERMS_VERSION
+    // from LEGAL_VERSIONS (newest of terms / privacy), which must match the
+    // text the app shows (src/content/legal.ts).
+    const backend = read("backend/lib/legal.ts");
+    const server = ["terms", "privacy"].map((d) => backend.match(new RegExp(`\\n  ${d}: "([^"]+)"`))?.[1]);
+    assert.ok(server.every(Boolean), "LEGAL_VERSIONS terms and privacy found");
+    assert.equal([...server].sort().at(-1), TERMS_VERSION);
+    const content = read("mobile/src/content/legal.ts");
+    const shown = ["TERMS", "PRIVACY"].map(
+      (n) => content.match(new RegExp(`export const ${n}: LegalDoc = \\{[\\s\\S]*?version: "([^"]+)"`))?.[1]
+    );
+    assert.deepEqual(shown, server);
   });
   test("terms first, then first run; unknown state asks nothing", () => {
     assert.equal(launchGate(null), null);
@@ -116,8 +126,11 @@ describe("vendor disclaimers (M6)", () => {
     assert.equal(vendorDisclaimer(null, "graduate"), null);
   });
   test("FAIL-406: the Disclaimer page lists the catalog's trademark owners, not only CompTIA", () => {
-    const page = read("mobile/app/(legal)/disclaimer.tsx");
-    assert.match(page, /TRADEMARK_OWNERS/);
+    // The page renders DISCLAIMER from src/content/legal.ts (REQ-093).
+    assert.match(read("mobile/app/(legal)/disclaimer.tsx"), /DISCLAIMER/);
+    const content = read("mobile/src/content/legal.ts");
+    const disclaimer = content.slice(content.indexOf("export const DISCLAIMER"), content.indexOf("export const SOURCES"));
+    assert.match(disclaimer, /TRADEMARK_OWNERS/);
     for (const name of ["CompTIA", "Amazon Web Services (AWS)", "Microsoft", "Google Cloud", "Project Management Institute (PMI)"]) {
       assert.ok(TRADEMARK_OWNERS.includes(name), name);
     }
@@ -235,7 +248,9 @@ describe("first-run course list", () => {
 });
 
 describe("privacy policy AI facts (H3)", () => {
-  const page = read("mobile/app/(legal)/privacy.tsx");
+  // The page renders PRIVACY from src/content/legal.ts (REQ-093).
+  const content = read("mobile/src/content/legal.ts");
+  const page = content.slice(content.indexOf("export const PRIVACY"), content.indexOf("export const COOKIES"));
   test("FAIL-405: names Anthropic and every feature that sends what a learner types", () => {
     assert.doesNotMatch(page, /\[AI provider to confirm\]/);
     assert.match(page, /Anthropic/);
@@ -244,6 +259,7 @@ describe("privacy policy AI facts (H3)", () => {
     }
     assert.match(page, /may not train its models/);
     assert.match(page, /within 30 days/);
-    assert.match(page, /Draft for legal review/);
+    assert.match(page, /status: DRAFT/);
+    assert.match(content, /const DRAFT = "Draft for legal review/);
   });
 });

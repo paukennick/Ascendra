@@ -373,74 +373,76 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-520",
-      "date": "2026-11-06",
-      "title": "Lesson step state lost on navigation",
+      "id": "FAIL-017",
+      "date": "2026-11-02",
+      "title": "Aortic dissection objective overgeneralized definitive repair",
       "status": "fixed",
       "severity": "high",
-      "symptom": "Returning to a lesson after going back to the course restarts at the Guess step, on every course",
-      "how_detected": "user report",
-      "root_cause": "Lesson step lived only in useState on the lesson screen; navigating back pops/unmounts it and the mount effect resets step to guess. Nothing persisted the learner's place; only graded attempts are saved server-side.",
-      "requirement": "REQ-126",
+      "symptom": "The first mitigation wording implied that every acute aortic dissection proceeds to definitive repair.",
+      "how_detected": "Tier 1 guideline review before commit",
+      "root_cause": "The objective carried the type A surgical pathway into all dissections instead of preserving the ACC/AHA distinction: uncomplicated acute type B starts with medical therapy, while type A needs immediate repair and complicated type B needs intervention.",
+      "requirement": "REQ-088",
       "affected": [
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+        "backend/supabase/seed/tracks/ccrn.ts"
       ],
-      "fix_summary": "Per-objective snapshot in AsyncStorage, restored after lesson load, validated by lessonProgress.parseSnapshot (lesson fingerprint, 7-day age, schema version)",
+      "fix_summary": "Kept the anti-impulse objective neutral about definitive management and appended a separate objective distinguishing type A, uncomplicated type B and complicated type B pathways.",
       "fix_commits": [],
-      "regression_tests": [
-        "mobile/src/lib/lessonProgress.test.ts"
+      "regression_tests": [],
+      "no_test_reason": "This is sourced clinical curriculum content rather than executable behavior; validation is source-to-objective review against the 2022 ACC/AHA aortic disease guideline plus the append-only objective-position check.",
+      "prevention_rules": [
+        "docs/source-reliability-standard.md",
+        ".ai/playbooks/implementation.md"
       ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "Multi-step screen state that a learner would expect to survive navigation must be persisted, not held only in component state; the parse rules are unit tested",
+      "prevention_notes": "For clinical treatment objectives, check management branches and exceptions in the Tier 1 guideline before compressing them into one objective.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-521",
-      "date": "2026-11-06",
-      "title": "Answered lesson check re-asked and recorded twice",
-      "status": "fixed",
-      "severity": "medium",
-      "symptom": "Answering a Guided or Solo check, leaving before Continue, and returning asked the same check again; answering again recorded a second attempt. A retry after a dropped connection could also record twice.",
-      "how_detected": "review",
-      "root_cause": "Graded result lived only in CheckStep component state, and /api/grade had no way to recognise a resubmission of the same answer, so every POST inserted an attempt and moved mastery.",
-      "requirement": "REQ-127",
+      "id": "FAIL-018",
+      "date": "2026-11-02",
+      "title": "Full catalog seed interrupted by Supabase pooler drop",
+      "status": "mitigated",
+      "severity": "low",
+      "symptom": "The idempotent full-catalog seed terminated partway through with 'Connection terminated unexpectedly' before reaching the CCRN and MSHI tracks.",
+      "how_detected": "npm run seed during release validation",
+      "root_cause": "The long-running seed relies on one external pooled PostgreSQL connection across the 94-course catalog; the remote pooler dropped that connection during the run.",
+      "requirement": "REQ-088",
       "affected": [
-        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
-        "backend/app/api/grade/route.ts"
+        "backend/supabase/seed/seed.ts",
+        "live shared catalog"
       ],
-      "fix_summary": "Check state saved with the lesson position; per-answer clientAttemptId with a unique index on attempts and replay of the stored result",
+      "fix_summary": "Stopped retrying the broad live mutation and used a one-time append-only helper restricted to the four exact missing objective positions; it refused updates or mismatched existing rows. A read-only live count then confirmed all four course totals.",
       "fix_commits": [],
-      "regression_tests": [
-        "mobile/src/lib/lessonProgress.test.ts",
-        "backend/lib/lesson-progress.test.ts"
+      "regression_tests": [],
+      "no_test_reason": "The drop is an external transient connection failure; the requirement-level regression evidence is the append-only snapshot comparison and live objective-count query.",
+      "prevention_rules": [
+        ".ai/playbooks/implementation.md",
+        ".ai/playbooks/release.md"
       ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "Grading writes are idempotent per client attempt id; attempt-id reuse rules are unit tested",
+      "prevention_notes": "For small live catalog additions, use an append-only operation scoped to exact missing positions and verify counts; do not use a broad updater as a workaround.",
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-522",
-      "date": "2026-11-06",
-      "title": "Account export mislabelled every section from mastery on",
+      "id": "FAIL-019",
+      "date": "2026-11-02",
+      "title": "Production build initially blocked by restricted Bash execution",
       "status": "fixed",
-      "severity": "medium",
-      "symptom": "Export file put favorites under mastery, mastery under attempts, etc.; study sessions missing",
-      "how_detected": "review",
-      "root_cause": "Promise.all of 8 queries destructured positionally into 7 names after favorites query was added in REQ-082",
-      "requirement": "REQ-128",
+      "severity": "low",
+      "symptom": "npm run build failed before compilation with Bash/E_ACCESSDENIED.",
+      "how_detected": "Local release build",
+      "root_cause": "The build starts a Bash-based Expo web export, and the restricted execution environment could not launch that shell.",
+      "requirement": "REQ-088",
       "affected": [
-        "backend/app/api/account/export/route.ts"
+        "backend/scripts/build-webapp.sh",
+        "backend production build"
       ],
-      "fix_summary": "Queries keyed by section name in lib/account-export.ts",
+      "fix_summary": "Reran the unchanged production build with approved execution access; Expo export, Next.js compilation, TypeScript and static generation completed successfully.",
       "fix_commits": [],
-      "regression_tests": [
-        "backend/lib/integration.dbtest.ts"
+      "regression_tests": [],
+      "no_test_reason": "This was an execution-environment permission failure, not application behavior; the successful full production build is the regression evidence.",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
       ],
-      "no_test_reason": "",
-      "prevention_rules": [],
-      "prevention_notes": "Section name and query live in one record so they cannot drift apart; integration test checks each section's rows",
+      "prevention_notes": "Run the production build in an environment permitted to launch the repository's Bash export step.",
       "recurrence_of": ""
     },
     {
@@ -7309,6 +7311,77 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Compare database timestamps with the database's own clock (or not at all) rather than with a JS Date passed in",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-520",
+      "date": "2026-11-06",
+      "title": "Lesson step state lost on navigation",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Returning to a lesson after going back to the course restarts at the Guess step, on every course",
+      "how_detected": "user report",
+      "root_cause": "Lesson step lived only in useState on the lesson screen; navigating back pops/unmounts it and the mount effect resets step to guess. Nothing persisted the learner's place; only graded attempts are saved server-side.",
+      "requirement": "REQ-126",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Per-objective snapshot in AsyncStorage, restored after lesson load, validated by lessonProgress.parseSnapshot (lesson fingerprint, 7-day age, schema version)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Multi-step screen state that a learner would expect to survive navigation must be persisted, not held only in component state; the parse rules are unit tested",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-521",
+      "date": "2026-11-06",
+      "title": "Answered lesson check re-asked and recorded twice",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Answering a Guided or Solo check, leaving before Continue, and returning asked the same check again; answering again recorded a second attempt. A retry after a dropped connection could also record twice.",
+      "how_detected": "review",
+      "root_cause": "Graded result lived only in CheckStep component state, and /api/grade had no way to recognise a resubmission of the same answer, so every POST inserted an attempt and moved mastery.",
+      "requirement": "REQ-127",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "backend/app/api/grade/route.ts"
+      ],
+      "fix_summary": "Check state saved with the lesson position; per-answer clientAttemptId with a unique index on attempts and replay of the stored result",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts",
+        "backend/lib/lesson-progress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Grading writes are idempotent per client attempt id; attempt-id reuse rules are unit tested",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-522",
+      "date": "2026-11-06",
+      "title": "Account export mislabelled every section from mastery on",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Export file put favorites under mastery, mastery under attempts, etc.; study sessions missing",
+      "how_detected": "review",
+      "root_cause": "Promise.all of 8 queries destructured positionally into 7 names after favorites query was added in REQ-082",
+      "requirement": "REQ-128",
+      "affected": [
+        "backend/app/api/account/export/route.ts"
+      ],
+      "fix_summary": "Queries keyed by section name in lib/account-export.ts",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Section name and query live in one record so they cannot drift apart; integration test checks each section's rows",
       "recurrence_of": ""
     }
   ]

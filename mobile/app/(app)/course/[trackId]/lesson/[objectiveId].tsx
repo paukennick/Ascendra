@@ -10,6 +10,7 @@ import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
 import { ReportProblem } from "@/components/ReportProblem";
+import { ReportLessonProblem } from "@/components/ReportLessonProblem";
 import {
   Badge,
   Body,
@@ -809,6 +810,10 @@ export default function LessonFlow() {
           <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>
       )}
+
+      {/* REQ-093: lesson-wide report at any step, filed as a Support ticket
+          (the per-question report, REQ-114, sits under each answered check). */}
+      <ReportLessonProblem objectiveId={objectiveId} objectiveTitle={headerTitle} stage={step} />
     </Screen>
   );
 }

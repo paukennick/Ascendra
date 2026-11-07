@@ -25,6 +25,7 @@ import {
   encodeDraft,
   parseSupportFields,
   supportDraftKey,
+  type SupportDraftKind,
   supportDraftPayload,
   supportFieldsAfterFailedSend,
   supportKindFromParam,
@@ -53,7 +54,7 @@ const STATUS_LABEL: Record<SupportRequestStatus, string> = {
 // A send that fails after the learner left (or switched form) can't put the
 // text back on screen, so it goes back into that form's stored draft. An
 // entry already there (typed since) is left alone. Best effort.
-async function restoreDraftInStorage(userId: string | undefined, kind: SupportRequestKind, fields: SupportFields) {
+async function restoreDraftInStorage(userId: string | undefined, kind: SupportDraftKind, fields: SupportFields) {
   const payload = supportDraftPayload(fields);
   if (!userId || !payload) return;
   const key = supportDraftKey(userId, kind);
@@ -71,7 +72,7 @@ export default function Support() {
   // on the course-request form instead of the ticket one.
   const { kind: kindParam, courseName: courseNameParam } = useLocalSearchParams<{ kind?: string; courseName?: string }>();
   const router = useRouter();
-  const [kind, setKind] = useState<SupportRequestKind>(supportKindFromParam(kindParam) ?? "ticket");
+  const [kind, setKind] = useState<SupportDraftKind>(supportKindFromParam(kindParam) ?? "ticket");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [courseName, setCourseName] = useState("");
@@ -98,7 +99,7 @@ export default function Support() {
       if (f) applyFields(f);
     }
   );
-  function switchKind(next: SupportRequestKind) {
+  function switchKind(next: SupportDraftKind) {
     if (next === kind) return;
     applyFields(emptySupportFields());
     setKind(next);
@@ -124,7 +125,7 @@ export default function Support() {
     setCourseName((prev) => prev || name);
     setSubject((prev) => prev || (courseRequestPrefill(`Please add ${name}`) ?? ""));
   }, [courseNameParam, kind]);
-  function chooseKind(next: SupportRequestKind) {
+  function chooseKind(next: SupportDraftKind) {
     switchKind(next);
     router.setParams({ kind: next });
   }
@@ -307,7 +308,7 @@ export default function Support() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <Badge label={STATUS_LABEL[r.status]} color={STATUS_COLOR[r.status]} />
               <Muted style={{ fontSize: 12 }}>
-                {r.kind === "course_request" ? "Course request" : "Ticket"} ·{" "}
+                {r.kind === "course_request" ? "Course request" : r.kind === "content_report" ? "Lesson report" : "Ticket"} ·{" "}
                 {new Date(r.created_at).toLocaleDateString()}
               </Muted>
             </View>

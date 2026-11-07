@@ -126,19 +126,25 @@ function escapeHtml(value: string): string {
 // User-supplied text is escaped: subject/body/course name come straight
 // from a form field, and they're being interpolated into an HTML email.
 export async function sendSupportRequestNotification(params: {
-  kind: "ticket" | "course_request";
+  kind: "ticket" | "course_request" | "content_report";
   subject: string;
   body: string;
   fromEmail: string;
   courseName?: string | null;
   courseSourceUrl?: string | null;
+  objectiveId?: string | null;
+  lessonStage?: string | null;
 }): Promise<void> {
   const to = process.env.SUPPORT_EMAIL || getFrom();
-  const label = params.kind === "course_request" ? "Course request" : "Support ticket";
+  const label =
+    params.kind === "course_request" ? "Course request" : params.kind === "content_report" ? "Content report" : "Support ticket";
   const rows = [
     `<p><strong>From:</strong> ${escapeHtml(params.fromEmail)}</p>`,
     params.courseName ? `<p><strong>Course:</strong> ${escapeHtml(params.courseName)}</p>` : "",
     params.courseSourceUrl ? `<p><strong>Source:</strong> ${escapeHtml(params.courseSourceUrl)}</p>` : "",
+    params.objectiveId
+      ? `<p><strong>Objective:</strong> ${escapeHtml(params.objectiveId)}${params.lessonStage ? ` (step: ${escapeHtml(params.lessonStage)})` : ""}</p>`
+      : "",
     `<p style="white-space:pre-wrap">${escapeHtml(params.body)}</p>`,
   ].join("");
   await getClient().emails.send({

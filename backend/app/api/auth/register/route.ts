@@ -6,7 +6,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
-import { recordSignupTermsAcceptance } from "@/lib/legal";
+import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,11 @@ const CREATED_MESSAGE = "Account created. Check your email to verify it before l
 export async function POST(req: Request) {
   try {
     const body = await readJson(req);
-    const { email, password, displayName, acceptedTermsVersion } = body ?? {};
+    const { email, password, displayName } = body ?? {};
+    // REQ-119 sends one version string (acceptedTermsVersion); REQ-093 sends
+    // the Terms and Privacy versions separately (termsVersion,
+    // privacyVersion). Either, when current, records both documents.
+    const acceptedTermsVersion = signupAcceptedVersion(body);
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
     }

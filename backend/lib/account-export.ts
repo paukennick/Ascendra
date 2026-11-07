@@ -98,9 +98,11 @@ export const EXPORT_SECTIONS = {
   // answers). Their own input; the automated re-check rows have no user.
   itemReports:
     "select id, item_kind, item_id, question, source, reason, note, created_at from item_flags where user_id = $1 order by created_at asc, id asc",
-  // REQ-119 (migration 048): Terms/Privacy acceptances, the first-run
-  // record, learning events and reported exam results.
-  termsAcceptances: "select * from terms_acceptances where user_id = $1 order by accepted_at asc, terms_version asc",
+  // REQ-093 / REQ-119: which Terms and Privacy versions the account agreed
+  // to, how and when (legal_acceptances, migration 027; source from 052).
+  // Then REQ-119's first-run record, learning events and exam results.
+  legalAcceptances:
+    "select document, version, source, accepted_at from legal_acceptances where user_id = $1 order by accepted_at asc, document asc, version asc",
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
@@ -119,6 +121,8 @@ export const EXPORT_SECTIONS = {
   signInEvents: `select event_type, ip, created_at from auth_events
                   where user_id = $1 or identifier = (select email from app_users where id = $1)
                   order by created_at asc, id asc`,
+  // REQ-093: sign-in providers linked to the account (no tokens).
+  linkedAccounts: "select provider, email, created_at from oauth_accounts where user_id = $1 order by created_at asc, provider asc",
   sessions: `select id, device_label, user_agent, ip, created_at, last_used_at, expires_at, revoked_at
                from refresh_tokens where user_id = $1 order by created_at asc, id asc`,
   // REQ-122 (migration 049): plans paid for or given, the payment events

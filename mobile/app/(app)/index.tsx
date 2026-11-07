@@ -210,11 +210,13 @@ export default function Home() {
 function Footer() {
   const router = useRouter();
   const links: [string, string][] = [
+    ["About", "/about"],
     ["FAQ", "/faq"],
     ["Disclaimer", "/disclaimer"],
     ["Privacy Policy", "/privacy"],
     ["Cookies & Storage", "/cookies"],
     ["Terms", "/terms"],
+    ["Sources", "/sources"],
   ];
   return (
     <View style={styles.footer}>

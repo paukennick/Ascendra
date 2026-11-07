@@ -1,4 +1,5 @@
-import { query, type TxClient } from "../db";
+import { type TxClient } from "../db";
+import { purgeExpired, RETENTION } from "../retention";
 
 // REQ-116 (audit 3, finding 5): what is kept about sign-in activity, and for
 // how long.
@@ -13,13 +14,10 @@ import { query, type TxClient } from "../db";
 // case, as recordAuthEvent stores it), by the per-device login keys
 // "<address>|<ip>", and by the user id used as a rate-limit identifier.
 //
-// purgeExpiredAuthData is the retention purge: rows older than
-// AUTH_RETENTION_DAYS (90) in auth_events, plus spent or expired
-// credentials that also carry an IP (login challenges, reset links,
-// refresh tokens revoked or expired that long ago). Run daily by
+// purgeExpiredAuthData is the retention purge (see below): run daily by
 // GET /api/cron/purge-auth-data (vercel.json crons; CRON_SECRET).
 
-export const AUTH_RETENTION_DAYS = 90;
+export const AUTH_RETENTION_DAYS = RETENTION.authEventsDays; // 90
 
 export async function purgeUserAuthEvents(tx: TxClient, userId: string, email: string): Promise<number> {
   const e = email.toLowerCase().trim();
@@ -38,20 +36,27 @@ export interface PurgeCounts {
   loginChallenges: number;
   passwordResetTokens: number;
   refreshTokens: number;
+  emailVerificationTokens: number;
+  emailChangeTokens: number;
 }
 
-export async function purgeExpiredAuthData(days = AUTH_RETENTION_DAYS): Promise<PurgeCounts> {
-  const count = async (sql: string) => (await query<{ n: number }>(`with d as (${sql} returning 1) select count(*)::int as n from d`, [days]))[0]?.n ?? 0;
+// Release 2026-11-07 merge: line A's purge (this file, REQ-116) and line B's
+// (lib/retention.ts, REQ-093) ran over the same tables with different
+// windows. There is now one purge, lib/retention.ts purgeExpired(), with
+// B's periods (which the Privacy Policy states and lib/retention.test.ts
+// pins): sign-in log 90 days (AUTH_RETENTION_DAYS, unchanged), ended
+// sessions 30 days -- only whole ended token families, so a revoked token
+// still catches reuse while its family is alive -- and used or expired
+// one-time tokens and challenges 7 days. Every window is at or under A's 90
+// days. This wrapper keeps A's name and result shape for its cron route.
+export async function purgeExpiredAuthData(): Promise<PurgeCounts> {
+  const r = await purgeExpired();
   return {
-    authEvents: await count(`delete from auth_events where created_at < now() - make_interval(days => $1)`),
-    loginChallenges: await count(`delete from login_challenges where expires_at < now() - make_interval(days => $1)`),
-    passwordResetTokens: await count(
-      `delete from password_reset_tokens where expires_at < now() - make_interval(days => $1)`
-    ),
-    refreshTokens: await count(
-      `delete from refresh_tokens
-        where coalesce(revoked_at, expires_at) < now() - make_interval(days => $1)
-          and (revoked_at is not null or expires_at < now())`
-    ),
+    authEvents: r.auth_events ?? 0,
+    loginChallenges: r.login_challenges ?? 0,
+    passwordResetTokens: r.password_reset_tokens ?? 0,
+    refreshTokens: r.refresh_tokens ?? 0,
+    emailVerificationTokens: r.email_verification_tokens ?? 0,
+    emailChangeTokens: r.email_change_tokens ?? 0,
   };
 }

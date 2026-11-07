@@ -27,6 +27,7 @@ import {
   shuffleForPresentation,
   storedIndexAt,
 } from "@/lib/choice-order";
+import { storedIndexOfText } from "@/lib/lesson-choices";
 import { diagnoseLessonMc, recordGraderMisconception } from "@/lib/understanding-grading";
 import { KEY_SUSPECT } from "@/lib/prompts";
 import { flagItem, lessonItemId } from "@/lib/item-quality";
@@ -136,7 +137,15 @@ export async function POST(req: Request) {
     let answer: string;
     let storedChoice: number | null = null;
     if (format === "mc") {
-      storedChoice = storedIndexAt(order, body.chosenIndex);
+      // Release 2026-11-07 merge: line B's grading (REQ-089, lib/lesson-choices.ts)
+      // identified the pick by its text. A request with no chosenIndex but a
+      // chosenText that is exactly one of this check's stored choices is
+      // graded as that choice, so either client contract works. The answer
+      // key still comes only from the stored lesson.
+      storedChoice =
+        typeof body.chosenIndex !== "number" && typeof body.chosenText === "string"
+          ? storedIndexOfText(check.choices, body.chosenText)
+          : storedIndexAt(order, body.chosenIndex);
       if (storedChoice === null) return badRequest(`chosenIndex must be 0-${check.choices.length - 1}`);
       answer = check.choices[storedChoice];
     } else {

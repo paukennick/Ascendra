@@ -1,6 +1,7 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { pendingAcceptance } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,9 @@ export async function GET(req: Request) {
     const authUser = await requireUser(req);
     const row = await queryOne<ProfileRow>(PROFILE_SELECT, [authUser.id]);
     if (!row) return notFound("Account no longer exists.");
-    return ok({ user: toUserResponse(row) });
+    // REQ-093: documents whose current version this user hasn't accepted.
+    const legalPending = await pendingAcceptance(authUser.id);
+    return ok({ user: { ...toUserResponse(row), legalPending } });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
