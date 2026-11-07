@@ -368,9 +368,9 @@ describe("grading-cases.json (the draft cases shipped with the harness)", () => 
     assert.equal(Object.keys(raw)[0], "_status");
     assert.match(raw._status, /^draft — written by Claude, needs the owner's review before it is treated as ground truth$/);
   });
-  test("parses, with ~40 cases across the four domains", () => {
+  test("parses, with 40 ordinary cases plus the adversarial set, across the four domains", () => {
     const cases = parseGradingCases(raw);
-    assert.equal(cases.length, 40);
+    assert.equal(cases.filter((c) => !c.tags.includes("adversarial")).length, 40);
     assert.deepEqual([...new Set(cases.map((c) => c.domain))].sort(), ["aws-saa", "ccrn", "pt", "security-plus"]);
   });
   test("covers every verdict and the tricky shapes: skipped sub-part, terse-correct, confidently wrong", () => {
@@ -383,6 +383,20 @@ describe("grading-cases.json (the draft cases shipped with the harness)", () => 
     for (const d of ["aws-saa", "ccrn", "pt", "security-plus"]) {
       assert.equal(new Set(cases.filter((c) => c.domain === d).map((c) => c.expectedVerdict)).size, 3, d);
     }
+  });
+  // FAIL-184: the grader treats the learner answer as data. These cases have
+  // not been run against the live model yet (no API key here).
+  test("has at least 10 adversarial cases covering injection, fence breaks, restated, empty, irrelevant and other-language answers", () => {
+    const adv = parseGradingCases(raw).filter((c) => c.tags.includes("adversarial"));
+    assert.ok(adv.length >= 10, `${adv.length} adversarial cases`);
+    for (const tag of ["prompt-injection", "fence-break", "restates-question", "empty-answer", "irrelevant", "other-language"]) {
+      assert.ok(adv.some((c) => c.tags.includes(tag)), tag);
+    }
+    // An injection alone never earns credit; an otherwise-correct answer is graded on its content.
+    for (const c of adv.filter((c) => c.tags.includes("fence-break") || c.tags.includes("restates-question"))) {
+      assert.equal(c.expectedVerdict, "incorrect", c.id);
+    }
+    assert.ok(adv.some((c) => c.tags.includes("prompt-injection") && c.expectedVerdict === "correct"), "injection beside a correct answer");
   });
   test("every partial case names what was missed; every non-partial multi-part-free case names none", () => {
     for (const c of parseGradingCases(raw)) {
