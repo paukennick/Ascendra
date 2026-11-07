@@ -1072,6 +1072,29 @@
       "prevention_rules": [],
       "prevention_notes": "examBlueprintForTrack is the one reader for exam mechanics; exam-blueprints.dbtest.ts asserts it returns duration, format, passing policy and domains.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-130",
+      "date": "2026-11-07",
+      "title": "New CS0-003 superseded check assumed a CS0-003 exam row exists on a fresh database",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "test:db on a freshly migrated and twice-seeded database failed 'CYSAPLUS teaches CS0-004 ...': expected exactly one CS0-003 credential_exams row, found 0. It passed on the upgraded database, which had been seeded with CS0-003 first.",
+      "how_detected": "test (npm run test:db on a fresh database, as CI runs it)",
+      "root_cause": "The CySA+ track only ever seeds its current exam, so a CS0-003 row exists only on a database seeded before REQ-103. The test was written against the upgrade database and asserted the production shape as universal; the SAP-C02 test right above it already handles 0-or-1 rows for the same reason.",
+      "requirement": "REQ-103",
+      "affected": [
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "fix_summary": "Assert at most one CS0-003 row and that any present is superseded by CS0-004 with retirement_date 2026-12-22; the end-to-end upgrade path is covered by the 'CySA+ CS0-003 -> CS0-004 upgrade through the real seed code' suite, which seeds the CS0-003 shape itself.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-blueprints.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run test:db on both a fresh database and an upgraded one when a test reads rows that only older seeds create; exam-version tests follow the SAP-C02 pattern (loop over 0-or-1 rows) plus a self-contained upgrade suite.",
+      "recurrence_of": ""
     }
   ]
 }
