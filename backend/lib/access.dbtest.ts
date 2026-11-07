@@ -18,7 +18,7 @@ import {
   NotVisibleError,
 } from "./visibility";
 import {
-  cachedCorrectIndex,
+  lessonCheckFor,
   recordAttemptIdempotent,
   findClientAttempt,
   advanceReviewStage,
@@ -113,17 +113,23 @@ describe("visibility", () => {
   });
 });
 
-describe("answer key for multiple choice", () => {
+// REQ-097: lessonCheckFor replaced cachedCorrectIndex; there is no longer a
+// fallback to a client-supplied key.
+describe("answer key for lesson checks", () => {
+  const key = async (u: string, o: string, stage: unknown) => {
+    const r = await lessonCheckFor(u, o, stage);
+    return r.status === "ok" ? r.check.correctIndex : r.status;
+  };
   test("comes from the cached lesson, keyed by stage", async () => {
-    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "fade"), { hasLesson: true, validStage: true, index: 2 });
-    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "solo"), { hasLesson: true, validStage: true, index: 1 });
+    assert.equal(await key(alice, aliceObjective, "fade"), 2);
+    assert.equal(await key(alice, aliceObjective, "solo"), 1);
   });
-  test("a lesson exists but the stage is not fade/solo: invalid stage (route answers 400)", async () => {
-    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, undefined), { hasLesson: true, validStage: false, index: null });
-    assert.deepEqual(await cachedCorrectIndex(alice, aliceObjective, "guess"), { hasLesson: true, validStage: false, index: null });
+  test("a stage that is not fade/solo is rejected (route answers 400)", async () => {
+    assert.equal(await key(alice, aliceObjective, undefined), "bad-stage");
+    assert.equal(await key(alice, aliceObjective, "guess"), "bad-stage");
   });
-  test("no cached lesson: hasLesson false (route falls back to the client's value)", async () => {
-    assert.deepEqual(await cachedCorrectIndex(alice, sharedObjective, "fade"), { hasLesson: false, validStage: false, index: null });
+  test("no cached lesson: nothing to grade against (route answers 404)", async () => {
+    assert.equal(await key(alice, sharedObjective, "fade"), "no-lesson");
   });
   test("a learner who regenerated is graded against their own lesson, others against the shared one", async () => {
     await query(
@@ -136,9 +142,9 @@ describe("answer key for multiple choice", () => {
       [bob, aliceObjective]
     );
     try {
-      assert.equal((await cachedCorrectIndex(bob, aliceObjective, "fade")).index, 0);
-      assert.equal((await cachedCorrectIndex(bob, aliceObjective, "solo")).index, 3);
-      assert.equal((await cachedCorrectIndex(alice, aliceObjective, "fade")).index, 2, "shared key changed for others");
+      assert.equal(await key(bob, aliceObjective, "fade"), 0);
+      assert.equal(await key(bob, aliceObjective, "solo"), 3);
+      assert.equal(await key(alice, aliceObjective, "fade"), 2, "shared key changed for others");
     } finally {
       await query(`delete from lesson_content_overrides where user_id = $1 and objective_id = $2`, [bob, aliceObjective]);
     }

@@ -40,10 +40,12 @@ import { whenLabel } from "@/lib/time";
 // the device (src/lib/pbqProgress.ts), so leaving the screen and coming back
 // shows the same scenario instead of starting over.
 export default function PBQScreen() {
-  const { trackId, unitId: unitIdParam, trackTitle } = useLocalSearchParams<{
+  const { trackId, unitId: unitIdParam, trackTitle, scenarioId: retryScenarioId } = useLocalSearchParams<{
     trackId: string;
     unitId?: string;
     trackTitle?: string;
+    // REQ-097: "Retry scenario" from Review -- load exactly this scenario.
+    scenarioId?: string;
   }>();
   const [unitId, setUnitId] = useState<string | undefined>(unitIdParam);
   const [units, setUnits] = useState<Unit[] | null>(null);
@@ -101,6 +103,35 @@ export default function PBQScreen() {
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  // A retry opened from Review replaces whatever draft was on screen with a
+  // fresh, unanswered copy of that scenario (scenarioShown then stops the
+  // stored draft from overwriting it).
+  useEffect(() => {
+    if (!retryScenarioId) return;
+    let cancelled = false;
+    setBusy(true);
+    setError(null);
+    api
+      .get<{ scenario: PBQScenario }>(`/api/pbq?scenarioId=${encodeURIComponent(retryScenarioId)}`)
+      .then((res) => {
+        if (cancelled) return;
+        setUnitId(res.scenario.unit_id);
+        setScenario(res.scenario);
+        setAnswer("");
+        setResult(null);
+        sentRef.current = null;
+      })
+      .catch((err) => {
+        if (!cancelled) setError((err as Error).message);
+      })
+      .finally(() => {
+        if (!cancelled) setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [retryScenarioId]);
 
   async function generate(fresh: boolean) {
     if (!unitId) return;

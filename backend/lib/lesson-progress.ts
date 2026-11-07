@@ -18,7 +18,17 @@ export interface CheckState {
   openAnswer: string;
   clientAttemptId: string | null;
   sentSignature: string | null;
-  result: { verdict: string; feedback: string; missedParts: string[] } | null;
+  // REQ-097: correctIndex / correctAnswer / why arrive only with the verdict
+  // (the lesson payload has no answer key), so they are saved with it.
+  result: {
+    verdict: string;
+    feedback: string;
+    missedParts: string[];
+    correctIndex: number | null;
+    correctAnswer: string | null;
+    why: string | null;
+    assistReason: string | null;
+  } | null;
 }
 
 export interface LessonProgressInput {
@@ -59,6 +69,13 @@ function sanitizeCheck(v: unknown): CheckState | undefined {
           missedParts: Array.isArray(r.missedParts)
             ? r.missedParts.filter((p): p is string => typeof p === "string").slice(0, 20).map((p) => cleanText(p, 500))
             : [],
+          correctIndex:
+            Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 && (r.correctIndex as number) < 20
+              ? (r.correctIndex as number)
+              : null,
+          correctAnswer: text(r.correctAnswer),
+          why: text(r.why),
+          assistReason: r.assistReason === "hint" || r.assistReason === "repeat" ? r.assistReason : null,
         }
       : null;
   return {

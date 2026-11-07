@@ -14,6 +14,7 @@ export async function gradeFreeResponse(params: {
   taughtText: string;
   question: string;
   answer: string;
+  answerKey?: string;
   ctx?: CoachContext;
   userId?: string;
   // Only the eval overrides these.
@@ -24,6 +25,7 @@ export async function gradeFreeResponse(params: {
     taughtText: params.taughtText,
     question: params.question,
     answer: params.answer,
+    answerKey: params.answerKey,
     ctx: params.ctx,
   });
   return callClaudeStructured({

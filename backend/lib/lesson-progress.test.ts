@@ -32,6 +32,21 @@ describe("sanitizeLessonProgress", () => {
     assert.deepEqual(r.checks.solo.result.missedParts, ["p"]);
     assert.equal("extra" in r.checks, false);
   });
+  test("keeps the answer key that came back with a verdict (REQ-097), and drops junk", () => {
+    const r = sanitizeLessonProgress({
+      ...base,
+      checks: {
+        fade: { mode: "mc", result: { verdict: "incorrect", feedback: "f", correctIndex: 2, correctAnswer: "c", why: "w", assistReason: "repeat" } },
+        solo: { mode: "open", result: { verdict: "correct", feedback: "f", correctIndex: 99, assistReason: "cheat" } },
+      },
+    }) as any;
+    assert.deepEqual(
+      [r.checks.fade.result.correctIndex, r.checks.fade.result.correctAnswer, r.checks.fade.result.why, r.checks.fade.result.assistReason],
+      [2, "c", "w", "repeat"]
+    );
+    assert.equal(r.checks.solo.result.correctIndex, null);
+    assert.equal(r.checks.solo.result.assistReason, null);
+  });
   test("caps stored text length", () => {
     const r = sanitizeLessonProgress({ ...base, guess: "x".repeat(20000) }) as { guess: string };
     assert.equal(r.guess.length, 8000);

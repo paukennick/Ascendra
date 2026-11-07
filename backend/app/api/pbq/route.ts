@@ -21,6 +21,7 @@ import { coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
 
+// GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — returns the most recently generated PBQ scenario for a unit,
 // or generates+caches a new one if none exists yet. Pass &fresh=1 to always generate a new one
 // (a unit can accumulate several distinct scenarios over time, unlike per-objective lesson
@@ -29,9 +30,22 @@ export async function GET(req: Request) {
   try {
     const authUser = await requireUser(req);
     const { searchParams } = new URL(req.url);
+
+    // REQ-097: ?scenarioId= returns that exact scenario, so a missed PBQ on
+    // the Review screen can be retried (a correct retry advances its review
+    // entry once it is due -- see recordAttemptTx).
+    const scenarioId = searchParams.get("scenarioId");
+    if (scenarioId) {
+      const scenario = await visibleScenario(scenarioId, authUser.id);
+      if (!scenario) return notFound("PBQ scenario not found");
+      await requireAcknowledgementForUnit(scenario.unit_id, authUser.id);
+      const row = await queryOne(`select * from pbq_scenarios where id = $1`, [scenario.id]);
+      return ok({ scenario: row, cached: true });
+    }
+
     const unitId = searchParams.get("unitId");
     const fresh = searchParams.get("fresh") === "1";
-    if (!unitId) return badRequest("unitId query param is required");
+    if (!unitId) return badRequest("unitId or scenarioId query param is required");
     if (!isUuid(unitId)) return notFound("Unit not found");
 
     const unit = await queryOne<{ title: string; track_title: string }>(

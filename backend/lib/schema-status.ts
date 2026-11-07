@@ -82,6 +82,31 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.attempts_user_client_attempt_unique') is not null as ok`,
   },
   {
+    migration: "029_mastery_recompute.sql",
+    what: "attempts.assisted / assist_reason columns (every graded answer)",
+    sql: `select count(*) = 2 as ok from information_schema.columns
+           where table_schema = 'public' and table_name = 'attempts'
+             and column_name in ('assisted', 'assist_reason')`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "mastery_from_attempts() function (every graded answer)",
+    sql: `select to_regprocedure('public.mastery_from_attempts(uuid,uuid)') is not null as ok`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "lesson_hint_reveals table (Solo choices hint)",
+    sql: `select to_regclass('public.lesson_hint_reveals') is not null as ok`,
+  },
+  {
+    migration: "029_mastery_recompute.sql",
+    what: "error_log.pbq_scenario_id column (graded PBQ answers, Review)",
+    sql: `select exists(
+            select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'error_log' and column_name = 'pbq_scenario_id'
+          ) as ok`,
+  },
+  {
     migration: "030_hardening_indexes.sql",
     what: "chat_messages (user_id, track_id, created_at) index (chat history and replay)",
     sql: `select to_regclass('public.idx_chat_messages_user_track_created') is not null as ok`,

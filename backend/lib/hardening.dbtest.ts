@@ -13,7 +13,6 @@ import { signAccessToken } from "./auth/tokens";
 import { consumeRateLimit, RateLimitError } from "./auth/rateLimit";
 import { createLoginChallenge } from "./auth/mfaChallenge";
 import { recordAttemptAndUpdateMastery, recordAttemptIdempotent, IdempotencyConflictError } from "./grading-service";
-import { accuracyFromAttempts, suggestStatus } from "./mastery";
 import { startOrTouchSession } from "./study-sessions";
 import { saveChatTurn, findChatTurn, findChatReply, ChatIdConflictError } from "./chat-store";
 import { buildAccountExport, exportSectionPage } from "./account-export";
@@ -58,8 +57,12 @@ async function makeUser(tag: string, extra: { password?: string; mfa?: boolean }
   return { id, email };
 }
 
-// A private track owned by `owner` with `n` objectives in one unit.
-async function makeCourse(owner: string, n: number) {
+// A private track owned by `owner` with `n` objectives in one unit. With
+// `lessons`, each objective gets a cached lesson: /api/grade grades only
+// against the stored lesson (REQ-097).
+const FADE_Q = "Fade: finish it";
+const SOLO_Q = "Solo: explain it";
+async function makeCourse(owner: string, n: number, opts: { lessons?: boolean } = {}) {
   const track = randomUUID();
   const unit = randomUUID();
   await query(
@@ -72,6 +75,14 @@ async function makeCourse(owner: string, n: number) {
   for (let i = 0; i < n; i++) {
     const o = randomUUID();
     await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, $3, $4)`, [o, unit, `O${i}`, i]);
+    if (opts.lessons) {
+      await query(
+        `insert into lesson_content (objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
+           solo_check, solo_choices, solo_correct_index, solo_why, model)
+         values ($1, 'g', 'teach', $2, $3, 0, 'fade why', $4, $5, 0, 'solo why', 'test')`,
+        [o, FADE_Q, JSON.stringify(["fa", "fb", "fc", "fd"]), SOLO_Q, JSON.stringify(["sa", "sb", "sc", "sd"])]
+      );
+    }
     objectives.push(o);
   }
   return { track, unit, objectives };
@@ -205,16 +216,11 @@ describe("mixed-case uuids share one lock", () => {
   test("two concurrent wrong answers, one with an uppercase objective id, leave mastery current (10 trials)", async () => {
     const u = await makeUser("mixed-grade");
     const { unit, objectives } = await makeCourse(u.id, 10);
-    const expected = suggestStatus({
-      acc: accuracyFromAttempts([{ verdict: "correct" }, { verdict: "incorrect" }, { verdict: "incorrect" }]),
-      lastFormat: "mc",
-      lastVerdict: "incorrect",
-    });
-    const stale = suggestStatus({
-      acc: accuracyFromAttempts([{ verdict: "correct" }, { verdict: "incorrect" }]),
-      lastFormat: "mc",
-      lastVerdict: "incorrect",
-    });
+    // Under mastery_from_attempts (migration 029, REQ-097): correct then two
+    // incorrect is 1/3 correct with the latest wrong -> Needs review; a write
+    // that missed the other request's attempt sees 1/2 -> Guided.
+    const expected = "Needs review";
+    const stale = "Guided";
     assert.notEqual(expected, stale, "the test needs the stale and current statuses to differ");
     const base = { userId: u.id, unitId: unit, kind: "lesson" as const, stage: "fade", format: "mc" as const, question: "Q" };
     let staleCount = 0;
@@ -228,6 +234,8 @@ describe("mixed-case uuids share one lock", () => {
         u.id,
         o,
       ]);
+      const fromHistory = await queryOne<{ status: string }>(`select status from mastery_from_attempts($1, $2)`, [u.id, o]);
+      assert.equal(fromHistory!.status, expected);
       if (m!.status !== expected) staleCount++;
     }
     assert.equal(staleCount, 0, `mastery was stale in ${staleCount} of ${objectives.length} trials`);
@@ -253,44 +261,67 @@ describe("mixed-case uuids share one lock", () => {
 
   test("the sessions route and grade route accept uppercase ids and treat them as the same row", async () => {
     const u = await makeUser("mixed-route");
-    const { track, unit, objectives } = await makeCourse(u.id, 1);
+    const { track, unit, objectives } = await makeCourse(u.id, 1, { lessons: true });
     const a = await sessionsPost(jsonReq({ trackId: track.toUpperCase() }, authHeader(u)));
     const b = await sessionsPost(jsonReq({ trackId: track }, authHeader(u)));
     assert.deepEqual([a.status, b.status], [201, 200]);
     // objectiveId lowercase + unitId uppercase used to be a false 400.
     const g = await gradePost(
-      jsonReq(
-        { format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], unitId: unit.toUpperCase(), question: "Q", chosenIndex: 0, correctIndex: 0, chosenText: "a" },
-        authHeader(u)
-      )
+      jsonReq({ format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], unitId: unit.toUpperCase(), chosenIndex: 0 }, authHeader(u))
     );
     assert.equal(g.status, 200);
+    // An uppercase objective id is graded against the same shuffle and
+    // recorded against the same (lowercase) objective.
+    const g2 = await gradePost(
+      jsonReq({ format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0].toUpperCase(), chosenIndex: 0 }, authHeader(u))
+    );
+    assert.equal(g2.status, 200);
+    const answers = await query<{ answer: string; objective_id: string }>(
+      `select answer, objective_id from attempts where user_id = $1 order by created_at`,
+      [u.id]
+    );
+    assert.equal(answers.length, 2);
+    assert.equal(answers[0].answer, answers[1].answer);
+    assert.equal(answers[1].objective_id, objectives[0]);
   });
 });
 
 // ---------------------------------------------------------------- item 7
 describe("NUL characters and lone surrogates are 400s, not 500s", () => {
-  test("grade: NUL in question or answer, bad kind, long stage, bad confidence -> 400", async () => {
+  // REQ-097 changed the grade contract: the question, taught text, key and
+  // chosen text come from the stored lesson, not the body, so the only free
+  // text left to validate is the free-response answer.
+  test("grade: NUL or half an emoji in the answer, over-long answer, bad kind/stage/confidence -> 400", async () => {
     const u = await makeUser("nul-grade");
-    const { objectives } = await makeCourse(u.id, 1);
-    const base = { format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], question: "Q", chosenIndex: 0, correctIndex: 0, chosenText: "a" };
+    const { objectives } = await makeCourse(u.id, 1, { lessons: true });
+    const base = { format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], chosenIndex: 0 };
+    const open = { ...base, format: "open", stage: "solo", answer: "my answer" };
     for (const bad of [
-      { question: "Q\u0000" },
-      { chosenText: "a\u0000" },
-      { chosenText: "half an emoji \uD83D" },
-      { kind: "bogus" },
-      { stage: "s".repeat(51) },
-      { confidence: 9 },
-      { confidence: 3.5 },
-      { confidence: "abc" },
-      { question: "q".repeat(8_001) },
+      { ...open, answer: "a\u0000" },
+      { ...open, answer: "half an emoji \uD83D" },
+      { ...open, answer: "q".repeat(8_001) },
+      { ...open, answer: 42 },
+      { ...base, kind: "bogus" },
+      { ...base, stage: "s".repeat(51) },
+      { ...base, confidence: 9 },
+      { ...base, confidence: 3.5 },
+      { ...base, confidence: "abc" },
+      { ...base, chosenIndex: 4 },
     ]) {
-      const res = await gradePost(jsonReq({ ...base, ...bad }, authHeader(u)));
+      const res = await gradePost(jsonReq(bad, authHeader(u)));
       assert.equal(res.status, 400, JSON.stringify(bad).slice(0, 60));
     }
     // Boundary: exactly at the caps is fine.
-    const okRes = await gradePost(jsonReq({ ...base, question: "q".repeat(8_000), stage: "s".repeat(50), confidence: 5 }, authHeader(u)));
+    const okRes = await gradePost(jsonReq({ ...base, confidence: 5 }, authHeader(u)));
     assert.equal(okRes.status, 200);
+    // An answer of exactly 8,000 characters passes validation: with the
+    // grade_open budget already spent it reaches the rate limit (429), which
+    // sits after validation and before the model call.
+    for (let i = 0; i < 40; i++) {
+      await query(`insert into auth_events (event_type, identifier, user_id) values ('grade_open', $1::text, $1::uuid)`, [u.id]);
+    }
+    const atCap = await gradePost(jsonReq({ ...open, answer: "q".repeat(8_000) }, authHeader(u)));
+    assert.equal(atCap.status, 429);
   });
 
   test("chat: NUL in the message -> 400; over the cap -> 400", async () => {
@@ -383,14 +414,19 @@ describe("idempotency ids are bound to the submission", () => {
 
   test("grade: the same id with a different answer is a 409 and records nothing new", async () => {
     const u = await makeUser("grade-409");
-    const { objectives } = await makeCourse(u.id, 2);
+    const { objectives } = await makeCourse(u.id, 2, { lessons: true });
     const id = `hd-${run}-g409`;
-    const body = { clientAttemptId: id, format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], question: "Q", chosenIndex: 0, correctIndex: 0, chosenText: "a" };
+    // REQ-097 contract: the identity is what the route grades -- objective,
+    // stage, format and the chosen stored choice -- not client question text.
+    const body = { clientAttemptId: id, format: "mc", kind: "lesson", stage: "fade", objectiveId: objectives[0], chosenIndex: 0 };
     assert.equal((await gradePost(jsonReq(body, authHeader(u)))).status, 200);
-    const replay = await gradePost(jsonReq({ ...body, objectiveId: objectives[0].toUpperCase() }, authHeader(u)));
+    const replay = await gradePost(jsonReq({ ...body, objectiveId: objectives[0].toUpperCase(), question: "ignored" }, authHeader(u)));
     assert.equal(replay.status, 200);
-    assert.equal((await replay.json()).replayed, true);
-    assert.equal((await gradePost(jsonReq({ ...body, chosenIndex: 1, chosenText: "b" }, authHeader(u)))).status, 409);
+    const replayed = await replay.json();
+    assert.equal(replayed.replayed, true);
+    assert.equal(typeof replayed.correctIndex, "number");
+    assert.equal((await gradePost(jsonReq({ ...body, chosenIndex: 1 }, authHeader(u)))).status, 409);
+    assert.equal((await gradePost(jsonReq({ ...body, stage: "solo" }, authHeader(u)))).status, 409);
     assert.equal((await gradePost(jsonReq({ ...body, objectiveId: objectives[1] }, authHeader(u)))).status, 409);
     const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1`, [u.id]);
     assert.equal(n!.n, 1);

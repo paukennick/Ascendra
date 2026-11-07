@@ -22,6 +22,13 @@ export interface CheckResult {
   verdict: string;
   feedback: string;
   missedParts: string[];
+  // REQ-097: the lesson payload has no answer key; these come back with the
+  // verdict and are saved with it so a resumed check shows the same marks.
+  // correctIndex is a position in the order the choices were shown.
+  correctIndex?: number | null;
+  correctAnswer?: string | null;
+  why?: string | null;
+  assistReason?: "hint" | "repeat" | null;
 }
 
 // Everything a Guided/Solo check needs to come back exactly as it was.
@@ -147,6 +154,10 @@ function parseCheck(v: unknown, kind: CheckKind): CheckState | null {
             verdict: r.verdict,
             feedback: typeof r.feedback === "string" ? r.feedback : "",
             missedParts: Array.isArray(r.missedParts) ? r.missedParts.filter((p): p is string => typeof p === "string") : [],
+            correctIndex: Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 ? (r.correctIndex as number) : null,
+            correctAnswer: typeof r.correctAnswer === "string" ? r.correctAnswer : null,
+            why: typeof r.why === "string" ? r.why : null,
+            assistReason: r.assistReason === "hint" || r.assistReason === "repeat" ? r.assistReason : null,
           }
         : null,
   };
