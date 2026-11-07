@@ -17,3 +17,6 @@ test("privacy policy states the ended-session period", () => {
 test("privacy policy states the one-time code period", () => {
   assert.match(legalTs, new RegExp(`one-time codes: ${RETENTION.expiredTokensDays} days`));
 });
+test("privacy policy states the email-change request period (REQ-139)", () => {
+  assert.match(legalTs, new RegExp(`Email address change requests [^"]*: ${RETENTION.emailChangeDays} days after they expire`));
+});

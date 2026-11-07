@@ -144,6 +144,10 @@ export interface GenerateMeta {
   // REQ-114: set on the one retry of a practice half that was held back --
   // the claims to leave out or state as uncertain.
   steer?: string;
+  // REQ-139 (line B's REQ-089 rule): the teaching text the learner has just
+  // read, so the practice half tests it and does not contradict it. Set on
+  // every practice call of a generation, its held-back retry included.
+  teach?: string;
 }
 
 // Lessons: Sonnet, effort "medium", thinking off. See lib/anthropic.ts
@@ -180,6 +184,7 @@ export const claudeGenerator: LessonGenerator = {
       trackTitle: objRow.track_title,
       unitTitle: objRow.unit_title,
       objectiveTitle: objRow.title,
+      teach: meta?.teach,
       avoid,
       ctx: objRow.ctx ?? undefined,
       steer: meta?.steer,
@@ -268,7 +273,7 @@ const HEARTBEAT_MS = (CLAIM_LEASE_SECONDS * 1000) / 4;
 const DEFAULT_WAIT_MS = 90_000;
 const DEFAULT_POLL_MS = 1_000;
 
-// A full generation (intro and practice in parallel, then save) already in flight IN THIS
+// A full generation (intro, then practice from its teaching text, then save) already in flight IN THIS
 // PROCESS, keyed by objective and scope (shared first generation, or one
 // learner's regenerate) so ANY second caller -- a real GET/POST, a second
 // prefetch call, a double-tapped regenerate -- awaits the same generation
@@ -359,20 +364,23 @@ async function runGeneration(
             return done;
           }
         }
-        // The two halves are independent (the practice prompt never sees the
-        // intro's output), so both calls start now and wall time is the slower
-        // of the two instead of their sum. The intro is still handed to the
-        // caller the moment it exists, ahead of the practice half.
+        // REQ-139 (FAIL-527): teach first, then practice from it. Line B's
+        // REQ-089 rule -- the practice questions see the teaching text they
+        // test -- was lost when the 2026-11-07 merge kept line A's parallel
+        // calls. The intro is still handed to the caller the moment it
+        // exists, so the learner reads guess and teach while the practice
+        // half generates (the GET returns practicePending), and
+        // .../lesson/prefetch-next starts the next objective's generation
+        // while the learner is still on this one. Cost: no extra calls; the
+        // practice prompt is longer by the teaching text.
         const meta: GenerateMeta = { userId: scope.kind === "user" ? scope.userId : undefined };
-        const introCall = gen.intro(objRow, avoid, meta);
-        const practiceCall = gen.practice(objRow, avoid, meta);
-        // Whichever call is not being awaited when the other fails must not
-        // become an unhandled rejection. (If the intro fails, the practice
-        // call is already in flight; its result is discarded.)
-        introCall.catch(() => {});
-        practiceCall.catch(() => {});
-        const intro = await introCall;
+        const intro = await gen.intro(objRow, avoid, meta);
         settleIntro(intro);
+        const practiceMeta: GenerateMeta = { ...meta, teach: intro.teach };
+        const practiceCall = gen.practice(objRow, avoid, practiceMeta);
+        // Not awaited until the holdback below is recorded; a failure in the
+        // meantime must not become an unhandled rejection.
+        practiceCall.catch(() => {});
         // REQ-114: teaching text is not an item; uncertainty in it is logged.
         const introUnsure = uncertaintyOf(intro as unknown as { uncertainClaims?: unknown; confidence?: unknown });
         if (introUnsure) {
@@ -382,7 +390,7 @@ async function runGeneration(
           shared: scope.kind === "shared",
           gen,
           avoid,
-          meta,
+          meta: practiceMeta,
         });
         // A learner's override is an upsert, so a holder that lost its lease
         // (stalled past it; another instance took over) must not overwrite

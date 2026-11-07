@@ -475,12 +475,11 @@ async function stepGeneration(c: Ctx) {
       const common = { trackTitle: o.track_title, unitTitle: o.unit_title, objectiveTitle: o.title, ctx: o.ctx ?? undefined };
       const call = { model: j.model, effort: "medium" as const, thinking: "off" as const, purpose: "eval_generation" as const };
       if (j.kind === "lesson") {
+        // REQ-139: as in production, practice is written from the teaching text.
         const ip = lessonIntroPrompt(common);
-        const pp = lessonPracticePrompt(common);
-        const [intro, practice] = await Promise.all([
-          callClaudeStructured({ ...call, system: ip.system, messages: [{ role: "user", content: ip.user }], schema: lessonIntroSchema, maxTokens: 4000 }),
-          callClaudeStructured({ ...call, system: pp.system, messages: [{ role: "user", content: pp.user }], schema: lessonPracticeSchema, maxTokens: 6000 }),
-        ]);
+        const intro = await callClaudeStructured({ ...call, system: ip.system, messages: [{ role: "user", content: ip.user }], schema: lessonIntroSchema, maxTokens: 4000 });
+        const pp = lessonPracticePrompt({ ...common, teach: introFromModel(intro).teach });
+        const practice = await callClaudeStructured({ ...call, system: pp.system, messages: [{ role: "user", content: pp.user }], schema: lessonPracticeSchema, maxTokens: 6000 });
         return { ...j, problems: [...lessonIntroProblems(introFromModel(intro)), ...lessonPracticeProblems(practice)] };
       }
       if (j.kind === "quiz") {

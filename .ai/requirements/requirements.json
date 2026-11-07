@@ -4627,6 +4627,41 @@
         "Not run against production; production's real row counts and ledger contents must be checked at step 1 of the runbook",
         "Enum values cannot be rolled back (harmless to old code)"
       ]
+    },
+    {
+      "id": "REQ-139",
+      "category": "release",
+      "title": "Release 2026-11-07 follow-ups: one lab per lesson, grounded practice, email-change cancel link",
+      "description": "Nick's three decisions on the release's 'For Nick' items. (1) The lesson's Try it step is offered only when the learner sees no lab for the objective (the Done screen's lab card, or a build/case lab); the server decides (lib/lab-attempts.ts tryItLab/objectiveHasLab), and POST /api/objectives/:id/lab follows. (2) Lesson generation restores line B's REQ-089 rule: the practice half is generated after the intro, with its teaching text in the prompt; A's validation, fact-check gate, holdback retry, leases and early intro hand-back are kept (lib/lesson-generation.ts runGeneration). (3) email_change_tokens are kept 30 days after expiry (RETENTION.emailChangeDays) so the 'this wasn't me' cancel link keeps working; other windows unchanged; the Privacy Policy and data inventory say so.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib",
+        "backend/app/api/objectives",
+        "backend/scripts/eval",
+        "mobile/src/content/legal.ts",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Try it absent where the lab card or a build/case lab shows; self-report route 404 there",
+        "Practice prompt contains the teaching text on every practice call including the holdback retry; intro still returned first",
+        "email_change_tokens purged 30 days after expiry; other token windows 7 days; cancel link works for a request expired 8 days",
+        "All tests; omni gate; rehearsal passes"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database",
+        "mobile typecheck",
+        "mobile tests",
+        "rehearsal script"
+      ],
+      "documentation_required": [
+        "docs/release-2026-11-07.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

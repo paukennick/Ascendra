@@ -32,6 +32,12 @@
   (FAIL-510), and every study route the other branch added is checked
   against the gated-route list in docs/billing.md, the Free one-course
   check included (FAIL-511).
+- When two lines changed the same function, write down each side's rule and
+  check both survived the merge, not only the text (REQ-139): the parallel
+  lesson calls kept the speed and dropped "practice sees the teaching text"
+  (FAIL-527); two lab entry points on one lesson showed one lab twice
+  (FAIL-526). A retention window applies to every reader of the rows it
+  deletes, including links mailed earlier that still need them (FAIL-528).
 - Shared generated content (REQ-114): a new kind of shared item asks for
   `confidence`/`uncertainClaims`, holds uncertain output back
   (`recordHoldback`), passes the fact-check gate (`factCheckGate`) before it

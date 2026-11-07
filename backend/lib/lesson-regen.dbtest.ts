@@ -45,6 +45,8 @@ function fakeGenerator(
     practice: 0,
     avoid: [] as (LessonAvoid | undefined)[],
     users: [] as (string | undefined)[],
+    // REQ-139: the teaching text each practice call was given.
+    teach: [] as (string | undefined)[],
     // "intro:start", "practice:start", "intro:end", ... in the order they happened.
     events: [] as string[],
   };
@@ -59,8 +61,9 @@ function fakeGenerator(
       if (opts.failIntro) throw new Error("model unavailable");
       return { guessPrompt: `${label} guess ${n}`, teach: `${label} teach ${n}` };
     },
-    async practice() {
+    async practice(_o, _avoid, meta) {
       const n = ++calls.practice;
+      calls.teach.push(meta?.teach);
       calls.events.push("practice:start");
       if (opts.practiceMs) await new Promise((r) => setTimeout(r, opts.practiceMs));
       calls.events.push("practice:end");
@@ -132,19 +135,21 @@ describe("first generation stays shared", () => {
   });
 });
 
-describe("intro and practice run in parallel", () => {
-  test("both calls start before either finishes", async () => {
+// REQ-139 (FAIL-527): line A ran the two halves in parallel, so the practice
+// prompt never saw the teaching text (line B's REQ-089 rule). The practice
+// half now starts once the intro exists and is given its teaching text; the
+// intro is still handed to the caller first, so the learner reads guess and
+// teach while practice generates (and prefetch-next still starts both early).
+describe("practice is generated after, and from, the teaching text", () => {
+  test("practice starts only after the intro finishes and is given its teaching text", async () => {
     const obj = await newObjective();
-    const { gen, calls } = fakeGenerator("par", { introMs: 80, practiceMs: 80 });
+    const { gen, calls } = fakeGenerator("seq", { introMs: 80, practiceMs: 80 });
     const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
     const full = await h.fullPromise;
-    assert.deepEqual(calls.events.slice(0, 2).sort(), ["intro:start", "practice:start"]);
-    assert.ok(
-      calls.events.indexOf("practice:start") < calls.events.indexOf("intro:end"),
-      `practice started only after intro finished: ${calls.events.join(",")}`
-    );
-    assert.equal(full.teach, "par teach 1");
-    assert.equal(full.solo_check, "par solo 1");
+    assert.deepEqual(calls.events, ["intro:start", "intro:end", "practice:start", "practice:end"]);
+    assert.deepEqual(calls.teach, ["seq teach 1"]);
+    assert.equal(full.teach, "seq teach 1");
+    assert.equal(full.solo_check, "seq solo 1");
   });
 
   test("the intro is still handed out ahead of a slower practice half", async () => {
@@ -168,16 +173,31 @@ describe("intro and practice run in parallel", () => {
     assert.equal(await isClaimLive(obj, SHARED), false, "lease released");
   });
 
-  test("an intro failure fails both promises and leaves no unhandled rejection from the practice call", async () => {
+  test("an intro failure fails both promises and never calls the practice half", async () => {
     const obj = await newObjective();
-    const { gen } = fakeGenerator("if", { failIntro: true, failPractice: true, practiceMs: 40 });
+    const { gen, calls } = fakeGenerator("if", { failIntro: true, failPractice: true, practiceMs: 40 });
     const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
     await assert.rejects(h.introPromise, /model unavailable/);
     await assert.rejects(h.fullPromise, /model unavailable/);
-    await new Promise((r) => setTimeout(r, 100)); // let the discarded practice call reject
+    assert.equal(calls.practice, 0, "no practice call, so no model spend on a lesson that cannot be shown");
+    assert.equal(await isClaimLive(obj, SHARED), false, "lease released");
   });
 
-  test("a regenerate attributes its calls to the learner; the shared generation to nobody", async () => {
+  test("a held-back practice half is regenerated once, and the retry is given the same teaching text", async () => {
+    const obj = await newObjective();
+    const { gen, calls } = fakeGenerator("hb");
+    const practice = gen.practice.bind(gen);
+    let n = 0;
+    gen.practice = async (o, avoid, meta) => {
+      const p = await practice(o, avoid, meta);
+      return ++n === 1 ? { ...p, confidence: "low", uncertainClaims: ["a claim to leave out"] } : p;
+    };
+    const full = await ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast }).fullPromise;
+    assert.deepEqual(calls.teach, ["hb teach 1", "hb teach 1"]);
+    assert.equal(full.solo_check, "hb solo 2");
+  });
+
+  test("a regenerate attributes its calls to the learner and grounds its practice in its own new teaching text", async () => {
     const obj = await newObjective();
     const shared = fakeGenerator("s");
     await ensureGeneration(obj, objRow, { scope: SHARED, generator: shared.gen, pending: instance(), ...fast }).fullPromise;
@@ -185,6 +205,7 @@ describe("intro and practice run in parallel", () => {
     const regen = fakeGenerator("r");
     await (await startRegeneration(userA, obj, objRow, { generator: regen.gen, pending: instance(), ...fast })).fullPromise;
     assert.deepEqual(regen.calls.users, [userA]);
+    assert.deepEqual(regen.calls.teach, ["r teach 1"], "not the shared lesson's teaching text it replaces");
   });
 });
 

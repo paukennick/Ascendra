@@ -375,13 +375,37 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
     confidence: "high", uncertainClaims: [] };
 
   test("an invalid practice half is regenerated once; only the valid one is stored", async () => {
-    // The intro and practice calls run in parallel; route each by schema.
+    // REQ-139: the practice call follows the intro; route each by schema.
     const practice = [badPractice, goodPractice];
     route = (b) => (JSON.stringify(b).includes("exampleSteps") ? intro : practice.shift());
     const objRow = await loadObjective(obj2);
     const row = await ensureGeneration(obj2, objRow!, { scope: SHARED }).fullPromise;
     assert.deepEqual(row.fade_choices, goodPractice.fadeChoices);
     assert.equal(row.solo_check, goodPractice.soloCheck);
+  });
+
+  // REQ-139 (FAIL-527): line B's REQ-089 rule, lost when the merge kept
+  // line A's parallel generation. The practice half is written from the
+  // teaching text the learner has just read, so its checks test that text.
+  test("the practice prompt carries the teaching text the intro produced (one generation, every practice call)", async () => {
+    const o = randomUUID();
+    await query(`insert into objectives (id, unit_id, title, sort_order) values ($1,$2,'Digests',9)`, [o, unit]);
+    const practice = [badPractice, goodPractice];
+    route = (b) => (JSON.stringify(b).includes("exampleSteps") ? intro : practice.shift());
+    const objRow = (await loadObjective(o))!;
+    const row = await ensureGeneration(o, objRow, { scope: SHARED }).fullPromise;
+    const isPractice = (b: Sent) => b.system.some((x) => x.text.includes("practice half of cached lesson content"));
+    const practiceCalls = sent.filter(isPractice);
+    assert.equal(practiceCalls.length, 2, "the invalid first draft and its regeneration");
+    for (const b of practiceCalls) {
+      const user = lastTurn(b);
+      assert.match(user, /Teaching text the learner has just read/);
+      assert.ok(user.includes(row.teach), "the stored teaching text is in the practice prompt");
+      assert.ok(user.includes("A hash maps any input to a fixed-size digest."));
+    }
+    const introAt = sent.findIndex((b) => JSON.stringify(b).includes("exampleSteps"));
+    assert.ok(introAt >= 0 && introAt < sent.findIndex(isPractice), "teach is generated first, then practice");
+    await query(`delete from objectives where id = $1`, [o]);
   });
 
   test("invalid twice: a clean 503-style error, and nothing is stored", async () => {

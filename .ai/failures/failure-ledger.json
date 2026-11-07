@@ -7460,6 +7460,92 @@
       ],
       "prevention_notes": "Every database job applies migrations to a plain Postgres with the Supabase roles present.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-526",
+      "date": "2026-11-07",
+      "title": "A lesson with a lab prompt offered the same lab twice (Try it step and Done-screen lab card)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On the merged release, an objective with a lab_prompt showed B's optional Try it step after Solo and A's lab card on the Done screen, both with the same prompt and disclaimer.",
+      "how_detected": "release review (docs/release-2026-11-07.md, For Nick 1)",
+      "root_cause": "Line B (#12, REQ-096) and line A (REQ-106) each built a lab entry point on objectives.lab_prompt. The 2026-11-07 merge reconciled their data model (FAIL-523) but kept both entry points, because the merge resolved code, not what the learner sees on one screen.",
+      "requirement": "REQ-139",
+      "affected": [
+        "backend/lib/lab-attempts.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lab/route.ts"
+      ],
+      "fix_summary": "tryItLab returns null when objectiveHasLab: the lab card (lab_prompt on a plan with labs, as GET /api/objectives/:id/lab returns it) or a build/case lab listed for the objective. The lesson GET then sends labPrompt null and the app shows no Try it step; POST /api/objectives/:id/lab answers 404.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/release-merge.dbtest.ts::an objective whose Done screen shows the lab card offers no Try it step",
+        "backend/lib/release-merge.dbtest.ts::a lab the learner can see counts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: after merging two lines, check each side's rule survived and that one screen does not show one thing twice.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-527",
+      "date": "2026-11-07",
+      "title": "Merged lesson generation dropped line B's rule that practice questions see the teaching text",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "lessonPracticePrompt was called without teach, so the 'Teaching text the learner has just read (test this; do not contradict it)' block was never sent; fade and solo checks were written blind to the lesson they follow and could test something it did not teach or contradict it.",
+      "how_detected": "release review (docs/release-2026-11-07.md, For Nick 2)",
+      "root_cause": "Line A ran the intro and practice calls in parallel for latency; line B (#6, REQ-089) made the practice call depend on the intro's teach text. The merge kept A's runGeneration, and lessonPracticePrompt's teach parameter is optional, so dropping it type-checked and every test still passed.",
+      "requirement": "REQ-139",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/scripts/eval/lessons.ts",
+        "backend/scripts/eval/live.ts"
+      ],
+      "fix_summary": "runGeneration awaits the intro, hands it to the caller, then calls practice with meta.teach = intro.teach; claudeGenerator.practice passes it to lessonPracticePrompt; checkedPractice's one retry inherits it. Validation, fact-check gate, holdbacks, leases and heartbeat unchanged. Evals mirror production.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/audit3-ai.dbtest.ts::the practice prompt carries the teaching text the intro produced",
+        "backend/lib/lesson-regen.dbtest.ts::practice starts only after the intro finishes and is given its teaching text",
+        "backend/lib/lesson-regen.dbtest.ts::a held-back practice half is regenerated once"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The mocked-model test fails if the practice prompt lacks the teaching text; checklist asks for each side's rule to be checked after a merge.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-528",
+      "date": "2026-11-07",
+      "title": "Email-change 'this wasn't me' link stopped working 7 days after the request expired",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The retention purge deleted email_change_tokens 7 days after expires_at; cancelEmailChangeToken needs that row (cancel_token_hash), so a learner who found the alert later got 'already used' and their devices were not signed out.",
+      "how_detected": "release review (docs/release-2026-11-07.md, For Nick 3)",
+      "root_cause": "The merge adopted line B's 7-day window for all one-time tokens; line A's cancel link (REQ-116) depends on the email_change_tokens row after expiry and was not considered when choosing the window.",
+      "requirement": "REQ-139",
+      "affected": [
+        "backend/lib/retention.ts",
+        "mobile/src/content/legal.ts",
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "RETENTION.emailChangeDays = 30; purgeExpired deletes email_change_tokens 30 days after expiry and the other one-time tokens at 7 days as before. Privacy Policy and data inventory state the period.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/release-merge.dbtest.ts::purge boundary: kept until 30 days after expiry",
+        "backend/lib/release-merge.dbtest.ts::the cancel link still works for a request that expired 8 days ago",
+        "backend/lib/retention.test.ts::privacy policy states the email-change request period (REQ-139)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: a retention window applies to every reader of the rows it deletes, mailed links included; retention.test.ts pins the policy text.",
+      "recurrence_of": ""
     }
   ]
 }

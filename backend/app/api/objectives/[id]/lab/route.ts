@@ -50,8 +50,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 // Repeat calls within a few minutes are a no-op (`recorded: false`) so a
 // double tap or retry doesn't stack rows. 404 for a malformed id, an id in
 // someone else's track, an objective with no lab, or a lab the Try it step
-// would not offer (lib/lab-attempts.ts tryItLab: plan without labs, or a
-// clinical / fitness lab before its disclaimer is accepted) -- one answer
+// would not offer (lib/lab-attempts.ts tryItLab: plan without labs, a
+// clinical / fitness lab before its disclaimer is accepted, or -- REQ-139 --
+// an objective whose lab the learner already sees as the lab card or a
+// build / case lab) -- one answer
 // for all, so the route can't be used to probe which objective ids exist.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

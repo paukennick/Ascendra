@@ -1,6 +1,6 @@
 import { query, queryOne } from "@/lib/db";
 import { featureLock } from "@/lib/entitlements";
-import { LABS_FEATURE } from "@/lib/labs";
+import { LABS_FEATURE, listLabs } from "@/lib/labs";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { labSafetyFamily } from "@/lib/lab-grading";
 import { labDisclaimerFor, type LabDisclaimer } from "@/lib/lab-disclaimer";
@@ -106,14 +106,33 @@ export interface TryItLab {
   disclaimer: LabDisclaimer;
 }
 
+//
+// REQ-139 (FAIL-526): the lesson offered the same lab twice -- Try it after
+// Solo and the lab card on the Done screen. Try it is now offered only when
+// the objective has no lab the learner can see (objectiveHasLab). The lab
+// card shows this same prompt under the same plan rule, so while both read
+// objectives.lab_prompt the card wins wherever a prompt exists, and the
+// self-report route (POST /api/objectives/:id/lab, also gated here) refuses.
 export async function tryItLab(userId: string, objectiveId: string): Promise<TryItLab | null> {
   const objective = await findLabObjective(objectiveId, userId);
   const prompt = objective?.lab_prompt?.trim();
   if (!objective || !prompt) return null;
   if (await featureLock(userId, LABS_FEATURE)) return null;
+  if (await objectiveHasLab(userId, objective)) return null;
   const disclaimer = await labDisclaimerFor(userId, labSafetyFamily(await coachContextForObjective(objective.id)), null);
   if (disclaimer.acknowledgement.required && !disclaimer.acknowledgement.acknowledged) return null;
   return { prompt, disclaimer };
+}
+
+// REQ-139: does the learner see a lab for this objective elsewhere in the
+// app? Either the Done screen's lab card -- the objective's lab_prompt on a
+// plan with labs, exactly what GET /api/objectives/:id/lab returns as `lab`
+// -- or a build or case lab (REQ-123) on the objective, listed by
+// GET /api/labs?objectiveId= (locked ones included: they are listed too).
+// The caller has already checked the objective is visible to this learner.
+export async function objectiveHasLab(userId: string, objective: LabObjective): Promise<boolean> {
+  if (objective.lab_prompt?.trim() && !(await featureLock(userId, LABS_FEATURE))) return true;
+  return (await listLabs(userId, { objectiveId: objective.id })).length > 0;
 }
 
 // The lesson GET's fields: `labPrompt` (B's contract) and `labDisclaimer`.

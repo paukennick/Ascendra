@@ -68,7 +68,9 @@ export async function GET(
     // 2026-11-07 behind line A's lab rules (lib/lab-attempts.ts tryItLab):
     // not offered when the plan has no labs (REQ-122) or before a clinical /
     // fitness learner has accepted the lab disclaimer (REQ-125); otherwise
-    // sent with that disclaimer. A failure only means no Try it step.
+    // sent with that disclaimer. REQ-139: and not offered when the learner
+    // sees a lab for the objective elsewhere (the Done screen's lab card, or
+    // a build / case lab). A failure only means no Try it step.
     const tryIt = tryItLab(user.id, id).catch(() => null);
 
     // This learner's own regenerate still running in this process: wait for

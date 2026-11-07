@@ -15,6 +15,12 @@ export const RETENTION = {
   endedSessionsDays: 30,
   // Expired or used one-time tokens and sign-in challenges.
   expiredTokensDays: 7,
+  // REQ-139 (FAIL-528): email-change requests, kept longer than the other
+  // one-time tokens because the "this wasn't me" link in the alert to the old
+  // address (lib/auth/emailTokens.ts cancelEmailChangeToken) needs the row to
+  // cancel the change and sign out every device. At 7 days the link stopped
+  // working a week after the request expired.
+  emailChangeDays: 30,
 } as const;
 
 export interface PurgeResult {
@@ -43,9 +49,12 @@ export async function purgeExpired(): Promise<PurgeResult> {
         )`,
     [String(RETENTION.endedSessionsDays)]
   );
-  for (const t of ["email_verification_tokens", "password_reset_tokens", "email_change_tokens", "login_challenges"]) {
+  for (const t of ["email_verification_tokens", "password_reset_tokens", "login_challenges"]) {
     await run(t, `delete from ${t} where expires_at < now() - ($1 || ' days')::interval`, [String(RETENTION.expiredTokensDays)]);
   }
+  await run("email_change_tokens", `delete from email_change_tokens where expires_at < now() - ($1 || ' days')::interval`, [
+    String(RETENTION.emailChangeDays),
+  ]);
   return out;
 }
 

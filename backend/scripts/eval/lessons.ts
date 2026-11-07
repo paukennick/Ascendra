@@ -144,9 +144,11 @@ async function main() {
     async generate(obj) {
       const objRow = await loadObjective(obj.id);
       if (!objRow) throw new Error("objective vanished from the database");
-      // The production generator, both halves at once as in production, and
-      // deliberately not ensureGeneration/saveLesson: nothing is stored.
-      const [intro, practice] = await Promise.all([claudeGenerator.intro(objRow), claudeGenerator.practice(objRow)]);
+      // The production generator, as in production (REQ-139: teach first,
+      // then practice from its teaching text), and deliberately not
+      // ensureGeneration/saveLesson: nothing is stored.
+      const intro = await claudeGenerator.intro(objRow);
+      const practice = await claudeGenerator.practice(objRow, undefined, { teach: intro.teach });
       return { ...intro, ...practice };
     },
     async judge(obj, lesson) {

@@ -239,6 +239,7 @@ export const PRIVACY: LegalDoc = {
         "• Sign-in and security event log: 90 days.",
         "• Ended or expired sessions: 30 days after they end.",
         "• Used or expired one-time codes: 7 days after they expire.",
+        "• Email address change requests (so the link we send to your old address can still cancel one): 30 days after they expire.",
         "Deleting your account removes everything listed in section 1 from our database straight away, including the sign-in log. The AI request counts in section 5 are kept after an account is deleted, with the link to the account removed. [Retention period for AI request counts to confirm.] Copies held elsewhere follow their own schedules: the AI provider within 30 days (as above), and the copy of any support request emailed to our support inbox until we delete it.",
       ],
     },

@@ -18,7 +18,8 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `oauth_accounts` | Google account ID and email | Google sign-in | while linked | deleted (cascade) | yes (provider, email) |
 | `refresh_tokens` | session token hash, device label, user agent, IP address | keeping you signed in; session list | 30 days after the session ends (cron) | deleted (cascade) | yes (no hashes) |
 | `auth_events` | event type, email or user ID as identifier, IP address | rate limits, security history | 90 days (cron) | **deleted explicitly** by `DELETE /api/account` (FK only nulls user_id, and the identifier is the email) | yes (type, IP, time) |
-| `email_verification_tokens`, `password_reset_tokens`, `email_change_tokens`, `login_challenges` | token hashes, expiry; challenges also IP and user agent | one-time verification | 7 days after expiry (cron) | deleted (cascade) | no (secrets, short-lived) |
+| `email_verification_tokens`, `password_reset_tokens`, `login_challenges` | token hashes, expiry; challenges also IP and user agent | one-time verification | 7 days after expiry (cron) | deleted (cascade) | no (secrets, short-lived) |
+| `email_change_tokens` | token and cancel-link hashes, the requested new address, expiry, cancelled/used time | email change, and the "this wasn't me" cancel link sent to the old address | 30 days after expiry (cron; REQ-139, so the cancel link keeps working) | deleted (cascade) | no (secrets, short-lived) |
 | `mfa_backup_codes` | hashed backup codes | two-factor recovery | while MFA on | deleted (cascade) | no (secrets) |
 | `subject_tracks` (user-owned rows) | courses the user created | study | while account open | deleted (cascade) | yes |
 | `course_favorites` | favourite courses | study | while account open | deleted (cascade) | yes |
