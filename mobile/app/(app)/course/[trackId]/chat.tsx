@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import type { ChatMessage } from "@/types";
-import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
+import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
 
 export default function ChatScreen() {
@@ -20,12 +21,19 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  // The id of the message last sent, kept until it gets a reply. Sending the
+  // same text again after a failure reuses it, so if the first request did
+  // reach the server the stored reply comes back instead of a duplicate.
+  const pendingRef = useRef<{ id: string; text: string } | null>(null);
 
   const load = useCallback(() => {
+    setLoadError(null);
     api
       .get<{ messages: ChatMessage[] }>(`/api/chat?trackId=${trackId}`)
-      .then((res) => setMessages(res.messages));
+      .then((res) => setMessages(res.messages))
+      .catch((err) => setLoadError((err as Error).message));
   }, [trackId]);
 
   useEffect(() => {
@@ -39,8 +47,12 @@ export default function ChatScreen() {
     const text = input;
     setInput("");
     setBusy(true);
+    const clientMessageId =
+      pendingRef.current?.text === text ? pendingRef.current.id : Crypto.randomUUID();
+    pendingRef.current = { id: clientMessageId, text };
     try {
-      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text });
+      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text, clientMessageId });
+      pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
     } catch (err) {
       setMessages((prev) => [
@@ -69,7 +81,12 @@ export default function ChatScreen() {
           </View>
         </View>
 
-        {!messages ? (
+        {!messages && loadError ? (
+          <View style={{ gap: spacing.sm, paddingVertical: spacing.md }}>
+            <ErrorBanner message={loadError} />
+            <Button label="Try again" icon="refresh-cw" fullWidth={false} onPress={load} />
+          </View>
+        ) : !messages ? (
           <Loading />
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>

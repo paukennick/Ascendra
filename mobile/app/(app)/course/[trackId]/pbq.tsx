@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { attemptIdFor } from "@/lib/lessonProgress";
 import type { Attempt, GradeResult, PBQScenario, Unit } from "@/types";
 import {
   Body,
@@ -44,6 +46,7 @@ export default function PBQScreen() {
   const [history, setHistory] = useState<Attempt[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const sentRef = useRef<{ id: string; signature: string } | null>(null);
 
   useEffect(() => {
     api
@@ -85,8 +88,19 @@ export default function PBQScreen() {
     if (!scenario || !answer.trim()) return;
     setBusy(true);
     setError(null);
+    // Same scenario and same answer resent after a failure keeps its id, so
+    // if the first request did reach the server this one gets that result
+    // back instead of a second recorded attempt. Any change is a new attempt.
+    const signature = `pbq:${scenario.id}:${answer.trim()}`;
+    const clientAttemptId = attemptIdFor(
+      { clientAttemptId: sentRef.current?.id ?? null, sentSignature: sentRef.current?.signature ?? null },
+      signature,
+      Crypto.randomUUID
+    );
+    sentRef.current = { id: clientAttemptId, signature };
     try {
       const res = await api.post<GradeResult>("/api/pbq", {
+        clientAttemptId,
         scenarioId: scenario.id,
         unitId,
         answer,

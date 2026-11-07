@@ -3,6 +3,7 @@ import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, ser
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
 import { loadObjective } from "@/lib/lesson-generation";
+import { visibleObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
@@ -28,6 +29,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!guess) return badRequest("guess is required");
 
     const user = await requireUser(req);
+    // REQ-091: 404 for an objective in another user's private track, before
+    // anything is read, rate-limited or sent to Anthropic.
+    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     try {

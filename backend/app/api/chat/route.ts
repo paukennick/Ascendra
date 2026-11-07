@@ -1,7 +1,10 @@
-import { query, queryOne } from "@/lib/db";
+import { query } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
+import { findChatReply, saveChatTurn } from "@/lib/chat-store";
+import { validClientAttemptId } from "@/lib/lesson-progress";
+import { visibleTrack, visibleUnit } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForTrack,
@@ -33,7 +36,9 @@ export async function GET(req: Request) {
 }
 
 // POST /api/chat — send one user message, get back Claude's reply. Persists both turns.
-// Body: { trackId, unitId?, message }
+// Body: { trackId, unitId?, message, clientMessageId? }
+// clientMessageId: one id per message, reused by the app when it retries. A repeat returns
+// the stored reply without calling Anthropic or saving the message again.
 // The whole prior thread for this track is sent back to Claude as conversation history
 // (capped to the most recent 40 messages) so it's a genuinely multi-turn "ask the coach" —
 // not a single-shot Q&A that forgets earlier context.
@@ -41,11 +46,33 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { trackId, unitId, message } = body ?? {};
-    if (!trackId || !message) return badRequest("trackId and message are required");
+    if (!trackId || typeof trackId !== "string" || !message || typeof message !== "string") {
+      return badRequest("trackId and message are required");
+    }
+    if (unitId != null && typeof unitId !== "string") return badRequest("unitId must be a string");
 
     const user = await requireUser(req);
     const userId = user.id;
+
+    // REQ-091: the track must be visible to the caller, and a unit must be
+    // visible and belong to that track (it is stored on the message and
+    // named in the prompt, so a foreign unit id would leak its title).
+    const track = await visibleTrack(trackId, userId);
+    if (!track) return notFound("Track not found");
+    if (unitId) {
+      const unit = await visibleUnit(unitId, userId);
+      if (!unit) return notFound("Unit not found");
+      if (unit.track_id !== trackId) return badRequest("unitId does not belong to this track");
+    }
     await requireAcknowledgementForTrack(trackId, userId);
+
+    // A message id the app already sent is a retry: hand back the stored
+    // reply instead of paying for another one and saving the question twice.
+    const clientMessageId = validClientAttemptId(body.clientMessageId);
+    if (clientMessageId) {
+      const stored = await findChatReply(userId, clientMessageId);
+      if (stored !== null) return ok({ reply: stored, replayed: true });
+    }
 
     try {
       await checkRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
@@ -55,16 +82,10 @@ export async function POST(req: Request) {
     }
     await recordAuthEvent("chat_message", userId);
 
-    const track = await queryOne<{ title: string }>(
-      `select title from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
-      [trackId, userId]
-    );
-    if (!track) return notFound("Track not found");
-
     let unitTitle: string | undefined;
     if (unitId) {
-      const unit = await queryOne<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
-      unitTitle = unit?.title;
+      const rows = await query<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
+      unitTitle = rows[0]?.title;
     }
 
     // REQ-077: `order by created_at asc limit 40` kept the OLDEST 40 turns
@@ -86,13 +107,10 @@ export async function POST(req: Request) {
     const system = chatSystemPrompt({ trackTitle: track.title, unitTitle, ctx: ctx ?? undefined });
     const reply = await callClaude({ system, messages, maxTokens: 1200, model: getFastModel() });
 
-    await query(
-      `insert into chat_messages (user_id, track_id, unit_id, role, content) values
-        ($1,$2,$3,'user',$4), ($1,$2,$3,'assistant',$5)`,
-      [userId, trackId, unitId ?? null, message, reply]
-    );
-
-    return ok({ reply });
+    // If a request with the same id finished while this one waited on
+    // Anthropic, the unique index rejects this insert and the stored reply wins.
+    const saved = await saveChatTurn({ userId, trackId, unitId, message, reply, clientMessageId });
+    return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

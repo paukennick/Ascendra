@@ -1,6 +1,8 @@
 import { query } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { visibleTrack } from "@/lib/visibility";
+import { startOrTouchSession } from "@/lib/study-sessions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,17 +30,18 @@ export async function GET(req: Request) {
 }
 
 // POST /api/sessions — start a session. Body: { trackId }
+// 201 with a new session, or 200 with the learner's existing open session on this track
+// (started within the last 30 minutes) after moving its started_at to now.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { trackId } = body ?? {};
-    if (!trackId) return badRequest("trackId is required");
+    if (!trackId || typeof trackId !== "string") return badRequest("trackId is required");
     const user = await requireUser(req);
-    const rows = await query(
-      `insert into study_sessions (user_id, track_id) values ($1,$2) returning *`,
-      [user.id, trackId]
-    );
-    return ok({ session: rows[0] }, 201);
+    // REQ-091: a session can only be logged against a track the caller can see.
+    if (!(await visibleTrack(trackId, user.id))) return notFound("Track not found");
+    const { session, created } = await startOrTouchSession(user.id, trackId);
+    return ok({ session }, created ? 201 : 200);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
