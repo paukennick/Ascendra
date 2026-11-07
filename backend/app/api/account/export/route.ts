@@ -13,7 +13,8 @@ export const dynamic = "force-dynamic";
 // parameters: the first page of every section, plus `more` naming any
 // section that has further rows and the offset to ask for.
 // ?section=<name>&offset=<n>: the next page of that one section, as
-// { section, offset, rows, nextOffset }. Limited to 120 requests (pages) an hour.
+// { section, offset, rows, nextOffset }. Limited to 600 requests (pages) an hour
+// (REQ-118: pages are 500 rows now, so a heavy learner needs more of them).
 export async function GET(req: Request) {
   try {
     const user = await requireUser(req);
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
     if (!Number.isSafeInteger(offset) || offset < 0) return badRequest("offset must be a whole number of 0 or more");
 
     try {
-      await consumeRateLimit("account_export", user.id, { max: 120, windowMinutes: 60 }, { userId: user.id });
+      await consumeRateLimit("account_export", user.id, { max: 600, windowMinutes: 60 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests("Too many exports just now. Try again later.");
       throw err;
@@ -36,14 +37,15 @@ export async function GET(req: Request) {
       (tx) => {
         const run = (sql: string, params: unknown[]) => tx.query<Record<string, unknown>>(sql, params);
         if (section !== null) {
-          return exportSectionPage(user.id, section, run, offset).then((page) => ({ section, offset, ...page }));
+          return exportSectionPage(user.id, section, run, offset).then(({ rows, nextOffset }) => ({ section, offset, rows, nextOffset }));
         }
         return buildAccountExport(user.id, run);
       },
       { readOnlySnapshot: true }
     );
 
-    return new Response(JSON.stringify(payload, null, 2), {
+    // REQ-118: compact JSON (pretty-printing added about 25% to the size).
+    return new Response(JSON.stringify(payload), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

@@ -70,10 +70,14 @@ export async function dueObjectives(userId: string, today: string, trackId: stri
         and (not coalesce(st.requires_acknowledgement, false)
              or exists (select 1 from track_acknowledgements ta
                          where ta.user_id = $1 and ta.track_id = st.id and ta.disclaimer_version = st.disclaimer_version))
-        and not exists (
-          select 1 from review_session_items si join review_sessions s on s.id = si.session_id
-           where s.user_id = $1 and si.objective_id = d.objective_id
-             and (si.answered_at at time zone 'UTC')::date = $2::date)`,
+        and d.objective_id not in (
+          -- REQ-118 (Audit 3 MEDIUM-4): computed once, not per due row, and
+          -- as a time range so the partial index on answered items
+          -- (046 review_session_items_answered) is used.
+          select si.objective_id from review_session_items si join review_sessions s on s.id = si.session_id
+           where s.user_id = $1 and si.answered_at is not null
+             and si.answered_at >= ($2::date)::timestamp at time zone 'UTC'
+             and si.answered_at < ($2::date + 1)::timestamp at time zone 'UTC')`,
     [userId, today, trackId]
   );
   return rows.map((r) => ({
@@ -117,16 +121,16 @@ export async function strugglingObjectives(userId: string, objectiveIds: string[
 
 // The learner's most recent review session with answers, for the
 // gentle-start rule (lib/review-plan.ts).
-export async function lastSessionStats(userId: string, q: Q = query): Promise<LastSession | null> {
-  const r = await q(
-    `select count(si.answered_at) as answered, count(*) filter (where si.verdict = 'correct') as correct
+// $1 is the learner. Also inlined into startOrResumeSession's first query.
+const LAST_SESSION_STATS_SQL = `select count(si.answered_at) as answered, count(*) filter (where si.verdict = 'correct') as correct
        from review_sessions s join review_session_items si on si.session_id = s.id
       where s.id = (select s2.id from review_sessions s2
                      where s2.user_id = $1
                        and exists (select 1 from review_session_items x where x.session_id = s2.id and x.answered_at is not null)
-                     order by s2.created_at desc limit 1)`,
-    [userId]
-  );
+                     order by s2.created_at desc limit 1)`;
+
+export async function lastSessionStats(userId: string, q: Q = query): Promise<LastSession | null> {
+  const r = await q(LAST_SESSION_STATS_SQL, [userId]);
   const row = r[0];
   if (!row || !Number(row.answered)) return null;
   return { answered: Number(row.answered), correct: Number(row.correct) };
@@ -198,40 +202,70 @@ export async function startOrResumeSession(
   userId: string,
   trackId: string | null,
   now: Date = new Date()
-): Promise<{ id: string; resumed: boolean } | null> {
+): Promise<{ id: string; resumed: boolean; planned?: SessionItemRow[] } | null> {
   const today = utcDay(now);
   return withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`review-session:${userId}`]);
-    await tx.query(
-      `update review_sessions set finished_at = now()
-        where user_id = $1 and finished_at is null and day < $2::date`,
-      [userId, today]
-    );
-    const open = await tx.queryOne<{ id: string }>(
-      `select s.id from review_sessions s
-        where s.user_id = $1 and s.day = $2::date and s.finished_at is null
-          and s.track_id is not distinct from $3::uuid
-          and exists (select 1 from review_session_items si where si.session_id = s.id and si.answered_at is null)
-        order by s.created_at desc limit 1`,
+    // REQ-118 (Audit 3 MEDIUM-4): closing earlier days' sessions, finding
+    // today's open one and the last session's stats are one round trip
+    // (they read different rows; all run after the lock above), and the
+    // session and its items are one insert. A fresh plan used to cost 65
+    // queries end to end; see lib/perf-audit3.dbtest.ts for the budget.
+    const head = await tx.queryOne<{ open_id: string | null; answered: number | null; correct: number | null }>(
+      `with closed as (
+         update review_sessions set finished_at = now()
+          where user_id = $1 and finished_at is null and day < $2::date
+         returning id
+       )
+       select (select s.id from review_sessions s
+                where s.user_id = $1 and s.day = $2::date and s.finished_at is null
+                  and s.track_id is not distinct from $3::uuid
+                  and exists (select 1 from review_session_items si where si.session_id = s.id and si.answered_at is null)
+                order by s.created_at desc limit 1) as open_id,
+              ls.answered, ls.correct
+         from (select count(*) from closed) c
+         left join lateral (${LAST_SESSION_STATS_SQL}) ls on true`,
       [userId, today, trackId]
     );
-    if (open) return { id: open.id, resumed: true };
+    if (head?.open_id) return { id: head.open_id, resumed: true };
 
     const due = await dueObjectives(userId, today, trackId, (t, p) => tx.query(t, p));
     if (!due.length) return null;
-    const plan = planSession(due, await lastSessionStats(userId, (t, p) => tx.query(t, p)));
+    const last = head && Number(head.answered) ? { answered: Number(head.answered), correct: Number(head.correct) } : null;
+    const plan = planSession(due, last);
     const s = await tx.queryOne<{ id: string }>(
-      `insert into review_sessions (user_id, track_id, day, size_cap, gentle_start) values ($1, $2, $3::date, $4, $5) returning id`,
-      [userId, trackId, today, plan.cap, plan.gentleStart]
+      `with s as (
+         insert into review_sessions (user_id, track_id, day, size_cap, gentle_start) values ($1, $2, $3::date, $4, $5) returning id
+       ), i as (
+         insert into review_session_items (session_id, position, objective_id)
+         select s.id, x.ord - 1, x.objective_id from s, unnest($6::uuid[]) with ordinality as x(objective_id, ord)
+       )
+       select id from s`,
+      [userId, trackId, today, plan.cap, plan.gentleStart, plan.items.map((item) => item.objectiveId)]
     );
-    for (const [i, item] of plan.items.entries()) {
-      await tx.query(`insert into review_session_items (session_id, position, objective_id) values ($1, $2, $3)`, [
-        s!.id,
-        i,
-        item.objectiveId,
-      ]);
-    }
-    return { id: s!.id, resumed: false };
+    // REQ-118: the new items as sessionItems() would read them back, so
+    // preparing them does not re-read what was just written.
+    const byId = new Map(due.map((d) => [d.objectiveId, d]));
+    const planned: SessionItemRow[] = plan.items.map((item, i) => {
+      const d = byId.get(item.objectiveId)!;
+      return {
+        position: i,
+        objective_id: d.objectiveId,
+        review_item_id: null,
+        choices_shown_at: null,
+        attempt_id: null,
+        verdict: null,
+        answered_at: null,
+        objective_title: d.title,
+        unit_id: d.unitId,
+        unit_title: d.unitTitle,
+        track_id: d.trackId,
+        track_title: d.trackTitle,
+        question: null,
+        terms: null,
+      };
+    });
+    return { id: s!.id, resumed: false, planned };
   });
 }
 
@@ -251,6 +285,119 @@ export async function assignItem(sessionId: string, position: number, reviewItem
       where session_id = $1 and position = $2 and review_item_id is null`,
     [sessionId, position, reviewItemId]
   );
+}
+
+// REQ-118 (Audit 3 MEDIUM-4): one update for every question picked for a
+// session, instead of one per item.
+// Terms read from objective titles (termsForStored) are saved in the same
+// statement.
+export async function assignItems(
+  sessionId: string,
+  picks: { position: number; reviewItemId: string }[],
+  titleTerms: { id: string; title: string; terms: string[] }[] = []
+): Promise<void> {
+  if (!picks.length && !titleTerms.length) return;
+  await query(
+    `with t as (
+       insert into objective_terms (objective_id, source_hash, terms, method, model)
+       select x.id, x.hash, x.terms::jsonb, 'title', null
+         from unnest($4::uuid[], $5::text[], $6::text[]) as x(id, hash, terms)
+       on conflict (objective_id) do update set source_hash = excluded.source_hash, terms = excluded.terms,
+         method = excluded.method, model = excluded.model, extracted_at = now()
+       returning 1
+     )
+     update review_session_items si set review_item_id = x.review_item_id
+       from unnest($2::int[], $3::uuid[]) as x(position, review_item_id)
+      where si.session_id = $1 and si.position = x.position and si.review_item_id is null`,
+    [
+      sessionId,
+      picks.map((p) => p.position),
+      picks.map((p) => p.reviewItemId),
+      titleTerms.map((t) => t.id),
+      titleTerms.map((t) => md5(t.title)),
+      titleTerms.map((t) => JSON.stringify(t.terms)),
+    ]
+  );
+}
+
+export interface PrepareContextRow {
+  objectiveId: string;
+  // objective_terms as stored (any hash); termsForStored() checks the hash
+  termsHash: string | null;
+  terms: string[] | null;
+  covered: Set<string>;
+  // the shared lesson's teaching text, null when there is no shared lesson
+  teach: string | null;
+  // md5 of `teach` as Postgres computed it, which the candidates below match
+  teachHash: string | null;
+  // cached questions written from this teach text that the learner has not answered
+  unseen: { id: string; terms: string[]; generatedAt: string }[];
+}
+
+// REQ-118 (Audit 3 MEDIUM-4): everything prepareItems needs for a session's
+// open items in one query -- stored terms, the learner's covered terms, the
+// shared lesson text and the unseen cached questions for it -- instead of
+// four or five queries per item. Same filters as termsFor, coveredTerms,
+// getSharedLesson and unseenItems.
+export async function prepareContext(userId: string, objectiveIds: string[]): Promise<Map<string, PrepareContextRow>> {
+  const out = new Map<string, PrepareContextRow>();
+  if (!objectiveIds.length) return out;
+  const rows = await query<Record<string, any>>(
+    `select o.id as objective_id, ot.source_hash as terms_hash, ot.terms,
+            (select array_agg(c.term) from learner_term_coverage c where c.user_id = $1 and c.objective_id = o.id) as covered,
+            lc.teach, md5(lc.teach) as teach_hash,
+            (select coalesce(json_agg(json_build_object(
+                      'id', ri.id, 'terms', ri.terms,
+                      'generatedAt', to_char(ri.generated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US'))
+                    order by ri.generated_at, ri.id), '[]'::json)
+               from review_items ri
+              where ri.objective_id = o.id and ri.source_hash = md5(lc.teach)
+                and not exists (
+                  select 1 from review_session_items si join review_sessions s on s.id = si.session_id
+                   where s.user_id = $1 and si.review_item_id = ri.id and si.answered_at is not null)) as unseen
+       from unnest($2::uuid[]) as o(id)
+       left join objective_terms ot on ot.objective_id = o.id
+       left join lesson_content lc on lc.objective_id = o.id`,
+    [userId, [...new Set(objectiveIds)]]
+  );
+  for (const r of rows) {
+    out.set(r.objective_id, {
+      objectiveId: r.objective_id,
+      termsHash: r.terms_hash ?? null,
+      terms: r.terms ?? null,
+      covered: new Set<string>(r.covered ?? []),
+      teach: r.teach ?? null,
+      teachHash: r.teach_hash ?? null,
+      unseen: (r.unseen ?? []).map((c: { id: string; terms: string[] | null; generatedAt: string }) => ({
+        id: c.id,
+        terms: c.terms ?? [],
+        generatedAt: c.generatedAt,
+      })),
+    });
+  }
+  return out;
+}
+
+// termsFor() over rows prepareContext already read: the stored terms when
+// their hash matches the title, else the title's own list, else null. The
+// title lists are returned in `toSave` for assignItems to store.
+export function termsForStored(
+  objectives: { id: string; title: string }[],
+  ctx: Map<string, PrepareContextRow>
+): { terms: Map<string, string[] | null>; toSave: { id: string; title: string; terms: string[] }[] } {
+  const terms = new Map<string, string[] | null>();
+  const toSave: { id: string; title: string; terms: string[] }[] = [];
+  for (const o of objectives) {
+    const c = ctx.get(o.id);
+    if (c && c.termsHash === md5(o.title)) {
+      terms.set(o.id, c.terms);
+      continue;
+    }
+    const fromTitle = termsFromTitle(o.title);
+    terms.set(o.id, fromTitle ?? null);
+    if (fromTitle && !toSave.some((t) => t.id === o.id)) toSave.push({ id: o.id, title: o.title, terms: fromTitle });
+  }
+  return { terms, toSave };
 }
 
 export async function recordChoicesShown(sessionId: string, position: number): Promise<void> {

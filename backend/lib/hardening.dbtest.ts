@@ -125,7 +125,10 @@ describe("errors and /api/health", () => {
   test("health answers 200 with the current schema, including under a burst of hits", async () => {
     const first = await healthGet();
     assert.equal(first.status, 200);
-    assert.deepEqual(await first.json(), { status: "ok", schema: "current" });
+    // REQ-118: may also carry `warnings` (e.g. jit on in a stock Postgres).
+    const body = await first.json();
+    assert.equal(body.status, "ok");
+    assert.equal(body.schema, "current");
     const many = await Promise.all(Array.from({ length: 25 }, () => healthGet()));
     assert.ok(many.every((r) => r.status === 200));
   });

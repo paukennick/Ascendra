@@ -8,13 +8,29 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/errors?due=1&trackId= — error log. Pass due=1 to get only entries whose
+// GET /api/errors?due=1&trackId=&limit=&offset= — error log. Pass due=1 to get only entries whose
 // next_review_at has arrived (the spaced-review queue: 1/7/21 days out).
+//
+// REQ-118 (Audit 3 MEDIUM-6): bounded. It returned every unresolved entry
+// (unbounded growth with history). Now at most `limit` rows (default
+// ERRORS_PAGE_DEFAULT, max ERRORS_PAGE_MAX) from `offset`, with `total` (all
+// matching entries, for counts like the home screen's) and `nextOffset`
+// (null on the last page).
+const ERRORS_PAGE_DEFAULT = 200;
+const ERRORS_PAGE_MAX = 500;
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const due = searchParams.get("due") === "1";
     const trackId = searchParams.get("trackId");
+    const limitParam = searchParams.get("limit");
+    const offsetParam = searchParams.get("offset");
+    const limit = limitParam === null ? ERRORS_PAGE_DEFAULT : Number(limitParam);
+    const offset = offsetParam === null ? 0 : Number(offsetParam);
+    if (!Number.isSafeInteger(limit) || limit < 1) return badRequest("limit must be a whole number of 1 or more");
+    if (!Number.isSafeInteger(offset) || offset < 0) return badRequest("offset must be a whole number of 0 or more");
+    const pageSize = Math.min(limit, ERRORS_PAGE_MAX);
     const user = await requireUser(req);
     const userId = user.id;
 
@@ -29,23 +45,30 @@ export async function GET(req: Request) {
     // REQ-073: the Review screen groups entries by course and navigates
     // straight into the objective's lesson, so each row carries its track
     // (via the unit) alongside the objective/unit titles it always had.
-    const rows = await query(
+    values.push(pageSize, offset);
+    const rows = await query<Record<string, unknown>>(
       // REQ-116: titles only from courses the caller can see, so a row
       // stored before POST checked ids can't show another learner's titles.
       `select e.*,
               case when st.id is not null then o.title end as objective_title,
               case when st.id is not null then cu.title end as unit_title,
               case when st.id is not null then cu.track_id end as track_id,
-              st.title as track_title
+              st.title as track_title, count(*) over () as __total
        from error_log e
        left join objectives o on o.id = e.objective_id
        left join course_units cu on cu.id = e.unit_id
        left join subject_tracks st on st.id = cu.track_id and (st.user_id is null or st.user_id = $1)
        where ${conditions.join(" and ")}
-       order by e.next_review_at asc nulls last, e.created_at desc`,
+       order by e.next_review_at asc nulls last, e.created_at desc, e.id asc
+       limit $${values.length - 1} offset $${values.length}`,
       values
     );
-    return ok({ errors: rows });
+    // count(*) over () is the total before LIMIT; past the end there is no
+    // row to carry it, so a separate count is not worth a round trip.
+    const total = rows.length ? Number(rows[0].__total) : offset === 0 ? 0 : null;
+    const errors = rows.map(({ __total, ...r }) => r);
+    const nextOffset = total !== null && offset + errors.length < total ? offset + errors.length : null;
+    return ok({ errors, total, nextOffset });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

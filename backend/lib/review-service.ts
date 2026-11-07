@@ -41,6 +41,7 @@ import {
   type SessionItemRow,
 } from "@/lib/review-store";
 import { utcDay } from "@/lib/review-scheduler";
+import { assignItems, prepareContext, termsForStored } from "@/lib/review-store";
 import { findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
@@ -155,40 +156,46 @@ export async function startSession(
 ): Promise<{ session: SessionView; unavailable: number } | null> {
   const started = await startOrResumeSession(userId, trackId, now);
   if (!started) return null;
-  await prepareItems(userId, started.id);
-  const unavailable = await dropUnpreparedItems(started.id);
+  const allPrepared = await prepareItems(userId, started.id, started.planned);
+  // REQ-118: nothing to drop when every open item got a question.
+  const unavailable = allPrepared ? 0 : await dropUnpreparedItems(started.id);
   const session = await sessionView(userId, started.id);
   if (!session || !session.total) return null;
   return { session, unavailable };
 }
 
-async function prepareItems(userId: string, sessionId: string): Promise<void> {
-  const pending = (await sessionItems(sessionId)).filter((i) => !i.review_item_id && !i.answered_at);
-  if (!pending.length) return;
+// Returns true when every open item already had, or now has, a question.
+async function prepareItems(userId: string, sessionId: string, planned?: SessionItemRow[]): Promise<boolean> {
+  const pending = (planned ?? (await sessionItems(sessionId))).filter((i) => !i.review_item_id && !i.answered_at);
+  if (!pending.length) return true;
 
-  const terms = await termsFor(pending.map((p) => ({ id: p.objective_id, title: p.objective_title })));
-  const covered = await coveredTerms(userId, pending.map((p) => p.objective_id));
+  // REQ-118 (Audit 3 MEDIUM-4): one read for every pending item (terms,
+  // coverage, shared lesson, unseen cached questions) and one write for the
+  // picks, instead of three to five queries per item.
+  const ctx = await prepareContext(userId, pending.map((p) => p.objective_id));
+  const { terms, toSave } = termsForStored(pending.map((p) => ({ id: p.objective_id, title: p.objective_title })), ctx);
   const toWrite: { item: SessionItemRow; teach: string; hash: string; known: string[] | null; target: string[] }[] = [];
+  const picks: { position: number; reviewItemId: string }[] = [];
 
   for (const p of pending) {
-    const lesson = await getSharedLesson(p.objective_id);
-    if (!lesson) continue; // nothing to write from; dropped from the session
-    const hash = md5(lesson.teach);
+    const c = ctx.get(p.objective_id);
+    if (!c?.teach) continue; // nothing to write from; dropped from the session
+    const hash = md5(c.teach);
     const known = terms.get(p.objective_id) ?? null;
-    const cov = covered.get(p.objective_id) ?? new Set<string>();
+    const cov = c.covered;
     const untested = new Set((known ?? []).map(termKey).filter((k) => !cov.has(k)));
-    const cached = await unseenItems(userId, p.objective_id, hash);
-    const pick = chooseCachedItem(
-      cached.map((c) => ({ id: c.id, terms: c.terms ?? [], generatedAt: c.generated_at })),
-      untested
-    );
+    // The candidates were matched on Postgres's md5 of the same text; if the
+    // two ever disagreed, none of them is served and new ones get written.
+    const cached = c.teachHash === hash ? c.unseen : [];
+    const pick = chooseCachedItem(cached, untested);
     if (pick) {
-      await assignItem(sessionId, p.position, pick.id);
+      picks.push({ position: p.position, reviewItemId: pick.id });
       continue;
     }
-    toWrite.push({ item: p, teach: lesson.teach, hash, known, target: known ? targetTerms(known, cov) : [] });
+    toWrite.push({ item: p, teach: c.teach, hash, known, target: known ? targetTerms(known, cov) : [] });
   }
-  if (!toWrite.length) return;
+  await assignItems(sessionId, picks, toSave);
+  if (!toWrite.length) return picks.length === pending.length;
 
   // Writing questions costs a model call; cap how often one learner can
   // trigger it. Over the cap the session runs on cached questions only.
@@ -204,7 +211,7 @@ async function prepareItems(userId: string, sessionId: string): Promise<void> {
     try {
       await consumeRateLimit("review_generate", userId, { max: 10, windowMinutes: 60 }, { userId });
     } catch (err) {
-      if (err instanceof RateLimitError) return;
+      if (err instanceof RateLimitError) return false;
       throw err;
     }
     await writeQuestions(userId, sessionId, trackId, group).catch((err) => {
@@ -213,6 +220,7 @@ async function prepareItems(userId: string, sessionId: string): Promise<void> {
       console.warn(`[review] question batch failed for track ${trackId}: ${(err as Error).message}`);
     });
   }
+  return false; // let dropUnpreparedItems check what the model calls left open
 }
 
 async function writeQuestions(

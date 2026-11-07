@@ -6236,6 +6236,578 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-370",
+      "date": "2026-11-07",
+      "title": "Account export first page over Vercel's 4.5 MB response cap for heavy learners",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Page 1 of /api/account/export was 4.17 MB (5k attempts) and 4.45 MB (26k attempts) on the audit fixture: 5,000-row pages, 28 sections, pretty-printed JSON.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "REQ-098 bounded rows per section but not bytes per response, and the page size was chosen against memory, not the platform's response limit.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/account-export.ts",
+        "backend/app/api/account/export/route.ts",
+        "mobile/src/lib/accountExport.ts"
+      ],
+      "fix_summary": "Pages are 500 rows and at most 1 MB; the first page stops adding sections at 2 MB and lists the rest under more with nextOffset 0; compact JSON; rate limit 600 pages/hour; app page cap 600. Whale first page 4450 KB -> 362 KB.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::a 6000-attempt learner: compact JSON and 500-row pages keep every response well under 4.5 MB with nothing lost",
+        "backend/lib/perf-audit3.dbtest.ts::past the response budget whole sections are deferred with nextOffset 0 and a page ends at the byte budget",
+        "mobile/src/lib/hardening.test.ts::a section left off the first page (nextOffset 0) is fetched from the start"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A response over 2.5 MB fails the dbtest.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-371",
+      "date": "2026-11-07",
+      "title": "Postgres JIT on made the course view 10-100x slower with nothing reporting it",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Audit 3 HIGH-1: readiness query 2.6 s with JIT on vs 28 ms off; production setting unknown.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "JIT is the stock default and nothing in health, --status or the runbook looked at it.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/health.ts",
+        "backend/lib/maintenance.ts",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Health returns a warnings entry and migrate --status a line when jit is on; operations runbook documents alter role ... set jit = off. (The query-level jit off is on fix/audit3-mastery.)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts::jit on is a warning",
+        "not a failure",
+        "backend/lib/perf-audit3.test.ts::backups past 30 days are flagged; jit on is called out"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Health and --status say when jit is on.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-373",
+      "date": "2026-11-07",
+      "title": "Mobile project health (expo-doctor) never ran in CI",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Ten expo-* packages a patch behind SDK 57's expected versions went unnoticed.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "CI only typechecked and unit-tested mobile.",
+      "requirement": "REQ-118",
+      "affected": [
+        ".github/workflows/ci.yml"
+      ],
+      "fix_summary": "CI runs expo-doctor@1.21.6 report-only (reason in ci.yml); the JS bundle is already exported by the backend build.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "CI configuration; exercised by CI itself.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CI step; make it blocking after the expo install --check bump.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-374",
+      "date": "2026-11-07",
+      "title": "A fresh review session took 65 sequential queries",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/review/sessions with a fresh plan: 65 queries, 1.09 s p50 at 15 ms round trip.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "One insert per planned item, and three to five queries per item while preparing (terms, coverage, lesson, unseen questions, assign), plus a re-read of what was just written.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/review-store.ts",
+        "backend/lib/review-service.ts"
+      ],
+      "fix_summary": "Close/open/last-stats in one statement, session and items in one insert, one prepareContext read and one assignItems write (with title terms) for all items, planned items passed to prepare, drop skipped when all prepared. 10 queries with cached questions; 304 ms p50 at 15 ms.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::a fresh plan of 12 cached questions takes at most 10 queries and no model call"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The dbtest counts statements on the pg client.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-375",
+      "date": "2026-11-07",
+      "title": "Answered-today check ran once per due row",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "dueObjectives' not-exists over all of a learner's session items per due objective; review/today 68 ms p50 for the 26k learner.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Correlated subquery with a date cast on answered_at, so no index could serve it.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/review-store.ts::dueObjectives",
+        "backend/supabase/migrations/046_perf_indexes.sql"
+      ],
+      "fix_summary": "Non-correlated NOT IN over a UTC time range on answered items, partial index review_session_items_answered (046). Whale review/today 68.6 -> 10.7 ms p50.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::a question already answered is not served again; an objective answered today is not due"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test pins today/yesterday semantics.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-376",
+      "date": "2026-11-07",
+      "title": "Course view made 9 sequential queries",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "GET /api/courses/:id: 9 queries (track, units, objectives, acknowledgement, readiness x3, blueprint x2).",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Each part of the response was fetched separately.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/app/api/courses/[id]/route.ts"
+      ],
+      "fix_summary": "Acknowledgement and an attempt stamp ride on the track query; readiness and the exam blueprint are cached. Warm: 3 queries.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::warm view is 3 queries; a new answer invalidates the cached readiness",
+        "backend/lib/perf-audit3.dbtest.ts::a required disclaimer is reported from the same first query"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Query budget in the dbtest.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-377",
+      "date": "2026-11-07",
+      "title": "Readiness recomputed (mastery_detail per objective) on every course view",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "145 ms p50 typical, 2.1 s for 1.3k-5k attempts, 21.6 s for 26k attempts, every home-screen load.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Readiness is computed live with no reuse between views.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/readiness-cache.ts"
+      ],
+      "fix_summary": "Per learner/course cache (60 s, 5,000 entries) keyed on the learner's newest attempt, so any grade invalidates it on every instance. Warm: 17 ms typical, 10-13 ms heavy.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::warm view is 3 queries; a new answer invalidates the cached readiness",
+        "backend/lib/perf-audit3.test.ts::hit within the TTL for the same stamp; a new answer (stamp) or the TTL recomputes",
+        "backend/lib/perf-audit3.test.ts::invalidateUser drops that learner only; the size stays bounded"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "In-process limitation documented in docs/operations-runbook.md.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-378",
+      "date": "2026-11-07",
+      "title": "GET /api/errors had no limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Every unresolved error_log row was returned (42 KB for a 1.3k-attempt learner, unbounded growth).",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Written when lists were short; never paged.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/app/api/errors/route.ts",
+        "mobile/app/(app)/index.tsx"
+      ],
+      "fix_summary": "limit (default 200, max 500), offset, total via count(*) over (), nextOffset; the home screen uses total for its due count.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::limit and offset paging with total and nextOffset; bad values are 400"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Paging test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-379",
+      "date": "2026-11-07",
+      "title": "Learner history by unit had no index",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "attempts?trackId walked the learner's history (82 ms, 26k learner); readyUnitChecks looked up unit checks per unit on the user_id prefix only.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Only (user_id, objective_id) and (user_id, created_at) existed.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/supabase/migrations/046_perf_indexes.sql"
+      ],
+      "fix_summary": "046 adds attempts (user_id, unit_id, created_at desc). Whale attempts?trackId 81.6 -> 15.8 ms p50.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::the schema probe passes and the planner uses the indexes for a learner-scoped read"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Probe in schema-status.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-380",
+      "date": "2026-11-07",
+      "title": "Foreign keys without indexes made account deletion scan whole tables",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "auth_events.user_id and ai_calls.user_id (ON DELETE SET NULL) and attempts.unit_id had no index: deleting one account scanned 6M auth_events and 1.2M ai_calls rows.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Indexes were added for read paths only.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/supabase/migrations/046_perf_indexes.sql"
+      ],
+      "fix_summary": "046 adds auth_events_user, ai_calls_user_created, attempts_unit (partial where user_id is not null).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::the schema probe passes and the planner uses the indexes for a learner-scoped read"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Probe in schema-status.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-382",
+      "date": "2026-11-07",
+      "title": "Under concurrent load the 5-connection pool queued requests for seconds",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "50 clients, 15 ms injected round trip: p50 1.77 s, p95 16.5 s, 13.9 req/s.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Requests making 9-65 sequential queries held pool connections for most of a second each.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/db.ts"
+      ],
+      "fix_summary": "Round-trip reductions above. Same test after: p50 814 ms, p95 2.8 s, 52.5 req/s.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Pure performance; covered by the recorded load test and the per-route query budgets.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Benchmark (load test) recorded in the commit message and runbook.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-383",
+      "date": "2026-11-07",
+      "title": "Every transaction paid two round trips to start; the rate limiter six per call",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "BEGIN and set_config were separate statements; consumeRateLimit was begin, set_config, lock, count, insert, commit.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Each step was written as its own statement.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/db.ts::withTransaction",
+        "backend/lib/auth/rateLimit.ts::consumeRateLimit"
+      ],
+      "fix_summary": "BEGIN plus SET LOCALs is one simple query of constants; count-and-insert is one statement after the lock (still atomic). Rate limit: 4 round trips.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::an allowed call is 4 statements; a refused call records nothing; 20 at once allow exactly the limit",
+        "backend/lib/perf-audit3.test.ts::BEGIN and the three SET LOCALs are one statement string with constants only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Statement-count test plus the existing timeout test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-384",
+      "date": "2026-11-07",
+      "title": "AI cost rows could be lost when the function froze after the response",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "logAiCall wrote fire-and-forget with no after()/waitUntil.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Serverless freezing after the response was not considered.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/ai-calls.ts::logAiCall"
+      ],
+      "fix_summary": "Inside a request the write goes through next/server after(); outside one it runs at once as before.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts::outside a request after() is unavailable and the write still happens straight away"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "In-request behaviour depends on the platform; outside-request fallback is tested.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-385",
+      "date": "2026-11-07",
+      "title": "Server errors reached only console.error",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "No error tracker or alerting; a 500 went unnoticed unless a learner wrote in.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "No hook point existed.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/error-tracker.ts",
+        "backend/lib/http.ts::serverError"
+      ],
+      "fix_summary": "lib/error-tracker.ts called from serverError; sends to Sentry's store endpoint when ERROR_TRACKER_DSN is set, no-op otherwise.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts::no DSN: nothing is sent",
+        "backend/lib/perf-audit3.test.ts::with a Sentry DSN: one event to the store endpoint",
+        "no request data",
+        "backend/lib/perf-audit3.test.ts::a failing transport never throws into the request"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Unit tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-386",
+      "date": "2026-11-07",
+      "title": "A deploy missing a required setting went live and failed on a learner's request",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Settings are read lazily where used; health stayed green.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "No check of required env anywhere before use.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/required-env.ts",
+        "backend/lib/health.ts",
+        "backend/app/api/health/route.ts"
+      ],
+      "fix_summary": "/api/health checks required settings (names only): 503 misconfigured in production, warning elsewhere.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts::production missing a required setting is misconfigured",
+        "by name only",
+        "before touching the database",
+        "backend/lib/perf-audit3.test.ts::outside production a missing setting is only a warning",
+        "backend/lib/perf-audit3.test.ts::Anthropic credentials: a static key or both federation ids"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Unit tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-387",
+      "date": "2026-11-07",
+      "title": "Data migrations were only ever tested on an empty database",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "029b, 031b, 037b and 041b (about 8.5 minutes on the fixture) never ran over a row in CI.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "The database CI job builds the schema from zero.",
+      "requirement": "REQ-118",
+      "affected": [
+        ".github/workflows/ci.yml",
+        "backend/scripts/ci/synthetic-history.sql",
+        "backend/scripts/ci/backfill-check.sql"
+      ],
+      "fix_summary": "CI backfill job: 001-028, synthetic history (1,500 learners, 122k attempts), the rest, batched recompute, and a check that the backfills did work and levels match the rule.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "CI configuration; backfill-check.sql is the assertion and was run locally.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CI job, run locally (1m44s).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-388",
+      "date": "2026-11-07",
+      "title": "Vercel installed with npm install and no Node version was declared",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "installCommand npm install could drift from the lockfile; no engines field (CI 24, local 22).",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Defaults never revisited.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/vercel.json",
+        "backend/scripts/build-webapp.sh",
+        "backend/package.json",
+        "mobile/package.json"
+      ],
+      "fix_summary": "npm ci in vercel.json and build-webapp.sh; engines.node >=22 <25 in both packages.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Deployment configuration; no runtime behaviour to test.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Config.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-389",
+      "date": "2026-11-07",
+      "title": "No restore procedure or drill existed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Nobody knew how to get the database back or how long it would take.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Backups were assumed, not tested.",
+      "requirement": "REQ-118",
+      "affected": [
+        "docs/restore-drill.md"
+      ],
+      "fix_summary": "docs/restore-drill.md: dump, restore to scratch, --status, row counts, app smoke, with a drill log.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Operational procedure; verified by running the drill.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Quarterly drill log in the doc.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-390",
+      "date": "2026-11-07",
+      "title": "Rollback backups were never dropped after 30 days",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mastery_backup_* tables (53-87 MB each on the fixture) had no reminder or job.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "The runbook's Cleanup section relied on memory.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/maintenance.ts",
+        "backend/supabase/apply-migration.ts"
+      ],
+      "fix_summary": "migrate --status lists each backup with size and age and flags those past 30 days.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts::backups past 30 days are flagged; jit on is called out"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Unit test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-391",
+      "date": "2026-11-07",
+      "title": "@types/node 20 against Node 22/24 runtimes",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Types lagged the runtime by two majors.",
+      "how_detected": "Audit 3 performance report (benchmark on the 2.75M-attempt fixture)",
+      "root_cause": "Pinned and never bumped.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/package.json",
+        "backend/package-lock.json"
+      ],
+      "fix_summary": "@types/node 22.20.5 (tsc clean against it); lockfile edited for that package and undici-types only.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Type definitions only; tsc is the check.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tsc in CI.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-392",
+      "date": "2026-11-07",
+      "title": "Course view served the old exam blueprint for up to 60 s after an exam-version change",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "exam-blueprints.dbtest 'v2 with retirement still ahead' got TST-01 instead of TST-02 with the first blueprint cache.",
+      "how_detected": "Full test:db run during the task",
+      "root_cause": "The new blueprint cache was keyed on the course only.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/lib/readiness-cache.ts::cachedExamBlueprint"
+      ],
+      "fix_summary": "Key includes subject_tracks.credential_exam_id, read by the course view's first query.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-blueprints.dbtest.ts::v2 with retirement still ahead: old units stay listed alongside the new ones; exam moves to the new version"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Existing dbtest caught it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-393",
+      "date": "2026-11-07",
+      "title": "Deleting a heavy account scanned three large tables per deleted attempt",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Deleting the 26k-attempt fixture account ran over 13 minutes (cancelled) while holding its locks; error_log, review_log and review_session_items attempt_id (ON DELETE SET NULL) had no index.",
+      "how_detected": "Account-delete benchmark on the audit fixture during this task",
+      "root_cause": "Foreign keys into attempts were added by feature migrations (037-039) without an index; the audit only listed app_users keys. Found while timing the account delete for MEDIUM-7.",
+      "requirement": "REQ-118",
+      "affected": [
+        "backend/supabase/migrations/046_perf_indexes.sql",
+        "backend/app/api/account/route.ts"
+      ],
+      "fix_summary": "046 adds partial attempt_id indexes on error_log, review_log, review_session_items, exam_session_items and placement_items; a dbtest fails if any foreign key into app_users or attempts lacks a leading index.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.dbtest.ts::every foreign key into app_users or attempts has an index led by its column"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The guard test catches a new unindexed key into app_users or attempts.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-400",
       "date": "2026-11-07",
       "title": "Support and course requests answered 500 for a NUL or lone surrogate",

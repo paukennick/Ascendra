@@ -90,6 +90,60 @@ jobs:
         run: npm run test:db
         working-directory: backend
 
+  # REQ-118 (Audit 3 LOW-11): the job above builds the schema on an EMPTY
+  # database, so the data migrations (029b, 031b, 037b, 041b: backups,
+  # backfills, recomputes) never ran over a single row in CI. This applies
+  # 001-028, loads a synthetic history written against the 028 schema
+  # (scripts/ci/synthetic-history.sql: 1,500 learners, ~122k attempts, about
+  # 10 s), applies everything after it, runs the batched recompute, and
+  # fails unless the backfills did real work and every stored level equals
+  # the rule (scripts/ci/backfill-check.sql). About 2-3 minutes; raise
+  # -v learners for a heavier run locally.
+  backfill:
+    name: Database (backfills over a synthetic history)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ascendra
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
+      PGSSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Apply 001-028 (the schema the backfills start from)
+        working-directory: backend
+        run: |
+          for f in $(ls supabase/migrations | sort); do
+            [[ "$f" > "029" ]] && break
+            npm run -s migrate -- "$f"
+          done
+      - name: Load a synthetic learner history
+        run: psql "$DATABASE_URL" -v learners=1500 -v per_learner=80 -f scripts/ci/synthetic-history.sql
+        working-directory: backend
+      - name: Apply the rest, including every backfill
+        run: npm run migrate -- --all && npm run migrate -- --status
+        working-directory: backend
+      - name: Batched recompute (as the runbook does after deploy)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "call recompute_mastery_batched();"
+        working-directory: backend
+      - name: Backfills did real work and levels match the rule
+        run: psql "$DATABASE_URL" -f scripts/ci/backfill-check.sql
+        working-directory: backend
+
   mobile:
     name: Mobile (typecheck, audit)
     runs-on: ubuntu-latest
@@ -114,7 +168,21 @@ jobs:
       # this would make the check permanently red instead of meaningful --
       # revisit turning this blocking once `npm audit fix` (or an Expo SDK
       # bump) actually clears it.
+      #
+      # REQ-118: still report-only (re-checked 2026-11-07, Audit 3 LOW-11): the
+      # advisories are in Expo's CLI/build tooling, not the app bundle. Read
+      # this step's log when bumping the Expo SDK; make it blocking once it is
+      # clean.
       - run: npm audit --audit-level=high || true
+        working-directory: mobile
+      # REQ-118: Expo's project health checks (config, native module
+      # versions, duplicate dependencies). Report-only for now: on 2026-11-07
+      # 20 of 21 checks passed and the one failure was ten expo-* packages a
+      # patch release behind SDK 57's expected versions (`npx expo install
+      # --check` fixes it). Make this blocking after that bump. The JS bundle
+      # itself is exported in the backend job's build (scripts/build-webapp.sh
+      # runs `expo export --platform web`), so a broken import fails CI there.
+      - run: npx -y expo-doctor@1.21.6 || true
         working-directory: mobile
 
   omni-workspace:

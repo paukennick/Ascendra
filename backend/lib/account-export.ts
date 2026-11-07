@@ -16,8 +16,21 @@
 // or repeat rows. The route runs the queries one after another on one
 // connection inside a read-only REPEATABLE READ transaction, so a first
 // page is one consistent snapshot.
+//
+// REQ-118 (Audit 3 HIGH-3): 5,000-row pages pretty-printed made the first
+// page 6 MB for a 5k-attempt learner, over Vercel's 4.5 MB cap on a
+// function response, so the export failed for exactly the most engaged
+// learners. Pages are now 500 rows AND at most EXPORT_PAGE_BYTES of JSON
+// (a page ends early at the row that would cross it; at least one row per
+// page). The first-page response stops adding sections once it holds
+// EXPORT_RESPONSE_BYTES; the sections left out are listed under `more` with
+// nextOffset 0, which the app already follows (mobile/src/lib/accountExport.ts).
+// The route sends compact JSON. Worst case per response is therefore about
+// EXPORT_RESPONSE_BYTES + one page.
 
-export const EXPORT_PAGE_ROWS = 5_000;
+export const EXPORT_PAGE_ROWS = 500;
+export const EXPORT_PAGE_BYTES = 1_000_000;
+export const EXPORT_RESPONSE_BYTES = 2_000_000;
 
 // REQ-112: tables with a user_id that are deliberately NOT in the export, and
 // why. lib/integration-guard.dbtest.ts fails when a table with a user_id is
@@ -110,29 +123,50 @@ export function isExportSection(v: unknown): v is ExportSection {
 
 type QueryFn = (sql: string, params: unknown[]) => Promise<Record<string, unknown>[]>;
 
-// One page of one section: up to `limit` rows from `offset`, and the offset
-// of the next page if there is one.
+// One page of one section: up to `limit` rows (and about `maxBytes` of JSON)
+// from `offset`, and the offset of the next page if there is one.
 export async function exportSectionPage(
   userId: string,
   section: ExportSection,
   run: QueryFn,
   offset = 0,
-  limit = EXPORT_PAGE_ROWS
-): Promise<{ rows: Record<string, unknown>[]; nextOffset: number | null }> {
+  limit = EXPORT_PAGE_ROWS,
+  maxBytes = EXPORT_PAGE_BYTES
+): Promise<{ rows: Record<string, unknown>[]; nextOffset: number | null; bytes: number }> {
   const rows = await run(`${EXPORT_SECTIONS[section]} limit $2 offset $3`, [userId, limit + 1, offset]);
-  const more = rows.length > limit;
-  return { rows: more ? rows.slice(0, limit) : rows, nextOffset: more ? offset + limit : null };
+  let bytes = 0;
+  let take = 0;
+  for (; take < Math.min(rows.length, limit); take++) {
+    const size = Buffer.byteLength(JSON.stringify(rows[take]), "utf8") + 1;
+    if (take > 0 && bytes + size > maxBytes) break;
+    bytes += size;
+  }
+  const more = rows.length > take;
+  return { rows: rows.slice(0, take), nextOffset: more ? offset + take : null, bytes };
 }
 
 // The first page of every section. Sequential on purpose: the route passes
 // a single transaction's query function, and one connection runs one query
 // at a time anyway.
-export async function buildAccountExport(userId: string, run: QueryFn, limit = EXPORT_PAGE_ROWS) {
+export async function buildAccountExport(
+  userId: string,
+  run: QueryFn,
+  limit = EXPORT_PAGE_ROWS,
+  budget: { pageBytes: number; responseBytes: number } = { pageBytes: EXPORT_PAGE_BYTES, responseBytes: EXPORT_RESPONSE_BYTES }
+) {
   const names = Object.keys(EXPORT_SECTIONS) as ExportSection[];
   const out: Record<string, unknown> = { exportedAt: new Date().toISOString() };
   const more: Record<string, { nextOffset: number }> = {};
+  let total = 0;
   for (const n of names) {
-    const page = await exportSectionPage(userId, n, run, 0, limit);
+    // Over the response budget: the rest of the sections come as pages.
+    // profile is first and always included.
+    if (n !== "profile" && total >= budget.responseBytes) {
+      more[n] = { nextOffset: 0 };
+      continue;
+    }
+    const page = await exportSectionPage(userId, n, run, 0, limit, budget.pageBytes);
+    total += page.bytes;
     out[n] = n === "profile" ? page.rows[0] ?? null : page.rows;
     if (page.nextOffset !== null) more[n] = { nextOffset: page.nextOffset };
   }
