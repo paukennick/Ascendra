@@ -178,6 +178,8 @@ export async function getOrWriteUnitCheck(userId: string, status: UnitCheckStatu
   return row!;
 }
 
+export const UNIT_CHECK_NOT_ELIGIBLE = "Study every objective in this unit before its check.";
+
 export async function gradeUnitCheck(
   userId: string,
   status: UnitCheckStatus,
@@ -201,6 +203,10 @@ export async function gradeUnitCheck(
   };
   const done = await replayStored();
   if (done) return done;
+  // REQ-121 (FAIL-442): eligibility applies to a NEW submission only, after
+  // the stored-result lookup, so a resend of a check already graded gets its
+  // result even if the unit has since gained an objective not yet studied.
+  if (!status.eligible) throw new ReviewError(400, UNIT_CHECK_NOT_ELIGIBLE);
   const gradeAndRecord = async () => {
     try {
       await consumeRateLimit("unitcheck_grade", userId, { max: 20, windowMinutes: 10 }, { userId });

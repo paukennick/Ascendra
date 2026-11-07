@@ -348,7 +348,8 @@ describe("labs", () => {
     assert.equal((await report(u, NOLAB, { answers: ["a"] })).status, 404);
     const id = randomUUID();
     assert.equal((await report(u, LAB, { clientAttemptId: id, answers: ["a", "b", "c"] })).status, 200);
-    assert.equal((await report(u, LAB2, { clientAttemptId: id, answers: ["a", "b", "c"] })).status, 400);
+    // REQ-121 (FAIL-441): the shared replay conflict, 409 (was 400).
+    assert.equal((await report(u, LAB2, { clientAttemptId: id, answers: ["a", "b", "c"] })).status, 409);
   });
 
   test("an edited lab text gets new questions", async () => {

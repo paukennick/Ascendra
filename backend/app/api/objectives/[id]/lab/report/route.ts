@@ -11,6 +11,7 @@ import { labAnswersFor, labObjective, labQuestionsFor } from "@/lib/lesson-exper
 import { labReportAnswer, labReportQuestion, labReportTaughtText } from "@/lib/prompts";
 import { hasUnstorableText } from "@/lib/text-input";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 
 export const dynamic = "force-dynamic";
 
@@ -48,9 +49,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const replayStored = async () => {
       const prior = clientAttemptId ? await findClientAttempt(user.id, clientAttemptId) : null;
       if (!prior) return null;
-      const a = prior.attempt as Record<string, unknown>;
-      if (a.kind !== "lab" || a.lab_objective_id !== id) {
-        return badRequest("clientAttemptId was already used for a different answer");
+      // REQ-121 (FAIL-441): a mismatch is the shared 409, as on grade, review,
+      // unit check and explain-back (was a 400 with its own wording).
+      if (!replayMatches(prior.attempt as Record<string, unknown>, { kind: "lab", stage: "lab", labObjectiveId: id })) {
+        return conflict(REPLAY_CONFLICT);
       }
       return ok(prior);
     };

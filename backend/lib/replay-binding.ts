@@ -15,6 +15,8 @@
 export interface ReplayTarget {
   objectiveId?: string | null;
   unitCheckItemId?: string | null;
+  // REQ-121: a lab report's objective (lab attempts keep objective_id null).
+  labObjectiveId?: string | null;
   kind: string;
   stage?: string | null;
   question?: string;
@@ -27,6 +29,7 @@ export function replayMatches(stored: Record<string, unknown>, target: ReplayTar
   if (target.stage !== undefined && (stored.stage ?? null) !== (target.stage ?? null)) return false;
   if (target.objectiveId !== undefined && id(stored.objective_id) !== id(target.objectiveId)) return false;
   if (target.unitCheckItemId !== undefined && id(stored.unit_check_item_id) !== id(target.unitCheckItemId)) return false;
+  if (target.labObjectiveId !== undefined && id(stored.lab_objective_id) !== id(target.labObjectiveId)) return false;
   if (target.question !== undefined && stored.question !== target.question) return false;
   return true;
 }

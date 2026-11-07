@@ -3923,6 +3923,43 @@
       "risk_notes": [
         "Lab report keeps its existing 400 (not 409) for an id reused on another lab"
       ]
+    },
+    {
+      "id": "REQ-121",
+      "category": "fix",
+      "title": "Replay binding on the remaining client-attempt-id routes",
+      "description": "Finish REQ-116's replay binding (lib/replay-binding.ts): Quiz me answers replay a clientAttemptId only for the same question (same objective, kind, stage and question; one turn per learner and item), else the shared 409 REPLAY_CONFLICT with nothing written. The lab report answers a reused id on another lab with that 409 (was a 400 with its own wording). The unit check looks up a stored result (with its binding) before checking eligibility, so a resend of a graded id is never refused because the unit became ineligible.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/coach-quiz.ts",
+        "backend/app/api/coach/quiz/answer/route.ts",
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/app/api/units/[id]/check/route.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/replay-binding.ts",
+        "backend/lib/replay-binding-rest.dbtest.ts",
+        "mobile/src/lib/lessonFeedback.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Quiz me: the id on another question is 409 with no attempt and no try used; the same question replays",
+        "Lab report: the id on another lab is 409 with the shared message and no model call",
+        "Unit check: a resend of a graded id returns the stored result after the unit becomes ineligible; new submissions are still refused with 400",
+        "Each test fails with its fix reverted"
+      ],
+      "validation_required": [
+        "npm run test:db (fresh DB)",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "The app shows the lab route's 409 by its message (gradeSubmitError keys off the message not the status) so nothing relied on the 400"
+      ]
     }
   ]
 }

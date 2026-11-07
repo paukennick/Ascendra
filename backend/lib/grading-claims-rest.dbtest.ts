@@ -191,10 +191,10 @@ describe("REQ-120: racing copies of one submission call the model once on every 
     const again = await call(labReportPost, u, { answers, clientAttemptId: cid }, { id: objs[0] });
     assert.equal(again.status, 200);
     assert.equal(again.body.replayed, true);
-    // The lab route's binding (unchanged) answers a mismatch with 400, not 409.
+    // REQ-121 (FAIL-441): the shared 409, as on the other graded routes (was 400).
     const other = await call(labReportPost, u, { answers, clientAttemptId: cid }, { id: objs[1] });
-    assert.equal(other.status, 400);
-    assert.match(other.body.error, /different answer/);
+    assert.equal(other.status, 409);
+    assert.match(other.body.error, /already used for a different question/);
     assert.equal(modelCalls, 1, "neither replay called the model");
   });
 });

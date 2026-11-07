@@ -9,6 +9,7 @@ import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
 import { recordPracticeAttemptTx } from "@/lib/practice-attempts";
 import { weakSpotsFor, type WeakSpot } from "@/lib/learner-profile";
+import { replayMatches } from "@/lib/replay-binding";
 
 // REQ-110 (research #8): "Quiz me on my weak spots".
 //
@@ -337,7 +338,8 @@ export type AnswerQuizResult =
   | { status: "ok"; turn: PresentedTurn; correct: boolean; message: string; replayed: boolean }
   | { status: "not_found" }
   | { status: "closed"; turn: PresentedTurn }
-  | { status: "bad_choice" };
+  | { status: "bad_choice" }
+  | { status: "replay_conflict" };
 
 export async function answerQuizTurn(
   userId: string,
@@ -358,12 +360,19 @@ export async function answerQuizTurn(
     const current = () => presentTurn(userId, locked, item, pre.objective_title, pre.unit_id);
 
     // A retried submit: the stored answer stands, and the current state comes back.
+    // REQ-121 (FAIL-440): only for an attempt on this turn's question (same
+    // objective, kind, stage and question text; one turn per learner and
+    // item). An id used elsewhere is a conflict, with nothing written --
+    // never that other attempt's verdict and feedback.
     if (clientAttemptId) {
-      const prior = await tx.queryOne<{ verdict: string; feedback: string | null }>(
-        `select verdict, feedback from attempts where user_id = $1 and client_attempt_id = $2`,
+      const prior = await tx.queryOne<Record<string, unknown> & { verdict: string; feedback: string | null }>(
+        `select verdict, feedback, kind, stage, objective_id, question from attempts where user_id = $1 and client_attempt_id = $2`,
         [userId, clientAttemptId]
       );
       if (prior) {
+        if (!replayMatches(prior, { kind: "quiz", stage: STAGE, objectiveId: item.objective_id, question: item.question })) {
+          return { status: "replay_conflict" as const };
+        }
         return { status: "ok" as const, turn: current(), correct: prior.verdict === "correct", message: prior.feedback ?? "", replayed: true };
       }
     }

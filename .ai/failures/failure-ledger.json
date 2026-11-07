@@ -7062,6 +7062,86 @@
       "prevention_rules": [],
       "prevention_notes": "Any new graded route that takes a clientAttemptId and calls the model goes through withGradingClaim.",
       "recurrence_of": "FAIL-359"
+    },
+    {
+      "id": "FAIL-440",
+      "date": "2026-11-07",
+      "title": "Quiz me replayed another attempt's verdict and feedback for a reused client attempt id",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/coach/quiz/answer with a clientAttemptId already used on another question (or any other attempt) returned 200 with that attempt's verdict and feedback (incl. its explanation) and wrote nothing.",
+      "how_detected": "Follow-up review of REQ-116/REQ-120",
+      "root_cause": "answerQuizTurn looked up the stored attempt by (user, clientAttemptId) only; REQ-116 bound replays on review/comparison/explain-back/unit check but missed the Quiz me route.",
+      "requirement": "REQ-121",
+      "affected": [
+        "backend/lib/coach-quiz.ts",
+        "backend/app/api/coach/quiz/answer/route.ts"
+      ],
+      "fix_summary": "The stored attempt must match the turn's question (kind quiz, stage coach_quiz, objective, question text) via replayMatches; otherwise answerQuizTurn returns replay_conflict and the route answers 409 REPLAY_CONFLICT.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/replay-binding-rest.dbtest.ts::FAIL-440"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/replay-binding.ts"
+      ],
+      "prevention_notes": "Every route that replays by client id checks the stored attempt is for the same item (pre-completion checklist, REQ-116 line).",
+      "recurrence_of": "FAIL-312"
+    },
+    {
+      "id": "FAIL-441",
+      "date": "2026-11-07",
+      "title": "Lab report answered a reused client attempt id with 400 instead of the shared 409",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "POST /api/objectives/:id/lab/report with an id already used on another lab returned 400 'clientAttemptId was already used for a different answer', unlike grade, review, unit check and explain-back (409, shared message).",
+      "how_detected": "Follow-up review of REQ-120",
+      "root_cause": "The lab route kept its own hand-written binding from REQ-106 when REQ-116 introduced lib/replay-binding.ts; REQ-120 kept it unchanged.",
+      "requirement": "REQ-121",
+      "affected": [
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/lib/replay-binding.ts"
+      ],
+      "fix_summary": "replayMatches with a new labObjectiveId target field; mismatch answers conflict(REPLAY_CONFLICT).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/replay-binding-rest.dbtest.ts::FAIL-441",
+        "backend/lib/grading-claims-rest.dbtest.ts::FAIL-432",
+        "backend/lib/security-a3.test.ts::REQ-121"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/replay-binding.ts"
+      ],
+      "prevention_notes": "Replay bindings go through lib/replay-binding.ts so status and wording stay shared.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-442",
+      "date": "2026-11-07",
+      "title": "Unit check refused a resend of an already-graded id with 400 after the unit became ineligible",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A resend of a graded unit-check clientAttemptId returned 400 'Study every objective in this unit before its check.' once the unit gained an objective the learner had not studied, so the app never got the stored result.",
+      "how_detected": "Follow-up review of REQ-120",
+      "root_cause": "The route checked eligibility before gradeUnitCheck's stored-result lookup; eligibility can change between the first send and the resend.",
+      "requirement": "REQ-121",
+      "affected": [
+        "backend/app/api/units/[id]/check/route.ts",
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "gradeUnitCheck replays (with its binding) first and only then refuses a new submission when the unit is not eligible (ReviewError 400, UNIT_CHECK_NOT_ELIGIBLE).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/replay-binding-rest.dbtest.ts::FAIL-442"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "backend/lib/replay-binding.ts"
+      ],
+      "prevention_notes": "Replay lookups run before any state-dependent refusal, as /api/grade does.",
+      "recurrence_of": ""
     }
   ]
 }

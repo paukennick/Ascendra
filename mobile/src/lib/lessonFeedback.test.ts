@@ -163,6 +163,13 @@ describe("assistNote / gradeSubmitError (REQ-097)", () => {
     assert.equal(gradeSubmitError({ status: 429, message: "Too many requests" }), "Too many requests");
     assert.match(gradeSubmitError(null), /Retry/);
   });
+  // REQ-121: the lab report (labReport.tsx) now answers a reused id with the
+  // shared 409 instead of 400; the app keys off the server's message, not the
+  // status, so it still shows that message and never "no connection".
+  test("a 409 replay conflict shows the server's message, not the offline retry text", () => {
+    const msg = "This id was already used for a different question.";
+    assert.equal(gradeSubmitError({ status: 409, message: msg }), msg);
+  });
 });
 
 describe("offerTryAgain (REQ-101, FAIL-095)", () => {

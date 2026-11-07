@@ -1,4 +1,5 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
+import { ok, badRequest, conflict, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
+import { REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { validClientAttemptId } from "@/lib/lesson-progress";
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
     const result = await answerQuizTurn(user.id, turnId, body.choice, validClientAttemptId(body.clientAttemptId));
     if (result.status === "not_found") return notFound("Quiz question not found");
     if (result.status === "bad_choice") return badRequest("choice must be one of the options shown");
+    if (result.status === "replay_conflict") return conflict(REPLAY_CONFLICT); // REQ-121
     if (result.status === "closed") return ok({ turn: result.turn, closed: true });
     return ok({ turn: result.turn, correct: result.correct, message: result.message, replayed: result.replayed });
   } catch (err) {

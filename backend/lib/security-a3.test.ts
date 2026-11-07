@@ -82,6 +82,12 @@ describe("replay binding (finding 3)", () => {
     assert.equal(replayMatches(stored, { kind: "review", stage: "review", objectiveId: "bbbbbbbb-0000-0000-0000-000000000001" }), false);
     assert.equal(replayMatches({ kind: "unitcheck", unit_check_item_id: "x1" }, { kind: "unitcheck", unitCheckItemId: "x2" }), false);
   });
+  test("REQ-121: a lab report is bound to its lab objective", () => {
+    const lab = { kind: "lab", stage: "lab", objective_id: null, lab_objective_id: "AAAAAAAA-0000-0000-0000-000000000002" };
+    assert.equal(replayMatches(lab, { kind: "lab", stage: "lab", labObjectiveId: "aaaaaaaa-0000-0000-0000-000000000002" }), true);
+    assert.equal(replayMatches(lab, { kind: "lab", stage: "lab", labObjectiveId: "bbbbbbbb-0000-0000-0000-000000000002" }), false);
+    assert.equal(replayMatches(stored, { kind: "lab", stage: "lab", labObjectiveId: "aaaaaaaa-0000-0000-0000-000000000001" }), false);
+  });
 });
 
 describe("malformed input answers 400 (low)", () => {

@@ -48,7 +48,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const status = await unitCheckStatus(user.id, id);
     if (!status) return notFound("Unit not found");
     await requireAcknowledgementForUnit(id, user.id);
-    if (!status.eligible) return badRequest("Study every objective in this unit before its check.");
+    // REQ-121: eligibility is checked inside gradeUnitCheck, after a resend of
+    // an already-graded id has been answered from the stored result.
     return ok(await gradeUnitCheck(user.id, status, body.checkId, body.answer, validClientAttemptId(body.clientAttemptId)));
   } catch (err) {
     return reviewRouteError(err);
