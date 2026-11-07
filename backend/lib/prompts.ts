@@ -82,8 +82,30 @@ Rules, always:
 // without a context any more; kept exported for tests and ad-hoc use.
 export const COACH_RULES = coachRules();
 
+// A system prompt in two parts. `stable` (coach rules + the track/exam framing)
+// is identical for every call on the same track/unit, so lib/anthropic.ts sends
+// it as its own system block with cache_control and Anthropic reads it from
+// cache on later calls; `task` is the per-call instruction that follows it.
+// Nothing that varies per learner or per request may go in `stable`.
+export interface SystemPrompt {
+  stable: string;
+  task: string;
+}
+
+export const SYSTEM_SEPARATOR = "\n\n---\n\n";
+
+// The single-string form: what the local (Ollama) provider receives, and what
+// withRules always returned.
+export function flattenSystem(system: string | SystemPrompt): string {
+  return typeof system === "string" ? system : `${system.stable}${SYSTEM_SEPARATOR}${system.task}`;
+}
+
+export function systemWithRules(task: string, ctx?: CoachContext): SystemPrompt {
+  return { stable: coachRules(ctx), task };
+}
+
 export function withRules(task: string, ctx?: CoachContext): string {
-  return `${coachRules(ctx)}\n\n---\n\n${task}`;
+  return flattenSystem(systemWithRules(task, ctx));
 }
 
 export interface LessonContent {
@@ -126,18 +148,20 @@ Previous soloCheck: "${avoid.soloCheck}"`;
 
 // Lesson content used to be generated as one ~10-field, up-to-6000-token
 // completion, which meant every first visit and every regenerate blocked on
-// one long sequential generation. Split into two prompts (this one for the
-// guess/teach half, lessonPracticePrompt below for fade/solo) so the route can
-// fire both at once with Promise.all — wall time drops to roughly the slower
-// of the two instead of the sum of both.
+// one long sequential generation. It is split into two prompts (this one for
+// the guess/teach half, lessonPracticePrompt below for fade/solo), and
+// runGeneration in lib/lesson-generation.ts starts both calls at the same time
+// -- neither prompt uses the other's output -- so wall time is roughly the
+// slower of the two rather than the sum. The guess+teach half is still handed
+// back as soon as it exists, ahead of the practice half.
 // Zod schemas for lib/anthropic.ts's callClaudeStructured -- passed as
 // output_config.format so the API itself constrains generation to valid,
 // schema-conforming JSON, rather than the model free-hand writing JSON text
 // per prompt instructions alone. Three distinct real failures came out of
 // the latter approach in testing on real objectives: JSON truncated
 // mid-string (stop_reason max_tokens), no text block produced at all
-// (stop_reason max_tokens, blocks=[thinking] -- see lib/anthropic.ts's
-// disableThinking), and syntactically invalid JSON despite a clean
+// (stop_reason max_tokens, blocks=[thinking] -- see modelParams in
+// lib/anthropic.ts), and syntactically invalid JSON despite a clean
 // stop_reason end_turn (a raw, unescaped newline inside a string value).
 // Structured outputs close all three at the API level instead of patching
 // each symptom as it's found.
@@ -161,8 +185,8 @@ export function lessonIntroPrompt(params: {
   objectiveTitle: string;
   avoid?: LessonAvoid;
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are generating the guess-and-teach half of cached lesson content for ONE learning objective, to
 be reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its
 own without further back-and-forth. The learner benefits from an active-retrieval structure rather than a
@@ -213,8 +237,8 @@ export function guessFeedbackPrompt(params: {
   teach: string;
   guess: string;
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are giving quick, encouraging feedback on a learner's guess made BEFORE any teaching, in response
 to a prompt meant to surface intuition or prior knowledge -- not a graded answer. Never call it correct or
 incorrect; compare it to what's actually true, name what their instinct got right or was close to, and note
@@ -267,8 +291,8 @@ export function lessonPracticePrompt(params: {
   objectiveTitle: string;
   avoid?: LessonAvoid;
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are generating the practice half of cached lesson content for ONE learning objective, to be
 reused every time the learner revisits it (until they explicitly regenerate), so it must stand on its own
 without further back-and-forth. The learner benefits from a worked-example-fading structure. They are new
@@ -298,20 +322,34 @@ Produce ONLY a JSON object with exactly these fields, no prose outside the JSON,
   return { system, user };
 }
 
-export interface GradeResult {
-  verdict: "correct" | "partial" | "incorrect";
-  feedback: string;
-  classification: string;
-  missedParts?: string[];
-}
+// Free-response and PBQ grading both return this. Passed to
+// callClaudeStructured as output_config.format, so the API guarantees the
+// shape (a verdict outside the enum, or a missing field, can no longer reach
+// the attempts table). missedParts is required in the schema -- an empty array
+// means nothing was missed -- but callers still tolerate it being absent.
+export const gradeResultSchema = z.object({
+  verdict: z
+    .enum(["correct", "partial", "incorrect"])
+    .describe("correct = fully right; partial = some sub-parts right or right idea with a gap; incorrect = wrong or off-target."),
+  feedback: z
+    .string()
+    .describe("Specific feedback naming what was right/wrong; if multi-part, name exactly which part(s) were missed."),
+  classification: z
+    .string()
+    .describe("A short tag for the kind of gap, e.g. 'misconception', 'incomplete', 'off-scope', 'none'."),
+  missedParts: z
+    .array(z.string())
+    .describe("Names/descriptions of sub-parts not addressed -- an empty array if single-part or fully addressed."),
+});
+export type GradeResult = z.infer<typeof gradeResultSchema>;
 
 export function gradeFreeResponsePrompt(params: {
   taughtText: string;
   question: string;
   answer: string;
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are grading ONE free-response answer against material the learner has already been taught.
 Judge substance, not length. If the question has multiple parts or sub-asks, grade each named part
 explicitly and never grade past a part that was skipped.`,
@@ -334,19 +372,24 @@ Produce ONLY a JSON object, no markdown fence:
   return { system, user };
 }
 
-export interface PBQScenario {
-  title: string;
-  scenario: string;
-  subParts: string[];
-}
+export const pbqScenarioSchema = z.object({
+  title: z.string().describe("Short scenario title."),
+  scenario: z
+    .string()
+    .describe("The full scenario text, a realistic situation ending with 2-4 explicitly numbered sub-tasks the learner must address."),
+  subParts: z
+    .array(z.string())
+    .describe("One short label per sub-task (2-4 of them), in the same order as written in the scenario."),
+});
+export type PBQScenario = z.infer<typeof pbqScenarioSchema>;
 
 export function pbqGenerationPrompt(params: {
   trackTitle: string;
   unitTitle: string;
   unitObjectives: string[];
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are generating a performance-based-question (PBQ) style scenario: a realistic, multi-part
 scenario with 2-4 named sub-tasks in one prompt, the closest a text-based app gets to a real
 certification PBQ. It will be graded holistically against every sub-task, so each sub-task must be
@@ -371,8 +414,8 @@ export function gradePBQPrompt(params: {
   subParts: string[];
   answer: string;
   ctx?: CoachContext;
-}): { system: string; user: string } {
-  const system = withRules(
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
     `You are grading a PBQ-style multi-part answer holistically but explicitly per sub-part. If the
 learner misses one, name exactly which one(s) — never give a blanket "partial credit" verdict without
 naming exactly what's missing.`,
@@ -398,8 +441,8 @@ export function chatSystemPrompt(params: {
   trackTitle: string;
   unitTitle?: string;
   ctx?: CoachContext;
-}): string {
-  return withRules(
+}): SystemPrompt {
+  return systemWithRules(
     `Open Q&A ("Ask the coach") for the track "${params.trackTitle}"${
       params.unitTitle ? `, currently on unit "${params.unitTitle}"` : ""
     }. This thread is not graded and does not touch mastery or the error log — answer plainly and

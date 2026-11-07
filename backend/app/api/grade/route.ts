@@ -1,6 +1,5 @@
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
-import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
-import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
+import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   cachedCorrectIndex,
   findClientAttempt,
@@ -147,17 +146,12 @@ export async function POST(req: Request) {
         : unitId
           ? await coachContextForUnit(unitId)
           : null;
-      const { system, user } = gradeFreeResponsePrompt({
+      const graded = await gradeFreeResponse({
         taughtText,
         question,
         answer,
         ctx: ctx ?? undefined,
-      });
-      const graded = await callClaudeJSON<GradeResult>({
-        system,
-        messages: [{ role: "user", content: user }],
-        maxTokens: 800,
-        model: getFastModel(),
+        userId: authUser.id,
       });
       const { attempt, prior } = await record({
         userId: authUser.id,
