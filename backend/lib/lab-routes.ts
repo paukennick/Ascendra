@@ -11,7 +11,21 @@ import { flagItem } from "@/lib/item-quality";
 import { inBackground } from "@/lib/understanding-ai";
 import { KEY_SUSPECT } from "@/lib/prompts";
 import { gradeLabStep, labSafetyFamily, type LabStepModel } from "@/lib/lab-grading";
-import { LabError, checkRunStep, labAnswers, recordStep, replayStep, visibleLab, type SubmitInput } from "@/lib/labs";
+import {
+  LABS_FEATURE,
+  LabError,
+  checkRunStep,
+  hasRun,
+  labAccess,
+  labAnswers,
+  recordStep,
+  replayStep,
+  visibleLab,
+  type LabAccess,
+  type LabRow,
+  type SubmitInput,
+} from "@/lib/labs";
+import { consumeAllowance, requireCourseAccess, requireFeature } from "@/lib/entitlements";
 
 // REQ-123: the lab routes' shared error mapping and the submit flow, kept
 // out of the route files so lib/labs.dbtest.ts drives exactly what runs.
@@ -22,6 +36,28 @@ export function labRouteError(err: unknown) {
   if (err instanceof LabError) return NextResponse.json({ error: err.message }, { status: err.status });
   if (err instanceof GradingInProgressError) return NextResponse.json({ error: err.message }, { status: 409 });
   return serverError(err);
+}
+
+// Nick, 2026-11-07 (decisions 6 and 10). Labs are Pro; Free and Plus open
+// their course's one sample lab (lib/labs.ts labAccess). What each lab route
+// lets through:
+//   - "view" (GET /api/labs/:id): the lab when it is open to the learner, or
+//     any lab they have already run -- their own results stay readable, and
+//     an open run can be finished after the plan changes.
+//   - "resume" (POST runs without restart): an open run comes back whatever
+//     the plan; with no open run it is a start.
+//   - "start" (POST runs with restart): needs full or sample access.
+// Free also studies one course (requireCourseAccess), except to finish or
+// read a run already started. With billing off every check returns at once.
+export async function gateLab(userId: string, lab: LabRow, mode: "view" | "resume" | "start"): Promise<LabAccess> {
+  const access = await labAccess(userId, lab);
+  const runs = mode === "start" ? { any: false, open: false } : await hasRun(userId, lab.id);
+  const continuing = mode === "view" ? runs.any : runs.open;
+  if (!continuing) {
+    await requireCourseAccess(userId, lab.track_id);
+    if (access === "locked") await requireFeature(userId, LABS_FEATURE);
+  }
+  return access;
 }
 
 // Grading a lab is NOT under requireAiBudget, like every other grader
@@ -73,6 +109,10 @@ export async function submitLab(
       if (err instanceof RateLimitError) throw new LabError(429, err.message);
       throw err;
     }
+    // Decision 9 extended to sample labs: a graded lab step counts against
+    // the daily graded-answer allowance on a tier that has a count (Free);
+    // given back if grading fails. At the limit the run stays open for later.
+    const use = await consumeAllowance(userId, "graded_answer");
     const ctx = (await coachContextForObjective(lab.objective_id)) ?? undefined;
     const graded = await gradeLabStep(
       {
@@ -89,7 +129,10 @@ export async function submitLab(
         userId,
       },
       model
-    );
+    ).catch(async (err) => {
+      await use.release();
+      throw err;
+    });
     const result = await recordStep(input, graded);
     // The grader judged the lab's own rubric wrong: that is this learner's
     // flag on the lab, and enough of them pull it for a person to check.

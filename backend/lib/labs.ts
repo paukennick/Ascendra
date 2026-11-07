@@ -1,6 +1,8 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { isActive } from "@/lib/progress-sql";
 import { servableSql } from "@/lib/item-quality";
+import type { Feature } from "@/lib/billing-config";
+import { hasFeature } from "@/lib/entitlements";
 import { recordAttemptTx, findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { cleanText, hasUnstorableText } from "@/lib/text-input";
 import {
@@ -31,11 +33,10 @@ import {
 // lab starts as needs_expert_review, so production shows none of them until a
 // person approves it (docs/labs.md, "Expert review before launch").
 
-// The single feature key for tier gating. feat/tiers-billing adds
-// lib/entitlements.ts with requireFeature(user, feature); at merge, the lab
-// routes call requireFeature(user, LABS_FEATURE) right after requireUser.
-// Not gated on this branch.
-export const LABS_FEATURE = "labs" as const;
+// The single feature key for tier gating, shared with the self-reported
+// CompTIA labs (lib/billing-config.ts FEATURES.labs). `satisfies Feature`
+// makes a key the billing config doesn't know a compile error (FAIL-510).
+export const LABS_FEATURE = "labs" as const satisfies Feature;
 
 export type { LabKind, ReviewStatus, LabContent } from "@/lib/lab-content";
 export { LAB_LIMITS, labContentProblems, labContentHash } from "@/lib/lab-content";
@@ -78,10 +79,68 @@ export function servedReviewStatuses(env: Record<string, string | undefined> = p
   return on ? ["approved", "needs_expert_review"] : ["approved"];
 }
 
-const SERVABLE = (alias: string) =>
-  `${alias}.retired_at is null and ${alias}.review_status = any($REVIEW::text[]) and ${servableSql("lab", `${alias}.id`)}`;
-function servable(alias: string, paramIndex: number): string {
-  return SERVABLE(alias).replace("$REVIEW", `$${paramIndex}`);
+// Nick, 2026-11-07 (decision 11): labs on clinical, critical-care and
+// fitness courses (nursing, CCRN, physical therapy, fitness -- the course
+// taxonomy's healthcare-* and health-fitness categories, the same families
+// lib/lab-grading.ts labSafetyFamily frames as clinical and fitness) are
+// NEVER served before an expert approves them, whatever
+// LABS_SERVE_UNREVIEWED says. Other subjects may serve unreviewed labs when
+// it is on, with the "Awaiting expert review" badge (reviewStatus).
+// `track` is the alias of subject_tracks in the calling query.
+export function expertOnlyTrackSql(track: string): string {
+  return `exists (select 1 from education_subcategories esc join education_categories ec on ec.id = esc.category_id
+                   where esc.id = ${track}.subcategory_id and (ec.slug like 'healthcare%' or ec.slug = 'health-fitness'))`;
+}
+
+const SERVABLE = (alias: string, track: string) =>
+  `${alias}.retired_at is null and ${servableSql("lab", `${alias}.id`)}
+   and (${alias}.review_status = 'approved'
+        or (${alias}.review_status = any($REVIEW::text[]) and not ${expertOnlyTrackSql(track)}))`;
+function servable(alias: string, paramIndex: number, track = "st"): string {
+  return SERVABLE(alias, track).replace("$REVIEW", `$${paramIndex}`);
+}
+
+// ---------------------------------------------------------------------------
+// Tier access (Nick, 2026-11-07, decision 10)
+// ---------------------------------------------------------------------------
+//
+// Labs are Pro. Free and Plus get ONE sample lab per course: the first
+// approved build or case lab of the course, in course order (unit, then
+// objective, then kind and title -- the order the labs list shows). An
+// unreviewed lab is never the sample, even where LABS_SERVE_UNREVIEWED
+// serves it. With billing off every learner is Pro, so everything is "full".
+export type LabAccess = "full" | "sample" | "locked";
+
+export async function sampleLabId(trackId: string): Promise<string | null> {
+  const row = await queryOne<{ id: string }>(
+    `select l.id
+       from labs l
+       join objectives o on o.id = l.objective_id
+       join course_units cu on cu.id = o.unit_id
+       join subject_tracks st on st.id = cu.track_id
+      where cu.track_id = $1 and l.review_status = 'approved' and l.retired_at is null
+        and ${servableSql("lab", "l.id")} and ${isActive("o")} and ${isActive("cu")}
+      order by cu.sort_order, o.sort_order, l.kind, l.title, l.id
+      limit 1`,
+    [trackId]
+  );
+  return row?.id ?? null;
+}
+
+export async function labAccess(userId: string, lab: Pick<LabRow, "id" | "track_id">): Promise<LabAccess> {
+  if (await hasFeature(userId, LABS_FEATURE)) return "full";
+  return (await sampleLabId(lab.track_id)) === lab.id ? "sample" : "locked";
+}
+
+// Whether this learner has ever run this lab (an open run can always be
+// finished and past results always read, whatever the plan is now).
+export async function hasRun(userId: string, labId: string): Promise<{ any: boolean; open: boolean }> {
+  const r = await queryOne<{ any: boolean; open: boolean }>(
+    `select count(*) > 0 as any, coalesce(bool_or(completed_at is null and abandoned_at is null), false) as open
+       from lab_runs where user_id = $1 and lab_id = $2`,
+    [userId, labId]
+  );
+  return { any: r?.any === true, open: r?.open === true };
 }
 
 // ---------------------------------------------------------------------------
@@ -168,6 +227,9 @@ export interface LabListItem {
   stepsDone: number;
   runsFinished: number;
   lastVerdict: "correct" | "partial" | "incorrect" | null;
+  // Decision 10: "full" (Pro, or billing off), "sample" (this course's one
+  // sample lab on Free and Plus) or "locked" (listed, opens the plan sheet).
+  access: LabAccess;
 }
 
 export type LabScope = { trackId: string } | { unitId: string } | { objectiveId: string };
@@ -185,11 +247,12 @@ export async function listLabs(userId: string, scope: LabScope, env = process.en
     unit_title: string;
     step_count: number;
     review_status: ReviewStatus;
+    track_id: string;
     open_steps: number | null;
     runs_finished: number;
     last_verdict: LabListItem["lastVerdict"];
   }>(
-    `select l.id, l.kind, l.title, o.id as objective_id, o.title as objective_title, cu.id as unit_id, cu.title as unit_title,
+    `select l.id, l.kind, l.title, o.id as objective_id, o.title as objective_title, cu.id as unit_id, cu.title as unit_title, cu.track_id,
             jsonb_array_length(l.steps) as step_count, l.review_status,
             (select count(*)::int from lab_run_steps s where s.run_id = r.id) as open_steps,
             (select count(*)::int from lab_runs f where f.user_id = $2 and f.lab_id = l.id and f.completed_at is not null) as runs_finished,
@@ -205,7 +268,13 @@ export async function listLabs(userId: string, scope: LabScope, env = process.en
       order by cu.sort_order, o.sort_order, l.kind, l.title, l.id`,
     [id, userId, servedReviewStatuses(env)]
   );
+  const full = await hasFeature(userId, LABS_FEATURE);
+  const samples = new Map<string, string | null>();
+  if (!full) {
+    for (const r of rows) if (!samples.has(r.track_id)) samples.set(r.track_id, await sampleLabId(r.track_id));
+  }
   return rows.map((r) => ({
+    access: full ? ("full" as const) : samples.get(r.track_id) === r.id ? ("sample" as const) : ("locked" as const),
     id: r.id,
     kind: r.kind,
     title: r.title,
@@ -340,6 +409,8 @@ export interface LabView {
     trackId: string;
     stepCount: number;
     reviewStatus: ReviewStatus;
+    // Decision 10: "sample" is labelled as this course's sample lab.
+    access: LabAccess;
     // Steps revealed so far: graded ones and the current one.
     steps: { index: number; text: string; ask: string; parts: string[] }[];
   };
@@ -388,7 +459,7 @@ async function finalShape(run: RunRow, steps: StepRow[]): Promise<FinalShape | n
   };
 }
 
-export async function labView(lab: LabRow, userId: string, runId?: string | null): Promise<LabView> {
+export async function labView(lab: LabRow, userId: string, runId?: string | null, access: LabAccess = "full"): Promise<LabView> {
   const run = runId
     ? await queryOne<RunRow>(`select * from lab_runs where id = $1 and user_id = $2 and lab_id = $3`, [runId, userId, lab.id])
     : await currentRun(userId, lab.id);
@@ -410,6 +481,7 @@ export async function labView(lab: LabRow, userId: string, runId?: string | null
     trackId: lab.track_id,
     stepCount: lab.steps.length,
     reviewStatus: lab.review_status,
+    access,
   };
   return {
     lab: { ...base, steps: revealedSteps(lab, steps.length) },
@@ -560,10 +632,10 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
           labId: lab.id,
           labRunId: input.runId,
           partScores: allScores,
-          // A missed lab is not a review item of its own: the objective is
-          // already on the review schedule, and the lab list offers the lab
-          // again (as a repeat) when the learner wants it.
-          errorLog: false,
+          // REQ-124 (decision 14): a first-try run moves the objective's
+          // review schedule like a Solo answer -- a miss is logged for
+          // review, a correct run moves due review on (recordAttemptTx). A
+          // repeat run changes neither.
         })) as { id: string; verdict: FinalShape["verdict"]; assisted: boolean; assist_reason: string | null };
         await tx.query(`update lab_runs set completed_at = now(), attempt_id = $2 where id = $1`, [input.runId, attempt.id]);
         final = { verdict, summary, assisted: attempt.assisted === true, assistReason: attempt.assist_reason ?? null, attemptId: attempt.id };

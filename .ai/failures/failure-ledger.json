@@ -7238,6 +7238,78 @@
       "prevention_rules": [],
       "prevention_notes": "Never add a deferrable constraint to attempts (or any hot table migrations alter): run the full npm run test:db after any constraint change on attempts, not only the feature's own tests.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-510",
+      "date": "2026-11-07",
+      "title": "Lab engine's feature key 'labs' did not exist in the billing config ('lab')",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After merging feat/lab-engine into feat/tiers-billing lib/labs.ts exported LABS_FEATURE = 'labs' for requireFeature while lib/billing-config.ts named the feature 'lab'; requireFeature(user; LABS_FEATURE) would not type-check and isFeature('labs') was false",
+      "how_detected": "review while wiring decision 10 after the merge",
+      "root_cause": "The two branches were built in parallel and each guessed the other's key; LABS_FEATURE was a plain string constant with no tie to the Feature type; so the mismatch could only show up when the gate was finally wired",
+      "requirement": "REQ-124",
+      "affected": [
+        "backend/lib/labs.ts",
+        "backend/lib/billing-config.ts",
+        "backend/app/api/objectives/[id]/lab"
+      ],
+      "fix_summary": "One key 'labs' in FEATURES for every kind of lab (self-reported and build/case); LABS_FEATURE declared 'as const satisfies Feature' so an unknown key is a compile error; the self-reported lab routes use LABS_FEATURE",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/billing-config.test.ts::the labs key is one billing feature shared by every kind of lab (FAIL-510)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A feature key shared across modules is typed against the Feature union (satisfies Feature); the cross-branch contract list in .ai/checklists/pre-completion.md names feature keys",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-511",
+      "date": "2026-11-07",
+      "title": "Merged lab routes skipped the Free one-course check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The lab list / progress / view / run routes from feat/lab-engine had no requireCourseAccess; with billing on a Free learner could list and run labs in every course while every other study route limits Free to one course",
+      "how_detected": "review of the merged routes against docs/billing.md's gated-route list",
+      "root_cause": "The lab engine was written before the billing branch existed; the merge carried no text conflict on these new files; so the cross-branch rule that every study route checks the free course was never applied to them",
+      "requirement": "REQ-124",
+      "affected": [
+        "backend/app/api/labs",
+        "backend/lib/lab-routes.ts"
+      ],
+      "fix_summary": "requireCourseAccess on the list and progress routes (by track; unit; objective) and in gateLab for opening or starting a lab; reading or finishing a run already started stays open (decision 6)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts::Pro and billing off: every lab is full; Free's sample is in their one course and counts as a graded answer (FAIL-511)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "After merging a branch that adds study routes into one with plan gating; check each new route against the gated-route list in docs/billing.md (pre-completion checklist item added)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-512",
+      "date": "2026-11-07",
+      "title": "Launch comp skipped accounts dated a moment ahead of the app clock",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/billing.dbtest.ts launch-comp test failed intermittently: a second --launch-comp --apply comped 0 accounts although one was created just before it",
+      "how_detected": "test (flaky run of the new launch-comp DB test)",
+      "root_cause": "runLaunchComp selected created_at <= a JS Date taken at run time; a JS Date has millisecond precision while timestamptz has microseconds (and the database and app clocks can differ); so an account made in the same millisecond or under clock skew was left out",
+      "requirement": "REQ-124",
+      "affected": [
+        "backend/lib/billing-grant.ts"
+      ],
+      "fix_summary": "No time filter: every row in app_users when the statement runs is an account that exists at run time; idempotency comes from the fixed grant id per account",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/billing.dbtest.ts::dry run changes nothing; --apply gives every account Pro for 90 days once; a second run comps only new accounts (FAIL-512)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Compare database timestamps with the database's own clock (or not at all) rather than with a JS Date passed in",
+      "recurrence_of": ""
     }
   ]
 }

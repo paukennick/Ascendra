@@ -4,6 +4,7 @@ import { visibleObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { labObjective, latestLabReport, reportShape } from "@/lib/lesson-experience";
 import { featureLock } from "@/lib/entitlements";
+import { LABS_FEATURE } from "@/lib/labs";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     // REQ-122: not in this learner's plan -- no lab card, said gently.
-    const locked = await featureLock(user.id, "lab");
+    const locked = await featureLock(user.id, LABS_FEATURE);
     if (locked) return ok({ lab: null, report: null, locked });
     const obj = await labObjective(id);
     const prompt = obj?.lab_prompt?.trim();

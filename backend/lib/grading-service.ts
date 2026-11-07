@@ -522,6 +522,17 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     // practice, not evidence the item has been kept.
     assistReason !== "retry" &&
     ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
+  // REQ-124 (Nick, 2026-11-07, decision 14): a finished lab run, first try
+  // (not a repeat after seeing the model answers), is a retrieval of the
+  // objective: correct, it moves the objective's due review on as a correct
+  // Solo answer does (the error_log entries below) and steps its review
+  // schedule when one is due, as a spaced exam answer does; missed or
+  // partly there, it is a miss -- an error_log entry (below) and, when the
+  // schedule is due, a step back. A repeat run changes neither.
+  const labReview = input.kind === "labtask" && !!input.labId && !!input.objectiveId && assistReason === null;
+  if (labReview) {
+    await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date(), input.verdict);
+  }
   // REQ-112 (d): a correct, unassisted exam answer (sprint or mock) that is
   // spaced -- by the mastery rule's own definition, attempt_spaced() in 041
   // -- is a retrieval like a review answer, so it moves a DUE review on: the
@@ -551,7 +562,7 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (examMiss) {
     await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date(), input.verdict);
   }
-  if (reviewEvidence || examReview) {
+  if (reviewEvidence || examReview || (labReview && input.verdict === "correct")) {
     await query(
       `update error_log
           set review_stage = review_stage + 1,
@@ -577,7 +588,10 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // the learner's own machine; a weak report is feedback, not a review item.
   // REQ-108: nor when the caller asks for none (unit checks come back from
   // Review instead).
-  if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab" && input.errorLog !== false) {
+  // REQ-124: a lab run's miss is logged only on a first try (labReview); a
+  // repeat is practice.
+  const labMiss = input.kind === "labtask" ? labReview : true;
+  if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab" && input.errorLog !== false && labMiss) {
     const next = new Date();
     next.setDate(next.getDate() + 1);
     await query(

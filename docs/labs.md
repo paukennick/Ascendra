@@ -1,4 +1,4 @@
-# Labs (REQ-123)
+# Labs (REQ-123, REQ-124)
 
 Labs are hands-on practice for the skills an exam tests by doing: writing a
 least-privilege policy, laying out a work breakdown structure, prioritising
@@ -96,8 +96,22 @@ evidence -- so pasting the model answer back in cannot lift the level.
 objective Independent at weight 1.5; a correct run after a miss is a repeat
 and does not.
 
-A missed lab does not create an `error_log` entry: the objective is already
-on the review schedule, and the lab list offers the lab again.
+**Review schedule (REQ-124, Nick's decision 14).** A first-try run (not a
+repeat) is a retrieval of the objective, so it moves the objective's spaced
+review the way a Solo answer does (`recordAttemptTx`, `labReview`):
+
+- **correct**: due `error_log` entries for the objective move one step
+  (1 / 7 / 21 days, then resolved), as a correct Solo answer moves them; and
+  when the objective's `review_schedule` is due it steps on, logged in
+  `review_log`, as a spaced exam answer does.
+- **missed or partly there**: an `error_log` entry (first re-check in a
+  day), as a missed Solo answer gets; and a due schedule steps back (a
+  lapse).
+- **a repeat run** moves nothing either way: it is practice after seeing
+  the model answers.
+
+`lib/labs.dbtest.ts` ("REQ-124 decision 14") tests all three. The mastery
+rule itself is unchanged.
 
 ## What a learner sees
 
@@ -134,12 +148,33 @@ on the review schedule, and the lab list offers the lab again.
 Visibility: a lab is served when its objective is visible to the learner
 (shared catalog or their own course), not retired, not pulled by "Report a
 problem", not rejected, and approved -- or awaiting review only when
-`LABS_SERVE_UNREVIEWED=on`. Disclaimer-gated courses are gated here too.
+`LABS_SERVE_UNREVIEWED=on` **and** the course is not clinical, critical
+care, physical therapy or fitness. Disclaimer-gated courses are gated here
+too.
 
-Tier gating: `LABS_FEATURE = "labs"` in `backend/lib/labs.ts` is the one
-feature key. When `feat/tiers-billing` merges, each lab route calls
-`requireFeature(user, LABS_FEATURE)` after `requireUser`. Not gated on this
-branch.
+**Review gating by subject family (REQ-124, decision 11).** Labs on courses
+in the taxonomy's `healthcare-*` categories (nursing, NCLEX, CCRN, physical
+therapy) and `health-fitness` (NASM and the other fitness courses) are
+**never** served until an expert approves them, whatever
+`LABS_SERVE_UNREVIEWED` says (`expertOnlyTrackSql` in `lib/labs.ts`; the
+same families `labSafetyFamily` frames as clinical and fitness). For other
+subjects `LABS_SERVE_UNREVIEWED=on` serves unreviewed labs, each carrying
+`reviewStatus`, which the app shows as an "Awaiting expert review" badge in
+the list and on the lab screen.
+
+**Tier gating (REQ-124, decision 10).** Labs are Pro: `LABS_FEATURE =
+"labs"` (typed `satisfies Feature`, FAIL-510) is the one feature key, shared
+with the self-reported CompTIA labs. Free and Plus get one sample lab per
+course -- the first approved build or case lab in course order -- labelled
+"Sample lab"; the list marks every lab `access: "full" | "sample" |
+"locked"` and the app shows "Part of Pro" on locked ones. `lib/lab-routes.ts
+gateLab`: viewing needs full or sample access, or a run of that lab already
+(own results stay readable); starting or restarting a run needs full or
+sample access; resuming an open run is always allowed, so a run in
+progress can be finished after a downgrade. Free also studies one course
+(`requireCourseAccess`, FAIL-511). On Free a graded lab step counts as one
+of the day's graded typed answers. With billing off every lab is open to
+everyone, as before.
 
 ## Report a problem, quarantine and voiding
 
@@ -195,6 +230,16 @@ old one from the seed; the old lab is retired, and its runs and attempts
 stay.
 
 ## Density: how many labs per unit
+
+**Decision (Nick, 2026-11-07): option (d), hybrid, is adopted** as the
+generator's default plan (`DEFAULT_LAB_POLICY` in
+`scripts/generate-labs-lib.ts`). The later path for NCLEX and CCRN, whose
+exams are built of case studies, is (c) one lab per hands-on objective for
+their clinical-judgment objectives, once the first wave has been reviewed
+and learners' results and flags show which labs work:
+`npm run labs:generate -- --tracks NCLEXRN,CCRNADULT,CCRNPEDS,CCRNNEO --policy per_objective`
+(dry run; review the list and the expert-review hours it adds before any
+`--submit`). The analysis below is what the decision rested on.
 
 Nick asked whether "1-3 labs per unit" is right. Four options, measured over
 the whole seeded catalog (95 courses, 543 active units, 5,435 objectives)
@@ -254,8 +299,18 @@ test checks it).
 | NCLEX-RN (2026 test plan) | 14 (7 build, 7 case) | 2/2/2/1/1/2/2/2 | [NCSBN 2026 RN Test Plan](https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf) |
 | NASM-CPT | 11 (8 build, 3 case) | 2/2/2/2/2/1 | [NASM-CPT exam blueprint](https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf) |
 | CCRN (Adult) | 12 (6 build, 6 case) | 2 per domain | [AACN CCRN exam handbook](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en) |
-| CCRN (Pediatric) | 1 case | demonstration only | same handbook |
-| CCRN (Neonatal) | 1 case | demonstration only | same handbook |
+| CCRN (Pediatric) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Pediatric test plan (PDF p.21-24) |
+| CCRN (Neonatal) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Neonatal test plan (PDF p.27-30) |
+
+That is 80 authored labs. The CCRN Pediatric and Neonatal sets (Nick's
+decision 13) follow (d) unit by unit (the content test checks it) and name
+objectives that paraphrase each test plan's patient-care problems and
+Testable Nursing Actions; the category weights were cross-checked on
+2026-11-07 against a secondary summary because the AACN PDF could not be
+fetched from that session (sources in `seed/labs/ccrn.ts`). Every one is
+fictional, framed as "exam practice, not clinical guidance", and
+`needs_expert_review`; a pediatric or neonatal critical-care nurse educator
+must read each before it is served.
 
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that

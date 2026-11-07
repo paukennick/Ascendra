@@ -8,6 +8,8 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { LabError, listLabs, type LabScope } from "@/lib/labs";
 import { labRouteError } from "@/lib/lab-routes";
+import { requireCourseAccess, requireCourseAccessForObjective } from "@/lib/entitlements";
+import { queryOne } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -28,14 +30,18 @@ export async function GET(req: Request) {
     if (trackId !== null) {
       if (!isUuid(trackId) || !(await visibleTrack(trackId, user.id))) throw new LabError(404, "Course not found");
       await requireAcknowledgementForTrack(trackId, user.id);
+      await requireCourseAccess(user.id, trackId); // REQ-124: Free studies one course
       scope = { trackId };
     } else if (unitId !== null) {
       if (!isUuid(unitId) || !(await visibleUnit(unitId, user.id))) throw new LabError(404, "Unit not found");
       await requireAcknowledgementForUnit(unitId, user.id);
+      const u = await queryOne<{ track_id: string }>(`select track_id from course_units where id = $1`, [unitId]);
+      if (u) await requireCourseAccess(user.id, u.track_id); // REQ-124
       scope = { unitId };
     } else {
       if (!isUuid(objectiveId) || !(await visibleObjective(objectiveId!, user.id))) throw new LabError(404, "Objective not found");
       await requireAcknowledgementForObjective(objectiveId!, user.id);
+      await requireCourseAccessForObjective(user.id, objectiveId!); // REQ-124
       scope = { objectiveId: objectiveId! };
     }
     return ok({ labs: await listLabs(user.id, scope) });

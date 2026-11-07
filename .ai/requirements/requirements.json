@@ -4080,6 +4080,67 @@
         "Density heuristic for performance objectives is wording-based and only sizes plans",
         "Generator never run live"
       ]
+    },
+    {
+      "id": "REQ-124",
+      "category": "feature",
+      "title": "Plans and labs combined: Nick's approved tier and lab decisions (2026-11-07)",
+      "description": "Merges feat/tiers-billing (REQ-122) and feat/lab-engine (REQ-123) and applies Nick's 14 decisions of 2026-11-07. Billing: a --launch-comp mode of npm run billing:grant (every account Pro for 90 days; dry run unless --apply; idempotent); Pro coach 60 messages a day (configurable) under the monthly AI cap; readiness on Plus and Pro with Free reading 'Readiness: unconfirmed - prove it with typed answers in Plus'; the exam_day_plan key removed; downgrades keep the paid plan to the paid period's end in entitlement resolution and both webhook handlers (held rows; out-of-order safe; refunds end them; upgrades at once; Stripe immediate cancels keep paid time; Play downgrades DEFERRED) and an attempt in progress (mock; PBQ answer; lab run) may be finished; GET /api/billing/config returns only {enabled:false} while off with npm run billing:config for operators; lab reports and explain-back count against the graded-answer allowance. Labs: Pro with one sample (first approved) build or case lab per course for Free and Plus via requireFeature(labs); unreviewed clinical/critical-care/PT/fitness labs never served; option (d) hybrid as the generator default; full CCRN Pediatric and Neonatal pilot sets (12 each); a first-try lab run moves the objective's review schedule like a Solo answer. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/billing-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/billing-webhooks.ts",
+        "backend/lib/billing-grant.ts",
+        "backend/scripts/billing-config.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/app/api/labs",
+        "backend/app/api/objectives/[id]/lab",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/lib/grading-service.ts",
+        "backend/scripts/generate-labs-lib.ts",
+        "backend/supabase/seed/labs/ccrn.ts",
+        "mobile/src/lib/billing.ts",
+        "mobile/src/billing/purchases.ts",
+        "mobile/app/(app)/plans.tsx",
+        "mobile/src/lib/labs.ts",
+        "mobile/app/(app)/course/[trackId]",
+        "docs/billing.md",
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Launch comp: dry run first; every existing account Pro for 90 days once (lib/billing.dbtest.ts)",
+        "Pro coach 60 a day and configurable; Plus 20 (billing-config.test.ts; billing.dbtest.ts)",
+        "Readiness shown on Plus; Free gets Nick's line; no exam_day_plan key",
+        "A downgrade keeps the paid plan to the period end on Stripe and RevenueCat in and out of order; refunds end it; upgrades apply at once",
+        "An in-progress mock / PBQ answer / lab run can be finished after the period ends",
+        "GET /api/billing/config is {enabled:false} while off; npm run billing:config shows the would-be config with secrets as set/missing",
+        "Lab reports and explain-back use the graded-answer allowance",
+        "Labs Pro; one labelled sample lab per course on Free and Plus; Free limited to its one course",
+        "Unreviewed clinical and fitness labs never served; others only with LABS_SERVE_UNREVIEWED and a badge",
+        "Generator default hybrid; per-objective path for NCLEX/CCRN documented",
+        "CCRN Pediatric and Neonatal 12 labs each following hybrid unit by unit; all needs_expert_review",
+        "A first-try lab run steps the review schedule like a Solo answer; a repeat does not"
+      ],
+      "validation_required": [
+        "npm run test:db on a fresh DB",
+        "backend and mobile npm test",
+        "tsc in both",
+        "omni failure check",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

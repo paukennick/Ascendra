@@ -27,7 +27,11 @@
   with a reason (FAIL-236; lib/integration-guard.dbtest.ts), the app's
   long-timeout route list has every model route (FAIL-234), logout sweeps
   every per-user device key (FAIL-235), and tests written against an older
-  rule were updated, not deleted (FAIL-232).
+  rule were updated, not deleted (FAIL-232). With paid plans (REQ-124): a
+  feature key one module hands another is typed `satisfies Feature`
+  (FAIL-510), and every study route the other branch added is checked
+  against the gated-route list in docs/billing.md, the Free one-course
+  check included (FAIL-511).
 - Shared generated content (REQ-114): a new kind of shared item asks for
   `confidence`/`uncertainClaims`, holds uncertain output back
   (`recordHoldback`), passes the fact-check gate (`factCheckGate`) before it

@@ -21,6 +21,7 @@ import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
+import { labPromptHash } from "./lesson-experience";
 import { stripeSignatureHeader } from "./billing-webhooks";
 import { consumeAllowance, grantEntitlement, revokeGrants, tierFor, AllowanceReachedError } from "./entitlements";
 import { parseGrantArgs, runGrant } from "./billing-grant";
@@ -37,11 +38,12 @@ import { POST as gradePost } from "../app/api/grade/route";
 import { GET as lessonGet, POST as regenPost } from "../app/api/objectives/[id]/lesson/route";
 import { GET as explainGet, POST as explainPost } from "../app/api/objectives/[id]/explain-back/route";
 import { GET as labGet } from "../app/api/objectives/[id]/lab/route";
+import { POST as labReportPost } from "../app/api/objectives/[id]/lab/report/route";
 import { POST as labQuestionsPost } from "../app/api/objectives/[id]/lab/questions/route";
 import { GET as unitCheckGet } from "../app/api/units/[id]/check/route";
 import { GET as comparisonsGet } from "../app/api/courses/[id]/comparisons/route";
 import { POST as quizPost } from "../app/api/coach/quiz/route";
-import { GET as pbqGet } from "../app/api/pbq/route";
+import { GET as pbqGet, POST as pbqPost } from "../app/api/pbq/route";
 import { POST as examPost } from "../app/api/exam/sessions/route";
 import { GET as courseGet } from "../app/api/courses/[id]/route";
 import { GET as reviewToday } from "../app/api/review/today/route";
@@ -55,6 +57,7 @@ const BILLING_ENV = [
   "BILLING_ENABLED",
   "BILLING_ALLOWANCE_COACH_MESSAGE_PLUS",
   "BILLING_ALLOWANCE_REGENERATION_PLUS",
+  "BILLING_ALLOWANCE_GRADED_ANSWER_PRO",
   "AI_DAILY_BUDGET_USD",
   "AI_MONTHLY_CAP_PLUS_USD",
   "REVENUECAT_WEBHOOK_AUTH",
@@ -68,7 +71,11 @@ const BILLING_ENV = [
 const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
 let modelCalls = 0;
 let failGrading = false;
-const gradeOut = { verdict: "correct", feedback: "f", classification: "none", missedParts: [], modelAnswer: "m", fixNext: "n", misconception: "", confusedWith: "" };
+const gradeOut = {
+  verdict: "correct", feedback: "f", classification: "none", missedParts: [], modelAnswer: "m", fixNext: "n", misconception: "", confusedWith: "",
+  // REQ-124: explain-back's four checks, so the explain-back grader can run here too.
+  rubric: { correct: true, complete: true, keyTerms: true, noMisconception: true },
+};
 
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}`, "content-type": "application/json" });
 const call = (fn: any, url: string, u: string, method = "GET", body?: unknown, params?: unknown) =>
@@ -213,7 +220,8 @@ describe("BILLING_ENABLED off (the default): nothing changes", () => {
 
       assert.equal(await billingRows(u), 0, "no entitlement, free-course, allowance or event row");
       assert.deepEqual(await json(await call(meGet, "/api/billing/me", u)), { enabled: false, tier: "pro" });
-      assert.equal((await json(await configGet())).enabled, false);
+      // REQ-124 (decision 7): nothing but the switch's state while it is off.
+      assert.deepEqual(await json(await configGet()), { enabled: false });
       assert.equal((await call(freeCoursePut, "/api/billing/free-course", u, "PUT", { trackId: track })).status, 404);
       assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" })).status, 404);
     }
@@ -309,7 +317,9 @@ describe("BILLING_ENABLED on: Free", () => {
     assert.ok(cmp.locked);
     const course = await json(await call(courseGet, `/api/courses/${track}`, u, "GET", undefined, { id: track }));
     assert.equal(course.readiness, null);
-    assert.equal(course.readinessLocked.requiredTier, "pro");
+    // REQ-124 (decision 5): readiness is in Plus; Free reads Nick's one line.
+    assert.equal(course.readinessLocked.requiredTier, "plus");
+    assert.equal(course.readinessLocked.message, "Readiness: unconfirmed \u2014 prove it with typed answers in Plus");
     assert.equal((await reviewToday(new Request("http://t/api/review/today", { headers: auth(u) }))).status, 200);
   });
 
@@ -333,7 +343,7 @@ describe("BILLING_ENABLED on: Plus", () => {
     process.env.BILLING_ENABLED = "1";
   });
 
-  test("every course and every typed answer; coach counted a day; PBQ, labs and readiness are Pro", async () => {
+  test("every course and every typed answer; coach counted a day; readiness shown; PBQ and labs are Pro", async () => {
     process.env.BILLING_ALLOWANCE_COACH_MESSAGE_PLUS = "2";
     const u = await plus();
     assert.equal(await tierFor(u), "plus");
@@ -349,8 +359,10 @@ describe("BILLING_ENABLED on: Plus", () => {
     assert.equal((await call(labQuestionsPost, `/api/objectives/${obj}/lab/questions`, u, "POST", {}, { id: obj })).status, 402);
     // Open to Plus (it goes on to write a question, which this fake model can't).
     assert.notEqual((await call(quizPost, "/api/coach/quiz", u, "POST", { trackId: track })).status, 402);
+    // REQ-124 (decision 5): Plus sees the readiness score (was Pro-only).
     const course = await json(await call(courseGet, `/api/courses/${track}`, u, "GET", undefined, { id: track }));
-    assert.equal(course.readiness, null);
+    assert.notEqual(course.readiness, null);
+    assert.equal(course.readinessLocked, undefined);
     const me = await json(await call(meGet, "/api/billing/me", u));
     assert.equal(me.tier, "plus");
     assert.equal(me.entitlement.source, "grant");
@@ -421,7 +433,7 @@ describe("BILLING_ENABLED on: Plus", () => {
 });
 
 describe("BILLING_ENABLED on: Pro", () => {
-  test("everything is open, readiness included; mocks are not counted", async () => {
+  test("everything is open, readiness included; mocks are not counted; the coach is about 60 a day", async () => {
     process.env.BILLING_ENABLED = "yes";
     const u = await pro();
     assert.equal((await call(pbqGet, `/api/pbq?scenarioId=${scen}`, u)).status, 200);
@@ -430,7 +442,43 @@ describe("BILLING_ENABLED on: Pro", () => {
     assert.notEqual(course.readiness, null);
     assert.equal((await chat(u)).status, 200);
     for (let i = 0; i < 3; i++) await consumeAllowance(u, "mock_exam");
+    assert.equal(Number((await queryOne<{ n: number }>(`select count(*)::int as n from allowance_uses where user_id = $1 and kind = 'mock_exam'`, [u]))!.n), 0);
+    // REQ-124 (decision 2): Pro's coach is counted, 60 a day by default
+    // (the chat above was the first), still under the monthly AI cap.
+    for (let i = 0; i < 59; i++) await consumeAllowance(u, "coach_message");
+    await assert.rejects(consumeAllowance(u, "coach_message"), (e: unknown) => e instanceof AllowanceReachedError && /today's 60 coach messages/.test((e as Error).message));
+    const me = await json(await call(meGet, "/api/billing/me", u));
+    assert.deepEqual(me.allowances.find((a: any) => a.kind === "coach_message").limit, 60);
+  });
+
+  test("REQ-124 decision 9: explain-back and lab reports count against the graded-answer allowance", async () => {
+    process.env.BILLING_ENABLED = "yes";
+    process.env.BILLING_ALLOWANCE_GRADED_ANSWER_PRO = "2";
+    const u = await pro();
+    await guidedOn(u);
+    assert.equal((await gradeOpen(u, "It adds authentication, one.")).status, 200);
+    const words = "Counter mode turns a block cipher into a stream by encrypting a counter for each block, and GCM adds an authentication tag on top of that.";
+    const ex = await call(explainPost, `/api/objectives/${obj}/explain-back`, u, "POST", { answer: words }, { id: obj });
+    assert.equal(ex.status, 200, await ex.clone().text());
+    const kinds = await query<{ kind: string }>(`select kind from allowance_uses where user_id = $1 order by used_at`, [u]);
+    assert.deepEqual(kinds.map((k) => k.kind), ["graded_answer", "graded_answer"]);
+    // The third graded thing today -- a lab report -- is refused before any model call.
+    await query(
+      `insert into lab_report_questions (objective_id, prompt_hash, questions, model) values ($1, $2, $3, 'test')
+       on conflict (objective_id) do update set prompt_hash = excluded.prompt_hash, questions = excluded.questions`,
+      [obj, labPromptHash("Try it"), JSON.stringify(["What did you set up?"])]
+    );
+    const calls = modelCalls;
+    const rep = await json(await call(labReportPost, `/api/objectives/${obj}/lab/report`, u, "POST", { answers: ["I set up CTR mode on a test file."] }, { id: obj }), 429);
+    assert.equal(rep.allowance.kind, "graded_answer");
+    assert.equal(modelCalls, calls, "no model call");
+    // A failed grading gives its use back.
+    await query(`delete from allowance_uses where user_id = $1`, [u]);
+    failGrading = true;
+    assert.ok((await call(labReportPost, `/api/objectives/${obj}/lab/report`, u, "POST", { answers: ["I set up CTR mode."] }, { id: obj })).status >= 500);
+    failGrading = false;
     assert.equal(Number((await queryOne<{ n: number }>(`select count(*)::int as n from allowance_uses where user_id = $1`, [u]))!.n), 0);
+    delete process.env.BILLING_ALLOWANCE_GRADED_ANSWER_PRO;
   });
 });
 
@@ -608,6 +656,142 @@ describe("Stripe webhook", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 3b. REQ-124 decision 6: a downgrade keeps the paid plan to its period end
+// ---------------------------------------------------------------------------
+
+const ent = (u: string) =>
+  query<{ external_id: string; tier: string; status: string; period_end: Date | null }>(
+    `select external_id, tier, status, period_end from entitlements where user_id = $1 order by external_id`,
+    [u]
+  );
+// Moves a held row's paid period into the past (beyond the 24-hour grace).
+const endHeldPeriod = (u: string) =>
+  query(`update entitlements set period_end = now() - interval '2 days' where user_id = $1 and external_id like 'held:%'`, [u]);
+
+describe("REQ-124: downgrades keep the paid plan until the period ends (decision 6)", () => {
+  beforeEach(() => {
+    process.env.BILLING_ENABLED = "true";
+    process.env.STRIPE_WEBHOOK_SECRET = WHSEC;
+    process.env.REVENUECAT_WEBHOOK_AUTH = RC_SECRET;
+  });
+  const proSub = (u: string, id: string, extra: Record<string, unknown> = {}) =>
+    sub(u, id, { metadata: { user_id: u, tier: "pro", plan: "monthly" }, ...extra });
+  const evt = (type: string, created: number, object: Record<string, unknown>) => ({ id: `evt_${run}_${randomUUID()}`, type, created, data: { object } });
+
+  test("Stripe: Pro to Plus keeps Pro to the paid period's end, then Plus; an upgrade applies at once", async () => {
+    // Before REQ-124 the subscription.updated with the Plus price made the
+    // learner Plus at once, with a month of Pro paid for (fails before).
+    const u = await newUser();
+    const subId = `sub_${run}_${randomUUID()}`;
+    const t = Math.floor(Date.now() / 1000) - 100;
+    await stripe(evt("customer.subscription.created", t, proSub(u, subId)));
+    assert.equal(await tierFor(u), "pro");
+    assert.equal((await json(await stripe(evt("customer.subscription.updated", t + 5, sub(u, subId))))).outcome, "applied");
+    assert.equal(await tierFor(u), "pro", "kept to the end of the paid month");
+    const rows = await ent(u);
+    assert.deepEqual(
+      rows.map((r) => `${r.external_id.startsWith("held:") ? "held" : "sub"} ${r.tier} ${r.status}`).sort(),
+      ["held pro canceled", "sub plus active"]
+    );
+    const me = await json(await call(meGet, "/api/billing/me", u));
+    assert.equal(me.tier, "pro");
+    assert.equal(me.entitlement.next.tier, "plus");
+    assert.equal(me.entitlement.willRenew, true, "the subscription itself renews, as Plus");
+    await endHeldPeriod(u);
+    assert.equal(await tierFor(u), "plus", "the lower tier from the period end");
+    // Upgrade back: Pro at once.
+    await stripe(evt("customer.subscription.updated", t + 10, proSub(u, subId)));
+    assert.equal(await tierFor(u), "pro");
+  });
+
+  test("Stripe, out of order: the Plus update arrives before the Pro creation; Pro is still kept to its end", async () => {
+    const u = await newUser();
+    const subId = `sub_${run}_${randomUUID()}`;
+    const t = Math.floor(Date.now() / 1000) - 100;
+    assert.equal((await json(await stripe(evt("customer.subscription.updated", t + 5, sub(u, subId))))).outcome, "applied");
+    assert.equal(await tierFor(u), "plus");
+    assert.equal((await json(await stripe(evt("customer.subscription.created", t, proSub(u, subId))))).outcome, "stale");
+    assert.equal(await tierFor(u), "pro", "the paid Pro period is held whatever the delivery order");
+    // A stale event for the SAME or a lower tier holds nothing.
+    const v = await newUser();
+    const sub2 = `sub_${run}_${randomUUID()}`;
+    await stripe(evt("customer.subscription.updated", t + 5, proSub(v, sub2)));
+    await stripe(evt("customer.subscription.created", t, sub(v, sub2)));
+    assert.equal((await ent(v)).length, 1);
+  });
+
+  test("Stripe: cancelling at once keeps the paid period; non-payment ends it now; a refund ends the held period too", async () => {
+    const t = Math.floor(Date.now() / 1000) - 100;
+    // Cancelled immediately from the portal: Pro to the period end.
+    const a = await newUser();
+    const subA = `sub_${run}_${randomUUID()}`;
+    await stripe(evt("customer.subscription.created", t, proSub(a, subA)));
+    await stripe(evt("customer.subscription.deleted", t + 5, proSub(a, subA, { status: "canceled", cancellation_details: { reason: "cancellation_requested" } })));
+    assert.equal(await tierFor(a), "pro");
+    assert.equal((await ent(a))[0].status, "canceled");
+    // Deleted for non-payment: ends now, as before.
+    const b = await newUser();
+    const subB = `sub_${run}_${randomUUID()}`;
+    await stripe(evt("customer.subscription.created", t, proSub(b, subB)));
+    await stripe(evt("customer.subscription.deleted", t + 5, proSub(b, subB, { status: "canceled", cancellation_details: { reason: "payment_failed" } })));
+    assert.equal(await tierFor(b), "free");
+    // Downgraded, then refunded in full: the held Pro ends as well.
+    const c = await newUser();
+    const subC = `sub_${run}_${randomUUID()}`;
+    await stripe(evt("customer.subscription.created", t, proSub(c, subC)));
+    await stripe(evt("customer.subscription.updated", t + 5, sub(c, subC)));
+    assert.equal(await tierFor(c), "pro");
+    await stripe(evt("charge.refunded", t + 6, { id: "ch_x", customer: `cus_${subC}`, amount: 999, amount_refunded: 999, refunded: true }));
+    assert.equal(await tierFor(c), "free");
+  });
+
+  test("RevenueCat: a lower product on the same subscription keeps Pro to its end; out of order too; a refund ends it", async () => {
+    const t0 = Date.now() - 60_000;
+    const evRc = (u: string, otx: string, type: string, at: number, extra: Record<string, unknown>) =>
+      ({ id: `rc-${run}-${randomUUID()}`, type, event_timestamp_ms: at, app_user_id: u, original_transaction_id: otx, store: "PLAY_STORE", ...extra });
+    const proBuy = (u: string, otx: string, at: number) =>
+      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_pro:monthly", entitlement_ids: ["pro"], expiration_at_ms: Date.now() + 20 * DAY });
+    const plusNow = (u: string, otx: string, at: number) =>
+      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_plus:monthly", entitlement_ids: ["plus"], expiration_at_ms: Date.now() + 30 * DAY });
+
+    const u = await newUser();
+    const otx = `otx-${run}-${randomUUID()}`;
+    await rc(proBuy(u, otx, t0));
+    await rc(plusNow(u, otx, t0 + 1000));
+    assert.equal(await tierFor(u), "pro");
+    await endHeldPeriod(u);
+    assert.equal(await tierFor(u), "plus");
+
+    const v = await newUser();
+    const otxV = `otx-${run}-${randomUUID()}`;
+    await rc(plusNow(v, otxV, t0 + 1000));
+    assert.equal((await json(await rc(proBuy(v, otxV, t0)))).outcome, "stale");
+    assert.equal(await tierFor(v), "pro", "out of order");
+    await rc(evRc(v, otxV, "CANCELLATION", t0 + 2000, { product_id: "ascendra_plus:monthly", entitlement_ids: ["plus"], cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() + 30 * DAY }));
+    assert.equal(await tierFor(v), "free", "a refund ends the held period too");
+  });
+
+  test("an answer to a PBQ on screen when the paid period ended may still be sent; a new scenario may not", async () => {
+    // Before REQ-124 the answer was refused (402) the moment access ended (fails before).
+    const u = await newUser();
+    await query(
+      `insert into entitlements (user_id, tier, source, external_id, status, period_end) values ($1, 'pro', 'stripe', $2, 'canceled', now() - interval '25 hours')`,
+      [u, `sub_${run}_${randomUUID()}`]
+    );
+    assert.equal(await tierFor(u), "free", "past the 24-hour grace");
+    assert.equal((await call(pbqGet, `/api/pbq?scenarioId=${scen}`, u)).status, 402);
+    const res = await call(pbqPost, "/api/pbq", u, "POST", { scenarioId: scen, answer: "1) GCM 2) it authenticates as well as encrypts" });
+    assert.notEqual(res.status, 402, await res.clone().text());
+    // Long after the period: refused.
+    await query(`update entitlements set period_end = now() - interval '4 days' where user_id = $1`, [u]);
+    assert.equal((await call(pbqPost, "/api/pbq", u, "POST", { scenarioId: scen, answer: "again" })).status, 402);
+    // A refund is not a period ending: nothing to finish.
+    await query(`update entitlements set period_end = now() - interval '25 hours', status = 'refunded' where user_id = $1`, [u]);
+    assert.equal((await call(pbqPost, "/api/pbq", u, "POST", { scenarioId: scen, answer: "again" })).status, 402);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 4. Grants, checkout, export
 // ---------------------------------------------------------------------------
 
@@ -627,6 +811,45 @@ describe("grants (comps)", () => {
     assert.equal(await tierFor(u), "plus");
     const dry = await runGrant(parseGrantArgs(["--all-existing", "--tier", "plus", "--dry-run"]));
     assert.ok(!dry.some((l) => l.includes(u)), "already comped at plus");
+  });
+});
+
+describe("REQ-124 decision 1: the launch comp", () => {
+  test("dry run changes nothing; --apply gives every account Pro for 90 days once; a second run comps only new accounts (FAIL-512)", async () => {
+    process.env.BILLING_ENABLED = "true";
+    const a = await newUser();
+    const b = await newUser();
+    const countFor = async (u: string) => Number((await queryOne<{ n: number }>(`select count(*)::int as n from entitlements where user_id = $1`, [u]))!.n);
+    const dry = await runGrant(parseGrantArgs(["--launch-comp"]));
+    assert.match(dry.join("\n"), /would comp \d+ account\(s\) with Pro until .* \(90 days\)/);
+    assert.match(dry.join("\n"), /dry run, nothing changed/);
+    assert.equal(await countFor(a), 0);
+    assert.equal(await tierFor(a), "free");
+
+    const before = Date.now();
+    await runGrant(parseGrantArgs(["--launch-comp", "--apply"]));
+    for (const u of [a, b]) {
+      assert.equal(await tierFor(u), "pro");
+      const r = await queryOne<{ source: string; period_end: Date; external_id: string }>(`select source, period_end, external_id from entitlements where user_id = $1`, [u]);
+      assert.equal(r!.source, "grant");
+      const days = (new Date(r!.period_end).getTime() - before) / DAY;
+      assert.ok(days > 89.9 && days < 90.1, String(days));
+    }
+    const c = await newUser();
+    // FAIL-512: an account whose database timestamp is ahead of the app's
+    // clock (skew, or the same millisecond) was skipped by a created_at filter.
+    const skew = await newUser();
+    await query(`update app_users set created_at = now() + interval '2 seconds' where id = $1`, [skew]);
+    const again = await runGrant(parseGrantArgs(["--launch-comp", "--apply"]));
+    assert.equal(await tierFor(skew), "pro", "an account the database dates a moment ahead of the app clock");
+    assert.equal(await countFor(a), 1, "idempotent: never a second comp or an extension");
+    assert.equal(await tierFor(c), "pro", `an account made since the last run: ${again.join(" / ")}`);
+    assert.match(again[0], /comped \d+ account/);
+    assert.equal(await revokeGrants(a), 1);
+    assert.equal(await tierFor(a), "free");
+    // Leave the shared test database as it was for accounts this file doesn't own.
+    await query(`delete from entitlements where external_id like 'grant:launch-comp:%'`);
+    await query(`delete from billing_events where provider = 'grant' and event_id like 'grant:launch-comp:%'`);
   });
 });
 

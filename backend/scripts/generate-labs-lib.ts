@@ -42,6 +42,14 @@ export function isPerformanceObjective(title: string, family: LabFamily): boolea
 
 export type DensityPolicy = "fixed" | "weighted" | "per_objective" | "hybrid";
 
+// Nick adopted option (d), hybrid, on 2026-11-07 (REQ-124, decision 12): one
+// lab per unit plus six per course by exam weight, at most three per unit.
+// It is the generator's default plan. The later path for NCLEX and CCRN,
+// whose exams are built from case studies, is per_objective on their
+// clinical-judgment objectives once the first wave is reviewed (docs/labs.md,
+// "Density"): `--tracks NCLEXRN,CCRNADULT,CCRNPEDS,CCRNNEO --policy per_objective`.
+export const DEFAULT_LAB_POLICY: DensityPolicy = "hybrid";
+
 export const POLICY_DEFAULTS = {
   // (a) the same number in every unit
   fixedPerUnit: 2,
@@ -234,7 +242,7 @@ export interface LabGenArgs {
 }
 
 export function parseLabGenArgs(argv: string[]): LabGenArgs {
-  const out: LabGenArgs = { mode: "estimate", tracks: [], limit: null, policy: "hybrid" };
+  const out: LabGenArgs = { mode: "estimate", tracks: [], limit: null, policy: DEFAULT_LAB_POLICY };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--submit") out.mode = "submit";

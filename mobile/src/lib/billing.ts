@@ -61,6 +61,9 @@ export interface BillingMe {
     periodEnd: string | null;
     willRenew: boolean;
     manage: "app_store" | "play_store" | "stripe" | "grant" | "store" | null;
+    // REQ-124: the plan was kept to the end of its paid period after a
+    // downgrade; this tier applies from `from`.
+    next?: { tier: Tier; from: string } | null;
   } | null;
   freeCourse?: FreeCourse | null;
   allowances?: AllowanceStatus[];
@@ -234,8 +237,37 @@ export function planSummary(me: BillingMe | null, now = new Date()): string {
   const name = TIER_NAME[me.tier];
   const e = me.entitlement;
   if (!e) return name;
+  // REQ-124 (decision 6): "Pro until Dec 1, then Plus" after a downgrade.
+  if (e.next && e.next.tier !== me.tier) {
+    return `${name} until ${resetPhrase(e.next.from, now).replace(/^on |^at /, "")}, then ${TIER_NAME[e.next.tier]}`;
+  }
   if (e.source === "grant") return e.periodEnd ? `${name}, given to you until ${new Date(e.periodEnd).toLocaleDateString()}` : `${name}, given to you`;
   if (e.status === "canceled" && e.periodEnd) return `${name}, ends ${resetPhrase(e.periodEnd, now).replace(/^on |^at /, "")}`;
   if (e.status === "billing_issue") return `${name}, payment needs attention`;
   return e.plan ? `${name}, ${PERIOD_NAME[e.plan].toLowerCase()}` : name;
+}
+
+// REQ-124: what the course screen says where a Free learner's readiness
+// number would be -- the server's own line (Nick's wording), with the same
+// words as a fallback for a server that sends none.
+export const READINESS_LOCKED_FALLBACK = "Readiness: unconfirmed \u2014 prove it with typed answers in Plus";
+export function readinessLockedLine(lock: { message?: unknown } | null | undefined): string {
+  return typeof lock?.message === "string" && lock.message.trim() ? lock.message : READINESS_LOCKED_FALLBACK;
+}
+
+// REQ-124 (decision 6): on Google Play, changing plan replaces the current
+// subscription. An upgrade applies at once (time-prorated); a downgrade or a
+// same-tier change is DEFERRED to the end of the paid period, so the learner
+// keeps what they paid for -- the App Store does this by itself. null when
+// there is nothing to replace (no Play subscription, or the same product).
+export function googlePlanChange(
+  current: { tier: Tier; manage?: string | null; productId?: string | null; status?: string } | null | undefined,
+  target: Pick<BillingPlan, "tier" | "playProductId">
+): { oldProductIdentifier: string; mode: "immediate" | "deferred" } | null {
+  if (!current || current.manage !== "play_store" || !current.productId) return null;
+  if (current.status && !["active", "canceled", "billing_issue"].includes(current.status)) return null;
+  const oldSub = current.productId.split(":")[0];
+  if (current.productId === target.playProductId) return null;
+  const rank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };
+  return { oldProductIdentifier: oldSub, mode: rank[target.tier] > rank[current.tier] ? "immediate" : "deferred" };
 }

@@ -20,7 +20,7 @@ import { lastExplainBack, masteryStatus } from "@/lib/understanding-store";
 import { gradeExplainBack } from "@/lib/understanding-ai";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { recordGraderMisconception } from "@/lib/understanding-grading";
-import { featureLock, requireFeature } from "@/lib/entitlements";
+import { consumeAllowance, featureLock, requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -129,14 +129,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const title = await objectiveTitle(id);
       const question = explainBackQuestion(title);
       const copied = copiedShare(answer, lesson.row.teach) >= COPIED_SHARE_LIMIT;
-      const graded = await gradeExplainBack({
-        objectiveId: id,
-        objectiveTitle: title,
-        teach: lesson.row.teach,
-        question,
-        answer,
-        userId: user.id,
-      });
+      // Nick, 2026-11-07 (decision 9): an explanation counts against the same
+      // daily allowance as a graded typed answer (only a tier with a count
+      // limit is counted; given back if grading fails).
+      const use = await consumeAllowance(user.id, "graded_answer");
+      let graded: Awaited<ReturnType<typeof gradeExplainBack>>;
+      try {
+        graded = await gradeExplainBack({
+          objectiveId: id,
+          objectiveTitle: title,
+          teach: lesson.row.teach,
+          question,
+          answer,
+          userId: user.id,
+        });
+      } catch (err) {
+        await use.release();
+        throw err;
+      }
       const feedback = copied
         ? `${graded.feedback}\n\nMuch of this matches the lesson text word for word. Try it again in your own words later for full credit — putting it your way is what makes it stick.`
         : graded.feedback;

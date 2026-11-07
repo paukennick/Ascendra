@@ -79,6 +79,7 @@ export class AiAllowancePausedError extends UserFacingError {
 
 export interface EntitlementRow {
   id: string;
+  external_id: string;
   tier: PaidTier;
   source: "revenuecat" | "stripe" | "grant";
   product_id: string | null;
@@ -95,7 +96,7 @@ const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
 // The entitlement that sets this learner's tier (highest tier, then latest end).
 export async function currentEntitlement(userId: string): Promise<EntitlementRow | null> {
   return queryOne<EntitlementRow>(
-    `select id, tier, source, product_id, plan, status, period_end, store, customer_ref
+    `select id, external_id, tier, source, product_id, plan, status, period_end, store, customer_ref
        from entitlements
       where user_id = $1 and ${GIVES_ACCESS}
       order by case tier when 'pro' then 2 else 1 end desc, period_end desc nulls first
@@ -113,6 +114,42 @@ export async function tierFor(userId: string, env: NodeJS.ProcessEnv = process.e
 // ---------------------------------------------------------------------------
 // Features
 // ---------------------------------------------------------------------------
+
+// Nick, 2026-11-07 (decision 6): an attempt already in progress when the
+// paid period ends may be finished. A mock exam session is never gated after
+// it starts; a lab run is finished through its open run (lib/lab-routes.ts);
+// a PBQ is on screen with no server record of it, so its ANSWER (not a new
+// scenario) is accepted for this long after the plan that had the feature
+// stopped giving access -- for a period that ended, not for a refund or a
+// revocation.
+export const FINISH_IN_PROGRESS_HOURS = 24;
+
+export async function hadFeatureRecently(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+  if (!billingEnabled(env)) return true;
+  const tiers = (["plus", "pro"] as const).filter((t) => tierHas(t, feature));
+  const row = await queryOne(
+    `select 1 from entitlements
+      where user_id = $1 and tier = any($2::text[]) and status in ('active', 'canceled', 'billing_issue', 'expired')
+        and period_end is not null
+        -- when access ended: an expiry ends it when it was applied, anything
+        -- else at the period end plus the grace window
+        and (case when status = 'expired' then least(period_end, updated_at)
+                  else period_end + make_interval(hours => ${GRACE_HOURS}) end)
+            + make_interval(hours => ${FINISH_IN_PROGRESS_HOURS}) > now()
+      limit 1`,
+    [userId, tiers]
+  );
+  return row !== null;
+}
+
+// requireFeature for finishing something already on screen: also passes
+// within FINISH_IN_PROGRESS_HOURS of the period that had it ending.
+export async function requireFeatureToFinish(userId: string, feature: Feature, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
+  if (!billingEnabled(env)) return "pro";
+  const tier = await tierFor(userId, env);
+  if (tierHas(tier, feature) || (await hadFeatureRecently(userId, feature, env))) return tier;
+  throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, tier);
+}
 
 export function upgradeMessage(feature: Feature): string {
   const f = FEATURES[feature];
@@ -495,6 +532,19 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
   if (!billingEnabled(env)) return { enabled: false, tier: "pro" as Tier };
   const ent = await currentEntitlement(userId);
   const tier: Tier = ent && isTier(ent.tier) ? ent.tier : "free";
+  // Decision 6: the plan shown may be a paid period kept after a downgrade;
+  // say what comes after it, and whether the subscription itself renews.
+  let next: { tier: Tier; from: string } | null = null;
+  let renews = ent ? ent.status === "active" && ent.source !== "grant" : false;
+  if (ent && ent.external_id.startsWith("held:") && ent.period_end) {
+    const main = await queryOne<{ tier: PaidTier; status: string }>(
+      `select tier, status from entitlements where source = $1 and external_id = $2`,
+      [ent.source, ent.external_id.slice("held:".length)]
+    );
+    const after = main && ["active", "canceled", "billing_issue"].includes(main.status) ? main.tier : "free";
+    next = { tier: after, from: new Date(ent.period_end).toISOString() };
+    renews = main?.status === "active";
+  }
   const manage =
     !ent ? null : ent.source === "stripe" ? "stripe" : ent.source === "grant" ? "grant" : ent.store === "PLAY_STORE" ? "play_store" : ent.store === "APP_STORE" || ent.store === "MAC_APP_STORE" ? "app_store" : "store";
   const allowances: AllowanceStatus[] = [];
@@ -513,8 +563,11 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
           plan: ent.plan,
           productId: ent.product_id,
           periodEnd: ent.period_end ? new Date(ent.period_end).toISOString() : null,
-          willRenew: ent.status === "active" && ent.source !== "grant",
+          willRenew: renews,
           manage,
+          // REQ-124: { tier, from } when this plan was kept to the end of its
+          // paid period after a downgrade: what applies from then.
+          next,
         }
       : null,
     freeCourse: tier === "free" ? await freeCourseFor(userId, env) : null,

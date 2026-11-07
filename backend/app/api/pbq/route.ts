@@ -27,7 +27,7 @@ import {
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
-import { requireFeature } from "@/lib/entitlements";
+import { requireFeature, requireFeatureToFinish } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -169,7 +169,9 @@ export async function POST(req: Request) {
     if (!scenario) return notFound("PBQ scenario not found");
     const unitId = scenario.unit_id;
     await requireAcknowledgementForUnit(unitId, authUser.id);
-    await requireFeature(authUser.id, "pbq"); // REQ-122
+    // REQ-122; REQ-124 (decision 6): an answer to a scenario already on
+    // screen when the paid period ended may still be sent and graded.
+    await requireFeatureToFinish(authUser.id, "pbq");
 
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.

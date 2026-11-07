@@ -117,6 +117,7 @@ export default function LabScreen() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
               <Badge label={lab.kind === "case" ? `Case: ${lab.stepCount} steps` : "Build"} color={colors.accent} />
               {lab.reviewStatus !== "approved" ? <Badge label="Awaiting expert review" color={colors.warn} icon="alert-circle" /> : null}
+              {lab.access === "sample" ? <Badge label="Sample lab" color={colors.good} icon="gift" /> : null}
             </View>
           </View>
 

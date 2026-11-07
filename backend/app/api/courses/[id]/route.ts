@@ -5,6 +5,7 @@ import { isActive, isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitM
 import { courseReadiness } from "@/lib/readiness";
 import { cachedExamBlueprint, courseReadinessCache, stampOf } from "@/lib/readiness-cache";
 import { featureLock } from "@/lib/entitlements";
+import { READINESS_LOCKED_TEXT } from "@/lib/billing-config";
 
 export const dynamic = "force-dynamic";
 
@@ -83,10 +84,12 @@ export async function GET(
       ? { required: true, acknowledged: __acknowledged === true }
       : { required: false, acknowledged: true };
 
-    // REQ-122: the readiness score is in Pro. Other plans get null and
-    // readinessLocked (the app says so in one line); not computed for them.
-    // No database read while billing is off.
-    const readinessLocked = await featureLock(userId, "readiness");
+    // REQ-122 / REQ-124: the readiness score is in Plus and Pro (Nick,
+    // 2026-11-07). Free gets null and readinessLocked, whose message is the
+    // one line the app shows instead of a number; not computed for Free. No
+    // database read while billing is off.
+    const lock = await featureLock(userId, "readiness");
+    const readinessLocked = lock ? { ...lock, message: READINESS_LOCKED_TEXT } : null;
     const readiness = readinessLocked
       ? null
       : (await courseReadinessCache.get(userId, id, stampOf(__attempt_stamp), () => courseReadiness(id, userId))).value;

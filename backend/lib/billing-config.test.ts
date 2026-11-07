@@ -2,6 +2,8 @@
 // allowances, the cap rule, product ids, webhook authentication and the
 // grant CLI's arguments. No database, no network.
 import { test, describe } from "node:test";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import assert from "node:assert/strict";
 import {
   allowanceLimit,
@@ -16,12 +18,16 @@ import {
   planForStripePrice,
   plans,
   publicConfig,
+  operatorConfig,
+  isFeature,
+  READINESS_LOCKED_TEXT,
   tierHas,
   freeCourseSwitchDays,
 } from "./billing-config";
 import { revenueCatAuthorized, safeEqual, stripeSignatureHeader, verifyStripeSignature } from "./billing-webhooks";
 import { allowanceMessage, aiPausedMessage, nextMonthStartUtc, upgradeMessage, whenPhrase } from "./entitlements";
 import { parseGrantArgs } from "./billing-grant";
+import { LABS_FEATURE } from "./labs";
 
 describe("the switch", () => {
   test("off unless set to something other than an off word", () => {
@@ -29,9 +35,14 @@ describe("the switch", () => {
     for (const v of ["1", "true", "on", "yes", "TRUE"]) assert.equal(billingEnabled({ BILLING_ENABLED: v }), true, v);
     assert.equal(billingEnabled({}), false);
   });
-  test("publicConfig says enabled:false by default and lists six plans with store ids and no secrets", () => {
-    const c = publicConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1" });
-    assert.equal(c.enabled, false);
+  test("publicConfig while off says only { enabled: false }: no tiers, prices or product ids before launch (REQ-124)", () => {
+    // Before REQ-124 the off config listed every tier, price and store id.
+    const off = publicConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1" });
+    assert.deepEqual(off, { enabled: false });
+  });
+  test("publicConfig when on lists six plans with store ids and no secrets", () => {
+    const c = publicConfig({ BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1" });
+    assert.ok(c.enabled === true && "plans" in c);
     assert.equal(c.plans.length, 6);
     assert.equal(c.webCheckout, true);
     assert.equal(c.plans.find((p) => p.id === "plus_monthly")!.web, true);
@@ -40,16 +51,41 @@ describe("the switch", () => {
     assert.ok(!text.includes("sk_test_x") && !text.includes("price_1") && !text.includes("stripePriceEnv"));
     assert.deepEqual(c.tiers.map((t) => t.id), ["free", "plus", "pro"]);
   });
+  test("operatorConfig shows what would be served, whatever the switch, and reports secrets only as set or missing", () => {
+    const o = operatorConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1", REVENUECAT_WEBHOOK_AUTH: "rc-secret" });
+    assert.equal(o.switchOn, false);
+    assert.equal(o.wouldServe.enabled, true, "what the app would get once switched on");
+    assert.equal(o.wouldServe.plans.length, 6);
+    assert.equal(o.settings.STRIPE_SECRET_KEY, "set");
+    assert.equal(o.settings.STRIPE_WEBHOOK_SECRET, "missing");
+    assert.equal(o.settings.stripePrices.STRIPE_PRICE_PLUS_MONTHLY, "set");
+    assert.equal(o.settings.stripePrices.STRIPE_PRICE_PRO_YEARLY, "missing");
+    const text = JSON.stringify(o);
+    assert.ok(!text.includes("sk_test_x") && !text.includes("price_1") && !text.includes("rc-secret"));
+  });
 });
 
 describe("tiers and features", () => {
   test("Free has no AI extras; Plus has the agreed set; Pro has everything", () => {
     assert.deepEqual(featuresFor("free"), []);
-    assert.deepEqual(featuresFor("plus").sort(), ["ai_grading", "all_courses", "coach", "comparison", "explain_back", "mock_exam", "quiz_me", "regenerate", "unit_check"]);
+    // REQ-124: readiness is in Plus (was Pro-only).
+    assert.deepEqual(featuresFor("plus").sort(), ["ai_grading", "all_courses", "coach", "comparison", "explain_back", "mock_exam", "quiz_me", "readiness", "regenerate", "unit_check"]);
     assert.deepEqual(featuresFor("pro").sort(), (Object.keys(FEATURES) as string[]).sort());
     assert.equal(tierHas("plus", "pbq"), false);
-    assert.equal(tierHas("plus", "lab"), false);
-    assert.equal(tierHas("plus", "readiness"), false);
+    assert.equal(tierHas("plus", "labs"), false);
+    assert.equal(tierHas("free", "readiness"), false);
+  });
+  test("readiness is Plus and Pro, Free sees Nick's one line; there is no exam-day plan key (REQ-124)", () => {
+    assert.equal(tierHas("plus", "readiness"), true);
+    assert.equal(tierHas("pro", "readiness"), true);
+    assert.equal(READINESS_LOCKED_TEXT, "Readiness: unconfirmed \u2014 prove it with typed answers in Plus");
+    assert.equal(isFeature("exam_day_plan"), false, "a feature that doesn't exist has no key");
+  });
+  test("the labs key is one billing feature shared by every kind of lab (FAIL-510)", () => {
+    // Before the merge fix lib/labs.ts named "labs" and the billing config "lab".
+    assert.equal(isFeature(LABS_FEATURE), true);
+    assert.equal(isFeature("lab"), false);
+    assert.equal(FEATURES[LABS_FEATURE].minTier, "pro");
   });
   test("upgrade messages name the plan and reassure", () => {
     assert.match(upgradeMessage("pbq"), /^Scenario questions comes with Pro\. Everything you've done so far is kept/);
@@ -57,12 +93,16 @@ describe("tiers and features", () => {
 });
 
 describe("allowances", () => {
-  test("defaults: Free 3 graded answers a day, Plus 20 coach messages a day, 5 regenerations a week, 1 mock a month; Pro mocks uncounted", () => {
+  test("defaults: Free 3 graded answers a day, Plus 20 / Pro 60 coach messages a day, 5 / 15 regenerations a week, 1 mock a month; Pro mocks uncounted", () => {
     assert.equal(allowanceLimit("graded_answer", "free", {}), 3);
     assert.equal(allowanceLimit("graded_answer", "plus", {}), null);
     assert.equal(allowanceLimit("coach_message", "free", {}), 0);
     assert.equal(allowanceLimit("coach_message", "plus", {}), 20);
-    assert.equal(allowanceLimit("coach_message", "pro", {}), null);
+    // REQ-124: Pro is "about 60 messages a day" -- was uncounted.
+    assert.equal(allowanceLimit("coach_message", "pro", {}), 60);
+    assert.equal(allowanceLimit("coach_message", "pro", { BILLING_ALLOWANCE_COACH_MESSAGE_PRO: "80" }), 80);
+    assert.equal(allowanceLimit("regeneration", "free", {}), 0);
+    assert.equal(allowanceLimit("regeneration", "pro", {}), 15);
     assert.equal(allowanceLimit("regeneration", "plus", {}), 5);
     assert.equal(allowanceLimit("mock_exam", "plus", {}), 1);
     assert.equal(allowanceLimit("mock_exam", "pro", {}), null);
@@ -175,5 +215,28 @@ describe("grant CLI arguments", () => {
     assert.throws(() => parseGrantArgs(["--email", "a@b", "--until", "next week"]), /YYYY-MM-DD/);
     assert.throws(() => parseGrantArgs(["--all-existing", "--revoke"]), /one account/);
     assert.throws(() => parseGrantArgs(["--email"]), /needs a value/);
+  });
+  test("--launch-comp: every account, Pro, a dry run unless --apply, and nothing else may change it (REQ-124)", () => {
+    const dry = parseGrantArgs(["--launch-comp"]);
+    assert.equal(dry.launchComp, true);
+    assert.equal(dry.dryRun, true);
+    assert.equal(dry.allExisting, true);
+    assert.equal(dry.tier, "pro");
+    assert.equal(parseGrantArgs(["--launch-comp", "--apply"]).dryRun, false);
+    assert.equal(parseGrantArgs(["--launch-comp", "--apply", "--dry-run"]).dryRun, true);
+    assert.throws(() => parseGrantArgs(["--launch-comp", "--tier", "plus"]), /only --apply/);
+    assert.throws(() => parseGrantArgs(["--email", "a@b", "--apply"]), /only for --launch-comp/);
+  });
+});
+
+describe("REQ-124 decision 6: an attempt in progress may be finished", () => {
+  test("a mock exam is gated only when it starts: answering and submitting a started session never check the plan", () => {
+    const root = path.resolve(__dirname, "../app/api/exam/sessions");
+    const start = readFileSync(path.join(root, "route.ts"), "utf8");
+    assert.match(start, /requireFeature\(user\.id, "mock_exam"\)/, "starting a mock is gated");
+    for (const f of ["[id]/route.ts", "[id]/items/[position]/route.ts", "[id]/submit/route.ts"]) {
+      const src = readFileSync(path.join(root, f), "utf8");
+      assert.doesNotMatch(src, /requireFeature|featureLock|consumeAllowance|requireCourseAccess/, f);
+    }
   });
 });

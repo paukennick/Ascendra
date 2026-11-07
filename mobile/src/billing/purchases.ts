@@ -73,11 +73,26 @@ export async function loadStorePackages(config: BillingConfig, userId: string, p
 }
 
 // Resolves "cancelled" when the learner backs out (not an error).
-export async function buy(config: BillingConfig, userId: string, pkg: PurchasesPackage): Promise<"purchased" | "cancelled"> {
+// `change` (Android only, from googlePlanChange): replace the learner's
+// current Play subscription -- at once for an upgrade, at the end of the
+// paid period for a downgrade (REQ-124).
+export async function buy(
+  config: BillingConfig,
+  userId: string,
+  pkg: PurchasesPackage,
+  change?: { oldProductIdentifier: string; mode: "immediate" | "deferred" } | null
+): Promise<"purchased" | "cancelled"> {
   const P = await ready(config, userId);
   if (!P) throw new Error("Purchases aren't available in this version of the app.");
   try {
-    await P.purchasePackage(pkg);
+    if (change && Platform.OS === "android") {
+      await P.purchasePackage(pkg, null, {
+        oldProductIdentifier: change.oldProductIdentifier,
+        prorationMode: change.mode === "deferred" ? P.PRORATION_MODE.DEFERRED : P.PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+      });
+    } else {
+      await P.purchasePackage(pkg);
+    }
     return "purchased";
   } catch (err) {
     if ((err as { userCancelled?: boolean })?.userCancelled) return "cancelled";

@@ -4,6 +4,7 @@ import { isUuid, visibleTrack } from "@/lib/visibility";
 import { requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
 import { LabError, labProgress, listLabs } from "@/lib/labs";
 import { labRouteError } from "@/lib/lab-routes";
+import { requireCourseAccess } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
     const trackId = new URL(req.url).searchParams.get("trackId");
     if (!isUuid(trackId) || !(await visibleTrack(trackId, user.id))) throw new LabError(404, "Course not found");
     await requireAcknowledgementForTrack(trackId, user.id);
+    await requireCourseAccess(user.id, trackId); // REQ-124: Free studies one course
     return ok(labProgress(await listLabs(user.id, { trackId })));
   } catch (err) {
     return labRouteError(err);

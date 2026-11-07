@@ -1,7 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { isUuid } from "@/lib/visibility";
-import { planForStoreProduct, planForStripePrice, type PaidTier, type PlanPeriod } from "@/lib/billing-config";
+import { TIER_RANK, planForStoreProduct, planForStripePrice, type PaidTier, type PlanPeriod } from "@/lib/billing-config";
 
 // REQ-122: the payment providers tell us what each learner has paid for.
 //
@@ -20,6 +20,24 @@ import { planForStoreProduct, planForStripePrice, type PaidTier, type PlanPeriod
 //     logged as 'stale' and changes nothing.
 // The event log keeps ids, type, times and the outcome only, never the
 // payload.
+//
+// DOWNGRADES (Nick, 2026-11-07, decision 6). A learner who moves to a lower
+// plan (Pro to Plus) or cancels keeps what they paid for until the end of
+// the period they paid for; the lower tier applies only from then. Upgrades
+// apply at once. A cancellation already worked that way (status 'canceled'
+// keeps access to period_end). A change of tier on the SAME subscription
+// (Stripe's subscription.updated with a cheaper price; a store event that
+// lands on the row with a lower product) used to overwrite the row's tier at
+// once. Now, when the stored row is a higher tier with paid time left, that
+// paid time is kept as a separate "held" entitlement row (external_id
+// 'held:<the subscription's id>', status 'canceled', period_end = the paid
+// period's end), and the subscription's own row takes the new tier. The
+// learner's tier is the highest among rows that give access, so they keep
+// the higher plan until the held row ends (plus the usual 24-hour grace).
+// Out of order: a higher-tier event that arrives AFTER the newer lower-tier
+// one is stale for the subscription's row, but its paid period is still
+// held, so the result doesn't depend on delivery order. A refund or a
+// revocation of the subscription ends its held row too.
 
 // ---------------------------------------------------------------------------
 // Authentication
@@ -127,13 +145,100 @@ async function setOutcome(tx: TxClient, provider: string, eventId: string, outco
   ]);
 }
 
+export const HELD_PREFIX = "held:";
+export const heldExternalId = (externalId: string) => `${HELD_PREFIX}${externalId}`;
+const PAID_UP = new Set(["active", "canceled"]);
+const ENDS_NOW = new Set(["refunded", "revoked"]);
+
+// Keeps a higher tier's paid period as the subscription's held row
+// (created, or extended to the later end and the higher tier).
+async function holdPaidPeriod(
+  tx: TxClient,
+  c: Pick<EntitlementChange, "userId" | "source" | "externalId" | "store" | "customerRef">,
+  tier: PaidTier,
+  plan: string | null,
+  productId: string | null,
+  periodEnd: Date,
+  eventId: string,
+  at: Date
+): Promise<void> {
+  await tx.query(
+    `insert into entitlements (user_id, tier, source, external_id, product_id, plan, status, period_end, store, customer_ref,
+                               last_event_at, last_event_id, note)
+     values ($1, $2, $3, $4, $5, $6, 'canceled', $7, $8, $9, $10, $11, 'kept to the end of the paid period after a downgrade')
+     on conflict (source, external_id) do update
+        set tier = case when entitlements.tier = 'pro' or excluded.tier = 'pro' then 'pro' else 'plus' end,
+            period_end = greatest(entitlements.period_end, excluded.period_end),
+            last_event_at = greatest(entitlements.last_event_at, excluded.last_event_at),
+            updated_at = now()
+      where entitlements.status not in ('refunded', 'revoked')`,
+    [c.userId, tier, c.source, heldExternalId(c.externalId), productId, plan, periodEnd, c.store ?? null, c.customerRef ?? null, at, eventId]
+  );
+}
+
+// A refund or revocation of a subscription ends the paid time held from it.
+async function endHeld(tx: TxClient, source: string, externalId: string, status: string, eventId: string, at: Date) {
+  if (!ENDS_NOW.has(status)) return;
+  await tx.query(
+    `update entitlements set status = $3, last_event_at = $4, last_event_id = $5, updated_at = now()
+      where source = $1 and external_id = $2 and status not in ('refunded', 'revoked')`,
+    [source, heldExternalId(externalId), status, at, eventId]
+  );
+}
+
 // Applies the change unless the stored row already reflects a newer event.
 async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: string, at: Date): Promise<"applied" | "stale"> {
-  const existing = await tx.queryOne<{ id: string; last_event_at: Date | null }>(
-    `select id, last_event_at from entitlements where source = $1 and external_id = $2 for update`,
+  const existing = await tx.queryOne<{
+    id: string;
+    last_event_at: Date | null;
+    tier: PaidTier;
+    status: string;
+    period_end: Date | null;
+    plan: string | null;
+    product_id: string | null;
+    customer_ref: string | null;
+  }>(
+    `select id, last_event_at, tier, status, period_end, plan, product_id, customer_ref
+       from entitlements where source = $1 and external_id = $2 for update`,
     [c.source, c.externalId]
   );
-  if (existing?.last_event_at && new Date(existing.last_event_at).getTime() > at.getTime()) return "stale";
+  if (existing?.last_event_at && new Date(existing.last_event_at).getTime() > at.getTime()) {
+    // Decision 6, out of order: an older event for a HIGHER tier than the
+    // newer stored state, with paid time left, is a period the learner paid
+    // for before downgrading. Keep it, as in-order delivery would have.
+    if (
+      TIER_RANK[c.tier] > TIER_RANK[existing.tier] &&
+      PAID_UP.has(c.status) &&
+      ["active", "canceled", "billing_issue"].includes(existing.status) &&
+      c.periodEnd &&
+      c.periodEnd.getTime() > Date.now()
+    ) {
+      await holdPaidPeriod(tx, { ...c, customerRef: c.customerRef ?? existing.customer_ref }, c.tier, c.plan, c.productId, c.periodEnd, eventId, at);
+    }
+    return "stale";
+  }
+  // Decision 6, in order: a lower tier on a subscription whose higher tier
+  // is still paid up keeps the higher tier to the paid period's end.
+  if (
+    existing &&
+    TIER_RANK[c.tier] < TIER_RANK[existing.tier] &&
+    PAID_UP.has(existing.status) &&
+    !ENDS_NOW.has(c.status) &&
+    existing.period_end &&
+    new Date(existing.period_end).getTime() > at.getTime()
+  ) {
+    await holdPaidPeriod(
+      tx,
+      { ...c, customerRef: c.customerRef ?? existing.customer_ref },
+      existing.tier,
+      existing.plan,
+      existing.product_id,
+      new Date(existing.period_end),
+      eventId,
+      at
+    );
+  }
+  await endHeld(tx, c.source, c.externalId, c.status, eventId, at);
   await tx.query(
     `insert into entitlements (user_id, tier, source, external_id, product_id, plan, status, period_end, store, customer_ref,
                                last_event_at, last_event_id)
@@ -190,6 +295,7 @@ async function updateStatus(
     );
     applied = true;
   }
+  if (applied && where.externalId) await endHeld(tx, source, where.externalId, status, eventId, at);
   return applied ? "applied" : "stale";
 }
 
@@ -231,9 +337,15 @@ const RC_ACCESS_EVENTS = new Set([
   "TEMPORARY_ENTITLEMENT_GRANT",
   "REFUND_REVERSED",
 ]);
-// Logged only: PRODUCT_CHANGE takes effect at the next RENEWAL (which carries
-// the new product); TEST is the dashboard's test button; the rest don't
-// change access.
+// Logged only: PRODUCT_CHANGE is the notice of a change; the change itself
+// arrives as its own event (RevenueCat's event flows): an App Store upgrade
+// or same-length crossgrade with a RENEWAL for the new product at once, a
+// Google Play change with an INITIAL_PURCHASE (the app asks Play for
+// DEFERRED replacement on a downgrade, src/billing/purchases.ts), and a
+// downgrade with a RENEWAL at the period end. Whichever way a lower tier
+// lands early, upsertEntitlement holds the paid higher tier to its end
+// (decision 6). TEST is the dashboard's test button; the rest don't change
+// access.
 const RC_LOG_ONLY = new Set(["PRODUCT_CHANGE", "TEST", "SUBSCRIPTION_PAUSED", "INVOICE_ISSUANCE", "VIRTUAL_CURRENCY_TRANSACTION", "EXPERIMENT_ENROLLMENT"]);
 
 // The learner this event is for: the first uuid among app_user_id, original
@@ -353,6 +465,22 @@ function stripeSubStatus(sub: Record<string, any>): EntitlementChange["status"] 
   }
 }
 
+// Decision 6: a subscription deleted (cancelled at once, from the portal or
+// the dashboard) while the current period is paid up keeps access to that
+// period's end -- status 'canceled', as a cancel-at-period-end does. One
+// deleted for non-payment or a dispute (cancellation_details.reason), one
+// that was already in a billing retry, refunded or revoked, or one whose
+// period has ended, ends now as before.
+async function stripeDeletedStatus(tx: TxClient, sub: Record<string, any>, at: Date): Promise<EntitlementChange["status"]> {
+  const reason = sub.cancellation_details?.reason;
+  if (reason === "payment_failed" || reason === "payment_disputed") return "expired";
+  const end = subPeriodEnd(sub);
+  if (!end || end.getTime() <= at.getTime()) return "expired";
+  const row = await tx.queryOne<{ status: string }>(`select status from entitlements where source = 'stripe' and external_id = $1`, [sub.id]);
+  if (row && !PAID_UP.has(row.status)) return row.status === "billing_issue" ? "expired" : (row.status as EntitlementChange["status"]);
+  return "canceled";
+}
+
 function subPeriodEnd(sub: Record<string, any>): Date | null {
   // Newer API versions moved current_period_end onto each item.
   const secs = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end;
@@ -384,7 +512,7 @@ export async function applyStripeEvent(e: StripeEvent, env: NodeJS.ProcessEnv = 
       const byPrice = planForStripePrice(priceId, env);
       const tier: PaidTier | null = obj.metadata?.tier === "plus" || obj.metadata?.tier === "pro" ? obj.metadata.tier : byPrice?.tier ?? null;
       const plan: PlanPeriod | null = ["monthly", "quarterly", "yearly"].includes(obj.metadata?.plan) ? obj.metadata.plan : byPrice?.period ?? null;
-      const status = e.type === "customer.subscription.deleted" ? "expired" : stripeSubStatus(obj);
+      const status = e.type === "customer.subscription.deleted" ? await stripeDeletedStatus(tx, obj, at) : stripeSubStatus(obj);
       if (!userId || !tier) {
         if (status !== "active") {
           const r = await updateStatus(tx, "stripe", { externalId: obj.id }, status, e.id, at, subPeriodEnd(obj));

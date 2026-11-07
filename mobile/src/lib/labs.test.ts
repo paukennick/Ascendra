@@ -6,6 +6,7 @@ import {
   canSubmit,
   groupByUnit,
   labA11yLabel,
+  labAccessBadge,
   labCountsByUnit,
   labDraftKey,
   labDraftPayload,
@@ -119,5 +120,17 @@ describe("lab drafts", () => {
     assert.equal(canSubmit(["", " "]), false);
     assert.equal(canSubmit(["", "x"]), true);
     assert.equal(canSubmit(["x".repeat(LAB_PART_MAX + 1)]), false);
+  });
+});
+
+describe("REQ-124: lab access on Free and Plus", () => {
+  test("the sample is labelled as a sample, other labs say which plan has them, nothing when all are open", () => {
+    assert.equal(labAccessBadge("sample"), "Sample lab");
+    assert.equal(labAccessBadge("locked"), "Part of Pro");
+    assert.equal(labAccessBadge("full"), null);
+    assert.equal(labAccessBadge(undefined), null, "an older server sends no access");
+    assert.match(labA11yLabel(item({ access: "sample" })), /sample lab for this course/);
+    assert.match(labA11yLabel(item({ access: "locked" })), /Part of the Pro plan/);
+    assert.doesNotMatch(labA11yLabel(item({ access: "full" })), /plan/);
   });
 });

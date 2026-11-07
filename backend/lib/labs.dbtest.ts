@@ -20,6 +20,7 @@ import { openItemsFor } from "./coach-guard";
 import { saveGeneratedLab, type GeneratedLab } from "./lab-generation";
 import { seedLabs } from "../supabase/seed/seed-lib";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
+import { grantEntitlement, tierFor } from "./entitlements";
 import { GET as listGet } from "../app/api/labs/route";
 import { GET as progressGet } from "../app/api/labs/progress/route";
 import { GET as labGet } from "../app/api/labs/[id]/route";
@@ -142,6 +143,7 @@ before(async () => {
 });
 
 beforeEach(() => {
+  delete process.env.BILLING_ENABLED;
   score = "met";
   classification = "none";
   gradeCalls = 0;
@@ -307,7 +309,7 @@ describe("mastery evidence (REQ-123)", () => {
     const detail = await queryOne<{ weighted_accuracy: string; evidence_weight: string }>(`select * from mastery_detail($1, $2)`, [u, OBJ_BUILD]);
     assert.equal(Number(detail!.weighted_accuracy), 1);
     assert.equal(Number(detail!.evidence_weight), 1.5);
-    // No error_log entry and no review side effects for a lab.
+    // A correct run logs nothing to review (REQ-124: a miss does, below).
     assert.equal((await query(`select 1 from error_log where user_id = $1`, [u])).length, 0);
   });
 
@@ -572,5 +574,233 @@ describe("seeding authored labs", () => {
     await query(`update labs set retired_at = null where objective_id = any($1::uuid[])`, [[OBJ_BUILD, OBJ_CASE]]);
     await assert.rejects(seedLabs(dbPool, { trackCode: code, sources: [], labs: [{ ...lab("x y z w"), objective: "No such objective" }] }), /no active objective/);
     await query(`delete from labs where objective_id = $1`, [OBJ_SIBLING]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-124 (Nick's decisions of 2026-11-07)
+// ---------------------------------------------------------------------------
+
+describe("REQ-124 decision 14: a lab run moves the objective's review like a Solo answer", () => {
+  const sched = (u: string, o: string) =>
+    queryOne<{ step: number; lapses: number; due_on: string }>(
+      `select step, lapses, to_char(due_on, 'YYYY-MM-DD') as due_on from review_schedule where user_id = $1 and objective_id = $2`,
+      [u, o]
+    );
+  const due = async (u: string, o: string) => {
+    await query(
+      `insert into review_schedule (user_id, objective_id, due_on, step, enrolled_at) values ($1, $2, current_date, 1, now() - interval '10 days')
+       on conflict (user_id, objective_id) do update set due_on = current_date, step = 1, lapses = 0`,
+      [u, o]
+    );
+  };
+
+  test("a correct first run steps a due schedule on and moves a due error_log entry, like a correct Solo answer", async () => {
+    const u = await newUser();
+    await due(u, OBJ_BUILD);
+    const old = await query<{ id: string }>(
+      `insert into error_log (user_id, unit_id, objective_id, topic, error_text, review_stage, next_review_at)
+       values ($1, $2, $3, 't', 'e', 0, current_date) returning id`,
+      [u, unit, OBJ_BUILD]
+    );
+    const before = await sched(u, OBJ_BUILD);
+    const res = await finishBuild(u);
+    assert.equal(res.body.final.verdict, "correct");
+    const after = await sched(u, OBJ_BUILD);
+    assert.ok(after!.step > before!.step, `schedule stepped on: ${before!.step} -> ${after!.step}`);
+    assert.ok(after!.due_on > before!.due_on, "next review later");
+    const log = await queryOne<{ verdict: string; was_due: boolean }>(`select verdict::text as verdict, was_due from review_log where user_id = $1 and objective_id = $2`, [u, OBJ_BUILD]);
+    assert.deepEqual(log, { verdict: "correct", was_due: true });
+    const e = await queryOne<{ review_stage: number }>(`select review_stage from error_log where id = $1`, [old[0].id]);
+    assert.equal(e!.review_stage, 1, "the due entry moved one step");
+  });
+
+  test("a missed first run is a miss: logged for review, and a due schedule steps back", async () => {
+    const u = await newUser();
+    await due(u, OBJ_BUILD);
+    score = "missed";
+    const res = await finishBuild(u);
+    assert.equal(res.body.final.verdict, "incorrect");
+    const e = await query<{ review_stage: number; next_review_at: string }>(`select review_stage, next_review_at from error_log where user_id = $1 and objective_id = $2`, [u, OBJ_BUILD]);
+    assert.equal(e.length, 1, "a review entry, as a missed Solo answer gets");
+    assert.equal(e[0].review_stage, 0);
+    const after = await sched(u, OBJ_BUILD);
+    assert.equal(after!.lapses, 1, "the schedule recorded a lapse");
+  });
+
+  test("a repeat run (after the model answers were shown) moves nothing either way", async () => {
+    const u = await newUser();
+    score = "missed";
+    await finishBuild(u);
+    await due(u, OBJ_BUILD);
+    const entries = (await query(`select 1 from error_log where user_id = $1`, [u])).length;
+    const before = await sched(u, OBJ_BUILD);
+    const logs = (await query(`select 1 from review_log where user_id = $1`, [u])).length;
+    for (const sc of ["met", "missed"] as const) {
+      score = sc;
+      const r = await finishBuild(u);
+      assert.equal(r.body.final.assistReason, "repeat");
+    }
+    assert.equal((await query(`select 1 from error_log where user_id = $1`, [u])).length, entries, "no new review entry");
+    assert.deepEqual(await sched(u, OBJ_BUILD), before, "schedule untouched");
+    assert.equal((await query(`select 1 from review_log where user_id = $1`, [u])).length, logs);
+  });
+});
+
+describe("REQ-124 decision 11: expert review gating by subject family", () => {
+  const clinicalTrack = randomUUID();
+  const fitnessTrack = randomUUID();
+  const cUnit = randomUUID();
+  const fUnit = randomUUID();
+  const cObj = randomUUID();
+  const fObj = randomUUID();
+  const cLab = randomUUID();
+  const fLab = randomUUID();
+  before(async () => {
+    const sub = async (cat: string) =>
+      (await queryOne<{ id: string }>(
+        `select esc.id from education_subcategories esc join education_categories ec on ec.id = esc.category_id where ec.slug = $1 order by esc.sort_order limit 1`,
+        [cat]
+      ))!.id;
+    await query(
+      `insert into subject_tracks (id, code, title, track_type, user_id, subcategory_id) values ($1, $2, 'Clinical', 'certification', null, $3), ($4, $5, 'Fitness', 'certification', null, $6)`,
+      [clinicalTrack, `LABC-${run}`, await sub("healthcare-nursing"), fitnessTrack, `LABF-${run}`, await sub("health-fitness")]
+    );
+    await query(`insert into course_units (id, track_id, title, sort_order) values ($1, $2, 'C', 0), ($3, $4, 'F', 0)`, [cUnit, clinicalTrack, fUnit, fitnessTrack]);
+    await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, 'C O', 0), ($3, $4, 'F O', 0)`, [cObj, cUnit, fObj, fUnit]);
+    for (const [id, o] of [[cLab, cObj], [fLab, fObj]]) {
+      await query(
+        `insert into labs (id, objective_id, slug, kind, title, brief, steps, rubric, safety_note, source, review_status, content_hash)
+         values ($1, $2, $3, 'build', 'Clinical or fitness', 'A fictional brief with enough words to pass.', $4, $5, 'Fictional practice.', 'authored', 'needs_expert_review', 'h')`,
+        [id, o, `fam-${id}`, JSON.stringify([{ text: "", ask: "Write the access design." }]), JSON.stringify(BUILD_RUBRIC)]
+      );
+    }
+  });
+  after(async () => {
+    await query(`delete from labs where id = any($1::uuid[])`, [[cLab, fLab]]);
+    await query(`delete from subject_tracks where id = any($1::uuid[])`, [[clinicalTrack, fitnessTrack]]);
+  });
+
+  test("unreviewed clinical and fitness labs are never served, even with LABS_SERVE_UNREVIEWED on", async () => {
+    // Before REQ-124 the flag served every unreviewed lab, nursing included.
+    const u = await newUser();
+    process.env.LABS_SERVE_UNREVIEWED = "on";
+    for (const [t, lab] of [[clinicalTrack, cLab], [fitnessTrack, fLab]]) {
+      assert.deepEqual((await json(await listGet(req(u, `http://t/api/labs?trackId=${t}`)))).body.labs, []);
+      assert.equal((await json(await labGet(req(u), ctx(lab)))).status, 404);
+      assert.equal((await startRun(u, lab)).status, 404);
+    }
+    // Approved by an expert: served.
+    await query(`update labs set review_status = 'approved' where id = $1`, [cLab]);
+    try {
+      const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${clinicalTrack}`)))).body.labs;
+      assert.deepEqual(list.map((l: any) => [l.id, l.reviewStatus]), [[cLab, "approved"]]);
+    } finally {
+      await query(`update labs set review_status = 'needs_expert_review' where id = $1`, [cLab]);
+    }
+  });
+
+  test("other subjects: served unreviewed only with the flag on, carrying the review status for the badge", async () => {
+    const u = await newUser();
+    process.env.LABS_SERVE_UNREVIEWED = "on";
+    const on = (await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs;
+    assert.ok(on.length >= 2 && on.every((l: any) => l.reviewStatus === "needs_expert_review"));
+    assert.equal((await json(await labGet(req(u), ctx(BUILD)))).body.lab.reviewStatus, "needs_expert_review");
+    process.env.LABS_SERVE_UNREVIEWED = "off";
+    assert.deepEqual((await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs, []);
+  });
+});
+
+describe("REQ-124 decision 10: labs are Pro; Free and Plus get one sample lab per course", () => {
+  const as = async (tier: "free" | "plus" | "pro") => {
+    const u = await newUser();
+    if (tier !== "free") await grantEntitlement({ userId: u, tier });
+    return u;
+  };
+  beforeEach(() => {
+    process.env.BILLING_ENABLED = "true";
+  });
+  after(() => {
+    delete process.env.BILLING_ENABLED;
+  });
+
+  test("the first APPROVED lab of the course is the sample; an unreviewed one never is; the rest are listed as locked", async () => {
+    // CASE approved, BUILD (earlier in the course) still awaiting review.
+    await query(`update labs set review_status = 'approved' where id = $1`, [CASE]);
+    try {
+      for (const tier of ["free", "plus"] as const) {
+        const u = await as(tier);
+        const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs;
+        const access = Object.fromEntries(list.map((l: any) => [l.id, l.access]));
+        assert.deepEqual(access, { [BUILD]: "locked", [CASE]: "sample" }, tier);
+        const view = await json(await labGet(req(u), ctx(CASE)));
+        assert.equal(view.status, 200);
+        assert.equal(view.body.lab.access, "sample");
+        assert.equal((await startRun(u, CASE)).status, 200);
+        const locked = await json(await labGet(req(u), ctx(BUILD)));
+        assert.equal(locked.status, 402);
+        assert.equal(locked.body.upgrade.feature, "labs");
+        assert.equal(locked.body.upgrade.requiredTier, "pro");
+        assert.equal((await startRun(u, BUILD)).status, 402);
+      }
+      // Once BUILD is approved it is first in the course, so it is the sample.
+      await query(`update labs set review_status = 'approved' where id = $1`, [BUILD]);
+      const u = await as("plus");
+      const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs;
+      assert.deepEqual(Object.fromEntries(list.map((l: any) => [l.id, l.access])), { [BUILD]: "sample", [CASE]: "locked" });
+    } finally {
+      await query(`update labs set review_status = 'needs_expert_review' where id = any($1::uuid[])`, [[BUILD, CASE]]);
+    }
+  });
+
+  test("Pro and billing off: every lab is full; Free's sample is in their one course and counts as a graded answer (FAIL-511)", async () => {
+    const p = await as("pro");
+    assert.ok((await json(await listGet(req(p, `http://t/api/labs?trackId=${track}`)))).body.labs.every((l: any) => l.access === "full"));
+    delete process.env.BILLING_ENABLED;
+    const anyone = await newUser();
+    assert.ok((await json(await listGet(req(anyone, `http://t/api/labs?trackId=${track}`)))).body.labs.every((l: any) => l.access === "full"));
+    process.env.BILLING_ENABLED = "true";
+
+    await query(`update labs set review_status = 'approved' where id = $1`, [BUILD]);
+    try {
+      const f = await as("free");
+      const res = await finishBuild(f);
+      assert.equal(res.status, 200, JSON.stringify(res.body));
+      assert.equal(
+        Number((await queryOne<{ n: number }>(`select count(*)::int as n from allowance_uses where user_id = $1 and kind = 'graded_answer'`, [f]))!.n),
+        1,
+        "a graded lab step is one of Free's graded typed answers"
+      );
+      // FAIL-511: Free studies one course. Once the free course is another
+      // one, this course's labs are the usual one-course 402 (the merged lab
+      // routes had no course check, so Free reached labs in every course).
+      await query(`insert into free_course_choice (user_id, track_id, chosen_by) values ($1, $2, 'learner') on conflict (user_id) do update set track_id = excluded.track_id`, [f, otherTrack]);
+      assert.equal((await json(await listGet(req(f, `http://t/api/labs?trackId=${track}`)))).status, 402);
+    } finally {
+      await query(`update labs set review_status = 'needs_expert_review' where id = $1`, [BUILD]);
+    }
+  });
+
+  test("a run started on Pro may be finished and read after a downgrade; a new run may not (decision 6)", async () => {
+    const u = await newUser();
+    const ext = await query<{ id: string }>(
+      `insert into entitlements (user_id, tier, source, external_id, status, period_end) values ($1, 'pro', 'stripe', $2, 'active', now() + interval '1 day') returning id`,
+      [u, `sub_lab_${run}_${randomUUID()}`]
+    );
+    assert.equal(await tierFor(u), "pro");
+    const r = await startRun(u, CASE);
+    assert.equal(r.status, 200);
+    await submit(u, CASE, { runId: r.body.run.id, step: 0, answers: ["Client 3 first"] });
+    // The paid period ends (and the grace window with it).
+    await query(`update entitlements set period_end = now() - interval '3 days' where id = $1`, [ext[0].id]);
+    assert.equal(await tierFor(u), "free");
+    await query(`insert into free_course_choice (user_id, track_id, chosen_by) values ($1, $2, 'learner')`, [u, otherTrack]);
+    assert.equal((await json(await labGet(req(u), ctx(CASE)))).status, 200, "the open run is readable");
+    assert.equal((await startRun(u, CASE)).status, 200, "resuming the open run");
+    for (const [i, a] of [[1, "Stay and call for help"], [2, "Give an SBAR handover"]] as const) {
+      const s2 = await submit(u, CASE, { runId: r.body.run.id, step: i, answers: [a] });
+      assert.equal(s2.status, 200, JSON.stringify(s2.body));
+    }
+    assert.equal((await startRun(u, CASE, true)).status, 402, "a new run needs the plan");
   });
 });

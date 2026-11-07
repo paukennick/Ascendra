@@ -31,6 +31,7 @@ import { vendorDisclaimer } from "@/lib/vendor";
 import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
+import { readinessLockedLine } from "@/lib/billing";
 
 interface AcknowledgementState {
   required: boolean;
@@ -56,7 +57,7 @@ export default function CourseDashboard() {
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
   // REQ-122: the server sends this only while paid plans are on and the plan
   // doesn't include the readiness score; one quiet line, not a lock.
-  const [readinessLocked, setReadinessLocked] = useState(false);
+  const [readinessLocked, setReadinessLocked] = useState<string | null>(null);
   // REQ-119 (M6): the exam's provider, for the "not affiliated" line.
   const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +105,7 @@ export default function CourseDashboard() {
         setTrack(res.track);
         setUnits(res.units);
         setReadinessData(res.readiness ?? null);
-        setReadinessLocked(!!res.readinessLocked); // REQ-122
+        setReadinessLocked(res.readinessLocked ? readinessLockedLine(res.readinessLocked) : null); // REQ-122 / REQ-124
         setExam(res.exam ?? null);
       })
       .catch((err) => setError(err.message));
@@ -209,7 +210,7 @@ export default function CourseDashboard() {
                 ))}
               </View>
             ) : readinessLocked ? (
-              <Muted style={{ fontSize: 12 }}>Your readiness score for the exam comes with Pro.</Muted>
+              <Muted style={{ fontSize: 12 }}>{readinessLocked}</Muted>
             ) : null}
 
             {step ? (

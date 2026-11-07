@@ -1,4 +1,4 @@
-# Paid plans and payments (REQ-122)
+# Paid plans and payments (REQ-122, REQ-124)
 
 Ascendra has three plans -- Free, Plus and Pro -- fully built and **off**.
 One server setting, `BILLING_ENABLED`, turns them on. Until then every
@@ -8,7 +8,15 @@ budget still applies to everyone as the abuse guard).
 
 The app asks the server at run time (`GET /api/billing/config`), so once a
 store build with this code is installed, turning plans on needs **no app
-update** -- only the backend setting.
+update** -- only the backend setting. While the switch is off that route
+answers only `{ "enabled": false }`: no tiers, prices or product ids are
+public before launch. To check the config before switching on, run
+`npm run billing:config` (below).
+
+Nick's decisions of 2026-11-07 (REQ-124) are applied throughout this page:
+the launch comp, Pro's coach allowance, readiness on Plus, downgrades that
+keep the paid period, the hidden config, labs on Pro with a sample per
+course, and lab reports and explain-back counted as graded answers.
 
 ## What each plan includes
 
@@ -18,10 +26,18 @@ update** -- only the backend setting.
 | Lessons, multiple-choice checks, spaced review, placement, progress | yes | yes | yes |
 | AI grading of typed answers | 3 a day (a taste) | every one | every one |
 | Explain-it-back, unit checks, comparison cards, Quiz me | no | yes | yes |
-| AI coach | no | about 20 messages a day | no daily count |
+| AI coach | no | about 20 messages a day | about 60 messages a day |
 | New lesson versions (regenerate) | no | 5 a week | 15 a week |
 | Mock exams | no | 1 a month | unlimited |
-| Scenario questions (PBQs), labs, readiness score | no | no | yes |
+| Readiness score | "Readiness: unconfirmed -- prove it with typed answers in Plus" | yes | yes |
+| Hands-on labs (build, case and the CompTIA self-reported ones) | one sample lab per course | one sample lab per course | every lab |
+| Scenario questions (PBQs) | no | no | yes |
+
+Explain-it-back answers and lab reports count against the same daily
+allowance as graded typed answers (Free's three a day; Plus and Pro have no
+count unless one is configured). On Free a sample lab's graded steps count
+there too. The coach allowances are daily counts **and** stay under the
+monthly AI cap.
 
 Free's ceiling is honest rather than locked: without graded typed answers,
 levels go up to Guided (a Solo answer picked from shown choices counts as
@@ -29,13 +45,61 @@ assisted under the existing mastery rule). The app says "prove it with typed
 answers in Plus" in one line on the plans screen and the free-course screen,
 never as a padlock on every screen. Screens that only show something (the
 lab card, explain-it-back's status, the unit check status, comparison
-cards, the readiness score) say it's part of a plan instead of erroring; an
+cards, the readiness score, a lab outside the plan in the labs list) say
+it's part of a plan instead of erroring; an
 action that needs a plan gets one gentle sheet with the reason and "See
 plans".
 
-Sprints (short timed practice) are open on every plan; only mock exams are
-counted. The study plan is open on every plan; `exam_day_plan` is reserved in
-the config for a future Pro-only exam-day plan and gates nothing today.
+Sprints (short timed practice) are open on every plan; only full mock exams
+are counted and gated. The study plan is open on every plan. There is no
+exam-day plan yet, so it has no feature key (a key is added when the
+feature exists).
+
+### Labs on each plan
+
+Labs are Pro (`labs` feature, `LABS_FEATURE` in `backend/lib/labs.ts`).
+Free and Plus learners get **one sample lab per course**: the first
+**approved** build or case lab in course order (unit, objective, then kind
+and title), labelled "Sample lab" in the list and on the lab screen. The
+other labs are listed with "Part of Pro" and open the upgrade sheet. An
+unreviewed lab is never the sample. Free's sample is in their one free
+course. A run already started (for example before a downgrade) can always
+be read and finished. With the switch off every learner has every lab.
+
+### Downgrades and cancellations
+
+Moving to a lower plan (Pro to Plus) or cancelling keeps the current plan
+until the end of the billing period already paid for; the lower tier
+applies only from then. Upgrades apply at once.
+
+- **Stripe**: a `customer.subscription.updated` that lowers the tier while
+  the higher one is paid up keeps that paid period as a separate "held"
+  entitlement (`external_id` `held:<subscription id>`, status `canceled`,
+  `period_end` the paid period's end) and moves the subscription's own row
+  to the new tier. `cancel_at_period_end` keeps access to the period end. A
+  subscription **deleted** at once (portal or dashboard) with paid time
+  left keeps access to its period end; one deleted for non-payment or a
+  dispute (`cancellation_details.reason`) ends now. Subscription schedules
+  change the price at the period end, so their `subscription.updated`
+  arrives when the period is over and nothing is held.
+- **RevenueCat**: the App Store applies a downgrade at the next renewal by
+  itself; on Google Play the app asks for a DEFERRED replacement on a
+  downgrade and an immediate (time-prorated) one on an upgrade
+  (`mobile/src/billing/purchases.ts`, `googlePlanChange` in
+  `src/lib/billing.ts`). Whichever way a lower product lands on the
+  subscription's row early, the paid higher tier is held to its end.
+- **Out of order**: a higher-tier event delivered after a newer lower-tier
+  one is stale for the subscription's row, but its paid period is still
+  held, so delivery order doesn't change the result.
+- A refund or revocation ends the held period as well. The 24-hour grace
+  window applies to held periods like any paid period.
+- `GET /api/billing/me` shows `entitlement.next = { tier, from }` and the
+  app says "Pro until Dec 1, then Plus".
+- **An attempt in progress may be finished** when the period ends: a mock
+  exam is gated only when it starts; a lab run already open can be read and
+  finished; a PBQ answer to a scenario already on screen is accepted for 24
+  hours after access ended (`FINISH_IN_PROGRESS_HOURS`; not after a refund
+  or a revocation), while a new scenario needs the plan.
 
 ### Prices
 
@@ -69,7 +133,8 @@ whose action fails before the learner gets anything is given back. Each is
 configurable per kind and tier: `BILLING_ALLOWANCE_<KIND>_<TIER>` with
 `KIND` one of `COACH_MESSAGE`, `REGENERATION`, `MOCK_EXAM`, `GRADED_ANSWER`
 and `TIER` one of `FREE`, `PLUS`, `PRO` (a number, `0` for not included, or
-`none` for no count).
+`none` for no count). Pro's coach is `BILLING_ALLOWANCE_COACH_MESSAGE_PRO`
+(default 60).
 
 ### The free course
 
@@ -84,7 +149,7 @@ Review stays open across all courses.
 - `backend/lib/billing-config.ts` -- the switch, plans, features, allowances,
   caps and product ids (pure).
 - `backend/lib/entitlements.ts` -- `tierFor`, `requireFeature` (402 with
-  `{ upgrade }`), `consumeAllowance` / `withAllowance` (429 with
+  `{ upgrade }`), `requireFeatureToFinish` (the in-progress allowance), `consumeAllowance` / `withAllowance` (429 with
   `{ allowance: { resetsAt } }`), `requireAiAllowance` (429 with
   `{ aiPaused }`), `requireCourseAccess`, grants. Every function returns at
   once while the switch is off, without touching the database.
@@ -100,8 +165,9 @@ Review stays open across all courses.
   `/api/courses/:id/comparisons`, `/api/comparisons/:id/question`,
   `/api/comparison-items/:id/{answer,peek}`, `/api/coach/quiz[/answer]`,
   `/api/pbq`, `/api/exam/sessions` POST (mock), `/api/objectives/:id/lab[/questions,/report]`,
-  `/api/courses/:id` (readiness), and the free-course check on the lesson,
-  hint, guess, placement and prefetch routes. Multiple-choice grading and
+  `/api/labs` (list, progress, view, runs: Pro or the sample, Free's one
+  course), `/api/courses/:id` (readiness), and the free-course check on the
+  lesson, hint, guess, placement and prefetch routes. Multiple-choice grading and
   review are never gated.
 - The app: `mobile/src/billing/BillingContext.tsx` (reads the config and the
   learner's plan; shows the upgrade sheet), `mobile/app/(app)/plans.tsx`,
@@ -202,8 +268,25 @@ deletion event ends it straight away.
 
 ## Comping learners (grants)
 
-A grant is an entitlement with source `grant` and an optional end date. The
-policy -- who, which plan, how long -- is yours; the tool:
+A grant is an entitlement with source `grant` and an optional end date.
+
+**The launch comp (Nick, 2026-11-07): every account that exists when plans
+are switched on gets Pro free for 3 months.** That is the documented
+default, `--launch-comp`:
+
+```sh
+cd backend
+npm run billing:grant -- --launch-comp           # dry run: how many accounts, until when; changes nothing
+npm run billing:grant -- --launch-comp --apply   # writes: Pro, source 'grant', 90 days from this moment
+```
+
+Every account in the database when it runs gets one grant with a fixed id
+(`grant:launch-comp:<account id>`), so it is idempotent: running it again
+comps only accounts made since, and never extends or repeats a comp. It
+takes no other options. A learner who also pays keeps the higher of the
+two, and their paid plan simply continues after the comp ends.
+
+Other grants:
 
 ```sh
 cd backend
@@ -231,8 +314,12 @@ until ...", with no "Manage subscription".
    products; set the backend env vars; point both webhooks at the backend
    and send a test event from each (`TEST` from RevenueCat is logged as
    ignored; a Stripe test event with a bad signature is a 400).
-4. Decide the comp policy and run the grants (above), **before** step 6, so
-   nobody loses access for a moment.
+4. Run the launch comp, **before** step 6, so nobody loses access for a
+   moment: `npm run billing:grant -- --launch-comp` (dry run; check the
+   count), then `npm run billing:grant -- --launch-comp --apply`. Check the
+   config the app will get with `npm run billing:config` (prices, plans,
+   which secrets and Stripe prices are set -- reported as set or missing,
+   never their values).
 5. Test end to end with sandbox/test accounts: buy, cancel, restore, refund
    on each store and on the web, and watch `billing_events` and
    `GET /api/billing/me`.
@@ -250,7 +337,8 @@ until ...", with no "Manage subscription".
 - [ ] App Store review notes and Google Play subscription disclosures.
 - [ ] Apple Small Business Program enrolment; Google 15% tier is automatic
       for subscriptions.
-- [ ] Decide comps for existing learners and run the grant.
+- [x] Comps for existing learners decided: Pro for 3 months
+      (`--launch-comp`, step 4 above). Run it at switch-on.
 - [ ] Decide whether email verification is required before paying (Audit 3
       suggests it).
 - [ ] Sales tax / VAT handling (Stripe Tax for the web; the stores handle

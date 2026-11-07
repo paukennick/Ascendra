@@ -6,7 +6,7 @@ import { api } from "@/api/client";
 import { Badge, Card, EmptyState, ErrorBanner, H2, Loading, Muted, Screen, SectionHeader } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
-import { KIND_LABEL, groupByUnit, labA11yLabel, labStateLabel, type LabListItem } from "@/lib/labs";
+import { KIND_LABEL, groupByUnit, labA11yLabel, labAccessBadge, labStateLabel, type LabListItem } from "@/lib/labs";
 
 // REQ-123: a course's verifiable labs, grouped by unit (or one unit's, when
 // opened from that unit). Build labs produce an artifact; case labs unfold
@@ -74,6 +74,9 @@ export default function LabsScreen() {
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, alignItems: "center" }}>
                       <Badge label={KIND_LABEL[l.kind]} color={colors.accent} />
                       {l.reviewStatus !== "approved" ? <Badge label="Awaiting expert review" color={colors.warn} icon="alert-circle" /> : null}
+                      {labAccessBadge(l.access) ? (
+                        <Badge label={labAccessBadge(l.access)!} color={l.access === "sample" ? colors.good : colors.muted} icon={l.access === "sample" ? "gift" : "lock"} />
+                      ) : null}
                     </View>
                     <Muted style={{ fontSize: 13, color: l.state === "done" && l.lastVerdict === "correct" ? colors.good : colors.muted }}>
                       {labStateLabel(l)}

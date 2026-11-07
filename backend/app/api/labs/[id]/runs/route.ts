@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { isUuid } from "@/lib/visibility";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
 import { LabError, labView, openRun, visibleLab } from "@/lib/labs";
-import { labRouteError } from "@/lib/lab-routes";
+import { gateLab, labRouteError } from "@/lib/lab-routes";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +22,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const lab = await visibleLab(id, user.id);
     if (!lab) throw new LabError(404, "Lab not found");
     await requireAcknowledgementForObjective(lab.objective_id, user.id);
-    const run = await openRun(user.id, lab.id, body?.restart === true);
-    return ok(await labView(lab, user.id, run.id));
+    const restart = body?.restart === true;
+    // REQ-124: resuming an open run is always allowed (an attempt in
+    // progress may be finished); a new run needs Pro or the sample.
+    const access = await gateLab(user.id, lab, restart ? "start" : "resume");
+    const run = await openRun(user.id, lab.id, restart);
+    return ok(await labView(lab, user.id, run.id, access));
   } catch (err) {
     return labRouteError(err);
   }

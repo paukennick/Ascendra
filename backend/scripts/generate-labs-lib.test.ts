@@ -8,6 +8,7 @@ import {
   kindFor,
   labRequestId,
   parseLabGenArgs,
+  DEFAULT_LAB_POLICY,
   parseLabRequestId,
   perLabGenerationUsd,
   perStepGradingUsd,
@@ -86,6 +87,8 @@ describe("generator plumbing", () => {
     assert.equal(kindFor("fitness"), "build");
   });
   test("estimate is the default; submit and collect only when asked", () => {
+    // REQ-124: Nick adopted (d) hybrid as the default plan.
+    assert.equal(DEFAULT_LAB_POLICY, "hybrid");
     assert.deepEqual(parseLabGenArgs([]), { mode: "estimate", tracks: [], limit: null, policy: "hybrid" });
     assert.equal(parseLabGenArgs(["--compare"]).mode, "compare");
     assert.deepEqual(parseLabGenArgs(["--tracks", "AWSSAA, PMP", "--limit", "5", "--policy", "fixed"]).tracks, ["AWSSAA", "PMP"]);

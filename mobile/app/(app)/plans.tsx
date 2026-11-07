@@ -10,6 +10,7 @@ import { friendlyError } from "@/lib/errorMessage";
 import {
   FREE_MASTERY_NOTE,
   allowanceLine,
+  googlePlanChange,
   manageUrl,
   perMonthText,
   planSummary,
@@ -59,7 +60,12 @@ export default function Plans() {
         if (native) {
           const pkg = store?.find((s) => s.planId === plan.id)?.pkg;
           if (!pkg) throw new Error("This plan isn't available in your store yet. Please try again later.");
-          const r = await buy(config, user.id, pkg);
+          // REQ-124: on Play, replace the current subscription (upgrade now,
+          // downgrade at the end of the paid period).
+          const change = me?.entitlement
+            ? googlePlanChange({ tier: me.tier, manage: me.entitlement.manage, productId: me.entitlement.productId, status: me.entitlement.status }, plan)
+            : null;
+          const r = await buy(config, user.id, pkg, change);
           if (r === "cancelled") return;
           setNote("Thanks! Your plan is being set up. It can take a minute to show here.");
           setTimeout(() => refresh(), 4000);
@@ -74,7 +80,7 @@ export default function Plans() {
         setBusy(null);
       }
     },
-    [config, native, refresh, store, user]
+    [config, me, native, refresh, store, user]
   );
 
   const doRestore = useCallback(async () => {
@@ -195,8 +201,8 @@ export default function Plans() {
           )}
           <Muted>
             Subscriptions renew automatically until you cancel. You can cancel any time in your
-            {native ? (Platform.OS === "ios" ? " App Store" : " Google Play") : ""} subscription settings; you keep your
-            plan until the end of the period you paid for.
+            {native ? (Platform.OS === "ios" ? " App Store" : " Google Play") : ""} subscription settings. If you cancel or move to a
+            lower plan, you keep your current plan until the end of the period you paid for; moving up starts at once.
           </Muted>
         </>
       ) : null}

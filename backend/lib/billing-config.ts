@@ -56,9 +56,8 @@ export type Feature =
   | "regenerate"
   | "mock_exam"
   | "pbq"
-  | "lab"
-  | "readiness"
-  | "exam_day_plan";
+  | "labs"
+  | "readiness";
 
 export interface FeatureInfo {
   minTier: PaidTier;
@@ -77,12 +76,20 @@ export const FEATURES: Record<Feature, FeatureInfo> = {
   regenerate: { minTier: "plus", label: "New lesson versions" },
   mock_exam: { minTier: "plus", label: "Mock exams" },
   pbq: { minTier: "pro", label: "Scenario questions" },
-  lab: { minTier: "pro", label: "Hands-on labs" },
-  readiness: { minTier: "pro", label: "Your readiness score" },
-  // Reserved: no separate exam-day plan exists yet (the study plan is open
-  // to every tier). Listed so the app and the config agree when it lands.
-  exam_day_plan: { minTier: "pro", label: "Exam-day plan" },
+  // One key for every kind of lab: the self-reported CompTIA labs (REQ-106)
+  // and the build and case labs (REQ-123, LABS_FEATURE in lib/labs.ts). Free
+  // and Plus get one sample build or case lab per course (lib/labs.ts
+  // labAccess); everything else about labs is Pro.
+  labs: { minTier: "pro", label: "Hands-on labs" },
+  // Nick, 2026-11-07: the readiness score is on Plus and Pro. Free sees
+  // READINESS_LOCKED_TEXT instead of a number.
+  readiness: { minTier: "plus", label: "Your readiness score" },
+  // There is no exam-day plan yet, so it has no key (Nick, 2026-11-07): a
+  // feature is added here when it exists, not reserved ahead of it.
 };
+
+// What a Free learner sees where the readiness number would be (Nick's words).
+export const READINESS_LOCKED_TEXT = "Readiness: unconfirmed \u2014 prove it with typed answers in Plus";
 
 export function isFeature(v: unknown): v is Feature {
   return typeof v === "string" && Object.prototype.hasOwnProperty.call(FEATURES, v);
@@ -121,7 +128,9 @@ interface AllowanceDefault {
 }
 
 export const ALLOWANCE_DEFAULTS: Record<AllowanceKind, AllowanceDefault> = {
-  coach_message: { window: "day", noun: "coach messages", limits: { free: 0, plus: 20, pro: null } },
+  // Nick, 2026-11-07: Pro's coach is "about 60 messages a day" -- a real daily
+  // count, still under the monthly AI cap; Plus stays about 20.
+  coach_message: { window: "day", noun: "coach messages", limits: { free: 0, plus: 20, pro: 60 } },
   regeneration: { window: "week", noun: "new lesson versions", limits: { free: 0, plus: 5, pro: 15 } },
   mock_exam: { window: "month", noun: "mock exams", limits: { free: 0, plus: 1, pro: null } },
   // Free's "taste" of AI grading. Plus and Pro grade every typed answer.
@@ -302,23 +311,34 @@ export const TIER_COPY: Record<Tier, { name: string; summary: string; points: st
       "Every course",
       "Grading for your typed answers, explain-it-back, unit checks and comparison cards",
       "Quiz me, and the coach (about 20 messages a day)",
-      "One mock exam a month",
+      "One mock exam a month, and your readiness score",
+      "A sample hands-on lab in every course",
     ],
   },
   pro: {
     name: "Pro",
     summary: "Everything, for exam prep.",
     points: [
-      "Everything in Plus, with more time with the coach",
-      "Unlimited mock exams, scenario questions and labs",
-      "Your readiness score",
+      "Everything in Plus, and the coach for about 60 messages a day",
+      "Unlimited mock exams, scenario questions and every hands-on lab",
     ],
   },
 };
 
+// Nick, 2026-11-07: while the switch is off the public route says only
+// { enabled: false } -- no tiers, prices or product ids before launch.
+// Operators inspect the full config with `npm run billing:config`
+// (operatorConfig below).
 export function publicConfig(env: Env = process.env) {
+  if (!billingEnabled(env)) return { enabled: false as const };
+  return fullConfig(env);
+}
+
+// What the app gets with the switch on (publicConfig only serves it then;
+// operatorConfig shows it whatever the switch says).
+function fullConfig(env: Env) {
   return {
-    enabled: billingEnabled(env),
+    enabled: true as const,
     tiers: TIERS.map((t) => ({ id: t, ...TIER_COPY[t], features: featuresFor(t) })),
     features: FEATURES,
     allowances: allowanceTable(env),
@@ -326,5 +346,24 @@ export function publicConfig(env: Env = process.env) {
     revenueCat: { entitlements: REVENUECAT_ENTITLEMENTS, offering: REVENUECAT_OFFERING },
     freeCourseSwitchDays: freeCourseSwitchDays(env),
     webCheckout: Boolean(env.STRIPE_SECRET_KEY),
+  };
+}
+
+// `npm run billing:config`: the config the app WOULD get with the switch on,
+// whatever the switch says now, plus which settings are present (never their
+// values -- a secret is reported as set or missing). For pre-launch checks.
+export function operatorConfig(env: Env = process.env) {
+  const set = (k: string) => Boolean(env[k]?.trim());
+  return {
+    switchOn: billingEnabled(env),
+    wouldServe: fullConfig(env),
+    caps: { plus: monthlyAiCapUsd("plus", env), pro: monthlyAiCapUsd("pro", env) },
+    settings: {
+      REVENUECAT_WEBHOOK_AUTH: set("REVENUECAT_WEBHOOK_AUTH") ? "set" : "missing",
+      STRIPE_WEBHOOK_SECRET: set("STRIPE_WEBHOOK_SECRET") ? "set" : "missing",
+      STRIPE_SECRET_KEY: set("STRIPE_SECRET_KEY") ? "set" : "missing",
+      stripePrices: Object.fromEntries(plans(env).map((p) => [p.stripePriceEnv, set(p.stripePriceEnv) ? "set" : "missing"])),
+      BILLING_WEB_RETURN_URL: set("BILLING_WEB_RETURN_URL") || set("APP_URL") ? "set" : "missing",
+    },
   };
 }

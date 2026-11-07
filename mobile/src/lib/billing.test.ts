@@ -17,6 +17,9 @@ import {
   savingsPercent,
   shouldInitPurchases,
   signalCopy,
+  googlePlanChange,
+  readinessLockedLine,
+  READINESS_LOCKED_FALLBACK,
   type BillingConfig,
   type BillingPlan,
 } from "./billing.ts";
@@ -141,5 +144,41 @@ describe("API client hook", () => {
     });
     globalThis.fetch = (async () => new Response(JSON.stringify({ error: "Paused." , aiPaused: { resetsAt: "x" } }), { status: 429 })) as typeof fetch;
     await assert.rejects(api.post("/api/chat", {}), (err: any) => err.status === 429 && err.message === "Paused.");
+  });
+});
+
+describe("REQ-124: plan changes and readiness", () => {
+  test("the server's { enabled: false } (no tiers or plans while off) is read as off", () => {
+    assert.equal(parseConfig({ enabled: false }).enabled, false);
+    assert.deepEqual(parseConfig({ enabled: false }).plans, []);
+  });
+  test("after a downgrade the plan line says what is kept and what comes next", () => {
+    const now = new Date(2026, 10, 7, 12);
+    const from = new Date(2026, 11, 1, 12).toISOString();
+    const line = planSummary(
+      { enabled: true, tier: "pro", entitlement: { source: "stripe", status: "canceled", plan: "monthly", productId: "p", periodEnd: from, willRenew: true, manage: "stripe", next: { tier: "plus", from } } },
+      now
+    );
+    assert.match(line, /^Pro until .+, then Plus$/);
+    const toFree = planSummary(
+      { enabled: true, tier: "pro", entitlement: { source: "stripe", status: "canceled", plan: "monthly", productId: "p", periodEnd: from, willRenew: false, manage: "stripe", next: { tier: "free", from } } },
+      now
+    );
+    assert.match(toFree, /then Free$/);
+  });
+  test("Google Play: an upgrade replaces the plan at once, a downgrade at the end of the paid period", () => {
+    const pro = { tier: "pro" as const, manage: "play_store", productId: "ascendra_pro:monthly", status: "active" };
+    const plus = { tier: "plus" as const, manage: "play_store", productId: "ascendra_plus:yearly", status: "active" };
+    assert.deepEqual(googlePlanChange(pro, { tier: "plus", playProductId: "ascendra_plus:monthly" }), { oldProductIdentifier: "ascendra_pro", mode: "deferred" });
+    assert.deepEqual(googlePlanChange(plus, { tier: "pro", playProductId: "ascendra_pro:yearly" }), { oldProductIdentifier: "ascendra_plus", mode: "immediate" });
+    assert.equal(googlePlanChange(plus, { tier: "plus", playProductId: "ascendra_plus:yearly" }), null, "same product");
+    assert.equal(googlePlanChange({ ...pro, manage: "app_store" }, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null, "the App Store defers by itself");
+    assert.equal(googlePlanChange({ ...pro, status: "expired" }, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null);
+    assert.equal(googlePlanChange(null, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null);
+  });
+  test("Free's readiness line is the server's words, with the same fallback", () => {
+    assert.equal(readinessLockedLine({ message: "Readiness: unconfirmed \u2014 prove it with typed answers in Plus" }), READINESS_LOCKED_FALLBACK);
+    assert.equal(readinessLockedLine({}), READINESS_LOCKED_FALLBACK);
+    assert.equal(readinessLockedLine({ message: "Other words" }), "Other words");
   });
 });

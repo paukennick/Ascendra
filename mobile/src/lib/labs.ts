@@ -23,7 +23,12 @@ export interface LabListItem {
   stepsDone: number;
   runsFinished: number;
   lastVerdict: Verdict | null;
+  // REQ-124: "full" (Pro, or plans off), "sample" (the course's one sample
+  // lab on Free and Plus) or "locked" (part of Pro). Older servers omit it.
+  access?: LabAccess;
 }
+
+export type LabAccess = "full" | "sample" | "locked";
 
 export interface LabStepView {
   index: number;
@@ -64,6 +69,7 @@ export interface LabView {
     trackId: string;
     stepCount: number;
     reviewStatus: LabListItem["reviewStatus"];
+    access?: LabAccess;
     steps: LabStepView[];
   };
   run: { id: string; status: "open" | "finished"; stepsDone: number; results: LabStepResult[]; final: LabFinal | null } | null;
@@ -117,10 +123,20 @@ export function labStateLabel(it: Pick<LabListItem, "state" | "stepsDone" | "ste
   return it.stepCount > 1 ? `Not started: ${it.stepCount} steps` : "Not started";
 }
 
+// REQ-124: the plan badge on a lab -- the sample is labelled as a sample,
+// a lab outside the plan says which plan has it; nothing when every lab is
+// open (Pro, or paid plans off).
+export function labAccessBadge(access: LabAccess | undefined): string | null {
+  if (access === "sample") return "Sample lab";
+  if (access === "locked") return "Part of Pro";
+  return null;
+}
+
 export function labA11yLabel(it: LabListItem): string {
+  const plan = it.access === "sample" ? " Your plan's sample lab for this course." : it.access === "locked" ? " Part of the Pro plan." : "";
   return `${KIND_LABEL[it.kind]} lab: ${it.title}. Objective: ${it.objectiveTitle}. ${labStateLabel(it)}.${
     it.reviewStatus !== "approved" ? " Not yet checked by a subject expert." : ""
-  }`;
+  }${plan}`;
 }
 
 // ---------------------------------------------------------------------------
