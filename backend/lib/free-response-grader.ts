@@ -32,7 +32,9 @@ export async function gradeFreeResponse(params: {
     system,
     messages: [{ role: "user", content: user }],
     schema: gradeResultSchema,
-    maxTokens: 800,
+    // REQ-105: +200 headroom for modelAnswer and fixNext (typically ~80-120
+    // output tokens together); max_tokens is a ceiling, not a cost.
+    maxTokens: 1000,
     model: params.model ?? getFastModel(),
     effort: "high",
     thinking: "off",

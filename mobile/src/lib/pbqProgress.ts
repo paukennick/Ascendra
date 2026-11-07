@@ -16,6 +16,9 @@ export interface PbqSnapshot {
   scenario: PBQScenario;
   answer: string;
   result: GradeResult | null;
+  // REQ-105: set while revising the missed sub-parts and after: the first,
+  // missed result, whose feedback stays on screen. Optional for old drafts.
+  firstResult?: GradeResult | null;
   // Sent with the graded answer so the server can tell a retry from a new
   // attempt (see POST /api/pbq). sentSignature is the answer it went with.
   clientAttemptId: string | null;
@@ -26,6 +29,27 @@ export const PBQ_ANSWER_MAX = 20_000;
 export const PBQ_SUB_PARTS_MAX = 12;
 
 const VERDICTS: readonly string[] = ["correct", "partial", "incorrect"];
+
+const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
+
+function parsePbqResult(v: unknown): GradeResult | null {
+  const rr = v as Record<string, unknown> | null | undefined;
+  if (!rr || typeof rr !== "object" || typeof rr.verdict !== "string" || !VERDICTS.includes(rr.verdict)) return null;
+  const strings = (x: unknown) => (Array.isArray(x) ? x.filter((p): p is string => typeof p === "string") : []);
+  const attempt = rr.attempt as Record<string, unknown> | null | undefined;
+  const attemptId = attempt && typeof attempt === "object" ? str(attempt.id) : null;
+  return {
+    verdict: rr.verdict as GradeResult["verdict"],
+    feedback: str(rr.feedback) ?? "",
+    classification: str(rr.classification) ?? "",
+    missedParts: strings(rr.missedParts),
+    modelAnswer: str(rr.modelAnswer),
+    fixNext: str(rr.fixNext),
+    assistReason: rr.assistReason === "hint" || rr.assistReason === "repeat" || rr.assistReason === "retry" ? rr.assistReason : null,
+    ...(Array.isArray(rr.revisedParts) ? { revisedParts: strings(rr.revisedParts) } : {}),
+    ...(attemptId ? { attempt: { id: attemptId } } : {}),
+  };
+}
 
 // Serialised without a timestamp: the draft envelope (drafts.ts) adds one at
 // write time, which keeps this string stable between renders.
@@ -55,18 +79,9 @@ export function parsePbqPayload(payload: string, currentUnitId: string): PbqSnap
   if (!Array.isArray(sc.sub_parts) || sc.sub_parts.length > PBQ_SUB_PARTS_MAX) return null;
   if (!sc.sub_parts.every((p) => typeof p === "string")) return null;
 
-  const rr = r.result as Record<string, unknown> | null | undefined;
-  const result: GradeResult | null =
-    rr && typeof rr === "object" && typeof rr.verdict === "string" && VERDICTS.includes(rr.verdict)
-      ? {
-          verdict: rr.verdict as GradeResult["verdict"],
-          feedback: typeof rr.feedback === "string" ? rr.feedback : "",
-          classification: typeof rr.classification === "string" ? rr.classification : "",
-          missedParts: Array.isArray(rr.missedParts)
-            ? rr.missedParts.filter((p): p is string => typeof p === "string")
-            : [],
-        }
-      : null;
+  const result = parsePbqResult(r.result);
+  // REQ-105: the first, missed result of a revision (kept on screen).
+  const firstResult = parsePbqResult(r.firstResult);
 
   return {
     unitId: currentUnitId,
@@ -80,6 +95,7 @@ export function parsePbqPayload(payload: string, currentUnitId: string): PbqSnap
     },
     answer: typeof r.answer === "string" ? r.answer.slice(0, PBQ_ANSWER_MAX) : "",
     result,
+    firstResult,
     clientAttemptId: typeof r.clientAttemptId === "string" ? r.clientAttemptId : null,
     sentSignature: typeof r.sentSignature === "string" ? r.sentSignature : null,
   };

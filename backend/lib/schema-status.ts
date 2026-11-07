@@ -117,6 +117,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
   },
   {
+    migration: "034_rich_feedback.sql",
+    what: "lesson option reasons, attempts model answer / retry_of (every graded answer and lesson save)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name in ('lesson_content', 'lesson_content_overrides')
+                           and column_name in ('fade_option_reasons', 'solo_option_reasons'))
+                       or (table_name = 'attempts' and column_name in ('model_answer', 'fix_next', 'retry_of')))) = 7
+              and to_regclass('public.attempts_retry_of_unique') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

@@ -28,7 +28,14 @@ export interface CheckResult {
   correctIndex?: number | null;
   correctAnswer?: string | null;
   why?: string | null;
-  assistReason?: "hint" | "repeat" | null;
+  assistReason?: "hint" | "repeat" | "retry" | null;
+  // REQ-105: one reason per option in the shown order (null for a lesson
+  // cached before reasons existed), the grader's model answer and "what to
+  // fix" line, and the attempt id a revision points at.
+  optionReasons?: string[] | null;
+  modelAnswer?: string | null;
+  fixNext?: string | null;
+  attemptId?: string | null;
 }
 
 // Everything a Guided/Solo check needs to come back exactly as it was.
@@ -42,6 +49,10 @@ export interface CheckState {
   // The answer that clientAttemptId was sent with ("mc:2" or "open:<text>").
   sentSignature: string | null;
   result: CheckResult | null;
+  // REQ-105: the first, missed result once the learner chose to revise. Kept
+  // so its feedback stays on screen while revising and after. Optional so
+  // older saved positions (without it) still parse.
+  firstResult?: CheckResult | null;
 }
 
 export interface LessonSnapshot {
@@ -129,6 +140,30 @@ export function parseSnapshot(raw: unknown, currentLessonKey: string, now: numbe
   };
 }
 
+const ASSIST_REASONS = ["hint", "repeat", "retry"] as const;
+
+function parseResult(r: Record<string, unknown> | null | undefined): CheckResult | null {
+  if (!r || typeof r !== "object" || typeof r.verdict !== "string") return null;
+  return {
+    verdict: r.verdict,
+    feedback: typeof r.feedback === "string" ? r.feedback : "",
+    missedParts: Array.isArray(r.missedParts) ? r.missedParts.filter((p): p is string => typeof p === "string") : [],
+    correctIndex: Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 ? (r.correctIndex as number) : null,
+    correctAnswer: typeof r.correctAnswer === "string" ? r.correctAnswer : null,
+    why: typeof r.why === "string" ? r.why : null,
+    assistReason: (ASSIST_REASONS as readonly unknown[]).includes(r.assistReason)
+      ? (r.assistReason as CheckResult["assistReason"])
+      : null,
+    optionReasons:
+      Array.isArray(r.optionReasons) && r.optionReasons.every((x) => typeof x === "string")
+        ? (r.optionReasons as string[])
+        : null,
+    modelAnswer: typeof r.modelAnswer === "string" ? r.modelAnswer : null,
+    fixNext: typeof r.fixNext === "string" ? r.fixNext : null,
+    attemptId: typeof r.attemptId === "string" ? r.attemptId : null,
+  };
+}
+
 function parseCheck(v: unknown, kind: CheckKind): CheckState | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
@@ -148,18 +183,8 @@ function parseCheck(v: unknown, kind: CheckKind): CheckState | null {
     openAnswer,
     clientAttemptId: typeof o.clientAttemptId === "string" ? o.clientAttemptId : null,
     sentSignature: typeof o.sentSignature === "string" ? o.sentSignature : null,
-    result:
-      r && typeof r === "object" && typeof r.verdict === "string"
-        ? {
-            verdict: r.verdict,
-            feedback: typeof r.feedback === "string" ? r.feedback : "",
-            missedParts: Array.isArray(r.missedParts) ? r.missedParts.filter((p): p is string => typeof p === "string") : [],
-            correctIndex: Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 ? (r.correctIndex as number) : null,
-            correctAnswer: typeof r.correctAnswer === "string" ? r.correctAnswer : null,
-            why: typeof r.why === "string" ? r.why : null,
-            assistReason: r.assistReason === "hint" || r.assistReason === "repeat" ? r.assistReason : null,
-          }
-        : null,
+    result: parseResult(r),
+    firstResult: parseResult(o.firstResult as Record<string, unknown> | null | undefined),
   };
 }
 

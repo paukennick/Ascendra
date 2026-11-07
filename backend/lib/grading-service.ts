@@ -2,6 +2,7 @@ import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { getLessonFor } from "@/lib/lesson-store";
 import { toDateOnlyString } from "@/lib/mastery";
 import { lessonItemKey } from "@/lib/choice-order";
+import { optionReasonsFor } from "@/lib/lesson-store";
 
 // classification is a model-generated freeform tag (see
 // backend/lib/prompts.ts's grading prompts: "a short tag for the kind of
@@ -38,9 +39,18 @@ export interface AttemptInput {
   // REQ-089: one id per submitted answer from the app. A second request
   // with the same id is a retry, not a new attempt (see findClientAttempt).
   clientAttemptId?: string | null;
+  // REQ-105: the grader's model answer and "what to fix" line, stored so a
+  // replay returns them too.
+  modelAnswer?: string | null;
+  fixNext?: string | null;
+  // REQ-105: this answer revises the missed attempt with this id, with that
+  // attempt's feedback on screen. Recorded as assisted ("retry").
+  retryOf?: string | null;
 }
 
-export type AssistReason = "hint" | "repeat";
+// "retry" (REQ-105): a revision written with the first answer's feedback and
+// model answer on screen.
+export type AssistReason = "hint" | "repeat" | "retry";
 
 // REQ-089: the stored attempt for an id the app has already submitted, in
 // the shape /api/grade returns, or null if this id is new.
@@ -53,6 +63,8 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     missed_parts: string[] | null;
     assisted: boolean | null;
     assist_reason: AssistReason | null;
+    model_answer: string | null;
+    fix_next: string | null;
   }>(
     `select * from attempts where user_id = $1 and client_attempt_id = $2`,
     [userId, clientAttemptId]
@@ -65,6 +77,8 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     missedParts: Array.isArray(row.missed_parts) ? row.missed_parts : [],
     assisted: row.assisted === true,
     assistReason: row.assist_reason ?? null,
+    ...(row.model_answer ? { modelAnswer: row.model_answer } : {}),
+    ...(row.fix_next ? { fixNext: row.fix_next } : {}),
     attempt: row,
     replayed: true,
   };
@@ -75,6 +89,65 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
 export function isDuplicateClientAttempt(err: unknown): boolean {
   const e = err as { code?: string; constraint?: string } | null;
   return e?.code === "23505" && (e.constraint ?? "").includes("client_attempt");
+}
+
+// REQ-105: a second revision of the same attempt (attempts_retry_of_unique).
+export function isDuplicateRetry(err: unknown): boolean {
+  const e = err as { code?: string; constraint?: string } | null;
+  return e?.code === "23505" && (e.constraint ?? "") === "attempts_retry_of_unique";
+}
+
+// REQ-105: the attempt a revision points at, if it belongs to this learner,
+// was a miss, is not itself a revision, and has not been revised yet. The
+// caller checks it is for the same item (objective/stage/question or PBQ
+// scenario). The unique index on attempts.retry_of is the real one-revision
+// guard; this read gives a clear message in the common case.
+export interface RetryTarget {
+  id: string;
+  kind: string;
+  stage: string | null;
+  format: string;
+  question: string;
+  objective_id: string | null;
+  pbq_scenario_id: string | null;
+  verdict: string;
+  missed_parts: string[] | null;
+}
+
+export type RetryLookup =
+  | { status: "ok"; target: RetryTarget }
+  | { status: "not-found" }
+  | { status: "not-a-miss" }
+  | { status: "is-revision" }
+  | { status: "already-revised" };
+
+export async function retryTargetFor(userId: string, attemptId: unknown): Promise<RetryLookup> {
+  if (typeof attemptId !== "string" || !/^[0-9a-f-]{36}$/i.test(attemptId)) return { status: "not-found" };
+  const row = await queryOne<RetryTarget & { retry_of: string | null; revised: boolean }>(
+    `select a.id, a.kind, a.stage, a.format, a.question, a.objective_id, a.pbq_scenario_id, a.verdict,
+            a.missed_parts, a.retry_of,
+            exists(select 1 from attempts r where r.retry_of = a.id) as revised
+       from attempts a where a.id = $1 and a.user_id = $2`,
+    [attemptId, userId]
+  );
+  if (!row) return { status: "not-found" };
+  if (row.retry_of) return { status: "is-revision" };
+  if (row.verdict !== "partial" && row.verdict !== "incorrect") return { status: "not-a-miss" };
+  if (row.revised) return { status: "already-revised" };
+  return {
+    status: "ok",
+    target: {
+      id: row.id,
+      kind: row.kind,
+      stage: row.stage,
+      format: row.format,
+      question: row.question,
+      objective_id: row.objective_id,
+      pbq_scenario_id: row.pbq_scenario_id,
+      verdict: row.verdict,
+      missed_parts: row.missed_parts,
+    },
+  };
 }
 
 // Records an attempt, or -- when its client id was already recorded, either
@@ -106,6 +179,9 @@ export interface LessonCheck {
   correctIndex: number;
   why: string;
   teach: string;
+  // REQ-105: one reason per stored choice, or null for a lesson cached
+  // before option reasons existed (grading then falls back to `why`).
+  optionReasons: string[] | null;
 }
 
 export type LessonCheckLookup =
@@ -127,9 +203,21 @@ export async function lessonCheckFor(
   const choices = stage === "fade" ? r.fade_choices : r.solo_choices;
   const correctIndex = stage === "fade" ? r.fade_correct_index : r.solo_correct_index;
   const why = stage === "fade" ? r.fade_why : r.solo_why;
+  const reasons = stage === "fade" ? r.fade_option_reasons : r.solo_option_reasons;
   // Practice half still generating (or a malformed row): nothing to grade against.
   if (!question || !Array.isArray(choices) || !Number.isInteger(correctIndex)) return { status: "pending" };
-  return { status: "ok", check: { stage, question, choices, correctIndex, why: why ?? "", teach: r.teach } };
+  return {
+    status: "ok",
+    check: {
+      stage,
+      question,
+      choices,
+      correctIndex,
+      why: why ?? "",
+      teach: r.teach,
+      optionReasons: optionReasonsFor(reasons, choices),
+    },
+  };
 }
 
 // Records that this learner asked to see the choices for a Solo item. Called
@@ -222,8 +310,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
+       model_answer, fix_next, retry_of)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
      returning *`,
     [
       userId,
@@ -243,6 +332,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.clientAttemptId ?? null,
       assistReason !== null,
       assistReason,
+      input.modelAnswer ?? null,
+      input.fixNext ?? null,
+      input.retryOf ?? null,
     ]
   );
   const attempt = attemptRows[0];
@@ -273,6 +365,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const reviewEvidence =
     input.verdict === "correct" &&
     assistReason !== "hint" &&
+    // REQ-105: a revision written with the model answer on screen is
+    // practice, not evidence the item has been kept.
+    assistReason !== "retry" &&
     ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
   if (reviewEvidence) {
     await query(
@@ -293,8 +388,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   }
 
   // Any non-correct verdict goes into the spaced-review error log (1/7/21 days out),
-  // seeded with review_stage 0 (first review due in 1 day).
-  if (input.verdict !== "correct") {
+  // seeded with review_stage 0 (first review due in 1 day). Not for a missed
+  // revision (REQ-105): the attempt it revises already put this item in
+  // review, and a second entry would schedule the same item twice.
+  if (input.verdict !== "correct" && assistReason !== "retry") {
     const next = new Date();
     next.setDate(next.getDate() + 1);
     await query(
@@ -329,6 +426,7 @@ async function assistReasonFor(
   query: TxClient["query"],
   input: AttemptInput
 ): Promise<AssistReason | null> {
+  if (input.retryOf) return "retry";
   if (input.kind !== "lesson" || !input.objectiveId || (input.stage !== "fade" && input.stage !== "solo")) return null;
   if (input.stage === "solo") {
     if (input.format === "mc") return "hint";

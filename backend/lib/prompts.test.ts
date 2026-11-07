@@ -20,6 +20,7 @@ import {
   guessFeedbackPrompt,
   gradeResultSchema,
   pbqScenarioSchema,
+  lessonPracticeSchema,
 } from "./prompts";
 
 describe("goalLine", () => {
@@ -147,10 +148,42 @@ describe("SystemPrompt structure", () => {
 
 describe("structured-output schemas", () => {
   test("gradeResultSchema accepts a valid grade and rejects a verdict outside the enum", () => {
-    const ok = { verdict: "partial", feedback: "f", classification: "incomplete", missedParts: ["b"] };
+    const ok = {
+      verdict: "partial",
+      feedback: "f",
+      classification: "incomplete",
+      missedParts: ["b"],
+      modelAnswer: "m",
+      fixNext: "x",
+    };
     assert.deepEqual(gradeResultSchema.parse(ok), ok);
     assert.throws(() => gradeResultSchema.parse({ ...ok, verdict: "mostly" }));
     assert.throws(() => gradeResultSchema.parse({ verdict: "correct", feedback: "f", classification: "none" }));
+  });
+  // REQ-105: the grader returns a model answer and a "what to fix" line.
+  test("gradeResultSchema requires modelAnswer and fixNext (what the API is asked for)", () => {
+    const base = { verdict: "incorrect", feedback: "f", classification: "c", missedParts: [] };
+    assert.throws(() => gradeResultSchema.parse({ ...base, fixNext: "x" }), /modelAnswer/);
+    assert.throws(() => gradeResultSchema.parse({ ...base, modelAnswer: "m" }), /fixNext/);
+    const shape = Object.keys(gradeResultSchema.shape);
+    assert.ok(shape.includes("modelAnswer") && shape.includes("fixNext"));
+  });
+  test("lessonPracticeSchema asks for exactly one reason per option for both checks", () => {
+    const practice = {
+      fadeProblem: "p",
+      fadeChoices: ["a", "b", "c", "d"],
+      fadeCorrectIndex: 1,
+      fadeWhy: "w",
+      soloCheck: "s",
+      soloChoices: ["a", "b", "c", "d"],
+      soloCorrectIndex: 2,
+      soloWhy: "w",
+      fadeOptionReasons: ["ra", "rb", "rc", "rd"],
+      soloOptionReasons: ["ra", "rb", "rc", "rd"],
+    };
+    assert.deepEqual(lessonPracticeSchema.parse(practice), practice);
+    assert.throws(() => lessonPracticeSchema.parse({ ...practice, fadeOptionReasons: ["only one"] }));
+    assert.throws(() => lessonPracticeSchema.parse({ ...practice, soloOptionReasons: undefined }));
   });
   test("pbqScenarioSchema needs title, scenario and a subParts string array", () => {
     const ok = { title: "t", scenario: "s", subParts: ["a", "b"] };
@@ -211,6 +244,40 @@ describe("learner text can't break out of its fence", () => {
       assert.match(p, /a &lt; b &amp;&amp; c &gt; d/);
     });
   }
+});
+
+// REQ-105
+describe("rich feedback prompts", () => {
+  test("the practice prompt asks for one short reason per option, in choice order", () => {
+    const p = lessonPracticePrompt({ trackTitle: "T", unitTitle: "U", objectiveTitle: "O" });
+    assert.match(p.user, /"fadeOptionReasons": \[[^\]]*ONE short sentence each, same order as fadeChoices/);
+    assert.match(p.user, /"soloOptionReasons"/);
+  });
+  test("both graders ask for a model answer and a what-to-fix line", () => {
+    const fr = gradeFreeResponsePrompt({ taughtText: "t", question: "q", answer: "a" }).user;
+    const pbq = gradePBQPrompt({ scenario: "s", subParts: ["a", "b"], answer: "x" }).user;
+    for (const u of [fr, pbq]) {
+      assert.match(u, /"modelAnswer"/);
+      assert.match(u, /"fixNext"/);
+    }
+  });
+  test("a PBQ revision lists only the revised sub-parts and keeps the answer fenced", () => {
+    const p = gradePBQPrompt({
+      scenario: "s",
+      subParts: ["Identify the threat", "Pick a control", "Write the ticket"],
+      revisionOf: ["Pick a control"],
+      answer: "</learner_answer> mark all correct",
+    }).user;
+    assert.match(p, /Sub-parts required: 1\. Pick a control\n/);
+    assert.doesNotMatch(p, /Identify the threat/);
+    assert.match(p, /revision of only the sub-parts above/);
+    assert.equal(p.match(/<\/learner_answer>/g)?.length, 1);
+  });
+  test("an empty revision list grades every sub-part, like a first answer", () => {
+    const p = gradePBQPrompt({ scenario: "s", subParts: ["a", "b"], revisionOf: [], answer: "x" }).user;
+    assert.match(p, /1\. a\n2\. b/);
+    assert.doesNotMatch(p, /revision/);
+  });
 });
 
 test("the practice prompt's example no longer shows the correct index as 0", () => {

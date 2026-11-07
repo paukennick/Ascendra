@@ -26,6 +26,27 @@ const rec = (over: Record<string, unknown> = {}) => ({
 const snap = (over: Record<string, unknown> = {}) => JSON.stringify(rec(over));
 
 describe("lesson resume snapshot", () => {
+  // REQ-105
+  test("a revision in progress resumes with its first result, reasons and model answer", () => {
+    const first = { verdict: "partial", feedback: "f", missedParts: [], modelAnswer: "M", fixNext: "F", attemptId: "att-1" };
+    const s = parseSnapshot(
+      snap({
+        step: "solo",
+        checks: {
+          fade: { mode: "mc", picked: 1, result: { verdict: "incorrect", feedback: "x", optionReasons: ["a", "b", "c", "d"] } },
+          solo: { mode: "open", openAnswer: "draft", firstResult: first, result: null },
+        },
+      }),
+      key,
+      now
+    );
+    assert.deepEqual(s?.checks.fade?.result?.optionReasons, ["a", "b", "c", "d"]);
+    assert.equal(s?.checks.fade?.firstResult, null);
+    assert.equal(s?.checks.solo?.result, null);
+    assert.equal(s?.checks.solo?.firstResult?.attemptId, "att-1");
+    assert.equal(s?.checks.solo?.firstResult?.modelAnswer, "M");
+    assert.equal(s?.checks.solo?.openAnswer, "draft");
+  });
   test("restores a fresh snapshot for the same lesson", () => {
     const s = parseSnapshot(snap(), key, now);
     assert.equal(s?.step, "fade");

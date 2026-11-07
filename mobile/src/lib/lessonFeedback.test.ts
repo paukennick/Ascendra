@@ -10,7 +10,71 @@ import {
   offerTryAgain,
   soloOutcome,
   TRY_AGAIN_NOTE,
+  REVISE_NOTE,
+  reasonRows,
+  optionLetter,
+  offerRevision,
+  offerPbqRevision,
+  startRevision,
 } from "./lessonFeedback.ts";
+
+// REQ-105
+describe("reasonRows", () => {
+  const reasons = ["rA", "rB", "rC", "rD"];
+  test("a miss lists the learner's pick first, then the correct option, then the rest as shown", () => {
+    const rows = reasonRows(reasons, 4, 2, 0, "incorrect")!;
+    assert.deepEqual(rows.map((r) => r.index), [2, 0, 1, 3]);
+    assert.deepEqual(rows.map((r) => r.mark), ["picked-incorrect", "correct-answer", "none", "none"]);
+    assert.deepEqual(rows.map((r) => r.reason), ["rC", "rA", "rB", "rD"]);
+  });
+  test("a correct pick is listed once, first", () => {
+    assert.deepEqual(reasonRows(reasons, 4, 3, 3, "correct")!.map((r) => r.index), [3, 0, 1, 2]);
+  });
+  test("an older lesson with no (or a mismatched) list returns null, so the single explanation shows instead", () => {
+    assert.equal(reasonRows(null, 4, 1, 0, "incorrect"), null);
+    assert.equal(reasonRows(undefined, 4, 1, 0, "incorrect"), null);
+    assert.equal(reasonRows(["a", "b"], 4, 1, 0, "incorrect"), null);
+    assert.equal(reasonRows(["a", "", "c", "d"], 4, 1, 0, "incorrect"), null);
+  });
+  test("options are lettered so a reason can be matched without colour", () => {
+    assert.deepEqual([0, 1, 2, 3].map(optionLetter), ["A", "B", "C", "D"]);
+  });
+});
+
+describe("offerRevision / startRevision", () => {
+  const miss = { verdict: "partial", attemptId: "a-1", assistReason: null };
+  test("a missed free-response answer can be revised once", () => {
+    assert.equal(offerRevision("open", miss, null), true);
+    assert.equal(offerRevision("open", miss, undefined), true);
+    assert.equal(offerRevision("open", miss, { verdict: "incorrect" }), false, "already revised");
+    assert.equal(offerRevision("open", { ...miss, assistReason: "retry" }, null), false, "a revision isn't revised");
+    assert.equal(offerRevision("open", { ...miss, verdict: "correct" }, null), false);
+    assert.equal(offerRevision("open", { ...miss, attemptId: null }, null), false, "no id, nothing to point at");
+    assert.equal(offerRevision("mc", miss, null), false, "the key is already on screen for multiple choice");
+    assert.equal(offerPbqRevision(miss, null), true);
+    assert.equal(offerPbqRevision(miss, miss), false);
+  });
+  test("starting a revision keeps the first result and the answer, and makes the next submit a new attempt", () => {
+    const s = {
+      mode: "open" as const,
+      picked: null,
+      openAnswer: "my draft",
+      clientAttemptId: "c-1",
+      sentSignature: "open:my draft",
+      result: { verdict: "partial", feedback: "f", missedParts: [] },
+    };
+    const r = startRevision(s);
+    assert.equal(r.openAnswer, "my draft");
+    assert.equal(r.result, null);
+    assert.deepEqual(r.firstResult, s.result);
+    assert.equal(r.clientAttemptId, null);
+    assert.equal(r.sentSignature, null);
+  });
+  test("the copy says plainly it won't raise the level, like Try again", () => {
+    assert.match(REVISE_NOTE, /won't raise your level; a new question will/);
+    assert.match(assistNote("retry") ?? "", /won't raise your level; a new question will/);
+  });
+});
 
 const graded = (verdict: string) => ({ result: { verdict, feedback: "", missedParts: [] as string[] } });
 
@@ -76,7 +140,8 @@ describe("choiceMarks", () => {
 
 describe("describeMark", () => {
   test("every mark has visible text and a screen-reader label, not colour alone", () => {
-    assert.deepEqual(describeMark("picked-incorrect"), { tag: "Your answer - incorrect", a11y: "Your answer, incorrect", tone: "bad" });
+    // REQ-105: a missed pick is calm ("warn"), not red, and still says plainly it wasn't right.
+    assert.deepEqual(describeMark("picked-incorrect"), { tag: "Your answer - not this one", a11y: "Your answer, not correct", tone: "warn" });
     assert.deepEqual(describeMark("picked-correct"), { tag: "Your answer - correct", a11y: "Your answer, correct", tone: "good" });
     assert.deepEqual(describeMark("correct-answer"), { tag: "Correct answer", a11y: "Correct answer", tone: "good" });
     assert.equal(describeMark("none"), null);
