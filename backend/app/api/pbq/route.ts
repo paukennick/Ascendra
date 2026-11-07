@@ -1,7 +1,7 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
-import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
-import { pbqGenerationPrompt, gradePBQPrompt, type PBQScenario, type GradeResult } from "@/lib/prompts";
+import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, gradeResultSchema } from "@/lib/prompts";
 import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario } from "@/lib/visibility";
@@ -64,17 +64,25 @@ export async function GET(req: Request) {
       unitObjectives: objectives.map((o) => o.title),
       ctx: ctx ?? undefined,
     });
-    const generated = await callClaudeJSON<PBQScenario>({
+    // The model that generates is the model that gets recorded: this used to
+    // store getModel() (Sonnet) although the fast model wrote the scenario.
+    const generationModel = getFastModel();
+    const generated = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
+      schema: pbqScenarioSchema,
       maxTokens: 1200,
-      model: getFastModel(),
+      model: generationModel,
+      effort: "low",
+      thinking: "off",
+      purpose: "pbq_generate",
+      userId: authUser.id,
     });
 
     const rows = await query(
       `insert into pbq_scenarios (unit_id, title, scenario, sub_parts, model)
        values ($1,$2,$3,$4,$5) returning *`,
-      [unitId, generated.title, generated.scenario, JSON.stringify(generated.subParts), process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5"]
+      [unitId, generated.title, generated.scenario, JSON.stringify(generated.subParts), generationModel]
     );
     return ok({ scenario: rows[0], cached: false });
   } catch (err) {
@@ -131,11 +139,16 @@ export async function POST(req: Request) {
       answer,
       ctx: ctx ?? undefined,
     });
-    const graded = await callClaudeJSON<GradeResult>({
+    const graded = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
+      schema: gradeResultSchema,
       maxTokens: 900,
       model: getFastModel(),
+      effort: "high",
+      thinking: "off",
+      purpose: "pbq_grade",
+      userId: authUser.id,
     });
 
     // Two requests with the same id can race past the check above; the

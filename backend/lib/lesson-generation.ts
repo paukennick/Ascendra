@@ -84,13 +84,24 @@ export async function loadObjective(objectiveId: string): Promise<ObjectiveRow |
 // What a generation produces. Injected so the storage, claim and selection
 // rules can be tested without the model (lib/lesson-regen.dbtest.ts).
 export interface LessonGenerator {
-  intro(objRow: ObjectiveRow, avoid?: LessonAvoid): Promise<LessonIntroContent>;
-  practice(objRow: ObjectiveRow, avoid?: LessonAvoid): Promise<LessonPracticeContent>;
+  intro(objRow: ObjectiveRow, avoid?: LessonAvoid, meta?: GenerateMeta): Promise<LessonIntroContent>;
+  practice(objRow: ObjectiveRow, avoid?: LessonAvoid, meta?: GenerateMeta): Promise<LessonPracticeContent>;
   model(): string;
 }
 
+// Who a generation is for, for ai_calls. Only a regenerate is attributable to
+// one learner; the first (shared) generation serves everyone.
+export interface GenerateMeta {
+  userId?: string;
+}
+
+// Lessons: Sonnet, effort "medium", thinking off. See lib/anthropic.ts
+// (modelParams) for why thinking is off -- adaptive thinking ate the
+// max_tokens budget on a verbose real objective (no text block at all,
+// stop_reason max_tokens, blocks=[thinking]). This is content generation
+// against a fixed schema, not a reasoning task.
 export const claudeGenerator: LessonGenerator = {
-  async intro(objRow, avoid) {
+  async intro(objRow, avoid, meta) {
     const { system, user } = lessonIntroPrompt({
       trackTitle: objRow.track_title,
       unitTitle: objRow.unit_title,
@@ -103,17 +114,14 @@ export const claudeGenerator: LessonGenerator = {
       messages: [{ role: "user", content: user }],
       schema: lessonIntroSchema,
       maxTokens: 4000,
-      temperature: 1,
-      // See lib/anthropic.ts: Sonnet 5 runs adaptive thinking by default even
-      // when never asked for, and its budget counts against max_tokens
-      // unpredictably -- caused a real 500 on a verbose real objective (no
-      // text block at all, stop_reason max_tokens, blocks=[thinking]) during
-      // testing. This is deterministic content generation, not a reasoning
-      // task, so thinking buys nothing here and only eats the token budget.
-      disableThinking: true,
+      model: getModel(),
+      effort: "medium",
+      thinking: "off",
+      purpose: "lesson_intro",
+      userId: meta?.userId,
     });
   },
-  async practice(objRow, avoid) {
+  async practice(objRow, avoid, meta) {
     const { system, user } = lessonPracticePrompt({
       trackTitle: objRow.track_title,
       unitTitle: objRow.unit_title,
@@ -126,8 +134,11 @@ export const claudeGenerator: LessonGenerator = {
       messages: [{ role: "user", content: user }],
       schema: lessonPracticeSchema,
       maxTokens: 6000,
-      temperature: 1,
-      disableThinking: true,
+      model: getModel(),
+      effort: "medium",
+      thinking: "off",
+      purpose: "lesson_practice",
+      userId: meta?.userId,
     });
   },
   model: getModel,
@@ -156,7 +167,7 @@ export interface GenerationOptions {
 const DEFAULT_WAIT_MS = 90_000;
 const DEFAULT_POLL_MS = 1_000;
 
-// A full generation (intro, then practice+save) already in flight IN THIS
+// A full generation (intro and practice in parallel, then save) already in flight IN THIS
 // PROCESS, keyed by objective and scope (shared first generation, or one
 // learner's regenerate) so ANY second caller -- a real GET/POST, a second
 // prefetch call, a double-tapped regenerate -- awaits the same generation
@@ -235,9 +246,21 @@ async function runGeneration(
             return done;
           }
         }
-        const intro = await gen.intro(objRow, avoid);
+        // The two halves are independent (the practice prompt never sees the
+        // intro's output), so both calls start now and wall time is the slower
+        // of the two instead of their sum. The intro is still handed to the
+        // caller the moment it exists, ahead of the practice half.
+        const meta: GenerateMeta = { userId: scope.kind === "user" ? scope.userId : undefined };
+        const introCall = gen.intro(objRow, avoid, meta);
+        const practiceCall = gen.practice(objRow, avoid, meta);
+        // Whichever call is not being awaited when the other fails must not
+        // become an unhandled rejection. (If the intro fails, the practice
+        // call is already in flight; its result is discarded.)
+        introCall.catch(() => {});
+        practiceCall.catch(() => {});
+        const intro = await introCall;
         settleIntro(intro);
-        const practice = await gen.practice(objRow, avoid);
+        const practice = await practiceCall;
         return await saveLesson(scope, objectiveId, { ...intro, ...practice }, gen.model());
       } finally {
         // Success or failure: release so a waiter can proceed immediately

@@ -61,8 +61,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       messages: [{ role: "user", content: userPrompt }],
       schema: guessFeedbackSchema,
       maxTokens: 500,
-      disableThinking: true,
       model: getFastModel(),
+      effort: "low",
+      thinking: "off",
+      purpose: "guess_feedback",
+      userId: user.id,
     });
 
     return ok({ feedback });
