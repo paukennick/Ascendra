@@ -67,6 +67,8 @@ export async function GET(req: Request) {
   }
 }
 
+const COURSE_TEXT_LIMITS = { code: 50, title: 120, description: 4_000 } as const;
+
 // POST /api/courses — create a taxonomy-aligned course.
 export async function POST(req: Request) {
   try {
@@ -92,6 +94,18 @@ export async function POST(req: Request) {
       return badRequest(
         "code, title, trackType, and subcategoryId are required",
       );
+    }
+    // Audit 3 M3 (FAIL-298): a 300-character title was a 500 from the
+    // varchar(255) column, and the title reaches the coach's prompts (quoted
+    // as data by lib/prompts.ts quoteTitle). Validated as text, 400 on failure.
+    for (const [value, name, max, required] of [
+      [code, "code", COURSE_TEXT_LIMITS.code, true],
+      [title, "title", COURSE_TEXT_LIMITS.title, true],
+      [description, "description", COURSE_TEXT_LIMITS.description, false],
+    ] as const) {
+      const t = textField(value, name, max, { required });
+      if (!t.ok) return badRequest(t.error);
+      if (required && !t.value.trim()) return badRequest(`${name} is required`);
     }
     if (!TRACK_TYPES.has(trackType)) return badRequest("invalid trackType");
     if (freshnessModel && !FRESHNESS_MODELS.has(freshnessModel)) {
@@ -142,8 +156,8 @@ export async function POST(req: Request) {
        returning *`,
       [
         user.id,
-        code,
-        title,
+        code.trim(),
+        title.replace(/\s+/g, " ").trim(),
         description ?? null,
         trackType,
         subcategoryId,

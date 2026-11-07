@@ -3700,6 +3700,40 @@
       ]
     },
     {
+      "id": "REQ-115",
+      "category": "security",
+      "title": "Audit 3 AI layer: coach guard, grading consistency, content validation, AI cost ceiling, caching, live evals",
+      "description": "Fix the Audit 3 AI-lens findings: H1 chat fence uses the graders' shared escaping; H2 coach guard keeps items in play for several turns, matches acronyms/aliases/option letters/positions/spelled and backwards keys, and runs a fast-model 'does this reply give item X away?' check before sending, with the server-written hint as fallback; H3 every open item is loaded and checked (no row caps), multiple-response keys aggregated per question, exam questions matchable by number, and the coach closes during an in-progress timed mock; H4 chat history capped at ~8K estimated tokens and a per-learner daily AI budget from ai_calls (chat and lesson regenerate, env AI_DAILY_BUDGET_USD, default 0.50); M1 verdicts reconciled with the grader's own missedParts/part scores/rubric and trivial answers graded incorrect without a model call (grade, PBQ, explain-back, unit check, lab, review); M2/L2 one validator for lessons and Quiz-me items with one regenerate then a clean 503; M3 private course titles validated (120 chars, 400) and quoted as escaped data in prompts; M4 per-request blocks after cached history, history trimmed in fixed chunks, stable block padded above 512 tokens; M5 grading eval passes reference answers, live-eval runners for PBQ/unit-check/explain-back/coach-guard/title/generation/cache with a cost tally and hard stop, and a workflow_dispatch live-evals workflow; L1 PBQ-style and explain-back output caps 1500 with the unit check on the per-part schema; adversary findings 7 (model failures are 503) and 8 (regenerations under the daily budget). Migration 043 (ai_calls user/created index) with probe.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Each finding has a test that fails on fc85fb1",
+        "Fresh DB migrate --all/--status/seed and test:db pass",
+        "Backend and mobile unit tests and tsc pass",
+        "live-evals.yml validates (schema + actionlint) and the runners dry-run with the mock"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "npm run eval:live -- --mock",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/.env.example",
+        ".github/workflows/live-evals.yml header"
+      ],
+      "risk_notes": [
+        "The daily budget blocks chat and regenerate for a learner who exceeds it; default 0.50 USD is about 3x a heavy day and env-tunable",
+        "Trivial-answer rule marks one-word answers incorrect unless they match the answer key; a correct one-word synonym not in the key is marked incorrect",
+        "The reply judge fails open (text check only) if the fast model errors",
+        "Moving per-request blocks into the user turn lowers their authority slightly versus the system prompt; guardrails tell the model to follow the server_note"
+      ]
+    },
+    {
       "id": "REQ-116",
       "category": "security",
       "title": "Audit 3 security fixes",

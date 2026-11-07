@@ -1,7 +1,8 @@
 import { query, queryOne } from "@/lib/db";
+import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, pbqGradeResultSchema, normalizePartScores } from "@/lib/prompts";
+import { pbqGenerationPrompt, pbqScenarioSchema } from "@/lib/prompts";
 import {
   findClientAttempt,
   isDuplicateRetry,
@@ -205,34 +206,18 @@ export async function POST(req: Request) {
     }
 
     const ctx = await coachContextForUnit(unitId);
-    const { system, user } = gradePBQPrompt({
+    // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
+    // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
+    const { parts: _parts, partScores, trivial: _trivial, ...grade } = await gradePbqAnswer({
       scenario: scenario.scenario,
       subParts: scenario.sub_parts,
       answer,
       revisionOf: revisedParts,
       ctx: ctx ?? undefined,
-    });
-    const graded = await callClaudeStructured({
-      system,
-      messages: [{ role: "user", content: user }],
-      schema: pbqGradeResultSchema,
-      // REQ-105: +300 headroom for the model answer (one line per sub-part)
-      // and fixNext; REQ-107: +300 for the per-part scores. max_tokens is a
-      // ceiling, not a cost.
-      maxTokens: 1500,
-      model: getFastModel(),
-      effort: "high",
-      thinking: "off",
-      purpose: "pbq_grade",
       userId: authUser.id,
+      purpose: "pbq_grade",
     });
-
-    // REQ-107: a score per sub-part, lined up with the scenario's own labels
-    // (null when the grader's list can't be matched; the app then falls back
-    // to missedParts). REQ-112 (j): stored with the attempt, so a replay
-    // returns them too.
-    const { parts, ...grade } = graded;
-    const partScores = normalizePartScores(scenario.sub_parts, parts, graded.missedParts ?? []);
+    const graded = grade;
 
     // Two requests with the same id can race past the check above; the
     // unique index fails the slower one and it returns the winner's result.

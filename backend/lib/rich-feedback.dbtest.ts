@@ -184,7 +184,7 @@ describe("model answer", () => {
     const u = await newUser();
     next = { verdict: "partial", missedParts: [] };
     const id = randomUUID();
-    const r = await grade(u, { clientAttemptId: id, format: "open", stage: "fade", objectiveId: objs[2], answer: "half" });
+    const r = await grade(u, { clientAttemptId: id, format: "open", stage: "fade", objectiveId: objs[2], answer: "half of it" });
     assert.equal(r.body.modelAnswer, "MODEL-ANSWER");
     assert.equal(r.body.fixNext, "FIX-NEXT");
     const row = await queryOne<{ model_answer: string; fix_next: string }>(
@@ -192,7 +192,7 @@ describe("model answer", () => {
       [r.body.attempt.id]
     );
     assert.deepEqual(row, { model_answer: "MODEL-ANSWER", fix_next: "FIX-NEXT" });
-    const replay = await grade(u, { clientAttemptId: id, format: "open", stage: "fade", objectiveId: objs[2], answer: "half" });
+    const replay = await grade(u, { clientAttemptId: id, format: "open", stage: "fade", objectiveId: objs[2], answer: "half of it" });
     assert.equal(replay.body.modelAnswer, "MODEL-ANSWER");
     assert.equal(replay.body.fixNext, "FIX-NEXT");
   });
@@ -236,7 +236,7 @@ describe("revise once after a miss", () => {
   test("a missed revision does not schedule the item a second time", async () => {
     const u = await newUser();
     next = { verdict: "incorrect", missedParts: [] };
-    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[4], answer: "no" });
+    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[4], answer: "a wrong guess" });
     const rev = await grade(u, { format: "open", stage: "fade", objectiveId: objs[4], answer: "still no", retryOf: miss.body.attempt.id });
     assert.equal(rev.status, 200);
     assert.equal(rev.body.verdict, "incorrect");
@@ -246,13 +246,13 @@ describe("revise once after a miss", () => {
   test("refuses a revision of a correct answer, another learner's answer, another question, or a multiple-choice answer", async () => {
     const u = await newUser();
     const other = await newUser();
-    const right = await grade(u, { format: "open", stage: "fade", objectiveId: objs[5], answer: "yes" });
+    const right = await grade(u, { format: "open", stage: "fade", objectiveId: objs[5], answer: "yes, this one" });
     assert.equal(
       (await grade(u, { format: "open", stage: "fade", objectiveId: objs[5], answer: "x", retryOf: right.body.attempt.id })).status,
       400
     );
     next = { verdict: "incorrect", missedParts: [] };
-    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[5], answer: "no" });
+    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[5], answer: "a wrong guess" });
     assert.equal(
       (await grade(other, { format: "open", stage: "fade", objectiveId: objs[5], answer: "x", retryOf: miss.body.attempt.id })).status,
       404
@@ -271,7 +271,7 @@ describe("revise once after a miss", () => {
   test("two revisions racing record exactly one", async () => {
     const u = await newUser();
     next = { verdict: "incorrect", missedParts: [] };
-    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[6], answer: "no" });
+    const miss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[6], answer: "a wrong guess" });
     const [a, b] = await Promise.all([
       grade(u, { format: "open", stage: "fade", objectiveId: objs[6], answer: "r1", retryOf: miss.body.attempt.id }),
       grade(u, { format: "open", stage: "fade", objectiveId: objs[6], answer: "r2", retryOf: miss.body.attempt.id }),
@@ -314,7 +314,7 @@ describe("revise once after a miss", () => {
   test("a PBQ revision of a lesson attempt, or of another scenario's attempt, is refused", async () => {
     const u = await newUser();
     next = { verdict: "incorrect", missedParts: [] };
-    const lessonMiss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[7], answer: "no" });
+    const lessonMiss = await grade(u, { format: "open", stage: "fade", objectiveId: objs[7], answer: "a wrong guess" });
     assert.equal((await pbq(u, { answer: "x", retryOf: lessonMiss.body.attempt.id })).status, 400);
   });
 });

@@ -1,3 +1,4 @@
+import { AnthropicError, APIError } from "@anthropic-ai/sdk";
 import { query } from "@/lib/db";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
@@ -35,6 +36,8 @@ export type AiPurpose =
   | "explain_back"
   // REQ-110: one shared "Quiz me" question per objective (lib/coach-quiz.ts).
   | "coach_quiz"
+  // Audit 3 H2: the fast-model check of a coach reply against open items.
+  | "coach_guard"
   // REQ-108: Today's review and unit checks.
   | "review_generate"
   | "review_grade"
@@ -47,7 +50,14 @@ export type AiPurpose =
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"
-  | "eval_grading";
+  | "eval_grading"
+  // Audit 3 M5: the live-eval runners (scripts/eval/live.ts).
+  | "eval_guard"
+  | "eval_pbq"
+  | "eval_unitcheck"
+  | "eval_explain_back"
+  | "eval_generation"
+  | "eval_cache";
 
 export interface AiCallMeta {
   purpose: AiPurpose;
@@ -87,6 +97,26 @@ export class AiResponseError extends Error {
     super(message);
     this.name = "AiResponseError";
   }
+}
+
+// Adversary audit finding 7 (FAIL-307): a model reply that was empty, had no
+// text block, or failed the structured-output schema -- or the provider
+// being overloaded, rate-limited or unreachable -- came back to the learner
+// as a generic 500. These are transient and not the learner's doing, so
+// lib/http.ts serverError answers them with a 503 and MODEL_UNAVAILABLE.
+// A 4xx from the API for a request WE built wrong (400, 401, 403, 404) stays
+// a 500: retrying will not fix it, and it should page someone.
+export const MODEL_UNAVAILABLE =
+  "The AI coach couldn't give a usable answer just now. Nothing was lost -- please try again in a moment.";
+
+export function isTransientModelFailure(err: unknown): boolean {
+  if (err instanceof AiResponseError) return true;
+  if (err && typeof err === "object" && (err as { name?: unknown }).name === "ZodError") return true;
+  if (err instanceof APIError) {
+    const status = err.status;
+    return status === undefined || status === 408 || status === 429 || status >= 500;
+  }
+  return err instanceof AnthropicError;
 }
 
 const ERROR_CODE_MAX = 80;

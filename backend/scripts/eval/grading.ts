@@ -16,6 +16,8 @@
 //   --model <id>         grade with this model instead of ANTHROPIC_FAST_MODEL / the default
 //   --domain <name>      only cases in that domain (security-plus, aws-saa, ccrn, pt)
 //   --concurrency <k>    cases in flight at once (default 4)
+//   --reference <mode>   with (default; what production does: it always passes the
+//                        lesson's answer key) | without | both (two runs, compared)
 //   --dry-run            validate the cases file and print counts; needs no API key
 import "../../supabase/seed/env-local";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -23,8 +25,8 @@ import { join, resolve } from "node:path";
 import { closePool } from "../../lib/db";
 import { getFastModel } from "../../lib/anthropic";
 import { gradeFreeResponse } from "../../lib/free-response-grader";
-import { aggregateGrading, parseGradingCases } from "./scoring";
-import { runGradingEval } from "./runner";
+import { aggregateGrading, gradeOutputProblems, parseGradingCases } from "./scoring";
+import { referenceRuns, runGradingEval, type ReferenceMode } from "./runner";
 import { makeRunDir, pct, renderGradingSummary } from "./report";
 
 process.env.AI_CALL_LOG = "off";
@@ -32,7 +34,7 @@ process.env.AI_CALL_LOG = "off";
 const BACKEND_ROOT = resolve(__dirname, "../..");
 
 function parseArgs(argv: string[]) {
-  const a = { cases: join(__dirname, "grading-cases.json"), model: undefined as string | undefined, domain: undefined as string | undefined, concurrency: 4, dryRun: false };
+  const a = { cases: join(__dirname, "grading-cases.json"), model: undefined as string | undefined, domain: undefined as string | undefined, concurrency: 4, dryRun: false, reference: "with" as ReferenceMode };
   const need = (i: number, flag: string): string => {
     const v = argv[i + 1];
     if (!v || v.startsWith("--")) throw new Error(`${flag} needs a value.`);
@@ -46,6 +48,12 @@ function parseArgs(argv: string[]) {
       case "--domain": a.domain = need(i++, flag); break;
       case "--concurrency": a.concurrency = Number(need(i++, flag)); break;
       case "--dry-run": a.dryRun = true; break;
+      case "--reference": {
+        const v = need(i++, flag);
+        if (v !== "with" && v !== "without" && v !== "both") throw new Error("--reference must be with, without or both.");
+        a.reference = v;
+        break;
+      }
       default: throw new Error(`Unknown option ${flag}. See the usage comment at the top of scripts/eval/grading.ts.`);
     }
   }
@@ -74,33 +82,39 @@ async function main() {
   const runDir = makeRunDir(BACKEND_ROOT, "grading");
   console.log(`Grading with ${model}. Output: ${runDir}`);
 
-  const records = await runGradingEval(cases, {
-    concurrency: args.concurrency,
-    grade: (c) =>
-      gradeFreeResponse({
-        taughtText: c.taughtText,
-        question: c.question,
-        answer: c.answer,
-        ctx: c.track,
-        model,
-        purpose: "eval_grading",
-      }),
-    onProgress(done, total, rec) {
-      const status = rec.error ? "ERROR   " : rec.score!.verdictMatch ? "agree   " : "DISAGREE";
-      const got = rec.output ? `${rec.output.verdict} (expected ${rec.case.expectedVerdict})` : rec.error;
-      console.log(`[${String(done).padStart(String(total).length)}/${total}] ${status} ${rec.case.id}: ${got}`);
-    },
-  });
+  for (const withRef of referenceRuns(args.reference)) {
+    const label = withRef ? "with-reference" : "without-reference";
+    console.log(`\n== ${label} ==`);
+    const records = await runGradingEval(cases, {
+      concurrency: args.concurrency,
+      grade: (c) =>
+        gradeFreeResponse({
+          taughtText: c.taughtText,
+          question: c.question,
+          answer: c.answer,
+          answerKey: withRef ? c.referenceAnswer : undefined,
+          ctx: c.track,
+          model,
+          purpose: "eval_grading",
+        }),
+      onProgress(done, total, rec) {
+        const status = rec.error ? "ERROR   " : rec.score!.verdictMatch ? "agree   " : "DISAGREE";
+        const got = rec.output ? `${rec.output.verdict} (expected ${rec.case.expectedVerdict})` : rec.error;
+        const bad = rec.output ? gradeOutputProblems(rec.output) : [];
+        console.log(`[${String(done).padStart(String(total).length)}/${total}] ${status} ${rec.case.id}: ${got}${bad.length ? `  INCONSISTENT: ${bad.join(", ")}` : ""}`);
+      },
+    });
 
-  const summary = aggregateGrading(records);
-  const meta = { kind: "grading" as const, startedAt, models: { grader: model }, note: raw._status };
-  writeFileSync(join(runDir, "grading-results.json"), JSON.stringify({ meta, summary, records }, null, 2));
-  writeFileSync(join(runDir, "grading-summary.md"), renderGradingSummary(summary, meta));
+    const summary = aggregateGrading(records);
+    const meta = { kind: "grading" as const, startedAt, models: { grader: model }, note: `${raw._status ?? ""} (${label})` };
+    writeFileSync(join(runDir, `grading-results-${label}.json`), JSON.stringify({ meta, summary, records }, null, 2));
+    writeFileSync(join(runDir, `grading-summary-${label}.md`), renderGradingSummary(summary, meta));
 
-  console.log(`\nVerdict agreement: ${pct(summary.verdictAgreement)} (${summary.verdictAgreement.pass}/${summary.verdictAgreement.total}); ${summary.errors} errored.`);
-  console.log(`Too lenient: ${summary.tooLenient}, too harsh: ${summary.tooHarsh}`);
-  console.log(`Missed-parts present/absent agreement: ${pct(summary.missedPresenceAgreement)}; expected parts also listed: ${pct(summary.missedRecall.mean)}`);
-  if (summary.disagreements.length) console.log(`Read these first: ${summary.disagreements.join(", ")}`);
+    console.log(`\nVerdict agreement: ${pct(summary.verdictAgreement)} (${summary.verdictAgreement.pass}/${summary.verdictAgreement.total}); ${summary.errors} errored.`);
+    console.log(`Too lenient: ${summary.tooLenient}, too harsh: ${summary.tooHarsh}`);
+    console.log(`Missed-parts present/absent agreement: ${pct(summary.missedPresenceAgreement)}; expected parts also listed: ${pct(summary.missedRecall.mean)}`);
+    if (summary.disagreements.length) console.log(`Read these first: ${summary.disagreements.join(", ")}`);
+  }
   console.log(`\nResults: ${runDir}`);
 }
 

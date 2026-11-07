@@ -3,6 +3,7 @@ import { factCheckGate } from "@/lib/fact-check";
 import { recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import { generateValid, InvalidContentError, quizItemProblems } from "@/lib/content-validator";
 import { coachQuizPrompt, coachQuizSchema, type CoachQuizItem } from "@/lib/prompts";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -208,7 +209,8 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     objectiveTitle: o.title,
     ctx: ctx ?? undefined,
   });
-  return callClaudeStructured({
+  // Audit 3 M2: checked before it is stored and shared; regenerated once.
+  return generateValid("quiz question", () => callClaudeStructured({
     system,
     messages: [{ role: "user", content: user }],
     schema: coachQuizSchema,
@@ -218,7 +220,7 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     thinking: "off",
     purpose: "coach_quiz",
     userId,
-  });
+  }), quizItemProblems);
 };
 
 export const QUIZ_HELD_MESSAGE =
@@ -299,6 +301,9 @@ export async function nextQuizTurn(
     if (!Array.isArray(made.choices) || made.choices.length !== 4 || made.correctIndex < 0 || made.correctIndex > 3) {
       throw new Error("quiz item has the wrong shape");
     }
+    // Audit 3 M2: whatever generated it, nothing invalid is stored.
+    const problems = quizItemProblems(made);
+    if (problems.length) throw new InvalidContentError("quiz question", problems);
     // REQ-114 (Audit 3 H1 + recommendation 1): never share a question its
     // writer was unsure of, or that an independent answer disagrees with.
     await gateQuizItem(target.objectiveId, target.title, made, userId);

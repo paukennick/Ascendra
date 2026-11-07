@@ -43,7 +43,13 @@ const QUIZ_ITEM = {
   explanation: "CTR encrypts a counter per block, which makes it a stream cipher.",
 };
 
-type Body = { system: Array<{ text: string }>; messages: unknown[] };
+type Body = { system: Array<{ text: string }>; messages: Array<{ role: string; content: string | Array<{ text: string }> }> };
+// Audit 3 M4: per-request blocks (open items, learner profile) ride in the
+// newest user turn, after the cached history, not in the system task block.
+const lastTurn = (b: Body) => {
+  const c = b.messages[b.messages.length - 1].content;
+  return typeof c === "string" ? c : c.map((x) => x.text).join("");
+};
 const created: Body[] = [];
 const parsed: Body[] = [];
 
@@ -146,14 +152,17 @@ describe("learner-aware coach (REQ-110, research #8)", () => {
     await json(await chatPost(req(u, "/api/chat", "POST", { trackId: track, message: "help me" })));
     assert.equal(created.length, 1);
     const [stable, task] = created[0].system.map((s) => s.text);
-    assert.match(task, /<learner_profile>\nWeakest objectives right now:\n1\. Objective 2 \(unit: Ciphers\) - Needs review, weighted accuracy 0%/);
-    assert.match(task, /Recent kinds of mistake: misconception \(2\)/);
+    const turn = lastTurn(created[0]);
+    assert.ok(!task.includes("learner_profile"), "not in the system blocks, which stay cacheable");
+    assert.match(turn, /<server_note>[\s\S]*<learner_profile>\nWeakest objectives right now:\n1\. Objective 2 \(unit: Ciphers\) - Needs review, weighted accuracy 0%/);
+    assert.match(turn, /Recent kinds of mistake: misconception \(2\)/);
     assert.ok(!stable.includes("learner_profile") && !stable.includes("Objective 2"));
 
     const fresh = await newUser();
     await json(await chatPost(req(fresh, "/api/chat", "POST", { trackId: track, message: "hi" })));
     assert.equal(created[1].system[0].text, stable, "same cached prefix for every learner");
-    assert.ok(!created[1].system[1].text.includes("learner_profile"), "nothing to say about a new learner");
+    assert.equal(created[1].system[1].text, task, "the task block is the same for every learner on the track");
+    assert.ok(!lastTurn(created[1]).includes("learner_profile"), "nothing to say about a new learner");
   });
 });
 
@@ -198,8 +207,8 @@ describe("Quiz me on my weak spots", () => {
 
     // While the question is open, "Ask the coach" holds it back too.
     await json(await chatPost(req(u, "/api/chat", "POST", { trackId: track, message: "which mode numbers each block with a counter?" })));
-    assert.match(created.at(-1)!.system[1].text, /\[Quiz me question, not answered yet\] Objective 3: Which mode numbers/);
-    assert.ok(!created.at(-1)!.system[1].text.includes("Counter mode CTR"));
+    assert.match(lastTurn(created.at(-1)!), /\[Quiz me question, not answered yet\] Objective 3: Which mode numbers/);
+    assert.ok(!JSON.stringify(created.at(-1)).includes("Counter mode CTR"));
 
     const a2 = await json(await quizAnswerPost(req(u, "/api/coach/quiz/answer", "POST", { turnId: turn.id, choice: wrong[1] })));
     assert.match(a2.message, /not the one that chains/);

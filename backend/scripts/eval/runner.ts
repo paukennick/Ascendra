@@ -95,3 +95,12 @@ export async function runGradingEval(cases: GradingCase[], deps: GradingEvalDeps
     return rec;
   });
 }
+
+// Audit 3 M5 (FAIL-302): the eval never passed the reference answer, but
+// production always does (POST /api/grade sends the lesson's correct option
+// and why), so it measured a different grader. Cases now carry
+// referenceAnswer, and --reference picks whether it is sent.
+export type ReferenceMode = "with" | "without" | "both";
+export function referenceRuns(mode: ReferenceMode): boolean[] {
+  return mode === "both" ? [false, true] : [mode === "with"];
+}

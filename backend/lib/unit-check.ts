@@ -1,7 +1,8 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { gradePBQPrompt, normalizePartScores, pbqGradeResultSchema } from "@/lib/prompts";
+import { normalizePartScores } from "@/lib/prompts";
+import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
@@ -205,21 +206,17 @@ export async function gradeUnitCheck(
     throw err;
   }
   const ctx = await coachContextForUnit(status.unitId);
-  const { system, user } = gradePBQPrompt({ scenario: item.scenario, subParts: item.sub_parts, answer, ctx: ctx ?? undefined });
-  // REQ-113 (Audit 3 mobile H2): graded per sub-part like a PBQ (REQ-107).
-  // With only missedParts the app had to match label text, so a reworded or
-  // "Part 2:"-prefixed label showed a missed part as covered next to a
-  // failing verdict. +300 tokens for the per-part list, as on /api/pbq.
-  const graded = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: pbqGradeResultSchema,
-    maxTokens: 1200,
-    model: getFastModel(),
-    effort: "high",
-    thinking: "off",
-    purpose: "unitcheck_grade",
+  // Audit 3 M1/L1: the shared multi-part grader (lib/pbq-grading.ts) -- the
+  // PBQ prompt with its matching per-part schema and a 1,500-token cap,
+  // trivial answers graded without a call, verdicts checked against the
+  // part scores.
+  const { trivial: _trivial, ...graded } = await gradePbqAnswer({
+    scenario: item.scenario,
+    subParts: item.sub_parts,
+    answer,
+    ctx: ctx ?? undefined,
     userId,
+    purpose: "unitcheck_grade",
   });
   const { parts, ...grade } = graded;
   // Lined up with the check's own labels; null when the grader's list can't

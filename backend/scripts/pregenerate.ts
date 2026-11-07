@@ -32,6 +32,7 @@ import { loadObjective } from "../lib/lesson-generation";
 import { saveLesson } from "../lib/lesson-store";
 import { factCheckGate } from "../lib/fact-check";
 import { recordHoldback, uncertaintyOf } from "../lib/item-quality";
+import { lessonIntroProblems, lessonPracticeProblems } from "../lib/content-validator";
 import {
   estimateCost,
   pairBatchResults,
@@ -129,6 +130,15 @@ async function collect(batchId: string) {
   let kept = 0;
   let held = 0;
   for (const l of lessons) {
+    // REQ-106: the batch returns cards; the flat teach text is derived.
+    const intro = introFromModel(l.intro);
+    // Audit 3 M2: a lesson that fails the content check is not stored; the
+    // app generates (and checks) it on first visit instead.
+    const problems = [...lessonIntroProblems(intro), ...lessonPracticeProblems(l.practice)];
+    if (problems.length) {
+      failed.push({ objectiveId: l.objectiveId, reason: `content check: ${problems.slice(0, 3).join(" ")}` });
+      continue;
+    }
     // REQ-114: the same hold-back and fact-check as an on-demand shared
     // lesson. A held lesson is not saved; the app generates it on first
     // visit (with its one retry).
@@ -156,8 +166,7 @@ async function collect(batchId: string) {
       continue;
     }
     const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
-    // REQ-106: the batch returns cards; the flat teach text is derived.
-    await saveLesson({ kind: "shared" }, l.objectiveId, { ...introFromModel(l.intro), ...l.practice }, model);
+    await saveLesson({ kind: "shared" }, l.objectiveId, { ...intro, ...l.practice }, model);
     if (before.length) kept++;
     else saved++;
   }

@@ -167,14 +167,14 @@ export default function Privacy() {
           study history, milestones, exam results, support requests and MFA credentials.
         </Body>
         <Body>
-          Short-lived tokens stop working after they expire (hours to a day), but the expired
-          records are not yet purged automatically; they are deleted with your account.
+          Short-lived tokens stop working after they expire (hours to a day). Expired and revoked
+          token records are deleted automatically after 90 days, and with your account.
         </Body>
         <Body>
           Sign-in and rate-limit records (the email address or account ID used, IP address and
-          time) and the AI request counts in section 5 are kept after an account is deleted, with
-          the link to the account removed. We don't yet purge them on a schedule. [Retention period
-          to confirm.]
+          time) are deleted automatically after 90 days, and straight away when you delete your
+          account. The AI request counts in section 5 are kept after an account is deleted, with
+          the link to the account removed. [Retention period for AI request counts to confirm.]
         </Body>
       </Section>
 

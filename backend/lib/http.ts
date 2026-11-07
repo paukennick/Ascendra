@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { isTransientModelFailure, MODEL_UNAVAILABLE } from "@/lib/ai-calls";
 
 export function ok(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -85,6 +86,11 @@ export function serverError(err: unknown) {
     // eslint-disable-next-line no-console
     console.error(`[request ${requestId}] client input refused by the database`, code);
     return NextResponse.json({ error: INVALID_INPUT, requestId }, { status: 400 });
+  }
+  if (isTransientModelFailure(err)) {
+    // eslint-disable-next-line no-console
+    console.warn(`[request ${requestId}] model failure:`, (err as Error)?.message?.slice(0, 300));
+    return NextResponse.json({ error: MODEL_UNAVAILABLE, requestId, retryable: true }, { status: 503 });
   }
   // eslint-disable-next-line no-console
   console.error(`[request ${requestId}]`, err);
