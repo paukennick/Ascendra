@@ -28,7 +28,11 @@ type MfaMethod = "totp" | "email";
 export default function MfaSettings() {
   const router = useRouter();
   const navigation = useNavigation();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, status } = useAuth();
+  // Read inside the beforeRemove listener: a sign-out or lock must never be
+  // held back by the leave guard.
+  const statusRef = useRef(status);
+  statusRef.current = status;
   const [view, setView] = useState<MfaView>("status");
 
   // REQ-093: leaving with backup codes on screen loses them for good (they
@@ -43,7 +47,7 @@ export default function MfaSettings() {
   const allowLeave = useRef(false);
   useEffect(() => {
     return navigation.addListener("beforeRemove", (e) => {
-      const guard = mfaLeaveGuard(viewRef.current, allowLeave.current);
+      const guard = mfaLeaveGuard(viewRef.current, allowLeave.current, statusRef.current === "signedIn");
       if (!guard) return;
       e.preventDefault();
       const leave = () => {
