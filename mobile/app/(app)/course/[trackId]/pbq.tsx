@@ -7,7 +7,14 @@ import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { pbqDraftKey } from "@/lib/drafts";
 import { attemptIdFor } from "@/lib/lessonProgress";
-import { PBQ_ANSWER_MAX, parsePbqPayload, pbqPayload } from "@/lib/pbqProgress";
+import {
+  PBQ_ANSWER_MAX,
+  parsePbqPayload,
+  pbqPartRows,
+  pbqPartSummary,
+  pbqPayload,
+  type PartRowState,
+} from "@/lib/pbqProgress";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Attempt, GradeResult, PBQScenario, Unit } from "@/types";
 import {
@@ -36,9 +43,24 @@ import { whenLabel } from "@/lib/time";
 //    rather than one combined "Missed: a, b" line.
 // 3. Past PBQ attempts for this course are listed below, so the simulator
 //    has a memory.
+// REQ-107: a plain open serves a scenario this learner hasn't attempted yet,
+// and the graded result shows the grader's score for each sub-part (met,
+// partly met, missed) with its one-line comment, plus an "N of M" summary.
 // REQ-093: the scenario, the unsent answer and the graded result are kept on
 // the device (src/lib/pbqProgress.ts), so leaving the screen and coming back
 // shows the same scenario instead of starting over.
+// Icon, colour and label per sub-part state. The label is words, not only
+// colour, so the score reads the same to a colour-blind learner.
+const PART_LOOK: Record<
+  PartRowState,
+  { icon: React.ComponentProps<typeof Feather>["name"]; color: string; label: string | null }
+> = {
+  pending: { icon: "circle", color: colors.muted, label: null },
+  met: { icon: "check-circle", color: colors.good, label: "Met" },
+  partial: { icon: "alert-circle", color: colors.warn, label: "Partly" },
+  missed: { icon: "x-circle", color: colors.bad, label: "Missed" },
+};
+
 export default function PBQScreen() {
   const { trackId, unitId: unitIdParam, trackTitle, scenarioId: retryScenarioId } = useLocalSearchParams<{
     trackId: string;
@@ -194,7 +216,8 @@ export default function PBQScreen() {
   }
 
   const selectedUnit = units?.find((u) => u.id === unitId);
-  const missed = new Set((result?.missedParts ?? []).map((p) => p.trim().toLowerCase()));
+  const partRows = scenario ? pbqPartRows(scenario.sub_parts, result) : [];
+  const partSummary = pbqPartSummary(partRows);
 
   return (
     <Screen>
@@ -241,21 +264,20 @@ export default function PBQScreen() {
             {selectedUnit ? <Muted>{selectedUnit.title}</Muted> : null}
             <Body>{scenario.scenario}</Body>
             <View style={{ gap: 6, marginTop: 4 }}>
-              {scenario.sub_parts.map((part, i) => {
-                const graded = !!result;
-                const wasMissed = missed.has(part.trim().toLowerCase());
-                const color = !graded ? colors.muted : wasMissed ? colors.bad : colors.good;
-                const icon: React.ComponentProps<typeof Feather>["name"] = !graded
-                  ? "circle"
-                  : wasMissed
-                    ? "x-circle"
-                    : "check-circle";
+              {partRows.map((row, i) => {
+                const look = PART_LOOK[row.state];
                 return (
-                  <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <Feather name={icon} size={15} color={color} />
-                    <Muted style={{ flex: 1, color: graded ? colors.text : colors.muted }}>
-                      {i + 1}. {part}
-                    </Muted>
+                  <View key={i} style={{ gap: 2 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Feather name={look.icon} size={15} color={look.color} />
+                      <Muted style={{ flex: 1, color: row.state === "pending" ? colors.muted : colors.text }}>
+                        {i + 1}. {row.part}
+                      </Muted>
+                      {look.label ? (
+                        <Muted style={{ color: look.color, fontFamily: fonts.bodyBold }}>{look.label}</Muted>
+                      ) : null}
+                    </View>
+                    {row.comment ? <Muted style={{ marginLeft: 23 }}>{row.comment}</Muted> : null}
                   </View>
                 );
               })}
@@ -287,6 +309,7 @@ export default function PBQScreen() {
           ) : (
             <Card elevated>
               <VerdictBadge verdict={result.verdict} />
+              {partSummary ? <Muted style={{ fontFamily: fonts.bodyBold }}>{partSummary}</Muted> : null}
               <Body>{result.feedback}</Body>
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
                 <Button label="Try another scenario" icon="refresh-cw" fullWidth={false} onPress={() => generate(true)} />

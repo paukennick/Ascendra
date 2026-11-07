@@ -1669,6 +1669,59 @@
       "prevention_rules": [],
       "prevention_notes": "Every new route gets an other-user test (REQ-091 pattern).",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-170",
+      "date": "2026-11-07",
+      "title": "Plain PBQ request served a scenario the learner had already answered",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "GET /api/pbq?unitId= returned the unit's newest scenario from any learner, so a learner was handed a scenario they had already attempted and its repeat counted as a first exposure",
+      "how_detected": "Audit 2 learning research, item 11",
+      "root_cause": "The selection query filtered by unit only (order by generated_at desc limit 1); scenarios were treated as a per-unit cache like lesson_content, with no notion of who had seen what, although a unit accumulates many scenarios",
+      "requirement": "REQ-107",
+      "affected": [
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "lib/pbq-scenarios.ts findUnseenScenario: newest visible scenario with no attempt by this learner; generate only when none is unseen",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pbq-scenarios.dbtest.ts::serves a scenario the learner has not attempted",
+        "reusing stored ones before generating",
+        "backend/lib/pbq-scenarios.dbtest.ts::a catalog scenario one learner answered is still served to another learner"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Selection now lives in one tested library function; any cached content that a learner answers needs a per-learner seen filter, which the dbtest pins",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-171",
+      "date": "2026-11-07",
+      "title": "Simultaneous PBQ requests from one learner could each generate a scenario",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Two requests for the same unit at once (double tap, two devices, retry after a slow response) both found nothing to serve and both called the model, spending two generations and two rate-limit slots",
+      "how_detected": "REQ-107 design review",
+      "root_cause": "Check-then-generate with no lock: the existence check and the insert are separated by a multi-second model call, and nothing serialised callers. A transaction advisory lock is unsuitable because it would hold a pooled connection idle in transaction across the model call",
+      "requirement": "REQ-107",
+      "affected": [
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "Per-(learner, unit) lease in pbq_generation_claims (migration 036) with heartbeat and token release; waiters poll until release then serve the stored scenario; the rate limit is consumed only by the holder",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pbq-scenarios.dbtest.ts::5 concurrent plain requests from one learner for one unit generate exactly one scenario",
+        "backend/lib/pbq-scenarios.dbtest.ts::5 concurrent fresh=1 requests (a burst of taps) generate exactly one scenario"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Model-backed generation paths take a database lease (lesson_generation_claims, pbq_generation_claims); the concurrent test fails 4 of 11 with the lease disabled",
+      "recurrence_of": ""
     }
   ]
 }

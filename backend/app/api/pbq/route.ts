@@ -1,7 +1,7 @@
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, gradeResultSchema } from "@/lib/prompts";
+import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, pbqGradeResultSchema, normalizePartScores } from "@/lib/prompts";
 import {
   findClientAttempt,
   recordAttemptIdempotent,
@@ -9,7 +9,8 @@ import {
   IdempotencyConflictError,
 } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleScenario, isUuid } from "@/lib/visibility";
+import { visibleScenario, isUuid, NotVisibleError } from "@/lib/visibility";
+import { servePbqScenario } from "@/lib/pbq-scenarios";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
@@ -22,10 +23,12 @@ import { coachContextForUnit } from "@/lib/coach-context";
 export const dynamic = "force-dynamic";
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
-// GET /api/pbq?unitId=... — returns the most recently generated PBQ scenario for a unit,
-// or generates+caches a new one if none exists yet. Pass &fresh=1 to always generate a new one
-// (a unit can accumulate several distinct scenarios over time, unlike per-objective lesson
-// content which caches exactly one).
+// GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
+// learner can see and has not attempted (reused across learners on catalog
+// courses, never across learners on a private one); a new one is generated
+// only when none is unseen. Pass &fresh=1 to always generate a new one. Two
+// requests at once from one learner for one unit generate at most once
+// (lib/pbq-scenarios.ts).
 export async function GET(req: Request) {
   try {
     const authUser = await requireUser(req);
@@ -57,54 +60,49 @@ export async function GET(req: Request) {
     if (!unit) return notFound("Unit not found");
     await requireAcknowledgementForUnit(unitId, authUser.id);
 
-    if (!fresh) {
-      const existing = await queryOne(
-        `select * from pbq_scenarios where unit_id = $1 order by generated_at desc limit 1`,
+    // Runs only when nothing unseen is left (or fresh=1), and only in the
+    // one request holding this learner's generation lease for the unit, so
+    // serving a stored scenario -- or waiting for one -- spends no budget.
+    const generate = async () => {
+      await consumeRateLimit("pbq_generate", authUser.id, { max: 15, windowMinutes: 10 });
+
+      const objectives = await query<{ title: string }>(
+        `select title from objectives where unit_id = $1 order by sort_order asc`,
         [unitId]
       );
-      if (existing) return ok({ scenario: existing, cached: true });
-    }
+
+      const ctx = await coachContextForUnit(unitId);
+      const { system, user } = pbqGenerationPrompt({
+        trackTitle: unit.track_title,
+        unitTitle: unit.title,
+        unitObjectives: objectives.map((o) => o.title),
+        ctx: ctx ?? undefined,
+      });
+      // The model that generates is the model that gets recorded: this used to
+      // store getModel() (Sonnet) although the fast model wrote the scenario.
+      const generationModel = getFastModel();
+      const generated = await callClaudeStructured({
+        system,
+        messages: [{ role: "user", content: user }],
+        schema: pbqScenarioSchema,
+        maxTokens: 1200,
+        model: generationModel,
+        effort: "low",
+        thinking: "off",
+        purpose: "pbq_generate",
+        userId: authUser.id,
+      });
+      return { ...generated, model: generationModel };
+    };
 
     try {
-      await consumeRateLimit("pbq_generate", authUser.id, { max: 15, windowMinutes: 10 });
+      const served = await servePbqScenario({ userId: authUser.id, unitId, fresh, generate });
+      return ok(served);
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
+      if (err instanceof NotVisibleError) return notFound(err.message);
       throw err;
     }
-
-    const objectives = await query<{ title: string }>(
-      `select title from objectives where unit_id = $1 order by sort_order asc`,
-      [unitId]
-    );
-
-    const ctx = await coachContextForUnit(unitId);
-    const { system, user } = pbqGenerationPrompt({
-      trackTitle: unit.track_title,
-      unitTitle: unit.title,
-      unitObjectives: objectives.map((o) => o.title),
-      ctx: ctx ?? undefined,
-    });
-    // The model that generates is the model that gets recorded: this used to
-    // store getModel() (Sonnet) although the fast model wrote the scenario.
-    const generationModel = getFastModel();
-    const generated = await callClaudeStructured({
-      system,
-      messages: [{ role: "user", content: user }],
-      schema: pbqScenarioSchema,
-      maxTokens: 1200,
-      model: generationModel,
-      effort: "low",
-      thinking: "off",
-      purpose: "pbq_generate",
-      userId: authUser.id,
-    });
-
-    const rows = await query(
-      `insert into pbq_scenarios (unit_id, title, scenario, sub_parts, model)
-       values ($1,$2,$3,$4,$5) returning *`,
-      [unitId, generated.title, generated.scenario, JSON.stringify(generated.subParts), generationModel]
-    );
-    return ok({ scenario: rows[0], cached: false });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
@@ -183,7 +181,7 @@ export async function POST(req: Request) {
     const graded = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
-      schema: gradeResultSchema,
+      schema: pbqGradeResultSchema,
       maxTokens: 900,
       model: getFastModel(),
       effort: "high",
@@ -211,7 +209,11 @@ export async function POST(req: Request) {
     });
 
     if (prior) return ok(prior);
-    return ok({ ...graded, attempt });
+    // REQ-107: a score per sub-part, lined up with the scenario's own labels
+    // (null when the grader's list can't be matched; the app then falls back
+    // to missedParts). Not stored, so a replayed retry above has none.
+    const { parts, ...grade } = graded;
+    return ok({ ...grade, partScores: normalizePartScores(scenario.sub_parts, parts, graded.missedParts ?? []), attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);

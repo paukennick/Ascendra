@@ -121,6 +121,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "study_sessions (user_id, track_id, started_at) index (sessions, Continue studying)",
     sql: `select to_regclass('public.idx_study_sessions_user_track_started') is not null as ok`,
   },
+  {
+    migration: "036_pbq_generation_claims.sql",
+    what: "pbq_generation_claims table (new PBQ scenarios; serving stored ones still works without it)",
+    sql: `select to_regclass('public.pbq_generation_claims') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {
