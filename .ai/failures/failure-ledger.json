@@ -878,6 +878,30 @@
       "prevention_rules": [],
       "prevention_notes": "Mastery is decided in one SQL function from the whole attempt history, covered by DB tests that fail on the old code; the teaching-quality audit reviewer re-checks mastery rules",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-060",
+      "date": "2026-11-07",
+      "title": "MFA leave guard blocked sign-out and lock",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the backup-codes or setup view, logout, session expiry, background sign-out, biometric lock or web idle sign-out were cancelled by the beforeRemove guard; choosing 'Keep this screen' left the codes visible on a signed-out or locked device.",
+      "how_detected": "Audit 2 mobile-flows review",
+      "root_cause": "The guard only looked at the MFA view, not at why the screen was being removed. Auth-driven removals go through the same beforeRemove event as a back tap.",
+      "requirement": "REQ-093",
+      "affected": [
+        "mobile/src/lib/mfaLeaveGuard.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Guard takes the auth status and never blocks when not signed in.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mfaLeaveGuard.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
+      "recurrence_of": ""
     }
   ]
 }
