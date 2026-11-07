@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
 import {
   Badge,
@@ -17,6 +20,19 @@ import {
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
+import {
+  answerSignature,
+  attemptIdFor,
+  emptyCheck,
+  isResumable,
+  lessonFingerprint,
+  newerSnapshot,
+  parseSnapshot,
+  snapshotStorageKey,
+  type CheckKind,
+  type CheckState,
+  type LessonSnapshot,
+} from "@/lib/lessonProgress";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -29,6 +45,8 @@ export default function LessonFlow() {
     objectiveTitle?: string;
   }>();
   const router = useRouter();
+  const { user } = useAuth();
+  const userId = user?.id ?? "anon";
 
   const [lesson, setLesson] = useState<LessonContent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +74,25 @@ export default function LessonFlow() {
   // Mastery status reached, fetched once the learner lands on "done" so the
   // screen can say what the work just earned and how to go further.
   const [reached, setReached] = useState<MasteryStatus | null>(null);
+  // Saving is held off until the saved position (if any) has been restored
+  // for this objective, so the fresh "guess" state on mount can't overwrite
+  // it first. Holds the objectiveId it was restored for.
+  const restoredFor = useRef<string | null>(null);
+  // The step last saved for this objective. The account copy is deleted
+  // only when the learner moves out of a saved step (finished, or
+  // regenerated back to Guess) -- never just because a lesson opened at
+  // Guess, which happens when the account copy couldn't be read.
+  const lastSavedStep = useRef<string | null>(null);
+  // Mirrors restoredFor for rendering, so the guess screen doesn't flash
+  // before jumping to the resumed step.
+  const [restoring, setRestoring] = useState(true);
+  // REQ-089: graded state of the Guided and Solo checks, lifted up from
+  // CheckStep so it is saved with the position and an answered check comes
+  // back answered instead of being asked (and recorded) a second time.
+  const [checks, setChecks] = useState<Partial<Record<CheckKind, CheckState>>>({});
+  const setCheck = useCallback((kind: CheckKind, state: CheckState) => {
+    setChecks((prev) => ({ ...prev, [kind]: state }));
+  }, []);
 
   const loadLesson = useCallback(() => {
     setError(null);
@@ -78,7 +115,114 @@ export default function LessonFlow() {
     setGuessFeedbackLoading(false);
     setNext(null);
     setReached(null);
+    setChecks({});
+    restoredFor.current = null;
+    lastSavedStep.current = null;
+    setRestoring(true);
   }, [loadLesson]);
+
+  // Resume where the learner left off (see src/lib/lessonProgress.ts).
+  // Runs once per objective, after its lesson content has loaded.
+  useEffect(() => {
+    if (!lesson || restoredFor.current === objectiveId) return;
+    let cancelled = false;
+    const key = snapshotStorageKey(userId, objectiveId);
+    const lessonKey = lessonFingerprint(lesson);
+    (async () => {
+      // REQ-089: the account copy and the device copy are both read; the
+      // newer valid one wins. Either can be missing (first visit, offline,
+      // a position saved before this existed) without blocking the lesson.
+      const [server, local] = await Promise.all([
+        api
+          .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
+          .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
+          .catch(() => null),
+        AsyncStorage.getItem(key)
+          .then((raw) => parseSnapshot(raw, lessonKey, Date.now()))
+          .catch(() => null),
+      ]);
+      const snap = newerSnapshot(server, local);
+      if (cancelled) return;
+      if (snap) {
+        setGuess(snap.guess);
+        setGuessFeedback(snap.guessFeedback);
+        setConfidence(snap.confidence);
+        setChecks(snap.checks);
+        // fade/solo need the practice content; if it's still generating,
+        // wait for it the same way the "Next" button does, and fall back to
+        // the teach step if it can't be had.
+        let target = snap.step;
+        if (target !== "teach" && practicePending) {
+          const ready = await ensurePracticeReady();
+          if (cancelled) return;
+          if (!ready) target = "teach";
+        }
+        setStep(target);
+      } else {
+        // Only the device copy is cleared here. An unreadable account copy
+        // may just mean the request failed, and deleting on that basis could
+        // wipe a place saved from another device.
+        AsyncStorage.removeItem(key).catch(() => {});
+      }
+      lastSavedStep.current = snap ? snap.step : null;
+      restoredFor.current = objectiveId;
+      setRestoring(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // ensurePracticeReady/practicePending are read once at restore time on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson, objectiveId, userId]);
+
+  // Persist the position on every change once restored. "guess" and "done"
+  // clear it: nothing to resume before the guess, and a finished objective
+  // should reopen as a fresh attempt.
+  //
+  // The device copy is written at once; the account copy is debounced so
+  // typing an answer doesn't send a request per keystroke. Leaving the
+  // screen flushes the pending account save rather than dropping it.
+  const pendingServerSave = useRef<{ timer: ReturnType<typeof setTimeout>; send: () => void } | null>(null);
+  const flushServerSave = useCallback(() => {
+    const p = pendingServerSave.current;
+    if (!p) return;
+    clearTimeout(p.timer);
+    pendingServerSave.current = null;
+    p.send();
+  }, []);
+  useEffect(() => flushServerSave, [flushServerSave, objectiveId]);
+
+  useEffect(() => {
+    if (!lesson || restoredFor.current !== objectiveId) return;
+    const key = snapshotStorageKey(userId, objectiveId);
+    const path = `/api/objectives/${objectiveId}/progress`;
+    if (pendingServerSave.current) {
+      clearTimeout(pendingServerSave.current.timer);
+      pendingServerSave.current = null;
+    }
+    if (!isResumable(step)) {
+      AsyncStorage.removeItem(key).catch(() => {});
+      if (lastSavedStep.current && isResumable(lastSavedStep.current)) api.delete(path).catch(() => {});
+      lastSavedStep.current = step;
+      return;
+    }
+    lastSavedStep.current = step;
+    const snap: LessonSnapshot = {
+      v: 2,
+      step,
+      guess,
+      guessFeedback,
+      confidence,
+      lessonKey: lessonFingerprint(lesson),
+      checks,
+      savedAt: Date.now(),
+    };
+    AsyncStorage.setItem(key, JSON.stringify(snap)).catch(() => {});
+    const send = () => {
+      api.put(path, snap).catch(() => {});
+    };
+    pendingServerSave.current = { timer: setTimeout(flushServerSave, 800), send };
+  }, [lesson, objectiveId, userId, step, guess, guessFeedback, confidence, checks, flushServerSave]);
 
   useEffect(() => {
     // Fire-and-forget: nudges the server to start warming the cache for
@@ -157,11 +301,11 @@ export default function LessonFlow() {
       </Screen>
     );
   }
-  if (!lesson) {
+  if (!lesson || restoring) {
     return (
       <Screen>
         <Stack.Screen options={{ title: headerTitle }} />
-        <Loading label="Generating lesson (first visit only)..." />
+        <Loading label={lesson ? "Picking up where you left off..." : "Generating lesson (first visit only)..."} />
       </Screen>
     );
   }
@@ -249,6 +393,8 @@ export default function LessonFlow() {
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
+          state={checks.fade ?? emptyCheck()}
+          onStateChange={(st) => setCheck("fade", st)}
           onDone={() => setStep("solo")}
         />
       )}
@@ -268,6 +414,8 @@ export default function LessonFlow() {
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
+          state={checks.solo ?? emptyCheck()}
+          onStateChange={(st) => setCheck("solo", st)}
           onDone={() => setStep("done")}
         />
       )}
@@ -343,6 +491,7 @@ export default function LessonFlow() {
                 setConfidence(null);
                 setGuessFeedback(null);
                 setGuessFeedbackLoading(false);
+                setChecks({});
                 setStep("guess");
               }}
             />
@@ -468,6 +617,8 @@ function CheckStep({
   trackId,
   confidence,
   setConfidence,
+  state,
+  onStateChange,
   onDone,
 }: {
   kind: "fade" | "solo";
@@ -481,12 +632,17 @@ function CheckStep({
   trackId: string;
   confidence: number | null;
   setConfidence: (n: number) => void;
+  state: CheckState;
+  onStateChange: (s: CheckState) => void;
   onDone: () => void;
 }) {
-  const [mode, setMode] = useState<"mc" | "open">("mc");
-  const [picked, setPicked] = useState<number | null>(null);
-  const [openAnswer, setOpenAnswer] = useState("");
-  const [result, setResult] = useState<{ verdict: string; feedback: string; missedParts?: string[] } | null>(null);
+  // REQ-089: answer, mode and graded result live in the parent so they are
+  // saved with the lesson position (see LessonFlow).
+  const { mode, picked, openAnswer, result } = state;
+  const update = (patch: Partial<CheckState>) => onStateChange({ ...state, ...patch });
+  const setMode = (m: "mc" | "open") => update({ mode: m });
+  const setPicked = (i: number) => update({ picked: i });
+  const setOpenAnswer = (t: string) => update({ openAnswer: t });
   const [followUp, setFollowUp] = useState("");
   const [followUpSent, setFollowUpSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -497,8 +653,16 @@ function CheckStep({
     if (picked == null) return;
     setBusy(true);
     setError(null);
+    // Same answer resent after a failure keeps its id, so if the first
+    // request did reach the server this one gets that result back instead
+    // of a second recorded attempt.
+    const signature = answerSignature("mc", picked, openAnswer);
+    const clientAttemptId = attemptIdFor(state, signature, Crypto.randomUUID);
+    const sent = { ...state, clientAttemptId, sentSignature: signature };
+    onStateChange(sent);
     try {
       const res = await api.post<GradeResult>("/api/grade", {
+        clientAttemptId,
         format: "mc",
         kind: "lesson",
         stage: kind,
@@ -511,7 +675,7 @@ function CheckStep({
         why,
         confidence,
       });
-      setResult(res);
+      onStateChange({ ...sent, result: { verdict: res.verdict, feedback: res.feedback, missedParts: res.missedParts ?? [] } });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -523,8 +687,13 @@ function CheckStep({
     if (!openAnswer.trim()) return;
     setBusy(true);
     setError(null);
+    const signature = answerSignature("open", picked, openAnswer);
+    const clientAttemptId = attemptIdFor(state, signature, Crypto.randomUUID);
+    const sent = { ...state, clientAttemptId, sentSignature: signature };
+    onStateChange(sent);
     try {
       const res = await api.post<GradeResult>("/api/grade", {
+        clientAttemptId,
         format: "open",
         kind: "lesson",
         stage: kind,
@@ -535,7 +704,7 @@ function CheckStep({
         taughtText,
         confidence,
       });
-      setResult(res);
+      onStateChange({ ...sent, result: { verdict: res.verdict, feedback: res.feedback, missedParts: res.missedParts ?? [] } });
     } catch (err) {
       setError((err as Error).message);
     } finally {

@@ -1,7 +1,12 @@
 import { ok, badRequest, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
-import { recordAttemptAndUpdateMastery } from "@/lib/grading-service";
+import {
+  findClientAttempt,
+  isDuplicateClientAttempt,
+  recordAttemptAndUpdateMastery,
+} from "@/lib/grading-service";
+import { validClientAttemptId } from "@/lib/lesson-progress";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
@@ -36,6 +41,29 @@ export async function POST(req: Request) {
     const authUser = await requireUser(req);
     if (objectiveId) await requireAcknowledgementForObjective(objectiveId, authUser.id);
 
+    // REQ-089: an id the app already submitted is a retry (dropped
+    // connection, double tap, resumed lesson) -- hand back the stored result
+    // rather than grading again, recording a second attempt and moving
+    // mastery twice. Checked before the rate limit and the Anthropic call.
+    const clientAttemptId = validClientAttemptId(body.clientAttemptId);
+    if (clientAttemptId) {
+      const prior = await findClientAttempt(authUser.id, clientAttemptId);
+      if (prior) return ok(prior);
+    }
+    // Two requests with the same id can still race past that check; the
+    // unique index makes the slower one fail, and it returns the winner's.
+    const record = async (input: Parameters<typeof recordAttemptAndUpdateMastery>[0]) => {
+      try {
+        return { attempt: await recordAttemptAndUpdateMastery({ ...input, clientAttemptId }), prior: null };
+      } catch (err) {
+        if (clientAttemptId && isDuplicateClientAttempt(err)) {
+          const prior = await findClientAttempt(authUser.id, clientAttemptId);
+          if (prior) return { attempt: null, prior };
+        }
+        throw err;
+      }
+    };
+
     if (format === "mc") {
       const { chosenIndex, correctIndex, chosenText, why } = body;
       if (typeof chosenIndex !== "number" || typeof correctIndex !== "number") {
@@ -44,7 +72,7 @@ export async function POST(req: Request) {
       const correct = chosenIndex === correctIndex;
       const verdict = correct ? "correct" : "incorrect";
       const feedback = `${correct ? "That's right." : "Not quite."} ${why ?? ""}`.trim();
-      const attempt = await recordAttemptAndUpdateMastery({
+      const { attempt, prior } = await record({
         userId: authUser.id,
         unitId,
         objectiveId,
@@ -58,6 +86,7 @@ export async function POST(req: Request) {
         classification: "none",
         confidence,
       });
+      if (prior) return ok(prior);
       return ok({ verdict, feedback, classification: "none", missedParts: [], attempt });
     }
 
@@ -91,7 +120,7 @@ export async function POST(req: Request) {
         maxTokens: 800,
         model: getFastModel(),
       });
-      const attempt = await recordAttemptAndUpdateMastery({
+      const { attempt, prior } = await record({
         userId: authUser.id,
         unitId,
         objectiveId,
@@ -106,6 +135,7 @@ export async function POST(req: Request) {
         missedParts: graded.missedParts ?? [],
         confidence,
       });
+      if (prior) return ok(prior);
       return ok({ ...graded, attempt });
     }
 

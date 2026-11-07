@@ -1,4 +1,4 @@
-import { query } from "@/lib/db";
+import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import {
   accuracyFromAttempts,
   suggestStatus,
@@ -38,16 +38,66 @@ export interface AttemptInput {
   classification?: string | null;
   missedParts?: string[] | null;
   confidence?: number | null;
+  // REQ-089: one id per submitted answer from the app. A second request
+  // with the same id is a retry, not a new attempt (see findClientAttempt).
+  clientAttemptId?: string | null;
 }
 
+// REQ-089: the stored attempt for an id the app has already submitted, in
+// the shape /api/grade returns, or null if this id is new.
+export async function findClientAttempt(userId: string, clientAttemptId: string) {
+  const row = await queryOne<{
+    id: string;
+    verdict: "correct" | "partial" | "incorrect";
+    feedback: string | null;
+    classification: string | null;
+    missed_parts: string[] | null;
+  }>(
+    `select * from attempts where user_id = $1 and client_attempt_id = $2`,
+    [userId, clientAttemptId]
+  );
+  if (!row) return null;
+  return {
+    verdict: row.verdict,
+    feedback: row.feedback ?? "",
+    classification: row.classification ?? "none",
+    missedParts: Array.isArray(row.missed_parts) ? row.missed_parts : [],
+    attempt: row,
+    replayed: true,
+  };
+}
+
+// Postgres unique_violation: two requests with the same client id raced and
+// the other one recorded first.
+export function isDuplicateClientAttempt(err: unknown): boolean {
+  const e = err as { code?: string; constraint?: string } | null;
+  return e?.code === "23505" && (e.constraint ?? "").includes("client_attempt");
+}
+
+// REQ-089: the attempt, the mastery update and the review-log changes are
+// one transaction. With client attempt ids, a retry replays the stored
+// attempt instead of re-running this -- so a write that half-succeeded
+// (attempt saved, mastery not) would otherwise stay half-done for good.
 export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
+  return withTransaction((tx) => recordAttemptTx(tx, input));
+}
+
+async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
+  const query = tx.query.bind(tx);
   const userId = input.userId;
+
+  // Serialise grades for the same learner and objective, so two at once
+  // can't each compute accuracy without the other's attempt and have the
+  // later write overwrite mastery with a stale status. Released at commit.
+  if (input.objectiveId) {
+    await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade:${userId}:${input.objectiveId}`]);
+  }
 
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
      returning *`,
     [
       userId,
@@ -64,6 +114,7 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
       clampClassification(input.classification),
       input.missedParts ? JSON.stringify(input.missedParts) : null,
       input.confidence ?? null,
+      input.clientAttemptId ?? null,
     ]
   );
   const attempt = attemptRows[0];

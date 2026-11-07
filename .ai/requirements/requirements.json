@@ -2569,6 +2569,75 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-088",
+      "category": "defect",
+      "title": "Lesson position resets when leaving and returning to an objective",
+      "description": "Leaving a lesson mid-way (back to the course dashboard, sidebar, review queue) unmounted the lesson screen and its in-memory step state, so reopening the objective always restarted at Guess. Affects every course, not one track. Position (step, guess, guess feedback, confidence) is now saved per objective on the device and restored on return; discarded if the lesson was regenerated, older than 7 days, or the objective was finished.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Leaving at Teach/Guided/Solo and reopening the same objective resumes that step",
+        "Regenerated lesson or finished objective starts fresh at Guess",
+        "Snapshots older than 7 days are ignored"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Position is per device (AsyncStorage) not per account; an answered-but-not-continued check step is re-asked on resume",
+        "recording a second attempt"
+      ]
+    },
+    {
+      "id": "REQ-089",
+      "category": "defect",
+      "title": "Lesson position saved to the account; graded checks never recorded twice",
+      "description": "Follows REQ-088. The lesson position is saved to the account (lesson_progress, migration 025; GET/PUT/DELETE /api/objectives/:id/progress) so it follows the learner across devices, with the device copy as offline fallback; the newer valid copy wins. Graded Guided/Solo check state is saved with the position, so answering and leaving before Continue restores the verdict instead of re-asking. /api/grade accepts a clientAttemptId and returns the stored result for an id it has seen (unique index on attempts), so retries after a dropped connection or a double submit never record a second attempt or move mastery twice.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/025_lesson_progress.sql",
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/lesson-progress.test.ts",
+        "backend/lib/grading-service.ts",
+        "backend/app/api/grade/route.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonProgress.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Position saved on one device resumes on another for the same account",
+        "Answered check restored with its verdict after leaving and returning",
+        "Same clientAttemptId sent twice records one attempt",
+        "Failed account read never deletes the saved position"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "build",
+        "migration_applied",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 025 must be applied before deploying the backend or progress and grading writes fail on the missing column",
+        "Last-write-wins between two devices used at the same time"
+      ]
     }
   ]
 }
