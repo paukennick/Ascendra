@@ -261,6 +261,49 @@ describe("a mock exam end to end", () => {
     assert.equal(body.items[2].flagged, true);
   });
 
+  // REQ-113 (Audit 3 mobile H1, FAIL-250): numbered saves of one question
+  // apply in number order, whatever order they arrive in.
+  test("a save numbered below the last applied one is ignored, not an error; the view returns the number", async () => {
+    const pos = 6;
+    const a = await rightAnswer(sessionId, pos);
+    const stored = async () =>
+      (await queryOne<{ response: unknown; save_seq: string; flagged: boolean }>(
+        `select response, save_seq, flagged from exam_session_items where session_id = $1 and position = $2`,
+        [sessionId, pos]
+      ))!;
+    // B (seq 2) lands first, then the older A (seq 1) arrives late.
+    const b = await put(sessionId, pos, { response: a.shown, seq: 2 });
+    assert.equal(b.status, 200);
+    assert.deepEqual(await b.json(), { saved: true, seq: 2 });
+    const before = (await stored()).response;
+    // The late save would clear the answer and flag it, if it were applied.
+    const late = await put(sessionId, pos, { response: null, flagged: true, seq: 1 });
+    assert.equal(late.status, 200);
+    assert.deepEqual(await late.json(), { saved: false, stale: true, seq: 1 });
+    let row = await stored();
+    assert.ok(before != null);
+    assert.deepEqual(row.response, before, "the older save did not overwrite the newer answer");
+    assert.equal(row.flagged, false);
+    assert.equal(Number(row.save_seq), 2);
+    // The same number again is stale too (a duplicate of an applied save).
+    assert.deepEqual(await (await put(sessionId, pos, { flagged: true, seq: 2 })).json(), { saved: false, stale: true, seq: 2 });
+    // A save without a number (an older app) still applies and leaves the number alone.
+    assert.equal((await put(sessionId, pos, { flagged: true })).status, 200);
+    row = await stored();
+    assert.equal(row.flagged, true);
+    assert.equal(Number(row.save_seq), 2);
+    // Bad numbers are refused.
+    assert.equal((await put(sessionId, pos, { flagged: true, seq: 0 })).status, 400);
+    assert.equal((await put(sessionId, pos, { flagged: true, seq: 1.5 })).status, 400);
+    // The view carries the number so a resumed app numbers on from it.
+    const view = await (await sessionGet(new Request("http://t/x", { headers: auth(learner) }), { params: Promise.resolve({ id: sessionId }) })).json();
+    assert.equal(view.items[pos].saveSeq, 2);
+    assert.equal(view.items[0].saveSeq, 0);
+    // Put it back as the later tests expect: unanswered, unflagged.
+    assert.equal((await put(sessionId, pos, { response: null, flagged: false, seq: 3 })).status, 200);
+    assert.equal((await stored()).response, null);
+  });
+
   test("open exam questions are named to the coach guard, with their keys kept server-side", async () => {
     const items = await openItemsFor(learner, trackId);
     const exam = items.filter((i) => i.kind === "exam");

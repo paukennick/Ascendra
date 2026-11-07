@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Attempt } from "@/types";
+import { HISTORY_EMPTY } from "@/lib/emptyStates";
 import { Body, Card, Chip, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { createLatestRequest } from "@/lib/latestRequest";
 import { spacing } from "@/lib/theme";
@@ -87,7 +88,12 @@ export default function HistoryScreen() {
 
       {attempts && attempts.length === 0 ? (
         <Card>
-          <EmptyState icon="clock" title="No attempts yet" message="Answers you submit for this filter will show up here." />
+          <EmptyState
+            icon="clock"
+            title={HISTORY_EMPTY.title}
+            message={HISTORY_EMPTY.message}
+            action={{ label: HISTORY_EMPTY.action!.label, icon: "arrow-left", onPress: () => router.back() }}
+          />
         </Card>
       ) : null}
     </Screen>

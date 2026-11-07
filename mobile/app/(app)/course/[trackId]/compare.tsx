@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
@@ -10,6 +11,7 @@ import { ComparisonCard, MisconceptionNote } from "@/components/Understanding";
 import { assistNote } from "@/lib/lessonFeedback";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import type { ComparisonSet, Diagnosis } from "@/lib/understanding";
+import { COMPARE_EMPTY } from "@/lib/emptyStates";
 
 // REQ-111: comparison cards for look-alike concepts. A card shows 2-4
 // concepts side by side on the dimensions that tell them apart; "Test
@@ -36,18 +38,25 @@ export default function CompareScreen() {
   const { trackId, objectiveId } = useLocalSearchParams<{ trackId: string; objectiveId?: string }>();
   const [sets, setSets] = useState<ComparisonSet[] | null>(null);
   const [pending, setPending] = useState(false);
+  // REQ-113 (Audit 3 mobile L4): the course's cards failed to generate (the
+  // server tries again later). This used to say "No look-alike concepts were
+  // found", which was not true.
+  const [failed, setFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const router = useRouter();
 
   const load = useCallback(() => {
     const q = objectiveId ? `?objectiveId=${encodeURIComponent(objectiveId)}` : "";
+    setError(null);
     api
-      .get<{ pending: boolean; sets: ComparisonSet[] }>(`/api/courses/${trackId}/comparisons${q}`)
+      .get<{ pending: boolean; failed?: boolean; sets: ComparisonSet[] }>(`/api/courses/${trackId}/comparisons${q}`)
       .then((res) => {
         setSets(res.sets);
         setPending(res.pending);
+        setFailed(!!res.failed);
       })
-      .catch((err) => setError((err as Error).message));
+      .catch((err) => setError(friendlyError(err)));
   }, [trackId, objectiveId]);
 
   useEffect(() => {
@@ -67,13 +76,24 @@ export default function CompareScreen() {
         <Muted>
           Concepts that are easy to mix up, side by side. Mixing them up is normal — this is where they come apart.
         </Muted>
-        {error ? <ErrorBanner message={error} /> : null}
+        {error ? <ErrorBanner message={error} onRetry={load} /> : null}
         {sets === null && !error ? <Loading label="Loading comparisons..." /> : null}
         {sets && sets.length === 0 && pending ? (
           <Loading label="Preparing this course's comparisons for the first time..." />
         ) : null}
-        {sets && sets.length === 0 && !pending ? (
-          <EmptyState icon="columns" title="Nothing to compare yet" message="No look-alike concepts were found here." />
+        {sets && sets.length === 0 && !pending && failed ? (
+          <ErrorBanner
+            message="Comparison cards for this course couldn't be prepared just now. It isn't anything you did; try again in a few minutes."
+            onRetry={load}
+          />
+        ) : null}
+        {sets && sets.length === 0 && !pending && !failed ? (
+          <EmptyState
+            icon="columns"
+            title={COMPARE_EMPTY.title}
+            message={COMPARE_EMPTY.message}
+            action={{ label: COMPARE_EMPTY.action!.label, icon: "arrow-left", onPress: () => router.back() }}
+          />
         ) : null}
         {sets?.map((set) => (
           <Card key={set.id} elevated>
@@ -116,7 +136,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
         setQuestion(res.item);
         setSeen(res.seen);
       })
-      .catch((err) => setError((err as Error).message))
+      .catch((err) => setError(friendlyError(err)))
       .finally(() => setBusy(false));
   }, [set.id]);
 
@@ -167,7 +187,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
   return (
     <View style={{ gap: spacing.sm }}>
       <Muted style={{ fontFamily: fonts.bodyBold }}>Which one fits?</Muted>
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={!question ? next : undefined} /> : null}
       {!question && busy ? <Loading /> : null}
       {question ? (
         <>

@@ -7,6 +7,7 @@ import type { PlacementView } from "@/types/plan";
 import { Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { placementProgress } from "@/lib/studyPlan";
+import { friendlyError } from "@/lib/errorMessage";
 
 // REQ-110: the optional placement check. Questions come from lessons already
 // written for this course (no AI call). Answers are not marked right or wrong
@@ -23,13 +24,17 @@ export default function PlacementScreen() {
   const [busy, setBusy] = useState(false);
   // One id per question, reused if the same answer is retried after a failure.
   const ids = useRef(new Map<number, string>());
+  // REQ-113 (Audit 3 mobile L5): `busy` is state, so two taps on different
+  // options in the same frame both got past it and sent two answers. A ref
+  // is updated at once.
+  const inFlight = useRef(false);
 
   const load = useCallback(() => {
     setError(null);
     api
       .get<PlacementView>(`/api/courses/${trackId}/placement`)
       .then(setView)
-      .catch((err) => setError((err as Error).message));
+      .catch((err) => setError(friendlyError(err)));
   }, [trackId]);
 
   useFocusEffect(
@@ -38,21 +43,27 @@ export default function PlacementScreen() {
     }, [load])
   );
 
-  async function post(body: Record<string, unknown>) {
+  // Resolves true when the server took it.
+  async function post(body: Record<string, unknown>): Promise<boolean> {
+    if (inFlight.current) return false;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     try {
       setView(await api.post<PlacementView>(`/api/courses/${trackId}/placement`, body));
+      return true;
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError(err));
+      return false;
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
 
   function answer(choice: number) {
     const cur = view?.current;
-    if (!cur || busy) return;
+    if (!cur || inFlight.current) return;
     let id = ids.current.get(cur.seq);
     if (!id) {
       id = Crypto.randomUUID();
@@ -65,7 +76,7 @@ export default function PlacementScreen() {
     <Screen>
       <H1>Placement check</H1>
       {trackTitle ? <Muted>{trackTitle}</Muted> : null}
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={!view ? load : undefined} /> : null}
       {!view && !error ? <Loading /> : null}
 
       {view && (view.status === "none" || view.status === "skipped") ? (
@@ -124,7 +135,13 @@ export default function PlacementScreen() {
             ))}
           </View>
           <Muted style={{ fontSize: 13 }}>Not sure? Pick your best guess. A miss just means we'll teach it.</Muted>
-          <Button label="Stop here and start the course" variant="link" onPress={() => post({ action: "skip" }).then(() => router.back())} />
+          <Button
+            label="Stop here and start the course"
+            variant="link"
+            // L5: only leaves once the server has recorded it; a failure stays
+            // here with the error showing.
+            onPress={() => post({ action: "skip" }).then((ok) => ok && router.back())}
+          />
         </Card>
       ) : null}
 

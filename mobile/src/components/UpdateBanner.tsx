@@ -9,7 +9,7 @@
 
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
 export function UpdateBanner({

@@ -191,6 +191,22 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                    where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
   },
   {
+    migration: "047_exam_save_sequence.sql",
+    what: "exam_session_items.save_seq column (every exam answer save and the exam session view, REQ-113)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'exam_session_items' and column_name = 'save_seq') as ok`,
+  },
+  {
+    migration: "048_product_basics.sql",
+    what: "terms_acceptances, learner_onboarding, learner_events (+ triggers) and exam_outcomes (sign-up, launch, first run, exam results, export)",
+    sql: `select to_regclass('public.terms_acceptances') is not null
+             and to_regclass('public.learner_onboarding') is not null
+             and to_regclass('public.exam_outcomes') is not null
+             and to_regclass('public.learner_events_lesson_once') is not null
+             and (select count(*) from pg_trigger where tgname in ('learner_events_attempt', 'learner_events_lesson_progress',
+                    'learner_events_review_session', 'learner_events_exam_session', 'learner_events_placement')) = 5 as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import type { ExamItem, ExamResponse, Exhibit } from "@/types/exam";
 import { Body, Button, ChoiceSheet, Muted } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   optionWrong: { borderColor: colors.bad, borderWidth: 2 },
   positionBadge: {
     fontFamily: fonts.monoSemiBold,
-    color: colors.accent,
+    color: colors.link,
     minWidth: 22,
     textAlign: "center",
   },
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   confidence: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,

@@ -11,7 +11,7 @@
 
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { api } from "@/api/client";
 import type { Disclaimer } from "@/content/disclaimers";
 import { Body, Button, Card, ErrorBanner, H2, Muted } from "@/components/ui";

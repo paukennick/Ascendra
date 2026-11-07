@@ -1,6 +1,8 @@
 // Thin fetch wrapper for the Next.js backend. Base URL comes from EXPO_PUBLIC_API_URL,
 // set in .env.local for local dev or in eas.json for production builds — see mobile/.env.example.
 
+import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
 if (!BASE_URL && __DEV__) {
@@ -50,6 +52,18 @@ export function registerAuthHooks(hooks: {
 // Audit 2 (mobile) item 7, client half: FAIL-061.
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
+
+// REQ-113 (Audit 3 mobile M7): the request never reached a server (offline,
+// DNS, refused). Its message is the calm one screens show as they are.
+export class NetworkError extends Error {
+  friendly = true;
+  cause: unknown;
+  constructor(cause: unknown) {
+    super(NETWORK_MESSAGE);
+    this.name = "NetworkError";
+    this.cause = cause;
+  }
+}
 
 export class RequestTimeoutError extends Error {
   timeoutMs: number;
@@ -116,16 +130,25 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     text = await res.text();
   } catch (err) {
     if (timedOut) throw new RequestTimeoutError(timeoutMs);
+    if (isNetworkFailure(err)) throw new NetworkError(err);
     throw err;
   } finally {
     clearTimeout(timer);
   }
-  const data = text ? JSON.parse(text) : null;
-  if (!res.ok) {
-    const message = data?.error ?? `Request to ${path} failed with status ${res.status}`;
-    throw new ApiError(message, res.status, data);
+  // REQ-113 (Audit 3 mobile M7): parsed inside the error handling. A captive
+  // Wi-Fi page or a proxy's HTML error used to throw a raw SyntaxError here,
+  // losing the status (so 401 refresh and 429 never ran).
+  const body = parseBody(text);
+  if (!res.ok || !body.ok) {
+    const data = body.ok ? body.data : null;
+    // A 2xx that isn't our JSON is a page from something in between (a
+    // portal), not our server: reported as a 502-like failure.
+    const status = res.ok ? 502 : res.status;
+    const err = new ApiError(httpErrorMessage(status, data, body.ok), status, data);
+    if (!body.ok) (err as ApiError & { unreadable?: boolean }).unreadable = true;
+    throw err;
   }
-  return data as T;
+  return body.data as T;
 }
 
 // One silent refresh-and-retry on a 401, never for /api/auth/* itself

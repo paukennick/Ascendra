@@ -30,6 +30,7 @@ import {
   supportKindFromParam,
   type SupportFields,
 } from "@/lib/drafts";
+import { courseRequestPrefill } from "@/lib/emptyStates";
 import { localDataGuard } from "@/lib/localData";
 import { colors, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
@@ -68,7 +69,7 @@ async function restoreDraftInStorage(userId: string | undefined, kind: SupportRe
 export default function Support() {
   // Opened from the sidebar as /support?kind=course_request to land straight
   // on the course-request form instead of the ticket one.
-  const { kind: kindParam } = useLocalSearchParams<{ kind?: string }>();
+  const { kind: kindParam, courseName: courseNameParam } = useLocalSearchParams<{ kind?: string; courseName?: string }>();
   const router = useRouter();
   const [kind, setKind] = useState<SupportRequestKind>(supportKindFromParam(kindParam) ?? "ticket");
   const [subject, setSubject] = useState("");
@@ -115,6 +116,14 @@ export default function Support() {
     const next = supportKindFromParam(kindParam);
     if (next) switchKindRef.current(next);
   }, [kindParam]);
+  // REQ-119: Explore's "Request a course" passes what was searched for. It
+  // fills an empty course name only, so a draft already typed wins.
+  useEffect(() => {
+    const name = courseRequestPrefill(typeof courseNameParam === "string" ? courseNameParam : null);
+    if (!name || kind !== "course_request") return;
+    setCourseName((prev) => prev || name);
+    setSubject((prev) => prev || (courseRequestPrefill(`Please add ${name}`) ?? ""));
+  }, [courseNameParam, kind]);
   function chooseKind(next: SupportRequestKind) {
     switchKind(next);
     router.setParams({ kind: next });

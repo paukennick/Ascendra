@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/components/Understanding";
@@ -131,6 +132,12 @@ export default function LessonFlow() {
   // full ~20s generation). Gates the move into the fade step below.
   const [practicePending, setPracticePending] = useState(false);
   const [practiceLoading, setPracticeLoading] = useState(false);
+  // REQ-113 (Audit 3 mobile M4): a failure loading the practice steps used to
+  // set the screen-wide error, replacing the whole lesson with a banner and
+  // no Retry. It now shows under the explanation, with Retry, and says the
+  // learner's place is saved. `practiceNext` is what Retry carries on to.
+  const [practiceError, setPracticeError] = useState<string | null>(null);
+  const practiceNext = useRef<"fade" | "solo">("fade");
   // "Regenerate lesson" (done screen). Regeneration is per learner: it only
   // changes this learner's copy. The ref is the real double-tap guard (state
   // updates land a render late, so two quick taps could both pass a check on
@@ -202,7 +209,7 @@ export default function LessonFlow() {
         setPracticePending(!!res.practicePending);
         setLearnerHistory(res.learnerHistory ?? null);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(friendlyError(err)));
   }, [objectiveId]);
 
   useEffect(() => {
@@ -418,6 +425,7 @@ export default function LessonFlow() {
   async function ensurePracticeReady() {
     if (!practicePending) return true;
     setPracticeLoading(true);
+    setPracticeError(null);
     try {
       const res = await api.get<{ lesson: LessonContent; practicePending?: boolean }>(
         `/api/objectives/${objectiveId}/lesson`
@@ -426,7 +434,7 @@ export default function LessonFlow() {
       setPracticePending(!!res.practicePending);
       return !res.practicePending;
     } catch (err) {
-      setError((err as Error).message);
+      setPracticeError(friendlyError(err));
       return false;
     } finally {
       setPracticeLoading(false);
@@ -518,17 +526,25 @@ export default function LessonFlow() {
   const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "done");
   const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
   async function goToGuided() {
+    practiceNext.current = "fade";
     if (await ensurePracticeReady()) setStep("fade");
   }
   async function skipToSolo() {
+    practiceNext.current = "solo";
     if (await ensurePracticeReady()) setStep("solo");
   }
+  const practiceErrorView = practiceError ? (
+    <ErrorBanner
+      message={`${practiceError} Your place in this lesson is saved.`}
+      onRetry={() => (practiceNext.current === "solo" ? skipToSolo() : goToGuided())}
+    />
+  ) : null;
 
   if (error) {
     return (
       <Screen>
         <Stack.Screen options={{ title: headerTitle }} />
-        <ErrorBanner message={error} />
+        <ErrorBanner message={error} onRetry={loadLesson} />
       </Screen>
     );
   }
@@ -592,18 +608,21 @@ export default function LessonFlow() {
               onChange={setTeachState}
               onCardChange={scrollToTop}
               footer={
-                <TeachFooter
-                  plan={plan}
-                  loading={practiceLoading}
-                  onGuided={goToGuided}
-                  onSkip={skipToSolo}
-                  onCoach={() =>
-                    router.push({
-                      pathname: `/course/${trackId}/chat`,
-                      params: { unitId, prefill: `About "${headerTitle}": ` },
-                    })
-                  }
-                />
+                <>
+                  <TeachFooter
+                    plan={plan}
+                    loading={practiceLoading}
+                    onGuided={goToGuided}
+                    onSkip={skipToSolo}
+                    onCoach={() =>
+                      router.push({
+                        pathname: `/course/${trackId}/chat`,
+                        params: { unitId, prefill: `About "${headerTitle}": ` },
+                      })
+                    }
+                  />
+                  {practiceErrorView}
+                </>
               }
             />
           ) : (
@@ -623,6 +642,7 @@ export default function LessonFlow() {
                   })
                 }
               />
+              {practiceErrorView}
             </>
           )}
         </Card>
@@ -936,6 +956,8 @@ function GuessStep({
       <Body>{prompt}</Body>
       <TextInput
         multiline
+        accessibilityLabel="Your guess"
+        accessibilityHint="Leave it blank if you don't know"
         placeholder="Your guess (or leave blank if you don't know)"
         placeholderTextColor={colors.mutedDim}
         maxLength={OPEN_ANSWER_MAX}
@@ -1160,9 +1182,10 @@ function CheckStep({
         <>
           {kind === "fade" ? (
             <>
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button label="Multiple choice" size="sm" fullWidth={false} variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
-                <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
+              {/* REQ-113 (M8): the selected format was shown by colour only. */}
+              <View style={{ flexDirection: "row", gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel="Answer format">
+                <FormatOption label="Multiple choice" selected={mode === "mc"} onPress={() => setMode("mc")} />
+                <FormatOption label="Free response" selected={mode === "open"} onPress={() => setMode("open")} />
               </View>
               <Muted style={{ fontSize: 12 }}>
                 Guided practice is scaffolded, so it earns up to Guided in either format. The solo check is where
@@ -1218,6 +1241,7 @@ function CheckStep({
             <View style={{ gap: 8 }}>
               <TextInput
                 multiline
+                accessibilityLabel="Your answer"
                 placeholder="Your answer"
                 placeholderTextColor={colors.mutedDim}
                 maxLength={OPEN_ANSWER_MAX}
@@ -1368,6 +1392,7 @@ function CheckStep({
             <>
               <Muted>Dispute or ask about this verdict</Muted>
               <TextInput
+                accessibilityLabel="Dispute or ask about this verdict"
                 placeholder="e.g. I think my answer covered that — here's why..."
                 placeholderTextColor={colors.mutedDim}
                 maxLength={OPEN_ANSWER_MAX}
@@ -1448,15 +1473,21 @@ function GradedChoices({
 // went in before confidence was ever set). Confidence is stored with every
 // attempt for calibration -- a confident wrong answer is a stronger signal
 // than a hesitant one.
+// REQ-113 (Audit 3 mobile M8, M9): read as "1"..."5" with no role, label or
+// selected state, and ~39 dp tall. Now radio buttons with a spoken scale, as
+// the exam's picker already was, and 48 dp.
 function ConfidencePicker({ value, onChange }: { value: number | null; onChange: (n: number) => void }) {
   return (
     <View style={{ gap: 4 }}>
       <Muted>How confident are you?</Muted>
-      <View style={{ flexDirection: "row", gap: 6 }}>
+      <View style={{ flexDirection: "row", gap: 6 }} accessibilityRole="radiogroup" accessibilityLabel="How confident are you?">
         {["1", "2", "3", "4", "5"].map((label, idx) => (
           <Pressable
             key={label}
             onPress={() => onChange(idx + 1)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: value === idx + 1 }}
+            accessibilityLabel={`Confidence ${idx + 1} of 5${idx === 0 ? ", guessing" : idx === 4 ? ", certain" : ""}`}
             style={[styles.confidence, value === idx + 1 && styles.confidenceActive]}
           >
             <Body style={value === idx + 1 ? { color: colors.accentText, fontFamily: fonts.bodyBold } : undefined}>{label}</Body>
@@ -1464,10 +1495,25 @@ function ConfidencePicker({ value, onChange }: { value: number | null; onChange:
         ))}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Muted style={{ fontSize: 11 }}>guessing</Muted>
-        <Muted style={{ fontSize: 11 }}>certain</Muted>
+        <Muted style={{ fontSize: 12 }}>guessing</Muted>
+        <Muted style={{ fontSize: 12 }}>certain</Muted>
       </View>
     </View>
+  );
+}
+
+function FormatOption({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityLabel={label}
+      accessibilityState={{ checked: selected }}
+      style={({ pressed }) => [styles.formatOption, selected && styles.formatOptionOn, pressed && { opacity: 0.8 }]}
+    >
+      <Feather name={selected ? "check-circle" : "circle"} size={14} color={selected ? colors.accentText : colors.muted} />
+      <Text style={[styles.formatText, selected && { color: colors.accentText }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -1496,7 +1542,7 @@ const styles = StyleSheet.create({
   stepLine: { flex: 1, height: 2, marginTop: 13 },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     borderRadius: radius.md,
     padding: 10,
     color: colors.text,
@@ -1528,11 +1574,26 @@ const styles = StyleSheet.create({
   confidence: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     borderRadius: radius.md,
     paddingVertical: 8,
   },
+  formatOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 48,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    backgroundColor: colors.cardAlt,
+  },
+  formatOptionOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  formatText: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 14 },
   confidenceActive: { borderColor: colors.accent, backgroundColor: colors.accent },
   doneIcon: {
     width: 56,

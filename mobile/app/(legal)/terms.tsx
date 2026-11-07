@@ -16,7 +16,7 @@ export default function Terms() {
     <Screen>
       <H1>Terms of Service & Disclaimer</H1>
       <Muted style={{ marginTop: spacing.xs }}>
-        Draft — last updated September 17, 2026. This is a starting point for legal review, not
+        Draft — last updated November 7, 2026. This is a starting point for legal review, not
         finished legal advice; the bracketed items still need an owner to fill in.
       </Muted>
 
@@ -31,9 +31,10 @@ export default function Terms() {
       <Section title="2. Not affiliated with, and not a guarantee from, any certification body">
         <Body>
           Ascendra is an independent study aid. It is not produced, endorsed, sponsored, or
-          affiliated with CompTIA or any other certification, examination, or accrediting body
-          named or implied by its course content. Certification and exam names are the property
-          of their respective owners and are used only to describe what a course covers.
+          affiliated with CompTIA, Amazon Web Services, Microsoft, Google, PMI or any other
+          certification, examination, or accrediting body named or implied by its course content
+          (the Disclaimer page lists them). Certification and exam names and trademarks are the
+          property of their respective owners and are used only to describe what a course covers.
         </Body>
         <Body>
           Completing a course, reaching a mastery score, or answering practice questions correctly

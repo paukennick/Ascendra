@@ -1,3 +1,5 @@
+import { contrastRatio, ensureContrast } from "./contrast.ts";
+
 // Color tokens. Everything except the accent family is exactly as pulled
 // from the Ascendra design reference artifact's dark palette
 // (claude.ai/artifact/SeaodNous5p8xRgW8tGGLo) -- adopted wholesale rather
@@ -17,6 +19,23 @@
 // ~20% mixed toward white; accentDim ~28% of accent's own brightness, same
 // hue) rather than picked independently, so the family stays internally
 // consistent the way the original one was.
+// REQ-113 (Audit 3 mobile M1): five pairs here failed WCAG AA. Changed, with
+// the ratios src/lib/contrast.test.ts checks (it fails if any pair drops
+// below AA again):
+//   - accent #4C6FEF -> #5A7BF0 (same sapphire hue, a touch lighter): dark
+//     text on a primary button / active chip / user bubble 4.19 -> 4.79:1.
+//   - link: new token for accent-coloured TEXT (links, accent labels), the
+//     existing accentHover shade: 3.86/3.59 -> 5.38/5.00:1 on card/cardAlt.
+//     colors.accent stays for fills, borders and icons (>= 3:1).
+//   - mutedDim #767A89 -> #8C90A0: 4.26/3.93/3.66 -> 5.74/5.29/4.92:1 on
+//     bg/card/cardAlt (section headers, step labels, placeholders).
+//   - inputBorder: new token for text-field outlines, 1.20-1.29 -> 3.28/3.53:1
+//     against the field and the card around it. Card borders stay subtle
+//     (they are decoration, not a control's boundary).
+//   - Badge text is lifted to 4.5:1 on its own wash at run time
+//     (ensureContrast), and course/category accents to 3:1 as icons.
+// The disabled primary button no longer fades the accent to 2.0:1; it uses
+// the ghost surface with muted text (see ui.tsx Button).
 export const colors = {
   bg: "#14151B",
   bgAlt: "#1B1D26",
@@ -27,12 +46,14 @@ export const colors = {
   borderLight: "#3B3E52",
   text: "#E9E8F1",
   muted: "#9EA1B0",
-  mutedDim: "#767A89",
-  accent: "#4C6FEF",
+  mutedDim: "#8C90A0",
+  accent: "#5A7BF0",
   accentDim: "#1B2447",
   accentText: "#14151B",
   accentHover: "#708CF2",
   secondary: "#708CF2",
+  link: "#708CF2",
+  inputBorder: "#6E7286",
   good: "#5BC998",
   goodStrong: "#5BC998",
   goodDim: "#1D3227",
@@ -255,6 +276,19 @@ export interface CourseIconInfo {
   emoji?: string;
   icon: string; // Feather icon name; only rendered when emoji is undefined.
   accent: string;
+  // REQ-113 (M1): the accent lifted to 3:1 on a card, for drawing the icon.
+  // 14 of the 27 accents were below that as icon colours.
+  iconColor: string;
+}
+
+const withIconColor = (info: Omit<CourseIconInfo, "iconColor">): CourseIconInfo => ({
+  ...info,
+  iconColor: ensureContrast(info.accent, colors.card, 3),
+});
+
+// Text colour readable (4.5:1) on `bg`; keeps `color` when it already is.
+export function readableOn(color: string, bg: string): string {
+  return contrastRatio(color, bg) >= 4.5 ? color : ensureContrast(color, bg, 4.5);
 }
 
 export function getCourseIcon(track: {
@@ -263,14 +297,14 @@ export function getCourseIcon(track: {
   track_type: string;
 }): CourseIconInfo {
   const ownEmoji = courseEmoji[track.code];
-  if (ownEmoji) return { emoji: ownEmoji, icon: "book", accent: courseAccent[track.code] ?? colors.accent };
+  if (ownEmoji) return withIconColor({ emoji: ownEmoji, icon: "book", accent: courseAccent[track.code] ?? colors.accent });
 
   const catSlug = track.category_slug ?? undefined;
   const catEmoji = catSlug ? categoryEmoji[catSlug] : undefined;
-  if (catSlug && catEmoji) return { emoji: catEmoji, icon: "book", accent: categoryAccent[catSlug] ?? colors.accent };
+  if (catSlug && catEmoji) return withIconColor({ emoji: catEmoji, icon: "book", accent: categoryAccent[catSlug] ?? colors.accent });
 
   if (catSlug && categoryIcon[catSlug]) {
-    return { icon: categoryIcon[catSlug], accent: categoryAccent[catSlug] ?? colors.accent };
+    return withIconColor({ icon: categoryIcon[catSlug], accent: categoryAccent[catSlug] ?? colors.accent });
   }
-  return { icon: trackTypeIcon[track.track_type] ?? "book", accent: colors.accent };
+  return withIconColor({ icon: trackTypeIcon[track.track_type] ?? "book", accent: colors.accent });
 }

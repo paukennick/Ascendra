@@ -1,11 +1,14 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { PlanOption, PlanResponse, PlanStep } from "@/types/plan";
 import { Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, SectionHeader, TextField } from "@/components/ui";
 import { colors, fonts, spacing } from "@/lib/theme";
+import { DateField } from "@/components/DatePicker";
+import { friendlyError } from "@/lib/errorMessage";
+import { t } from "@/lib/i18n";
 import {
   examDateError,
   feasibilityLines,
@@ -34,30 +37,34 @@ export default function PlanScreen() {
   const [examDate, setExamDate] = useState("");
   const [hours, setHours] = useState("5");
   const [saving, setSaving] = useState(false);
-  const [touched, setTouched] = useState(false);
+  // REQ-113 (Audit 3 mobile L6): unsaved edits to the fields used to stop
+  // the plan reloading at all on later visits (the focus effect skipped the
+  // load while `touched`). The plan now always reloads on focus; only the
+  // learner's unsaved field values are kept. A ref, so the focus effect
+  // doesn't re-run on every keystroke.
+  const touched = useRef(false);
+  const setTouched = (v: boolean) => {
+    touched.current = v;
+  };
   const today = localToday();
 
-  const apply = useCallback((res: PlanResponse) => {
+  const apply = useCallback((res: PlanResponse, keepFields = false) => {
     setData(res);
+    if (keepFields) return;
     setExamDate(res.settings.examDate ?? "");
     setHours(String(res.settings.weeklyHours));
-    setTouched(false);
+    touched.current = false;
   }, []);
 
   const load = useCallback(() => {
     setError(null);
     api
       .get<PlanResponse>(`/api/courses/${trackId}/plan?today=${today}`)
-      .then(apply)
-      .catch((err) => setError((err as Error).message));
+      .then((res) => apply(res, touched.current))
+      .catch((err) => setError(friendlyError(err)));
   }, [trackId, today, apply]);
 
-  useFocusEffect(
-    useCallback(() => {
-      // Don't overwrite what the learner is typing when they come back.
-      if (!touched) load();
-    }, [load, touched])
-  );
+  useFocusEffect(load);
 
   const dateErr = examDateError(examDate, today);
   const hoursErr = hoursError(hours);
@@ -73,7 +80,7 @@ export default function PlanScreen() {
       });
       apply(res);
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError(err));
     } finally {
       setSaving(false);
     }
@@ -97,29 +104,28 @@ export default function PlanScreen() {
     <Screen>
       <H1>Study plan</H1>
       {trackTitle ? <Muted>{trackTitle}</Muted> : null}
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={!data ? load : undefined} /> : null}
       {!data && !error ? <Loading label="Building your plan..." /> : null}
 
       <Card>
         <H2>Your exam and your time</H2>
-        <TextField
-          label="Exam date (optional)"
-          value={examDate}
-          onChangeText={(t) => {
-            setExamDate(t);
+        {/* REQ-113 (L2): picked from a month grid in the learner's locale,
+            not typed as YYYY-MM-DD. */}
+        <DateField
+          label={t("plan.examDate")}
+          value={examDate || null}
+          min={today}
+          onChange={(iso) => {
+            setExamDate(iso ?? "");
             setTouched(true);
           }}
-          placeholder="YYYY-MM-DD"
-          keyboardType="numbers-and-punctuation"
-          maxLength={10}
-          icon="calendar"
           error={dateErr}
         />
         <TextField
           label="Hours you can study each week"
           value={hours}
-          onChangeText={(t) => {
-            setHours(t);
+          onChangeText={(v) => {
+            setHours(v);
             setTouched(true);
           }}
           keyboardType="decimal-pad"
@@ -178,7 +184,7 @@ export default function PlanScreen() {
                 accessibilityRole={stepRoute(s, trackId) ? "button" : "text"}
                 accessibilityLabel={`${stepLabel(s)}. ${stepMeta(s)}`}
                 style={({ pressed }) => [
-                  { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 8, minHeight: 44, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border },
+                  { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 8, minHeight: 48, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border },
                   pressed && { opacity: 0.7 },
                 ]}
               >

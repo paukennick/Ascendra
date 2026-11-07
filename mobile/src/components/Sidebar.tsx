@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, usePathname, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { t } from "@/lib/i18n";
+import { isReducedMotion } from "@/lib/useReducedMotion";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { ChoiceSheet } from "@/components/ui";
@@ -50,7 +52,8 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
     if (visible) setRendered(true);
     Animated.timing(translateX, {
       toValue: visible ? 0 : -PANEL_WIDTH,
-      duration: 180,
+      // REQ-113 (L1): no slide under the system's reduced-motion setting.
+      duration: isReducedMotion() ? 0 : 180,
       useNativeDriver: true,
     }).start(() => {
       if (!visible) setRendered(false);
@@ -128,10 +131,15 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   return (
     <>
     <Modal transparent visible statusBarTranslucent animationType="none" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close menu" />
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close menu" />
       <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Pressable style={styles.brandRow} onPress={() => go("/")}>
+          <Pressable
+            style={styles.brandRow}
+            onPress={() => go("/")}
+            accessibilityRole="button"
+            accessibilityLabel={track ? `${track.title}. Go to Home` : "Ascendra. Go to Home"}
+          >
             <Text style={styles.brandIcon}>{emoji ?? "📚"}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.kicker}>{track ? "COURSE" : "PLATFORM"}</Text>
@@ -140,6 +148,9 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           </Pressable>
 
           <NavRow icon="compass" label="Explore all courses" onPress={() => go("/explore")} />
+          {/* REQ-113 (Audit 3 mobile H5): the daily spaced review was reachable
+              only from the study plan and the course panel. */}
+          <NavRow icon="rotate-ccw" label={t("menu.review")} onPress={() => go("/review")} />
 
           {tracks ? (
             <>
@@ -203,6 +214,8 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
                     return (
                       <Pressable
                         key={u.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${u.title}${complete ? ", complete" : ""}`}
                         style={({ pressed }) => [styles.unitRow, pressed && { opacity: 0.7 }]}
                         onPress={() => next && go(`/course/${trackId}/lesson/${next.id}`, { unitId: u.id, objectiveTitle: next.title })}
                       >
@@ -269,7 +282,12 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 
 function NavRow({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
   return (
-    <Pressable style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
       <Feather name={icon} size={16} color={colors.text} />
       <Text style={styles.navLabel}>{label}</Text>
     </Pressable>
@@ -277,15 +295,22 @@ function NavRow({ icon, label, onPress }: { icon: IconName; label: string; onPre
 }
 
 function CourseRow({ track, busy, onPress }: { track: Track; busy: boolean; onPress: () => void }) {
-  const { emoji, icon, accent } = getCourseIcon(track);
+  const { emoji, icon, iconColor } = getCourseIcon(track);
   return (
-    <Pressable style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]} onPress={onPress} disabled={busy}>
+    <Pressable
+      style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+      disabled={busy}
+      accessibilityRole="button"
+      accessibilityLabel={track.title}
+      accessibilityState={{ disabled: busy, busy }}
+    >
       {busy ? (
         <ActivityIndicator size="small" color={colors.accent} />
       ) : emoji ? (
         <Text style={{ fontSize: 16 }}>{emoji}</Text>
       ) : (
-        <Feather name={icon as IconName} size={16} color={accent} />
+        <Feather name={icon as IconName} size={16} color={iconColor} />
       )}
       <Text style={styles.navLabel} numberOfLines={1}>{track.title}</Text>
     </Pressable>
@@ -331,6 +356,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
+    minHeight: 48,
     borderRadius: radius.sm,
   },
   navLabel: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: colors.text, flex: 1 },
@@ -341,6 +367,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 9,
     paddingHorizontal: 10,
+    minHeight: 48,
     borderRadius: radius.sm,
   },
   unitLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.text, flex: 1 },

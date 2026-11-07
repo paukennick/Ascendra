@@ -5,6 +5,7 @@ import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
+import { recordSignupTermsAcceptance } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ interface UserRow {
   email_mfa_enabled: boolean;
 }
 
-// POST /api/auth/oauth/google — { idToken, deviceLabel? }. The mobile app
+// POST /api/auth/oauth/google — { idToken, deviceLabel?, acceptedTermsVersion? }. The mobile app
 // gets idToken client-side via Expo AuthSession's Google provider; this
 // route only ever trusts a *verified* token, never client-supplied claims.
 //
@@ -31,7 +32,7 @@ interface UserRow {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { idToken, deviceLabel } = body ?? {};
+    const { idToken, deviceLabel, acceptedTermsVersion } = body ?? {};
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
     }
@@ -70,6 +71,9 @@ export async function POST(req: Request) {
         );
         if (!created) throw new Error("Failed to create account.");
         user = created;
+        // REQ-119: a new account made here saw "By continuing you agree..."
+        // under the Google button; existing accounts are asked on launch.
+        await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup");
       }
       await query(
         `insert into oauth_accounts (user_id, provider, provider_account_id, email)

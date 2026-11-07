@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
@@ -15,6 +15,8 @@ import {
   utcToday,
   verdictHeadline,
 } from "@/lib/reviewSession";
+import { friendlyError } from "@/lib/errorMessage";
+import { useAnswerDraft } from "@/lib/useAnswerDraft";
 
 // REQ-108: Today's review, one question at a time. Each question is new
 // (written for the objective, not the lesson's own Guided/Solo item) and is
@@ -32,37 +34,54 @@ export default function ReviewSessionScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Per-question state, reset when the question changes.
-  const [answer, setAnswer] = useState("");
   const [choices, setChoices] = useState<string[] | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [result, setResult] = useState<ReviewAnswerResult | null>(null);
   const [busy, setBusy] = useState(false);
   const attemptId = useRef<{ position: number; id: string } | null>(null);
+  // REQ-113 (Audit 3 mobile M5, M6): a failed first load is told apart from
+  // "nothing due" (it used to show "Nothing to review right now" under the
+  // error) and can be retried.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const alive = useRef(true);
+  useEffect(
+    () => () => {
+      alive.current = false;
+    },
+    []
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-    api
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    setEmpty(false);
+    return api
       .post<{ session: ReviewSession | null; unavailable: number }>("/api/review/sessions", trackId ? { trackId } : {})
       .then((res) => {
-        if (cancelled) return;
+        if (!alive.current) return;
         if (!res.session) setEmpty(true);
         setSession(res.session);
         setUnavailable(res.unavailable ?? 0);
       })
-      .catch((err) => !cancelled && setError((err as Error).message))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
+      .catch((err) => alive.current && setLoadError(friendlyError(err)))
+      .finally(() => alive.current && setLoading(false));
   }, [trackId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const current: ReviewSessionItem | null = session ? nextOpen(session.items) : null;
   // While a result is on screen the answered item is still "current" for display.
   const [shown, setShown] = useState<ReviewSessionItem | null>(null);
   const item = result ? shown : current;
+  // REQ-113 (M3): the typed answer is kept on the device per question until
+  // it is graded, so leaving or Android closing the app doesn't lose it.
+  const draft = useAnswerDraft("review", session && item ? `${session.id}-${item.position}` : null);
+  const answer = draft.text;
+  const setAnswer = draft.setText;
 
   function resetQuestion() {
-    setAnswer("");
     setChoices(null);
     setPicked(null);
     setResult(null);
@@ -89,7 +108,7 @@ export default function ReviewSessionScreen() {
       );
       setChoices(res.choices);
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -115,6 +134,7 @@ export default function ReviewSessionScreen() {
       );
       setShown(item);
       setResult(res);
+      draft.clear();
       setSession((s) =>
         s
           ? {
@@ -125,7 +145,7 @@ export default function ReviewSessionScreen() {
           : s
       );
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError(err, { kept: format === "open" }));
     } finally {
       setBusy(false);
     }
@@ -140,14 +160,16 @@ export default function ReviewSessionScreen() {
     );
   }
 
-  if (empty || !session) {
+  if (loadError || !session) {
     return (
       <Screen>
         <Stack.Screen options={{ title: "Today's review" }} />
-        {error ? <ErrorBanner message={error} /> : null}
+        {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+        {empty && !loadError ? (
         <Card>
           <EmptyState icon="check-circle" title="Nothing to review right now" message="Come back when something is due." />
         </Card>
+        ) : null}
         <Button label="Back to Review" variant="ghost" onPress={() => router.back()} />
       </Screen>
     );
@@ -194,7 +216,7 @@ export default function ReviewSessionScreen() {
                     onPress={() => setPicked(i)}
                     accessibilityRole="radio"
                     accessibilityLabel={c}
-                    accessibilityState={{ selected: picked === i }}
+                    accessibilityState={{ checked: picked === i }}
                     style={[styles.choice, picked === i && styles.choiceActive]}
                   >
                     <Body style={{ flex: 1 }}>{c}</Body>
@@ -212,7 +234,7 @@ export default function ReviewSessionScreen() {
                   multiline
                   placeholder="Your answer, in your own words"
                   placeholderTextColor={colors.mutedDim}
-                  accessibilityLabel="Your answer"
+                  accessibilityLabel="Your answer, in your own words"
                   value={answer}
                   onChangeText={setAnswer}
                   style={styles.input}
@@ -252,7 +274,7 @@ export default function ReviewSessionScreen() {
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     borderRadius: radius.md,
     padding: 12,
     color: colors.text,

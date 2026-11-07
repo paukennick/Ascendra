@@ -85,6 +85,12 @@ export const EXPORT_SECTIONS = {
   // answers). Their own input; the automated re-check rows have no user.
   itemReports:
     "select id, item_kind, item_id, question, source, reason, note, created_at from item_flags where user_id = $1 order by created_at asc, id asc",
+  // REQ-119 (migration 048): Terms/Privacy acceptances, the first-run
+  // record, learning events and reported exam results.
+  termsAcceptances: "select * from terms_acceptances where user_id = $1 order by accepted_at asc, terms_version asc",
+  onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
+  learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
+  examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

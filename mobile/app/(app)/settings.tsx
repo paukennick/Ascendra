@@ -33,6 +33,12 @@ export default function Settings() {
         <ListRow icon="user" label="Profile & sign-in" value={user?.displayName ?? user?.email} onPress={() => router.push("/account")} />
       </Card>
 
+      {/* REQ-119 (M7): opt-in, kind study reminders. */}
+      <SectionHeader label="Study" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
+      </Card>
+
       <SectionHeader label="Security" />
       <Card style={{ gap: 0 }}>
         <ListRow
@@ -74,6 +80,17 @@ export default function Settings() {
           Ascendra tracks your course progress, generates lessons and practice questions, and
           keeps everything in sync across devices.
         </Muted>
+        <Divider />
+        {/* REQ-119 (M6): every exam body, not only CompTIA. */}
+        <Muted>
+          Ascendra is an independent study aid. It is not affiliated with or endorsed by CompTIA, AWS,
+          Microsoft, Google, PMI or any other certification or exam body. Exam and certification names
+          and trademarks belong to their owners.
+        </Muted>
+        <Divider />
+        <ListRow icon="info" label="Disclaimer and trademarks" onPress={() => router.push("/disclaimer")} />
+        <ListRow icon="shield" label="Privacy Policy" onPress={() => router.push("/privacy")} />
+        <ListRow icon="file-text" label="Terms of Service" onPress={() => router.push("/terms")} />
       </Card>
     </Screen>
   );

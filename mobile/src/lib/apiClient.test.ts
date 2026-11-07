@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // client.ts reads React Native's __DEV__ global when it loads.
 (globalThis as Record<string, unknown>).__DEV__ = false;
-const { api, ApiError, RequestTimeoutError, requestTimeoutMs, DEFAULT_TIMEOUT_MS, MODEL_TIMEOUT_MS } = await import(
+const { api, ApiError, NetworkError, RequestTimeoutError, requestTimeoutMs, DEFAULT_TIMEOUT_MS, MODEL_TIMEOUT_MS } = await import(
   "../api/client.ts"
 );
 
@@ -62,9 +62,20 @@ describe("request timeout (FAIL-061)", () => {
     assert.equal(signal?.aborted, false);
   });
 
-  test("a network error that is not a timeout is passed through unchanged", async () => {
-    globalThis.fetch = (() => Promise.reject(new TypeError("Network request failed"))) as unknown as typeof fetch;
-    await assert.rejects(api.get("/api/tracks"), (err: unknown) => err instanceof TypeError);
+  // REQ-113 (Audit 3 mobile M7, FAIL-262): no longer passed through raw. It
+  // is still neither a timeout nor an HTTP error, and keeps the original as
+  // its cause, but its message is the calm one screens show.
+  test("a network error that is not a timeout is a NetworkError carrying the original", async () => {
+    const original = new TypeError("Network request failed");
+    globalThis.fetch = (() => Promise.reject(original)) as unknown as typeof fetch;
+    await assert.rejects(api.get("/api/tracks"), (err: unknown) => {
+      assert.ok(err instanceof NetworkError);
+      assert.ok(!(err instanceof RequestTimeoutError));
+      assert.ok(!(err instanceof ApiError));
+      assert.equal((err as InstanceType<typeof NetworkError>).cause, original);
+      assert.match((err as Error).message, /Couldn't reach Ascendra/);
+      return true;
+    });
   });
 
   test("defaults: 15 s for ordinary routes, longer for routes that wait on the model", () => {

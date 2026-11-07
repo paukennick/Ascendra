@@ -3792,6 +3792,554 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-250",
+      "date": "2026-11-07",
+      "title": "Mock-exam answer graded blank or stale: unordered saves, submit without flush",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On a slow network the last exam answer (or any whose save failed) was graded as Not answered: Submit did not wait for in-flight saves or retry failed ones, the server closes the session at grading and refuses later saves with 409, and the app's 409 handler just showed results. Two quick changes to one question could also land out of order and leave the older answer stored.",
+      "how_detected": "Audit 3 mobile (H1), read of exam.tsx and exam-sessions.ts",
+      "root_cause": "Each change sent its own unnumbered fire-and-forget PUT; nothing tracked in-flight or failed saves, so neither the app nor the server could order them or know an answer was missing before grading.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/src/lib/examSaveQueue.ts",
+        "backend/lib/exam-sessions.ts::saveItem",
+        "backend/supabase/migrations/047_exam_save_sequence.sql"
+      ],
+      "fix_summary": "Saves go through a per-session queue: one in flight per question, numbered (seq) from the server's saveSeq, failed fields kept and retried every 5 s and on demand, flushed before Submit and Leave; Submit refuses with the unsaved question numbers while any save has failed (except at time-up). The server stores save_seq (migration 047) and ignores a save numbered at or below it with 200 {saved:false, stale:true}.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/examSaveQueue.test.ts::flush waits for in-flight saves",
+        "retries failed ones",
+        "and lists what is still unsaved",
+        "mobile/src/lib/examSaveQueue.test.ts::one save in flight per question; changes made meanwhile are merged and sent next",
+        "numbered upward",
+        "backend/lib/exam-practice.dbtest.ts::a save numbered below the last applied one is ignored",
+        "not an error; the view returns the number"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Server-side sequence check in the same UPDATE as the status check; the client queue is the only save path on the exam screen.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-251",
+      "date": "2026-11-07",
+      "title": "Unit check showed missed parts as covered beside a failing verdict",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A unit check could show every sub-part as a green covered tick (and say covered to TalkBack) next to a partial or incorrect verdict.",
+      "how_detected": "Audit 3 mobile (H2), read of unit-check.tsx and lib/unit-check.ts",
+      "root_cause": "Unit checks were graded with the plain gradeResultSchema (missedParts only), so the screen matched missedParts to sub_parts by exact text; any rewording or Part 2: prefix broke the match and an unmatched part defaulted to covered. REQ-107 had already moved PBQs off this guess.",
+      "requirement": "REQ-113",
+      "affected": [
+        "backend/lib/unit-check.ts::gradeUnitCheck",
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/src/lib/unitCheck.ts"
+      ],
+      "fix_summary": "Unit checks are graded with pbqGradeResultSchema; normalizePartScores lines the scores up with the check's labels; partScores are stored on the attempt (replayed too) and returned. The screen renders rows from them; without scores a part is Not scored separately, never covered; misses are amber To work on.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/unitCheck.test.ts::the audit's case: reworded missedParts and no per-part scores never show a missed part as covered",
+        "backend/lib/review-loop.dbtest.ts::unit check: per-part scores lined up with the check's own labels",
+        "stored and replayed",
+        "backend/lib/review-loop.dbtest.ts::unit check: a grader list that can't be lined up gives no per-part scores (the app shows 'not scored')"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Any multi-part grade shown per part must come from per-part scores (pbqGradeResultSchema), never from label matching.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-252",
+      "date": "2026-11-07",
+      "title": "Course dashboard Compare quick action mostly off-screen on 360 dp phones",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Five quick actions at a fixed 72 dp each needed 360 dp; a 360 dp phone has about 294 dp in the card, so Compare started near x=321.",
+      "how_detected": "Audit 3 mobile (H3), layout arithmetic",
+      "root_cause": "Fixed-width items in a non-wrapping row, sized for a wide test screen.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "Items take a 20% basis with a 56 dp minimum in a wrapping row (five fit in 294 dp; narrower rows wrap); each item is one labelled button.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Rows of fixed-width items wrap or flex.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-253",
+      "date": "2026-11-07",
+      "title": "Icon-only buttons unlabelled for TalkBack and below 48 dp",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Home menu/settings/continue, dashboard back/menu/quick actions, session revoke, MFA copy and chat send were read as unlabelled buttons and were 32-40 dp.",
+      "how_detected": "Audit 3 mobile (H4)",
+      "root_cause": "IconButton took no label or role and had no hitSlop; the chat send was a bare Pressable.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx::IconButton",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "fix_summary": "IconButton requires accessibilityLabel (a type error otherwise), sets role and disabled state, and adds hitSlop to 48 dp; every caller labelled; chat send labelled with role, state and hitSlop.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "accessibilityLabel is a required prop, so tsc refuses an unlabelled IconButton.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-254",
+      "date": "2026-11-07",
+      "title": "About 11 MB of unused fonts and a 741 KB icon shipped in the Android bundle",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Android export carried 95 assets (14.1 MB): every weight and italic of three font families, all 19 vector-icon fonts, and the 1024 px app icon used at 56 px.",
+      "how_detected": "Audit 3 mobile (M2), expo export",
+      "root_cause": "Package-index imports (@expo-google-fonts/* and @expo/vector-icons) pull every file the index requires into the bundle.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/_layout.tsx",
+        "mobile/src/components/ui.tsx::BrandMark",
+        "mobile/assets/brand-mark.png"
+      ],
+      "fix_summary": "Per-weight font imports and @expo/vector-icons/Feather deep imports everywhere; BrandMark uses a 192 px brand-mark.png. Export: 17,856,014 -> 6,632,730 bytes (assets 14,114,730 -> 3,228,454, 95 -> 39 files; JS 3,735,150 -> 3,401,670). MaterialSymbols (967 KB) remains: expo-router's Android toolbar requires it.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Import fonts and icon sets per file, never from the package index.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-255",
+      "date": "2026-11-07",
+      "title": "Home review card counted the old error log; the menu had no Review link",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Home showed Review due only for error-log entries, so a learner who rarely misses never saw the daily spaced review, and its count disagreed with the hub's N for today; the sidebar had no Review row.",
+      "how_detected": "Audit 3 mobile (H5)",
+      "root_cause": "The card predated REQ-108's /api/review/today and was not moved over when the hub was.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/index.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/lib/homeReview.ts"
+      ],
+      "fix_summary": "The card reads /api/review/today and says N for today plus unit checks ready; the sidebar has a permanent Review row.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/audit3Mobile.test.ts::a learner who rarely misses still sees the daily review (no error-log entries needed)",
+        "mobile/src/lib/audit3Mobile.test.ts::driven by today's review",
+        "worded like the hub"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Home and the hub share one source for due counts.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-256",
+      "date": "2026-11-07",
+      "title": "First tap on Submit with the keyboard open only closed the keyboard",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On every typed-answer screen the first tap on Check my answer dismissed the keyboard and did nothing else.",
+      "how_detected": "Audit 3 mobile (M10)",
+      "root_cause": "The shared Screen ScrollView lacked keyboardShouldPersistTaps.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx::Screen"
+      ],
+      "fix_summary": "Screen sets keyboardShouldPersistTaps=handled.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Shared scroll container carries the setting for every screen.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-257",
+      "date": "2026-11-07",
+      "title": "Typed answers lost on leaving review, unit check or explain-back",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Answers on the review session, unit check and explain-back (up to 4000 characters) lived only in React state and were lost when the learner left or Android killed the app.",
+      "how_detected": "Audit 3 mobile (M3)",
+      "root_cause": "useStoredDraft was adopted screen by screen and these REQ-108/111 screens were built after it without it.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/course/[trackId]/explain/[objectiveId].tsx",
+        "mobile/src/lib/useAnswerDraft.ts",
+        "mobile/src/lib/drafts.ts"
+      ],
+      "fix_summary": "useAnswerDraft keeps the text and the clientAttemptId it was sent with under ascendra.draft.<thread>.<user>.<id>, which the logout sweep already removes; cleared after grading.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/audit3Mobile.test.ts::keys are per user and per question",
+        "and the logout sweep removes them",
+        "mobile/src/lib/audit3Mobile.test.ts::the text and the id it was sent with round-trip; junk is refused"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Free-text answer screens use useAnswerDraft; keys use the swept draft shape.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-258",
+      "date": "2026-11-07",
+      "title": "One network blip mid-lesson replaced the whole lesson with an error and no Retry",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A failure loading the practice steps set the screen-wide error: the learner saw only a banner and could only go back.",
+      "how_detected": "Audit 3 mobile (M4)",
+      "root_cause": "ensurePracticeReady reported into the same error state as the initial lesson load.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx::ensurePracticeReady"
+      ],
+      "fix_summary": "Its own practiceError, shown inline under the explanation with Retry (which carries on to Guided or Solo as chosen) and a note that the place is saved; the initial load error also has Retry.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Errors from a step are scoped to that step.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-259",
+      "date": "2026-11-07",
+      "title": "Core theme colours failed WCAG AA",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Primary button text 4.19:1, accent links 3.86/3.59:1, mutedDim 4.26/3.93/3.66:1, accent and muted badges 3.2:1, disabled primary 2.0:1, text-field outlines 1.2:1, 14 of 27 course accents below 3:1 as icons.",
+      "how_detected": "Audit 3 mobile (M1), contrast.mjs",
+      "root_cause": "The palette was validated by eye against swatches; nothing computed ratios for the pairs actually drawn.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/lib/theme.ts",
+        "mobile/src/components/ui.tsx",
+        "mobile/src/lib/contrast.ts"
+      ],
+      "fix_summary": "accent #4C6FEF->#5A7BF0 (4.79:1 with dark text); link token #708CF2 for accent text (5.38/5.00); mutedDim #767A89->#8C90A0 (5.74/5.29/4.92); inputBorder #6E7286 (3.28/3.53); badge text lifted to 4.5:1 on its wash at run time; course icons lifted to 3:1; disabled buttons use the ghost surface with muted text (6.0:1).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/contrast.test.ts::the old theme values fail",
+        "so the test can catch a regression",
+        "mobile/src/lib/contrast.test.ts::every course and category accent is drawn as an icon at 3:1 or better on a card"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "contrast.test.ts fails if any theme pair drops below AA.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-260",
+      "date": "2026-11-07",
+      "title": "Failed loads were dead ends, and review said nothing was due when the load failed",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On ten screens a failed first load showed only an error banner; the review session also showed Nothing to review right now under the error.",
+      "how_detected": "Audit 3 mobile (M5, M6)",
+      "root_cause": "ErrorBanner had no action, and the review session treated no-session as empty without checking for an error.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx::ErrorBanner",
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/review-coverage.tsx",
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "mobile/app/(app)/course/[trackId]/explain/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/plan.tsx",
+        "mobile/app/(app)/course/[trackId]/placement.tsx",
+        "mobile/app/(app)/course/[trackId]/quiz.tsx",
+        "mobile/app/(app)/course/[trackId]/exam.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "ErrorBanner takes onRetry; each screen passes its load function; the review session checks for a load error before the empty state.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "ErrorBanner offers onRetry for any load.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-261",
+      "date": "2026-11-07",
+      "title": "Unsaved study-plan edits stopped the plan reloading",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Typing in the plan fields and leaving without saving stopped the plan reloading on later visits until the screen was reopened.",
+      "how_detected": "Audit 3 mobile (L6)",
+      "root_cause": "The focus effect skipped the load while a touched flag was set.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/plan.tsx"
+      ],
+      "fix_summary": "The plan always reloads on focus; only the unsaved field values are kept (touched is a ref).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Keep user edits by not overwriting fields, not by skipping the load.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-262",
+      "date": "2026-11-07",
+      "title": "Network errors reached learners as raw SyntaxError text and lost the HTTP status",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A Wi-Fi sign-in page or proxy HTML error surfaced as SyntaxError: Unexpected token '<'; offline as Network request failed; the 401 refresh and 429 handling never ran; chat showed (error getting reply: ...) as a coach message.",
+      "how_detected": "Audit 3 mobile (M7), probe.test.ts",
+      "root_cause": "The client parsed JSON outside its error handling and passed fetch failures through unchanged.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "fix_summary": "The body is parsed inside the handling: a non-JSON response is an ApiError with its status (a 2xx portal page counts as 502) and a calm message; fetch failures become NetworkError with a calm message; 5xx never shows server internals; screens use friendlyError; chat shows a banner with Retry and keeps the text.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/errorMessage.test.ts::an HTML page with status 200 is an ApiError with a calm message",
+        "not a SyntaxError",
+        "mobile/src/lib/errorMessage.test.ts::a 401 with a non-JSON body still triggers the session refresh (the status is no longer lost)",
+        "mobile/src/lib/apiClient.test.ts::a network error that is not a timeout is a NetworkError carrying the original"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "All bodies parsed through parseBody inside the client's error handling.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-263",
+      "date": "2026-11-07",
+      "title": "Screen-reader gaps in shared components",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Error banner not announced; TextField label not linked (28 uses); lesson confidence read as 1..5; guided format toggle selection by colour only; chips and menu rows without roles; lesson guess, answer and dispute boxes and chat input unlabelled.",
+      "how_detected": "Audit 3 mobile (M8)",
+      "root_cause": "Shared components predated the accessibility pass and screens copied their patterns.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/course/[trackId]/chat.tsx"
+      ],
+      "fix_summary": "ErrorBanner alert role and assertive live region; TextField puts the label (and error) on the input and links it by id; confidence and format toggles are radios with checked state and spoken scale; Chip, ListRow, NavRow, CourseRow, unit rows, pressable Cards have roles and labels; all named inputs labelled.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Shared components set role, label and state; screens get them for free.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-264",
+      "date": "2026-11-07",
+      "title": "Shared controls below 48 dp",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Small buttons ~36 dp, link buttons ~39, chips ~34, lesson confidence boxes ~39.",
+      "how_detected": "Audit 3 mobile (M9), inferred from styles",
+      "root_cause": "Padding-sized controls with no minimum height.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/ExamQuestion.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/components/Sidebar.tsx"
+      ],
+      "fix_summary": "MIN_TOUCH=48: buttons (all sizes) and links minHeight 48; chips hitSlop to 48; confidence boxes, exam grid cells, plan steps, menu rows 48.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "MIN_TOUCH constant in ui.tsx.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-265",
+      "date": "2026-11-07",
+      "title": "No reduced-motion support",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Sidebar slide, press-scale animations and progress-bar fills ignored the system reduce-motion setting.",
+      "how_detected": "Audit 3 mobile (L1)",
+      "root_cause": "No shared reading of AccessibilityInfo.isReduceMotionEnabled.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/lib/useReducedMotion.ts",
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/Sidebar.tsx"
+      ],
+      "fix_summary": "useReducedMotion/isReducedMotion: no press scale, no sidebar slide, no bar animation and no modal fade when set.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Animations go through the shared reduced-motion check.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-266",
+      "date": "2026-11-07",
+      "title": "Heavy coverage list and per-second exam re-render on cheap phones",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Coverage rendered every studied objective at once with an animated bar each; the exam screen re-rendered everything (including up to ~90 grid buttons) every second for the clock.",
+      "how_detected": "Audit 3 mobile (L3), inferred",
+      "root_cause": "A ScrollView for an unbounded list; clock state held in the screen component.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/review-coverage.tsx",
+        "mobile/src/lib/coverageRows.ts",
+        "mobile/app/(app)/course/[trackId]/exam.tsx::ExamClock"
+      ],
+      "fix_summary": "Coverage is a FlatList of flattened rows with still bars; the exam clock is its own memoised component and the grid is memoised.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/audit3Mobile.test.ts::headings once per course and unit",
+        "one row per objective",
+        "in order"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Unbounded lists use FlatList; ticking state lives in the smallest component.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-267",
+      "date": "2026-11-07",
+      "title": "Not ready for other languages; exam date typed as YYYY-MM-DD",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "About 872 hard-coded strings, English plurals and month names in code, and the exam date typed as free text.",
+      "how_detected": "Audit 3 mobile (L2)",
+      "root_cause": "No localisation layer existed.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/lib/i18n.ts",
+        "mobile/src/lib/datePicker.ts",
+        "mobile/src/components/DatePicker.tsx",
+        "mobile/app/(app)/course/[trackId]/plan.tsx"
+      ],
+      "fix_summary": "Groundwork only: a dictionary with t() and Intl plural rules, used for the strings this change touched; an accessible month-grid date picker with locale month and day names. Full extraction, RTL and server-built lines remain.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/audit3Mobile.test.ts::plurals follow the locale's rules",
+        "and a missing translation falls back to English",
+        "mobile/src/lib/audit3Mobile.test.ts::names come from the locale",
+        "not English in code"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "New user-facing strings go through t().",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-268",
+      "date": "2026-11-07",
+      "title": "Tone: red lowercase incorrect, red X on unit check, false 'no look-alikes' message",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The verdict badge showed red lowercase incorrect; unit check marked misses with a red X; Compare said No look-alike concepts were found when generation had failed.",
+      "how_detected": "Audit 3 mobile (L4)",
+      "root_cause": "Raw enum values shown as labels; the comparisons API did not say generation had failed.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/src/components/ui.tsx::VerdictBadge",
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/course/[trackId]/compare.tsx",
+        "backend/app/api/courses/[id]/comparisons/route.ts"
+      ],
+      "fix_summary": "VerdictBadge says Correct / Partly right / Not yet (amber, retry icon); unit check misses are amber To work on; the comparisons route returns failed and the screen says the cards couldn't be prepared, with Retry.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts::a failed generation can be retried only after the back-off"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Labels map from enums; failures are reported as failures.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-269",
+      "date": "2026-11-07",
+      "title": "Double taps on placement and quiz options; silent placement failures",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Two quick taps on different quiz options could use two tries; placement's Stop here left even when the request failed; Start from the beginning on the course panel failed silently.",
+      "how_detected": "Audit 3 mobile (L5)",
+      "root_cause": "The busy guard was React state (updated next render); promise results were ignored.",
+      "requirement": "REQ-113",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/placement.tsx",
+        "mobile/app/(app)/course/[trackId]/quiz.tsx",
+        "mobile/src/components/CoursePlanPanel.tsx"
+      ],
+      "fix_summary": "A ref guard on placement and quiz answers; Stop here leaves only on success; the panel shows the skip error. Exam options are not guarded: the latest tap should win and FAIL-250's ordered saves make that safe.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Layout or screen-reader behaviour of a React Native view; this repo has no component renderer, so it needs a device check (listed in the REQ-113 report). Typecheck enforces the prop contract where one exists.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Answer handlers guard with a ref (or the shared pressGuard), not state.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-270",
       "date": "2026-11-07",
       "title": "Prompts had no guard against made-up facts",
@@ -4162,6 +4710,193 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Regression test; the shared rules live in one place (coach rules / item-quality).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-400",
+      "date": "2026-11-07",
+      "title": "Support and course requests answered 500 for a NUL or lone surrogate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/support with a NUL character or half an emoji in subject, body or course name failed the INSERT (invalid byte sequence for encoding UTF8: 0x00) and returned 500.",
+      "how_detected": "Re-verifying Audit 3 product L2 (Request a course) against the code; fail-before test",
+      "root_cause": "The route validated with its own trimmedString (type and length only) instead of lib/text-input.ts textField, which every other learner-text route adopted in REQ-098; the support route predates that and was never moved over.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "trimmedString now also requires textField to accept the value, so unstorable text is a 400.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::FAIL-400: a NUL or half an emoji in a field is a 400",
+        "not a 500"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every route that stores typed text checks it with textField; the regression test covers each support field.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-401",
+      "date": "2026-11-07",
+      "title": "Support request hourly cap could be raced past",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Requests sent at once all counted the last hour's rows under the cap of 10 and all inserted, each emailing a human.",
+      "how_detected": "Re-verification while adding Explore's Request a course; fail-before test with 14 concurrent requests",
+      "root_cause": "Count-then-insert in two statements with no lock; consumeRateLimit (REQ-098) exists for exactly this but the support route kept its own check.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "The route calls consumeRateLimit('support_request', userId, 10 per hour), which counts and records under an advisory lock.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::FAIL-401: requests sent at once can't get past the hourly cap"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Rate limits use consumeRateLimit, never a count followed by a write.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-402",
+      "date": "2026-11-07",
+      "title": "Course page primary button did nothing, and said Continue studying with nothing started",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With zero progress the button read Continue studying; when the first unfinished unit (by counts) listed no objectives, pressing it did nothing.",
+      "how_detected": "Audit 3 product M4, re-verified in course/[trackId]/index.tsx",
+      "root_cause": "The target was found in two steps inline in the screen: the first unit whose mastered count was below its total, then an objective inside that unit only; nothing handled an empty list or the not-started state.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "src/lib/nextStep.ts picks across all units in course order: Start course, Continue (half-done first) or Review, or no button when there are no objectives.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-402: a first unfinished unit with no objectives listed no longer makes the button do nothing"
+      ],
+      "no_test_reason": "The old logic was inline in the screen (no component renderer here), so there is no fail-before run; the helper test pins the new behaviour.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Navigation targets are computed in a tested helper, not inline in a screen.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-403",
+      "date": "2026-11-07",
+      "title": "Review told a brand-new learner they were all caught up",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The Review hub's empty state said All caught up / Nothing is due right now to someone who had never studied anything.",
+      "how_detected": "Audit 3 product L1",
+      "root_cause": "The empty state did not distinguish nothing scheduled yet (nextDueOn null) from nothing due today.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(app)/review.tsx"
+      ],
+      "fix_summary": "src/lib/emptyStates.ts reviewEmpty(nextDueOn) says what Review is and offers a next action when nothing is scheduled.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-403: Review doesn't tell someone who hasn't learned anything that they're 'all caught up'"
+      ],
+      "no_test_reason": "Old copy was inline in the screen; the helper test covers the new behaviour.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Empty-state copy lives in src/lib/emptyStates.ts with tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-404",
+      "date": "2026-11-07",
+      "title": "Terms acceptance never recorded; Google sign-up skipped it",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "app_users had no terms columns and no table recorded acceptance; the agree checkbox existed only on the phone, and a new Google account was created without seeing the Terms.",
+      "how_detected": "Audit 3 product H5",
+      "root_cause": "Consent was treated as a client-side form check, not data; Google sign-up was added later as a separate path.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "mobile/app/(auth)/register.tsx",
+        "mobile/app/(auth)/login.tsx"
+      ],
+      "fix_summary": "Migration 048 terms_acceptances; register and new Google accounts record the current version with source; GET /api/onboarding and POST /api/onboarding/terms ask everyone else once on launch; in the export.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::sign-up records the current version with its source; an old or missing version records nothing",
+        "backend/lib/product-basics.dbtest.ts::the register and Google sign-up routes both record the acceptance they are sent",
+        "backend/lib/product-basics.dbtest.ts::a new account must accept; only the current version is accepted; the first time is kept",
+        "mobile/src/lib/productBasics.test.ts::the app's terms version is the server's current one"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A mobile test pins the app's terms version to the server's; a static test pins both sign-up routes to the helper.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-405",
+      "date": "2026-11-07",
+      "title": "Privacy policy misstated what goes to the AI provider",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The policy said only Ask Coach messages went to an unnamed AI provider; seven grading/feedback features also send learner text to Anthropic, and retention claimed rolling purges that the code does not do.",
+      "how_detected": "Audit 3 product H3; re-verified by grepping callClaude purposes and every delete statement",
+      "root_cause": "The page was written when chat was the only model call and was not revisited as grading features were added; no check ties the page to the code.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(legal)/privacy.tsx"
+      ],
+      "fix_summary": "Section 5 names Anthropic and every feature that sends typed text, what is sent with it, and Anthropic's training and retention terms with sources; section 6 states actual retention (no automatic purge of expired tokens or sign-in records).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-405: names Anthropic and every feature that sends what a learner types"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A test fails if the page loses the provider name or any learner-text feature; adding an AI purpose that sends learner text should add it to the page and the test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-406",
+      "date": "2026-11-07",
+      "title": "Not-affiliated disclaimers named only CompTIA",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Disclaimer, Terms and FAQ named only CompTIA while the catalog uses marks from AWS, Microsoft, Google, PMI, NCSBN and others; no course showed its own exam body.",
+      "how_detected": "Audit 3 product M6",
+      "root_cause": "Disclaimers were written for the first (Security+) course and never updated as the catalog grew.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(legal)/disclaimer.tsx",
+        "mobile/app/(legal)/terms.tsx",
+        "mobile/app/(legal)/faq.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "Course pages show a line naming exam.providerName (src/lib/vendor.ts); the Disclaimer lists every provider in the catalog; Terms, FAQ and Settings name the main ones.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-406: the Disclaimer page lists the catalog's trademark owners",
+        "not only CompTIA",
+        "mobile/src/lib/productBasics.test.ts::names the exam's own provider"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The course line is built from credential_providers data, so a new vendor is named without a code change; TRADEMARK_OWNERS should be updated with the catalog.",
       "recurrence_of": ""
     }
   ]

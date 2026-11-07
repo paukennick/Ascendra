@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { CourseReadiness, Track, Unit } from "@/types";
@@ -26,6 +26,10 @@ import { CoursePlanPanel } from "@/components/CoursePlanPanel";
 import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
+import { nextCourseStep } from "@/lib/nextStep";
+import { vendorDisclaimer } from "@/lib/vendor";
+import { COURSE_NO_UNITS } from "@/lib/emptyStates";
+import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 
 interface AcknowledgementState {
   required: boolean;
@@ -49,6 +53,8 @@ export default function CourseDashboard() {
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
+  // REQ-119 (M6): the exam's provider, for the "not affiliated" line.
+  const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ack, setAck] = useState<AcknowledgementState | null>(null);
@@ -84,11 +90,14 @@ export default function CourseDashboard() {
   const load = useCallback(() => {
     setError(null);
     api
-      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness }>(`/api/courses/${trackId}`)
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
+        `/api/courses/${trackId}`
+      )
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
         setReadinessData(res.readiness ?? null);
+        setExam(res.exam ?? null);
       })
       .catch((err) => setError(err.message));
     // Asked for separately so a course that needs no disclaimer -- which is
@@ -107,10 +116,12 @@ export default function CourseDashboard() {
     }, [load])
   );
 
-  // "Continue" jumps to the first unit that still has an unmastered objective.
-  const continueUnit = units?.find(
-    (u) => (u.mastered_objectives ?? 0) < (u.total_objectives ?? 0)
-  );
+  // REQ-119 (Audit 3 product M4): "Start course" with nothing started,
+  // "Continue" to the next right objective, "Review" when all are done
+  // (src/lib/nextStep.ts). It used to say "Continue studying" from zero and
+  // did nothing when the unit it picked listed no objectives.
+  const step = nextCourseStep(units);
+  const vendorLine = track ? vendorDisclaimer(exam, track.track_type) : null;
 
   // REQ-100: readiness from weighted accuracy across every question type,
   // rolled up by the exam blueprint, with coverage shown apart from accuracy
@@ -130,14 +141,14 @@ export default function CourseDashboard() {
           title: track?.title ?? "Course",
           headerLeft: () => (
             <View style={{ flexDirection: "row" }}>
-              <IconButton icon="chevron-left" onPress={() => router.back()} size={34} />
-              <IconButton icon="menu" onPress={() => setSidebarOpen(true)} size={34} />
+              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={() => router.back()} size={34} />
+              <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
             </View>
           ),
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} trackId={trackId} track={track} units={units} />
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={load} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
       {track && pendingDisclaimer ? (
@@ -164,7 +175,7 @@ export default function CourseDashboard() {
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Muted>Overall progress</Muted>
-              <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{track.percent_progress ?? 0}%</Muted>
+              <Muted style={{ color: colors.link, fontFamily: fonts.bodyBold }}>{track.percent_progress ?? 0}%</Muted>
             </View>
             <ProgressBar percent={track.percent_progress ?? 0} />
             <Muted style={{ fontSize: 12 }}>
@@ -186,21 +197,21 @@ export default function CourseDashboard() {
               </View>
             ) : null}
 
-            <Button
-              label="Continue studying"
-              icon="play"
-              onPress={() => {
-                const nextObjective =
-                  continueUnit?.objectives?.find(
-                    (o) => o.mastery_status !== "Independent" && o.mastery_status !== "Transfer-ready"
-                  ) ?? continueUnit?.objectives?.[0];
-                if (nextObjective)
-                  router.push({
-                    pathname: `/course/${trackId}/lesson/${nextObjective.id}`,
-                    params: { unitId: continueUnit?.id, objectiveTitle: nextObjective.title },
-                  });
-              }}
-            />
+            {step ? (
+              <Button
+                label={step.label}
+                accessibilityLabel={step.a11y}
+                icon={step.kind === "review" ? "rotate-cw" : "play"}
+                onPress={() => {
+                  if (step.kind === "review") router.push("/review");
+                  else
+                    router.push({
+                      pathname: `/course/${trackId}/lesson/${step.objectiveId}`,
+                      params: { unitId: step.unitId, objectiveTitle: step.objectiveTitle },
+                    });
+                }}
+              />
+            ) : null}
 
             {/* REQ-109: timed sprints and mock exams. */}
             <Button
@@ -213,23 +224,37 @@ export default function CourseDashboard() {
               }
             />
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
+            {/* REQ-113 (Audit 3 mobile H3, H4): five fixed 72 dp items needed
+                360 dp but a 360 dp phone has about 294 here, so "Compare" sat
+                mostly off-screen. Each item now takes a fifth of the row
+                (at least 56 dp, so five fit in 294 dp; narrower rows wrap
+                instead of overflowing), and the whole item -- icon and caption -- is one labelled
+                button of at least 48 dp. */}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: spacing.sm, rowGap: spacing.sm }}>
               {QUICK_ACTIONS.map((a) => (
-                <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>
-                  <IconButton
-                    icon={a.icon}
-                    onPress={() =>
-                      router.push({
-                        pathname: `/course/${trackId}/${a.path}`,
-                        params: { trackTitle: track.title },
-                      })
-                    }
-                  />
-                  <Muted style={{ textAlign: "center", fontSize: 11 }}>{a.label}</Muted>
-                </View>
+                <Pressable
+                  key={a.path}
+                  accessibilityRole="button"
+                  accessibilityLabel={a.label}
+                  onPress={() =>
+                    router.push({
+                      pathname: `/course/${trackId}/${a.path}`,
+                      params: { trackTitle: track.title },
+                    })
+                  }
+                  style={({ pressed }) => [styles.quickAction, pressed && { opacity: 0.7 }]}
+                >
+                  <View style={styles.quickIcon}>
+                    <Feather name={a.icon} size={18} color={colors.text} />
+                  </View>
+                  <Muted style={{ textAlign: "center", fontSize: 12, lineHeight: 15 }}>{a.label}</Muted>
+                </Pressable>
               ))}
             </View>
           </Card>
+
+          {/* REQ-119: "How did the exam go?" once the plan's exam date has passed. */}
+          <ExamOutcomePrompt trackId={trackId} trackTitle={track.title} />
 
           {/* REQ-110: placement offer, session choice, plan and kept summary. */}
           <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
@@ -245,8 +270,10 @@ export default function CourseDashboard() {
               <Card key={u.id}>
                 <Pressable
                   onPress={() => toggleExpanded(u.id)}
-                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}
+                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", minHeight: 48 }}
                   accessibilityRole="button"
+                  accessibilityLabel={`${u.title}. ${u.mastered_objectives ?? 0} of ${u.total_objectives ?? 0} objectives at Independent or above${(u.needs_review_objectives ?? 0) > 0 ? `. ${u.needs_review_objectives} to review` : ""}`}
+                  accessibilityHint={isOpen ? "Hides the objectives" : "Shows the objectives"}
                   accessibilityState={{ expanded: isOpen }}
                 >
                   <View style={{ flex: 1, gap: 2 }}>
@@ -280,6 +307,8 @@ export default function CourseDashboard() {
                               params: { unitId: u.id, objectiveTitle: o.title },
                             })
                           }
+                          accessibilityRole="button"
+                          accessibilityLabel={`${idx + 1}. ${o.title}. ${status}`}
                           style={({ pressed }) => [styles.objectiveRow, pressed && { opacity: 0.7 }]}
                         >
                           <View style={[styles.statusDot, { backgroundColor: masteryColor[status] ?? colors.mutedDim }]} />
@@ -331,8 +360,32 @@ export default function CourseDashboard() {
 
           {units && units.length === 0 ? (
             <Card>
-              <EmptyState icon="folder" title="No units yet" />
+              <EmptyState
+                icon="folder"
+                title={COURSE_NO_UNITS.title}
+                message={COURSE_NO_UNITS.message}
+                action={{
+                  label: COURSE_NO_UNITS.action!.label,
+                  icon: "life-buoy",
+                  onPress: () => router.push({ pathname: "/support", params: { kind: "ticket" } }),
+                }}
+              />
             </Card>
+          ) : null}
+
+          <Button
+            label="I took the exam"
+            accessibilityLabel="I took the exam: record how it went"
+            variant="link"
+            fullWidth={false}
+            onPress={() => router.push({ pathname: `/course/${trackId}/outcome`, params: { trackTitle: track.title } })}
+          />
+
+          {/* REQ-119 (M6): names this exam's owner, not only CompTIA. */}
+          {vendorLine ? (
+            <Muted style={{ fontSize: 12, marginTop: spacing.sm }}>
+              {vendorLine}
+            </Muted>
           ) : null}
         </>
       ) : null}
@@ -346,8 +399,28 @@ const styles = {
     alignItems: "center" as const,
     gap: 10,
     paddingVertical: 8,
+    minHeight: 48,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
+  quickAction: {
+    flexBasis: "20%" as const,
+    flexGrow: 1,
+    minWidth: 56,
+    minHeight: 48,
+    alignItems: "center" as const,
+    gap: 6,
+    paddingHorizontal: 2,
+  },
+  quickIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
 };

@@ -2,6 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // REQ-113: lets a runtime module that the node:test suite also loads
+    // (src/api/client.ts -> src/lib/errorMessage.ts) import with the .ts
+    // extension Node needs. Metro resolves it the same way.
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -17,7 +17,9 @@ import {
   SectionHeader,
 } from "@/components/ui";
 import { spacing } from "@/lib/theme";
+import { friendlyError } from "@/lib/errorMessage";
 import { forTodayLabel, nextReviewLabel, utcToday } from "@/lib/reviewSession";
+import { reviewEmpty } from "@/lib/emptyStates";
 
 // REQ-108: Review is now a hub with three things on it, none of them a wall
 // of due items:
@@ -46,7 +48,7 @@ export default function ReviewScreen() {
     api
       .get<ReviewToday>("/api/review/today")
       .then(setToday)
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(friendlyError(err)));
     api
       .get<{ errors: ErrorLogEntry[] }>("/api/errors?due=1")
       .then((res) => setScenarios(res.errors.filter((e) => !!e.pbq_scenario_id)))
@@ -75,7 +77,7 @@ export default function ReviewScreen() {
     <Screen>
       <Stack.Screen options={{ title: "Review" }} />
       <H1>Review</H1>
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={load} /> : null}
 
       <Card elevated>
         <H2>Today's review</H2>
@@ -159,7 +161,17 @@ export default function ReviewScreen() {
 
       {today && !today.forToday && !today.unitChecks.length && scenarios && !scenarios.length ? (
         <Card>
-          <EmptyState icon="check-circle" title="All caught up" message="Nothing is due right now." />
+          {(() => {
+            const e = reviewEmpty(today.nextDueOn);
+            return (
+              <EmptyState
+                icon={today.nextDueOn ? "check-circle" : "rotate-ccw"}
+                title={e.title}
+                message={e.message}
+                action={e.action ? { label: e.action.label, onPress: () => router.push("/") } : undefined}
+              />
+            );
+          })()}
         </Card>
       ) : null}
     </Screen>
