@@ -902,6 +902,29 @@
       "prevention_rules": [],
       "prevention_notes": "Any beforeRemove guard must let auth-driven navigation through.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-038",
+      "date": "2026-11-07",
+      "title": "Learners could set their own mastery level",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "PUT /api/objectives/:id/mastery accepted any status, including Transfer-ready, with no graded evidence.",
+      "how_detected": "B1 implementation review (Audit 2 follow-up)",
+      "root_cause": "An early manual override route (mirroring the artifact apps) was never removed once mastery became evidence-based.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/objectives/[id]/mastery/route.ts"
+      ],
+      "fix_summary": "PUT now returns 405; mastery is set only by mastery_from_attempts.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-put-removed.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
+      "recurrence_of": ""
     }
   ]
 }
