@@ -26,6 +26,15 @@ export function mfaLeaveGuard(view: MfaView, allowLeave: boolean, signedIn = tru
   return null;
 }
 
+// True when a share sheet was simply dismissed. On web, react-native-web's
+// Share uses navigator.share, which rejects with an AbortError when the
+// learner cancels; that showed "Couldn't open sharing" for a deliberate
+// cancel (Audit 2 mobile item 14, FAIL-069). Native resolves with
+// dismissedAction instead of rejecting.
+export function isShareDismissal(err: unknown): boolean {
+  return !!err && typeof err === "object" && (err as { name?: unknown }).name === "AbortError";
+}
+
 // One string for Copy and Share: a code per line, no decoration, so it
 // pastes cleanly into a password manager or notes app.
 export function backupCodesText(codes: readonly string[]): string {

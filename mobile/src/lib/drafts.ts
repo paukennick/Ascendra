@@ -85,6 +85,20 @@ export function supportDraftPayload(fields: SupportFields): string | null {
   return blank ? null : JSON.stringify(fields);
 }
 
+// The support form's `kind` URL param, if it names a form. Anything else
+// (missing, an array, a typo) leaves the form as it is.
+export function supportKindFromParam(param: unknown): SupportDraftKind | null {
+  return param === "ticket" || param === "course_request" ? param : null;
+}
+
+// The support form is emptied before it is sent, so leaving mid-request
+// can't leave a draft of a ticket that was in fact sent (FAIL-066). If the
+// send fails, what was sent comes back -- unless the learner has already
+// started typing something new, which wins.
+export function supportFieldsAfterFailedSend(current: SupportFields, sent: SupportFields): SupportFields {
+  return supportDraftPayload(current) === null ? sent : current;
+}
+
 export function parseSupportFields(payload: string): SupportFields | null {
   let o: unknown;
   try {

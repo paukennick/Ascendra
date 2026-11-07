@@ -1,6 +1,13 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { PBQ_ANSWER_MAX, PBQ_SUB_PARTS_MAX, parsePbqPayload, pbqPayload, type PbqSnapshot } from "./pbqProgress.ts";
+import {
+  PBQ_ANSWER_MAX,
+  PBQ_SUB_PARTS_MAX,
+  parsePbqPayload,
+  pbqAfterGenerate,
+  pbqPayload,
+  type PbqSnapshot,
+} from "./pbqProgress.ts";
 import { DRAFT_MAX_AGE_MS, decodeDraft, encodeDraft } from "./drafts.ts";
 
 const now = 1_800_000_000_000;
@@ -79,5 +86,22 @@ describe("PBQ snapshot", () => {
     const payload = pbqPayload(snap())!;
     assert.notEqual(decodeDraft(encodeDraft(payload, now - 1000), now), null);
     assert.equal(decodeDraft(encodeDraft(payload, now - DRAFT_MAX_AGE_MS - 1), now), null);
+  });
+});
+
+describe("Try another scenario (FAIL-067)", () => {
+  const s = snap();
+  const graded = {
+    scenario: s.scenario,
+    answer: "Block public access, enable SSE-KMS",
+    result: { verdict: "partial", feedback: "Missed logging", missedParts: ["Enable logging"] } as unknown as PbqSnapshot["result"],
+    sent: { id: "att-1", signature: "pbq:sc-1:Block public access, enable SSE-KMS" },
+  };
+  test("a failed request keeps the old scenario's answer, result and attempt id", () => {
+    assert.deepEqual(pbqAfterGenerate(graded, null), graded);
+  });
+  test("a new scenario starts blank", () => {
+    const fresh = { ...s.scenario, id: "sc-2" };
+    assert.deepEqual(pbqAfterGenerate(graded, fresh), { scenario: fresh, answer: "", result: null, sent: null });
   });
 });

@@ -14,6 +14,8 @@ import {
   pbqDraftKey,
   supportDraftKey,
   supportDraftPayload,
+  supportFieldsAfterFailedSend,
+  supportKindFromParam,
 } from "./drafts.ts";
 
 const now = 1_800_000_000_000;
@@ -87,5 +89,27 @@ describe("support draft", () => {
     assert.equal(parseSupportFields("{bad"), null);
     assert.equal(parseSupportFields("null"), null);
     assert.equal(parseSupportFields(JSON.stringify({ subject: 7 })), null);
+  });
+});
+
+describe("support form kind and send failure (FAIL-064, FAIL-066)", () => {
+  test("the kind param names a form only when it is one", () => {
+    assert.equal(supportKindFromParam("ticket"), "ticket");
+    assert.equal(supportKindFromParam("course_request"), "course_request");
+    assert.equal(supportKindFromParam(undefined), null);
+    assert.equal(supportKindFromParam(["ticket"]), null);
+    assert.equal(supportKindFromParam("Ticket"), null);
+  });
+  const sent = { subject: "Broken quiz", body: "Q3 answer is wrong", courseName: "", courseSourceUrl: "" };
+  test("a failed send puts the sent text back into the emptied form", () => {
+    assert.deepEqual(supportFieldsAfterFailedSend(emptySupportFields(), sent), sent);
+    assert.deepEqual(
+      supportFieldsAfterFailedSend({ subject: " ", body: "", courseName: "", courseSourceUrl: "" }, sent),
+      sent
+    );
+  });
+  test("text typed since the send began is not overwritten", () => {
+    const typed = { subject: "Another thing", body: "", courseName: "", courseSourceUrl: "" };
+    assert.deepEqual(supportFieldsAfterFailedSend(typed, sent), typed);
   });
 });

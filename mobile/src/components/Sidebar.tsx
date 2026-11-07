@@ -61,7 +61,9 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   // already on stacked a copy of it, and Home/Account/Settings/Support/a
   // course dashboard piled up on each visit. See src/lib/navPlan.ts:
   // the current screen is skipped, a top-level destination already in the
-  // stack is popped back to, anything else pushes.
+  // stack is popped back to, anything else pushes. Both support entries
+  // carry an explicit kind, so going from one support form to the other is
+  // never "the same screen, nothing to do" (FAIL-064).
   function go(path: string, params?: Record<string, string>) {
     onClose();
     // Routes from the bottom of this stack up to the one showing the sidebar.
@@ -226,7 +228,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <NavRow icon="user" label="Account" onPress={() => go("/account")} />
           <NavRow icon="settings" label="Settings" onPress={() => go("/settings")} />
           <View style={styles.divider} />
-          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support")} />
+          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support", { kind: "ticket" })} />
           <NavRow
             icon="plus-circle"
             label="Request a course"
