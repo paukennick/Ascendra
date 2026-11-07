@@ -194,6 +194,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       onAuthExpired: () => {
         clearAuth();
       },
+      // REQ-116: a fresh access token handed back after the server ended
+      // every other session (password change, two-factor turned on).
+      setAccessToken: (token) => {
+        accessTokenRef.current = token;
+      },
     });
   }, [refresh, clearAuth]);
 

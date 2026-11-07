@@ -40,6 +40,8 @@ import {
 } from "@/lib/review-store";
 import { utcDay } from "@/lib/review-scheduler";
 import { findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
+import { hasUnstorableText } from "@/lib/text-input";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
 import { factCheckGate, type CheckItem } from "@/lib/fact-check";
 import { flagItem, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
@@ -353,9 +355,15 @@ export async function answerItem(userId: string, sessionId: string, position: nu
     replayed: true,
   });
 
+  // REQ-116: only a replay of THIS question (lib/replay-binding.ts); an id
+  // recorded for another item is refused instead of revealing this key.
+  const sameItem = { objectiveId: item.objective_id, kind: "review", stage: "review", question: ri.question };
   if (body.clientAttemptId) {
     const prior = await findClientAttempt(userId, body.clientAttemptId);
-    if (prior) return replay(prior.attempt);
+    if (prior) {
+      if (!replayMatches(prior.attempt, sameItem)) throw new ReviewError(409, REPLAY_CONFLICT);
+      return replay(prior.attempt);
+    }
   }
   if (item.answered_at) {
     const a = await answeredItem(sessionId, position);
@@ -380,6 +388,8 @@ export async function answerItem(userId: string, sessionId: string, position: nu
   } else {
     const answer = body.answer ?? "";
     if (!answer.trim()) throw new ReviewError(400, "answer is required for format 'open'");
+    // REQ-116: refused before the billed model call, not after it.
+    if (hasUnstorableText(answer)) throw new ReviewError(400, "answer contains characters that can't be stored");
     try {
       await consumeRateLimit("review_grade", userId, { max: 40, windowMinutes: 10 }, { userId });
     } catch (err) {
@@ -448,7 +458,10 @@ export async function answerItem(userId: string, sessionId: string, position: nu
     }
     if (body.clientAttemptId && isDuplicateClientAttempt(err)) {
       const prior = await findClientAttempt(userId, body.clientAttemptId);
-      if (prior) return replay(prior.attempt);
+      if (prior) {
+        if (!replayMatches(prior.attempt, sameItem)) throw new ReviewError(409, REPLAY_CONFLICT);
+        return replay(prior.attempt);
+      }
     }
     throw err;
   }

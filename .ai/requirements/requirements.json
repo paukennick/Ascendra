@@ -3700,6 +3700,37 @@
       ]
     },
     {
+      "id": "REQ-116",
+      "category": "security",
+      "title": "Audit 3 security fixes",
+      "description": "Fix the audit 3 security findings on integration/all: (1) email change needs re-authentication, alerts the old address at request time with a cancel link, and the confirmation re-checks; (2) adding or replacing an authenticator while MFA is on needs a current code, backup code or password, and enabling MFA ends other sessions; (3) a client attempt id replays only its own item (review, comparison, explain-back, unit check), else 409; (4) MFA code checks limited per account across challenges; (5) account deletion purges auth_events by user id and email, plus a 90-day retention purge on a daily cron; (6) avatar dimensions checked from the header before decoding, JPEG decoder limited; (7) /api/errors checks unit/objective visibility, caps text, rate limits, and course creation is capped and limited; (8) pre-registration squatting: a second registration of an unverified address turns its verification links into set-password links, and Google sign-in onto an unverified account clears its password and sessions. Lows: uniform login failure (401, one message, dummy bcrypt), per (email, IP) login limit with an account-wide backstop, current-password guess limit, escaped alert mail, per-target mail limit, token_version revocation of access tokens (deletion, logout-all, password change/reset, MFA on), shared JSON parser and 400 for client-input database errors, NUL refused before model calls, placeholder secrets refused at production startup, no localhost CORS in production, export includes sign-in events and sessions with IP, Google-only accounts can turn MFA off. Migration 044.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Each finding has a test that fails with its fix reverted",
+        "Fresh DB: migrate --all and --status current; test:db passes",
+        "Backend and mobile unit tests and tsc pass",
+        "The audit's 500 sweep reports no 500"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "backend/.env.example"
+      ],
+      "risk_notes": [
+        "Every authenticated request now does one primary-key lookup (~0.65 ms locally)",
+        "Password change and enabling MFA sign out other devices immediately",
+        "CRON_SECRET must be set for the retention purge to run"
+      ]
+    },
+    {
       "id": "REQ-119",
       "category": "feature",
       "title": "Audit 3 product basics: privacy AI facts, terms acceptance, first run, next step, vendor disclaimers, reminders, events, exam outcomes, empty states, course requests",

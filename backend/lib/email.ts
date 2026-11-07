@@ -23,8 +23,20 @@ function getAppBaseUrl(): string {
   return (process.env.APP_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
-export async function sendVerificationEmail(to: string, token: string): Promise<void> {
+// REQ-116: `setPassword` is the link sent when someone tries to register an
+// address that already has an unverified account. Following it verifies the
+// address and replaces whatever password the first registrant chose.
+export async function sendVerificationEmail(to: string, token: string, opts: { setPassword?: boolean } = {}): Promise<void> {
   const url = `${getAppBaseUrl()}/verify-email?token=${encodeURIComponent(token)}`;
+  if (opts.setPassword) {
+    await getClient().emails.send({
+      from: getFrom(),
+      to,
+      subject: "Finish setting up your Ascendra account",
+      html: `<p>Someone started an Ascendra account with this email address but never confirmed it. If that was you, or you want this account, follow the link: it confirms the address and lets you choose a new password. Any password set before is removed.</p><p><a href="${url}">Confirm and choose a password</a></p><p>This link expires in 24 hours. If you didn't ask for this, ignore this email.</p>`,
+    });
+    return;
+  }
   await getClient().emails.send({
     from: getFrom(),
     to,
@@ -50,6 +62,31 @@ export async function sendEmailChangeConfirmation(newEmail: string, token: strin
     to: newEmail,
     subject: "Confirm your new Ascendra email address",
     html: `<p>Confirm this is your new email address for Ascendra.</p><p><a href="${url}">Confirm email change</a></p><p>This link expires in 1 hour. If you didn't request this, ignore this email — your address won't change.</p>`,
+  });
+}
+
+// REQ-116: registration with an address that already has a verified
+// account no longer says so on screen (that told anyone which addresses are
+// registered); the owner is told here instead.
+export async function sendAlreadyRegisteredEmail(to: string): Promise<void> {
+  await getClient().emails.send({
+    from: getFrom(),
+    to,
+    subject: "You already have an Ascendra account",
+    html: `<p>Someone tried to create an Ascendra account with this email address, but it already has one. If that was you, just log in. Forgot your password? Use "Forgot password" on the login screen.</p><p>If it wasn't you, you don't need to do anything. Nothing about your account changed.</p>`,
+  });
+}
+
+// REQ-116 (audit 3, finding 1): sent to the CURRENT address as soon as an
+// email change is requested, before anything changes, with a link that
+// cancels it and signs out every device.
+export async function sendEmailChangeRequestedAlert(oldEmail: string, newEmail: string, cancelToken: string): Promise<void> {
+  const url = `${getAppBaseUrl()}/cancel-email-change?token=${encodeURIComponent(cancelToken)}`;
+  await getClient().emails.send({
+    from: getFrom(),
+    to: oldEmail,
+    subject: "Someone asked to change your Ascendra email address",
+    html: `<p>A request was just made to change your account's email address to <strong>${escapeHtml(newEmail)}</strong>. Nothing changes until that address confirms it.</p><p>If this wasn't you, <a href="${url}">cancel the change and sign out every device</a>, then change your password.</p><p>If it was you, there's nothing to do.</p>`,
   });
 }
 
@@ -116,11 +153,15 @@ export async function sendSupportRequestNotification(params: {
 // Best-effort security notifications (new sign-in, password changed, MFA
 // disabled). Never let a failure here break the action that triggered it --
 // callers should catch/ignore rejections from this function.
+//
+// REQ-116 (audit 3): `message` is escaped. It can carry an address the
+// requester typed (the email-change alert), which used to be pasted into the
+// HTML as markup.
 export async function sendSecurityAlertEmail(to: string, subject: string, message: string): Promise<void> {
   await getClient().emails.send({
     from: getFrom(),
     to,
     subject,
-    html: `<p>${message}</p><p>If this wasn't you, change your password immediately and review your active sessions in Ascendra's Account settings.</p>`,
+    html: `<p>${escapeHtml(message)}</p><p>If this wasn't you, change your password immediately and review your active sessions in Ascendra's Account settings.</p>`,
   });
 }

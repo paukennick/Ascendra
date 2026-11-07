@@ -23,8 +23,6 @@ export const EXPORT_PAGE_ROWS = 5_000;
 // why. lib/integration-guard.dbtest.ts fails when a table with a user_id is
 // in neither list, so a new per-learner table cannot be forgotten again.
 export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
-  auth_events: "rate-limit and sign-in audit events (security log)",
-  refresh_tokens: "credential hashes",
   password_reset_tokens: "credential hashes",
   email_verification_tokens: "credential hashes",
   email_change_tokens: "credential hashes",
@@ -91,6 +89,15 @@ export const EXPORT_SECTIONS = {
   onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
   learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
   examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
+  // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with
+  // the IP addresses recorded. Events are matched by user id or by the
+  // account's address (events before sign-in carry only the address).
+  // Sessions leave out the token hash. Kept for 90 days (lib/auth/retention.ts).
+  signInEvents: `select event_type, ip, created_at from auth_events
+                  where user_id = $1 or identifier = (select email from app_users where id = $1)
+                  order by created_at asc, id asc`,
+  sessions: `select id, device_label, user_agent, ip, created_at, last_used_at, expires_at, revoked_at
+               from refresh_tokens where user_id = $1 order by created_at asc, id asc`,
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

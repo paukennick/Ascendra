@@ -32,15 +32,29 @@ export class ApiError extends Error {
 let getAccessToken: (() => string | null) | null = null;
 let refreshAccessToken: (() => Promise<boolean>) | null = null;
 let onAuthExpired: (() => void) | null = null;
+let setAccessToken: ((token: string) => void) | null = null;
 
 export function registerAuthHooks(hooks: {
   getAccessToken: () => string | null;
   refresh: () => Promise<boolean>;
   onAuthExpired: () => void;
+  setAccessToken?: (token: string) => void;
 }): void {
   getAccessToken = hooks.getAccessToken;
   refreshAccessToken = hooks.refresh;
   onAuthExpired = hooks.onAuthExpired;
+  setAccessToken = hooks.setAccessToken ?? null;
+}
+
+// REQ-116 (audit 3): changing the password and turning on two-factor now
+// end every other session and every access token already issued, this
+// device's included; the server sends this device a fresh `accessToken`
+// (with no `refreshToken` -- the device keeps its session). Login and
+// refresh responses carry both and are handled by AuthContext itself.
+export function reissuedAccessToken(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const d = data as { accessToken?: unknown; refreshToken?: unknown };
+  return typeof d.accessToken === "string" && d.accessToken && d.refreshToken === undefined ? d.accessToken : null;
 }
 
 // No request used to have a timeout, so a hung connection (weak signal, a
@@ -148,7 +162,10 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     if (!body.ok) (err as ApiError & { unreadable?: boolean }).unreadable = true;
     throw err;
   }
-  return body.data as T;
+  const data = body.data;
+  const reissued = reissuedAccessToken(data);
+  if (reissued) setAccessToken?.(reissued);
+  return data as T;
 }
 
 // One silent refresh-and-retry on a 401, never for /api/auth/* itself

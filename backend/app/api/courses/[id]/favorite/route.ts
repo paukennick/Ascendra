@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const favorite = body?.favorite;
     if (typeof favorite !== "boolean") return badRequest("favorite must be a boolean");
 

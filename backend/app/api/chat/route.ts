@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
 import { findChatTurn, saveChatTurn, sameChatTurn, ChatIdConflictError } from "@/lib/chat-store";
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 // not a single-shot Q&A that forgets earlier context.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { unitId } = body ?? {};
     if (!body?.trackId || typeof body.trackId !== "string" || !body.message || typeof body.message !== "string") {
       return badRequest("trackId and message are required");

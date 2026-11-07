@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const authUser = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const displayName = typeof body?.displayName === "string" ? body.displayName.trim() : undefined;
     if (displayName === undefined) return badRequest("displayName is required");
     if (displayName.length === 0 || displayName.length > 100) {

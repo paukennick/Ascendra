@@ -162,29 +162,41 @@ describe("rate limiter is atomic", () => {
 
 // ---------------------------------------------------------------- item 4
 describe("login lockout", () => {
-  test("20 concurrent wrong passwords run at most 5 checks and lock the account", async () => {
+  // REQ-116 (audit 3): updated, not deleted (FAIL-232). The five-check limit
+  // is now per (address, IP) pair and a refusal answers like a wrong
+  // password (401, same message), so the count of password checks is read
+  // from the account's reservation counter instead of from 423s; a
+  // different IP is not locked out by the first one's guesses.
+  test("20 concurrent wrong passwords from one IP run at most 5 checks and pause that IP only", async () => {
     const u = await makeUser("lockout", { password: GOOD_SECRET });
-    const res = await Promise.all(
-      Array.from({ length: 20 }, () => loginPost(jsonReq({ email: u.email, password: BAD_SECRET })))
-    );
+    const fromIp = (ip: string, password: string) =>
+      loginPost(
+        new Request("http://test.local/x", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-forwarded-for": ip },
+          body: JSON.stringify({ email: u.email, password }),
+        })
+      );
+    const res = await Promise.all(Array.from({ length: 20 }, () => fromIp("203.0.113.9", BAD_SECRET)));
     const statuses = res.map((r) => r.status);
-    assert.equal(count(statuses, 401), 5, `statuses: ${statuses.join(",")}`);
-    assert.equal(count(statuses, 423), 15);
-    const row = await queryOne<{ failed_login_count: number; locked: boolean }>(
-      `select failed_login_count, locked_until > now() as locked from app_users where id = $1`,
-      [u.id]
-    );
-    assert.equal(row!.locked, true);
-    // Even the right password is refused while locked.
-    assert.equal((await loginPost(jsonReq({ email: u.email, password: GOOD_SECRET }))).status, 423);
-    // Once the lock expires the right password works and clears the count.
-    await query(`update app_users set locked_until = now() - interval '1 second' where id = $1`, [u.id]);
-    assert.equal((await loginPost(jsonReq({ email: u.email, password: GOOD_SECRET }))).status, 200);
+    assert.equal(count(statuses, 401), 20, `statuses: ${statuses.join(",")}`);
+    const bodies = new Set(await Promise.all(res.map(async (r) => (await r.json()).error)));
+    assert.equal(bodies.size, 1, "a paused pair answers exactly like a wrong password");
+    const row = await queryOne<{ failed_login_count: number }>(`select failed_login_count from app_users where id = $1`, [
+      u.id,
+    ]);
+    assert.equal(row!.failed_login_count, 5, "only five passwords were checked");
+    // Even the right password is refused from the paused IP...
+    assert.equal((await fromIp("203.0.113.9", GOOD_SECRET)).status, 401);
+    // ...but the owner on another IP is not locked out, and that clears the count.
+    assert.equal((await fromIp("198.51.100.7", GOOD_SECRET)).status, 200);
     const after = await queryOne<{ failed_login_count: number; locked_until: string | null }>(
       `select failed_login_count, locked_until from app_users where id = $1`,
       [u.id]
     );
     assert.deepEqual(after, { failed_login_count: 0, locked_until: null });
+    // A correct password cleared the pair counts too: the first IP works again.
+    assert.equal((await fromIp("203.0.113.9", GOOD_SECRET)).status, 200);
   });
 
   test("a correct password before the limit resets the count", async () => {

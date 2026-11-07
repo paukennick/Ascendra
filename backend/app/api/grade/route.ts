@@ -1,4 +1,4 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
@@ -72,7 +72,7 @@ export const dynamic = "force-dynamic";
 // model call. Free response: the grader's misconception tag.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { format, stage, unitId } = body ?? {};
     const kind = body?.kind ?? "lesson";
 

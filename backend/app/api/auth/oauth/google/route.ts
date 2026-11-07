@@ -1,5 +1,6 @@
-import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { query, queryOne, withTransaction } from "@/lib/db";
+import { bumpTokenVersion, revokeOtherSessions } from "@/lib/auth/sessionControl";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyGoogleIdToken } from "@/lib/auth/oauth";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
@@ -31,7 +32,7 @@ interface UserRow {
 // if it has MFA enabled -- linking a second sign-in method doesn't bypass it.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { idToken, deviceLabel, acceptedTermsVersion } = body ?? {};
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
@@ -56,12 +57,41 @@ export async function POST(req: Request) {
     if (linked) {
       user = linked;
     } else {
-      const existing = await queryOne<UserRow>(
-        `select id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled from app_users where email = $1`,
+      const existing = await queryOne<UserRow & { email_verified_at: string | null }>(
+        `select id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled, email_verified_at
+           from app_users where email = $1`,
         [normalizedEmail]
       );
       if (existing) {
         user = existing;
+        // REQ-116 (audit 3, finding 8): an account nobody has verified may
+        // have been registered by someone other than the inbox owner, who
+        // chose its password. Google has just proved the inbox, so the
+        // account becomes the Google user's: the unproven password is
+        // removed, every session and access token ended, pending links
+        // spent, and the address marked verified.
+        if (!existing.email_verified_at) {
+          await withTransaction(async (tx) => {
+            await tx.query(
+              `update app_users set password_hash = null, email_verified_at = now(),
+                 failed_login_count = 0, locked_until = null
+               where id = $1`,
+              [existing.id]
+            );
+            await revokeOtherSessions(existing.id, null, tx);
+            await bumpTokenVersion(existing.id, tx);
+            await tx.query(
+              `update email_verification_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`,
+              [existing.id]
+            );
+            await tx.query(`update password_reset_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`, [
+              existing.id,
+            ]);
+            await tx.query(`update login_challenges set consumed_at = now() where user_id = $1 and consumed_at is null`, [
+              existing.id,
+            ]);
+          });
+        }
       } else {
         const created = await queryOne<UserRow>(
           `insert into app_users (email, display_name, email_verified_at)

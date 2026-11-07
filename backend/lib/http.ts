@@ -46,6 +46,28 @@ export class UserFacingError extends Error {
 }
 
 export const GENERIC_SERVER_ERROR = "Something went wrong on our side. Please try again.";
+export const INVALID_JSON = "The request body must be valid JSON.";
+export const INVALID_INPUT = "Some of the request's input isn't valid.";
+
+// REQ-116 (audit 3): the shared JSON-body parser. `await req.json()` throws
+// a SyntaxError on a malformed or empty body, which every route reported
+// as a 500. This answers 400 through serverError instead.
+export async function readJson(req: Request): Promise<any> {
+  try {
+    return await req.json();
+  } catch {
+    throw new UserFacingError(INVALID_JSON, 400);
+  }
+}
+
+// REQ-116: Postgres errors that can only come from what the client sent --
+// a path or query id that isn't a UUID (22P02), a NUL or other character
+// the database can't store (22021, 22P05), a number out of range (22003).
+// They were 500s on 60 route and input combinations (audit 3 sweep). They
+// are still logged, under the request id, in case one ever comes from our
+// own code.
+// 22001 is a value longer than its varchar column.
+const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001"]);
 
 // Audit 2 (REQ-098): this used to send err.message to the client. That is
 // Postgres text (constraint names, "invalid input syntax for type uuid",
@@ -57,6 +79,12 @@ export function serverError(err: unknown) {
   const requestId = randomUUID();
   if (err instanceof UserFacingError) {
     return NextResponse.json({ error: err.message, requestId }, { status: err.status });
+  }
+  const code = (err as { code?: unknown } | null)?.code;
+  if (typeof code === "string" && CLIENT_INPUT_PG_CODES.has(code)) {
+    // eslint-disable-next-line no-console
+    console.error(`[request ${requestId}] client input refused by the database`, code);
+    return NextResponse.json({ error: INVALID_INPUT, requestId }, { status: 400 });
   }
   // eslint-disable-next-line no-console
   console.error(`[request ${requestId}]`, err);

@@ -13,6 +13,11 @@ export default async function VerifyEmailPage({
     <main style={{ fontFamily: "sans-serif", padding: 24, maxWidth: 480 }}>
       <h1>Ascendra</h1>
       <p>{result.message}</p>
+      {result.setPasswordUrl ? (
+        <p>
+          <a href={result.setPasswordUrl}>Choose your password</a>
+        </p>
+      ) : null}
     </main>
   );
 }

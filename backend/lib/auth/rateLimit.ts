@@ -45,6 +45,14 @@ export async function checkRateLimit(
 export const MFA_DISABLE_EVENT = "mfa_disable_attempt";
 export const MFA_DISABLE_LIMIT = { max: 10, windowMinutes: 15 };
 
+// REQ-116 (audit 3, finding 4): MFA code checks at login, per account across
+// every challenge (app/api/auth/mfa/verify). Cleared by a correct code.
+export const MFA_USER_EVENT = "mfa_verify_user";
+export const MFA_USER_LIMIT = { max: 10, windowMinutes: 15 };
+export const MFA_USER_LOCKED_MESSAGE =
+  "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
+  "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
+
 // REQ-098: check-and-record as one atomic step. checkRateLimit followed by
 // recordAuthEvent is two statements, so N requests sent at once all read
 // "under the limit" before any of them records, and all N get through --
