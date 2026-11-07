@@ -33,6 +33,7 @@ import {
   type CheckState,
   type LessonSnapshot,
 } from "@/lib/lessonProgress";
+import { regenerateErrorMessage } from "@/lib/regenerateError";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -67,6 +68,15 @@ export default function LessonFlow() {
   // full ~20s generation). Gates the move into the fade step below.
   const [practicePending, setPracticePending] = useState(false);
   const [practiceLoading, setPracticeLoading] = useState(false);
+  // "Regenerate lesson" (done screen). Regeneration is per learner: it only
+  // changes this learner's copy. The ref is the real double-tap guard (state
+  // updates land a render late, so two quick taps could both pass a check on
+  // `regenerating`); the state drives the button's loading/disabled look. Its
+  // failure shows as a banner on the done screen -- not via `error`, which
+  // replaces the whole screen and is for a lesson that failed to load.
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
+  const regenInFlight = useRef(false);
   // REQ-074: the objective after this one in course order, from the same
   // prefetch call that warms its cache -- drives "Next objective" on the
   // done screen so finishing a lesson doesn't dead-end on the dashboard.
@@ -267,6 +277,35 @@ export default function LessonFlow() {
       return false;
     } finally {
       setPracticeLoading(false);
+    }
+  }
+
+  async function regenerateLesson() {
+    if (regenInFlight.current) return;
+    regenInFlight.current = true;
+    setRegenerating(true);
+    setRegenError(null);
+    try {
+      // Use the POST response directly rather than re-fetching -- fade/solo
+      // are still generating in the background, so a GET right now would
+      // wait on that or hand back the pre-regenerate lesson.
+      const res = await api.post<{ lesson: LessonContent; practicePending?: boolean }>(
+        `/api/objectives/${objectiveId}/lesson`
+      );
+      setLesson(res.lesson);
+      setPracticePending(!!res.practicePending);
+      setGuess("");
+      setConfidence(null);
+      setGuessFeedback(null);
+      setGuessFeedbackLoading(false);
+      setChecks({});
+      setStep("guess");
+    } catch (err) {
+      // Nothing was reset: the learner keeps the finished lesson they have.
+      setRegenError(regenerateErrorMessage(err));
+    } finally {
+      regenInFlight.current = false;
+      setRegenerating(false);
     }
   }
 
@@ -476,26 +515,12 @@ export default function LessonFlow() {
               variant="ghost"
               fullWidth={false}
               icon="refresh-cw"
-              onPress={async () => {
-                // Use the POST response directly rather than re-fetching --
-                // the regenerated row hasn't finished overwriting the cache
-                // yet (fade/solo are still generating in the background), so
-                // a GET right now would just hand back the stale pre-
-                // regenerate content.
-                const res = await api.post<{ lesson: LessonContent; practicePending?: boolean }>(
-                  `/api/objectives/${objectiveId}/lesson`
-                );
-                setLesson(res.lesson);
-                setPracticePending(!!res.practicePending);
-                setGuess("");
-                setConfidence(null);
-                setGuessFeedback(null);
-                setGuessFeedbackLoading(false);
-                setChecks({});
-                setStep("guess");
-              }}
+              loading={regenerating}
+              disabled={regenerating}
+              onPress={regenerateLesson}
             />
           </View>
+          {regenError ? <ErrorBanner message={regenError} /> : null}
         </Card>
       )}
     </Screen>

@@ -2,23 +2,12 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sanitizeLessonProgress } from "@/lib/lesson-progress";
+import { visibleObjective } from "@/lib/visibility";
 
 export const dynamic = "force-dynamic";
 
 // REQ-089: the caller's saved place inside one objective's lesson, so it
 // follows the account across devices. See migration 025.
-
-// The objective must sit in a track the caller can see (a shared catalog
-// track or one of their own), the same check as PUT .../mastery (REQ-079).
-async function visibleObjective(objectiveId: string, userId: string) {
-  return queryOne<{ id: string }>(
-    `select o.id from objectives o
-     join course_units cu on cu.id = o.unit_id
-     join subject_tracks st on st.id = cu.track_id
-     where o.id = $1 and (st.user_id is null or st.user_id = $2)`,
-    [objectiveId, userId]
-  );
-}
 
 // GET /api/objectives/:id/progress -> { progress: {...} | null }
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {

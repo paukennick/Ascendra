@@ -152,7 +152,11 @@ export function answerSignature(mode: "mc" | "open", picked: number | null, open
   return mode === "mc" ? `mc:${picked ?? ""}` : `open:${openAnswer.trim()}`;
 }
 
-export function attemptIdFor(check: CheckState, signature: string, makeId: () => string): string {
+export function attemptIdFor(
+  check: Pick<CheckState, "clientAttemptId" | "sentSignature">,
+  signature: string,
+  makeId: () => string
+): string {
   return check.clientAttemptId && check.sentSignature === signature ? check.clientAttemptId : makeId();
 }
 

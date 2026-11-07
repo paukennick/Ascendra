@@ -1,8 +1,9 @@
-import { queryOne } from "@/lib/db";
+import { getLessonFor } from "@/lib/lesson-store";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
 import { loadObjective } from "@/lib/lesson-generation";
+import { visibleObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
@@ -28,6 +29,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!guess) return badRequest("guess is required");
 
     const user = await requireUser(req);
+    // REQ-091: 404 for an objective in another user's private track, before
+    // anything is read, rate-limited or sent to Anthropic.
+    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     try {
@@ -39,10 +43,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await recordAuthEvent("guess_feedback", user.id);
 
     const [lessonRow, objective] = await Promise.all([
-      queryOne<{ guess_prompt: string; teach: string }>(
-        `select guess_prompt, teach from lesson_content where objective_id = $1`,
-        [id]
-      ),
+      // The lesson this learner actually saw: their regenerated one if any.
+      getLessonFor(user.id, id).then((r) => (r ? { guess_prompt: r.row.guess_prompt, teach: r.row.teach } : null)),
       loadObjective(id),
     ]);
     if (!lessonRow) return notFound("No lesson content for this objective yet");

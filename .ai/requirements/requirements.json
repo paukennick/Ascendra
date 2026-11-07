@@ -2679,6 +2679,82 @@
       "risk_notes": [
         "Health now returns 503 until production has migrations 023-025; the keepalive workflow will go red until they are applied (intended signal)"
       ]
+    },
+    {
+      "id": "REQ-091",
+      "category": "defect",
+      "title": "Integrity: access checks, idempotent writes, atomic auth tokens",
+      "description": "Audit batch B. Access: shared lib/visibility.ts; guess-feedback, grade, PBQ, chat, sessions check the caller can see the objective/unit/track; catalog review agent limited to shared tracks. Grading: MC answer key read server-side from the lesson the learner was shown (their regenerated one if any), not the client. Idempotency: PBQ (clientAttemptId) and chat (clientMessageId, migration 026) replay on retry; one study session per 30 minutes per track; review stage advance is one guarded update with optional fromStage. Auth: refresh rotation, MFA backup codes and login challenge, password reset, email verification/change and MFA-disable codes consumed with guarded updates in transactions so concurrent use succeeds once.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/visibility.ts",
+        "backend/lib/auth",
+        "backend/app/api/auth",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/app/api/chat",
+        "backend/app/api/sessions",
+        "backend/app/api/errors",
+        "backend/app/api/catalog",
+        "backend/app/api/objectives/[id]/guess-feedback",
+        "backend/supabase/migrations/026_chat_client_message_id.sql",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/app/(app)/review.tsx"
+      ],
+      "acceptance_criteria": [
+        "Concurrent use of any single-use auth secret succeeds once",
+        "Private track content is 404 to other users on every route",
+        "Retried PBQ/chat/grade records once",
+        "MC graded against server key"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 026 must be applied before deploy or chat fails",
+        "Two simultaneous refreshes now revoke the session family (app already dedupes refreshes)"
+      ]
+    },
+    {
+      "id": "REQ-092",
+      "category": "feature",
+      "title": "Per-learner lesson regeneration",
+      "description": "Regenerate writes the learner's own lesson (lesson_content_overrides, migration 027) instead of replacing the shared catalog lesson for everyone and resetting their saved place. Served override-first. 5 regenerations per 10 minutes. Cross-instance generation claims (lesson_generation_claims) so two servers never generate the same lesson and a learner never sees teach text from one generation with practice from another. Mobile Regenerate has loading, double-tap guard and error message.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/027_lesson_overrides.sql",
+        "backend/lib/lesson-store.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "acceptance_criteria": [
+        "One learner's regenerate never changes another learner's lesson or saved place",
+        "First generation stays shared",
+        "Concurrent generation runs once"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Migration 027 must be applied before deploy"
+      ]
     }
   ]
 }

@@ -1,15 +1,17 @@
-import { ok, badRequest, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { callClaudeJSON, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponsePrompt, type GradeResult } from "@/lib/prompts";
 import {
+  cachedCorrectIndex,
   findClientAttempt,
-  isDuplicateClientAttempt,
-  recordAttemptAndUpdateMastery,
+  recordAttemptIdempotent,
 } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
+import { visibleObjective, visibleUnit } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
+  requireAcknowledgementForUnit,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
@@ -22,8 +24,9 @@ export const dynamic = "force-dynamic";
 // first spaced-review date. PBQ grading has its own route (see /api/pbq) since it needs
 // a scenario + multiple named sub-parts.
 //
-// Body for format "mc" (graded locally — no Anthropic call needed, the correct index
-// is already known from the cached lesson content):
+// Body for format "mc" (graded locally — no Anthropic call needed). For a lesson check
+// (objectiveId + stage "fade"/"solo") the correct index comes from the cached lesson
+// content on the server; the client's correctIndex is only used when no lesson is cached:
 //   { format: "mc", kind, stage?, objectiveId?, unitId?, question, chosenIndex, correctIndex,
 //     chosenText, why?, confidence? }
 //
@@ -39,7 +42,30 @@ export async function POST(req: Request) {
     }
 
     const authUser = await requireUser(req);
-    if (objectiveId) await requireAcknowledgementForObjective(objectiveId, authUser.id);
+
+    // REQ-091: the ids in the body are untrusted. Each must be in a track the
+    // caller can see (shared catalog or their own), and if both are sent the
+    // objective must belong to that unit -- otherwise an attempt (and its
+    // mastery / review entries) could be filed against someone else's course.
+    // requireAcknowledgement* is not an access check: it returns silently
+    // for a track the caller can't see.
+    for (const [name, v] of [["objectiveId", objectiveId], ["unitId", unitId]] as const) {
+      if (v !== undefined && v !== null && typeof v !== "string") return badRequest(`${name} must be a string`);
+    }
+    let attemptUnitId: string | undefined = unitId || undefined;
+    if (objectiveId) {
+      const objective = await visibleObjective(objectiveId, authUser.id);
+      if (!objective) return notFound("Objective not found");
+      if (unitId && objective.unit_id !== unitId) {
+        return badRequest("objectiveId does not belong to unitId");
+      }
+      attemptUnitId = objective.unit_id;
+      await requireAcknowledgementForObjective(objectiveId, authUser.id);
+    } else if (unitId) {
+      const unit = await visibleUnit(unitId, authUser.id);
+      if (!unit) return notFound("Unit not found");
+      await requireAcknowledgementForUnit(unitId, authUser.id);
+    }
 
     // REQ-089: an id the app already submitted is a retry (dropped
     // connection, double tap, resumed lesson) -- hand back the stored result
@@ -52,29 +78,42 @@ export async function POST(req: Request) {
     }
     // Two requests with the same id can still race past that check; the
     // unique index makes the slower one fail, and it returns the winner's.
-    const record = async (input: Parameters<typeof recordAttemptAndUpdateMastery>[0]) => {
-      try {
-        return { attempt: await recordAttemptAndUpdateMastery({ ...input, clientAttemptId }), prior: null };
-      } catch (err) {
-        if (clientAttemptId && isDuplicateClientAttempt(err)) {
-          const prior = await findClientAttempt(authUser.id, clientAttemptId);
-          if (prior) return { attempt: null, prior };
-        }
-        throw err;
-      }
-    };
+    const record = (input: Parameters<typeof recordAttemptIdempotent>[0]) =>
+      recordAttemptIdempotent({ ...input, clientAttemptId });
 
     if (format === "mc") {
-      const { chosenIndex, correctIndex, chosenText, why } = body;
-      if (typeof chosenIndex !== "number" || typeof correctIndex !== "number") {
-        return badRequest("chosenIndex and correctIndex are required for format 'mc'");
+      const { chosenIndex, chosenText, why } = body;
+      if (!Number.isInteger(chosenIndex)) {
+        return badRequest("chosenIndex is required for format 'mc'");
+      }
+      // The client's correctIndex is not trusted: anyone with a token could
+      // send correctIndex = chosenIndex and be graded correct every time.
+      // For a lesson check the answer key is the cached lesson_content row.
+      let correctIndex: unknown = body.correctIndex;
+      if (objectiveId) {
+        const cached = await cachedCorrectIndex(authUser.id, objectiveId, stage);
+        if (cached.hasLesson) {
+          if (!cached.validStage) {
+            return badRequest("stage must be 'fade' or 'solo' for a multiple-choice check on a lesson");
+          }
+          if (cached.index === null) {
+            return badRequest("This lesson's practice questions are still being generated -- try again in a moment.");
+          }
+          correctIndex = cached.index;
+        }
+        // else: no lesson is cached for this objective, so there is no
+        // server-side answer key. Fall back to the client's value rather
+        // than refusing to grade; this is the only path that trusts it.
+      }
+      if (!Number.isInteger(correctIndex)) {
+        return badRequest("correctIndex is required for format 'mc' when no lesson is cached");
       }
       const correct = chosenIndex === correctIndex;
       const verdict = correct ? "correct" : "incorrect";
       const feedback = `${correct ? "That's right." : "Not quite."} ${why ?? ""}`.trim();
       const { attempt, prior } = await record({
         userId: authUser.id,
-        unitId,
+        unitId: attemptUnitId,
         objectiveId,
         kind,
         stage,
@@ -122,7 +161,7 @@ export async function POST(req: Request) {
       });
       const { attempt, prior } = await record({
         userId: authUser.id,
-        unitId,
+        unitId: attemptUnitId,
         objectiveId,
         kind,
         stage,
