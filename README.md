@@ -2,7 +2,7 @@
 
 **Adaptive AI-tutored exam prep · Real certification catalog · Mastery tracking, spaced review, PBQ practice**
 
-A cross-platform (iOS · Android · Web) study coach. Every course runs the same adaptive **guess → teach → fade → solo** lesson loop, a 0–4 mastery rubric with 1/7/21-day spaced review, a performance-based-question simulator, and an ask-the-coach chat — over a real, continuously-verified certification and academic catalog, not a static course library.
+A cross-platform (iOS · Android · Web) study coach. Every course runs the same adaptive **guess → teach → fade → solo** lesson loop, a 0–4 mastery rubric with spaced review of everything learned (1/3/7/21/60 days, a fresh question each time), a performance-based-question simulator, and an ask-the-coach chat — over a real, continuously-verified certification and academic catalog, not a static course library.
 
 ---
 
@@ -26,11 +26,11 @@ A cross-platform (iOS · Android · Web) study coach. Every course runs the same
 | Capability | Description |
 |---|---|
 | **Adaptive lessons** | Guess → teach → fade → solo, one Claude-generated lesson per objective, cached after first generation so cost doesn't scale with users; the coach is framed per course (credential, exam code, provider, domain weight) |
-| **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/7/21-day spaced review scheduler |
+| **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/3/7/21/60-day spaced review scheduler |
 | **PBQ simulator** | Multi-part performance-based-question scenarios, graded per sub-part |
 | **Ask the coach** | Multi-turn chat, persisted per course |
 | **Catalog navigation** | Home is a personal launch point (continue, review due, favorites); Explore browses the full catalog grouped by category with search and Verified / Review due / Unverified filters |
-| **Spaced review** | Missed questions come back on a 1 / 7 / 21-day schedule; a Review screen lists what's due, with a Home card showing the count |
+| **Spaced review** | Every objective reached at Guided or above comes back on a 1 / 3 / 7 / 21 / 60-day ladder, and missed questions come back too. Today's review serves up to 12 ("N for today") mixed across units, each with a new question graded on the server; unit gate checks and term coverage live on the same screen |
 | **Exam readiness** | Certification courses show mastery weighted by each domain's published exam weight, alongside the plain objective count |
 | **Full account system** | Email/password, TOTP + email-code MFA with per-method backup codes, Google OAuth linking, active-session management, account export/delete |
 | **Per-course disclaimers** | Tracks where acting on wrong content has real consequences (nursing) require an explicit, per-account acknowledgement before the first lesson |

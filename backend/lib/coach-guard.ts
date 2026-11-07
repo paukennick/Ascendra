@@ -76,7 +76,23 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
       limit 6`,
     [userId, trackId, unitId ?? null]
   );
+  // REQ-108: questions waiting in this learner's open Today's review
+  // (prepared, not yet answered): the coach must not answer those either.
+  const reviewing = await query<{ label: string; question: string; answer_key: string | null }>(
+    `select o.title as label, ri.question, ri.choices ->> ri.correct_index as answer_key
+       from review_session_items si
+       join review_sessions s on s.id = si.session_id
+       join review_items ri on ri.id = si.review_item_id
+       join objectives o on o.id = si.objective_id
+       join course_units cu on cu.id = o.unit_id
+      where s.user_id = $1 and cu.track_id = $2 and si.answered_at is null and s.finished_at is null
+        and ($3::uuid is null or cu.id = $3::uuid)
+      order by si.position
+      limit 6`,
+    [userId, trackId, unitId ?? null]
+  ).catch(() => []); // before migration 037 the tables are missing; the rest still applies
   return [
+    ...reviewing.map((r) => ({ kind: "review" as const, label: r.label, question: r.question, answerKey: r.answer_key })),
     ...lesson.map((r) => ({ kind: r.kind, label: r.label, question: r.question, answerKey: r.answer_key })),
     ...pbq.map((r) => ({ kind: r.reviewing ? ("review" as const) : ("pbq" as const), label: r.label, question: r.question, answerKey: null })),
   ];
