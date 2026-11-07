@@ -57,7 +57,7 @@ ascendra/
 │   │   ├── prompts.ts            Lesson/grading/PBQ/chat prompt builders
 │   │   └── mastery.ts            0–4 rubric, proficiency check, spaced-review scheduler
 │   └── supabase/
-│       ├── migrations/           18 migrations, additive-only — see below
+│       ├── migrations/           25 migrations, additive-only — see below
 │       └── seed/                 Catalog content: data.ts (core tracks) + tracks/{aws,azure,gcp,nursing}.ts
 ├── mobile/                      Expo Router app — iOS, Android (EAS), and web export
 │   └── app/(app)/, (auth)/, (legal)/   Screens, grouped by auth state; legal = FAQ/disclaimer/privacy/cookies/terms
@@ -81,7 +81,7 @@ Additive-only — nothing has ever been dropped or destructively rewritten.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. **Project Settings → Database → Connection string → URI**, using the **Transaction pooler** (port `6543`) — put it in `backend/.env.local` as `DATABASE_URL`.
-3. Apply the migrations: `cd backend && npm install && npm run migrate -- --all`. Each file runs in its own transaction and is recorded in `schema_migrations`, so re-running is a no-op. (Pasting the files into the SQL Editor in numeric order still works too.)
+3. Apply the migrations: `cd backend && npm install && npm run migrate -- --all`. Each file runs in its own transaction and is recorded in `schema_migrations`, so re-running is a no-op. (Pasting the files into the SQL Editor in numeric order still works too.) To see what a database is missing, run `npm run migrate -- --status` (read-only); a deployed backend reports the same thing at `/api/health`, which answers 503 and names the migrations to apply when the schema is behind the code.
 
 ### 2. Seed the catalog
 

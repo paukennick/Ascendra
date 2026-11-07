@@ -3,8 +3,9 @@ name: CI
 on:
   push:
     branches: [master]
+  # Every pull request, not only ones into master, so stacked PRs (a PR
+  # based on another PR's branch) are checked too.
   pull_request:
-    branches: [master]
 
 jobs:
   backend:
@@ -42,6 +43,51 @@ jobs:
       # Blocking: this package is currently clean, so a newly introduced
       # high/critical advisory should fail CI rather than go unnoticed.
       - run: npm audit --audit-level=high
+        working-directory: backend
+
+  # REQ-090: nothing in CI touched a database before, so a migration that
+  # didn't apply, SQL that named a missing column, or code that needed a
+  # migration production hadn't run could all ship green. This builds the
+  # schema from zero exactly as `npm run migrate -- --all` would in
+  # production, checks every object the code needs is there (the same
+  # probes /api/health runs), seeds the catalog twice to prove the seed is
+  # repeatable, and runs the integration tests against it.
+  database:
+    name: Database (migrations, seed, integration tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ascendra
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
+      PGSSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Apply every migration to an empty database
+        run: npm run migrate -- --all
+        working-directory: backend
+      - name: Schema has everything the code needs
+        run: npm run migrate -- --status
+        working-directory: backend
+      - name: Seed the catalog (twice, to prove it is repeatable)
+        run: npm run seed && npm run seed
+        working-directory: backend
+      - name: Integration tests
+        run: npm run test:db
         working-directory: backend
 
   mobile:

@@ -419,6 +419,79 @@
       "prevention_rules": [],
       "prevention_notes": "Grading writes are idempotent per client attempt id; attempt-id reuse rules are unit tested",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-019",
+      "date": "2026-11-06",
+      "title": "Account export mislabelled every section from mastery on",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Export file put favorites under mastery, mastery under attempts, etc.; study sessions missing",
+      "how_detected": "review",
+      "root_cause": "Promise.all of 8 queries destructured positionally into 7 names after favorites query was added in REQ-082",
+      "requirement": "REQ-090",
+      "affected": [
+        "backend/app/api/account/export/route.ts"
+      ],
+      "fix_summary": "Queries keyed by section name in lib/account-export.ts",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Section name and query live in one record so they cannot drift apart; integration test checks each section's rows",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-020",
+      "date": "2026-11-06",
+      "title": "Progress counts compared as strings",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Continue/sidebar could treat a 9-of-10 unit as complete and skip it",
+      "how_detected": "review",
+      "root_cause": "pg returns bigint count() and numeric as strings; API passed them through; app compared with < as text",
+      "requirement": "REQ-090",
+      "affected": [
+        "backend/lib/progress-sql.ts",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "mobile/src/components/Sidebar.tsx"
+      ],
+      "fix_summary": "Global INT8/NUMERIC type parsers in backend/lib/db.ts",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Integration test asserts every rollup column is a JSON number",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-021",
+      "date": "2026-11-06",
+      "title": "No CI check that migrations apply or that production schema matches code",
+      "status": "mitigated",
+      "severity": "high",
+      "symptom": "Code depending on migrations 023/025 could deploy to a database without them and fail with 500s; CI stayed green",
+      "how_detected": "review",
+      "root_cause": "CI ran typecheck/unit tests/build only, with a placeholder DATABASE_URL; migrations are applied manually and separately from deploys",
+      "requirement": "REQ-090",
+      "affected": [
+        ".github/workflows/ci.yml",
+        "backend/app/api/health/route.ts"
+      ],
+      "fix_summary": "Database CI job; schema probes in /api/health and npm run migrate -- --status",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/schema-status.test.ts",
+        "backend/lib/integration.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "New migrations that code depends on get a probe in lib/schema-status.ts; CI requires all probes to pass on a fresh schema",
+      "recurrence_of": ""
     }
   ]
 }

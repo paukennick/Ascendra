@@ -2638,6 +2638,47 @@
         "Migration 025 must be applied before deploying the backend or progress and grading writes fail on the missing column",
         "Last-write-wins between two devices used at the same time"
       ]
+    },
+    {
+      "id": "REQ-090",
+      "category": "defect",
+      "title": "Data correctness: schema checks, account export, numeric progress",
+      "description": "Audit batch A. (1) CI never touched a database: new Database job applies every migration to an empty Postgres, verifies required schema objects, seeds twice, runs integration tests. (2) /api/health and npm run migrate -- --status report missing schema (503 naming migrations) so code deployed ahead of its migration is caught. (3) Account export unpacked 8 queries into 7 names, mislabelling every section from mastery on and dropping study sessions; now keyed by section and includes lesson progress, acknowledgements and support requests. (4) pg returned counts/numerics as strings and the app compared them as text, so 9-of-10 units looked complete; parsed to numbers in lib/db.ts.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        "backend/lib/db.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/schema-status.test.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/integration.dbtest.ts",
+        "backend/app/api/health/route.ts",
+        "backend/app/api/account/export/route.ts",
+        "backend/supabase/apply-migration.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/package.json",
+        "README.md"
+      ],
+      "acceptance_criteria": [
+        "CI applies all migrations to an empty database and fails if any required object is missing",
+        "Health returns 503 naming migrations when schema is behind",
+        "Export sections each hold their own table's rows",
+        "Progress counts are JSON numbers"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Health now returns 503 until production has migrations 023-025; the keepalive workflow will go red until they are applied (intended signal)"
+      ]
     }
   ]
 }
