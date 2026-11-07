@@ -4,7 +4,7 @@ import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { getLoginChallenge, setChallengeEmailCode, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +28,11 @@ export async function POST(req: Request) {
     // single login attempt can trigger, same reasoning as mfa_verify_attempt.
     const challengeKey = crypto.createHash("sha256").update(challengeToken).digest("hex");
     try {
-      await checkRateLimit("mfa_email_code_send", challengeKey, { max: 3, windowMinutes: 10 });
+      await consumeRateLimit("mfa_email_code_send", challengeKey, { max: 3, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return new Response(JSON.stringify({ error: err.message }), { status: 429 });
       throw err;
     }
-    await recordAuthEvent("mfa_email_code_send", challengeKey);
 
     let challenge;
     try {

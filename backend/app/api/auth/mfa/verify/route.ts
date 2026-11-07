@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
-import { getLoginChallenge, getChallengeEmailCode, markChallengeConsumed, ChallengeError } from "@/lib/auth/mfaChallenge";
+import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +29,11 @@ export async function POST(req: Request) {
     // owner is doing.
     const challengeKey = crypto.createHash("sha256").update(challengeToken).digest("hex");
     try {
-      await checkRateLimit("mfa_verify_attempt", challengeKey, { max: 8, windowMinutes: 10 });
+      await consumeRateLimit("mfa_verify_attempt", challengeKey, { max: 8, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return new Response(JSON.stringify({ error: err.message }), { status: 429 });
       throw err;
     }
-    await recordAuthEvent("mfa_verify_attempt", challengeKey);
 
     let challenge;
     try {
@@ -64,6 +63,9 @@ export async function POST(req: Request) {
       if (emailCode) matched = await verifyEmailCode(code, emailCode.hash);
     }
 
+    // A matched backup code is only identified here; it is spent together
+    // with the challenge below, so concurrent requests can't both use it.
+    let backupCodeId: string | null = null;
     if (!matched) {
       const backupCodes = await query<{ id: string; code_hash: string }>(
         `select id, code_hash from mfa_backup_codes where user_id = $1 and used_at is null`,
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
       );
       for (const bc of backupCodes) {
         if (await verifyBackupCode(code, bc.code_hash)) {
-          await query(`update mfa_backup_codes set used_at = now() where id = $1`, [bc.id]);
+          backupCodeId = bc.id;
           matched = true;
           break;
         }
@@ -82,7 +84,9 @@ export async function POST(req: Request) {
       return unauthorized("Incorrect code.");
     }
 
-    await markChallengeConsumed(challenge.id);
+    const consumed = await consumeLoginChallenge(challenge.id, backupCodeId);
+    if (consumed === "challenge_used") return unauthorized("Login challenge already used.");
+    if (consumed === "backup_code_used") return unauthorized("Incorrect code.");
     await recordAuthEvent("login_success", user.email, { ip: getClientIp(req), userId: user.id });
 
     const session = await completeLogin(user, {

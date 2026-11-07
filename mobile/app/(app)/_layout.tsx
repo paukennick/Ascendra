@@ -15,6 +15,9 @@ export default function AppLayout() {
       <Stack.Screen name="index" options={{ title: "Ascendra", headerLargeTitle: true }} />
       <Stack.Screen name="explore" options={{ title: "Explore" }} />
       <Stack.Screen name="review" options={{ title: "Review" }} />
+      <Stack.Screen name="review-session" options={{ title: "Today's review" }} />
+      <Stack.Screen name="review-coverage" options={{ title: "Terms you know" }} />
+      <Stack.Screen name="unit-check" options={{ title: "Unit check" }} />
       <Stack.Screen name="account" options={{ title: "Account" }} />
       <Stack.Screen name="account/sessions" options={{ title: "Active sessions" }} />
       <Stack.Screen name="account/change-password" options={{ title: "Change password" }} />
@@ -27,6 +30,12 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/chat" options={{ title: "Ask the coach" }} />
       <Stack.Screen name="course/[trackId]/progress" options={{ title: "Mastery" }} />
       <Stack.Screen name="course/[trackId]/history" options={{ title: "History" }} />
+      <Stack.Screen name="course/[trackId]/exam" options={{ title: "Practice exam" }} />
+      <Stack.Screen name="course/[trackId]/compare" options={{ title: "Compare look-alikes" }} />
+      <Stack.Screen name="course/[trackId]/explain/[objectiveId]" options={{ title: "Explain it back" }} />
+      <Stack.Screen name="course/[trackId]/plan" options={{ title: "Study plan" }} />
+      <Stack.Screen name="course/[trackId]/placement" options={{ title: "Placement check" }} />
+      <Stack.Screen name="course/[trackId]/quiz" options={{ title: "Quiz me" }} />
     </Stack>
   );
 }

@@ -1,0 +1,165 @@
+import React, { useEffect, useRef, useState } from "react";
+import { TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import * as Crypto from "expo-crypto";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { api, ApiError } from "@/api/client";
+import { Body, Button, Card, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
+import { MisconceptionNote, RefresherOffer } from "@/components/Understanding";
+import { colors, radius, spacing } from "@/lib/theme";
+import {
+  EXPLAIN_MIN_WORDS,
+  explainAssistNote,
+  explainBackLockedNote,
+  rubricLines,
+  wordCount,
+  type Diagnosis,
+  type ExplainRubric,
+} from "@/lib/understanding";
+
+// REQ-111 explain-it-back: once an objective is at Guided or above, the
+// learner explains it to a beginner in their own words. Graded on the server
+// against the lesson's teaching (correct, complete, key terms, no mix-ups),
+// with feedback on the gaps. Optional: reached from the lesson's done card.
+
+interface Info {
+  eligible: boolean;
+  status: string;
+  question: string;
+  last: { verdict: string; feedback: string | null; created_at: string } | null;
+}
+
+interface Result {
+  verdict: "correct" | "partial" | "incorrect";
+  feedback: string;
+  rubric: ExplainRubric | null;
+  diagnosis: Diagnosis | null;
+  assistReason: string | null;
+}
+
+export default function ExplainBackScreen() {
+  const { trackId, objectiveId, objectiveTitle } = useLocalSearchParams<{
+    trackId: string;
+    objectiveId: string;
+    objectiveTitle?: string;
+  }>();
+  const router = useRouter();
+  const [info, setInfo] = useState<Info | null>(null);
+  const [answer, setAnswer] = useState("");
+  const [result, setResult] = useState<Result | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const sent = useRef<{ id: string; text: string } | null>(null);
+
+  useEffect(() => {
+    api
+      .get<Info>(`/api/objectives/${objectiveId}/explain-back`)
+      .then(setInfo)
+      .catch((err) => setError((err as Error).message));
+  }, [objectiveId]);
+
+  async function submit() {
+    const text = answer.trim();
+    if (!text) return;
+    setBusy(true);
+    setError(null);
+    // The same text resent after a dropped connection keeps its id, so it is
+    // replayed instead of graded twice; any edit is a new answer.
+    if (!sent.current || sent.current.text !== text) sent.current = { id: Crypto.randomUUID(), text };
+    try {
+      setResult(await api.post<Result>(`/api/objectives/${objectiveId}/explain-back`, { answer: text, clientAttemptId: sent.current.id }));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Couldn't reach the server. Your explanation is still here — try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const words = wordCount(answer);
+  return (
+    <Screen>
+      <H1>Explain it back</H1>
+      {objectiveTitle ? <Muted style={{ color: colors.accent }}>{objectiveTitle}</Muted> : null}
+      {error ? <ErrorBanner message={error} /> : null}
+      {!info && !error ? <Loading /> : null}
+      {info && !info.eligible ? (
+        <Card>
+          <Body>{explainBackLockedNote(info.status)}</Body>
+          <Button label="Back to the lesson" variant="ghost" icon="arrow-left" onPress={() => router.back()} />
+        </Card>
+      ) : null}
+      {info?.eligible ? (
+        <>
+          <Card elevated>
+            <Body>{info.question}</Body>
+            <Muted>
+              Write it the way you'd say it to a friend. Gaps are useful — the feedback points you straight at them.
+            </Muted>
+          </Card>
+          {!result ? (
+            <Card>
+              <TextInput
+                multiline
+                accessibilityLabel="Your explanation"
+                placeholder="In my own words..."
+                placeholderTextColor={colors.mutedDim}
+                value={answer}
+                onChangeText={setAnswer}
+                maxLength={4000}
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: radius.md,
+                  padding: 12,
+                  color: colors.text,
+                  backgroundColor: colors.cardAlt,
+                  minHeight: 140,
+                  textAlignVertical: "top",
+                  fontSize: 16,
+                }}
+              />
+              {words > 0 && words < EXPLAIN_MIN_WORDS ? (
+                <Muted>A few sentences is plenty — keep going.</Muted>
+              ) : null}
+              <Button
+                label="Check my explanation"
+                icon="send"
+                loading={busy}
+                disabled={busy || words < EXPLAIN_MIN_WORDS}
+                onPress={submit}
+              />
+            </Card>
+          ) : (
+            <Card elevated style={{ gap: spacing.sm }}>
+              <VerdictBadge verdict={result.verdict} />
+              <Body>{result.feedback}</Body>
+              {rubricLines(result.rubric).map((line) => (
+                <View
+                  key={line.label}
+                  accessible
+                  accessibilityLabel={`${line.met ? "Met" : "To work on"}: ${line.label}`}
+                  style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+                >
+                  <Feather name={line.met ? "check-circle" : "circle"} size={16} color={line.met ? colors.good : colors.warn} />
+                  <Body style={{ flex: 1 }}>{line.label}</Body>
+                </View>
+              ))}
+              <MisconceptionNote diagnosis={result.diagnosis} />
+              {explainAssistNote(result.assistReason) ? (
+                <Muted style={{ fontSize: 12 }}>{explainAssistNote(result.assistReason)}</Muted>
+              ) : null}
+              <RefresherOffer objectiveId={objectiveId} verdict={result.verdict} />
+              <Button
+                label="Edit and try again"
+                variant="ghost"
+                icon="edit-3"
+                onPress={() => setResult(null)}
+              />
+              <Button label="Back to the course" icon="arrow-left" onPress={() => router.dismissTo(`/course/${trackId}`)} />
+            </Card>
+          )}
+        </>
+      ) : null}
+    </Screen>
+  );
+}

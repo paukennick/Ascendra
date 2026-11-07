@@ -14,6 +14,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { createPressGuard } from "@/lib/pressGuard";
 import { colors, fonts, radius, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
 
 type IconName = React.ComponentProps<typeof Feather>["name"];
@@ -36,9 +37,18 @@ function useScalePress(target = 0.97) {
   return { scale, onPressIn, onPressOut };
 }
 
-export function Screen({ children }: { children: React.ReactNode }) {
+// scrollRef (REQ-106): lets a screen bring new content into view, e.g. the
+// top of the next Teach card after "Next card" at the bottom of a long one.
+export function Screen({
+  children,
+  scrollRef,
+}: {
+  children: React.ReactNode;
+  scrollRef?: React.Ref<ScrollView>;
+}) {
   return (
     <ScrollView
+      ref={scrollRef}
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={styles.screenContent}
       showsVerticalScrollIndicator={false}
@@ -232,9 +242,14 @@ export function Button({
   loading,
   icon,
   fullWidth = true,
+  accessibilityLabel,
 }: {
   label: string;
-  onPress: () => void;
+  // Spoken instead of `label` when the visible text alone is ambiguous.
+  accessibilityLabel?: string;
+  // May return a promise; the button then ignores further presses until it
+  // settles (see src/lib/pressGuard.ts).
+  onPress: () => void | Promise<unknown>;
   variant?: ButtonVariant;
   size?: ButtonSize;
   disabled?: boolean;
@@ -244,15 +259,30 @@ export function Button({
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.96);
   const isDisabled = disabled || loading;
+  // REQ-093: `disabled`/`loading` only take effect on the next render, so two
+  // taps delivered in the same frame both reached onPress (a double
+  // submit). The guard lives in a ref, which updates synchronously. The
+  // latest onPress is read through a ref so a re-render between taps still
+  // calls the current handler.
+  const guard = useRef(createPressGuard()).current;
+  const onPressRef = useRef(onPress);
+  onPressRef.current = onPress;
   const iconColor =
     variant === "primary" ? colors.accentText : variant === "danger" ? "#2a0509" : colors.text;
 
   return (
     <AnimatedPressable
-      onPress={onPress}
+      onPress={() => {
+        guard.press(() => onPressRef.current());
+      }}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={isDisabled}
+      // REQ-095: announce as a button (with its disabled/busy state) so the
+      // new lesson actions aren't plain text to a screen reader.
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
       style={[
         variant === "link" ? styles.linkButton : styles.button,
         size === "sm" && variant !== "link" && styles.buttonSm,

@@ -1,35 +1,54 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { examReadiness } from "./progress.ts";
+import { domainLine, readinessSummary } from "./progress.ts";
+import type { CourseReadiness } from "../types/index.ts";
 
-describe("examReadiness", () => {
-  test("weights each unit's mastered share by its exam weight", () => {
-    const r = examReadiness([
-      { weight: 60, total_objectives: 10, mastered_objectives: 10 },
-      { weight: 40, total_objectives: 10, mastered_objectives: 0 },
+const base: CourseReadiness = {
+  blueprintWeighted: true,
+  status: "building",
+  readinessPercent: 42,
+  coveragePercent: 70,
+  accuracyPercent: 81,
+  objectives: 20,
+  practiced: 14,
+  focusUnitId: "b",
+  domains: [
+    { unitId: "a", title: "Threats", weight: 60, objectives: 10, practiced: 10, coveragePercent: 100, accuracyPercent: 85, readinessPercent: 60 },
+    { unitId: "b", title: "Architecture", weight: 40, objectives: 10, practiced: 4, coveragePercent: 40, accuracyPercent: 70, readinessPercent: 15 },
+  ],
+};
+
+describe("readinessSummary (REQ-100)", () => {
+  test("building: shows the readiness number, coverage and accuracy apart, and one next step", () => {
+    const s = readinessSummary(base)!;
+    assert.equal(s.headline, "Building readiness");
+    assert.equal(s.percent, 42);
+    assert.deepEqual(s.lines, [
+      "You've practiced 14 of 20 objectives (70% of the exam by weight).",
+      "On what you've practiced, your weighted accuracy is 81%.",
+      "Biggest gain next: Architecture.",
     ]);
-    assert.equal(r, 60);
   });
 
-  test("normalises by the weights' own sum when they don't total 100", () => {
-    const r = examReadiness([
-      { weight: 45, total_objectives: 4, mastered_objectives: 4 },
-      { weight: 40, total_objectives: 4, mastered_objectives: 4 },
-    ]);
-    assert.equal(r, 100);
+  test("little evidence never shows a readiness number, however accurate", () => {
+    const s = readinessSummary({ ...base, status: "not_enough_evidence", accuracyPercent: 100, coveragePercent: 10, practiced: 2 })!;
+    assert.equal(s.headline, "Not enough evidence yet");
+    assert.equal(s.percent, null);
+    assert.match(s.lines.join(" "), /Practice more objectives/);
   });
 
-  test("accepts numeric strings (Postgres numeric comes back as text)", () => {
-    const r = examReadiness([
-      { weight: "50", total_objectives: 2, mastered_objectives: 1 },
-      { weight: "50", total_objectives: 2, mastered_objectives: 1 },
-    ]);
-    assert.equal(r, 50);
+  test("no evidence and no objectives", () => {
+    assert.equal(readinessSummary({ ...base, status: "no_evidence", practiced: 0, accuracyPercent: null })!.percent, null);
+    assert.equal(readinessSummary({ ...base, objectives: 0 }), null);
+    assert.equal(readinessSummary(null), null);
   });
 
-  test("returns null for unweighted or single-weighted tracks", () => {
-    assert.equal(examReadiness(null), null);
-    assert.equal(examReadiness([{ weight: null, total_objectives: 3, mastered_objectives: 1 }]), null);
-    assert.equal(examReadiness([{ weight: 100, total_objectives: 3, mastered_objectives: 1 }]), null);
+  test("a course without a blueprint says 'of the course'", () => {
+    assert.match(readinessSummary({ ...base, blueprintWeighted: false })!.lines[0], /70% of the course\)/);
+  });
+
+  test("domainLine", () => {
+    assert.equal(domainLine(base.domains[1]), "4/10 practiced · 70% accuracy · 15% ready");
+    assert.equal(domainLine({ ...base.domains[1], practiced: 0, accuracyPercent: null, readinessPercent: 0 }), "0/10 practiced · 0% ready");
   });
 });

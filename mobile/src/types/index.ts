@@ -1,3 +1,5 @@
+import type { TeachCards } from "@/lib/lessonExperience";
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -68,6 +70,30 @@ export interface Unit {
   objectives?: Objective[];
 }
 
+// REQ-100: GET /api/courses/:id -> readiness (backend/lib/readiness.ts).
+export interface DomainReadiness {
+  unitId: string;
+  title: string;
+  weight: number | null;
+  objectives: number;
+  practiced: number;
+  coveragePercent: number;
+  accuracyPercent: number | null;
+  readinessPercent: number;
+}
+
+export interface CourseReadiness {
+  blueprintWeighted: boolean;
+  status: "no_evidence" | "not_enough_evidence" | "building" | "ready";
+  readinessPercent: number;
+  coveragePercent: number;
+  accuracyPercent: number | null;
+  objectives: number;
+  practiced: number;
+  focusUnitId: string | null;
+  domains: DomainReadiness[];
+}
+
 export interface Objective {
   id: string;
   unit_id: string;
@@ -81,20 +107,32 @@ export interface Objective {
 
 export interface LessonContent {
   guessPrompt: string;
+  // Always present: for a lesson with cards it is the same teaching as one
+  // text (what grading reads), for an older cached lesson the only teaching.
   teach: string;
+  // REQ-106: Teach as 3-4 short cards plus one self-explanation prompt.
+  // Absent for lessons cached before cards; `teach` is then shown as before.
+  teachCards?: TeachCards;
   // Absent while the practice half is still generating in the background --
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.
+  //
+  // REQ-097: no answer key and no explanation of the right answer are sent
+  // before the learner answers -- POST /api/grade returns them with the
+  // verdict. fadeChoices come in this learner's fixed shuffled order. The
+  // Solo choices are a hint: POST /api/objectives/:id/hint returns them and
+  // records that the hint was used.
   fadeProblem?: string;
   fadeChoices?: string[];
-  fadeCorrectIndex?: number;
-  fadeWhy?: string;
   soloCheck?: string;
-  soloChoices?: string[];
-  soloCorrectIndex?: number;
-  soloWhy?: string;
   model?: string;
   generatedAt?: string;
+}
+
+export interface PartScore {
+  part: string;
+  score: "met" | "partial" | "missed";
+  comment: string;
 }
 
 export interface GradeResult {
@@ -102,6 +140,32 @@ export interface GradeResult {
   feedback: string;
   classification: string;
   missedParts: string[];
+  // REQ-107 (PBQ only): the grader's score for each sub-part, in the
+  // scenario's order. Absent on a replayed retry and from older servers;
+  // null when the grader's list could not be matched to the sub-parts.
+  partScores?: PartScore[] | null;
+  // REQ-097 (lesson checks only): the answer key, revealed with the verdict.
+  // correctIndex is a position in the order the choices were shown.
+  correctIndex?: number | null;
+  correctAnswer?: string | null;
+  why?: string | null;
+  // "hint": the Solo choices were seen. "repeat": this exact question was
+  // answered before. "retry" (REQ-105): a revision written with the first
+  // answer's feedback in view. Each keeps the answer from lifting mastery.
+  assisted?: boolean;
+  assistReason?: "hint" | "repeat" | "retry" | "reveal" | null;
+  // REQ-105, returned only with the verdict: one reason per option in the
+  // shown order (lesson multiple choice; null for an older cached lesson),
+  // the grader's model answer and "what to fix" line (free response and
+  // PBQ), and for a PBQ revision the sub-parts it covered.
+  optionReasons?: string[] | null;
+  modelAnswer?: string | null;
+  fixNext?: string | null;
+  revisedParts?: string[];
+  attempt?: { id: string };
+  // REQ-111: "reveal" -- an explain-it-back copied from the lesson text.
+  // The likely misconception behind a miss, in one sentence.
+  diagnosis?: { sentence: string; confusedWith: string | null; conceptSetId: string | null } | null;
 }
 
 export interface Attempt {
@@ -112,7 +176,7 @@ export interface Attempt {
   unit_title?: string;
   // REQ-075: lets History navigate straight into the objective's lesson.
   track_id?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
   stage: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -142,6 +206,8 @@ export interface ErrorLogEntry {
   next_review_at: string | null;
   resolved: boolean;
   created_at: string;
+  // REQ-097: set for a missed PBQ, so Review can offer the same scenario again.
+  pbq_scenario_id?: string | null;
 }
 
 // REQ-074: shape returned by POST /api/objectives/:id/lesson/prefetch-next
@@ -205,4 +271,74 @@ export interface SupportRequest {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// REQ-108: Today's review, unit checks and term coverage.
+export interface ReviewToday {
+  dueCount: number;
+  forToday: number;
+  nextDueOn: string | null;
+  unitChecks: { unitId: string; unitTitle: string; trackId: string; trackTitle: string; lastVerdict: string | null }[];
+}
+
+export interface ReviewSessionItem {
+  position: number;
+  objectiveId: string;
+  objectiveTitle: string;
+  unitTitle: string;
+  trackTitle: string;
+  question: string;
+  answered: boolean;
+  verdict: "correct" | "partial" | "incorrect" | null;
+}
+
+export interface ReviewSession {
+  id: string;
+  gentleStart: boolean;
+  total: number;
+  answered: number;
+  items: ReviewSessionItem[];
+}
+
+export interface ReviewAnswerResult {
+  verdict: "correct" | "partial" | "incorrect";
+  feedback: string;
+  missedParts: string[];
+  assisted: boolean;
+  correctIndex: number | null;
+  correctAnswer: string | null;
+  why: string | null;
+  terms: string[];
+  termsCredited?: string[];
+  nextDueOn?: string | null;
+  advanced?: boolean;
+  replayed?: boolean;
+}
+
+export interface UnitCheckStatus {
+  unitId: string;
+  unitTitle: string;
+  trackId: string;
+  gate: string | null;
+  total: number;
+  studied: number;
+  eligible: boolean;
+  passed: boolean;
+  lastVerdict: string | null;
+}
+
+export interface UnitCheck {
+  id: string;
+  unit_id: string;
+  title: string;
+  scenario: string;
+  sub_parts: string[];
+}
+
+export interface TermCoverage {
+  objectiveId: string;
+  title: string;
+  unitTitle: string;
+  trackTitle: string;
+  terms: { term: string; covered: boolean }[];
 }

@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import * as Crypto from "expo-crypto";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
-import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
+import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
+import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -17,15 +21,37 @@ export default function ChatScreen() {
     prefill?: string;
     unitId?: string;
   }>();
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  // The id of the message last sent, kept until it gets a reply. Sending the
+  // same text again after a failure reuses it, so if the first request did
+  // reach the server the stored reply comes back instead of a duplicate.
+  const pendingRef = useRef<{ id: string; text: string } | null>(null);
+
+  // REQ-093: an unsent message survives leaving the screen. Per user and
+  // course; a prefill from the lesson shortcut wins over an older draft, and
+  // emptying the box (what a send does) clears it.
+  const { user } = useAuth();
+  useStoredDraft(
+    user && trackId ? chatDraftKey(user.id, trackId) : null,
+    chatDraftPayload(input, prefill),
+    (stored) => {
+      if (!stored || prefill) return;
+      const text = chatDraftText(stored);
+      if (text) setInput((current) => current || text);
+    }
+  );
 
   const load = useCallback(() => {
+    setLoadError(null);
     api
       .get<{ messages: ChatMessage[] }>(`/api/chat?trackId=${trackId}`)
-      .then((res) => setMessages(res.messages));
+      .then((res) => setMessages(res.messages))
+      .catch((err) => setLoadError((err as Error).message));
   }, [trackId]);
 
   useEffect(() => {
@@ -39,14 +65,22 @@ export default function ChatScreen() {
     const text = input;
     setInput("");
     setBusy(true);
+    const clientMessageId =
+      pendingRef.current?.text === text ? pendingRef.current.id : Crypto.randomUUID();
+    pendingRef.current = { id: clientMessageId, text };
     try {
-      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text });
+      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text, clientMessageId });
+      pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
     } catch (err) {
       setMessages((prev) => [
         ...(prev ?? []),
         { role: "assistant", content: `(error getting reply: ${(err as Error).message})` },
       ]);
+      // The draft is only meant to be cleared by a *successful* send: put the
+      // text back (unless they've started something new) so it isn't lost and
+      // sending it again reuses its clientMessageId.
+      setInput((current) => current || text);
     } finally {
       setBusy(false);
     }
@@ -68,8 +102,22 @@ export default function ChatScreen() {
             <Muted>{trackTitle ? `${trackTitle} · ` : ""}Open Q&A — not graded, doesn't touch mastery</Muted>
           </View>
         </View>
+        {/* REQ-110: the coach quizzes the learner on their weakest objectives. */}
+        <Button
+          label="Quiz me on my weak spots"
+          icon="help-circle"
+          size="sm"
+          variant="ghost"
+          fullWidth={false}
+          onPress={() => router.push({ pathname: `/course/${trackId}/quiz`, params: { trackTitle } })}
+        />
 
-        {!messages ? (
+        {!messages && loadError ? (
+          <View style={{ gap: spacing.sm, paddingVertical: spacing.md }}>
+            <ErrorBanner message={loadError} />
+            <Button label="Try again" icon="refresh-cw" fullWidth={false} onPress={load} />
+          </View>
+        ) : !messages ? (
           <Loading />
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
@@ -111,6 +159,7 @@ export default function ChatScreen() {
             style={styles.input}
             multiline
             placeholder="Ask anything about this track..."
+            maxLength={CHAT_DRAFT_MAX}
             placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}

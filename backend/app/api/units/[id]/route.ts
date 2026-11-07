@@ -1,6 +1,7 @@
 import { query } from "@/lib/db";
 import { ok, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { isActive } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(
       `select o.*, m.status as mastery_status, m.score_0_4 as mastery_score, m.evidence as mastery_evidence
        from objectives o
        left join mastery m on m.objective_id = o.id and m.user_id = $2
-       where o.unit_id = $1
+       where o.unit_id = $1 and ${isActive("o")}
        order by o.sort_order asc`,
       [id, user.id]
     );

@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, usePathname, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { ChoiceSheet } from "@/components/ui";
+import { planNavigation, routePath } from "@/lib/navPlan";
 import { colors, fonts, getCourseIcon, radius, spacing } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
 
@@ -37,6 +38,8 @@ function byLastStudied(a: Track, b: Track): number {
 
 export function Sidebar({ visible, onClose, tracks, trackId, track, units }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const navigation = useNavigation();
   const { logout } = useAuth();
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const [rendered, setRendered] = useState(visible);
@@ -54,10 +57,26 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
     });
   }, [visible, translateX]);
 
+  // REQ-093: this used to push every time, so choosing the screen you were
+  // already on stacked a copy of it, and Home/Account/Settings/Support/a
+  // course dashboard piled up on each visit. See src/lib/navPlan.ts:
+  // the current screen is skipped, a top-level destination already in the
+  // stack is popped back to, anything else pushes. Both support entries
+  // carry an explicit kind, so going from one support form to the other is
+  // never "the same screen, nothing to do" (FAIL-064).
   function go(path: string, params?: Record<string, string>) {
     onClose();
-    if (params) router.push({ pathname: path, params });
-    else router.push(path);
+    // Routes from the bottom of this stack up to the one showing the sidebar.
+    const state = navigation.getState();
+    const stackPaths = (state?.routes ?? [])
+      .slice(0, (state?.index ?? 0) + 1)
+      .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
+      .filter((p): p is string => p !== null);
+    const mode = planNavigation(pathname, path, !!params, stackPaths);
+    if (mode === "skip") return;
+    const href = params ? { pathname: path, params } : path;
+    if (mode === "dismissTo") router.dismissTo(href);
+    else router.push(href);
   }
 
   // A course row from Favorites/Recent doesn't jump straight to the
@@ -209,7 +228,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <NavRow icon="user" label="Account" onPress={() => go("/account")} />
           <NavRow icon="settings" label="Settings" onPress={() => go("/settings")} />
           <View style={styles.divider} />
-          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support")} />
+          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support", { kind: "ticket" })} />
           <NavRow
             icon="plus-circle"
             label="Request a course"

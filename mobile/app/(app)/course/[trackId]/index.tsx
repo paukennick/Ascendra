@@ -3,7 +3,7 @@ import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
-import type { Track, Unit } from "@/types";
+import type { CourseReadiness, Track, Unit } from "@/types";
 import {
   Badge,
   Button,
@@ -22,9 +22,10 @@ import {
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
 import { DisclaimerGate } from "@/components/DisclaimerGate";
+import { CoursePlanPanel } from "@/components/CoursePlanPanel";
 import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
-import { examReadiness } from "@/lib/progress";
+import { readinessSummary } from "@/lib/progress";
 
 interface AcknowledgementState {
   required: boolean;
@@ -38,6 +39,8 @@ const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label
   { icon: "bar-chart-2", label: "Mastery", path: "progress" },
   { icon: "clock", label: "History", path: "history" },
   { icon: "layers", label: "PBQ sim", path: "pbq" },
+  // REQ-111: comparison cards for look-alike concepts.
+  { icon: "columns", label: "Compare", path: "compare" },
 ];
 
 export default function CourseDashboard() {
@@ -45,6 +48,7 @@ export default function CourseDashboard() {
   const router = useRouter();
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
+  const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ack, setAck] = useState<AcknowledgementState | null>(null);
@@ -80,10 +84,11 @@ export default function CourseDashboard() {
   const load = useCallback(() => {
     setError(null);
     api
-      .get<{ track: Track; units: Unit[] }>(`/api/courses/${trackId}`)
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness }>(`/api/courses/${trackId}`)
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
+        setReadinessData(res.readiness ?? null);
       })
       .catch((err) => setError(err.message));
     // Asked for separately so a course that needs no disclaimer -- which is
@@ -107,9 +112,10 @@ export default function CourseDashboard() {
     (u) => (u.mastered_objectives ?? 0) < (u.total_objectives ?? 0)
   );
 
-  // REQ-078: exam readiness, weighted by each unit's published exam
-  // weight (see src/lib/progress.ts).
-  const readiness = examReadiness(units);
+  // REQ-100: readiness from weighted accuracy across every question type,
+  // rolled up by the exam blueprint, with coverage shown apart from accuracy
+  // (src/lib/progress.ts, backend/lib/readiness.ts).
+  const readiness = readinessSummary(readinessData);
 
   // The gate stands in for the whole dashboard rather than sitting above it:
   // every action below would be refused by the server anyway, and offering
@@ -164,10 +170,19 @@ export default function CourseDashboard() {
             <Muted style={{ fontSize: 12 }}>
               {track.mastered_objectives ?? 0}/{track.total_objectives ?? 0} objectives mastered ({track.percent_complete ?? 0}%)
             </Muted>
-            {readiness != null ? (
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Muted style={{ fontSize: 12 }}>Exam readiness, weighted by domain</Muted>
-                <Muted style={{ fontSize: 12, color: colors.text, fontFamily: fonts.bodyBold }}>{readiness}%</Muted>
+            {readiness ? (
+              <View style={{ gap: 2 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Muted style={{ fontSize: 12, color: colors.text, fontFamily: fonts.bodyBold }}>{readiness.headline}</Muted>
+                  {readiness.percent != null ? (
+                    <Muted style={{ fontSize: 12, color: colors.text, fontFamily: fonts.bodyBold }}>{readiness.percent}%</Muted>
+                  ) : null}
+                </View>
+                {readiness.lines.map((line) => (
+                  <Muted key={line} style={{ fontSize: 12 }}>
+                    {line}
+                  </Muted>
+                ))}
               </View>
             ) : null}
 
@@ -187,6 +202,17 @@ export default function CourseDashboard() {
               }}
             />
 
+            {/* REQ-109: timed sprints and mock exams. */}
+            <Button
+              label="Practice exam"
+              accessibilityLabel="Practice exam: timed sprint or mock exam"
+              icon="clock"
+              variant="ghost"
+              onPress={() =>
+                router.push({ pathname: `/course/${trackId}/exam`, params: { trackTitle: track.title } })
+              }
+            />
+
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
               {QUICK_ACTIONS.map((a) => (
                 <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>
@@ -204,6 +230,9 @@ export default function CourseDashboard() {
               ))}
             </View>
           </Card>
+
+          {/* REQ-110: placement offer, session choice, plan and kept summary. */}
+          <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
 
           <SectionHeader label="Units" />
           {units?.map((u) => {

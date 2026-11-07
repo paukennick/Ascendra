@@ -32,8 +32,11 @@ export async function POST(req: Request) {
       return badRequest("conclusion must be 'current' or 'flagged'");
     }
 
+    // Shared catalog only: a learner's private track can reuse a catalog
+    // code (unique per user, not globally), and the agent must neither
+    // review nor write to it.
     const track = await queryOne<{ id: string }>(
-      `select id from subject_tracks where code = $1`,
+      `select id from subject_tracks where code = $1 and user_id is null`,
       [trackCode],
     );
     if (!track) return notFound(`No track with code ${trackCode}`);

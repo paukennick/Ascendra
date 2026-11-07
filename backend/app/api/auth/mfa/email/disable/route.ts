@@ -1,5 +1,6 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { consumeRateLimit, RateLimitError, MFA_DISABLE_EVENT, MFA_DISABLE_LIMIT } from "@/lib/auth/rateLimit";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { verifyPassword } from "@/lib/auth/passwords";
 import { requestMfaDisableConfirmation, checkMfaDisableConfirmation } from "@/lib/auth/mfa";
@@ -19,6 +20,12 @@ export async function POST(req: Request) {
     const { password, confirmationCode } = body ?? {};
     if (!password || typeof password !== "string") {
       return badRequest("password is required");
+    }
+    try {
+      await consumeRateLimit(MFA_DISABLE_EVENT, user.id, MFA_DISABLE_LIMIT, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) return tooManyRequests("Too many attempts. Try again later.");
+      throw err;
     }
 
     const row = await queryOne<{ password_hash: string | null; totp_secret_enc: string | null }>(

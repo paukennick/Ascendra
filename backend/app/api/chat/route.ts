@@ -1,14 +1,20 @@
-import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
+import { query } from "@/lib/db";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
+import { findChatTurn, saveChatTurn, sameChatTurn, ChatIdConflictError } from "@/lib/chat-store";
+import { validClientAttemptId } from "@/lib/lesson-progress";
+import { visibleTrack, visibleUnit, isUuid } from "@/lib/visibility";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForTrack,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForTrack } from "@/lib/coach-context";
+import { fenceLearnerText, guardedReply, matchOpenItems, openItemsBlock, openItemsFor } from "@/lib/coach-guard";
+import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +25,8 @@ export async function GET(req: Request) {
     const trackId = searchParams.get("trackId");
     if (!trackId) return badRequest("trackId query param is required");
     const user = await requireUser(req);
+    // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+    if (!isUuid(trackId)) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
     const rows = await query(
       `select * from chat_messages where user_id = $1 and track_id = $2 order by created_at asc`,
@@ -33,38 +41,66 @@ export async function GET(req: Request) {
 }
 
 // POST /api/chat — send one user message, get back Claude's reply. Persists both turns.
-// Body: { trackId, unitId?, message }
+// Body: { trackId, unitId?, message, clientMessageId? }
+// clientMessageId: one id per message, reused by the app when it retries. A repeat returns
+// the stored reply without calling Anthropic or saving the message again.
 // The whole prior thread for this track is sent back to Claude as conversation history
 // (capped to the most recent 40 messages) so it's a genuinely multi-turn "ask the coach" —
 // not a single-shot Q&A that forgets earlier context.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { trackId, unitId, message } = body ?? {};
-    if (!trackId || !message) return badRequest("trackId and message are required");
+    const { unitId } = body ?? {};
+    if (!body?.trackId || typeof body.trackId !== "string" || !body.message || typeof body.message !== "string") {
+      return badRequest("trackId and message are required");
+    }
+    if (unitId != null && typeof unitId !== "string") return badRequest("unitId must be a string");
+    // REQ-098: length cap and storable text (a NUL used to be a 500).
+    const m = textField(body.message, "message", TEXT_LIMITS.chatMessage, { required: true });
+    if (!m.ok) return badRequest(m.error);
+    const message = m.value;
 
     const user = await requireUser(req);
     const userId = user.id;
+
+    // REQ-091: the track must be visible to the caller, and a unit must be
+    // visible and belong to that track (it is stored on the message and
+    // named in the prompt, so a foreign unit id would leak its title).
+    const track = await visibleTrack(body.trackId, userId);
+    if (!track) return notFound("Track not found");
+    // REQ-098: canonical (lowercase) id from here on.
+    const trackId = track.id;
+    if (unitId) {
+      const unit = await visibleUnit(unitId, userId);
+      if (!unit) return notFound("Unit not found");
+      if (unit.track_id !== trackId) return badRequest("unitId does not belong to this track");
+    }
     await requireAcknowledgementForTrack(trackId, userId);
 
+    // A message id the app already sent is a retry: hand back the stored
+    // reply instead of paying for another one and saving the question twice.
+    // REQ-098: only for the same message on the same track; a reused id
+    // with anything else is a 409.
+    const clientMessageId = validClientAttemptId(body.clientMessageId);
+    if (clientMessageId) {
+      const stored = await findChatTurn(userId, clientMessageId);
+      if (stored !== null) {
+        if (!sameChatTurn(stored, trackId, message)) return conflict(new ChatIdConflictError().message);
+        return ok({ reply: stored.reply, replayed: true });
+      }
+    }
+
     try {
-      await checkRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
+      await consumeRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("chat_message", userId);
-
-    const track = await queryOne<{ title: string }>(
-      `select title from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
-      [trackId, userId]
-    );
-    if (!track) return notFound("Track not found");
 
     let unitTitle: string | undefined;
     if (unitId) {
-      const unit = await queryOne<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
-      unitTitle = unit?.title;
+      const rows = await query<{ title: string }>(`select title from course_units where id = $1`, [unitId]);
+      unitTitle = rows[0]?.title;
     }
 
     // REQ-077: `order by created_at asc limit 40` kept the OLDEST 40 turns
@@ -81,20 +117,60 @@ export async function POST(req: Request) {
       [userId, trackId]
     );
 
-    const messages: ChatTurn[] = [...history.map((h) => ({ role: h.role, content: h.content })), { role: "user", content: message }];
+    // The history is a stable prefix (the next message appends to it), so a
+    // cache breakpoint on its last turn lets the following message read it
+    // from cache. The new message is not marked: it is not part of any later
+    // prefix until it has a reply. The request still ends with that user turn.
+    // REQ-100: every learner turn, history included, is fenced as data. The
+    // wrapping is deterministic, so the cached history prefix still matches.
+    const messages: ChatTurn[] = [
+      ...history.map((h, i): ChatTurn => ({
+        role: h.role,
+        content: h.role === "user" ? fenceLearnerText(h.content) : h.content,
+        ...(i === history.length - 1 ? { cacheBreakpoint: true } : {}),
+      })),
+      { role: "user", content: fenceLearnerText(message) },
+    ];
+    // REQ-100: items this learner has not answered yet are named to the model
+    // (questions only, never the key), and the reply is checked against their
+    // answer keys before it is saved or sent (lib/coach-guard.ts).
+    // REQ-112 (f): every open item kind (lesson, PBQ, review, unit check,
+    // comparison card, Quiz me, exam) comes from that one function.
+    const openItems = await openItemsFor(userId, trackId, unitId ?? null);
+    const matched = matchOpenItems(message, openItems);
     const ctx = await coachContextForTrack(trackId);
-    const system = chatSystemPrompt({ trackTitle: track.title, unitTitle, ctx: ctx ?? undefined });
-    const reply = await callClaude({ system, messages, maxTokens: 1200, model: getFastModel() });
-
-    await query(
-      `insert into chat_messages (user_id, track_id, unit_id, role, content) values
-        ($1,$2,$3,'user',$4), ($1,$2,$3,'assistant',$5)`,
-      [userId, trackId, unitId ?? null, message, reply]
+    const system = chatSystemPrompt({
+      trackTitle: track.title,
+      unitTitle,
+      ctx: ctx ?? undefined,
+      openItems: openItemsBlock(openItems, matched),
+      // REQ-110: weakest objectives and recent mistake kinds, per call (never
+      // in the cached stable block), fenced as data.
+      learnerProfile: learnerProfileBlock(await learnerProfileFor(userId, trackId)),
+    });
+    const { reply } = await guardedReply(
+      (extraNote) =>
+        callClaude({
+          system: extraNote ? { ...system, task: system.task + extraNote } : system,
+          messages,
+          maxTokens: 1200,
+          model: getFastModel(),
+          effort: "low",
+          thinking: "off",
+          purpose: "chat",
+          userId,
+        }),
+      openItems,
+      matched
     );
 
-    return ok({ reply });
+    // If a request with the same id finished while this one waited on
+    // Anthropic, the unique index rejects this insert and the stored reply wins.
+    const saved = await saveChatTurn({ userId, trackId, unitId, message, reply, clientMessageId });
+    return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof ChatIdConflictError) return conflict(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }

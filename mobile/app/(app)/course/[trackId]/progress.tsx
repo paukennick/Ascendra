@@ -1,32 +1,44 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
-import type { Track, Unit } from "@/types";
+import type { CourseReadiness, Track, Unit } from "@/types";
 import { Badge, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
-import { colors, masteryColor, masteryIcon, spacing } from "@/lib/theme";
+import { colors, fonts, masteryColor, masteryIcon, spacing } from "@/lib/theme";
+import { domainLine, readinessSummary } from "@/lib/progress";
 
 export default function ProgressScreen() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
   const router = useRouter();
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
+  const [readiness, setReadiness] = useState<CourseReadiness | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api
-      .get<{ track: Track; units: Unit[] }>(`/api/courses/${trackId}`)
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness }>(`/api/courses/${trackId}`)
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
+        setReadiness(res.readiness ?? null);
+        setError(null);
       })
       .catch((err) => setError(err.message));
   }, [trackId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // REQ-093: reload every time the screen regains focus, not just on mount.
+  // This screen stays mounted under the lesson/PBQ screens opened from it,
+  // so a mount-only load showed the matrix as it was before the learner
+  // finished anything. (Same pattern as the course dashboard and review.)
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const summary = readinessSummary(readiness);
 
   return (
     <Screen>
@@ -42,6 +54,31 @@ export default function ProgressScreen() {
             {track.mastered_objectives ?? 0} / {track.total_objectives ?? 0} objectives at
             Independent or Transfer-ready ({track.percent_complete ?? 0}% complete)
           </Muted>
+        </Card>
+      ) : null}
+
+      {/* REQ-100: readiness, with coverage and accuracy kept apart and one
+          line per exam domain. */}
+      {summary ? (
+        <Card>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <H2 style={{ flex: 1 }}>{summary.headline}</H2>
+            {summary.percent != null ? <Badge label={`${summary.percent}% ready`} /> : null}
+          </View>
+          {summary.lines.map((line) => (
+            <Muted key={line}>{line}</Muted>
+          ))}
+          <View style={{ gap: spacing.xs, marginTop: spacing.xs }}>
+            {readiness?.domains.map((d) => (
+              <View key={d.unitId}>
+                <Muted style={{ color: colors.text, fontFamily: fonts.bodyBold }} numberOfLines={2}>
+                  {d.title}
+                  {d.weight != null && readiness.blueprintWeighted ? ` (${d.weight}% of exam)` : ""}
+                </Muted>
+                <Muted style={{ fontSize: 12 }}>{domainLine(d)}</Muted>
+              </View>
+            ))}
+          </View>
         </Card>
       ) : null}
 

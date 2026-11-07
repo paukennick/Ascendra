@@ -362,14 +362,19 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
   description:
     "ABPTS board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
-  credential: abptsCredential({
-    slug: "cardiovascular-pulmonary-clinical-specialist",
-    name: "Board-Certified Clinical Specialist in Cardiovascular and Pulmonary Physical Therapy",
-    url: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary",
-    outlineUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
-    extraEligibility:
-      "Also requires current Advanced Cardiac Life Support certification from the American Heart Association, plus one data analysis project (within 10 years) or one case report on a patient seen within the last 3 years.",
-  }),
+  credential: {
+    ...abptsCredential({
+      slug: "cardiovascular-pulmonary-clinical-specialist",
+      name: "Board-Certified Clinical Specialist in Cardiovascular and Pulmonary Physical Therapy",
+      url: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary",
+      outlineUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      extraEligibility:
+        "Also requires current Advanced Cardiac Life Support certification from the American Heart Association, plus one data analysis project (within 10 years) or one case report on a patient seen within the last 3 years.",
+    }),
+    // REQ-102: kept as published (see the block comment above).
+    publishedWeightsNote:
+      "ABPTS's outline content rows sum to 85% under a stated 100% total; the diagnosis-frequency unit is deliberately unweighted.",
+  },
   units: [
     {
       title: "Professional behaviors, leadership, education, administration and consultation",
