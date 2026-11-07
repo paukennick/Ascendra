@@ -4,6 +4,9 @@
 // audit's a3sec-replay and a3sec-misc tests; the model is a stub.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret-a3sec";
 process.env.CHOICE_ORDER_SECRET ??= "choice-secret-a3sec";
+// REQ-114: the fact-check gate has its own tests (lib/item-quality.dbtest.ts);
+// the fake model here answers only these routes' own calls.
+process.env.ITEM_FACT_CHECK = "off";
 import { test, before, after, describe } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";

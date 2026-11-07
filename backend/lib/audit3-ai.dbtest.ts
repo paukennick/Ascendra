@@ -6,6 +6,9 @@
 // Every test here failed on fc85fb1 (integration/all before this branch).
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 process.env.CHOICE_ORDER_SECRET ??= "test-only-choice-secret";
+// REQ-114: the fact-check gate has its own tests (lib/item-quality.dbtest.ts);
+// the fake model here answers only these features' own calls.
+process.env.ITEM_FACT_CHECK = "off";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -356,6 +359,7 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
     fadeProblem: "Fill in: SHA-256 output is ___ bits", fadeChoices: ["256", "256", "128", "512"], fadeCorrectIndex: 0, fadeWhy: "",
     soloCheck: "", soloChoices: ["", "", "", ""], soloCorrectIndex: 3, soloWhy: "",
     fadeOptionReasons: ["r", "r", "r", "r"], soloOptionReasons: ["", "", "", ""],
+    confidence: "high", uncertainClaims: [],
   };
   const goodPractice = {
     fadeProblem: "Fill in: SHA-256 output is ___ bits long.", fadeChoices: ["256", "160", "128", "512"], fadeCorrectIndex: 0, fadeWhy: "The name says it.",
@@ -363,10 +367,12 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
     soloCorrectIndex: 0, soloWhy: "That is what collision resistance means.",
     fadeOptionReasons: ["Right.", "That is SHA-1.", "That is MD5.", "That is SHA-512."],
     soloOptionReasons: ["Right.", "That is about bit flips.", "That is for passwords.", "That fills blocks."],
+    confidence: "high", uncertainClaims: [],
   };
   const intro = { guessPrompt: "What do you think a hash is for?", definition: "A hash maps any input to a fixed-size digest.", whyItMatters: "It is how integrity is checked.",
     exampleSetup: "Hash a file twice.", exampleSteps: ["Hash it", "Change a byte", "Hash again"], commonMistake: "Thinking a hash is encryption.",
-    selfExplainStep: 2, selfExplainQuestion: "Why does the digest change?", selfExplainAnswer: "Any change flips about half the bits." };
+    selfExplainStep: 2, selfExplainQuestion: "Why does the digest change?", selfExplainAnswer: "Any change flips about half the bits.",
+    confidence: "high", uncertainClaims: [] };
 
   test("an invalid practice half is regenerated once; only the valid one is stored", async () => {
     // The intro and practice calls run in parallel; route each by schema.

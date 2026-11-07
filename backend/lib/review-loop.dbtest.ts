@@ -566,7 +566,9 @@ describe("review loop (REQ-108)", () => {
     const got = await call(checkGet, u, { params: { id: unitB } });
     gradeVerdict = "incorrect";
     pbqParts = [{ part: "something else entirely", score: "met", comment: "" }];
-    const res = await call(checkPost, u, { body: { checkId: got.body.check.id, answer: "x" }, params: { id: unitB } });
+    // A real attempt: since REQ-115 a one-word answer to a check is graded
+    // without a model call (every part missed), which never reaches this path.
+    const res = await call(checkPost, u, { body: { checkId: got.body.check.id, answer: "I would isolate the host and then review the logs." }, params: { id: unitB } });
     assert.equal(res.status, 200);
     assert.equal(res.body.partScores, null);
   });
