@@ -14,6 +14,7 @@ import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, storedIndexAt } from "@/lib/choice-order";
+import { diagnoseLessonMc, recordGraderMisconception } from "@/lib/understanding-grading";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,12 @@ const MAX_ANSWER = 8000;
 // this learner's fixed shuffle (lib/choice-order.ts).
 //
 // Returns { verdict, feedback, classification, missedParts, assisted,
-//   assistReason, correctIndex (shown order), correctAnswer, why, attempt }.
+//   assistReason, correctIndex (shown order), correctAnswer, why, attempt,
+//   diagnosis }.
+// REQ-111: diagnosis is { sentence, confusedWith, conceptSetId } naming the
+// likely misconception behind a miss (null otherwise), stored per learner in
+// learner_misconceptions. Multiple choice: from the option picked, with no
+// model call. Free response: the grader's misconception tag.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -112,7 +118,18 @@ export async function POST(req: Request) {
         classification: "none",
       });
       if (prior) return ok(withReveal(prior, check, reveal));
-      return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt });
+      const diagnosis = correct
+        ? null
+        : await diagnoseLessonMc({
+            userId: authUser.id,
+            objectiveId,
+            attemptId: attempt.id,
+            stage,
+            choices: check.choices,
+            pickedIndex: stored,
+            correctIndex: check.correctIndex,
+          });
+      return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt, diagnosis });
     }
 
     const answer = body.answer;
@@ -146,7 +163,15 @@ export async function POST(req: Request) {
       missedParts: graded.missedParts ?? [],
     });
     if (prior) return ok(withReveal(prior, check, reveal));
-    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt });
+    const diagnosis = await recordGraderMisconception({
+      userId: authUser.id,
+      objectiveId,
+      attemptId: attempt.id,
+      verdict: graded.verdict,
+      misconception: graded.misconception,
+      confusedWith: graded.confusedWith,
+    });
+    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt, diagnosis });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

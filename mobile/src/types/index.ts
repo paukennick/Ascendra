@@ -135,7 +135,10 @@ export interface GradeResult {
   // "hint": the Solo choices were seen. "repeat": this exact question was
   // answered before. Either way the answer can't lift mastery above Guided.
   assisted?: boolean;
-  assistReason?: "hint" | "repeat" | null;
+  // REQ-111: "reveal" -- an explain-it-back copied from the lesson text.
+  assistReason?: "hint" | "repeat" | "reveal" | null;
+  // REQ-111: the likely misconception behind a miss, in one sentence.
+  diagnosis?: { sentence: string; confusedWith: string | null; conceptSetId: string | null } | null;
 }
 
 export interface Attempt {
