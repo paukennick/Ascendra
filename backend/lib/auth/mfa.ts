@@ -121,13 +121,19 @@ export async function checkMfaDisableConfirmation(
   if (new Date(row.mfa_disable_confirmation_expires_at).getTime() < Date.now()) return false;
 
   const valid = await verifyEmailCode(suppliedCode, row.mfa_disable_confirmation_code_hash);
-  if (valid) {
-    await query(
-      `update app_users set mfa_disable_confirmation_code_hash = null, mfa_disable_confirmation_expires_at = null,
-         mfa_disable_confirmation_method = null
-       where id = $1`,
-      [userId]
-    );
-  }
-  return valid;
+  if (!valid) return false;
+
+  // Guarded consume: only the request that still sees the exact code it
+  // verified (and unexpired) clears it, so concurrent requests with one code
+  // can't each authorize a disable. A code re-issued meanwhile no longer
+  // matches either.
+  const consumed = await queryOne<{ id: string }>(
+    `update app_users set mfa_disable_confirmation_code_hash = null, mfa_disable_confirmation_expires_at = null,
+       mfa_disable_confirmation_method = null
+     where id = $1 and mfa_disable_confirmation_code_hash = $2 and mfa_disable_confirmation_method = $3
+       and mfa_disable_confirmation_expires_at > now()
+     returning id`,
+    [userId, row.mfa_disable_confirmation_code_hash, method]
+  );
+  return consumed !== null;
 }
