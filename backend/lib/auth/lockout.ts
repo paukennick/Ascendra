@@ -17,8 +17,36 @@ import { queryOne, query } from "../db";
 //
 // After a lock expires the next reservation starts a fresh count of 1.
 
-export const MAX_FAILED_ATTEMPTS = 5;
+// REQ-116 (audit 3, low): anyone who knew an address could lock its owner
+// out for 15 minutes, again and again, with five wrong passwords. The
+// five-try limit is now per (email, IP) pair -- LOGIN_PAIR_LIMIT below,
+// counted in auth_events -- so a stranger's guesses pause only that
+// stranger's own (address, IP) pair. This per-account counter stays as a backstop against guessing
+// spread across many IPs, at a threshold one attacker can't reach casually.
+// Refusals answer exactly like a wrong password (401, same message, same
+// bcrypt time), so a lock doesn't reveal that the account exists.
+export const MAX_FAILED_ATTEMPTS = 50;
 export const LOCKOUT_MINUTES = 15;
+
+export const LOGIN_PAIR_EVENT = "login_attempt";
+export const LOGIN_PAIR_LIMIT = { max: 5, windowMinutes: 15 };
+
+// auth_events.identifier is varchar(255): emails are capped at 254 by the
+// routes, so the address part is cut to 190 and the IP to 64.
+const pairEmail = (email: string) => email.toLowerCase().trim().slice(0, 190);
+export function loginPairKey(email: string, ip: string | null): string {
+  return `${pairEmail(email)}|${(ip ?? "unknown").slice(0, 64)}`;
+}
+
+// A correct password (or a reset) clears the pair counts for the address,
+// so the owner's earlier typos don't count against the next sign-in.
+export async function clearLoginPairs(email: string): Promise<void> {
+  const e = pairEmail(email);
+  await query(
+    `delete from auth_events where event_type = $1 and identifier like $2 escape '\\'`,
+    [LOGIN_PAIR_EVENT, `${e.replace(/[\\%_]/g, (c) => "\\" + c)}|%`]
+  );
+}
 
 export async function reserveLoginAttempt(userId: string): Promise<boolean> {
   const row = await queryOne<{ failed_login_count: number }>(

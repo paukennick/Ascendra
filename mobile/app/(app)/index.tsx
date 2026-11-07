@@ -1,15 +1,17 @@
 import React, { useCallback, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
-import type { ErrorLogEntry, Track } from "@/types";
+import type { ReviewToday, Track } from "@/types";
 import { Card, EmptyState, ErrorBanner, FavoriteButton, H1, H2, IconButton, Loading, Muted, ProgressBar } from "@/components/ui";
 import { CourseCard } from "@/components/CourseCard";
 import { Sidebar } from "@/components/Sidebar";
 import { colors, fonts, spacing } from "@/lib/theme";
+import { homeReviewCard } from "@/lib/homeReview";
+import { HOME_EMPTY } from "@/lib/emptyStates";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -35,10 +37,12 @@ export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
   const [tracks, setTracks] = useState<Track[] | null>(null);
-  // REQ-073: how many spaced-review entries have come due. Loaded alongside
-  // the course list but never allowed to block or blank it -- a failure
-  // here just hides the review card.
-  const [dueCount, setDueCount] = useState<number | null>(null);
+  // REQ-073: today's review, loaded alongside the course list but never
+  // allowed to block or blank it -- a failure here just hides the card.
+  // REQ-113 (Audit 3 mobile H5): from /api/review/today, the same numbers
+  // the Review hub shows ("N for today", unit checks). It used to count the
+  // old error log, so a learner who rarely misses never saw the daily review.
+  const [reviewToday, setReviewToday] = useState<ReviewToday | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,9 +64,9 @@ export default function Home() {
       .catch((err) => setError(err.message))
       .finally(() => setRefreshing(false));
     api
-      .get<{ errors: ErrorLogEntry[] }>("/api/errors?due=1")
-      .then((res) => setDueCount(res.errors.length))
-      .catch(() => setDueCount(null));
+      .get<ReviewToday>("/api/review/today")
+      .then(setReviewToday)
+      .catch(() => setReviewToday(null));
   }, []);
 
   useFocusEffect(
@@ -79,14 +83,15 @@ export default function Home() {
   const mostRecent = tracks?.find((t) => t.id === mostRecentId);
   const favorites = (tracks ?? []).filter((t) => t.is_favorite && t.id !== mostRecentId).sort(byLastStudied);
   const firstName = user?.displayName?.split(" ")[0];
+  const review = homeReviewCard(reviewToday);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <Stack.Screen
         options={{
-          headerLeft: () => <IconButton icon="menu" onPress={() => setSidebarOpen(true)} size={34} />,
+          headerLeft: () => <IconButton icon="menu" accessibilityLabel="Open menu" onPress={() => setSidebarOpen(true)} size={34} />,
           headerRight: () => (
-            <IconButton icon="settings" onPress={() => router.push("/settings")} size={34} />
+            <IconButton icon="settings" accessibilityLabel="Settings" onPress={() => router.push("/settings")} size={34} />
           ),
         }}
       />
@@ -102,7 +107,7 @@ export default function Home() {
           <View style={{ gap: 4, marginBottom: 4 }}>
             <H1>{greeting()}{firstName ? `, ${firstName}` : ""}</H1>
             <Muted style={{ marginBottom: 8 }}>Pick a course to continue studying.</Muted>
-            {error ? <ErrorBanner message={error} /> : null}
+            {error ? <ErrorBanner message={error} onRetry={() => load()} /> : null}
             {!tracks && !error ? <Loading label="Loading courses..." /> : null}
 
             {mostRecent ? (
@@ -110,7 +115,7 @@ export default function Home() {
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                     <Feather name="zap" size={14} color={colors.accent} />
-                    <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>Continue studying</Muted>
+                    <Muted style={{ color: colors.link, fontFamily: fonts.bodyBold }}>Continue studying</Muted>
                   </View>
                   <FavoriteButton active={!!mostRecent.is_favorite} onPress={() => toggleFavorite(mostRecent)} />
                 </View>
@@ -121,22 +126,30 @@ export default function Home() {
                     {mostRecent.mastered_objectives ?? 0}/{mostRecent.total_objectives ?? 0} objectives mastered ·{" "}
                     {mostRecent.percent_progress ?? 0}% progress
                   </Muted>
-                  <IconButton icon="arrow-right" variant="solid" size={36} onPress={() => router.push(`/course/${mostRecent.id}`)} />
+                  <IconButton
+                    icon="arrow-right"
+                    variant="solid"
+                    size={36}
+                    accessibilityLabel={`Continue ${mostRecent.title}`}
+                    onPress={() => router.push(`/course/${mostRecent.id}`)}
+                  />
                 </View>
               </Card>
             ) : null}
 
-            {dueCount ? (
-              <Card onPress={() => router.push("/review")} style={{ marginTop: mostRecent ? 0 : spacing.md }}>
+            {review ? (
+              <Card
+                onPress={() => router.push("/review")}
+                accessibilityLabel={review.a11y}
+                style={{ marginTop: mostRecent ? 0 : spacing.md }}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
                   <View style={[styles.exploreIconWrap, { backgroundColor: withAlpha(colors.warn) }]}>
                     <Feather name="rotate-ccw" size={18} color={colors.warn} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
-                    <H2>Review due</H2>
-                    <Muted>
-                      {dueCount === 1 ? "1 missed question is" : `${dueCount} missed questions are`} ready to re-check
-                    </Muted>
+                    <H2>{review.title}</H2>
+                    <Muted>{review.line}</Muted>
                   </View>
                   <Feather name="chevron-right" size={20} color={colors.mutedDim} />
                 </View>
@@ -144,7 +157,11 @@ export default function Home() {
             ) : null}
 
             {tracks ? (
-              <Card onPress={() => router.push("/explore")} style={{ marginTop: mostRecent || dueCount ? 0 : spacing.md }}>
+              <Card
+                onPress={() => router.push("/explore")}
+                accessibilityLabel={`Browse all courses. ${tracks.length} courses across every category`}
+                style={{ marginTop: mostRecent || review ? 0 : spacing.md }}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
                   <View style={styles.exploreIconWrap}>
                     <Feather name="compass" size={18} color={colors.accent} />
@@ -174,11 +191,12 @@ export default function Home() {
               <EmptyState icon="book-open" title="No courses yet" message="Check back soon — new courses show up here automatically." />
             </Card>
           ) : tracks && !mostRecent && !favorites.length ? (
-            <Card onPress={() => router.push("/explore")}>
+            <Card>
               <EmptyState
                 icon="compass"
-                title="Nothing started yet"
-                message="Tap Browse all courses above to pick where to begin."
+                title={HOME_EMPTY.title}
+                message={HOME_EMPTY.message}
+                action={{ label: HOME_EMPTY.action!.label, icon: "compass", onPress: () => router.push("/explore") }}
               />
             </Card>
           ) : null
@@ -204,7 +222,12 @@ function Footer() {
         {links.map(([label, path], i) => (
           <React.Fragment key={path}>
             {i > 0 ? <Text style={styles.footerDot}>·</Text> : null}
-            <Pressable onPress={() => router.push(path)}>
+            <Pressable
+              onPress={() => router.push(path)}
+              accessibilityRole="link"
+              accessibilityLabel={label}
+              hitSlop={{ top: 14, bottom: 14, left: 4, right: 4 }}
+            >
               <Text style={styles.footerLink}>{label}</Text>
             </Pressable>
           </React.Fragment>

@@ -1,4 +1,4 @@
-import { query, queryOne } from "../db";
+import { queryOne } from "../db";
 import { signAccessToken, createRefreshToken, type RefreshTokenMeta } from "./tokens";
 import { sendSecurityAlertEmail } from "../email";
 
@@ -14,9 +14,11 @@ export interface SessionUser {
 // pair, and (best-effort) notify the account if this user_agent hasn't
 // created a session for this user before.
 export async function completeLogin(user: SessionUser, meta: RefreshTokenMeta) {
-  await query(`update app_users set failed_login_count = 0, locked_until = null, last_login_at = now() where id = $1`, [
-    user.id,
-  ]);
+  const updated = await queryOne<{ token_version: number }>(
+    `update app_users set failed_login_count = 0, locked_until = null, last_login_at = now() where id = $1
+     returning token_version`,
+    [user.id]
+  );
 
   if (meta.userAgent) {
     const known = await queryOne<{ id: string }>(
@@ -32,8 +34,13 @@ export async function completeLogin(user: SessionUser, meta: RefreshTokenMeta) {
     }
   }
 
-  const accessToken = signAccessToken({ sub: user.id, email: user.email });
   const refresh = await createRefreshToken(user.id, meta);
+  const accessToken = signAccessToken({
+    sub: user.id,
+    email: user.email,
+    ver: updated?.token_version ?? 0,
+    fam: refresh.familyId,
+  });
 
   return {
     accessToken,

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { Body, Button, ErrorBanner, H3, Loading, Muted, VerdictBadge } from "@/components/ui";

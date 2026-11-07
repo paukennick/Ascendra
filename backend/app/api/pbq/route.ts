@@ -1,7 +1,8 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
+import { gradePbqAnswer } from "@/lib/pbq-grading";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, pbqGradeResultSchema, normalizePartScores } from "@/lib/prompts";
+import { pbqGenerationPrompt, pbqScenarioSchema } from "@/lib/prompts";
 import {
   findClientAttempt,
   isDuplicateRetry,
@@ -14,6 +15,8 @@ import { ALREADY_REVISED, partsToRevise, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario, isUuid, NotVisibleError } from "@/lib/visibility";
 import { servePbqScenario } from "@/lib/pbq-scenarios";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { UserFacingError } from "@/lib/http";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { isActive } from "@/lib/progress-sql";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -23,8 +26,12 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 
 export const dynamic = "force-dynamic";
+
+const HELD_SCENARIO_MESSAGE =
+  "We couldn't write a scenario we're confident in just now. Please try again.";
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
@@ -96,6 +103,13 @@ export async function GET(req: Request) {
         purpose: "pbq_generate",
         userId: authUser.id,
       });
+      // REQ-114 (Audit 3 H1): a scenario its writer was unsure of is never
+      // stored or shown; it is logged for review and the learner can retry.
+      const unsure = uncertaintyOf(generated);
+      if (unsure) {
+        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
+        throw new UserFacingError(HELD_SCENARIO_MESSAGE);
+      }
       return { ...generated, model: generationModel };
     };
 
@@ -128,7 +142,7 @@ export async function GET(req: Request) {
 // and fixNext with the verdict, and revisedParts when it was a revision.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { scenarioId } = body ?? {};
     if (!scenarioId || typeof scenarioId !== "string" || !body?.answer || typeof body.answer !== "string") {
       return badRequest("scenarioId and answer are required");
@@ -185,75 +199,78 @@ export async function POST(req: Request) {
       if (found.status === "ok") revisedParts = partsToRevise(scenario.sub_parts, found.target.missed_parts);
     }
 
-    try {
-      await consumeRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
-    }
-
-    const ctx = await coachContextForUnit(unitId);
-    const { system, user } = gradePBQPrompt({
-      scenario: scenario.scenario,
-      subParts: scenario.sub_parts,
-      answer,
-      revisionOf: revisedParts,
-      ctx: ctx ?? undefined,
-    });
-    const graded = await callClaudeStructured({
-      system,
-      messages: [{ role: "user", content: user }],
-      schema: pbqGradeResultSchema,
-      // REQ-105: +300 headroom for the model answer (one line per sub-part)
-      // and fixNext; REQ-107: +300 for the per-part scores. max_tokens is a
-      // ceiling, not a cost.
-      maxTokens: 1500,
-      model: getFastModel(),
-      effort: "high",
-      thinking: "off",
-      purpose: "pbq_grade",
-      userId: authUser.id,
-    });
-
-    // REQ-107: a score per sub-part, lined up with the scenario's own labels
-    // (null when the grader's list can't be matched; the app then falls back
-    // to missedParts). REQ-112 (j): stored with the attempt, so a replay
-    // returns them too.
-    const { parts, ...grade } = graded;
-    const partScores = normalizePartScores(scenario.sub_parts, parts, graded.missedParts ?? []);
-
-    // Two requests with the same id can race past the check above; the
-    // unique index fails the slower one and it returns the winner's result.
-    const { attempt, prior } = await recordAttemptIdempotent({
-      userId: authUser.id,
-      unitId,
+    // REQ-117 (FAIL-359): racing copies of one submission share one model call.
+    const identity = {
       pbqScenarioId: scenario.id,
-      clientAttemptId,
-      kind: "pbq",
-      format: "pbq",
+      kind: "pbq" as const,
+      format: "pbq" as const,
+      stage: null,
       question: scenario.title,
       answer,
-      verdict: graded.verdict,
-      feedback: graded.feedback,
-      classification: graded.classification,
-      missedParts: graded.missedParts ?? [],
-      modelAnswer: graded.modelAnswer ?? null,
-      fixNext: graded.fixNext ?? null,
-      retryOf,
-      confidence,
-      partScores,
-    });
+    };
+    const replayStored = async () => {
+      const prior = clientAttemptId ? await findClientAttempt(authUser.id, clientAttemptId) : null;
+      if (!prior) return null;
+      if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+      return ok(prior);
+    };
+    const gradePbq = async () => {
+      try {
+        await consumeRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
 
-    if (prior) return ok(prior);
-    return ok({
-      ...grade,
-      partScores,
-      assisted: attempt?.assisted === true,
-      assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
-      ...(revisedParts ? { revisedParts } : {}),
-      attempt,
-    });
+      const ctx = await coachContextForUnit(unitId);
+      // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
+      // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
+      const { parts: _parts, partScores, trivial: _trivial, ...grade } = await gradePbqAnswer({
+        scenario: scenario.scenario,
+        subParts: scenario.sub_parts,
+        answer,
+        revisionOf: revisedParts,
+        ctx: ctx ?? undefined,
+        userId: authUser.id,
+        purpose: "pbq_grade",
+      });
+      const graded = grade;
+
+      // Two requests with the same id can race past the check above; the
+      // unique index fails the slower one and it returns the winner's result.
+      const { attempt, prior } = await recordAttemptIdempotent({
+        userId: authUser.id,
+        unitId,
+        pbqScenarioId: scenario.id,
+        clientAttemptId,
+        kind: "pbq",
+        format: "pbq",
+        question: scenario.title,
+        answer,
+        verdict: graded.verdict,
+        feedback: graded.feedback,
+        classification: graded.classification,
+        missedParts: graded.missedParts ?? [],
+        modelAnswer: graded.modelAnswer ?? null,
+        fixNext: graded.fixNext ?? null,
+        retryOf,
+        confidence,
+        partScores,
+      });
+
+      if (prior) return ok(prior);
+      return ok({
+        ...grade,
+        partScores,
+        assisted: attempt?.assisted === true,
+        assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
+        ...(revisedParts ? { revisedParts } : {}),
+        attempt,
+      });
+    };
+    return await withGradingClaim(authUser.id, clientAttemptId, gradePbq, replayStored);
   } catch (err) {
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);

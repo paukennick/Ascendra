@@ -1,27 +1,53 @@
 import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { hashPassword } from "@/lib/auth/passwords";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
-import { sendVerificationEmail } from "@/lib/email";
+import { mayEmail } from "@/lib/auth/mailLimit";
+import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
+import { recordSignupTermsAcceptance } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
 const TOKEN_TTL_HOURS = 24;
+const CREATED_MESSAGE = "Account created. Check your email to verify it before logging in.";
 
-// POST /api/auth/register — { email, password, displayName? }
+// POST /api/auth/register — { email, password, displayName?, acceptedTermsVersion? }
+//
+// REQ-116 (audit 3, finding 8 and a low): every outcome answers the same
+// 201 and message, so registration no longer tells anyone which addresses
+// have accounts. What happens differs only by mail:
+//   - new address: the account is created and a verification link sent;
+//   - verified account already there: its owner is told someone tried
+//     (nothing changes);
+//   - UNVERIFIED account already there: someone may have registered this
+//     address before its owner (squatting). Nothing changes now, but the
+//     address gets a set_password link, and every outstanding verification
+//     link for the account becomes one too. Following any of them verifies
+//     the address, removes the first registrant's password, signs out every
+//     session and lets the inbox owner choose a password
+//     (lib/auth/emailTokens.ts). The first registrant's password can then
+//     never go live through the owner's click.
+// Every mail also counts against the target address (lib/auth/mailLimit.ts).
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password, displayName } = body ?? {};
+    const body = await readJson(req);
+    const { email, password, displayName, acceptedTermsVersion } = body ?? {};
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
     }
     if (password.length < 8) {
       return badRequest("password must be at least 8 characters");
     }
+    if (password.length > 1024) return badRequest("password is too long");
     const normalizedEmail = email.toLowerCase().trim();
+    if (normalizedEmail.length > 254 || !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(normalizedEmail)) {
+      return badRequest("A valid email is required");
+    }
+    if (displayName !== undefined && displayName !== null && (typeof displayName !== "string" || displayName.length > 100)) {
+      return badRequest("displayName must be at most 100 characters");
+    }
     const ip = getClientIp(req);
 
     try {
@@ -31,31 +57,57 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    const existing = await queryOne<{ id: string }>("select id from app_users where email = $1", [
-      normalizedEmail,
-    ]);
+    const existing = await queryOne<{ id: string; email_verified_at: string | null }>(
+      "select id, email_verified_at from app_users where email = $1",
+      [normalizedEmail]
+    );
     if (existing) {
-      return badRequest("An account with that email already exists. Log in instead.");
+      if (!existing.email_verified_at) {
+        await query(
+          `update email_verification_tokens set set_password = true where user_id = $1 and consumed_at is null`,
+          [existing.id]
+        );
+      }
+      if (await mayEmail(normalizedEmail)) {
+        if (existing.email_verified_at) {
+          await sendAlreadyRegisteredEmail(normalizedEmail);
+        } else {
+          const raw = await issueVerificationToken(existing.id, true);
+          await sendVerificationEmail(normalizedEmail, raw, { setPassword: true });
+        }
+      }
+      return ok({ message: CREATED_MESSAGE }, 201);
     }
 
     const passwordHash = await hashPassword(password);
     const userRow = await queryOne<{ id: string }>(
-      `insert into app_users (email, display_name, password_hash) values ($1, $2, $3) returning id`,
+      `insert into app_users (email, display_name, password_hash) values ($1, $2, $3)
+       on conflict (email) do nothing returning id`,
       [normalizedEmail, displayName ?? null, passwordHash]
     );
-    if (!userRow) throw new Error("Failed to create account.");
+    // Lost a race with another registration of the same address: answer
+    // the same way as above, without mail.
+    if (!userRow) return ok({ message: CREATED_MESSAGE }, 201);
+    // REQ-119: the sign-up form's "I agree" (version + time); none sent means
+    // the account is asked once on its first launch instead.
+    await recordSignupTermsAcceptance(userRow.id, acceptedTermsVersion, "register");
 
-    const rawToken = crypto.randomBytes(32).toString("base64url");
-    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-    const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS * 60 * 60 * 1000);
-    await query(
-      `insert into email_verification_tokens (user_id, token_hash, expires_at) values ($1, $2, $3)`,
-      [userRow.id, tokenHash, expiresAt]
-    );
-    await sendVerificationEmail(normalizedEmail, rawToken);
+    const rawToken = await issueVerificationToken(userRow.id, false);
+    if (await mayEmail(normalizedEmail)) await sendVerificationEmail(normalizedEmail, rawToken);
 
-    return ok({ message: "Account created. Check your email to verify it before logging in." }, 201);
+    return ok({ message: CREATED_MESSAGE }, 201);
   } catch (err) {
     return serverError(err);
   }
+}
+
+async function issueVerificationToken(userId: string, setPassword: boolean): Promise<string> {
+  const rawToken = crypto.randomBytes(32).toString("base64url");
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS * 60 * 60 * 1000);
+  await query(
+    `insert into email_verification_tokens (user_id, token_hash, expires_at, set_password) values ($1, $2, $3, $4)`,
+    [userId, tokenHash, expiresAt, setPassword]
+  );
+  return rawToken;
 }

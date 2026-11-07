@@ -34,9 +34,17 @@ MOBILE_DIR="$(cd "$BACKEND_DIR/../mobile" && pwd)"
 ENV_LOCAL="$MOBILE_DIR/.env.local"
 ENV_LOCAL_BAK="$MOBILE_DIR/.env.local.bak"
 
-if [ ! -d "$MOBILE_DIR/node_modules" ]; then
-  echo "Installing mobile/ dependencies (not cached in this build)..."
-  npm install --prefix "$MOBILE_DIR"
+# Vercel restores a cached mobile/node_modules between builds, so "present"
+# isn't "current": a dependency added since the cache was made (REQ-119's
+# expo-notifications) is missing, and the export fails at once resolving its
+# config plugin from app.json. The install is redone whenever the lockfile
+# differs from the one the cached modules were installed from.
+LOCK_STAMP="$MOBILE_DIR/node_modules/.ascendra-lock.sha256"
+lock_sha="$(sha256sum "$MOBILE_DIR/package-lock.json" | cut -d' ' -f1)"
+if [ ! -d "$MOBILE_DIR/node_modules" ] || [ "$(cat "$LOCK_STAMP" 2>/dev/null)" != "$lock_sha" ]; then
+  echo "Installing mobile/ dependencies (none cached, or the lockfile changed)..."
+  npm ci --prefix "$MOBILE_DIR" --no-audit --no-fund
+  echo "$lock_sha" > "$LOCK_STAMP"
 fi
 
 # `env -u` alone doesn't work here -- Expo's own dotenv loader reads

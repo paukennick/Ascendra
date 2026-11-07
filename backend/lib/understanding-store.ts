@@ -1,3 +1,4 @@
+import { servableSql } from "@/lib/item-quality";
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import {
@@ -271,6 +272,7 @@ export async function nextDiscriminationItem(
           and a.objective_id is not distinct from i.objective_id
      ) seen
      where i.set_id = $2
+       and ${servableSql("comparison", "i.id")}
      order by seen.last_answered nulls first, i.id
      limit 1`,
     [userId, setId]

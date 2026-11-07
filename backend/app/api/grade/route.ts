@@ -1,4 +1,4 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
@@ -28,6 +28,10 @@ import {
   storedIndexAt,
 } from "@/lib/choice-order";
 import { diagnoseLessonMc, recordGraderMisconception } from "@/lib/understanding-grading";
+import { KEY_SUSPECT } from "@/lib/prompts";
+import { flagItem, lessonItemId } from "@/lib/item-quality";
+import { inBackground } from "@/lib/understanding-ai";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +73,7 @@ export const dynamic = "force-dynamic";
 // model call. Free response: the grader's misconception tag.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { format, stage, unitId } = body ?? {};
     const kind = body?.kind ?? "lesson";
 
@@ -212,46 +216,68 @@ export async function POST(req: Request) {
       );
       if (refused) return refused;
     }
-    try {
-      await consumeRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
+    // REQ-117 (FAIL-359): copies of this submission racing past the replay
+    // check above wait for the first one's result instead of each calling
+    // the model (lib/grading-claims.ts).
+    const replayStored = async () => {
+      const prior = clientAttemptId ? await findClientAttempt(authUser.id, clientAttemptId) : null;
+      if (!prior) return null;
+      if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+      return ok(withReveal(prior, check, reveal));
+    };
+    return await withGradingClaim(authUser.id, clientAttemptId, () => gradeOpen(), replayStored);
+
+    async function gradeOpen() {
+      try {
+        await consumeRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
+      // REQ-076: grade in the voice of the learner's actual track/exam.
+      const ctx = await coachContextForObjective(objectiveId);
+      const graded = await gradeFreeResponse({
+        taughtText: check.teach,
+        question: check.question,
+        answerKey: answerKeyText(check),
+        answer,
+        ctx: ctx ?? undefined,
+        userId: authUser.id,
+      });
+      const { attempt, prior } = await record({
+        ...common,
+        format: "open",
+        question: check.question,
+        answer,
+        verdict: graded.verdict,
+        feedback: graded.feedback,
+        classification: graded.classification,
+        missedParts: graded.missedParts ?? [],
+        modelAnswer: graded.modelAnswer ?? null,
+        fixNext: graded.fixNext ?? null,
+        retryOf,
+      });
+      if (prior) return ok(withReveal(prior, check, reveal));
+      // REQ-114 (Audit 3 H3): the grader judged the lesson's own key wrong and
+      // graded on the facts. That is this learner's flag on the shared check;
+      // the one automated re-check runs after the response.
+      if (graded.classification === KEY_SUSPECT) {
+        const ref = { kind: "lesson" as const, itemId: lessonItemId(objectiveId, stage, check.question), objectiveId, question: check.question };
+        const flagged = await flagItem(ref, { userId: authUser.id, source: "key_suspect" }).catch(() => null);
+        if (flagged?.recheck) inBackground(() => flagged.recheck!);
+      }
+      const diagnosis = await recordGraderMisconception({
+        userId: authUser.id,
+        objectiveId,
+        attemptId: attempt.id,
+        verdict: graded.verdict,
+        misconception: graded.misconception,
+        confusedWith: graded.confusedWith,
+      });
+      return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt, diagnosis });
     }
-    // REQ-076: grade in the voice of the learner's actual track/exam.
-    const ctx = await coachContextForObjective(objectiveId);
-    const graded = await gradeFreeResponse({
-      taughtText: check.teach,
-      question: check.question,
-      answerKey: answerKeyText(check),
-      answer,
-      ctx: ctx ?? undefined,
-      userId: authUser.id,
-    });
-    const { attempt, prior } = await record({
-      ...common,
-      format: "open",
-      question: check.question,
-      answer,
-      verdict: graded.verdict,
-      feedback: graded.feedback,
-      classification: graded.classification,
-      missedParts: graded.missedParts ?? [],
-      modelAnswer: graded.modelAnswer ?? null,
-      fixNext: graded.fixNext ?? null,
-      retryOf,
-    });
-    if (prior) return ok(withReveal(prior, check, reveal));
-    const diagnosis = await recordGraderMisconception({
-      userId: authUser.id,
-      objectiveId,
-      attemptId: attempt.id,
-      verdict: graded.verdict,
-      misconception: graded.misconception,
-      confusedWith: graded.confusedWith,
-    });
-    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt, diagnosis });
   } catch (err) {
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);

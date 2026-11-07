@@ -1,9 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import type { AiPurpose } from "@/lib/ai-calls";
+import type { CoachContext } from "@/lib/coach-context";
+import { reconciled, trivialAnswer, trivialGrade } from "@/lib/grade-consistency";
 import { coachContextForObjective, coachContextForTrack } from "@/lib/coach-context";
 import { queryOne } from "@/lib/db";
+import { factCheckGate, type CheckItem } from "@/lib/fact-check";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
 import {
+  type CleanConceptSet,
   cleanConceptSets,
   cleanPrerequisites,
   type RawConceptSet,
@@ -101,8 +107,9 @@ export async function ensureConceptSets(trackId: string): Promise<InsightState> 
       thinking: "off",
       purpose: "concept_sets",
     });
-    const clean = cleanConceptSets(out.sets as RawConceptSet[], objectives.map((o) => o.id), await existingSetKeys(trackId));
-    await saveConceptSets(trackId, clean, "generated", model);
+    const kept = await holdUncertainSets(trackId, out.sets as RawConceptSet[], model);
+    const clean = cleanConceptSets(kept, objectives.map((o) => o.id), await existingSetKeys(trackId));
+    await saveConceptSets(trackId, await gateConceptSets(trackId, clean, ctx, model), "generated", model);
   });
 }
 
@@ -137,14 +144,82 @@ export async function generateLearnedSets(trackId: string, limit = 1): Promise<n
         purpose: "learned_set",
       });
       // objectiveNumber 1 is this objective; any other number means "none".
-      const clean = cleanConceptSets([out as RawConceptSet], [c.objectiveId], await existingSetKeys(trackId));
-      await saveConceptSets(trackId, clean, "learned", model);
+      const kept = await holdUncertainSets(trackId, [out as RawConceptSet], model);
+      const clean = cleanConceptSets(kept, [c.objectiveId], await existingSetKeys(trackId));
+      await saveConceptSets(trackId, await gateConceptSets(trackId, clean, ctx, model), "learned", model);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn(`[understanding] learned set failed for ${c.objectiveId}:`, (err as Error).message);
     }
   }
   return made;
+}
+
+// REQ-114 (Audit 3 H1): a comparison card whose writer listed uncertain
+// claims is never saved; logged in item_holdbacks instead.
+async function holdUncertainSets(trackId: string, sets: RawConceptSet[], model: string): Promise<RawConceptSet[]> {
+  const kept: RawConceptSet[] = [];
+  for (const s of sets ?? []) {
+    const unsure = uncertaintyOf(s as RawConceptSet & { confidence?: unknown; uncertainClaims?: unknown });
+    if (unsure) await recordHoldback({ kind: "comparison", trackId, reason: "uncertain", claims: unsure, content: s, model });
+    else kept.push(s);
+  }
+  return kept;
+}
+
+// Scenarios per fact-check call: the course-level generation can write up
+// to 12 cards x 6 scenarios, more than one short call should answer.
+const GATE_BATCH = 20;
+
+// REQ-114 (recommendation 1): every scenario of every new card is answered
+// by an independent fast-model call without the key; a scenario it does not
+// agree with is dropped, and a card left with fewer than two is held back
+// whole (logged). One call per GATE_BATCH scenarios, once per course.
+export async function gateConceptSets(
+  trackId: string,
+  sets: CleanConceptSet[],
+  ctx: CoachContext | undefined,
+  model: string
+): Promise<CleanConceptSet[]> {
+  const items: CheckItem[] = [];
+  sets.forEach((s, si) =>
+    s.scenarios.forEach((q, qi) =>
+      items.push({
+        key: `s${si}q${qi}`,
+        objectiveTitle: s.concepts.map((c) => c.name).join(" vs "),
+        question: `Which concept fits this scenario? ${q.scenario}`,
+        format: "single",
+        options: s.concepts.map((c) => c.name),
+        expected: [q.answerPosition],
+      })
+    )
+  );
+  const verdicts = new Map<string, { publish: boolean; claims: string[]; error: string | null }>();
+  for (let i = 0; i < items.length; i += GATE_BATCH) {
+    const gate = await factCheckGate(items.slice(i, i + GATE_BATCH), { ctx });
+    for (const it of items.slice(i, i + GATE_BATCH)) {
+      const v = gate.verdicts.get(it.key);
+      verdicts.set(it.key, { publish: !!v?.publish, claims: v?.unsupportedClaims ?? [], error: gate.error });
+    }
+  }
+  const out: CleanConceptSet[] = [];
+  for (const [si, s] of sets.entries()) {
+    const failed = s.scenarios.filter((_, qi) => !verdicts.get(`s${si}q${qi}`)?.publish);
+    const scenarios = s.scenarios.filter((_, qi) => verdicts.get(`s${si}q${qi}`)?.publish);
+    if (failed.length) {
+      const errs = s.scenarios.map((_, qi) => verdicts.get(`s${si}q${qi}`)).filter((v) => v && !v.publish);
+      await recordHoldback({
+        kind: "comparison",
+        trackId,
+        reason: errs.some((v) => v?.error) ? "fact_check_error" : "fact_check",
+        claims: errs.flatMap((v) => (v?.error ? [v.error] : v?.claims ?? [])),
+        content: { set: s.key, scenarios: failed, keptScenarios: scenarios.length },
+        model,
+      });
+    }
+    if (scenarios.length >= 2) out.push({ ...s, scenarios });
+  }
+  return out;
 }
 
 // The course's prerequisite map, generated on first need.
@@ -183,6 +258,11 @@ export async function ensurePrerequisites(trackId: string): Promise<InsightState
   });
 }
 
+// Audit 3 L1 (FAIL-305): verdict, feedback, four rubric checks, a model
+// answer and a misconception used to share 900 output tokens; a long answer
+// could truncate, fail to parse and show a 500 after the call was billed.
+export const EXPLAIN_BACK_MAX_TOKENS = 1500;
+
 export async function gradeExplainBack(params: {
   objectiveId: string;
   objectiveTitle: string;
@@ -190,18 +270,43 @@ export async function gradeExplainBack(params: {
   question: string;
   answer: string;
   userId: string;
+  // Only the live eval sets these.
+  ctx?: CoachContext;
+  model?: string;
+  purpose?: AiPurpose;
 }): Promise<ExplainBackGrade> {
-  const ctx = (await coachContextForObjective(params.objectiveId)) ?? undefined;
-  const { system, user } = explainBackGradePrompt({ ...params, ctx });
-  return callClaudeStructured({
+  // Audit 3 M1: a trivial explanation is incorrect without a model call, and
+  // a "correct" that the rubric contradicts is downgraded.
+  const trivial = trivialAnswer(params.answer, { question: params.question });
+  if (trivial) {
+    const { trivial: _r, ...g } = trivialGrade(trivial);
+    return {
+      ...g,
+      modelAnswer: g.modelAnswer ?? "",
+      fixNext: g.fixNext ?? "",
+      rubric: { correct: false, complete: false, keyTerms: false, noMisconception: false },
+      misconception: "",
+      confusedWith: "",
+    };
+  }
+  const ctx = params.ctx ?? (await coachContextForObjective(params.objectiveId)) ?? undefined;
+  const { system, user } = explainBackGradePrompt({
+    objectiveTitle: params.objectiveTitle,
+    teach: params.teach,
+    question: params.question,
+    answer: params.answer,
+    ctx,
+  });
+  const graded = await callClaudeStructured({
     system,
     messages: [{ role: "user", content: user }],
     schema: explainBackGradeSchema,
-    maxTokens: 900,
-    model: getFastModel(),
+    maxTokens: EXPLAIN_BACK_MAX_TOKENS,
+    model: params.model ?? getFastModel(),
     effort: "high",
     thinking: "off",
-    purpose: "explain_back",
+    purpose: params.purpose ?? "explain_back",
     userId: params.userId,
   });
+  return reconciled(graded, { missedParts: graded.missedParts, rubric: graded.rubric });
 }

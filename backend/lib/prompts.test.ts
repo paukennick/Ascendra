@@ -6,6 +6,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
   coachRules,
+  STABLE_DATA_RULES,
   goalLine,
   domainFraming,
   withRules,
@@ -41,7 +42,8 @@ describe("goalLine", () => {
   });
 
   test("falls back to the track title when the credential row is missing", () => {
-    assert.equal(goalLine({ trackTitle: "NPTE-PT", trackType: "certification" }), "pass the NPTE-PT exam");
+    // Audit 3 M3: a track title is quoted as data (it can be a learner's own).
+    assert.equal(goalLine({ trackTitle: "NPTE-PT", trackType: "certification" }), 'pass the "NPTE-PT" exam');
   });
 
   test("academic/graduate tracks are framed as coursework; anything else as competence", () => {
@@ -96,7 +98,7 @@ describe("withRules / chatSystemPrompt", () => {
       })
     );
     assert.match(out, /re-grade it yourself/);
-    assert.match(out, /pass the Security\+ exam/);
+    assert.match(out, /pass the "Security\+" exam/);
   });
 });
 
@@ -108,7 +110,9 @@ describe("SystemPrompt structure", () => {
 
   test("stable is the coach rules for the track; task is only the per-call instruction", () => {
     const sp = systemWithRules("TASK", ctx);
-    assert.equal(sp.stable, coachRules(ctx));
+    // Audit 3 M4: plus the data-handling rules that lift it over the
+    // 512-token cache minimum.
+    assert.equal(sp.stable, coachRules(ctx) + STABLE_DATA_RULES);
     assert.equal(sp.task, "TASK");
   });
 
@@ -128,7 +132,7 @@ describe("SystemPrompt structure", () => {
       gradePBQPrompt({ scenario: "s", subParts: ["p"], answer: "a", ctx: c }).system,
       chatSystemPrompt({ trackTitle: "Track", ctx: c }),
     ];
-    for (const s of systems) assert.equal(s.stable, coachRules(c));
+    for (const s of systems) assert.equal(s.stable, coachRules(c) + STABLE_DATA_RULES);
     assert.equal(new Set(systems.map((s) => s.task)).size, systems.length);
   });
 
@@ -182,13 +186,16 @@ describe("structured-output schemas", () => {
       soloWhy: "w",
       fadeOptionReasons: ["ra", "rb", "rc", "rd"],
       soloOptionReasons: ["ra", "rb", "rc", "rd"],
+      // REQ-114: every generation schema requires these (tests below).
+      confidence: "high",
+      uncertainClaims: [],
     };
     assert.deepEqual(lessonPracticeSchema.parse(practice), practice);
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, fadeOptionReasons: ["only one"] }));
     assert.throws(() => lessonPracticeSchema.parse({ ...practice, soloOptionReasons: undefined }));
   });
   test("pbqScenarioSchema needs title, scenario and a subParts string array", () => {
-    const ok = { title: "t", scenario: "s", subParts: ["a", "b"] };
+    const ok = { title: "t", scenario: "s", subParts: ["a", "b"], confidence: "medium", uncertainClaims: [] };
     assert.deepEqual(pbqScenarioSchema.parse(ok), ok);
     assert.throws(() => pbqScenarioSchema.parse({ title: "t", scenario: "s" }));
   });

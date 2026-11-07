@@ -6,7 +6,7 @@ import { recordPracticeAttemptTx } from "@/lib/practice-attempts";
 // REQ-110: an optional placement check when starting a course, so a learner
 // at any stage starts in the right place.
 //
-// Up to PLACEMENT_MAX multiple-choice questions, taken from each objective's
+// Up to placementCap() multiple-choice questions, taken from each objective's
 // shared Guided item (lesson_content, already generated and cached: no AI
 // call). It adapts per unit: a right answer jumps further into that unit, a
 // miss closes the unit (it will be taught from the start). The first question
@@ -22,6 +22,15 @@ import { recordPracticeAttemptTx } from "@/lib/practice-attempts";
 // check (that would teach to it), and misses do not go to Review.
 
 export const PLACEMENT_MAX = 12;
+// REQ-117 (Audit 3 T11, FAIL-350): the cap grows with the course, one
+// question per three objectives, between PLACEMENT_MAX and PLACEMENT_CEILING,
+// so an expert on a large course is not left with most of it to sit through.
+// The plan also infers the objectives a correct late answer jumped over
+// (lib/study-plan-store.ts).
+export const PLACEMENT_CEILING = 30;
+export function placementCap(candidateCount: number): number {
+  return Math.min(PLACEMENT_CEILING, Math.max(PLACEMENT_MAX, Math.ceil(candidateCount / 3)));
+}
 export const BEGINNER_STOP = 4;
 export const MIN_CANDIDATES = 3;
 const STAGE = "placement";
@@ -41,7 +50,7 @@ export interface PlacementAnswer {
 
 // Which objective to ask next, or null when the check is over. Pure.
 export function nextPlacementObjective(candidates: PlacementCandidate[], answers: PlacementAnswer[]): string | null {
-  if (!candidates.length || answers.length >= PLACEMENT_MAX) return null;
+  if (!candidates.length || answers.length >= placementCap(candidates.length)) return null;
   if (answers.length >= BEGINNER_STOP && answers.slice(0, BEGINNER_STOP).every((a) => a.correct === false)) return null;
 
   const units = new Map<string, PlacementCandidate[]>();
@@ -153,7 +162,8 @@ async function view(tx: TxClient | null, userId: string, trackId: string): Promi
   const check = (await q<CheckRow & Record<string, unknown>>(`select id, status from placement_checks where user_id = $1 and track_id = $2`, [userId, trackId]))[0];
   const candidates = await candidatesFor(tx, trackId);
   const available = candidates.length >= MIN_CANDIDATES;
-  if (!check) return { available, status: "none", asked: 0, max: PLACEMENT_MAX, current: null, summary: null };
+  const max = placementCap(candidates.length);
+  if (!check) return { available, status: "none", asked: 0, max, current: null, summary: null };
   const items = await q<ItemRow & Record<string, unknown>>(
     `select seq, objective_id, question, choices, correct_index, correct from placement_items where placement_id = $1 order by seq`,
     [check.id]
@@ -161,12 +171,12 @@ async function view(tx: TxClient | null, userId: string, trackId: string): Promi
   const answered = items.filter((i) => i.correct !== null);
   const open = items.find((i) => i.correct === null) ?? null;
   const correct = answered.filter((i) => i.correct).length;
-  const endedEarly = answered.length >= BEGINNER_STOP && answered.length < PLACEMENT_MAX && correct === 0;
+  const endedEarly = answered.length >= BEGINNER_STOP && answered.length < max && correct === 0;
   return {
     available,
     status: check.status,
     asked: answered.length,
-    max: PLACEMENT_MAX,
+    max,
     current: check.status === "active" && open ? present(userId, open) : null,
     summary:
       check.status === "done"

@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Track } from "@/types";
-import { Card, Chip, EmptyState, ErrorBanner, Loading, SectionHeader, TextField } from "@/components/ui";
+import { Button, Card, Chip, EmptyState, ErrorBanner, Loading, Muted, SectionHeader, TextField } from "@/components/ui";
+import { courseRequestPrefill, exploreEmpty } from "@/lib/emptyStates";
 import { CourseCard } from "@/components/CourseCard";
 import { colors, spacing } from "@/lib/theme";
 
@@ -126,6 +127,15 @@ export default function Explore() {
 
   const sections = useMemo(() => groupByCategory(filtered), [filtered]);
 
+  // REQ-119 (Audit 3 product L2): a course that isn't here can be asked
+  // for. The request is stored and rate-limited by POST /api/support; the
+  // search text comes along as the course name.
+  const requestCourse = useCallback(() => {
+    const name = courseRequestPrefill(query);
+    router.push({ pathname: "/support", params: name ? { kind: "course_request", courseName: name } : { kind: "course_request" } });
+  }, [query, router]);
+  const empty = exploreEmpty(query);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <Stack.Screen options={{ title: "Explore" }} />
@@ -183,8 +193,21 @@ export default function Explore() {
         ListEmptyComponent={
           tracks && sections.length === 0 ? (
             <Card>
-              <EmptyState icon="filter" title="No courses match" message="Try a different search or filter." />
+              <EmptyState
+                icon="filter"
+                title={empty.title}
+                message={empty.message}
+                action={{ label: empty.action!.label, icon: "plus-circle", onPress: requestCourse }}
+              />
             </Card>
+          ) : null
+        }
+        ListFooterComponent={
+          tracks && sections.length ? (
+            <View style={{ alignItems: "center", marginTop: spacing.md, gap: 4 }}>
+              <Muted style={{ textAlign: "center" }}>Can't find what you're studying for?</Muted>
+              <Button label="Request a course" variant="link" fullWidth={false} onPress={requestCourse} />
+            </View>
           ) : null
         }
       />

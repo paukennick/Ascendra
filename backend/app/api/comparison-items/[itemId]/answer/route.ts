@@ -1,4 +1,5 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, conflict, serverError } from "@/lib/http";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForTrack, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { isUuid } from "@/lib/visibility";
@@ -41,7 +42,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ itemId:
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
     if (clientAttemptId) {
       const prior = await findClientAttempt(user.id, clientAttemptId);
-      if (prior) return ok({ ...prior, ...reveal, diagnosis: null, recorded: true });
+      if (prior) {
+        // REQ-116: replay only this card's own answer; the key of a card not
+        // yet answered is never sent for an id recorded elsewhere.
+        const same = replayMatches(prior.attempt, {
+          objectiveId: item.objective_id,
+          kind: "quiz",
+          stage: "discriminate",
+          question: item.scenario,
+        });
+        if (!same) return conflict(REPLAY_CONFLICT);
+        return ok({ ...prior, ...reveal, diagnosis: null, recorded: true });
+      }
     }
 
     const stored = storedIndexAt(order, body?.chosenIndex);

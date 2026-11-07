@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { Pool } from "pg";
 import "./seed/env-local";
 import { checkSchema, formatMasteryDrift, masteryDrift, migrationsToApply } from "../lib/schema-status";
+import { BACKUPS_SQL, formatBackups, formatJit, type BackupRow } from "../lib/maintenance";
 
 const MIGRATIONS_DIR = join(__dirname, "migrations");
 
@@ -66,6 +67,11 @@ async function main() {
       }
       // FAIL-119: informational -- levels the rule would change.
       console.log(formatMasteryDrift(await masteryDrift(async (sql) => (await pool.query(sql)).rows)));
+      // REQ-118: upkeep reminders (informational).
+      const backups = await pool.query<BackupRow>(BACKUPS_SQL).then((r) => r.rows, () => null);
+      if (backups) for (const line of formatBackups(backups)) console.log(line);
+      const jit = await pool.query<{ on: boolean }>(`select current_setting('jit') = 'on' as on`).then((r) => r.rows[0]?.on ?? null, () => null);
+      console.log(formatJit(jit));
       if (unrecorded.length) {
         console.log(
           `\nNot in the schema_migrations ledger (${unrecorded.length}). Normal for migrations applied ` +

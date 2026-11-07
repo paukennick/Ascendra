@@ -1,4 +1,4 @@
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { rotateRefreshToken, RefreshTokenError } from "@/lib/auth/tokens";
 import { signAccessToken } from "@/lib/auth/tokens";
 import { queryOne } from "@/lib/db";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // POST /api/auth/refresh — { refreshToken, deviceLabel? }
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { refreshToken, deviceLabel } = body ?? {};
     if (!refreshToken || typeof refreshToken !== "string") {
       return badRequest("refreshToken is required");
@@ -27,12 +27,20 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    const user = await queryOne<{ id: string; email: string }>("select id, email from app_users where id = $1", [
-      rotated.userId,
-    ]);
+    const user = await queryOne<{ id: string; email: string; token_version: number }>(
+      "select id, email, token_version from app_users where id = $1",
+      [rotated.userId]
+    );
     if (!user) return unauthorized("Account no longer exists.");
 
-    const accessToken = signAccessToken({ sub: user.id, email: user.email });
+    // REQ-116: signed under the account's current token_version and this
+    // session's family (see lib/auth/tokens.ts).
+    const accessToken = signAccessToken({
+      sub: user.id,
+      email: user.email,
+      ver: user.token_version,
+      fam: rotated.familyId,
+    });
     return ok({ accessToken, refreshToken: rotated.raw });
   } catch (err) {
     return serverError(err);

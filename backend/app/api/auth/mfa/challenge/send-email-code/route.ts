@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { getLoginChallenge, setChallengeEmailCode, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
@@ -18,7 +18,7 @@ const EMAIL_CODE_TTL_MINUTES = 10;
 // way it accepts a TOTP or backup code.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { challengeToken } = body ?? {};
     if (!challengeToken || typeof challengeToken !== "string") {
       return badRequest("challengeToken is required");

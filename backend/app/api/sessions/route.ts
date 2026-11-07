@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleTrack, isUuid } from "@/lib/visibility";
 import { textField } from "@/lib/text-input";
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
 // (started within the last 30 minutes) after moving its started_at to now.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { trackId } = body ?? {};
     if (!trackId || typeof trackId !== "string") return badRequest("trackId is required");
     const user = await requireUser(req);
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 // PATCH /api/sessions — end a session. Body: { id, summary? }
 export async function PATCH(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { id, summary } = body ?? {};
     if (!id) return badRequest("id is required");
     if (summary != null && typeof summary !== "string") return badRequest("summary must be a string");

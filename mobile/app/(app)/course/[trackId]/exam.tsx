@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Switch, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { api, ApiError } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import type { ExamItem, ExamProfile, ExamResponse, ExamSessionSummary, ExamSessionView } from "@/types/exam";
 import {
   Body,
@@ -33,6 +34,9 @@ import {
   submitWarning,
   timeAnnouncement,
 } from "@/lib/examPractice";
+import { createExamSaveQueue, unsavedMessage, type ExamSaveQueue } from "@/lib/examSaveQueue";
+import { friendlyError } from "@/lib/errorMessage";
+import { t } from "@/lib/i18n";
 
 // REQ-109: timed sprints (10 mixed questions) and mock exams (the exam's
 // length, weighted by its domains, its full time limit), with an untimed
@@ -61,7 +65,7 @@ export default function ExamScreen() {
         setProfile(res.exam);
         setHistory(res.sessions);
       })
-      .catch((err) => setError((err as Error).message));
+      .catch((err) => setError(friendlyError(err)));
   }, [trackId]);
 
   useFocusEffect(
@@ -105,7 +109,7 @@ export default function ExamScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={!view && !profile ? loadStart : undefined} /> : null}
       {!view ? (
         <StartView
           trackTitle={trackTitle}
@@ -208,7 +212,11 @@ function StartView(props: {
 
       {done.length ? <SectionHeader label="Past sessions" /> : null}
       {done.map((s) => (
-        <Card key={s.id} onPress={() => props.onOpen(s.id)}>
+        <Card
+          key={s.id}
+          onPress={() => props.onOpen(s.id)}
+          accessibilityLabel={`${s.mode === "mock" ? "Mock exam" : "Sprint"}, ${whenLabel(s.submittedAt ?? s.startedAt)}, ${s.correct ?? 0} of ${s.total} right. Opens the results.`}
+        >
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Body>
               {s.mode === "mock" ? "Mock exam" : "Sprint"} · {whenLabel(s.submittedAt ?? s.startedAt)}
@@ -226,7 +234,7 @@ function StartView(props: {
 function TimedToggle({ value, onChange, label, hint }: { value: boolean; onChange: (b: boolean) => void; label: string; hint?: string }) {
   return (
     <View style={{ gap: 2 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 48 }}>
         <Body>{value ? `${label}: on` : "Untimed"}</Body>
         <Switch
           value={value}
@@ -244,6 +252,55 @@ function TimedToggle({ value, onChange, label, hint }: { value: boolean; onChang
 // Taking the session
 // ---------------------------------------------------------------------------
 
+// REQ-113 (Audit 3 mobile L3): the clock re-rendered the whole question
+// screen every second (the question, its options and a grid of up to ~90
+// buttons) on cheap phones. It now owns its own tick; the screen re-renders
+// only when the learner does something.
+const ExamClock = React.memo(function ExamClock({
+  deadlineAt,
+  serverNow,
+  loadedAt,
+  onExpire,
+}: {
+  deadlineAt: string | null;
+  serverNow: string;
+  loadedAt: number;
+  onExpire: () => void;
+}) {
+  const [now, setNow] = useState(Date.now());
+  const remaining = remainingSeconds(deadlineAt, serverNow, loadedAt, now);
+  const expired = useRef(false);
+  const onExpireRef = useRef(onExpire);
+  onExpireRef.current = onExpire;
+
+  useEffect(() => {
+    if (!deadlineAt) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [deadlineAt]);
+
+  useEffect(() => {
+    const say = timeAnnouncement(remaining);
+    if (say) AccessibilityInfo.announceForAccessibility(say);
+    if (remaining === 0 && !expired.current) {
+      expired.current = true;
+      onExpireRef.current();
+    }
+  }, [remaining]);
+
+  if (remaining == null) return <Muted>{t("exam.untimed")}</Muted>;
+  return (
+    <View
+      style={[styles.timer, remaining <= 60 && { borderColor: colors.warn }]}
+      accessible
+      accessibilityLabel={t("exam.timeLeft", { clock: formatClock(remaining) })}
+    >
+      <Feather name="clock" size={14} color={remaining <= 60 ? colors.warn : colors.muted} />
+      <Body style={{ fontFamily: fonts.monoMedium }}>{formatClock(remaining)}</Body>
+    </View>
+  );
+});
+
 function RunView({
   view,
   setView,
@@ -258,40 +315,54 @@ function RunView({
   const [items, setItems] = useState<ExamItem[]>(view.items);
   const [index, setIndex] = useState(() => Math.max(0, view.items.findIndex((i) => !i.answered)));
   const [confirm, setConfirm] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [failedSaves, setFailedSaves] = useState<number[]>([]);
   const loadedAt = useRef(Date.now());
   const shownAt = useRef(Date.now());
-  const [now, setNow] = useState(Date.now());
   const s = view.session;
-  const remaining = remainingSeconds(s.deadlineAt, s.serverNow, loadedAt.current, now);
   const item = items[index];
 
-  useEffect(() => {
-    if (!s.deadlineAt) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, [s.deadlineAt]);
+  const showResults = useCallback(async () => {
+    try {
+      setView(await api.get<ExamSessionView>(`/api/exam/sessions/${s.id}`));
+    } catch (err) {
+      setError(friendlyError(err));
+    }
+  }, [s.id, setView, setError]);
 
-  useEffect(() => {
-    const say = timeAnnouncement(remaining);
-    if (say) AccessibilityInfo.announceForAccessibility(say);
-  }, [remaining]);
-
-  const save = useCallback(
-    async (position: number, patch: Record<string, unknown>) => {
-      try {
-        await api.put(`/api/exam/sessions/${s.id}/items/${position}`, patch);
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 409) {
-          // Time is up (or the session ended elsewhere): show the results.
-          setView(await api.get<ExamSessionView>(`/api/exam/sessions/${s.id}`));
-          return;
+  // REQ-113 (Audit 3 mobile H1): saves go through one queue per session --
+  // numbered, one at a time per question, failed ones kept and retried, and
+  // all of them flushed before submit (src/lib/examSaveQueue.ts).
+  const queue = useRef<ExamSaveQueue | null>(null);
+  if (!queue.current) {
+    queue.current = createExamSaveQueue({
+      initialSeq: Object.fromEntries(view.items.map((i) => [i.position, i.saveSeq ?? 0])),
+      send: async (position, patch) => {
+        try {
+          const res = await api.put<{ saved: boolean; stale?: boolean }>(`/api/exam/sessions/${s.id}/items/${position}`, patch);
+          return res?.stale ? "stale" : "saved";
+        } catch (err) {
+          // Time is up (or the session ended elsewhere): nothing more saves.
+          if (err instanceof ApiError && err.status === 409) return "ended";
+          throw err;
         }
-        setError(`Couldn't save that answer: ${(err as Error).message}. It will be saved again when you change it.`);
-      }
-    },
-    [s.id, setView, setError]
-  );
+      },
+      onChange: (st) => setFailedSaves(st.failed),
+      onEnded: () => {
+        showResults();
+      },
+    });
+  }
+  const q = queue.current;
+
+  // While any save has failed, try again every few seconds (the banner also
+  // has a button for it). Each retry carries the latest answer.
+  useEffect(() => {
+    if (!failedSaves.length) return;
+    const timer = setInterval(() => q.retryFailed(), 5000);
+    return () => clearInterval(timer);
+  }, [failedSaves.length, q]);
 
   // Adds the time on the current question and saves the running total.
   const leaveQuestion = useCallback(() => {
@@ -301,8 +372,8 @@ function RunView({
     if (!cur || spent < 500) return;
     const total = cur.timeSpentMs + spent;
     setItems((prev) => prev.map((x, i) => (i === index ? { ...x, timeSpentMs: total } : x)));
-    save(cur.position, { timeSpentMs: total });
-  }, [items, index, save]);
+    q.save(cur.position, { timeSpentMs: total });
+  }, [items, index, q]);
 
   function go(to: number) {
     if (to < 0 || to >= items.length || to === index) return;
@@ -313,34 +384,52 @@ function RunView({
   function update(patch: Partial<ExamItem>, server: Record<string, unknown>) {
     setError(null);
     setItems((prev) => prev.map((x, i) => (i === index ? { ...x, ...patch } : x)));
-    save(item.position, server);
+    q.save(item.position, server);
   }
 
   function answer(r: ExamResponse | null) {
     update({ response: r, answered: isAnswered(item, r) }, { response: r });
   }
 
-  const submit = useCallback(async () => {
-    setSubmitting(true);
-    leaveQuestion();
-    try {
-      setView(await api.post<ExamSessionView>(`/api/exam/sessions/${s.id}/submit`));
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSubmitting(false);
-    }
-  }, [s.id, setView, setError, leaveQuestion]);
+  // `timeUp`: the clock ran out. Then what could be saved is submitted even
+  // if some saves failed (the server grades what it has by the deadline).
+  const submit = useCallback(
+    async (timeUp = false) => {
+      setSubmitting(true);
+      setError(null);
+      leaveQuestion();
+      try {
+        const flushed = await q.flush();
+        if (flushed.ended) return showResults();
+        if (flushed.unsaved.length && !timeUp) {
+          setError(unsavedMessage(flushed.unsaved));
+          return;
+        }
+        setView(await api.post<ExamSessionView>(`/api/exam/sessions/${s.id}/submit`));
+      } catch (err) {
+        setError(friendlyError(err));
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [s.id, setView, setError, leaveQuestion, q, showResults]
+  );
 
   // Out of time: submit what was saved.
-  const autoSubmitted = useRef(false);
-  useEffect(() => {
-    if (remaining === 0 && !autoSubmitted.current) {
-      autoSubmitted.current = true;
-      AccessibilityInfo.announceForAccessibility("Time is up. Submitting your answers.");
-      submit();
+  const onExpire = useCallback(() => {
+    AccessibilityInfo.announceForAccessibility("Time is up. Submitting your answers.");
+    submit(true);
+  }, [submit]);
+
+  async function leave() {
+    leaveQuestion();
+    const flushed = await q.flush();
+    if (flushed.unsaved.length) {
+      setConfirmLeave(unsavedMessage(flushed.unsaved));
+      return;
     }
-  }, [remaining, submit]);
+    onLeave();
+  }
 
   const counts = navCounts(items);
   if (!item) return <Loading />;
@@ -350,20 +439,12 @@ function RunView({
         <Text style={{ color: colors.muted, fontFamily: fonts.bodySemiBold }} accessibilityRole="header">
           Question {index + 1} of {items.length}
         </Text>
-        {remaining != null ? (
-          <View
-            style={[styles.timer, remaining <= 60 && { borderColor: colors.warn }]}
-            accessible
-            accessibilityLabel={`Time left ${formatClock(remaining)}`}
-          >
-            <Feather name="clock" size={14} color={remaining <= 60 ? colors.warn : colors.muted} />
-            <Body style={{ fontFamily: fonts.monoMedium }}>{formatClock(remaining)}</Body>
-          </View>
-        ) : (
-          <Muted>Untimed</Muted>
-        )}
+        <ExamClock deadlineAt={s.deadlineAt} serverNow={s.serverNow} loadedAt={loadedAt.current} onExpire={onExpire} />
       </View>
       <ProgressBar percent={Math.round((counts.answered / items.length) * 100)} />
+      {failedSaves.length ? (
+        <ErrorBanner message={t("exam.saveFailed")} onRetry={() => q.retryFailed()} retryLabel={t("exam.saveRetry")} />
+      ) : null}
       {view.preparation && view.preparation.built < view.preparation.requested && index === 0 ? (
         <Muted>
           {view.preparation.built} of {view.preparation.requested} questions could be prepared right now, so this one is shorter
@@ -397,36 +478,62 @@ function RunView({
       <Muted>
         {counts.answered} answered · {counts.flagged} flagged
       </Muted>
-      <View style={styles.grid}>
-        {items.map((it, i) => (
-          <Pressable
-            key={it.position}
-            onPress={() => go(i)}
-            accessibilityRole="button"
-            accessibilityLabel={navLabel(i, it)}
-            accessibilityState={{ selected: i === index }}
-            style={[styles.cell, it.answered && styles.cellAnswered, i === index && styles.cellCurrent]}
-          >
-            <Body style={{ fontFamily: fonts.monoMedium, fontSize: 14 }}>{i + 1}</Body>
-            {it.flagged ? <Feather name="flag" size={11} color={colors.warn} /> : null}
-          </Pressable>
-        ))}
-      </View>
+      <QuestionGrid items={items} index={index} onGo={go} />
       <Button label="Submit" variant="ghost" icon="send" onPress={() => setConfirm(true)} loading={submitting} />
-      <Button label="Leave and finish later" variant="link" onPress={() => (leaveQuestion(), onLeave())} />
+      <Button label="Leave and finish later" variant="link" onPress={leave} />
       <ChoiceSheet
         visible={confirm}
         title="Submit your answers?"
         message={`${submitWarning(counts)}${s.deadlineAt ? " The clock keeps running if you go back." : ""}`}
         options={[
-          { label: "Submit now", variant: "primary", onPress: submit },
+          { label: "Submit now", variant: "primary", onPress: () => submit(false) },
           { label: "Go back", onPress: () => undefined },
         ]}
         onCancel={() => setConfirm(false)}
       />
+      <ChoiceSheet
+        visible={!!confirmLeave}
+        title={t("exam.leaveUnsaved.title")}
+        message={t("exam.leaveUnsaved.message", { message: confirmLeave ?? "" })}
+        options={[
+          { label: t("exam.stay"), variant: "primary", onPress: () => q.retryFailed() },
+          { label: t("exam.leaveAnyway"), onPress: onLeave },
+        ]}
+        onCancel={() => setConfirmLeave(null)}
+      />
     </>
   );
 }
+
+// The jump grid, re-rendered only when an answer, flag or the current
+// question changes (REQ-113 L3).
+const QuestionGrid = React.memo(function QuestionGrid({
+  items,
+  index,
+  onGo,
+}: {
+  items: ExamItem[];
+  index: number;
+  onGo: (i: number) => void;
+}) {
+  return (
+    <View style={styles.grid}>
+      {items.map((it, i) => (
+        <Pressable
+          key={it.position}
+          onPress={() => onGo(i)}
+          accessibilityRole="button"
+          accessibilityLabel={navLabel(i, it)}
+          accessibilityState={{ selected: i === index }}
+          style={[styles.cell, it.answered && styles.cellAnswered, i === index && styles.cellCurrent]}
+        >
+          <Body style={{ fontFamily: fonts.monoMedium, fontSize: 14 }}>{i + 1}</Body>
+          {it.flagged ? <Feather name="flag" size={11} color={colors.warn} /> : null}
+        </Pressable>
+      ))}
+    </View>
+  );
+});
 
 // ---------------------------------------------------------------------------
 // Results
@@ -508,6 +615,7 @@ function ResultsView({ view, onDone }: { view: ExamSessionView; onDone: () => vo
             Question {it.position + 1} · {it.unitTitle} · {FORMAT_LABEL[it.format]}
           </Muted>
           <ExamQuestion item={it} response={it.response} review />
+          <ReportProblem target={{ kind: "exam", sessionId: view.session.id, position: it.position }} />
         </Card>
       ))}
       {missed.length && missed.length < view.items.length ? (
@@ -535,8 +643,8 @@ const styles = {
   },
   grid: { flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 6 },
   cell: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: 48,
+    minHeight: 48,
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,

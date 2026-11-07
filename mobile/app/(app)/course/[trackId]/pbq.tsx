@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api, ApiError } from "@/api/client";
@@ -254,7 +254,7 @@ export default function PBQScreen() {
   return (
     <Screen>
       <H1>PBQ simulator</H1>
-      {trackTitle ? <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{trackTitle}</Muted> : null}
+      {trackTitle ? <Muted style={{ color: colors.link, fontFamily: fonts.bodyBold }}>{trackTitle}</Muted> : null}
       <Muted>
         A realistic scenario with 2-4 named sub-tasks. Graded holistically but explicitly per
         sub-part — if you miss one, the feedback names exactly which.

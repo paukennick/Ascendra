@@ -24,6 +24,10 @@ export default function AppLayout() {
       <Stack.Screen name="account/change-email" options={{ title: "Change email" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
+      <Stack.Screen name="settings/reminders" options={{ title: "Study reminders" }} />
+      {/* REQ-119: one-tap Terms prompt and the first-run flow (no back: each finishes by moving on). */}
+      <Stack.Screen name="agree" options={{ title: "Before you continue", headerBackVisible: false, gestureEnabled: false }} />
+      <Stack.Screen name="welcome" options={{ title: "Welcome", headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
       <Stack.Screen name="course/[trackId]/lesson/[objectiveId]" options={{ title: "Lesson" }} />
       <Stack.Screen name="course/[trackId]/pbq" options={{ title: "PBQ Simulator" }} />
@@ -36,6 +40,7 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/plan" options={{ title: "Study plan" }} />
       <Stack.Screen name="course/[trackId]/placement" options={{ title: "Placement check" }} />
       <Stack.Screen name="course/[trackId]/quiz" options={{ title: "Quiz me" }} />
+      <Stack.Screen name="course/[trackId]/outcome" options={{ title: "I took the exam" }} />
     </Stack>
   );
 }

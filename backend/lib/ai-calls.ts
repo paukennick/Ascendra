@@ -1,4 +1,6 @@
+import { AnthropicError, APIError } from "@anthropic-ai/sdk";
 import { query } from "@/lib/db";
+import { after } from "next/server";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
 // failure rate and prompt-cache hit rate can be read from the database instead
@@ -35,15 +37,28 @@ export type AiPurpose =
   | "explain_back"
   // REQ-110: one shared "Quiz me" question per objective (lib/coach-quiz.ts).
   | "coach_quiz"
+  // Audit 3 H2: the fast-model check of a coach reply against open items.
+  | "coach_guard"
   // REQ-108: Today's review and unit checks.
   | "review_generate"
   | "review_grade"
   | "unitcheck_generate"
   | "unitcheck_grade"
+  // REQ-114: the second-model fact-check of new shared items (one call per
+  // generation batch) and the one automated re-check of a flagged item.
+  | "fact_check"
+  | "item_recheck"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"
-  | "eval_grading";
+  | "eval_grading"
+  // Audit 3 M5: the live-eval runners (scripts/eval/live.ts).
+  | "eval_guard"
+  | "eval_pbq"
+  | "eval_unitcheck"
+  | "eval_explain_back"
+  | "eval_generation"
+  | "eval_cache";
 
 export interface AiCallMeta {
   purpose: AiPurpose;
@@ -83,6 +98,26 @@ export class AiResponseError extends Error {
     super(message);
     this.name = "AiResponseError";
   }
+}
+
+// Adversary audit finding 7 (FAIL-307): a model reply that was empty, had no
+// text block, or failed the structured-output schema -- or the provider
+// being overloaded, rate-limited or unreachable -- came back to the learner
+// as a generic 500. These are transient and not the learner's doing, so
+// lib/http.ts serverError answers them with a 503 and MODEL_UNAVAILABLE.
+// A 4xx from the API for a request WE built wrong (400, 401, 403, 404) stays
+// a 500: retrying will not fix it, and it should page someone.
+export const MODEL_UNAVAILABLE =
+  "The AI coach couldn't give a usable answer just now. Nothing was lost -- please try again in a moment.";
+
+export function isTransientModelFailure(err: unknown): boolean {
+  if (err instanceof AiResponseError) return true;
+  if (err && typeof err === "object" && (err as { name?: unknown }).name === "ZodError") return true;
+  if (err instanceof APIError) {
+    const status = err.status;
+    return status === undefined || status === 408 || status === 429 || status >= 500;
+  }
+  return err instanceof AnthropicError;
 }
 
 const ERROR_CODE_MAX = 80;
@@ -151,12 +186,33 @@ function loggingEnabled(): boolean {
 
 // Hands the record to the sink and returns immediately. Never throws, whether
 // the sink throws synchronously or rejects later.
+//
+// REQ-118 (Audit 3 MEDIUM-10): inside a request the write is scheduled with
+// Next's after(), which keeps the function alive until it finishes. A bare
+// fire-and-forget promise can be frozen with the function once the response
+// is sent (Vercel), losing the row and undercounting cost. Outside a request
+// (scripts, tests, a stream that outlived its request) after() throws and the
+// write starts straight away, as before.
 export function logAiCall(record: AiCallRecord): void {
   if (!loggingEnabled()) return;
+  const write = () => {
+    try {
+      return Promise.resolve(sink(record)).catch(warnLogFailure);
+    } catch (err) {
+      warnLogFailure(err);
+      return Promise.resolve();
+    }
+  };
+  if (!scheduleAfterResponse(write)) void write();
+}
+
+// after() when there is a request to attach to; false when there is not.
+export function scheduleAfterResponse(task: () => Promise<unknown>): boolean {
   try {
-    Promise.resolve(sink(record)).catch(warnLogFailure);
-  } catch (err) {
-    warnLogFailure(err);
+    after(task);
+    return true;
+  } catch {
+    return false;
   }
 }
 

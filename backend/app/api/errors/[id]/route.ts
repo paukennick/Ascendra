@@ -1,5 +1,5 @@
 import { queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { advanceReviewStage } from "@/lib/grading-service";
 import { isUuid } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -22,7 +22,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const action = body?.action;
     if (action !== "reviewed" && action !== "resolve") {
       return badRequest("action must be 'reviewed' or 'resolve'");

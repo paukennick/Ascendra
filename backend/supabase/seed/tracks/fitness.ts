@@ -22,8 +22,15 @@
 // credential_basis 'vendor_exam_unpublished_code' with examCode unset,
 // exactly as Google Cloud and ABPTS are handled. All sit in the existing
 // Health & Fitness / Fitness subcategory (migration 007) with freshness
-// overridden to certification_aligned on the track. No disclaimer gate:
-// these are fitness-professional credentials, not clinical ones.
+// overridden to certification_aligned on the track.
+//
+// REQ-114 (Audit 3 M7): every fitness track now carries a disclaimer gate
+// (disclaimerKey "fitness-content", text in mobile/src/content/disclaimers.ts)
+// and the prompts' exam-prep safety framing (lib/prompts.ts domainFraming,
+// category health-fitness). These are not clinical credentials, but the
+// tracks teach exercise for special populations, screening and nutrition,
+// and a learner acting on a wrong generated detail can hurt themselves or a
+// client. The gate was previously left off on purpose; this reverses that.
 //
 // Objectives are written in our own words from each outline's domains and
 // task statements -- deliberately not copied.
@@ -33,11 +40,16 @@ import type { SeedTrack } from "../data";
 const VERIFIED_AT = "2026-10-08T00:00:00Z";
 const SUB = "fitness";
 
+export const FITNESS_DISCLAIMER_KEY = "fitness-content";
+
 const COMMON = {
   trackType: "certification" as const,
   subcategorySlug: SUB,
   freshnessModel: "certification_aligned" as const,
   sourceVerifiedAt: VERIFIED_AT,
+  requiresAcknowledgement: true,
+  disclaimerKey: FITNESS_DISCLAIMER_KEY,
+  disclaimerVersion: 1,
 };
 
 // ---------------------------------------------------------------------------

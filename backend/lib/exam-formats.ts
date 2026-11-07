@@ -174,6 +174,15 @@ export interface ItemDraft {
   exhibit: Exhibit | null;
 }
 
+// REQ-114 (Audit 3 L2): how many answers the stem tells the learner to pick
+// ("(Choose two.)", "Select THREE"), or null when it does not say. Checked
+// against the key below so the instruction and the grading never disagree.
+const COUNT_WORDS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+export function statedChoiceCount(stem: string): number | null {
+  const m = /\b(?:choose|select|pick)\s+(one|two|three|four|five|[1-5])\b/i.exec(stem);
+  return m ? COUNT_WORDS[m[1].toLowerCase()] : null;
+}
+
 export function validateItemDraft(raw: unknown, allowed: ExamFormat[], exhibits: boolean): ItemDraft | string {
   const r = (raw ?? {}) as Record<string, unknown>;
   const format = r.format as ExamFormat;
@@ -202,6 +211,8 @@ export function validateItemDraft(raw: unknown, allowed: ExamFormat[], exhibits:
     if (!correct || !correct.every((i) => i >= 0 && i < choices.length)) return "correct must index choices";
     const uniq = [...new Set(correct)].sort((a, b) => a - b);
     if (uniq.length !== correct.length) return "correct repeats an index";
+    const stated = statedChoiceCount(stem);
+    if (stated !== null && stated !== uniq.length) return `stem says choose ${stated} but the key has ${uniq.length}`;
     if (format === "multiple_choice") {
       if (uniq.length !== 1) return "multiple choice has exactly one correct choice";
       return { format, stem, body: { choices }, answerKey: { correct: uniq }, explanation, exhibit };

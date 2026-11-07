@@ -206,7 +206,7 @@ describe("teach cards", () => {
       new Request("http://t/api/grade", {
         method: "POST",
         headers: auth(u),
-        body: JSON.stringify({ kind: "lesson", format: "open", stage: "fade", objectiveId: FRESH, answer: "x" }),
+        body: JSON.stringify({ kind: "lesson", format: "open", stage: "fade", objectiveId: FRESH, answer: "a real attempt at it" }), // Audit 3 M1: "x" is now graded without a model call
       })
     );
     assert.equal(g.status, 200);
@@ -326,7 +326,7 @@ describe("labs", () => {
     const m = await queryOne<{ evidence: string }>(`select evidence from mastery where user_id = $1 and objective_id = $2`, [u, LAB]);
     // FAIL-232: the evidence text is the weighted rule's (031): one answer,
     // on this objective -- the lab report is not among them.
-    assert.match(m!.evidence, /over 1 answers \(1 on this objective, 0 unit PBQ\)/);
+    assert.match(m!.evidence, /over 1 answers \(1 on this objective, 0 unit-wide\)/); // REQ-117: "unit-wide" (PBQs and unit checks)
   });
 
   test("the database refuses a lab attempt that carries objective_id", async () => {

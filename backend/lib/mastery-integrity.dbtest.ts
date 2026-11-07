@@ -170,11 +170,22 @@ describe("1. Guided work does not earn Independent or Transfer-ready", () => {
     );
     await recompute(u, o);
     assert.equal((await mastery(u, o))?.status, "Independent");
-    // A correct PBQ on the unit today adds a second format on a later day.
+    // A correct PBQ on the unit today: REQ-117 (FAIL-340) unit-wide answers
+    // add accuracy only, never a format family, so still Independent.
     await query(
       `insert into attempts (user_id, unit_id, pbq_scenario_id, kind, format, question, answer, verdict)
        values ($1, $2, $3, 'pbq', 'pbq', 'PBQ', 'a', 'correct')`,
       [u, unit, scenario]
+    );
+    await recompute(u, o);
+    assert.equal((await mastery(u, o))?.status, "Independent");
+    // A spaced explain-back (a second format, 72 h+ after the first win, a
+    // day after the previous answer) is Transfer-ready (REQ-117, FAIL-351).
+    await query(`update attempts set created_at = created_at - interval '2 days' where user_id = $1`, [u]);
+    await query(
+      `insert into attempts (user_id, unit_id, objective_id, kind, stage, format, question, answer, verdict, assessment_type)
+       values ($1, $2, $3, 'quiz', 'explain', 'open', 'Explain it', 'a', 'correct', 'explain_back')`,
+      [u, unit, o]
     );
     await recompute(u, o);
     assert.equal((await mastery(u, o))?.status, "Transfer-ready");
@@ -347,7 +358,8 @@ describe("6. PBQ review entries can be retested", () => {
         })
       );
     nextVerdict = "partial";
-    assert.equal((await post("half", `pbq-${run}-1`)).status, 200);
+    // Audit 3 M1: one-word answers are graded without a model call; these are real attempts.
+    assert.equal((await post("half of the parts", `pbq-${run}-1`)).status, 200);
     const errs = (await (await errorsGet(new Request("http://t/api/errors", { headers: auth(u) }))).json()) as {
       errors: Array<{ id: string; pbq_scenario_id: string | null; track_id: string | null; review_stage: number }>;
     };
@@ -361,7 +373,7 @@ describe("6. PBQ review entries can be retested", () => {
 
     await query(`update error_log set next_review_at = current_date where id = $1`, [errs.errors[0].id]);
     nextVerdict = "correct";
-    assert.equal((await post("full", `pbq-${run}-2`)).status, 200);
+    assert.equal((await post("the full answer this time", `pbq-${run}-2`)).status, 200);
     const row = await queryOne<{ review_stage: number }>(`select review_stage from error_log where id = $1`, [errs.errors[0].id]);
     assert.equal(row?.review_stage, 1);
   });
@@ -548,10 +560,12 @@ describe("10. Attempts written by pre-029 code during the deploy gap (FAIL-110)"
     await oldCodeMastery(u, o, "Transfer-ready", 4);
     const changed = await queryOne<{ n: number }>(`select recompute_mastery($1) as n`, [u]);
     assert.equal(changed?.n, 1);
-    // REQ-100 (031): one success plus a repeat at reduced credit -- weighted
-    // accuracy about 54%, under Independent's 60% -- so Guided. Under the 029
-    // rule this was Independent; either way, never Transfer-ready.
-    assert.equal((await mastery(u, o))?.status, "Guided", "one item answered twice is one success, the repeat earns little");
+    // REQ-100 (031): one success plus a repeat at reduced credit -- Guided.
+    // REQ-117 (045, FAIL-344): help lowers a repeat's weight, not its credit,
+    // so a correct repeat no longer drags accuracy down: one unassisted
+    // success (format evidence) at 100% is Independent. Still never
+    // Transfer-ready: the repeat is not a second format.
+    assert.equal((await mastery(u, o))?.status, "Independent", "one item answered twice is one success; the repeat is not a second format");
   });
 
   test("a hint recorded before the answer counts even when the attempt says unassisted", async () => {

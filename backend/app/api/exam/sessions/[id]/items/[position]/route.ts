@@ -9,11 +9,13 @@ import { examError } from "@/lib/exam-route-errors";
 export const dynamic = "force-dynamic";
 
 // REQ-109: PUT /api/exam/sessions/:id/items/:position
-//   { response?, flagged?, confidence?, timeSpentMs? }
+//   { response?, flagged?, confidence?, timeSpentMs?, seq? }
 // Saves one question's answer (in SHOWN positions; null clears it), its
 // flag-for-review, confidence (1-5) and time on screen. Nothing is graded
 // here and nothing about the answer comes back. 409 once the session has
-// ended or its time is up.
+// ended or its time is up. REQ-113: `seq` numbers the app's saves of this
+// question; one at or below the last applied is ignored and answered
+// { saved: false, stale: true } (a newer save already won).
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string; position: string }> }) {
   try {
     const { id, position } = await params;

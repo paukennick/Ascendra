@@ -1,9 +1,11 @@
 import React, { useCallback, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
+import { ReportProblem } from "@/components/ReportProblem";
 import type { QuizTurn } from "@/types/plan";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -28,6 +30,9 @@ export default function QuizScreen() {
   const [picked, setPicked] = useState<number[]>([]);
   // One id per try, reused if that same try is resent after a network failure.
   const pending = useRef<{ key: string; id: string } | null>(null);
+  // REQ-113 (Audit 3 mobile L5): two quick taps on different options used to
+  // both pass the `busy` state check and use up two tries. A ref is set at once.
+  const inFlight = useRef(false);
 
   const next = useCallback(async () => {
     setBusy(true);
@@ -39,7 +44,7 @@ export default function QuizScreen() {
       setTurn(res.turn);
       setEmpty(!res.turn);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : (err as Error).message);
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -52,7 +57,8 @@ export default function QuizScreen() {
   );
 
   async function answer(i: number) {
-    if (!turn || busy || turn.status !== "open") return;
+    if (!turn || inFlight.current || turn.status !== "open") return;
+    inFlight.current = true;
     const key = `${turn.id}:${turn.tries}:${i}`;
     if (pending.current?.key !== key) pending.current = { key, id: Crypto.randomUUID() };
     setBusy(true);
@@ -68,8 +74,9 @@ export default function QuizScreen() {
       if (res.message) setMessage(res.message);
       if (res.correct === false) setPicked((p) => [...p, i]);
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyError(err));
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -79,7 +86,7 @@ export default function QuizScreen() {
     <Screen>
       <H1>Quiz me</H1>
       <Muted>{trackTitle ? `${trackTitle} · ` : ""}Practice on your weak spots, with hints. It doesn't count against your mastery.</Muted>
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={!turn && !empty ? next : undefined} /> : null}
       {busy && !turn && !empty ? <Loading label="Picking a question..." /> : null}
 
       {empty ? (
@@ -147,6 +154,7 @@ export default function QuizScreen() {
               ))}
             </View>
           ) : null}
+          {closed ? <ReportProblem target={{ kind: "quiz", turnId: turn.id }} /> : null}
           {closed ? <Button label="Next question" icon="arrow-right" loading={busy} onPress={next} /> : null}
           <Button
             label="Ask the coach about this"

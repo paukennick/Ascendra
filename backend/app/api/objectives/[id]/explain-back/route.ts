@@ -1,4 +1,6 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
+import { hasUnstorableText } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
@@ -16,6 +18,7 @@ import {
 } from "@/lib/understanding";
 import { lastExplainBack, masteryStatus } from "@/lib/understanding-store";
 import { gradeExplainBack } from "@/lib/understanding-ai";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { recordGraderMisconception } from "@/lib/understanding-grading";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +50,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }
 }
@@ -78,14 +82,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await req.json().catch(() => ({}));
 
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
-    if (clientAttemptId) {
-      const prior = await findClientAttempt(user.id, clientAttemptId);
-      if (prior) return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
-    }
+    // REQ-116: only a replay of this objective's explain-back.
+    const replayStored = async () => {
+      const prior = clientAttemptId ? await findClientAttempt(user.id, clientAttemptId) : null;
+      if (!prior) return null;
+      if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain" })) {
+        return conflict(REPLAY_CONFLICT);
+      }
+      return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
+    };
+    const done = await replayStored();
+    if (done) return done;
 
     const answer = body?.answer;
     if (typeof answer !== "string" || !answer.trim()) return badRequest("answer is required");
     if (answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+    // REQ-116: a NUL or lone surrogate can't be stored; refuse it before the
+    // billed model call rather than failing after it.
+    if (hasUnstorableText(answer)) return badRequest("answer contains characters that can't be stored");
     if (answer.trim().split(/\s+/).length < MIN_WORDS) {
       return badRequest("Try a few sentences — imagine explaining it to a friend who has never heard of it.");
     }
@@ -96,68 +110,74 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const lesson = await getLessonFor(user.id, id);
     if (!lesson?.row.teach) return notFound("No lesson for this objective yet");
 
-    try {
-      // REQ-098 / FAIL-230: atomic count-and-record.
-      await consumeRateLimit("explain_back", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
-    }
+    // REQ-120 (FAIL-431): copies of one explanation sent at once share one
+    // grader call (lib/grading-claims.ts); the others replay the stored result.
+    const gradeAndRecord = async () => {
+      try {
+        // REQ-098 / FAIL-230: atomic count-and-record.
+        await consumeRateLimit("explain_back", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
 
-    const title = await objectiveTitle(id);
-    const question = explainBackQuestion(title);
-    const copied = copiedShare(answer, lesson.row.teach) >= COPIED_SHARE_LIMIT;
-    const graded = await gradeExplainBack({
-      objectiveId: id,
-      objectiveTitle: title,
-      teach: lesson.row.teach,
-      question,
-      answer,
-      userId: user.id,
-    });
-    const feedback = copied
-      ? `${graded.feedback}\n\nMuch of this matches the lesson text word for word. Try it again in your own words later for full credit — putting it your way is what makes it stick.`
-      : graded.feedback;
-    const { attempt, prior } = await recordAttemptIdempotent({
-      userId: user.id,
-      unitId: objective.unit_id,
-      objectiveId: id,
-      kind: "quiz",
-      stage: "explain",
-      format: "open",
-      question,
-      answer,
-      verdict: graded.verdict,
-      feedback,
-      classification: graded.classification,
-      missedParts: graded.missedParts ?? [],
-      assessmentType: "explain_back",
-      assist: copied ? "reveal" : null,
-      repeatWindowHours: EXPLAIN_BACK_REPEAT_WINDOW_HOURS,
-      clientAttemptId,
-    });
-    if (prior) return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
-    const diagnosis = await recordGraderMisconception({
-      userId: user.id,
-      objectiveId: id,
-      attemptId: attempt.id,
-      verdict: graded.verdict,
-      misconception: graded.misconception,
-      confusedWith: graded.confusedWith,
-    });
-    return ok({
-      verdict: graded.verdict,
-      feedback,
-      missedParts: graded.missedParts ?? [],
-      rubric: graded.rubric,
-      diagnosis,
-      assisted: attempt.assisted === true,
-      assistReason: attempt.assist_reason ?? null,
-      copied,
-    });
+      const title = await objectiveTitle(id);
+      const question = explainBackQuestion(title);
+      const copied = copiedShare(answer, lesson.row.teach) >= COPIED_SHARE_LIMIT;
+      const graded = await gradeExplainBack({
+        objectiveId: id,
+        objectiveTitle: title,
+        teach: lesson.row.teach,
+        question,
+        answer,
+        userId: user.id,
+      });
+      const feedback = copied
+        ? `${graded.feedback}\n\nMuch of this matches the lesson text word for word. Try it again in your own words later for full credit — putting it your way is what makes it stick.`
+        : graded.feedback;
+      const { attempt, prior } = await recordAttemptIdempotent({
+        userId: user.id,
+        unitId: objective.unit_id,
+        objectiveId: id,
+        kind: "quiz",
+        stage: "explain",
+        format: "open",
+        question,
+        answer,
+        verdict: graded.verdict,
+        feedback,
+        classification: graded.classification,
+        missedParts: graded.missedParts ?? [],
+        assessmentType: "explain_back",
+        assist: copied ? "reveal" : null,
+        repeatWindowHours: EXPLAIN_BACK_REPEAT_WINDOW_HOURS,
+        clientAttemptId,
+      });
+      if (prior) return (await replayStored()) ?? ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
+      const diagnosis = await recordGraderMisconception({
+        userId: user.id,
+        objectiveId: id,
+        attemptId: attempt.id,
+        verdict: graded.verdict,
+        misconception: graded.misconception,
+        confusedWith: graded.confusedWith,
+      });
+      return ok({
+        verdict: graded.verdict,
+        feedback,
+        missedParts: graded.missedParts ?? [],
+        rubric: graded.rubric,
+        diagnosis,
+        assisted: attempt.assisted === true,
+        assistReason: attempt.assist_reason ?? null,
+        copied,
+      });
+    };
+    return await withGradingClaim(user.id, clientAttemptId, gradeAndRecord, replayStored);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }
 }

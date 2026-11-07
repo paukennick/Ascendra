@@ -1411,7 +1411,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
         "Monitoring agent resource consumption patterns",
         "Managing foundation-model inference cost through usage optimization",
         "AI-specific cost patterns: token usage optimization, embedding computation cost, vector database storage",
-        "Securing CI/CD pipelines against code and image vulnerabilities with Amazon CodeGuru and Amazon Inspector",
+        "Securing CI/CD pipelines against code and image vulnerabilities with Amazon Inspector (code, container image and Lambda scanning); Amazon CodeGuru Security reached end of support on 2025-11-20",
         "Configuring least-privilege access to ML and AI artifacts",
         "Configuring IAM policies and roles for users and applications in ML and AI systems",
         "Monitoring, auditing, compliance, and logging with AWS CloudTrail and AWS Config",
@@ -1895,7 +1895,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
         "Composing and deploying IaC templates: AWS SAM, AWS CloudFormation, the AWS CDK",
         "Applying CloudFormation StackSets across multiple accounts and Regions",
         "Change management processes for IaC-based platforms",
-        "Determining the right configuration management service: AWS OpsWorks, AWS Systems Manager, AWS Config, AWS AppConfig",
+        "Determining the right configuration management service: AWS Systems Manager (including AppConfig and State Manager) and AWS Config -- AWS OpsWorks reached end of life on 2024-05-26",
         "Building infrastructure patterns, governance controls, and security standards into reusable templates with AWS Service Catalog, CloudFormation modules, and the CDK",
         "AWS account structures and the practices around them",
         "Standardizing and automating account provisioning and configuration",
@@ -1904,7 +1904,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
         "Governance and security controls at scale: AWS Config, Control Tower, Security Hub, Amazon Detective, Amazon GuardDuty, Service Catalog",
         "Automating system inventory, configuration, and patch management with Systems Manager and AWS Config",
         "Developing Lambda automations for complex scenarios with the AWS SDKs and AWS Step Functions",
-        "Driving application configuration to a desired state with OpsWorks and Systems Manager State Manager",
+        "Driving instance and application configuration to a desired state with Systems Manager State Manager and AppConfig",
         "Maintaining software compliance with Systems Manager",
       ],
     },
@@ -2106,7 +2106,7 @@ export const AWS_SCS_TRACK: SeedTrack = {
         "Scanning compute for known vulnerabilities: Amazon Inspector for container images and Lambda, GuardDuty runtime monitoring",
         "Deploying patches across compute with Systems Manager Patch Manager and continuous validation",
         "Configuring secure administrative access: Systems Manager Session Manager and EC2 Instance Connect",
-        "Finding and remediating vulnerabilities inside the pipeline with Amazon Q Developer and Amazon CodeGuru Security",
+        "Finding and remediating vulnerabilities inside the pipeline with Amazon Q Developer and Amazon Inspector code scanning (Amazon CodeGuru Security, named in older material, reached end of support on 2025-11-20)",
         "Protections and guardrails for generative AI applications, including the OWASP Top 10 for LLM Applications",
         "Designing and troubleshooting network controls that permit or prevent traffic: security groups, network ACLs, AWS Network Firewall",
         "Secure connectivity between hybrid and multi-cloud networks: AWS Site-to-Site VPN, AWS Direct Connect, MACsec",
@@ -2182,7 +2182,14 @@ export const AWS_SCS_TRACK: SeedTrack = {
 // retirement date so it can be surfaced in the UI and archived afterwards.
 //
 // Unusual among AWS exams: the guide lists only multiple response and matching
-// question types -- no plain multiple choice.
+// question types -- no plain multiple choice. (REQ-114, re-checked
+// 2026-11-07: the certification page says "65 questions, either multiple
+// choice or multiple response", but the exam guide's "Response types" still
+// names only multiple response and matching. The guide is the detailed
+// source, so the formats stay as it states them.)
+// REQ-114 (Audit 3 M1): passing score corrected 700 -> 750, per the guide:
+// "The minimum passing score is 750." (fetched 2026-11-07).
+const ANS_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const AWS_ANS_TRACK: SeedTrack = {
   code: "AWSANS",
@@ -2206,14 +2213,14 @@ export const AWS_ANS_TRACK: SeedTrack = {
     retirementDate: "2026-12-31",
     officialObjectivesUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: ANS_VERIFIED_AT,
     recommendedExperience:
       "5 or more years of networking experience, including 2 or more years of cloud and hybrid networking.",
     durationMinutes: 170,
     questionFormat:
       "65 questions (50 scored, 15 unscored); multiple response and matching",
     passingScorePolicy:
-      "Scaled score 100-1000; minimum passing score 700; compensatory scoring, so no per-domain minimum",
+      "Scaled score 100-1000; minimum passing score 750; compensatory scoring, so no per-domain minimum",
   },
   units: [
     {

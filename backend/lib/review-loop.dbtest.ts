@@ -4,6 +4,10 @@
 // unit gate checks. Route handlers are called directly; the model is a fake
 // client that records each call and answers by what the prompt asks for.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+// REQ-114: the second-model fact-check gate has its own tests
+// (lib/item-quality.dbtest.ts); here the fake model answers only the
+// feature's own calls, so the gate is off, as it was before REQ-114.
+process.env.ITEM_FACT_CHECK = "off";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -50,6 +54,9 @@ const today = () => utcDay(new Date());
 type Call = { kind: "batch" | "grade" | "unitgen" | "pbqgrade"; body: any };
 const calls: Call[] = [];
 let gradeVerdict: "correct" | "partial" | "incorrect" = "correct";
+// REQ-113: what the fake PBQ grader returns per sub-part (unit checks).
+let pbqParts: { part: string; score: string; comment: string }[] | undefined;
+let pbqMissed: string[] = [];
 let generated = 0;
 function systemText(body: any): string {
   return Array.isArray(body.system) ? body.system.map((b: any) => b.text).join("\n") : String(body.system);
@@ -84,7 +91,7 @@ function fakeParse(body: any) {
   }
   if (sys.includes("PBQ-style multi-part answer")) {
     calls.push({ kind: "pbqgrade", body });
-    return reply({ verdict: gradeVerdict, feedback: `fake ${gradeVerdict}`, classification: "none", missedParts: [] });
+    return reply({ verdict: gradeVerdict, feedback: `fake ${gradeVerdict}`, classification: "none", missedParts: pbqMissed, parts: pbqParts });
   }
   calls.push({ kind: "grade", body });
   return reply({ verdict: gradeVerdict, feedback: `fake ${gradeVerdict}`, classification: "none", missedParts: [] });
@@ -177,6 +184,8 @@ before(async () => {
 
 beforeEach(() => {
   gradeVerdict = "correct";
+  pbqParts = undefined;
+  pbqMissed = [];
 });
 
 after(async () => {
@@ -346,9 +355,15 @@ describe("review loop (REQ-108)", () => {
     const mc = await answer(u, s.id, second.position, { format: "mc", chosenIndex: right });
     assert.equal(mc.body.verdict, "correct");
     assert.equal(mc.body.correctIndex, right);
-    assert.equal(mc.body.assisted, false);
-    const m = await queryOne(`select assessment_type from attempts where user_id = $1 and kind = 'review' and format = 'mc'`, [u]);
+    // REQ-117 (FAIL-343): a pick from the shown choices is helped too; it
+    // used to be recorded as unaided recall and climb to the 60-day rung.
+    assert.equal(mc.body.assisted, true);
+    assert.equal(mc.body.advanced, false);
+    assert.equal(mc.body.nextDueOn, addDays(today(), 3), "helped and due: up one rung (capped at a week), never left past due");
+    assert.deepEqual(mc.body.termsCredited, []);
+    const m = await queryOne(`select assessment_type, assist_reason from attempts where user_id = $1 and kind = 'review' and format = 'mc'`, [u]);
     assert.equal(m!.assessment_type, "multiple_choice");
+    assert.equal(m!.assist_reason, "hint");
 
     // Every item answered: the session is finished.
     const view = await call(sessionGet, u, { params: { id: s.id } });
@@ -511,8 +526,60 @@ describe("review loop (REQ-108)", () => {
       [u, unitA, item!.id]
     );
     const after = await queryOne<{ formats: string[]; status: string }>(`select formats, status from mastery_detail($1, $2)`, [u, objsA[0]]);
-    assert.deepEqual(after!.formats, ["free_response", "scenario"]);
-    assert.equal(after!.status, "Transfer-ready", "two formats on separate days");
+    // REQ-117 (FAIL-340): unit-wide answers add accuracy only, never a format.
+    assert.deepEqual(after!.formats, ["free_response"]);
+    assert.equal(after!.status, "Independent", "a unit check is not a second format");
+    const ev = await queryOne<{ answers: number; direct_answers: number }>(`select answers, direct_answers from mastery_detail($1, $2)`, [u, objsA[0]]);
+    assert.equal(ev!.answers - ev!.direct_answers, 1, "but it is counted");
+  });
+
+  // REQ-113 (Audit 3 mobile H2, FAIL-251): a unit check is graded per
+  // sub-part, as a PBQ is, and the scores are stored, returned and replayed.
+  // Before, only missedParts came back and the app matched label text, so a
+  // reworded label showed a missed part as covered beside a failing verdict.
+  test("unit check: per-part scores lined up with the check's own labels, stored and replayed", async () => {
+    const u = await newUser();
+    for (const o of objsB) await study(u, o);
+    const got = await call(checkGet, u, { params: { id: unitB } });
+    const parts: string[] = got.body.check.sub_parts;
+    assert.ok(parts.length >= 2);
+    gradeVerdict = "partial";
+    // The grader rewords the second label and lists it as missed in its own
+    // words; matched by position, the second part is missed, not "covered".
+    pbqParts = parts.map((p, i) => ({ part: i === 1 ? `Part 2: ${p}.` : p, score: i === 1 ? "missed" : "met", comment: `c${i}` }));
+    pbqMissed = [`Part 2: ${parts[1]}.`];
+    const clientAttemptId = randomUUID();
+    const res = await call(checkPost, u, { body: { checkId: got.body.check.id, answer: "my answer", clientAttemptId }, params: { id: unitB } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.verdict, "partial");
+    assert.deepEqual(
+      res.body.partScores.map((p: any) => [p.part, p.score]),
+      parts.map((p, i) => [p, i === 1 ? "missed" : "met"])
+    );
+    assert.equal(res.body.parts, undefined, "the raw grader list is not passed through");
+    const stored = await queryOne<{ part_scores: any[] }>(`select part_scores from attempts where user_id = $1 and kind = 'unitcheck'`, [u]);
+    assert.equal(stored!.part_scores[1].score, "missed");
+    // A resend after a dropped connection returns the same scores, no new call.
+    const grades = calls.filter((c) => c.kind === "pbqgrade").length;
+    const again = await call(checkPost, u, { body: { checkId: got.body.check.id, answer: "my answer", clientAttemptId }, params: { id: unitB } });
+    assert.equal(calls.filter((c) => c.kind === "pbqgrade").length, grades);
+    assert.equal(again.body.partScores[1].score, "missed");
+    // The grader is asked for the per-part list (the PBQ schema).
+    const schema = JSON.stringify(calls.filter((c) => c.kind === "pbqgrade").at(-1)!.body);
+    assert.match(schema, /"parts"/);
+  });
+
+  test("unit check: a grader list that can't be lined up gives no per-part scores (the app shows 'not scored')", async () => {
+    const u = await newUser();
+    for (const o of objsB) await study(u, o);
+    const got = await call(checkGet, u, { params: { id: unitB } });
+    gradeVerdict = "incorrect";
+    pbqParts = [{ part: "something else entirely", score: "met", comment: "" }];
+    // A real attempt: since REQ-115 a one-word answer to a check is graded
+    // without a model call (every part missed), which never reaches this path.
+    const res = await call(checkPost, u, { body: { checkId: got.body.check.id, answer: "I would isolate the host and then review the logs." }, params: { id: unitB } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.partScores, null);
   });
 
   test("account export carries the review data; schema probes pass", async () => {

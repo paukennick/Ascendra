@@ -10,6 +10,8 @@ import {
   type ItemDraft,
   type StoredExamItem,
 } from "@/lib/exam-formats";
+import { factCheckGate, type CheckItem } from "@/lib/fact-check";
+import { examCheckItem, recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
 
 // REQ-109: the shared exam_items bank (migration 038).
 //
@@ -56,11 +58,13 @@ export const ITEM_COLUMNS = "id, objective_id, item_format, stem, body, answer_k
 // Every item in the bank for these objectives, in the given formats.
 // Lesson copies are included only when this learner has answered that
 // lesson question already (see migration 038: never a preview).
+// REQ-114: an item pulled from rotation (item_status) is never served.
 export async function bankItems(userId: string, objectiveIds: string[], formats: ExamFormat[]): Promise<ExamItemRow[]> {
   if (!objectiveIds.length) return [];
   return query<ExamItemRow>(
     `select ${ITEM_COLUMNS} from exam_items i
       where i.objective_id = any($1::uuid[]) and i.item_format = any($2::text[])
+        and ${servableSql("exam", "i.id")}
         and (i.source = 'generated'
              or exists (select 1 from attempts a where a.user_id = $3 and a.objective_id = i.objective_id
                           and a.stage in ('fade', 'solo') and a.question = i.stem))
@@ -173,13 +177,44 @@ export async function generateForObjective(opts: {
   });
   const stored: ExamItemRow[] = [];
   const rejected: string[] = [];
-  for (const raw of out.items ?? []) {
+  // REQ-114 (Audit 3 H1 + recommendation 1): an item whose writer listed
+  // uncertain claims is held back; the rest go through the second-model
+  // fact-check (one call for the batch) and only those it agrees with are
+  // published to the shared bank.
+  const candidates: { key: string; draft: ItemDraft }[] = [];
+  for (const [i, raw] of (out.items ?? []).entries()) {
     const d = validateItemDraft(raw, opts.allowed, opts.exhibits);
     if (typeof d === "string") {
       rejected.push(d);
       continue;
     }
-    stored.push(await insertDraft(opts.objectiveId, d, model));
+    const unsure = uncertaintyOf(raw);
+    if (unsure) {
+      rejected.push("held back: uncertain claims");
+      await recordHoldback({ kind: "exam", objectiveId: opts.objectiveId, reason: "uncertain", claims: unsure, content: raw, model });
+      continue;
+    }
+    candidates.push({ key: `e${i + 1}`, draft: d });
+  }
+  const checks = candidates
+    .map((c) => examCheckItem(c.key, meta.objective, c.draft.format, c.draft.stem, c.draft.body as { choices?: string[]; steps?: string[]; prompts?: string[]; responses?: string[] }, c.draft.answerKey))
+    .filter((c): c is CheckItem => !!c);
+  const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId: opts.userId });
+  for (const c of candidates) {
+    const v = gate.verdicts.get(c.key);
+    if (!v?.publish) {
+      rejected.push(`held back: fact check ${gate.error ? "error" : v?.outcome ?? "missing"}`);
+      await recordHoldback({
+        kind: "exam",
+        objectiveId: opts.objectiveId,
+        reason: gate.error ? "fact_check_error" : "fact_check",
+        claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
+        content: { draft: c.draft, checker: v ?? null },
+        model,
+      });
+      continue;
+    }
+    stored.push(await insertDraft(opts.objectiveId, c.draft, model));
   }
   if (rejected.length) console.warn(`[exam-items] rejected ${rejected.length} generated item(s): ${rejected.join("; ")}`);
   return { stored, rejected };

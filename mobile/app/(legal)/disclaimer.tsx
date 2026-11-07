@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Screen, H1, H2, Body, Muted } from "@/components/ui";
 import { spacing } from "@/lib/theme";
+import { TRADEMARK_OWNERS } from "@/lib/vendor";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -20,14 +21,15 @@ export default function Disclaimer() {
   return (
     <Screen>
       <H1>Disclaimer</H1>
-      <Muted style={{ marginTop: spacing.xs }}>Draft — last updated September 17, 2026.</Muted>
+      <Muted style={{ marginTop: spacing.xs }}>Draft — last updated November 7, 2026.</Muted>
 
       <Section title="Not affiliated with, and not a guarantee from, any certification body">
         <Body>
           Ascendra is an independent study aid. It is not produced, endorsed, sponsored, or
-          affiliated with CompTIA or any other certification, examination, or accrediting body
-          named or implied by its course content. Certification and exam names are the property
-          of their respective owners and are used only to describe what a course covers.
+          affiliated with CompTIA, Amazon Web Services, Microsoft, Google, PMI or any other
+          certification, examination, or accrediting body named or implied by its course content.
+          Certification and exam names are the property of their respective owners and are used
+          only to describe what a course covers. Each course page names the body behind its exam.
         </Body>
         <Body>
           Completing a course, reaching a mastery score, or answering practice questions correctly
@@ -35,6 +37,17 @@ export default function Disclaimer() {
           particular grade. Practice content is written to resemble real exam style and coverage,
           but it is not sourced from, and is not a copy of, any live exam.
         </Body>
+      </Section>
+
+      {/* REQ-119 (Audit 3 product M6): the owners of the marks the catalog uses. */}
+      <Section title="Trademarks">
+        <Body>
+          Names, exam titles and marks used in Ascendra's courses belong to their owners, including:
+        </Body>
+        {TRADEMARK_OWNERS.map((owner) => (
+          <Body key={owner}>• {owner}</Body>
+        ))}
+        <Body>None of them produces, reviews or endorses Ascendra.</Body>
       </Section>
 
       <Section title='"As is," no professional guarantee'>

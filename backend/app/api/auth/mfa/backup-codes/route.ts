@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { generateBackupCodes } from "@/lib/auth/mfa";
 import { verifyPassword } from "@/lib/auth/passwords";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const { password, method } = body ?? {};
     if (!password || typeof password !== "string") {
       return badRequest("password is required");

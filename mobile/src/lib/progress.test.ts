@@ -52,3 +52,10 @@ describe("readinessSummary (REQ-100)", () => {
     assert.equal(domainLine({ ...base.domains[1], practiced: 0, accuracyPercent: null, readinessPercent: 0 }), "0/10 practiced · 0% ready");
   });
 });
+
+describe("REQ-117 readiness wording", () => {
+  test("shows how much is confirmed at a spaced review", () => {
+    const s = readinessSummary({ ...base, keptPercent: 40 })!;
+    assert.ok(s.lines.some((l) => /40% confirmed at a spaced review/.test(l)));
+  });
+});

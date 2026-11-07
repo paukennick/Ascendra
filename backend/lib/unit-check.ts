@@ -1,13 +1,18 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { gradePBQPrompt, gradeResultSchema } from "@/lib/prompts";
+import { normalizePartScores } from "@/lib/prompts";
+import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
 import { unitCheckPrompt, unitCheckSchema } from "@/lib/review-prompts";
 import { md5 } from "@/lib/review-plan";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { UserFacingError } from "@/lib/http";
 import { ReviewError } from "@/lib/review-service";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
+import { withGradingClaim } from "@/lib/grading-claims";
 
 // REQ-108 (research item #1): the unit gate check. Every unit carries a
 // gate statement in the seed (course_units.gate_description) -- what a
@@ -159,6 +164,12 @@ export async function getOrWriteUnitCheck(userId: string, status: UnitCheckStatu
   });
   const subParts = gen.subParts.map((s) => s.trim()).filter(Boolean);
   if (!gen.scenario.trim() || subParts.length < 1) throw new Error("unit check generation returned no scenario");
+  // REQ-114 (Audit 3 H1): never store a scenario its writer was unsure of.
+  const unsure = uncertaintyOf(gen);
+  if (unsure) {
+    await recordHoldback({ kind: "unit_check", unitId: status.unitId, reason: "uncertain", claims: unsure, content: gen, model });
+    throw new UserFacingError("We couldn't write a check we're confident in just now. Please try again.");
+  }
   const row = await queryOne<UnitCheckItem & Record<string, unknown>>(
     `insert into unit_check_items (unit_id, gate_hash, title, scenario, sub_parts, model)
      values ($1, $2, $3, $4, $5, $6) returning id, unit_id, title, scenario, sub_parts`,
@@ -179,54 +190,71 @@ export async function gradeUnitCheck(
     [itemId, status.unitId]
   );
   if (!item) throw new ReviewError(404, "Unit check not found");
-  if (clientAttemptId) {
-    const prior = await findClientAttempt(userId, clientAttemptId);
-    if (prior) return { ...prior, subParts: item.sub_parts };
-  }
-  try {
-    await consumeRateLimit("unitcheck_grade", userId, { max: 20, windowMinutes: 10 }, { userId });
-  } catch (err) {
-    if (err instanceof RateLimitError) throw new ReviewError(429, err.message);
-    throw err;
-  }
-  const ctx = await coachContextForUnit(status.unitId);
-  const { system, user } = gradePBQPrompt({ scenario: item.scenario, subParts: item.sub_parts, answer, ctx: ctx ?? undefined });
-  const graded = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: gradeResultSchema,
-    maxTokens: 900,
-    model: getFastModel(),
-    effort: "high",
-    thinking: "off",
-    purpose: "unitcheck_grade",
-    userId,
-  });
-  try {
-    const attempt = await withTransaction((tx) =>
-      recordAttemptTx(tx, {
-        userId,
-        unitId: status.unitId,
-        kind: "unitcheck",
-        format: "pbq",
-        question: item.title,
-        answer,
-        verdict: graded.verdict,
-        feedback: graded.feedback,
-        classification: graded.classification,
-        missedParts: graded.missedParts ?? [],
-        clientAttemptId,
-        assessmentType: "unit_check",
-        unitCheckItemId: item.id,
-        errorLog: false,
-      })
-    );
-    return { ...graded, attempt, subParts: item.sub_parts, replayed: false };
-  } catch (err) {
-    if (clientAttemptId && isDuplicateClientAttempt(err)) {
-      const prior = await findClientAttempt(userId, clientAttemptId);
-      if (prior) return { ...prior, subParts: item.sub_parts };
+  // REQ-116: only a replay of this unit-check item; another item's id is a 409.
+  const replayStored = async () => {
+    const prior = clientAttemptId ? await findClientAttempt(userId, clientAttemptId) : null;
+    if (!prior) return null;
+    if (!replayMatches(prior.attempt, { kind: "unitcheck", unitCheckItemId: item.id })) {
+      throw new ReviewError(409, REPLAY_CONFLICT);
     }
-    throw err;
-  }
+    return { ...prior, subParts: item.sub_parts };
+  };
+  const done = await replayStored();
+  if (done) return done;
+  const gradeAndRecord = async () => {
+    try {
+      await consumeRateLimit("unitcheck_grade", userId, { max: 20, windowMinutes: 10 }, { userId });
+    } catch (err) {
+      if (err instanceof RateLimitError) throw new ReviewError(429, err.message);
+      throw err;
+    }
+    const ctx = await coachContextForUnit(status.unitId);
+    // Audit 3 M1/L1: the shared multi-part grader (lib/pbq-grading.ts) -- the
+    // PBQ prompt with its matching per-part schema and a 1,500-token cap,
+    // trivial answers graded without a call, verdicts checked against the
+    // part scores.
+    const { trivial: _trivial, ...graded } = await gradePbqAnswer({
+      scenario: item.scenario,
+      subParts: item.sub_parts,
+      answer,
+      ctx: ctx ?? undefined,
+      userId,
+      purpose: "unitcheck_grade",
+    });
+    const { parts, ...grade } = graded;
+    // Lined up with the check's own labels; null when the grader's list can't
+    // be matched, and the app then says "not scored" rather than guessing.
+    const partScores = normalizePartScores(item.sub_parts, parts, graded.missedParts ?? []);
+    try {
+      const attempt = await withTransaction((tx) =>
+        recordAttemptTx(tx, {
+          userId,
+          unitId: status.unitId,
+          kind: "unitcheck",
+          format: "pbq",
+          question: item.title,
+          answer,
+          verdict: graded.verdict,
+          feedback: graded.feedback,
+          classification: graded.classification,
+          missedParts: graded.missedParts ?? [],
+          clientAttemptId,
+          assessmentType: "unit_check",
+          unitCheckItemId: item.id,
+          partScores,
+          errorLog: false,
+        })
+      );
+      return { ...grade, partScores, attempt, subParts: item.sub_parts, replayed: false };
+    } catch (err) {
+      if (clientAttemptId && isDuplicateClientAttempt(err)) {
+        const prior = await replayStored();
+        if (prior) return prior;
+      }
+      throw err;
+    }
+  };
+  // REQ-120 (FAIL-430): copies of one submission sent at once share one
+  // grader call (lib/grading-claims.ts); the others replay the stored result.
+  return withGradingClaim(userId, clientAttemptId, gradeAndRecord, replayStored);
 }

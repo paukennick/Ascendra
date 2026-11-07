@@ -3,6 +3,7 @@ import { queryOne } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
+import { generateValid, lessonIntroProblems, lessonPracticeProblems } from "@/lib/content-validator";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
   lessonIntroPrompt,
@@ -19,7 +20,7 @@ import {
   clearLessonProgress,
   getLessonFor,
   getOverrideLesson,
-  getSharedLesson,
+  getServableSharedLesson,
   isClaimLive,
   releaseClaim,
   renewClaim,
@@ -30,6 +31,8 @@ import {
   type LessonRow,
   type LessonScope,
 } from "@/lib/lesson-store";
+import { factCheckGate, modelFactChecker, type CheckItem, type FactChecker } from "@/lib/fact-check";
+import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
 
 export type { LessonRow, LessonScope } from "@/lib/lesson-store";
 
@@ -128,12 +131,19 @@ export interface LessonGenerator {
   intro(objRow: ObjectiveRow, avoid?: LessonAvoid, meta?: GenerateMeta): Promise<LessonIntroContent>;
   practice(objRow: ObjectiveRow, avoid?: LessonAvoid, meta?: GenerateMeta): Promise<LessonPracticeContent>;
   model(): string;
+  // REQ-114: the second-model fact-check of a SHARED lesson's two checks.
+  // Production sets it; a test generator without one skips the gate (the
+  // writer's own uncertainClaims are still honoured).
+  factCheck?: FactChecker;
 }
 
 // Who a generation is for, for ai_calls. Only a regenerate is attributable to
 // one learner; the first (shared) generation serves everyone.
 export interface GenerateMeta {
   userId?: string;
+  // REQ-114: set on the one retry of a practice half that was held back --
+  // the claims to leave out or state as uncertain.
+  steer?: string;
 }
 
 // Lessons: Sonnet, effort "medium", thinking off. See lib/anthropic.ts
@@ -151,7 +161,9 @@ export const claudeGenerator: LessonGenerator = {
       ctx: objRow.ctx ?? undefined,
     });
     // REQ-106: the model writes the cards; the flat teach text is derived.
-    const raw = await callClaudeStructured({
+    // Audit 3 M2: checked before it can be stored; regenerated once, then a
+    // clean 503 (lib/content-validator.ts).
+    return generateValid("lesson", async () => introFromModel(await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: lessonIntroSchema,
@@ -161,8 +173,7 @@ export const claudeGenerator: LessonGenerator = {
       thinking: "off",
       purpose: "lesson_intro",
       userId: meta?.userId,
-    });
-    return introFromModel(raw);
+    })), lessonIntroProblems);
   },
   async practice(objRow, avoid, meta) {
     const { system, user } = lessonPracticePrompt({
@@ -171,8 +182,9 @@ export const claudeGenerator: LessonGenerator = {
       objectiveTitle: objRow.title,
       avoid,
       ctx: objRow.ctx ?? undefined,
+      steer: meta?.steer,
     });
-    return callClaudeStructured({
+    return generateValid("lesson", () => callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: lessonPracticeSchema,
@@ -182,10 +194,51 @@ export const claudeGenerator: LessonGenerator = {
       thinking: "off",
       purpose: "lesson_practice",
       userId: meta?.userId,
-    });
+    }), lessonPracticeProblems);
   },
   model: getModel,
+  factCheck: modelFactChecker,
 };
+
+// REQ-114 (Audit 3 H1 + recommendation 1). A lesson's two checks are shared
+// items with answer keys, but a lesson cannot be shown without them, so a
+// held-back practice half is regenerated ONCE, steered away from the claims
+// that held it back; if the retry is held back too it is kept (a lesson needs
+// its checks) and logged as 'served_after_retry' for review. Learner flags
+// and quarantine still apply to it. The fact-check runs only for the shared
+// lesson (one fast-model call per objective), not a learner's own regenerate.
+export async function checkedPractice(
+  objectiveId: string,
+  objRow: ObjectiveRow,
+  first: LessonPracticeContent,
+  opts: { shared: boolean; gen: LessonGenerator; avoid?: LessonAvoid; meta: GenerateMeta }
+): Promise<LessonPracticeContent> {
+  const problems = async (p: LessonPracticeContent): Promise<{ reason: "uncertain" | "fact_check" | "fact_check_error"; claims: string[] } | null> => {
+    const unsure = uncertaintyOf(p);
+    if (unsure) return { reason: "uncertain", claims: unsure };
+    if (!opts.shared || !opts.gen.factCheck) return null;
+    const items: CheckItem[] = [
+      { key: "fade", objectiveTitle: objRow.title, question: p.fadeProblem, format: "single", options: p.fadeChoices, expected: [p.fadeCorrectIndex] },
+      { key: "solo", objectiveTitle: objRow.title, question: p.soloCheck, format: "single", options: p.soloChoices, expected: [p.soloCorrectIndex] },
+    ];
+    const gate = await factCheckGate(items, { ctx: objRow.ctx ?? undefined, userId: opts.meta.userId }, opts.gen.factCheck);
+    if (gate.error) return { reason: "fact_check_error", claims: [gate.error] };
+    const failed = items.map((i) => gate.verdicts.get(i.key)).filter((v) => !v?.publish);
+    if (!failed.length) return null;
+    const claims = failed.flatMap((v) => (v?.unsupportedClaims.length ? v.unsupportedClaims : [`${v?.key}: independent answer disagreed with the key`]));
+    return { reason: "fact_check", claims };
+  };
+  const firstProblem = await problems(first);
+  if (!firstProblem) return first;
+  await recordHoldback({ kind: "lesson", objectiveId, reason: firstProblem.reason, claims: firstProblem.claims, content: first, model: opts.gen.model() });
+  const steer = `A previous draft was held back because of these claims. Leave each out, or state plainly that it may differ for this exam version, and make sure each check has exactly one defensible answer:\n${firstProblem.claims.map((c) => `- ${c}`).join("\n")}`;
+  const retry = await opts.gen.practice(objRow, opts.avoid, { ...opts.meta, steer });
+  const retryProblem = await problems(retry);
+  if (retryProblem) {
+    await recordHoldback({ kind: "lesson", objectiveId, reason: "served_after_retry", claims: retryProblem.claims, content: retry, model: opts.gen.model() });
+  }
+  return retry;
+}
 
 export interface GenerationHandle {
   // The guess+teach half as soon as it exists. null when ANOTHER server
@@ -258,7 +311,7 @@ async function waitForOtherGeneration(
     if (scope.kind === "shared") {
       // A first generation only ever creates the row, so it is final as soon
       // as it exists.
-      const row = await getSharedLesson(objectiveId);
+      const row = await getServableSharedLesson(objectiveId);
       if (row) return row;
       if (!live) return null;
     } else if (!live) {
@@ -300,7 +353,7 @@ async function runGeneration(
           // Another instance may have finished between the caller's read of
           // the cache and our claim. The stored lesson wins; do not generate
           // a competing one.
-          const done = await getSharedLesson(objectiveId);
+          const done = await getServableSharedLesson(objectiveId);
           if (done) {
             settleIntro(null);
             return done;
@@ -320,7 +373,17 @@ async function runGeneration(
         practiceCall.catch(() => {});
         const intro = await introCall;
         settleIntro(intro);
-        const practice = await practiceCall;
+        // REQ-114: teaching text is not an item; uncertainty in it is logged.
+        const introUnsure = uncertaintyOf(intro as unknown as { uncertainClaims?: unknown; confidence?: unknown });
+        if (introUnsure) {
+          await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: introUnsure, content: intro, model: gen.model() });
+        }
+        const practice = await checkedPractice(objectiveId, objRow, await practiceCall, {
+          shared: scope.kind === "shared",
+          gen,
+          avoid,
+          meta,
+        });
         // A learner's override is an upsert, so a holder that lost its lease
         // (stalled past it; another instance took over) must not overwrite
         // the successor's result. A shared save is insert-if-absent, so the

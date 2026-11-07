@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { CoachContext } from "@/lib/coach-context";
-import { fenceLearnerText, gradeResultSchema, systemWithRules, type SystemPrompt } from "@/lib/prompts";
+import { fenceLearnerText, gradeResultSchema, systemWithRules, uncertaintySchemaFields, type SystemPrompt } from "@/lib/prompts";
 
 // REQ-111: prompts and output schemas for the deep-understanding features.
 // Kept out of lib/prompts.ts (sibling branches edit that file) and built on
@@ -41,6 +41,8 @@ export const conceptSetSchema = z.object({
       })
     )
     .describe("3-4 scenarios, spread across the concepts."),
+  // REQ-114 (Audit 3 H1): a set listing any is held back, not served.
+  ...uncertaintySchemaFields,
 });
 
 export const conceptSetsSchema = z.object({
@@ -74,7 +76,8 @@ ${numberedObjectives(params.objectives)}
 Produce ONLY a JSON object with a "sets" array. For each set: 2-4 concepts (each with name, aliases and
 the number of the objective that teaches it, 0 if none), 3-5 dimensions with one value per concept in the
 same order, one "howToTell" sentence, and 3-4 scenarios that each fit exactly one concept without naming
-any of them (answerConcept is its 0-based index), spread across the concepts.`;
+any of them (answerConcept is its 0-based index), spread across the concepts. Give each set its own
+confidence and uncertainClaims.`;
   return { system, user };
 }
 
@@ -102,7 +105,7 @@ ${fenceLearnerText("confused_with", params.confusedWith.join("\n"))}
 
 Produce ONLY a JSON object for one set: 2-4 concepts (the objective's concept first, with objectiveNumber 1;
 the others 0), 3-5 dimensions with one value per concept, a "howToTell" sentence, and 3-4 scenarios that
-each fit exactly one concept without naming any of them.`;
+each fit exactly one concept without naming any of them, plus confidence and uncertainClaims.`;
   return { system, user };
 }
 

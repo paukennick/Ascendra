@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Badge, Card, FavoriteButton, H2, Muted, ProgressBar } from "@/components/ui";
 import { colors, getCourseIcon, spacing } from "@/lib/theme";
 import type { Track } from "@/types";
@@ -37,7 +37,7 @@ export function CourseCard({
   onPress: () => void;
   onToggleFavorite: () => void;
 }) {
-  const { emoji, icon, accent } = getCourseIcon(track);
+  const { emoji, icon, accent, iconColor } = getCourseIcon(track);
   return (
     <Card onPress={onPress}>
       <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
@@ -45,7 +45,7 @@ export function CourseCard({
           {emoji ? (
             <Text style={{ fontSize: 20 }}>{emoji}</Text>
           ) : (
-            <Feather name={icon as IconName} size={18} color={accent} />
+            <Feather name={icon as IconName} size={18} color={iconColor} />
           )}
         </View>
         <View style={{ flex: 1, gap: 4 }}>

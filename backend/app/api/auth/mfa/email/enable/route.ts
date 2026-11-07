@@ -1,7 +1,8 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { verifyEmailCode, generateBackupCodes } from "@/lib/auth/mfa";
+import { endOtherSessions } from "@/lib/auth/sessionControl";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const { code } = body ?? {};
     if (!code || typeof code !== "string") {
       return badRequest("code is required");
@@ -48,7 +49,10 @@ export async function POST(req: Request) {
       hashed,
     ]);
 
-    return ok({ enabled: true, backupCodes });
+    // REQ-116: same as /api/auth/mfa/enable -- other devices are signed out.
+    const accessToken = await endOtherSessions(user);
+
+    return ok({ enabled: true, backupCodes, ...(accessToken ? { accessToken } : {}) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

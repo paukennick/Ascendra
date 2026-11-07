@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyGoogleIdToken } from "@/lib/auth/oauth";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const authUser = await requireUser(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const idToken = body?.idToken;
     if (!idToken || typeof idToken !== "string") return badRequest("idToken is required");
 

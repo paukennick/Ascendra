@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
+import { friendlyError } from "@/lib/errorMessage";
+import { useAnswerDraft } from "@/lib/useAnswerDraft";
 import { Body, Button, Card, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { MisconceptionNote, RefresherOffer } from "@/components/Understanding";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -45,18 +47,25 @@ export default function ExplainBackScreen() {
   }>();
   const router = useRouter();
   const [info, setInfo] = useState<Info | null>(null);
-  const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const sent = useRef<{ id: string; text: string } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // REQ-113 (Audit 3 mobile M3): up to 4000 characters, kept on the device
+  // until graded instead of only in memory.
+  const draft = useAnswerDraft("explain", objectiveId ?? null);
+  const answer = draft.text;
+  const setAnswer = draft.setText;
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoadError(null);
     api
       .get<Info>(`/api/objectives/${objectiveId}/explain-back`)
       .then(setInfo)
-      .catch((err) => setError((err as Error).message));
+      .catch((err) => setLoadError(friendlyError(err)));
   }, [objectiveId]);
+
+  useEffect(load, [load]);
 
   async function submit() {
     const text = answer.trim();
@@ -65,11 +74,11 @@ export default function ExplainBackScreen() {
     setError(null);
     // The same text resent after a dropped connection keeps its id, so it is
     // replayed instead of graded twice; any edit is a new answer.
-    if (!sent.current || sent.current.text !== text) sent.current = { id: Crypto.randomUUID(), text };
+    const clientAttemptId = draft.idFor(text, () => Crypto.randomUUID());
     try {
-      setResult(await api.post<Result>(`/api/objectives/${objectiveId}/explain-back`, { answer: text, clientAttemptId: sent.current.id }));
+      setResult(await api.post<Result>(`/api/objectives/${objectiveId}/explain-back`, { answer: text, clientAttemptId }));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't reach the server. Your explanation is still here — try again.");
+      setError(friendlyError(err, { kept: true }));
     } finally {
       setBusy(false);
     }
@@ -79,9 +88,10 @@ export default function ExplainBackScreen() {
   return (
     <Screen>
       <H1>Explain it back</H1>
-      {objectiveTitle ? <Muted style={{ color: colors.accent }}>{objectiveTitle}</Muted> : null}
+      {objectiveTitle ? <Muted style={{ color: colors.link }}>{objectiveTitle}</Muted> : null}
+      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
       {error ? <ErrorBanner message={error} /> : null}
-      {!info && !error ? <Loading /> : null}
+      {!info && !loadError ? <Loading /> : null}
       {info && !info.eligible ? (
         <Card>
           <Body>{explainBackLockedNote(info.status)}</Body>
@@ -108,7 +118,7 @@ export default function ExplainBackScreen() {
                 maxLength={4000}
                 style={{
                   borderWidth: 1,
-                  borderColor: colors.border,
+                  borderColor: colors.inputBorder,
                   borderRadius: radius.md,
                   padding: 12,
                   color: colors.text,
@@ -155,7 +165,15 @@ export default function ExplainBackScreen() {
                 icon="edit-3"
                 onPress={() => setResult(null)}
               />
-              <Button label="Back to the course" icon="arrow-left" onPress={() => router.dismissTo(`/course/${trackId}`)} />
+              <Button
+                label="Back to the course"
+                icon="arrow-left"
+                onPress={() => {
+                  // Graded and done with: the kept copy isn't needed any more.
+                  draft.clear();
+                  router.dismissTo(`/course/${trackId}`);
+                }}
+              />
             </Card>
           )}
         </>

@@ -1,5 +1,5 @@
 import { getLessonFor } from "@/lib/lesson-store";
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
 import { loadObjective } from "@/lib/lesson-generation";
@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = await req.json();
+    const body = await readJson(req);
     const guess = typeof body?.guess === "string" ? body.guess.trim() : "";
     if (!guess) return badRequest("guess is required");
     // REQ-098: bounded before it goes into a model prompt.

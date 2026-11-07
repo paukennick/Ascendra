@@ -1,5 +1,9 @@
+import { UserFacingError } from "@/lib/http";
+import { factCheckGate } from "@/lib/fact-check";
+import { recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import { generateValid, InvalidContentError, quizItemProblems } from "@/lib/content-validator";
 import { coachQuizPrompt, coachQuizSchema, type CoachQuizItem } from "@/lib/prompts";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -205,7 +209,8 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     objectiveTitle: o.title,
     ctx: ctx ?? undefined,
   });
-  return callClaudeStructured({
+  // Audit 3 M2: checked before it is stored and shared; regenerated once.
+  return generateValid("quiz question", () => callClaudeStructured({
     system,
     messages: [{ role: "user", content: user }],
     schema: coachQuizSchema,
@@ -215,8 +220,39 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     thinking: "off",
     purpose: "coach_quiz",
     userId,
-  });
+  }), quizItemProblems);
 };
+
+export const QUIZ_HELD_MESSAGE =
+  "We couldn't write a question we're confident in for this topic just now. Try again, or pick a lesson to practise instead.";
+
+// Holds back (and logs) a new Quiz-me question that lists uncertain claims or
+// fails the fact-check gate; throws a message the app shows. Passes otherwise.
+export async function gateQuizItem(objectiveId: string, objectiveTitle: string, made: CoachQuizItem, userId: string): Promise<void> {
+  const model = getFastModel();
+  const unsure = uncertaintyOf(made);
+  if (unsure) {
+    await recordHoldback({ kind: "quiz", objectiveId, reason: "uncertain", claims: unsure, content: made, model });
+    throw new UserFacingError(QUIZ_HELD_MESSAGE);
+  }
+  const ctx = (await coachContextForObjective(objectiveId)) ?? undefined;
+  const gate = await factCheckGate(
+    [{ key: "q1", objectiveTitle, question: made.question, format: "single", options: made.choices, expected: [made.correctIndex] }],
+    { ctx, userId }
+  );
+  const v = gate.verdicts.get("q1");
+  if (!v?.publish) {
+    await recordHoldback({
+      kind: "quiz",
+      objectiveId,
+      reason: gate.error ? "fact_check_error" : "fact_check",
+      claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
+      content: { item: made, checker: v ?? null },
+      model,
+    });
+    throw new UserFacingError(QUIZ_HELD_MESSAGE);
+  }
+}
 
 export type NextQuizResult =
   | { status: "ok"; turn: PresentedTurn; generated: boolean }
@@ -253,6 +289,7 @@ export async function nextQuizTurn(
   let item = await queryOne<QuizItemRow>(
     `select i.* from coach_quiz_items i
       where i.objective_id = $1
+        and ${servableSql("quiz", "i.id")}
         and not exists (select 1 from coach_quiz_turns t where t.user_id = $2 and t.item_id = i.id)
       order by i.generated_at asc limit 1`,
     [target.objectiveId, userId]
@@ -264,6 +301,12 @@ export async function nextQuizTurn(
     if (!Array.isArray(made.choices) || made.choices.length !== 4 || made.correctIndex < 0 || made.correctIndex > 3) {
       throw new Error("quiz item has the wrong shape");
     }
+    // Audit 3 M2: whatever generated it, nothing invalid is stored.
+    const problems = quizItemProblems(made);
+    if (problems.length) throw new InvalidContentError("quiz question", problems);
+    // REQ-114 (Audit 3 H1 + recommendation 1): never share a question its
+    // writer was unsure of, or that an independent answer disagrees with.
+    await gateQuizItem(target.objectiveId, target.title, made, userId);
     item = await queryOne<QuizItemRow>(
       `insert into coach_quiz_items (objective_id, question, choices, correct_index, hints, explanation, model)
        values ($1, $2, $3, $4, $5, $6, $7) returning *`,

@@ -24,6 +24,7 @@ import { withBackgroundHold } from "@/lib/backgroundHold";
 import { backupCodesText, isShareDismissal, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
 import { installWebLeaveGuard } from "@/lib/webLeaveGuard";
 import { colors, radius } from "@/lib/theme";
+import { reauthPromptFor } from "@/lib/reauth";
 
 type MfaMethod = "totp" | "email";
 
@@ -121,6 +122,10 @@ export default function MfaSettings() {
   // emailed confirmation code before it actually disables anything.
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState("");
+  // REQ-116: with two-factor already on, adding an authenticator first
+  // needs a current code, a backup code or the password.
+  const [reauthSecret, setReauthSecret] = useState("");
+  const hasPassword = !!user?.hasPassword;
 
   // A denied clipboard (web permission, some browsers) used to reject
   // unhandled here (FAIL-069); the secret is on screen to type instead.
@@ -170,11 +175,25 @@ export default function MfaSettings() {
     router.back();
   }
 
-  async function startTotpSetup() {
+  async function startTotpSetup(reauth?: string) {
+    if (user?.mfaEnabled && reauth === undefined) {
+      setError(null);
+      setReauthSecret("");
+      setView("totp-reauth");
+      return;
+    }
+    if (reauth !== undefined && !reauth) {
+      setError(reauthPromptFor(user).hint);
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
-      const res = await api.post<{ secret: string; qrDataUrl: string }>("/api/auth/mfa/setup");
+      const res = await api.post<{ secret: string; qrDataUrl: string }>(
+        "/api/auth/mfa/setup",
+        reauth !== undefined ? { reauth } : undefined
+      );
+      setReauthSecret("");
       setManualSecret(res.secret);
       setQrDataUrl(res.qrDataUrl);
       setCode("");
@@ -261,7 +280,9 @@ export default function MfaSettings() {
   }
 
   async function disable() {
-    if (!password) {
+    // REQ-116: an account without a password (Google-only) confirms with
+    // the emailed code instead.
+    if (hasPassword && !password) {
       setError("Enter your password.");
       return;
     }
@@ -274,7 +295,7 @@ export default function MfaSettings() {
     try {
       const endpoint = targetMethod === "totp" ? "/api/auth/mfa/disable" : "/api/auth/mfa/email/disable";
       const res = await api.post<{ confirmationRequired?: boolean }>(endpoint, {
-        password,
+        ...(hasPassword ? { password } : {}),
         ...(needsConfirmation ? { confirmationCode: confirmationCode.trim() } : {}),
       });
       if (res.confirmationRequired) {
@@ -345,6 +366,40 @@ export default function MfaSettings() {
     );
   }
 
+  if (view === "totp-reauth") {
+    const prompt = reauthPromptFor(user);
+    return (
+      <Screen>
+        <H2>Confirm it's you</H2>
+        <Muted>Two-factor is already on, so adding an authenticator app needs one more check.</Muted>
+        <Muted>{prompt.hint}</Muted>
+        {error ? <ErrorBanner message={error} /> : null}
+        <Card>
+          <TextField
+            label={prompt.kind === "secret" ? prompt.label : "Authenticator or backup code"}
+            value={reauthSecret}
+            onChangeText={setReauthSecret}
+            secureTextEntry={prompt.kind === "secret" && prompt.secure}
+            placeholder={prompt.kind === "secret" && prompt.secure ? "••••••••" : "123456"}
+            textContentType={prompt.kind === "secret" && prompt.secure ? "password" : "oneTimeCode"}
+            autoComplete={prompt.kind === "secret" && prompt.secure ? "current-password" : "one-time-code"}
+            icon="lock"
+          />
+          <Button label="Continue" icon="check-circle" onPress={() => startTotpSetup(reauthSecret)} loading={busy} />
+        </Card>
+        <Button
+          label="Cancel"
+          variant="link"
+          onPress={() => {
+            setReauthSecret("");
+            setError(null);
+            setView("status");
+          }}
+        />
+      </Screen>
+    );
+  }
+
   if (view === "totp-setup") {
     return (
       <Screen>
@@ -358,7 +413,12 @@ export default function MfaSettings() {
           <Muted style={{ textAlign: "center" }}>Can't scan? Copy this code into your authenticator app:</Muted>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Tag label={manualSecret ?? ""} />
-            <IconButton icon={copied ? "check" : "copy"} size={32} onPress={copySecret} />
+            <IconButton
+              icon={copied ? "check" : "copy"}
+              size={32}
+              accessibilityLabel={copied ? "Code copied" : "Copy the setup code"}
+              onPress={copySecret}
+            />
           </View>
           {copied ? <Muted style={{ color: colors.good }}>Copied to clipboard</Muted> : null}
         </Card>
@@ -414,21 +474,25 @@ export default function MfaSettings() {
           {isDisable
             ? needsConfirmation
               ? "This is the last verification method on your account, so we've also emailed a confirmation code."
-              : "This removes it as a sign-in step. Enter your password to confirm."
+              : hasPassword
+                ? "This removes it as a sign-in step. Enter your password to confirm."
+                : "This removes it as a sign-in step. We'll email you a code to confirm."
             : "This invalidates the existing backup codes for this method and issues 10 new ones. Enter your password to confirm."}
         </Muted>
         {error ? <ErrorBanner message={error} /> : null}
         <Card>
-          <TextField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            textContentType="password"
-            autoComplete="current-password"
-            icon="lock"
-          />
+          {hasPassword || !isDisable ? (
+            <TextField
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="••••••••"
+              textContentType="password"
+              autoComplete="current-password"
+              icon="lock"
+            />
+          ) : null}
           {isDisable && needsConfirmation ? (
             <TextField
               label="Emailed confirmation code"

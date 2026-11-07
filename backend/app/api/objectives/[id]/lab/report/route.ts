@@ -1,4 +1,4 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
@@ -9,6 +9,8 @@ import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-servic
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { labAnswersFor, labObjective, labQuestionsFor } from "@/lib/lesson-experience";
 import { labReportAnswer, labReportQuestion, labReportTaughtText } from "@/lib/prompts";
+import { hasUnstorableText } from "@/lib/text-input";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 
 export const dynamic = "force-dynamic";
 
@@ -43,63 +45,72 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // A resend of a report the server already graded gets that result back,
     // before the rate limit and the model call (same rule as /api/grade).
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
-    if (clientAttemptId) {
-      const prior = await findClientAttempt(user.id, clientAttemptId);
-      if (prior) {
-        const a = prior.attempt as Record<string, unknown>;
-        if (a.kind !== "lab" || a.lab_objective_id !== id) {
-          return badRequest("clientAttemptId was already used for a different answer");
-        }
-        return ok(prior);
+    const replayStored = async () => {
+      const prior = clientAttemptId ? await findClientAttempt(user.id, clientAttemptId) : null;
+      if (!prior) return null;
+      const a = prior.attempt as Record<string, unknown>;
+      if (a.kind !== "lab" || a.lab_objective_id !== id) {
+        return badRequest("clientAttemptId was already used for a different answer");
       }
-    }
+      return ok(prior);
+    };
+    const done = await replayStored();
+    if (done) return done;
 
-    try {
-      // REQ-098 / FAIL-230: atomic count-and-record (was check, then record later).
-      await consumeRateLimit("grade_open", user.id, { max: 40, windowMinutes: 10 }, { userId: user.id });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
-    }
+    // REQ-120 (FAIL-432): copies of one report sent at once share one grader
+    // call (lib/grading-claims.ts); the others replay the stored result.
+    const gradeAndRecord = async () => {
+      try {
+        // REQ-098 / FAIL-230: atomic count-and-record (was check, then record later).
+        await consumeRateLimit("grade_open", user.id, { max: 40, windowMinutes: 10 }, { userId: user.id });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
 
-    const ctx = await coachContextForObjective(id);
-    const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
-    const answers = labAnswersFor(body?.answers, questions.length);
-    if (typeof answers === "string") return badRequest(answers);
+      const ctx = await coachContextForObjective(id);
+      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
+      const answers = labAnswersFor(body?.answers, questions.length);
+      if (typeof answers === "string") return badRequest(answers);
+      // REQ-116: refused before the billed model call.
+      if (answers.some(hasUnstorableText)) return badRequest("an answer contains characters that can't be stored");
 
-    const question = labReportQuestion(questions);
-    const answer = labReportAnswer(answers);
-    const graded = await gradeFreeResponse({
-      taughtText: labReportTaughtText(obj.title, prompt),
-      question,
-      answer,
-      ctx: ctx ?? undefined,
-      userId: user.id,
-      purpose: "lab_grade",
-    });
-    const { attempt, prior } = await recordAttemptIdempotent({
-      userId: user.id,
-      unitId: obj.unit_id,
-      objectiveId: null,
-      labObjectiveId: id,
-      kind: "lab",
-      stage: "lab",
-      format: "open",
-      question,
-      answer,
-      verdict: graded.verdict,
-      feedback: graded.feedback,
-      classification: graded.classification,
-      missedParts: graded.missedParts ?? [],
-      modelAnswer: graded.modelAnswer ?? null,
-      fixNext: graded.fixNext ?? null,
-      clientAttemptId,
-    });
-    if (prior) return ok(prior);
-    return ok({ ...graded, attempt });
+      const question = labReportQuestion(questions);
+      const answer = labReportAnswer(answers);
+      const graded = await gradeFreeResponse({
+        taughtText: labReportTaughtText(obj.title, prompt),
+        question,
+        answer,
+        ctx: ctx ?? undefined,
+        userId: user.id,
+        purpose: "lab_grade",
+      });
+      const { attempt, prior } = await recordAttemptIdempotent({
+        userId: user.id,
+        unitId: obj.unit_id,
+        objectiveId: null,
+        labObjectiveId: id,
+        kind: "lab",
+        stage: "lab",
+        format: "open",
+        question,
+        answer,
+        verdict: graded.verdict,
+        feedback: graded.feedback,
+        classification: graded.classification,
+        missedParts: graded.missedParts ?? [],
+        modelAnswer: graded.modelAnswer ?? null,
+        fixNext: graded.fixNext ?? null,
+        clientAttemptId,
+      });
+      if (prior) return (await replayStored()) ?? ok(prior);
+      return ok({ ...graded, attempt });
+    };
+    return await withGradingClaim(user.id, clientAttemptId, gradeAndRecord, replayStored);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }
 }

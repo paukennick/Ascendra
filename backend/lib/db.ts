@@ -32,6 +32,18 @@ export const TX_STATEMENT_TIMEOUT_MS = 20_000;
 export const TX_LOCK_TIMEOUT_MS = 10_000;
 export const TX_IDLE_TIMEOUT_MS = 30_000;
 
+// The statement that opens every withTransaction: BEGIN plus the SET LOCAL
+// limits above, as one simple-protocol query (one round trip). Exported for
+// lib/db.test.ts.
+export function txBeginSql(readOnlySnapshot: boolean): string {
+  return [
+    readOnlySnapshot ? "begin isolation level repeatable read read only" : "begin",
+    `set local statement_timeout = '${TX_STATEMENT_TIMEOUT_MS}ms'`,
+    `set local lock_timeout = '${TX_LOCK_TIMEOUT_MS}ms'`,
+    `set local idle_in_transaction_session_timeout = '${TX_IDLE_TIMEOUT_MS}ms'`,
+  ].join("; ");
+}
+
 function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
@@ -119,13 +131,11 @@ export async function withTransaction<R>(
   let broken: Error | undefined;
   try {
     // readOnlySnapshot: every statement sees one snapshot (account export).
-    await client.query(opts.readOnlySnapshot ? "begin isolation level repeatable read read only" : "begin");
-    await client.query(
-      `select set_config('statement_timeout', $1, true),
-              set_config('lock_timeout', $2, true),
-              set_config('idle_in_transaction_session_timeout', $3, true)`,
-      [`${TX_STATEMENT_TIMEOUT_MS}ms`, `${TX_LOCK_TIMEOUT_MS}ms`, `${TX_IDLE_TIMEOUT_MS}ms`]
-    );
+    // REQ-118 (Audit 3 MEDIUM-8): BEGIN and the SET LOCALs go in one round
+    // trip (a parameterless multi-statement simple query; the values are
+    // constants from this file, never caller input). Every transaction paid
+    // two round trips for this before -- about 15 ms each to Supabase.
+    await client.query(txBeginSql(opts.readOnlySnapshot === true));
     const result = await fn(tx);
     await client.query("commit");
     return result;

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { AccessibilityInfo, PanResponder, StyleSheet, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Body, Button, H3, Muted } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import {

@@ -1,16 +1,22 @@
 // REQ-100: course readiness rollup (pure).
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { rollupReadiness } from "./readiness";
+import { objectiveReadiness, rollupReadiness } from "./readiness";
 
 const units = [
   { id: "a", title: "A", weight: 60 },
   { id: "b", title: "B", weight: "40" },
 ];
-const obj = (unitId: string, acc: number | null, score: number | null = acc) => ({
+// A confirmed objective (Independent, kept at a due review) unless told
+// otherwise: REQ-117 caps the rest.
+const obj = (unitId: string, acc: number | null, score: number | null = acc, over: Record<string, unknown> = {}) => ({
   unitId,
   weightedAccuracy: acc,
   readinessScore: score,
+  status: acc == null ? null : "Independent",
+  kept: acc == null ? null : "kept",
+  retention: 1,
+  ...over,
 });
 
 describe("rollupReadiness", () => {
@@ -64,5 +70,28 @@ describe("rollupReadiness", () => {
   test("custom thresholds apply", () => {
     const r = rollupReadiness(units, [obj("a", 0.6), obj("b", 0.6)], { minCoverage: 0.5, readyScore: 0.5, readyCoverage: 0.5 });
     assert.equal(r.status, "ready");
+  });
+
+  test("FAIL-341: high accuracy with nothing kept at a due review is not ready", () => {
+    const r = rollupReadiness(units, [obj("a", 0.95, 0.95, { kept: "unchecked" }), obj("b", 0.95, 0.95, { kept: "unchecked" })]);
+    assert.equal(r.status, "building");
+    assert.equal(r.keptPercent, 0);
+    assert.equal(r.readinessPercent, 60, "capped until confirmed");
+  });
+
+  test("FAIL-342: readiness falls with time away (retention), whatever the evidence", () => {
+    const fresh = rollupReadiness(units, [obj("a", 0.9), obj("b", 0.9)]);
+    const away = rollupReadiness(units, [obj("a", 0.9, 0.9, { retention: 0.5 }), obj("b", 0.9, 0.9, { retention: 0.5 })]);
+    assert.equal(fresh.status, "ready");
+    assert.equal(away.readinessPercent, 45);
+    assert.equal(away.status, "building");
+    const due = objectiveReadiness({ unitId: "a", weightedAccuracy: 0.9, readinessScore: 0.9, status: "Independent", kept: "kept", recheckDue: true });
+    assert.equal(due, 0.6, "a kept objective due to re-check is not confirmed");
+  });
+
+  test("FAIL-347: an objective below Independent is capped, so Guided-only learners never read ready", () => {
+    const r = rollupReadiness(units, [obj("a", 0.95, 0.95, { status: "Guided" }), obj("b", 0.95, 0.95, { status: "Guided" })]);
+    assert.equal(r.readinessPercent, 60);
+    assert.equal(r.status, "building");
   });
 });

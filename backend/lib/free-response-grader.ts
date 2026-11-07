@@ -7,6 +7,7 @@ import {
 } from "@/lib/understanding-prompts";
 import type { CoachContext } from "@/lib/coach-context";
 import type { AiPurpose } from "@/lib/ai-calls";
+import { reconciled, trivialAnswer, trivialGrade } from "@/lib/grade-consistency";
 
 // The one place a free-response answer is sent to the model for grading.
 // Used by POST /api/grade and by the offline grading eval
@@ -30,6 +31,14 @@ export async function gradeFreeResponse(params: {
   model?: string;
   purpose?: AiPurpose;
 }): Promise<GradeWithMisconception> {
+  // Audit 3 M1: a trivial answer ("." / one word that isn't the key / "idk" /
+  // the question restated) is incorrect without a model call; a verdict the
+  // grader's own missedParts contradict is downgraded.
+  const trivial = trivialAnswer(params.answer, { question: params.question, answerKey: params.answerKey });
+  if (trivial) {
+    const { trivial: _reason, ...g } = trivialGrade(trivial);
+    return { ...g, modelAnswer: g.modelAnswer ?? "", fixNext: g.fixNext ?? "", misconception: "", confusedWith: "" };
+  }
   const { system, user } = gradeFreeResponsePrompt({
     taughtText: params.taughtText,
     question: params.question,
@@ -37,7 +46,7 @@ export async function gradeFreeResponse(params: {
     answerKey: params.answerKey,
     ctx: params.ctx,
   });
-  return callClaudeStructured({
+  const graded = await callClaudeStructured({
     system,
     messages: [{ role: "user", content: `${user}\n${MISCONCEPTION_INSTRUCTION}` }],
     schema: gradeWithMisconceptionSchema,
@@ -50,4 +59,5 @@ export async function gradeFreeResponse(params: {
     purpose: params.purpose ?? "grade_open",
     userId: params.userId,
   });
+  return reconciled(graded, { missedParts: graded.missedParts });
 }

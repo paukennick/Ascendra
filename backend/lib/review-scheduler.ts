@@ -10,16 +10,29 @@
 //   - A correct, unassisted answer given when the review was due moves one
 //     step up the ladder; the next review is that step's interval away.
 //     The top step repeats every 60 days.
-//   - A correct answer before it is due, or a correct answer with help
-//     (choices shown first), changes nothing: early reviews never jump the
-//     ladder, and help is not proof of recall.
+//   - A correct answer before it is due changes nothing: early reviews never
+//     jump the ladder.
+//   - REQ-117 (Audit 3 T4): a correct answer with help (choices shown) when
+//     the review was due moves at most to HELPED_MAX_STEP (7 days): help is
+//     not proof of recall, so it never reaches the 21- and 60-day rungs, but
+//     it is not a daily loop either. It used to leave the schedule unchanged,
+//     past-due date included, so a learner who always peeked was served every
+//     day forever. From above that rung it comes back down to it.
 //   - A partial answer holds the step and brings the review back after the
 //     previous rung's interval (sooner than planned, not a full reset).
 //   - A miss, due or not, steps back one rung (never below 0) and counts a
-//     lapse; it is back after that rung's interval.
+//     lapse; it is back after that rung's interval. REQ-117 (T14, FAIL-353): a miss at
+//     the 21- or 60-day rung drops to step 1 (3 days), so a forgotten item is
+//     rebuilt instead of being back on the 60-day gap three weeks later.
 //   Dates are UTC calendar days, as the database's due_on.
 
 export const FIXED_INTERVALS_DAYS = [1, 3, 7, 21, 60] as const;
+
+// REQ-117: the highest step a correct answer given with help can reach.
+export const HELPED_MAX_STEP = 2;
+// REQ-117: a miss at this step or above drops to LAPSE_RESET_STEP.
+export const LAPSE_RESET_FROM = 3;
+export const LAPSE_RESET_STEP = 1;
 
 export type Verdict = "correct" | "partial" | "incorrect";
 
@@ -90,7 +103,7 @@ export const fixedScheduler: Scheduler = {
     let next: ScheduleState;
     let advanced = false;
     if (outcome.verdict === "incorrect") {
-      const step = Math.max(0, state.step - 1);
+      const step = state.step >= LAPSE_RESET_FROM ? LAPSE_RESET_STEP : Math.max(0, state.step - 1);
       next = { ...base, step, lapses: state.lapses + 1, dueOn: addDays(today, intervalFor(step)) };
     } else if (outcome.verdict === "partial") {
       next = { ...base, step: state.step, lapses: state.lapses, dueOn: addDays(today, intervalFor(state.step - 1)) };
@@ -98,8 +111,12 @@ export const fixedScheduler: Scheduler = {
       const step = Math.min(state.step + 1, FIXED_INTERVALS_DAYS.length - 1);
       advanced = true;
       next = { ...base, step, lapses: state.lapses, dueOn: addDays(today, intervalFor(step)) };
+    } else if (outcome.assisted && wasDue) {
+      // Helped, when due: up one rung but never past HELPED_MAX_STEP.
+      const step = state.step < HELPED_MAX_STEP ? state.step + 1 : HELPED_MAX_STEP;
+      next = { ...base, step, lapses: state.lapses, dueOn: addDays(today, intervalFor(step)) };
     } else {
-      // Early or helped: logged, schedule unchanged.
+      // Early (helped or not): logged, schedule unchanged.
       next = { ...base, step: state.step, lapses: state.lapses, dueOn: state.dueOn };
     }
     return { next, wasDue, advanced, elapsedDays: daysBetween(since, outcome.reviewedAt), scheduledDays };

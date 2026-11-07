@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { CourseReadiness, Track, Unit } from "@/types";

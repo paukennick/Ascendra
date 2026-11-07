@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { systemWithRules, type SystemPrompt } from "@/lib/prompts";
+import { ITEM_WRITING_RULES, systemWithRules, uncertaintySchemaFields, type SystemPrompt } from "@/lib/prompts";
 import type { CoachContext } from "@/lib/coach-context";
 
 // REQ-108: prompts for the review loop. Kept apart from lib/prompts.ts so the
@@ -39,6 +39,8 @@ export const reviewBatchSchema = z.object({
         testedTerms: z
           .array(z.string())
           .describe("Which of the objective's terms this question actually tests, in the objective's own wording."),
+        // REQ-114 (Audit 3 H1): an item listing any is held back, not served.
+        ...uncertaintySchemaFields,
       })
     )
     .describe("One item per objective given, in the same order."),
@@ -72,7 +74,9 @@ who studied each objective days ago. Each question must check the idea itself, n
 own example: use a fresh situation, name, number or symptom, and keep it inside what the teaching text
 covers. Each question is shown first for a free-response answer and, if the learner asks, with the four
 options, so it must make sense on its own without the options. These questions are cached and reused for
-other learners, so never address a particular learner or refer to their past answers.`,
+other learners, so never address a particular learner or refer to their past answers.
+
+${ITEM_WRITING_RULES}`,
     params.ctx
   );
   const blocks = params.objectives.map((o) => {
@@ -96,7 +100,8 @@ ${o.teach.slice(0, TEACH_CHARS)}${o.mixups ? o.mixups : ""}
 
 ${blocks.join("\n\n")}
 
-Return one item per objective above, in the same order, each with its key copied exactly.`;
+Return one item per objective above, in the same order, each with its key copied exactly, and its own
+confidence and uncertainClaims.`;
   return { system, user };
 }
 
@@ -110,6 +115,7 @@ export const unitCheckSchema = z.object({
       "A realistic situation the learner has not seen, that tests exactly what the gate statement asks, ending with 2-3 explicitly numbered sub-tasks."
     ),
   subParts: z.array(z.string()).describe("One short label per sub-task (2-3), in the order written."),
+  ...uncertaintySchemaFields,
 });
 export type UnitCheck = z.infer<typeof unitCheckSchema>;
 

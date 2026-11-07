@@ -191,6 +191,22 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                    where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
   },
   {
+    migration: "047_exam_save_sequence.sql",
+    what: "exam_session_items.save_seq column (every exam answer save and the exam session view, REQ-113)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'exam_session_items' and column_name = 'save_seq') as ok`,
+  },
+  {
+    migration: "048_product_basics.sql",
+    what: "terms_acceptances, learner_onboarding, learner_events (+ triggers) and exam_outcomes (sign-up, launch, first run, exam results, export)",
+    sql: `select to_regclass('public.terms_acceptances') is not null
+             and to_regclass('public.learner_onboarding') is not null
+             and to_regclass('public.exam_outcomes') is not null
+             and to_regclass('public.learner_events_lesson_once') is not null
+             and (select count(*) from pg_trigger where tgname in ('learner_events_attempt', 'learner_events_lesson_progress',
+                    'learner_events_review_session', 'learner_events_exam_session', 'learner_events_placement')) = 5 as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
@@ -310,11 +326,55 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where table_schema = 'public' and table_name = 'attempts' and column_name = 'part_scores') as ok`,
   },
   {
+    // REQ-114: shared-item quality (flags, quarantine, holdbacks, voided
+    // answers) and the one-line voided filter in mastery_detail().
+    migration: "042_item_quality.sql",
+    what: "item_flags / item_status / item_holdbacks / item_quality_params, attempts.voided_at, and mastery_detail() leaving voided answers out",
+    sql: `select to_regclass('public.item_flags') is not null
+             and to_regclass('public.item_status') is not null
+             and to_regclass('public.item_holdbacks') is not null
+             and exists(select 1 from item_quality_params where name = 'quarantine_flag_threshold')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'voided_at')
+             and exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%a.voided_at is null%') as ok`,
+  },
+  {
     // 041b is data, not schema: its backup table is the one object it
     // creates. Remove this probe when the backup is dropped (runbook).
     migration: "041b_mastery_rule_backfill.sql",
     what: "mastery_backup_041 table (041b backup and recompute under the integration rule ran)",
     sql: `select to_regclass('public.mastery_backup_041') is not null as ok`,
+  },
+  {
+    // REQ-116: requireUser reads token_version on every authenticated
+    // request, so without it every signed-in route fails.
+    migration: "044_auth_hardening.sql",
+    what: "app_users.token_version, totp_pending_reauth_at, email-change cancel and set-password columns (every signed-in request)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name = 'app_users' and column_name in ('token_version', 'totp_pending_reauth_at'))
+                       or (table_name = 'email_change_tokens' and column_name in ('cancel_token_hash', 'token_version', 'cancelled_at'))
+                       or (table_name = 'email_verification_tokens' and column_name = 'set_password'))) = 6 as ok`,
+  },
+  {
+    // REQ-117: the Audit 3 rule (unit-wide answers accuracy only, help lowers
+    // weight, comparison cards never open Independent, spaced Transfer-ready),
+    // the kept / re-check definition and the grading lease.
+    migration: "045_mastery_honesty.sql",
+    what: "assessment_types.opens_independent / win_needs_spacing, the 045 mastery_detail(), review_state() and grading_claims",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public' and table_name = 'assessment_types'
+                     and column_name in ('opens_independent', 'win_needs_spacing')) = 2
+             and exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%opens_independent%')
+             and to_regprocedure('public.review_state(uuid, uuid, date)') is not null
+             and to_regclass('public.grading_claims') is not null
+             and exists(select 1 from mastery_model_params where name = 'readiness_min_kept_share') as ok`,
+  },
+  {
+    // Remove this probe when the backup is dropped (runbook).
+    migration: "045b_mastery_honesty_backfill.sql",
+    what: "mastery_backup_045 table (045b backup and recompute under the 045 rule ran)",
+    sql: `select to_regclass('public.mastery_backup_045') is not null as ok`,
   },
   {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
@@ -325,6 +385,28 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "029b_mastery_backfill.sql",
     what: "mastery_backup_029 table (029b backup, backfill and first recompute ran)",
     sql: `select to_regclass('public.mastery_backup_029') is not null as ok`,
+  },
+  {
+    migration: "043_ai_budget_index.sql",
+    what: "ai_calls (user_id, created_at) index (daily AI budget per learner; the check runs without it, slowly)",
+    sql: `select to_regclass('public.ai_calls_user_created_idx') is not null as ok`,
+  },
+  {
+    // REQ-118 (Audit 3 performance): without these the code still works, but
+    // review/today, account deletion and the history screen read whole
+    // tables or a learner's whole history. Kept last so the merge with other
+    // branches' probes (044, 045) stays clean.
+    migration: "046_perf_indexes.sql",
+    what: "performance indexes on attempts, item_flags, review items and the attempt_id foreign keys (account deletion)",
+    sql: `select to_regclass('public.attempts_user_unit_created') is not null
+             and to_regclass('public.attempts_unit') is not null
+             and to_regclass('public.item_flags_user') is not null
+             and to_regclass('public.review_session_items_answered') is not null
+             and to_regclass('public.error_log_attempt') is not null
+             and to_regclass('public.review_log_attempt') is not null
+             and to_regclass('public.review_session_items_attempt') is not null
+             and to_regclass('public.exam_session_items_attempt') is not null
+             and to_regclass('public.placement_items_attempt') is not null as ok`,
   },
 ];
 
