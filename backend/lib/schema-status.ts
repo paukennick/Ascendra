@@ -97,6 +97,11 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'error_log' and column_name = 'pbq_scenario_id'
           ) as ok`,
   },
+  {
+    migration: "032_lesson_progress_tombstone.sql",
+    what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
+    sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {

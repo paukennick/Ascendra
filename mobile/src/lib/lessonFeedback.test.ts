@@ -7,7 +7,9 @@ import {
   gradeSubmitError,
   isMiss,
   offerRereadAfterCheck,
+  offerTryAgain,
   soloOutcome,
+  TRY_AGAIN_NOTE,
 } from "./lessonFeedback.ts";
 
 const graded = (verdict: string) => ({ result: { verdict, feedback: "", missedParts: [] as string[] } });
@@ -95,5 +97,18 @@ describe("assistNote / gradeSubmitError (REQ-097)", () => {
     assert.doesNotMatch(offline, /correct|incorrect/i);
     assert.equal(gradeSubmitError({ status: 429, message: "Too many requests" }), "Too many requests");
     assert.match(gradeSubmitError(null), /Retry/);
+  });
+});
+
+describe("offerTryAgain (REQ-101, FAIL-095)", () => {
+  test("a missed Solo check offers a fresh try; Guided and correct answers don't", () => {
+    assert.equal(offerTryAgain("solo", "incorrect"), true);
+    assert.equal(offerTryAgain("solo", "partial"), true);
+    assert.equal(offerTryAgain("solo", "correct"), false);
+    assert.equal(offerTryAgain("solo", "weird"), false);
+    assert.equal(offerTryAgain("fade", "incorrect"), false);
+  });
+  test("the copy says a repeat won't raise mastery", () => {
+    assert.match(TRY_AGAIN_NOTE, /won't raise your level/);
   });
 });

@@ -105,3 +105,10 @@ export function sanitizeLessonProgress(body: unknown): LessonProgressInput | str
 export function validClientAttemptId(v: unknown): string | null {
   return typeof v === "string" && /^[A-Za-z0-9-]{8,64}$/.test(v) ? v : null;
 }
+
+// REQ-101: the app's savedAt / clearedAt (ms since epoch, its own clock),
+// used to order a save against a delete of the same position. Anything that
+// is not a plausible timestamp is treated as absent.
+export function validClientTime(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) && v > 0 && v < 1e14 ? Math.floor(v) : null;
+}
