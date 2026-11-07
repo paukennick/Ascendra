@@ -1,3 +1,5 @@
+import type { TeachCards } from "@/lib/lessonExperience";
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -105,7 +107,12 @@ export interface Objective {
 
 export interface LessonContent {
   guessPrompt: string;
+  // Always present: for a lesson with cards it is the same teaching as one
+  // text (what grading reads), for an older cached lesson the only teaching.
   teach: string;
+  // REQ-106: Teach as 3-4 short cards plus one self-explanation prompt.
+  // Absent for lessons cached before cards; `teach` is then shown as before.
+  teachCards?: TeachCards;
   // Absent while the practice half is still generating in the background --
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.
@@ -133,9 +140,19 @@ export interface GradeResult {
   correctAnswer?: string | null;
   why?: string | null;
   // "hint": the Solo choices were seen. "repeat": this exact question was
-  // answered before. Either way the answer can't lift mastery above Guided.
+  // answered before. "retry" (REQ-105): a revision written with the first
+  // answer's feedback in view. Each keeps the answer from lifting mastery.
   assisted?: boolean;
-  assistReason?: "hint" | "repeat" | null;
+  assistReason?: "hint" | "repeat" | "retry" | null;
+  // REQ-105, returned only with the verdict: one reason per option in the
+  // shown order (lesson multiple choice; null for an older cached lesson),
+  // the grader's model answer and "what to fix" line (free response and
+  // PBQ), and for a PBQ revision the sub-parts it covered.
+  optionReasons?: string[] | null;
+  modelAnswer?: string | null;
+  fixNext?: string | null;
+  revisedParts?: string[];
+  attempt?: { id: string };
 }
 
 export interface Attempt {

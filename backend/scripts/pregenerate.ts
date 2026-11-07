@@ -27,7 +27,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { query, closePool } from "../lib/db";
 import { isActive } from "../lib/progress-sql";
 import { buildRequest, getModel } from "../lib/anthropic";
-import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema } from "../lib/prompts";
+import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema, introFromModel } from "../lib/prompts";
 import { loadObjective } from "../lib/lesson-generation";
 import { saveLesson } from "../lib/lesson-store";
 import {
@@ -127,7 +127,8 @@ async function collect(batchId: string) {
   let kept = 0;
   for (const l of lessons) {
     const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
-    await saveLesson({ kind: "shared" }, l.objectiveId, { ...l.intro, ...l.practice }, model);
+    // REQ-106: the batch returns cards; the flat teach text is derived.
+    await saveLesson({ kind: "shared" }, l.objectiveId, { ...introFromModel(l.intro), ...l.practice }, model);
     if (before.length) kept++;
     else saved++;
   }

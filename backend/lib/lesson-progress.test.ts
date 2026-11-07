@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { sanitizeLessonProgress, validClientAttemptId } from "./lesson-progress";
+import { sanitizeLessonProgress, validClientAttemptId, validClientTime } from "./lesson-progress";
 
 const base = { step: "fade", guess: "g", guessFeedback: null, confidence: 3, lessonKey: "12:abc", checks: {} };
 
@@ -47,9 +47,52 @@ describe("sanitizeLessonProgress", () => {
     assert.equal(r.checks.solo.result.correctIndex, null);
     assert.equal(r.checks.solo.result.assistReason, null);
   });
+  // REQ-105
+  test("keeps option reasons, model answer, fix line, attempt id and the first (missed) result of a revision", () => {
+    const first = { verdict: "partial", feedback: "f1", modelAnswer: "M", fixNext: "F", attemptId: "11111111-2222-3333-4444-555555555555" };
+    const r = sanitizeLessonProgress({
+      ...base,
+      checks: {
+        fade: { mode: "mc", result: { verdict: "incorrect", feedback: "f", optionReasons: ["a", "b", "c", "d"] } },
+        solo: { mode: "open", firstResult: first, result: { verdict: "correct", feedback: "f2", assistReason: "retry" } },
+      },
+    }) as any;
+    assert.deepEqual(r.checks.fade.result.optionReasons, ["a", "b", "c", "d"]);
+    assert.equal(r.checks.fade.firstResult, null);
+    assert.equal(r.checks.solo.firstResult.modelAnswer, "M");
+    assert.equal(r.checks.solo.firstResult.fixNext, "F");
+    assert.equal(r.checks.solo.firstResult.attemptId, first.attemptId);
+    assert.equal(r.checks.solo.result.assistReason, "retry");
+    const junk = sanitizeLessonProgress({
+      ...base,
+      checks: { fade: { mode: "mc", result: { verdict: "incorrect", feedback: "f", optionReasons: ["a", 2] } } },
+    }) as any;
+    assert.equal(junk.checks.fade.result.optionReasons, null);
+  });
   test("caps stored text length", () => {
     const r = sanitizeLessonProgress({ ...base, guess: "x".repeat(20000) }) as { guess: string };
     assert.equal(r.guess.length, 8000);
+  });
+  test("REQ-106: keeps the Teach card, the self-explanation and the guess match under checks.teach", () => {
+    const top = sanitizeLessonProgress({
+      ...base,
+      step: "teach",
+      teach: { card: 2, explain: "because the leaf names its issuer", explainDone: true, guessMatch: "close" },
+    }) as { checks: { teach?: unknown } };
+    assert.deepEqual(top.checks.teach, { card: 2, explain: "because the leaf names its issuer", explainDone: true, guessMatch: "close" });
+    // The server copy stores it inside checks; reading that back works too.
+    const nested = sanitizeLessonProgress({ ...base, checks: { teach: { card: 1 } } }) as { checks: { teach?: unknown } };
+    assert.deepEqual(nested.checks.teach, { card: 1, explain: "", explainDone: false, guessMatch: null });
+    const junk = sanitizeLessonProgress({
+      ...base,
+      teach: { card: 99, explain: "x".repeat(5000), explainDone: "yes", guessMatch: "correct" },
+    }) as { checks: { teach: { card: number; explain: string; explainDone: boolean; guessMatch: unknown } } };
+    assert.equal(junk.checks.teach.card, 0);
+    assert.equal(junk.checks.teach.explain.length, 2000);
+    assert.equal(junk.checks.teach.explainDone, false);
+    assert.equal(junk.checks.teach.guessMatch, null);
+    const none = sanitizeLessonProgress(base) as { checks: { teach?: unknown } };
+    assert.equal(none.checks.teach, undefined);
   });
 });
 
@@ -59,5 +102,13 @@ describe("validClientAttemptId", () => {
     assert.equal(validClientAttemptId("short"), null);
     assert.equal(validClientAttemptId("'; drop table attempts; --"), null);
     assert.equal(validClientAttemptId(42), null);
+  });
+});
+
+describe("validClientTime (REQ-101)", () => {
+  test("accepts a millisecond timestamp, rejects anything else", () => {
+    assert.equal(validClientTime(1762500000000), 1762500000000);
+    assert.equal(validClientTime(1762500000000.7), 1762500000000);
+    for (const v of [undefined, null, "1762500000000", 0, -5, NaN, Infinity, 1e15]) assert.equal(validClientTime(v), null);
   });
 });

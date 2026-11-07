@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
@@ -21,6 +21,10 @@ import {
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
 import {
+  EMPTY_TEACH,
+  FRESH_POSITION,
+  RESUME_SERVER_WAIT_MS,
+  anonSnapshotKeys,
   answerSignature,
   attemptIdFor,
   emptyCheck,
@@ -28,22 +32,53 @@ import {
   lessonFingerprint,
   newerSnapshot,
   parseSnapshot,
+  samePosition,
+  settleWithin,
+  shouldAdoptLateServer,
   snapshotStorageKey,
   type CheckKind,
   type CheckState,
   type LessonSnapshot,
+  type Position,
+  type TeachState,
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
+import { planCourseReturn } from "@/lib/courseReturn";
+import { routePath } from "@/lib/navPlan";
 import {
+  MISS_FRAMING,
+  REVISE_NOTE,
+  TRY_AGAIN_NOTE,
   assistNote,
   choiceMarks,
   describeMark,
   gradeSubmitError,
+  isMiss,
   offerRereadAfterCheck,
+  offerRevision,
+  offerTryAgain,
+  reasonRows,
   soloOutcome,
+  startRevision,
   type ChoiceMark,
   type MarkTone,
 } from "@/lib/lessonFeedback";
+import { Collapsible, FeedbackPanel, NextStep, OptionReasons } from "@/components/feedback";
+import { TeachCards } from "@/components/teachCards";
+import { LabCard } from "@/components/labReport";
+import {
+  FULL_EXAMPLE_NOTE,
+  SKIP_GUIDED_NOTE,
+  fadingPlan,
+  usableCards,
+  type GuessMatch,
+  type LearnerHistory,
+  type TeachCards as TeachCardsData,
+} from "@/lib/lessonExperience";
+
+// REQ-101 (FAIL-093): device copies once written under "anon" are removed
+// the first time a lesson opens in this app run.
+let anonKeysCleared = false;
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -56,8 +91,15 @@ export default function LessonFlow() {
     objectiveTitle?: string;
   }>();
   const router = useRouter();
+  const navigation = useNavigation();
   const { user } = useAuth();
-  const userId = user?.id ?? "anon";
+  // REQ-101 (FAIL-093): no "anon" fallback. Logging out re-renders this
+  // screen with no user before it is navigated away; with the fallback it
+  // wrote a device copy under "anon" and sent a save that 401'd. Nothing is
+  // read or saved without a signed-in user.
+  const userId = user?.id ?? null;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   const [lesson, setLesson] = useState<LessonContent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +115,13 @@ export default function LessonFlow() {
   // why this deliberately never touches attempts/mastery.
   const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
   const [guessFeedbackLoading, setGuessFeedbackLoading] = useState(false);
+  // REQ-106: which Teach card is showing, the self-explanation answer, and
+  // the guess-match signal -- saved with the position. learnerHistory comes
+  // with the lesson (read-only, from the server) and, with the guess match,
+  // decides the optional Guided suggestion (fadingPlan).
+  const [teachState, setTeachState] = useState<TeachState>(EMPTY_TEACH);
+  const [learnerHistory, setLearnerHistory] = useState<LearnerHistory | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
   // True once guess+teach have come back but fade/solo are still generating
   // in the background (server returns them early instead of blocking on the
   // full ~20s generation). Gates the move into the fade step below.
@@ -113,15 +162,41 @@ export default function LessonFlow() {
   const setCheck = useCallback((kind: CheckKind, state: CheckState) => {
     setChecks((prev) => ({ ...prev, [kind]: state }));
   }, []);
+  // REQ-101 (FAIL-094): the restore keys on the lesson's fingerprint, not the
+  // lesson object. ensurePracticeReady replaces the object with the same
+  // content (plus fade/solo), which re-ran the restore and fetched the
+  // position a second time.
+  const lessonKey = lesson ? lessonFingerprint(lesson) : null;
+  // REQ-101 (FAIL-091): where the restore left the learner (null once they
+  // have moved), and the snapshot it applied. Saving is skipped while the
+  // position is still the restored one -- re-saving it would only stamp an
+  // old place with a new savedAt -- and a late account copy is adopted only
+  // while this is non-null.
+  const restoredPosition = useRef<Position | null>(FRESH_POSITION);
+  const appliedSnapshot = useRef<LessonSnapshot | null>(null);
+
+  useEffect(() => {
+    if (anonKeysCleared) return;
+    anonKeysCleared = true;
+    AsyncStorage.getAllKeys()
+      .then((keys) => {
+        const anon = anonSnapshotKeys(keys);
+        return anon.length ? AsyncStorage.multiRemove(anon) : undefined;
+      })
+      .catch(() => {});
+  }, []);
 
   const loadLesson = useCallback(() => {
     setError(null);
     setLesson(null);
     api
-      .get<{ lesson: LessonContent; practicePending?: boolean }>(`/api/objectives/${objectiveId}/lesson`)
+      .get<{ lesson: LessonContent; practicePending?: boolean; learnerHistory?: LearnerHistory | null }>(
+        `/api/objectives/${objectiveId}/lesson`
+      )
       .then((res) => {
         setLesson(res.lesson);
         setPracticePending(!!res.practicePending);
+        setLearnerHistory(res.learnerHistory ?? null);
       })
       .catch((err) => setError(err.message));
   }, [objectiveId]);
@@ -133,67 +208,114 @@ export default function LessonFlow() {
     setConfidence(null);
     setGuessFeedback(null);
     setGuessFeedbackLoading(false);
+    setTeachState(EMPTY_TEACH);
+    setLearnerHistory(null);
     setNext(null);
     setReached(null);
     setChecks({});
     restoredFor.current = null;
     lastSavedStep.current = null;
+    restoredPosition.current = FRESH_POSITION;
+    appliedSnapshot.current = null;
     setRestoring(true);
   }, [loadLesson]);
 
   // Resume where the learner left off (see src/lib/lessonProgress.ts).
   // Runs once per objective, after its lesson content has loaded.
   useEffect(() => {
-    if (!lesson || restoredFor.current === objectiveId) return;
+    if (!lessonKey || !userId || restoredFor.current === objectiveId) return;
     let cancelled = false;
     const key = snapshotStorageKey(userId, objectiveId);
-    const lessonKey = lessonFingerprint(lesson);
+
+    // Puts the learner at `snap`. fade/solo need the practice content; if
+    // it's still generating, wait for it the same way the "Next" button
+    // does, and fall back to the teach step if it can't be had. Returns the
+    // step landed on, or null if the effect was cancelled meanwhile.
+    const apply = async (snap: LessonSnapshot): Promise<Position | null> => {
+      setGuess(snap.guess);
+      setGuessFeedback(snap.guessFeedback);
+      setConfidence(snap.confidence);
+      setChecks(snap.checks);
+      setTeachState(snap.teach ?? EMPTY_TEACH);
+      let target = snap.step;
+      if (target !== "teach" && practicePending) {
+        const ready = await ensurePracticeReady();
+        if (cancelled) return null;
+        if (!ready) target = "teach";
+      }
+      setStep(target);
+      return { step: target, guess: snap.guess, confidence: snap.confidence, checks: snap.checks, teach: snap.teach ?? EMPTY_TEACH };
+    };
+
     (async () => {
       // REQ-089: the account copy and the device copy are both read; the
       // newer valid one wins. Either can be missing (first visit, offline,
       // a position saved before this existed) without blocking the lesson.
-      const [server, local] = await Promise.all([
-        api
-          .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
-          .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
-          .catch(() => null),
+      // REQ-101: the account copy is waited on for RESUME_SERVER_WAIT_MS at
+      // most; after that the device copy is used and the account copy is
+      // considered again when it arrives.
+      const serverRead = api
+        .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
+        .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
+        .catch(() => null);
+      const [first, local] = await Promise.all([
+        settleWithin(serverRead, RESUME_SERVER_WAIT_MS),
         AsyncStorage.getItem(key)
           .then((raw) => parseSnapshot(raw, lessonKey, Date.now()))
           .catch(() => null),
       ]);
-      const snap = newerSnapshot(server, local);
       if (cancelled) return;
+      const snap = newerSnapshot(first.settled ? first.value : null, local);
+      let position: Position | null = FRESH_POSITION;
       if (snap) {
-        setGuess(snap.guess);
-        setGuessFeedback(snap.guessFeedback);
-        setConfidence(snap.confidence);
-        setChecks(snap.checks);
-        // fade/solo need the practice content; if it's still generating,
-        // wait for it the same way the "Next" button does, and fall back to
-        // the teach step if it can't be had.
-        let target = snap.step;
-        if (target !== "teach" && practicePending) {
-          const ready = await ensurePracticeReady();
-          if (cancelled) return;
-          if (!ready) target = "teach";
-        }
-        setStep(target);
+        // Set before applying, so the save effect doesn't take the restore
+        // itself for a move.
+        restoredPosition.current = {
+          step: snap.step,
+          guess: snap.guess,
+          confidence: snap.confidence,
+          checks: snap.checks,
+          teach: snap.teach ?? EMPTY_TEACH,
+        };
+        position = await apply(snap);
+        if (!position) return;
       } else {
         // Only the device copy is cleared here. An unreadable account copy
         // may just mean the request failed, and deleting on that basis could
         // wipe a place saved from another device.
         AsyncStorage.removeItem(key).catch(() => {});
       }
+      restoredPosition.current = position;
+      appliedSnapshot.current = snap;
       lastSavedStep.current = snap ? snap.step : null;
       restoredFor.current = objectiveId;
       setRestoring(false);
+
+      if (first.settled) return;
+      const late = await first.later;
+      if (cancelled) return;
+      if (!shouldAdoptLateServer(late, appliedSnapshot.current, restoredPosition.current === null)) return;
+      restoredPosition.current = {
+        step: late.step,
+        guess: late.guess,
+        confidence: late.confidence,
+        checks: late.checks,
+        teach: late.teach ?? EMPTY_TEACH,
+      };
+      const adopted = await apply(late);
+      if (!adopted) return;
+      // The account copy already holds this place; it only needs saving again
+      // if the practice fallback moved it to "teach".
+      if (adopted.step === late.step) restoredPosition.current = adopted;
+      appliedSnapshot.current = late;
+      lastSavedStep.current = late.step;
     })();
     return () => {
       cancelled = true;
     };
     // ensurePracticeReady/practicePending are read once at restore time on purpose.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson, objectiveId, userId]);
+  }, [lessonKey, objectiveId, userId]);
 
   // Persist the position on every change once restored. "guess" and "done"
   // clear it: nothing to resume before the guess, and a finished objective
@@ -213,16 +335,31 @@ export default function LessonFlow() {
   useEffect(() => flushServerSave, [flushServerSave, objectiveId]);
 
   useEffect(() => {
-    if (!lesson || restoredFor.current !== objectiveId) return;
+    const cancelPending = () => {
+      if (pendingServerSave.current) {
+        clearTimeout(pendingServerSave.current.timer);
+        pendingServerSave.current = null;
+      }
+    };
+    // Signed out (FAIL-093): drop the pending save rather than send it.
+    if (!userId) {
+      cancelPending();
+      return;
+    }
+    if (!lessonKey || restoredFor.current !== objectiveId) return;
+    const position: Position = { step, guess, confidence, checks, teach: teachState };
+    if (restoredPosition.current && samePosition(position, restoredPosition.current)) return;
+    restoredPosition.current = null;
     const key = snapshotStorageKey(userId, objectiveId);
     const path = `/api/objectives/${objectiveId}/progress`;
-    if (pendingServerSave.current) {
-      clearTimeout(pendingServerSave.current.timer);
-      pendingServerSave.current = null;
-    }
+    cancelPending();
     if (!isResumable(step)) {
       AsyncStorage.removeItem(key).catch(() => {});
-      if (lastSavedStep.current && isResumable(lastSavedStep.current)) api.delete(path).catch(() => {});
+      // REQ-101 (FAIL-092): clearedAt lets the server ignore a save that was
+      // sent before this delete but arrives after it.
+      if (lastSavedStep.current && isResumable(lastSavedStep.current)) {
+        api.delete(path, { clearedAt: Date.now() }).catch(() => {});
+      }
       lastSavedStep.current = step;
       return;
     }
@@ -233,16 +370,18 @@ export default function LessonFlow() {
       guess,
       guessFeedback,
       confidence,
-      lessonKey: lessonFingerprint(lesson),
+      lessonKey,
       checks,
+      teach: teachState,
       savedAt: Date.now(),
     };
     AsyncStorage.setItem(key, JSON.stringify(snap)).catch(() => {});
     const send = () => {
+      if (userIdRef.current !== userId) return;
       api.put(path, snap).catch(() => {});
     };
     pendingServerSave.current = { timer: setTimeout(flushServerSave, 800), send };
-  }, [lesson, objectiveId, userId, step, guess, guessFeedback, confidence, checks, flushServerSave]);
+  }, [lessonKey, objectiveId, userId, step, guess, guessFeedback, confidence, checks, teachState, flushServerSave]);
 
   useEffect(() => {
     // Fire-and-forget: nudges the server to start warming the cache for
@@ -309,6 +448,7 @@ export default function LessonFlow() {
       setGuessFeedback(null);
       setGuessFeedbackLoading(false);
       setChecks({});
+      setTeachState(EMPTY_TEACH);
       setStep("guess");
     } catch (err) {
       // Nothing was reset: the learner keeps the finished lesson they have.
@@ -328,8 +468,15 @@ export default function LessonFlow() {
     if (!guess.trim()) return;
     setGuessFeedbackLoading(true);
     api
-      .post<{ feedback: string }>(`/api/objectives/${objectiveId}/guess-feedback`, { guess: guess.trim() })
-      .then((res) => setGuessFeedback(res.feedback))
+      .post<{ feedback: string; guessMatch?: GuessMatch | null }>(`/api/objectives/${objectiveId}/guess-feedback`, {
+        guess: guess.trim(),
+      })
+      .then((res) => {
+        setGuessFeedback(res.feedback);
+        // REQ-106: only steers the optional Guided suggestion; never shown.
+        const match = res.guessMatch ?? null;
+        setTeachState((t) => ({ ...t, guessMatch: match }));
+      })
       // Silent on purpose: this is a nice-to-have on top of the lesson, not
       // something that should surface an error banner over the real content.
       .catch(() => {})
@@ -340,8 +487,38 @@ export default function LessonFlow() {
     setStep("teach");
   }
 
+  // REQ-101 (FAIL-095): a fresh, ungraded Solo check on the same question.
+  // The new clientAttemptId makes it a new attempt; the server records it as
+  // a repeat (assisted), which TRY_AGAIN_NOTE tells the learner up front.
+  function tryAgain() {
+    setCheck("solo", emptyCheck("solo"));
+    setStep("solo");
+  }
+
+  // REQ-101 (FAIL-096): see src/lib/courseReturn.ts.
+  function backToCourse() {
+    const state = navigation.getState();
+    const stackPaths = (state?.routes ?? [])
+      .slice(0, (state?.index ?? 0) + 1)
+      .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
+      .filter((p): p is string => p !== null);
+    if (planCourseReturn(trackId, stackPaths) === "dismissTo") router.dismissTo(`/course/${trackId}`);
+    else router.push(`/course/${trackId}`);
+  }
+
   const headerTitle = objectiveTitle ?? "Lesson";
   const notYet = soloOutcome(checks.solo) === "not-yet";
+  // REQ-106 (research #12): a suggestion only; the learner always chooses.
+  const plan = fadingPlan({ guessed: !!guess.trim(), guessMatch: teachState.guessMatch, history: learnerHistory });
+  const cards = lesson ? usableCards(lesson.teachCards) : null;
+  const guidedSkipped = !checks.fade?.result && (step === "solo" || step === "done");
+  const scrollToTop = useCallback(() => scrollRef.current?.scrollTo({ y: 0, animated: false }), []);
+  async function goToGuided() {
+    if (await ensurePracticeReady()) setStep("fade");
+  }
+  async function skipToSolo() {
+    if (await ensurePracticeReady()) setStep("solo");
+  }
 
   if (error) {
     return (
@@ -361,9 +538,9 @@ export default function LessonFlow() {
   }
 
   return (
-    <Screen>
+    <Screen scrollRef={scrollRef}>
       <Stack.Screen options={{ title: headerTitle }} />
-      <StepHeader step={step} />
+      <StepHeader step={step} guidedSkipped={guidedSkipped} />
 
       {step === "guess" && (
         <GuessStep
@@ -403,30 +580,61 @@ export default function LessonFlow() {
               ) : null}
             </>
           ) : null}
-          <Muted>Explanation</Muted>
-          <Body>{lesson.teach}</Body>
-          <Button
-            label="Next: guided practice"
-            icon="arrow-right"
-            loading={practiceLoading}
-            onPress={async () => {
-              const ready = await ensurePracticeReady();
-              if (ready) setStep("fade");
-            }}
-          />
-          <Button
-            label="Ask the coach about this"
-            variant="link"
-            icon="message-circle"
-            onPress={() =>
-              router.push({
-                pathname: `/course/${trackId}/chat`,
-                params: { unitId, prefill: `About "${headerTitle}": ` },
-              })
-            }
-          />
+          {cards ? (
+            // REQ-106: short cards. The way on to practice sits under the last card.
+            <TeachCards
+              data={cards}
+              state={teachState}
+              onChange={setTeachState}
+              onCardChange={scrollToTop}
+              footer={
+                <TeachFooter
+                  plan={plan}
+                  loading={practiceLoading}
+                  onGuided={goToGuided}
+                  onSkip={skipToSolo}
+                  onCoach={() =>
+                    router.push({
+                      pathname: `/course/${trackId}/chat`,
+                      params: { unitId, prefill: `About "${headerTitle}": ` },
+                    })
+                  }
+                />
+              }
+            />
+          ) : (
+            // A lesson cached before cards: one block of text, as before.
+            <>
+              <Muted>Explanation</Muted>
+              <Body>{lesson.teach}</Body>
+              <TeachFooter
+                plan={plan}
+                loading={practiceLoading}
+                onGuided={goToGuided}
+                onSkip={skipToSolo}
+                onCoach={() =>
+                  router.push({
+                    pathname: `/course/${trackId}/chat`,
+                    params: { unitId, prefill: `About "${headerTitle}": ` },
+                  })
+                }
+              />
+            </>
+          )}
         </Card>
       )}
+
+      {step === "fade" && plan === "full-example" && !checks.fade?.result ? (
+        // REQ-106 (research #12): new to this and the guess missed -- the full
+        // worked example, every step, before one with a step missing. Open by
+        // default, one tap to hide; nothing is required.
+        <Card>
+          <Muted style={{ fontSize: 12 }}>{FULL_EXAMPLE_NOTE}</Muted>
+          <Collapsible label="Full worked example" initiallyOpen>
+            <FullExample cards={cards} teach={lesson.teach} />
+          </Collapsible>
+        </Card>
+      ) : null}
 
       {step === "fade" && (
         <CheckStep
@@ -449,6 +657,11 @@ export default function LessonFlow() {
         />
       )}
 
+      {step === "solo" && guidedSkipped && !checks.solo?.result ? (
+        // REQ-106: skipping Guided was a choice; it stays reversible.
+        <Button label="Do guided practice first" variant="link" icon="compass" onPress={() => setStep("fade")} />
+      ) : null}
+
       {step === "solo" && (
         <CheckStep
           kind="solo"
@@ -465,6 +678,7 @@ export default function LessonFlow() {
           state={checks.solo ?? emptyCheck("solo")}
           onStateChange={(st) => setCheck("solo", st)}
           onDone={() => setStep("done")}
+          onTryAgain={tryAgain}
         />
       )}
 
@@ -490,11 +704,15 @@ export default function LessonFlow() {
           {notYet ? null : <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>}
           {notYet ? (
             <>
+              <Button label="Try again" icon="rotate-ccw" onPress={tryAgain} />
+              <Muted style={{ textAlign: "center", fontSize: 12 }}>{TRY_AGAIN_NOTE}</Muted>
               <Button
                 label="Re-read the explanation"
                 icon="book-open"
+                variant="ghost"
                 // Keeps the guess and the graded checks (all lifted state),
-                // so this is a detour, not a reset.
+                // so this is a detour, not a reset. The Solo step then
+                // offers "Try again" (offerTryAgain).
                 onPress={() => setStep("teach")}
               />
               <Button
@@ -533,10 +751,9 @@ export default function LessonFlow() {
               icon="arrow-left"
               variant={next || notYet ? "ghost" : "primary"}
               fullWidth={false}
-              // REQ-093: pop back to the dashboard already in the stack
-              // (or replace this screen with it) -- push stacked a second
-              // dashboard, so Back from it returned to the same screen.
-              onPress={() => router.dismissTo(`/course/${trackId}`)}
+              // REQ-093: pop back to this course's dashboard when it is the
+              // nearest one in the stack; REQ-101: otherwise push.
+              onPress={backToCourse}
             />
             <Button
               label="Ask the coach"
@@ -563,6 +780,8 @@ export default function LessonFlow() {
             )}
           </View>
           {regenError ? <ErrorBanner message={regenError} /> : null}
+          {/* REQ-106 (research #7): optional lab and lab report. */}
+          <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>
       )}
     </Screen>
@@ -599,25 +818,35 @@ const STEP_META: Record<Step, { label: string; icon: React.ComponentProps<typeof
   done: { label: "Done", icon: "flag" },
 };
 
-function StepHeader({ step }: { step: Step }) {
-  const activeIndex = STEPS.indexOf(step);
+function StepHeader({ step, guidedSkipped }: { step: Step; guidedSkipped: boolean }) {
+  const activeIndex = STEPS.indexOf(step === "done" ? "solo" : step) + (step === "done" ? 1 : 0);
   return (
     <View style={styles.stepper}>
       {STEPS.map((s, i) => {
         const meta = STEP_META[s];
         const isActive = s === step;
         const isPast = activeIndex > i;
-        const color = isActive ? colors.accent : isPast ? colors.good : colors.mutedDim;
+        // REQ-106: a skipped Guided step is shown as skipped, not as done.
+        const skipped = s === "fade" && isPast && guidedSkipped;
+        const color = isActive ? colors.accent : skipped ? colors.mutedDim : isPast ? colors.good : colors.mutedDim;
         return (
           <React.Fragment key={s}>
-            <View style={styles.stepItem}>
+            <View
+              style={styles.stepItem}
+              accessible
+              accessibilityLabel={`${meta.label}: ${isActive ? "current step" : skipped ? "skipped" : isPast ? "done" : "not started"}`}
+            >
               <View
                 style={[
                   styles.stepDot,
-                  { borderColor: color, backgroundColor: isActive || isPast ? color : "transparent" },
+                  { borderColor: color, backgroundColor: isActive || (isPast && !skipped) ? color : "transparent" },
                 ]}
               >
-                <Feather name={isPast ? "check" : meta.icon} size={13} color={isActive || isPast ? colors.accentText : color} />
+                <Feather
+                  name={skipped ? "skip-forward" : isPast ? "check" : meta.icon}
+                  size={13}
+                  color={isActive || (isPast && !skipped) ? colors.accentText : color}
+                />
               </View>
               <Muted style={{ color, fontSize: 11 }}>{meta.label}</Muted>
             </View>
@@ -627,6 +856,55 @@ function StepHeader({ step }: { step: Step }) {
           </React.Fragment>
         );
       })}
+    </View>
+  );
+}
+
+// REQ-106: the way on from Teach. With a strong history and a close guess
+// the learner may skip Guided (research #12); it is offered, never applied.
+function TeachFooter({
+  plan,
+  loading,
+  onGuided,
+  onSkip,
+  onCoach,
+}: {
+  plan: ReturnType<typeof fadingPlan>;
+  loading: boolean;
+  onGuided: () => void;
+  onSkip: () => void;
+  onCoach: () => void;
+}) {
+  return (
+    <>
+      {plan === "offer-skip" ? (
+        <View style={styles.suggestion}>
+          <Muted style={{ color: colors.text, fontSize: 13 }}>{SKIP_GUIDED_NOTE}</Muted>
+          <Button label="Skip guided — go straight to the solo check" icon="skip-forward" loading={loading} onPress={onSkip} />
+          <Button label="Do guided practice" variant="ghost" icon="compass" loading={loading} onPress={onGuided} />
+        </View>
+      ) : (
+        <Button label="Next: guided practice" icon="arrow-right" loading={loading} onPress={onGuided} />
+      )}
+      <Button label="Ask the coach about this" variant="link" icon="message-circle" onPress={onCoach} />
+    </>
+  );
+}
+
+// The whole worked example for a learner who is new to the objective. From
+// the example card when the lesson has cards; otherwise the lesson's full
+// explanation, which contains it.
+function FullExample({ cards, teach }: { cards: TeachCardsData | null; teach: string }) {
+  const example = cards?.cards.find((c) => c.kind === "example");
+  if (!example) return <Body>{teach}</Body>;
+  return (
+    <View style={{ gap: 6 }}>
+      {example.body ? <Body>{example.body}</Body> : null}
+      {(example.steps ?? []).map((st, i) => (
+        <Body key={i}>
+          {i + 1}. {st}
+        </Body>
+      ))}
     </View>
   );
 }
@@ -688,6 +966,7 @@ function CheckStep({
   onStateChange,
   onDone,
   onReread,
+  onTryAgain,
 }: {
   kind: "fade" | "solo";
   promptText: string;
@@ -704,10 +983,16 @@ function CheckStep({
   onDone: () => void;
   // REQ-095: back to the explanation after a missed Guided item.
   onReread?: () => void;
+  // REQ-101: a fresh try at a missed Solo check (offerTryAgain).
+  onTryAgain?: () => void;
 }) {
   // REQ-089: answer, mode and graded result live in the parent so they are
   // saved with the lesson position (see LessonFlow).
   const { mode, picked, openAnswer, result } = state;
+  // REQ-105: set once the learner chose to revise a missed free-response
+  // answer; its feedback stays on screen while revising and after.
+  const firstResult = state.firstResult ?? null;
+  const revising = !!firstResult && !result;
   const update = (patch: Partial<CheckState>) => onStateChange({ ...state, ...patch });
   const setMode = (m: "mc" | "open") => update({ mode: m });
   const setPicked = (i: number) => update({ picked: i });
@@ -773,6 +1058,8 @@ function CheckStep({
         objectiveId,
         unitId,
         ...(format === "mc" ? { chosenIndex: picked } : { answer: openAnswer }),
+        // REQ-105: a revision names the missed attempt it revises.
+        ...(format === "open" && firstResult?.attemptId ? { retryOf: firstResult.attemptId } : {}),
         confidence,
       });
       onStateChange({
@@ -785,6 +1072,10 @@ function CheckStep({
           correctAnswer: res.correctAnswer ?? null,
           why: res.why ?? null,
           assistReason: res.assistReason ?? null,
+          optionReasons: res.optionReasons ?? null,
+          modelAnswer: res.modelAnswer ?? null,
+          fixNext: res.fixNext ?? null,
+          attemptId: res.attempt?.id ?? null,
         },
       });
     } catch (err) {
@@ -832,7 +1123,33 @@ function CheckStep({
       </View>
       <Body>{promptText}</Body>
 
-      {!result && (
+      {!result && revising && firstResult ? (
+        // REQ-105: revising a missed free-response answer, with the first
+        // answer's feedback and model answer still in view.
+        <View style={{ gap: 8 }}>
+          <FeedbackPanel title="Feedback on your first answer" result={firstResult} />
+          <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+          <TextInput
+            multiline
+            accessibilityLabel="Your revised answer"
+            placeholder="Revise your answer"
+            placeholderTextColor={colors.mutedDim}
+            value={openAnswer}
+            onChangeText={setOpenAnswer}
+            style={styles.input}
+          />
+          <Button
+            label={submitFailed ? "Retry" : "Submit revision"}
+            icon={submitIcon}
+            loading={busy}
+            onPress={submitOpen}
+            disabled={busy || !openAnswer.trim()}
+          />
+          {error ? <ErrorBanner message={error} /> : null}
+        </View>
+      ) : null}
+
+      {!result && !revising && (
         <>
           {kind === "fade" ? (
             <>
@@ -936,10 +1253,30 @@ function CheckStep({
           {mode === "mc" && picked != null && choices ? (
             <GradedChoices choices={choices} picked={picked} correctIndex={result.correctIndex ?? null} verdict={result.verdict} />
           ) : null}
+          {/* REQ-105: a revision keeps the first answer's feedback reachable. */}
+          {firstResult ? (
+            <Collapsible label="Feedback on your first answer">
+              <FeedbackPanel result={firstResult} />
+            </Collapsible>
+          ) : null}
           <VerdictBadge verdict={result.verdict} />
+          {isMiss(result.verdict) && !firstResult ? (
+            <Muted style={{ fontSize: 12 }}>{MISS_FRAMING}</Muted>
+          ) : null}
           <Body>{result.feedback}</Body>
           {result.missedParts && result.missedParts.length > 0 ? (
             <Muted>Missed: {result.missedParts.join(", ")}</Muted>
+          ) : null}
+          {isMiss(result.verdict) && result.fixNext ? <NextStep text={result.fixNext} /> : null}
+          {/* REQ-105: why each option is or isn't right, the learner's pick
+              and the correct one first. A lesson cached before option
+              reasons existed has none: its single explanation shows instead. */}
+          {mode === "mc" && choices ? (
+            <OptionReasons
+              rows={reasonRows(result.optionReasons, choices.length, picked, result.correctIndex ?? null, result.verdict)}
+              choices={choices}
+              fallbackWhy={result.why ?? null}
+            />
           ) : null}
           {/* REQ-097: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
@@ -948,6 +1285,26 @@ function CheckStep({
               Expected answer: {result.correctAnswer}
               {result.why ? ` -- ${result.why}` : ""}
             </Muted>
+          ) : null}
+          {mode === "open" && result.modelAnswer ? (
+            <Collapsible label="Show a model answer">
+              <Body>{result.modelAnswer}</Body>
+            </Collapsible>
+          ) : null}
+          {offerRevision(mode, result, firstResult) ? (
+            <>
+              <Button
+                label="Revise my answer"
+                icon="edit-3"
+                accessibilityLabel="Revise my answer once, with this feedback in view. This practice won't raise your level."
+                onPress={() => {
+                  setError(null);
+                  setSubmitFailed(false);
+                  onStateChange(startRevision(state));
+                }}
+              />
+              <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+            </>
           ) : null}
           {assistNote(result.assistReason) ? (
             <Muted style={{ fontSize: 12 }}>{assistNote(result.assistReason)}</Muted>
@@ -961,6 +1318,22 @@ function CheckStep({
           {onReread && offerRereadAfterCheck(kind, result.verdict) ? (
             <>
               <Button label="Re-read the explanation" icon="book-open" onPress={onReread} />
+              <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
+            </>
+          ) : onTryAgain && offerTryAgain(kind, result.verdict) && !offerRevision(mode, result, firstResult) ? (
+            <>
+              <Button
+                label="Try again"
+                icon="rotate-ccw"
+                onPress={() => {
+                  setFollowUp("");
+                  setFollowUpSent(false);
+                  setError(null);
+                  setSubmitFailed(false);
+                  onTryAgain();
+                }}
+              />
+              <Muted style={{ fontSize: 12 }}>{TRY_AGAIN_NOTE}</Muted>
               <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
             </>
           ) : (
@@ -1015,8 +1388,8 @@ const MARK_ICON: Record<ChoiceMark, React.ComponentProps<typeof Feather>["name"]
   "picked-incorrect": "x-circle",
   "correct-answer": "check-circle",
 };
-const TONE_COLOR: Record<MarkTone, string> = { good: colors.good, bad: colors.bad, neutral: colors.mutedDim };
-const TONE_DIM: Record<MarkTone, string> = { good: colors.goodDim, bad: colors.badDim, neutral: "transparent" };
+const TONE_COLOR: Record<MarkTone, string> = { good: colors.good, warn: colors.warn, bad: colors.bad, neutral: colors.mutedDim };
+const TONE_DIM: Record<MarkTone, string> = { good: colors.goodDim, warn: colors.warnDim, bad: colors.badDim, neutral: "transparent" };
 
 function GradedChoices({
   choices,
@@ -1096,6 +1469,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   stepper: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 4 },
+  suggestion: { gap: spacing.sm, backgroundColor: colors.accentDim, borderRadius: radius.md, padding: spacing.sm },
   stepItem: { alignItems: "center", gap: 4, width: 56 },
   stepDot: {
     width: 28,

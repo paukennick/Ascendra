@@ -10,6 +10,11 @@ import {
   newerSnapshot,
   parseSnapshot,
   snapshotStorageKey,
+  FRESH_POSITION,
+  anonSnapshotKeys,
+  samePosition,
+  settleWithin,
+  shouldAdoptLateServer,
 } from "./lessonProgress.ts";
 
 const lesson = { guessPrompt: "What does an S3 bucket policy control?", teach: "Bucket policies are resource-based..." };
@@ -21,6 +26,27 @@ const rec = (over: Record<string, unknown> = {}) => ({
 const snap = (over: Record<string, unknown> = {}) => JSON.stringify(rec(over));
 
 describe("lesson resume snapshot", () => {
+  // REQ-105
+  test("a revision in progress resumes with its first result, reasons and model answer", () => {
+    const first = { verdict: "partial", feedback: "f", missedParts: [], modelAnswer: "M", fixNext: "F", attemptId: "att-1" };
+    const s = parseSnapshot(
+      snap({
+        step: "solo",
+        checks: {
+          fade: { mode: "mc", picked: 1, result: { verdict: "incorrect", feedback: "x", optionReasons: ["a", "b", "c", "d"] } },
+          solo: { mode: "open", openAnswer: "draft", firstResult: first, result: null },
+        },
+      }),
+      key,
+      now
+    );
+    assert.deepEqual(s?.checks.fade?.result?.optionReasons, ["a", "b", "c", "d"]);
+    assert.equal(s?.checks.fade?.firstResult, null);
+    assert.equal(s?.checks.solo?.result, null);
+    assert.equal(s?.checks.solo?.firstResult?.attemptId, "att-1");
+    assert.equal(s?.checks.solo?.firstResult?.modelAnswer, "M");
+    assert.equal(s?.checks.solo?.openAnswer, "draft");
+  });
   test("restores a fresh snapshot for the same lesson", () => {
     const s = parseSnapshot(snap(), key, now);
     assert.equal(s?.step, "fade");
@@ -150,5 +176,60 @@ describe("attemptIdFor", () => {
   });
   test("free-response signatures ignore surrounding whitespace", () => {
     assert.equal(answerSignature("open", null, " a b "), answerSignature("open", null, "a b"));
+  });
+});
+
+describe("REQ-101 resume on a bad connection (FAIL-091)", () => {
+  test("settleWithin returns the value when it arrives in time", async () => {
+    const r = await settleWithin(Promise.resolve(7), 50);
+    assert.deepEqual(r, { settled: true, value: 7 });
+  });
+  test("settleWithin gives up after the wait and hands back the still-running read", async () => {
+    let finish!: (v: number) => void;
+    const slow = new Promise<number>((r) => (finish = r));
+    const r = await settleWithin(slow, 10);
+    assert.equal(r.settled, false);
+    finish(9);
+    if (!r.settled) assert.equal(await r.later, 9);
+  });
+  test("a late account copy is adopted only if newer and the learner hasn't moved", () => {
+    const local = parseSnapshot(snap({ savedAt: now - 5000 }), key, now);
+    const newer = parseSnapshot(rec({ step: "solo", savedAt: now - 1000, v: undefined }), key, now);
+    const older = parseSnapshot(rec({ step: "solo", savedAt: now - 9000, v: undefined }), key, now);
+    assert.equal(shouldAdoptLateServer(newer, local, false), true);
+    assert.equal(shouldAdoptLateServer(newer, null, false), true, "nothing restored yet: any valid copy");
+    assert.equal(shouldAdoptLateServer(newer, local, true), false, "learner already moved");
+    assert.equal(shouldAdoptLateServer(older, local, false), false);
+    assert.equal(shouldAdoptLateServer(null, local, false), false);
+  });
+  test("samePosition ignores object identity but not content", () => {
+    const a = { step: "solo", guess: "g", confidence: 2, checks: { solo: emptyCheck("solo") } };
+    assert.equal(samePosition(a, { ...a, checks: { solo: emptyCheck("solo") } }), true);
+    assert.equal(samePosition(a, { ...a, guess: "h" }), false);
+    assert.equal(samePosition(a, { ...a, checks: { solo: { ...emptyCheck("solo"), openAnswer: "x" } } }), false);
+    assert.equal(samePosition(FRESH_POSITION, { step: "guess", guess: "", confidence: null, checks: {} }), true);
+  });
+});
+
+describe("REQ-101 no anonymous saves (FAIL-093)", () => {
+  test("only the old anon device copies are picked for removal", () => {
+    assert.deepEqual(
+      anonSnapshotKeys([
+        "ascendra.lessonProgress.anon.o1",
+        snapshotStorageKey("u1", "o1"),
+        "ascendra.lessonProgress.anonymous-user.o2",
+        "other.anon.key",
+        "ascendra.lessonProgress.anon.o2",
+      ]),
+      ["ascendra.lessonProgress.anon.o1", "ascendra.lessonProgress.anon.o2"]
+    );
+  });
+});
+
+describe("REQ-101 restore runs once per lesson content (FAIL-094)", () => {
+  test("the fingerprint is unchanged when practice content fills in, changed by a regenerate", () => {
+    const withPractice = { ...lesson, fadeProblem: "f", fadeChoices: ["a", "b"], soloCheck: "s" };
+    assert.equal(lessonFingerprint(withPractice), key);
+    assert.notEqual(lessonFingerprint({ ...lesson, teach: "regenerated" }), key);
   });
 });

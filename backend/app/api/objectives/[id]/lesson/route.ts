@@ -17,7 +17,9 @@ import {
   pendingKey,
   REGEN_LIMIT,
   REGEN_RATE_EVENT,
+  introToLesson,
 } from "@/lib/lesson-generation";
+import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { SHARED } from "@/lib/lesson-store";
 
 export const dynamic = "force-dynamic";
@@ -50,26 +52,30 @@ export async function GET(
     // not an access check on its own.
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
+    // REQ-106: read-only summary of this learner's history on the objective,
+    // for the adaptive Guided suggestion. Started now, read with each reply;
+    // a failure only means no suggestion.
+    const historyRead = learnerHistoryFor(user.id, id).catch(() => null);
 
     // This learner's own regenerate still running in this process: wait for
     // it rather than serve the lesson they just replaced.
     const ownRegen = pendingGeneration.get(pendingKey(id, { kind: "user", userId: user.id }));
     if (ownRegen) {
       const generated = await ownRegen.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
     }
 
     // Their own regenerated lesson if they have one, else the shared one.
     // (Waits first if their regenerate is running on another instance.)
     const existing = await readLessonForUser(user.id, id);
-    if (existing) return ok({ lesson: rowToLesson(existing.row, viewer), cached: true });
+    if (existing) return ok({ lesson: rowToLesson(existing.row, viewer), cached: true, learnerHistory: await historyRead });
 
     // Shared first generation already running in this process (a prefetch,
     // or another learner's first visit): wait for that same one.
     const inFlight = pendingGeneration.get(pendingKey(id, SHARED));
     if (inFlight) {
       const generated = await inFlight.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
     }
 
     const objRow = await loadObjective(id);
@@ -82,14 +88,15 @@ export async function GET(
     // learner sees comes from one generation.
     if (!intro) {
       const generated = await handle.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false });
+      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead });
     }
     after(() => handle.fullPromise.catch(() => {}));
 
     return ok({
-      lesson: { guessPrompt: intro.guessPrompt, teach: intro.teach },
+      lesson: introToLesson(intro),
       cached: false,
       practicePending: true,
+      learnerHistory: await historyRead,
     });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
@@ -157,7 +164,7 @@ export async function POST(
     after(() => handle.fullPromise.catch(() => {}));
 
     return ok({
-      lesson: { guessPrompt: intro.guessPrompt, teach: intro.teach },
+      lesson: introToLesson(intro),
       cached: false,
       practicePending: true,
     });

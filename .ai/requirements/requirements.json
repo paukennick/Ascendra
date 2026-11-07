@@ -2998,6 +2998,47 @@
       ]
     },
     {
+      "id": "REQ-101",
+      "category": "bugfix",
+      "title": "Lesson screen: resume, save ordering, logout, retry and back-to-course fixes (B3b)",
+      "description": "Batch B3b. Resume stops waiting on the account copy after 4 s and uses the device copy, adopting a later, newer account copy only if the learner has not moved; saves carry savedAt and deletes clearedAt so the server ignores a save overtaken by the delete (migration 032 tombstones); no saves without a signed-in user and old anon device copies removed; restore keyed on the lesson fingerprint; Try again after a missed Solo check with honest copy that a repeat will not raise mastery; Back to course pops only when the nearest dashboard is this course.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/lib/lessonFeedback.ts",
+        "mobile/src/lib/courseReturn.ts",
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/lesson-progress-store.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/032_lesson_progress_tombstone.sql"
+      ],
+      "acceptance_criteria": [
+        "Resume never blocks more than ~4 s on the account read",
+        "A save older than the last delete is ignored (DB test)",
+        "No lessonProgress.anon keys written and existing ones removed",
+        "Progress fetched once per lesson open",
+        "Missed Solo offers Try again with non-mastery copy",
+        "Back to course never lands on another course's dashboard"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model"
+      ],
+      "risk_notes": [
+        "Late-adopt and logout paths need a device check",
+        "Client clocks order save vs delete; cross-device clock skew can drop or keep a save",
+        "Migration 032 must be applied before deploy (schema probe added)"
+      ]
+    },
+    {
       "id": "REQ-102",
       "category": "defect",
       "title": "Exam blueprints: credential blocks, SAP-C03, version changes that keep learner history",
@@ -3126,6 +3167,110 @@
       "risk_notes": [
         "Exam duration 130 minutes is from the certification page not the C03 guide",
         "Learners' C02 mastery does not carry to C03 objectives by design"
+      ]
+    },
+    {
+      "id": "REQ-105",
+      "category": "feature",
+      "title": "Rich feedback: explain every option, model answer, revise once",
+      "description": "Lesson MC checks return a one-sentence reason per option (shown order) with the verdict; free-response and PBQ grading return a model answer and a what-to-fix line; after a free-response or PBQ miss the learner may revise once (PBQ: only missed sub-parts), recorded as assisted ('retry'). Nothing is revealed before answering; lessons cached without reasons still grade.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/lesson-store.ts",
+        "backend/lib/revision.ts",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/supabase/migrations/034_rich_feedback.sql",
+        "mobile lesson screen",
+        "mobile pbq.tsx",
+        "mobile/src/lib",
+        "mobile/src/components/feedback.tsx"
+      ],
+      "acceptance_criteria": [
+        "lesson payload and hint carry no option reasons",
+        "grade returns reasons in the learner's shown order",
+        "old cached lesson without reasons grades with single explanation",
+        "grader schema includes modelAnswer and fixNext",
+        "revision recorded as assisted retry and allowed once",
+        "missed revision adds no second review entry and correct revision does not advance review"
+      ],
+      "validation_required": [
+        "npm test backend and mobile",
+        "npm run test:db",
+        "tsc --noEmit both",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "retry attempts still count in mastery_from_attempts accuracy (n/n_correct) like existing repeats; mastery owner may want to exclude assist_reason='retry'",
+        "UI not verified on a device"
+      ]
+    },
+    {
+      "id": "REQ-106",
+      "category": "feature",
+      "title": "Lesson experience: Teach cards, self-explanation, adaptive Guided, labs with a report",
+      "description": "Teach is generated and shown as 3-4 short cards (what it is, why it matters, worked example in steps, common mistake) with Back/Next, swipe, progress dots and a screen-reader announcement per card; lessons cached before cards render as one block as before and are not regenerated; the saved position remembers the card. The worked example carries one optional self-explanation question with a model explanation shown after answering or skipping; never graded, never mastery evidence, kept only with the saved position. Guess feedback returns a coarse guessMatch and the lesson GET returns a read-only learnerHistory; a close guess with Independent/Transfer-ready history is offered 'Skip guided -- go straight to the solo check', and no history plus a missed guess shows the full worked example above Guided; both are suggestions. Objectives with lab_prompt show an optional lab on the Done card with safety notes; up to three report questions are generated once per objective and shared; the report is graded in one free-response grader call (fenced learner text) and recorded as attempt kind lab with objective_id null and lab_objective_id set, so it neither raises nor lowers mastery and adds no review entry.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/prompts.ts",
+        "backend/lib/lesson-store.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/lesson-experience.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/lesson-progress.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/objectives/[id]/lesson",
+        "backend/app/api/objectives/[id]/guess-feedback",
+        "backend/app/api/objectives/[id]/lab",
+        "backend/scripts/pregenerate.ts",
+        "backend/supabase/migrations/035_lesson_experience.sql",
+        "mobile lesson screen",
+        "mobile/src/components/teachCards.tsx",
+        "mobile/src/components/labReport.tsx",
+        "mobile/src/components/ui.tsx (Screen scrollRef)",
+        "mobile/src/lib/lessonExperience.ts",
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/src/types/index.ts"
+      ],
+      "acceptance_criteria": [
+        "old cached lesson served with flat teach and no cards and no model call",
+        "new lesson stored with teach_cards and derived teach used by grading",
+        "saved position round-trips card and self-explanation",
+        "learnerHistory none/some/strong read-only",
+        "guess feedback returns guessMatch and records nothing",
+        "lab questions generated once and shared",
+        "lab report graded once with fenced text and recorded as kind lab with objective_id null",
+        "lab report changes no mastery and adds no review entry and a later recompute ignores it",
+        "database rejects a lab attempt with objective_id",
+        "edited lab text regenerates questions"
+      ],
+      "validation_required": [
+        "npm test backend and mobile",
+        "npm run test:db",
+        "tsc --noEmit both",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "UI (cards",
+        "swipe",
+        "TalkBack/VoiceOver announcements",
+        "large text",
+        "lab card) not verified on a device",
+        "lab questions are generated by the fast model and not reviewed by a person",
+        "weighted mastery owner must decide whether and how to read attempts.lab_objective_id",
+        "the 035 check constraint is NOT VALID (enforced for new rows; validate later)",
+        "guessMatch is a model judgement and only steers a suggestion"
       ]
     },
     {

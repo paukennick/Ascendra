@@ -1,19 +1,28 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, conflict, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
   hasHintReveal,
+  isDuplicateRetry,
   lessonCheckFor,
   recordAttemptIdempotent,
+  retryTargetFor,
   type LessonCheck,
 } from "@/lib/grading-service";
+import { ALREADY_REVISED, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
-import { presentationOrder, presentationSeed, shownIndexOf, storedIndexAt } from "@/lib/choice-order";
+import {
+  presentationOrder,
+  presentationSeed,
+  shownIndexOf,
+  shuffleForPresentation,
+  storedIndexAt,
+} from "@/lib/choice-order";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +39,19 @@ const MAX_ANSWER = 8000;
 // answer key and explanation are returned only with the verdict.
 //
 //   { clientAttemptId?, format: "mc",   objectiveId, stage, chosenIndex, confidence? }
-//   { clientAttemptId?, format: "open", objectiveId, stage, answer,      confidence? }
+//   { clientAttemptId?, format: "open", objectiveId, stage, answer,      confidence?, retryOf? }
 //
 // chosenIndex is a position in the order the choices were shown, which is
 // this learner's fixed shuffle (lib/choice-order.ts).
 //
-// Returns { verdict, feedback, classification, missedParts, assisted,
-//   assistReason, correctIndex (shown order), correctAnswer, why, attempt }.
+// REQ-105: retryOf is the id of this learner's missed free-response attempt
+// on the same check. The answer is a revision written with that attempt's
+// feedback and model answer on screen: graded normally, recorded as assisted
+// ("retry"), allowed once per attempt (409 after that).
+//
+// Returns { verdict, feedback, classification, missedParts, modelAnswer?,
+//   fixNext?, assisted, assistReason, correctIndex (shown order),
+//   correctAnswer, why, optionReasons (shown order, or null), attempt }.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -67,10 +82,14 @@ export async function POST(req: Request) {
     }
     const check = found.check;
     const order = presentationOrder(presentationSeed(authUser.id, objectiveId, stage, check.question), check.choices.length);
-    const reveal = {
+    const reveal: Reveal = {
       correctIndex: shownIndexOf(order, check.correctIndex),
       correctAnswer: check.choices[check.correctIndex] ?? null,
       why: check.why || null,
+      // REQ-105: one reason per option, in the order THIS learner was shown.
+      // null for a lesson cached before option reasons existed; the app then
+      // shows `why` alone, as before.
+      optionReasons: check.optionReasons ? shuffleForPresentation(check.optionReasons, order) : null,
     };
 
     // REQ-089: an id the app already submitted is a retry -- hand back the
@@ -85,6 +104,9 @@ export async function POST(req: Request) {
     const record = (input: Parameters<typeof recordAttemptIdempotent>[0]) =>
       recordAttemptIdempotent({ ...input, clientAttemptId });
     const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence };
+
+    const retryOf = body.retryOf ?? null;
+    if (retryOf !== null && format !== "open") return badRequest("retryOf is only for a free-response revision");
 
     if (format === "mc") {
       const stored = storedIndexAt(order, body.chosenIndex);
@@ -101,7 +123,10 @@ export async function POST(req: Request) {
       }
       const correct = stored === check.correctIndex;
       const verdict = correct ? "correct" : "incorrect";
-      const feedback = `${correct ? "That's right." : "Not quite."} ${check.why}`.trim();
+      // REQ-105: a miss also says why the picked option doesn't fit, when the
+      // lesson has option reasons. This text is what Review shows later.
+      const pickedReason = !correct && check.optionReasons ? check.optionReasons[stored] : "";
+      const feedback = `${correct ? "That's right." : "Not quite."} ${pickedReason} ${check.why}`.replace(/\s+/g, " ").trim();
       const { attempt, prior } = await record({
         ...common,
         format: "mc",
@@ -118,6 +143,13 @@ export async function POST(req: Request) {
     const answer = body.answer;
     if (typeof answer !== "string" || !answer.trim()) return badRequest("answer is required for format 'open'");
     if (answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+    if (retryOf !== null) {
+      const refused = retryRefusal(
+        await retryTargetFor(authUser.id, retryOf),
+        (t) => t.kind === "lesson" && t.format === "open" && t.objective_id === objectiveId && t.stage === stage && t.question === check.question
+      );
+      if (refused) return refused;
+    }
     try {
       await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
     } catch (err) {
@@ -144,14 +176,25 @@ export async function POST(req: Request) {
       feedback: graded.feedback,
       classification: graded.classification,
       missedParts: graded.missedParts ?? [],
+      modelAnswer: graded.modelAnswer ?? null,
+      fixNext: graded.fixNext ?? null,
+      retryOf,
     });
     if (prior) return ok(withReveal(prior, check, reveal));
     return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt });
   } catch (err) {
+    if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
+}
+
+interface Reveal {
+  correctIndex: number;
+  correctAnswer: string | null;
+  why: string | null;
+  optionReasons: string[] | null;
 }
 
 function answerKeyText(check: LessonCheck): string {
@@ -169,7 +212,7 @@ function assistOf(attempt: Record<string, unknown> | null) {
 function withReveal<T extends { attempt: Record<string, unknown> }>(
   prior: T,
   check: LessonCheck,
-  reveal: { correctIndex: number; correctAnswer: string | null; why: string | null }
+  reveal: Reveal
 ) {
   return prior.attempt.question === check.question && prior.attempt.stage === check.stage ? { ...prior, ...reveal } : prior;
 }

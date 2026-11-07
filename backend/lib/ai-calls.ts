@@ -24,6 +24,9 @@ export type AiPurpose =
   | "guess_feedback"
   // REQ-109: exam-style items for the shared exam_items bank.
   | "exam_items"
+  // REQ-106: lab report questions (once per objective) and lab report grading.
+  | "lab_questions"
+  | "lab_grade"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

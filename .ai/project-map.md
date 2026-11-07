@@ -6,6 +6,7 @@ to inspect next without reading the whole repository.
 
 - Generated at: `2026-11-07T11:35:47+00:00`
 - Generated at: `2026-11-07T11:25:02+00:00`
+- Generated at: `2026-11-07T11:28:36+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -143,7 +144,12 @@ backend/
     grading-service.ts
     http.ts
     integration.dbtest.ts
+    lesson-experience.dbtest.ts
+    lesson-experience.test.ts
+    lesson-experience.ts
     lesson-generation.ts
+    lesson-progress-store.ts
+    lesson-progress-tombstone.dbtest.ts
     lesson-progress.test.ts
     lesson-progress.ts
     lesson-regen.dbtest.ts
@@ -161,6 +167,9 @@ backend/
     prompts.ts
     readiness.test.ts
     readiness.ts
+    revision.test.ts
+    revision.ts
+    rich-feedback.dbtest.ts
     schema-status.test.ts
     schema-status.ts
     study-sessions.ts
@@ -219,6 +228,9 @@ backend/
       031b_weighted_mastery_backfill.sql
       033_exam_blueprints.sql
       038_exam_practice.sql
+      032_lesson_progress_tombstone.sql
+      034_rich_feedback.sql
+      035_lesson_experience.sql
     seed/
       tracks/
       catalog.ts
@@ -301,7 +313,10 @@ mobile/
       CourseCard.tsx
       DisclaimerGate.tsx
       ExamQuestion.tsx
+      feedback.tsx
+      labReport.tsx
       Sidebar.tsx
+      teachCards.tsx
       ui.tsx
       UpdateBanner.tsx
     content/
@@ -309,10 +324,14 @@ mobile/
     lib/
       alert.tsx
       biometric.ts
+      courseReturn.test.ts
+      courseReturn.ts
       drafts.test.ts
       drafts.ts
       examPractice.test.ts
       examPractice.ts
+      lessonExperience.test.ts
+      lessonExperience.ts
       lessonFeedback.test.ts
       lessonFeedback.ts
       lessonProgress.test.ts

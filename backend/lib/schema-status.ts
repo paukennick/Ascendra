@@ -182,6 +182,31 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                    where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
   },
   {
+    migration: "032_lesson_progress_tombstone.sql",
+    what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
+    sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
+  },
+  {
+    migration: "034_rich_feedback.sql",
+    what: "lesson option reasons, attempts model answer / retry_of (every graded answer and lesson save)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name in ('lesson_content', 'lesson_content_overrides')
+                           and column_name in ('fade_option_reasons', 'solo_option_reasons'))
+                       or (table_name = 'attempts' and column_name in ('model_answer', 'fix_next', 'retry_of')))) = 7
+              and to_regclass('public.attempts_retry_of_unique') is not null as ok`,
+  },
+  {
+    migration: "035_lesson_experience.sql",
+    what: "lesson teach cards, lab report questions, attempts.lab_objective_id (every lesson save and lab report)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name in ('lesson_content', 'lesson_content_overrides') and column_name = 'teach_cards')
+                       or (table_name = 'attempts' and column_name = 'lab_objective_id'))) = 3
+              and to_regclass('public.lab_report_questions') is not null
+              and exists(select 1 from pg_constraint where conname = 'attempts_lab_not_mastery_evidence') as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

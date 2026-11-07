@@ -8,6 +8,8 @@ import {
   lessonPracticePrompt,
   lessonIntroSchema,
   lessonPracticeSchema,
+  introFromModel,
+  parseTeachCards,
   type LessonAvoid,
   type LessonIntroContent,
   type LessonPracticeContent,
@@ -65,6 +67,11 @@ export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveI
   return {
     guessPrompt: row.guess_prompt,
     teach: row.teach,
+    // REQ-106: absent for lessons cached before teach cards; the app then
+    // shows `teach` as one block, as before. The self-explanation's model
+    // answer is sent with it: it is not graded and not mastery evidence, and
+    // the app shows it only after the learner answers or skips.
+    ...teachCardsField(row.teach_cards),
     fadeProblem: row.fade_problem,
     fadeChoices,
     soloCheck: row.solo_check,
@@ -75,6 +82,20 @@ export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveI
     soloChoices: [] as string[],
     model: row.model,
     generatedAt: row.generated_at,
+  };
+}
+
+export function teachCardsField(v: unknown) {
+  const teachCards = parseTeachCards(v);
+  return teachCards ? { teachCards } : {};
+}
+
+// The guess+teach half handed back before the practice half exists.
+export function introToLesson(intro: LessonIntroContent) {
+  return {
+    guessPrompt: intro.guessPrompt,
+    teach: intro.teach,
+    ...(intro.teachCards ? { teachCards: intro.teachCards } : {}),
   };
 }
 
@@ -126,7 +147,8 @@ export const claudeGenerator: LessonGenerator = {
       avoid,
       ctx: objRow.ctx ?? undefined,
     });
-    return callClaudeStructured({
+    // REQ-106: the model writes the cards; the flat teach text is derived.
+    const raw = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: lessonIntroSchema,
@@ -137,6 +159,7 @@ export const claudeGenerator: LessonGenerator = {
       purpose: "lesson_intro",
       userId: meta?.userId,
     });
+    return introFromModel(raw);
   },
   async practice(objRow, avoid, meta) {
     const { system, user } = lessonPracticePrompt({

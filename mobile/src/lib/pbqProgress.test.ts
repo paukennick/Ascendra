@@ -23,6 +23,34 @@ const snap = (over: Partial<PbqSnapshot> = {}): PbqSnapshot => ({
 const raw = (s: unknown) => JSON.stringify(s);
 
 describe("PBQ snapshot", () => {
+  // REQ-105
+  test("keeps the model answer, fix line, attempt id and the first result of a revision", () => {
+    const first = {
+      verdict: "partial" as const,
+      feedback: "Missed logging.",
+      classification: "gap",
+      missedParts: ["Enable logging"],
+      modelAnswer: "1. Block public access: ... 2. Enable logging: ...",
+      fixNext: "Turn on server access logging.",
+      attempt: { id: "att-1" },
+    };
+    const s = parsePbqPayload(
+      pbqPayload(
+        snap({
+          firstResult: first,
+          result: { verdict: "correct", feedback: "ok", classification: "none", missedParts: [], assistReason: "retry", revisedParts: ["Enable logging"] },
+        })
+      )!,
+      "u1"
+    );
+    assert.equal(s?.firstResult?.modelAnswer, first.modelAnswer);
+    assert.equal(s?.firstResult?.fixNext, first.fixNext);
+    assert.equal(s?.firstResult?.attempt?.id, "att-1");
+    assert.equal(s?.result?.assistReason, "retry");
+    assert.deepEqual(s?.result?.revisedParts, ["Enable logging"]);
+    // A draft saved before REQ-105 has no firstResult and still restores.
+    assert.equal(parsePbqPayload(pbqPayload(snap())!, "u1")?.firstResult, null);
+  });
   test("restores the scenario and the unsent answer for the same unit", () => {
     const s = parsePbqPayload(pbqPayload(snap())!, "u1");
     assert.equal(s?.scenario.id, "sc-1");
