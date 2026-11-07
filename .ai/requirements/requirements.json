@@ -3394,6 +3394,49 @@
         "Drag-and-drop mapped to ordering+matching is an inference",
         "Needs device testing for screen readers and large text"
       ]
+    },
+    {
+      "id": "REQ-099",
+      "category": "defect",
+      "title": "Mobile flows batch B3: background hold, web backup-code guard, support kind and draft, course pop, PBQ retry, history order, share errors, logout cleanup, request timeout",
+      "description": "Audit 2 mobile items 2, 3, 4, 5, 6, 10, 12, 13, 14 and the client half of 7. Share sheets and pickers hold off the native background sign-out (bounded). On web, beforeunload and a capture-phase popstate guard protect backup codes. Support kind follows the URL param and the sidebar passes kind=ticket. navPlan only pops to a course dashboard when it is the nearest one. Support form clears before send and restores on failure. Explicit logout and logout-all remove that user's draft, PBQ and lesson-position keys. PBQ Try another scenario keeps the old state on failure. History ignores stale filter responses. Web share AbortError is ignored and copySecret is guarded. api client has a 15 s default timeout (180 s for model routes), overridable per call.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/app/(app)/support.tsx",
+        "mobile/app/(app)/account.tsx",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/app/(app)/course/[trackId]/history.tsx"
+      ],
+      "acceptance_criteria": [
+        "Sharing backup codes on Android does not sign the learner out",
+        "Web back/refresh/close with backup codes on screen asks first",
+        "Support form matches its kind param",
+        "Back to a course never lands on another course's screen",
+        "No sent ticket is restored as a draft",
+        "Logout removes the user's local drafts and progress",
+        "Failed Try another scenario keeps the graded result",
+        "History shows the selected filter's attempts",
+        "A hung request ends with a retryable error"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Android share/picker hold and web history guard verified by unit tests only; need a device and a browser check",
+        "Lesson screen items 7 (fallback) 8 9 11 15 and its Back to course are deferred to the lesson rewrite",
+        "Model-route timeout of 180 s is a judgment call; server has no explicit limit"
+      ]
     }
   ]
 }

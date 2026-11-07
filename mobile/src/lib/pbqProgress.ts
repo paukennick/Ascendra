@@ -102,6 +102,23 @@ function parsePbqResult(v: unknown): GradeResult | null {
   };
 }
 
+// What the simulator shows after asking for a scenario ("Generate" or "Try
+// another scenario"). A new scenario starts blank: no answer, no result, no
+// attempt id. A failed request changes nothing -- the old scenario keeps its
+// answer, its graded result and its attempt id, so resending the same answer
+// is still recognised as a retry (FAIL-067; it used to come back blank).
+export interface PbqScreenState {
+  scenario: PBQScenario | null;
+  answer: string;
+  result: GradeResult | null;
+  sent: { id: string; signature: string } | null;
+}
+
+export function pbqAfterGenerate(prev: PbqScreenState, fetched: PBQScenario | null): PbqScreenState {
+  if (!fetched) return prev;
+  return { scenario: fetched, answer: "", result: null, sent: null };
+}
+
 // Serialised without a timestamp: the draft envelope (drafts.ts) adds one at
 // write time, which keeps this string stable between renders.
 export function pbqPayload(s: PbqSnapshot | null): string | null {

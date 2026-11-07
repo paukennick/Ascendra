@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Attempt } from "@/types";
 import { Body, Card, Chip, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
+import { createLatestRequest } from "@/lib/latestRequest";
 import { spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 
@@ -17,16 +18,23 @@ export default function HistoryScreen() {
   const [kind, setKind] = useState<typeof KINDS[number]>("all");
   const [error, setError] = useState<string | null>(null);
 
+  // FAIL-068: switching filters quickly could let an older filter's response
+  // land last and fill the list; only the newest request may apply.
+  const requests = useRef(createLatestRequest()).current;
   const load = useCallback(() => {
     const kindParam = kind === "all" ? "" : `&kind=${kind}`;
+    const ticket = requests.begin();
     api
       .get<{ attempts: Attempt[] }>(`/api/attempts?trackId=${trackId}${kindParam}`)
       .then((res) => {
+        if (!requests.isLatest(ticket)) return;
         setAttempts(res.attempts);
         setError(null);
       })
-      .catch((err) => setError(err.message));
-  }, [trackId, kind]);
+      .catch((err) => {
+        if (requests.isLatest(ticket)) setError(err.message);
+      });
+  }, [trackId, kind, requests]);
 
   // REQ-093: reload on every focus (and when the filter changes, since `load`
   // changes with it), not just on mount -- answers given in a lesson opened

@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { isTopLevel, planNavigation, routePath } from "./navPlan.ts";
+import { isTopLevel, planCourseReturn, planNavigation, routePath } from "./navPlan.ts";
 
 describe("sidebar navigation plan", () => {
   test("tapping the screen you are already on does nothing", () => {
@@ -26,6 +26,25 @@ describe("sidebar navigation plan", () => {
     assert.equal(planNavigation("/", "/course/xyz", false, ["/"]), "push");
     // A different course's dashboard in the stack doesn't count.
     assert.equal(planNavigation("/course/abc", "/course/xyz", false, ["/", "/course/abc"]), "push");
+  });
+  test("FAIL-065: a course dashboard is popped to only if it is the NEAREST dashboard in the stack", () => {
+    // Course B, ..., Course A, Lesson B: popping by route name would land on
+    // Course A's screen with its course swapped to B.
+    const stack = ["/", "/course/B", "/course/B/progress", "/course/A", "/course/B/lesson/o1"];
+    assert.equal(planNavigation("/course/B/lesson/o1", "/course/B", false, stack), "push");
+    // Course A is the nearest dashboard, so popping to it is right.
+    assert.equal(planNavigation("/course/B/lesson/o1", "/course/A", false, stack), "dismissTo");
+    // Current screen is a dashboard for another course: push, never swap it.
+    assert.equal(planNavigation("/course/A", "/course/B", false, ["/", "/course/B", "/course/A"]), "push");
+    // Static top-level screens have unique route names; any copy is the target.
+    assert.equal(planNavigation("/course/A", "/", false, ["/", "/course/B", "/course/A"]), "dismissTo");
+    assert.equal(planNavigation("/course/A", "/support", true, ["/", "/support", "/course/A"]), "dismissTo");
+  });
+  test("FAIL-065: Back to course from a lesson", () => {
+    assert.equal(planCourseReturn("B", ["/", "/course/B", "/course/B/lesson/o1"]), "dismissTo");
+    assert.equal(planCourseReturn("B", ["/", "/course/B", "/course/A", "/course/B/lesson/o1"]), "push");
+    assert.equal(planCourseReturn("B", ["/", "/course/B/lesson/o1"]), "push");
+    assert.equal(planCourseReturn("B", ["/", "/course/B/", "/course/B/lesson/o1"]), "dismissTo");
   });
   test("detail screens always push", () => {
     assert.equal(planNavigation("/course/abc", "/course/abc/progress", true, ["/", "/course/abc"]), "push");

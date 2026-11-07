@@ -8,6 +8,7 @@ to inspect next without reading the whole repository.
 - Generated at: `2026-11-07T11:25:02+00:00`
 - Generated at: `2026-11-07T11:28:36+00:00`
 - Generated at: `2026-11-07T11:24:59+00:00`
+- Generated at: `2026-11-07T09:56:43+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -334,6 +335,8 @@ mobile/
     lib/
       accountExport.ts
       alert.tsx
+      apiClient.test.ts
+      backgroundHold.ts
       biometric.ts
       courseReturn.test.ts
       courseReturn.ts
@@ -344,12 +347,15 @@ mobile/
       lessonExperience.test.ts
       lessonExperience.ts
       hardening.test.ts
+      latestRequest.ts
       lessonFeedback.test.ts
       lessonFeedback.ts
       lessonProgress.test.ts
       lessonProgress.ts
+      localData.ts
       mfaLeaveGuard.test.ts
       mfaLeaveGuard.ts
+      mobileFlows2.test.ts
       navPlan.test.ts
       navPlan.ts
       pbqProgress.test.ts
@@ -366,6 +372,7 @@ mobile/
       time.ts
       useStoredDraft.ts
       webAutofillStyles.ts
+      webLeaveGuard.ts
     types/
       exam.ts
       index.ts

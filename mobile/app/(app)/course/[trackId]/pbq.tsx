@@ -10,6 +10,7 @@ import { attemptIdFor } from "@/lib/lessonProgress";
 import {
   PBQ_ANSWER_MAX,
   parsePbqPayload,
+  pbqAfterGenerate,
   pbqPartRows,
   pbqPartSummary,
   pbqPayload,
@@ -165,19 +166,27 @@ export default function PBQScreen() {
     };
   }, [retryScenarioId]);
 
+  // FAIL-067: the answer, the graded result and the attempt id used to be
+  // cleared before the request, so a failed "Try another scenario" left the
+  // old scenario blank and ungraded, and answering it again recorded a
+  // second attempt under a new id. They are now replaced only once the new
+  // scenario has arrived (pbqAfterGenerate); a failure leaves them as they
+  // were and shows the error above the old scenario.
   async function generate(fresh: boolean) {
     if (!unitId) return;
     setBusy(true);
     setError(null);
-    setResult(null);
-    setFirstResult(null);
-    setAnswer("");
-    sentRef.current = null;
     try {
       const res = await api.get<{ scenario: PBQScenario }>(
         `/api/pbq?unitId=${unitId}${fresh ? "&fresh=1" : ""}`
       );
-      setScenario(res.scenario);
+      const next = pbqAfterGenerate({ scenario, answer, result, sent: sentRef.current }, res.scenario);
+      sentRef.current = next.sent;
+      setResult(next.result);
+      // REQ-105: a revision belongs to the old scenario; a new one starts clean.
+      setFirstResult(null);
+      setAnswer(next.answer);
+      setScenario(next.scenario);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -386,12 +395,20 @@ export default function PBQScreen() {
                 </>
               ) : null}
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-                <Button label="Try another scenario" icon="refresh-cw" fullWidth={false} onPress={() => generate(true)} />
+                <Button
+                  label="Try another scenario"
+                  icon="refresh-cw"
+                  fullWidth={false}
+                  loading={busy}
+                  disabled={busy}
+                  onPress={() => generate(true)}
+                />
                 <Button
                   label="Change unit"
                   variant="ghost"
                   fullWidth={false}
                   icon="layers"
+                  disabled={busy}
                   onPress={() => {
                     setScenario(null);
                     setResult(null);

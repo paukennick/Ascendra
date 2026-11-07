@@ -6,6 +6,7 @@ import {
   parsePbqPayload,
   pbqPartRows,
   pbqPartSummary,
+  pbqAfterGenerate,
   pbqPayload,
   type PbqSnapshot,
 } from "./pbqProgress.ts";
@@ -161,5 +162,22 @@ describe("PBQ per-part rows", () => {
     );
     assert.equal(bad?.result?.partScores, null);
     assert.equal(bad?.result?.verdict, "partial", "the rest of the result survives");
+  });
+});
+
+describe("Try another scenario (FAIL-067)", () => {
+  const s = snap();
+  const graded = {
+    scenario: s.scenario,
+    answer: "Block public access, enable SSE-KMS",
+    result: { verdict: "partial", feedback: "Missed logging", missedParts: ["Enable logging"] } as unknown as PbqSnapshot["result"],
+    sent: { id: "att-1", signature: "pbq:sc-1:Block public access, enable SSE-KMS" },
+  };
+  test("a failed request keeps the old scenario's answer, result and attempt id", () => {
+    assert.deepEqual(pbqAfterGenerate(graded, null), graded);
+  });
+  test("a new scenario starts blank", () => {
+    const fresh = { ...s.scenario, id: "sc-2" };
+    assert.deepEqual(pbqAfterGenerate(graded, fresh), { scenario: fresh, answer: "", result: null, sent: null });
   });
 });

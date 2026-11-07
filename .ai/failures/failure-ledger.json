@@ -1430,6 +1430,251 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-061",
+      "date": "2026-11-07",
+      "title": "API client had no request timeout",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A hung request (weak signal, captive portal) left screens spinning forever with no way to retry; a hung progress fetch blocked lesson resume.",
+      "how_detected": "Audit 2 mobile review (item 7)",
+      "root_cause": "rawRequest called fetch with no AbortSignal and nothing else bounded the wait, so a stalled connect or body read never settled.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "AbortController per request; 15 s default, 180 s for model-backed routes (chat, pbq, grade, objectives/:id/lesson*, guess-feedback), per-call timeoutMs override; timeout throws RequestTimeoutError (plain Error, not ApiError, never retried by the 401 path). Avatar upload and data export use 60 s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/apiClient.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every request now goes through one bounded path; new long-running routes must be added to MODEL_ROUTES or pass timeoutMs, which the route-default test documents.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-062",
+      "date": "2026-11-07",
+      "title": "Native background sign-out fired while a share sheet or picker was open",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On Android without biometrics, sharing backup codes to another app (or picking a photo, exporting data) took longer than the 1.5 s grace period and the learner came back signed out.",
+      "how_detected": "Audit 2 mobile review (item 2)",
+      "root_cause": "Android reports background for any activity Ascendra itself launches; the grace period only absorbed brief permission dialogs, and nothing told AuthContext an outbound flow was open.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/backgroundHold.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "withBackgroundHold opens a bounded (2 min) hold around Share and ImagePicker calls; the background timer waits for the hold; returning to active or settling without ever backgrounding ends it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mobileFlows2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any new flow that opens another app must wrap it in withBackgroundHold (documented in AuthContext and backgroundHold.ts).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-063",
+      "date": "2026-11-07",
+      "title": "Web back, refresh and tab close skipped the backup-code leave guard",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On web, the browser back button, refresh or closing the tab discarded backup codes shown once, with no prompt.",
+      "how_detected": "Audit 2 mobile review (item 3)",
+      "root_cause": "expo-router answers browser back with navigation.resetRoot, which never fires beforeRemove, and unload never reaches React Navigation; the guard only listened to beforeRemove.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/src/lib/webLeaveGuard.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "While backup codes are shown and signed in: beforeunload asks the browser to confirm; a capture-phase popstate listener stops the router's listener, steps forward again, and asks; I've saved them goes back for real.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mobileFlows2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Leave guards on web must cover browser history and unload, not only beforeRemove (comment in webLeaveGuard.ts).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-064",
+      "date": "2026-11-07",
+      "title": "Support form kind read from the URL only once",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A later kind param change on a mounted Support screen (popping back with another kind, a deep link, web back/forward) left the other form showing; Submit a ticket carried no params so it could count as the same screen.",
+      "how_detected": "Audit 2 mobile review (item 4)",
+      "root_cause": "kind was initialised from useLocalSearchParams in useState and never synced; the sidebar's ticket entry had no explicit kind.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/app/(app)/support.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/lib/drafts.ts"
+      ],
+      "fix_summary": "An effect switches the form when the kind param changes; chips write the param with setParams so the URL always names the form; the sidebar passes kind=ticket.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/drafts.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Screens that take a mode from params must follow param changes, not only the first value.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-065",
+      "date": "2026-11-07",
+      "title": "dismissTo could land on another course's dashboard",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With Course B, ..., Course A, Lesson B in the stack, popping to /course/B landed on Course A's screen with its params swapped to B, dropping the history in between.",
+      "how_detected": "Audit 2 mobile review (item 5)",
+      "root_cause": "POP_TO matches the nearest route by name only and every course dashboard shares one route name; planNavigation's in-stack check compared exact paths, so it found Course B deeper down and chose dismissTo.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/src/lib/navPlan.ts"
+      ],
+      "fix_summary": "dismissTo only when the nearest stack entry with the target's route is the target itself; otherwise push. planCourseReturn added for the lesson screen's Back to course (wiring deferred to the lesson rewrite).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/navPlan.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Planner compares against the nearest same-route entry, matching how the router resolves POP_TO.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-066",
+      "date": "2026-11-07",
+      "title": "Sent support ticket restored as a draft",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Leaving Support while a ticket was sending left its draft stored; the next visit offered the already-sent ticket again, inviting a duplicate.",
+      "how_detected": "Audit 2 mobile review (item 6)",
+      "root_cause": "The form was cleared only after the request succeeded; if the screen had unmounted by then the clear never reached storage.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/app/(app)/support.tsx",
+        "mobile/src/lib/drafts.ts"
+      ],
+      "fix_summary": "Fields are emptied before the send (the draft hook then removes the stored entry); on failure they come back unless new text was typed, and if the learner left or switched form the sent text is written back to that form's stored draft.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/drafts.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Same clear-then-restore shape as chat; documented at the call site.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-067",
+      "date": "2026-11-07",
+      "title": "Failed Try another scenario wiped the graded PBQ",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "If fetching a new PBQ scenario failed, the graded result was gone and the old scenario came back blank; answering again recorded a second attempt under a new id.",
+      "how_detected": "Audit 2 mobile review (item 12)",
+      "root_cause": "generate() cleared answer, result and the attempt id before the request instead of after a scenario arrived.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/pbq.tsx",
+        "mobile/src/lib/pbqProgress.ts"
+      ],
+      "fix_summary": "pbqAfterGenerate replaces the state only on success; the Try another button shows loading and Change unit is disabled while busy.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/pbqProgress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "State that a request replaces is replaced on its success, not before it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-068",
+      "date": "2026-11-07",
+      "title": "History filter showed a stale response",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Switching answer-history filters quickly could fill the list with another filter's attempts.",
+      "how_detected": "Audit 2 mobile review (item 13)",
+      "root_cause": "Each filter change started a request and every response was applied, so whichever answered last won.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/history.tsx",
+        "mobile/src/lib/latestRequest.ts"
+      ],
+      "fix_summary": "createLatestRequest tickets; only the newest request applies its response or error.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mobileFlows2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Reusable latestRequest helper for any filter-driven fetch.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-069",
+      "date": "2026-11-07",
+      "title": "Web share cancel showed an error; copySecret rejection unhandled",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Cancelling the browser share dialog showed Couldn't open sharing; a denied clipboard in copySecret produced an unhandled rejection.",
+      "how_detected": "Audit 2 mobile review (item 14)",
+      "root_cause": "navigator.share rejects with AbortError on cancel and every rejection was treated as failure; copySecret had no try/catch.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/lib/mfaLeaveGuard.ts"
+      ],
+      "fix_summary": "isShareDismissal ignores AbortError (backup codes and data export); copySecret shows Couldn't copy on failure.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mfaLeaveGuard.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Share call sites use isShareDismissal.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-070",
+      "date": "2026-11-07",
+      "title": "Drafts and progress left on the device after logout",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Chat, support and PBQ drafts and lesson positions stayed in AsyncStorage/localStorage after Log out and Log out of all devices.",
+      "how_detected": "Audit 2 mobile review (item 10)",
+      "root_cause": "Logout only cleared tokens; nothing enumerated the per-user ascendra.draft/pbqProgress/lessonProgress keys.",
+      "requirement": "REQ-099",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/localData.ts",
+        "mobile/src/lib/useStoredDraft.ts",
+        "mobile/app/(app)/support.tsx"
+      ],
+      "fix_summary": "logout (also used by the web idle sign-out and account deletion) and logoutAll remove that user's keys, block draft writes for that user until they sign in again, and sweep once more after 2 s for the lesson screen's direct writes. The native background sign-out and token expiry keep drafts.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mobileFlows2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "New per-user storage keys must use one of the three prefixes or be added to localDataOwner.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-076",
       "date": "2026-11-07",
       "title": "029 recompute test committed the old mastery rule into the shared test database",

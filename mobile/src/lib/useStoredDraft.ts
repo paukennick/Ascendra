@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { decodeDraft, encodeDraft } from "@/lib/drafts";
+import { localDataGuard } from "@/lib/localData";
 
 // Keeps a screen's in-progress state on the device (see src/lib/drafts.ts for
 // the pure rules). Used by the chat box, the support form and the PBQ
@@ -36,6 +37,9 @@ export function useStoredDraft(
     const p = pending.current;
     pending.current = null;
     if (!p) return;
+    // After that user logged out, a flush on the way out must not write the
+    // draft back over the logout sweep (FAIL-070, src/lib/localData.ts).
+    if (!localDataGuard.mayWrite(p.key)) return;
     if (p.payload === null) AsyncStorage.removeItem(p.key).catch(() => {});
     else AsyncStorage.setItem(p.key, encodeDraft(p.payload, Date.now())).catch(() => {});
   }).current;

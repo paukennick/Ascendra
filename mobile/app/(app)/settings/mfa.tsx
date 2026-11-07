@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Image, Share, View } from "react-native";
+import { Image, Platform, Share, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useNavigation, useRouter } from "expo-router";
 import { api, ApiError } from "@/api/client";
@@ -20,7 +20,9 @@ import {
   TextField,
 } from "@/components/ui";
 import { Alert } from "@/lib/alert";
-import { backupCodesText, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
+import { withBackgroundHold } from "@/lib/backgroundHold";
+import { backupCodesText, isShareDismissal, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
+import { installWebLeaveGuard } from "@/lib/webLeaveGuard";
 import { colors, radius } from "@/lib/theme";
 
 type MfaMethod = "totp" | "email";
@@ -75,6 +77,32 @@ export default function MfaSettings() {
       }
     });
   }, [navigation]);
+
+  // Web: the browser's back button, refresh and tab close skip beforeRemove
+  // entirely (FAIL-063, src/lib/webLeaveGuard.ts). Armed only while backup
+  // codes are on screen and the learner is signed in.
+  useEffect(() => {
+    if (Platform.OS !== "web" || view !== "backup-codes" || typeof window === "undefined") return;
+    return installWebLeaveGuard(
+      window,
+      () => mfaLeaveGuard(viewRef.current, allowLeave.current, statusRef.current === "signedIn") === "codes",
+      (leave) =>
+        Alert.alert(
+          "Have you saved your backup codes?",
+          "They are shown only once. Without them, you could be locked out if you lose your other sign-in methods.",
+          [
+            { text: "Keep this screen", style: "cancel" },
+            {
+              text: "I've saved them",
+              onPress: () => {
+                allowLeave.current = true;
+                leave();
+              },
+            },
+          ]
+        )
+    );
+  }, [view]);
   // Which method the "disable" or "regenerate" view acts on -- backup codes
   // and the disable flow are both per-method now.
   const [targetMethod, setTargetMethod] = useState<MfaMethod>("totp");
@@ -94,11 +122,17 @@ export default function MfaSettings() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState("");
 
+  // A denied clipboard (web permission, some browsers) used to reject
+  // unhandled here (FAIL-069); the secret is on screen to type instead.
   async function copySecret() {
     if (!manualSecret) return;
-    await Clipboard.setStringAsync(manualSecret);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await Clipboard.setStringAsync(manualSecret);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      Alert.alert("Couldn't copy", "Type the key into your authenticator app instead.");
+    }
   }
 
   async function copyCodes() {
@@ -112,11 +146,15 @@ export default function MfaSettings() {
   }
 
   // The OS share sheet (notes, password manager, email to self). Dismissing
-  // it is not an error; a platform without sharing (some web browsers) is.
+  // it is not an error (web reports it as an AbortError); a platform without
+  // sharing (some web browsers) is. Sharing to another app puts Ascendra in
+  // the background, so the background sign-out is held off while it is open
+  // (FAIL-062, src/lib/backgroundHold.ts).
   async function shareCodes() {
     try {
-      await Share.share({ message: backupCodesText(backupCodes) });
-    } catch {
+      await withBackgroundHold(() => Share.share({ message: backupCodesText(backupCodes) }));
+    } catch (err) {
+      if (isShareDismissal(err)) return;
       Alert.alert("Couldn't open sharing", "Use Copy instead, or write the codes down.");
     }
   }
