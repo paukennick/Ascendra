@@ -131,8 +131,16 @@ export function sameAttempt(stored: Record<string, unknown>, req: AttemptIdentit
     stored.format === req.format &&
     (stored.stage ?? null) === (req.stage ?? null) &&
     (req.question === undefined || stored.question === req.question) &&
-    stored.answer === req.answer
+    sameAnswer(stored.answer, req.answer)
   );
+}
+
+// A retry of a failed submit may differ only in surrounding whitespace (the
+// app's resend signature trims; the request body doesn't). That is the same
+// submission, not a conflict.
+function sameAnswer(stored: unknown, sent: unknown): boolean {
+  if (typeof stored === "string" && typeof sent === "string") return stored.trim() === sent.trim();
+  return stored === sent;
 }
 
 export function assertSameAttempt(stored: Record<string, unknown>, req: AttemptIdentity): void {

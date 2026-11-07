@@ -1405,7 +1405,7 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-061",
+      "id": "FAIL-120",
       "date": "2026-11-07",
       "title": "Choice shuffle seeded from the raw objective id",
       "status": "fixed",
@@ -1430,6 +1430,29 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "Any string derived from an id (lock key, seed, map key) is built from the lowercase form; covered by the mixed-case hardening tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-121",
+      "date": "2026-11-07",
+      "title": "Whitespace-only resend refused as a conflict",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A free-response retry that differed only by trailing whitespace got 409 instead of replaying the stored grade.",
+      "how_detected": "Merge of B1 into B2 (review)",
+      "root_cause": "The mobile resend signature trims the answer but the request body does not; the server compared answers exactly.",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Answers are compared after trimming surrounding whitespace.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Idempotency identity compares normalized answers, the same normalization the client signs.",
       "recurrence_of": ""
     }
   ]

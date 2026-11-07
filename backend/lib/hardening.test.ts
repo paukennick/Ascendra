@@ -131,6 +131,10 @@ describe("idempotency matching", () => {
     assert.equal(sameAttempt(stored, { ...graded, answer: "B" }), false);
     assert.equal(sameAttempt(stored, { ...graded, stage: "solo" }), false);
   });
+  test("a resend that differs only in surrounding whitespace is the same submission (FAIL-121)", () => {
+    assert.equal(sameAttempt(stored, { ...req, answer: "A  \n" }), true);
+    assert.equal(sameAttempt(stored, { ...req, answer: "A B" }), false);
+  });
   test("the reply id is a uuid derived from the message row id, stable and case-insensitive", () => {
     const a = replyIdFor("a1b2c3d4-0000-4000-8000-abcdefabcdef");
     assert.match(a, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
