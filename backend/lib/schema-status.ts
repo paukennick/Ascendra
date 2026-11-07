@@ -191,7 +191,7 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                    where type_name in ('multiple_response', 'ordering', 'matching')) = 3 as ok`,
   },
   {
-    migration: "042_exam_save_sequence.sql",
+    migration: "047_exam_save_sequence.sql",
     what: "exam_session_items.save_seq column (every exam answer save and the exam session view, REQ-113)",
     sql: `select exists(select 1 from information_schema.columns
                          where table_schema = 'public' and table_name = 'exam_session_items' and column_name = 'save_seq') as ok`,

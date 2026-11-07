@@ -13,7 +13,7 @@
 //   - every save carries a number (seq) that only goes up per question,
 //     starting from the number the server last applied (saveSeq in the
 //     session view). The server ignores a number at or below the last one it
-//     applied (backend/lib/exam-sessions.ts saveItem, migration 042), so a
+//     applied (backend/lib/exam-sessions.ts saveItem, migration 047), so a
 //     save the app gave up on that lands late can't undo a newer one;
 //   - a failed save keeps its fields and they go out again, merged, with the
 //     next save of that question, a retry, or a flush;

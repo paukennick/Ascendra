@@ -35,7 +35,7 @@ export interface ExamItem {
   confidence: number | null;
   timeSpentMs: number;
   // REQ-113: the last save number the server applied for this question
-  // (migration 042); the app numbers its next saves on from it. Absent from
+  // (migration 047); the app numbers its next saves on from it. Absent from
   // an older server.
   saveSeq?: number;
   // after submit only

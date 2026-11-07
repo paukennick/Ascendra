@@ -3805,9 +3805,9 @@
         "mobile/app/(app)/course/[trackId]/exam.tsx",
         "mobile/src/lib/examSaveQueue.ts",
         "backend/lib/exam-sessions.ts::saveItem",
-        "backend/supabase/migrations/042_exam_save_sequence.sql"
+        "backend/supabase/migrations/047_exam_save_sequence.sql"
       ],
-      "fix_summary": "Saves go through a per-session queue: one in flight per question, numbered (seq) from the server's saveSeq, failed fields kept and retried every 5 s and on demand, flushed before Submit and Leave; Submit refuses with the unsaved question numbers while any save has failed (except at time-up). The server stores save_seq (migration 042) and ignores a save numbered at or below it with 200 {saved:false, stale:true}.",
+      "fix_summary": "Saves go through a per-session queue: one in flight per question, numbered (seq) from the server's saveSeq, failed fields kept and retried every 5 s and on demand, flushed before Submit and Leave; Submit refuses with the unsaved question numbers while any save has failed (except at time-up). The server stores save_seq (migration 047) and ignores a save numbered at or below it with 200 {saved:false, stale:true}.",
       "fix_commits": [],
       "regression_tests": [
         "mobile/src/lib/examSaveQueue.test.ts::flush waits for in-flight saves",

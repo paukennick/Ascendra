@@ -614,7 +614,7 @@ export async function saveItem(
   position: number,
   body: { response?: unknown; flagged?: unknown; confidence?: unknown; timeSpentMs?: unknown; seq?: unknown }
 ): Promise<{ saved: boolean; stale?: boolean; seq?: number }> {
-  // REQ-113 (Audit 3 mobile H1, migration 042): the app numbers its saves per
+  // REQ-113 (Audit 3 mobile H1, migration 047): the app numbers its saves per
   // question. A save numbered at or below the last one applied arrived late
   // (out of order, or a retry of a save the app had already given up on); a
   // newer save already won, so it is ignored, not an error. No number (an

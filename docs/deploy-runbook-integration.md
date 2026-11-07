@@ -41,7 +41,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 040 | comparison cards, explain-back, misconceptions | 0.4 s | no | ≤ 130 ms |
 | 041 | integration mastery rule, `attempts.part_scores` | 0.3 s | no | (too short to sample) |
 | **041b** | backup to `mastery_backup_041`, recompute under 041 | **145 s** | **yes** | ≤ 180 ms / ≤ 210 ms, none failed |
-| 042 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
+| 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b. No read or insert failed or timed out at any point. On
