@@ -1072,6 +1072,57 @@
       "prevention_rules": [],
       "prevention_notes": "examBlueprintForTrack is the one reader for exam mechanics; exam-blueprints.dbtest.ts asserts it returns duration, format, passing policy and domains.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-140",
+      "date": "2026-11-07",
+      "title": "AWSDVA still taught DVA-C02 three weeks before its last test day",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The AWS Developer Associate course listed only DVA-C02 domains (32/26/24/18) and objectives although the DVA-C03 guide was published and registration had opened 2026-10-27; DVA-C02 can't be taken after 2026-11-30, so a learner starting now would study the wrong blueprint (no AI-security task, no container build/deploy, no presigned URLs).",
+      "how_detected": "review",
+      "root_cause": "REQ-102 built the retire-and-append mechanism and applied it to SAP-C03 but deliberately deferred DVA as a follow-up; the track was marked 'transitioning' with a comment, and nothing turned that comment into a tracked requirement or a test, so it relied on someone remembering.",
+      "requirement": "REQ-104",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "AWSDVA rebased onto DVA-C03: four C02 units retired at 2026-12-01T12:00Z with ids and history kept, four C03 units appended from the official guide (all 72 skills), credential DVA-C03 superseding DVA-C02.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::AWS DVA-C02 -> DVA-C03 (REQ-104)",
+        "backend/lib/exam-blueprints.dbtest.ts::AWSDVA teaches DVA-C03; any DVA-C02 row is kept",
+        "superseded",
+        "with its last test day"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A deferred exam-version rebase is now registered as a requirement (REQ-104) rather than left as a seed comment; the catalog test pins AWSDVA to DVA-C03 and its supersession dates.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-141",
+      "date": "2026-11-07",
+      "title": "Retire-and-append would list two units with the same title during a version change",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "DVA-C03 reuses three DVA-C02 domain names (Development with AWS Services, Security, Troubleshooting and Optimization). With the C02 units kept and listed until retiredAt, the course page and attempt/error history (which show unit titles) would show two indistinguishable 'Security' units until 2026-12-01.",
+      "how_detected": "review",
+      "root_cause": "REQ-102's uniqueness test checked only active unit titles (the exam_domains naming concern); SAP-C03 happened to rename every domain, so the overlap window between retired and new units with equal names was never exercised.",
+      "requirement": "REQ-104",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/lib/catalog-blueprints.test.ts"
+      ],
+      "fix_summary": "Retired DVA-C02 unit titles carry a ' (DVA-C02)' suffix (rows matched by sort_order, so ids and history are unchanged); new catalog-wide test requires unit titles unique within a track, retired units included.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::unit titles are unique within a track",
+        "retired units included"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The catalog-wide test fails any future version change that reuses a domain name without renaming the outgoing unit; confirmed it fails when the suffix is removed.",
+      "recurrence_of": ""
     }
   ]
 }
