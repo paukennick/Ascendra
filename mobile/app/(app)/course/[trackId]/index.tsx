@@ -22,6 +22,7 @@ import {
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
 import { DisclaimerGate } from "@/components/DisclaimerGate";
+import { CoursePlanPanel } from "@/components/CoursePlanPanel";
 import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
@@ -216,6 +217,9 @@ export default function CourseDashboard() {
               ))}
             </View>
           </Card>
+
+          {/* REQ-110: placement offer, session choice, plan and kept summary. */}
+          <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
 
           <SectionHeader label="Units" />
           {units?.map((u) => {

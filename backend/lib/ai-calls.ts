@@ -22,6 +22,8 @@ export type AiPurpose =
   | "pbq_grade"
   | "chat"
   | "guess_feedback"
+  // REQ-110: one shared "Quiz me" question per objective (lib/coach-quiz.ts).
+  | "coach_quiz"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

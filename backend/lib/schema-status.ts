@@ -166,6 +166,20 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
           ) as ok`,
   },
   {
+    migration: "039_coach_plan.sql",
+    what: "coach_quiz and placement assessment types (Quiz me, placement check)",
+    sql: `select (select cognitive_weight = 0 and not application_level from assessment_types where type_name = 'coach_quiz')
+             and (select not application_level from assessment_types where type_name = 'placement') as ok`,
+  },
+  {
+    migration: "039_coach_plan.sql",
+    what: "study_plans, placement_checks/placement_items, coach_quiz_items/coach_quiz_turns tables (study plan, placement, Quiz me)",
+    sql: `select to_regclass('public.study_plans') is not null and to_regclass('public.placement_checks') is not null
+             and to_regclass('public.coach_quiz_items') is not null and to_regclass('public.coach_quiz_turns') is not null
+             and exists(select 1 from information_schema.columns where table_schema = 'public'
+                          and table_name = 'placement_items' and column_name = 'correct_index') as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

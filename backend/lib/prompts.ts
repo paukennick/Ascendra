@@ -490,6 +490,8 @@ export function chatSystemPrompt(params: {
   ctx?: CoachContext;
   // Per-request block from lib/coach-guard.ts openItemsBlock (questions only).
   openItems?: string;
+  // REQ-110: per-learner block from lib/learner-profile.ts (fenced as data).
+  learnerProfile?: string;
 }): SystemPrompt {
   return systemWithRules(
     `Open Q&A ("Ask the coach") for the track "${params.trackTitle}"${
@@ -500,7 +502,60 @@ When the learner pastes a graded answer and its verdict to dispute or ask about 
 on substance: say plainly whether you agree with the verdict and exactly why, naming the specific part
 that was or wasn't covered.
 
-${CHAT_GUARDRAILS}${params.openItems ?? ""}`,
+${CHAT_GUARDRAILS}${params.openItems ?? ""}${params.learnerProfile ?? ""}`,
     params.ctx
   );
+}
+
+// REQ-110 "Quiz me on my weak spots". One question per objective, generated
+// once and shared by every learner (it carries no learner data), so the
+// learner-aware part is only WHICH objective gets asked. Graded on the server
+// by index; the hints are written up front so a miss costs no second call.
+export const coachQuizSchema = z.object({
+  question: z
+    .string()
+    .describe("One short retrieval question on the objective, answerable from what a lesson on it teaches. No trick wording."),
+  choices: z
+    .array(z.string())
+    .length(4)
+    .describe("Exactly 4 options: one correct, three real misconceptions or near-misses, never filler."),
+  correctIndex: z.number().int().min(0).max(3).describe("Index into choices of the correct option."),
+  hints: z
+    .array(z.string())
+    .length(2)
+    .describe(
+      "Two graded hints, gentlest first. Hint 1 points at the key idea to recall. Hint 2 is more specific and may rule out one wrong option. Neither may state, quote or paraphrase the correct option."
+    ),
+  explanation: z
+    .string()
+    .describe("2-3 sentences shown after the learner has answered: why the correct option is right and the misconception behind the most tempting wrong one."),
+});
+export type CoachQuizItem = z.infer<typeof coachQuizSchema>;
+
+export function coachQuizPrompt(params: {
+  trackTitle: string;
+  unitTitle: string;
+  objectiveTitle: string;
+  ctx?: CoachContext;
+}): { system: SystemPrompt; user: string } {
+  const system = systemWithRules(
+    `You are writing one quick retrieval-practice question for a coach's "Quiz me" mode. The coach asks it,
+then gives graded hints (Socratic: a nudge, then a sharper nudge) before ever showing the answer, so the hints
+must help the learner think rather than hand over the answer. Keep it inside the objective's scope and at exam
+level. It is shared by every learner on this objective, so write nothing about any particular learner.`,
+    params.ctx
+  );
+  const user = `Course/track: ${params.trackTitle}
+Unit: ${params.unitTitle}
+Objective: ${params.objectiveTitle}
+
+Produce ONLY a JSON object, no markdown fence:
+{
+  "question": "one short retrieval question on this objective",
+  "choices": ["exactly 4 options: one correct, three real misconceptions"],
+  "correctIndex": "<0-3: index of the correct choice; vary its position>",
+  "hints": ["hint 1: the key idea to recall, no answer", "hint 2: sharper, may rule out one wrong option, still no answer"],
+  "explanation": "2-3 sentences: why the correct option is right, and the misconception behind the most tempting wrong one"
+}`;
+  return { system, user };
 }

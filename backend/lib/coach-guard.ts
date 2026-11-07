@@ -9,7 +9,8 @@ import { query } from "@/lib/db";
 // fenced so it is read as data, not instructions.
 
 export interface OpenItem {
-  kind: "lesson" | "pbq" | "review";
+  // "quiz": an open "Quiz me" question (REQ-110, lib/coach-quiz.ts).
+  kind: "lesson" | "pbq" | "review" | "quiz";
   label: string; // objective or scenario title
   question: string;
   // Correct option text for a lesson item. Server-side only: used to check
@@ -138,7 +139,7 @@ export function leakedItems(reply: string, items: OpenItem[], matched: OpenItem[
 // only, and which of them this message is about.
 export function openItemsBlock(items: OpenItem[], matched: OpenItem[]): string {
   if (!items.length) return "";
-  const kindLabel = { lesson: "lesson question, not answered yet", pbq: "PBQ, not answered yet", review: "pending review retest" };
+  const kindLabel = { lesson: "lesson question, not answered yet", pbq: "PBQ, not answered yet", review: "pending review retest", quiz: "Quiz me question, not answered yet" };
   const list = items
     .map((it, i) => {
       const q = it.question.length > MAX_QUESTION_CHARS ? `${it.question.slice(0, MAX_QUESTION_CHARS)}...` : it.question;
