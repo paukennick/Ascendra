@@ -230,6 +230,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_050') as ok`,
   },
   {
+    // REQ-125: starting or grading a clinical or fitness lab, the lab view
+    // and the export read it.
+    migration: "051_lab_disclaimer_ack.sql",
+    what: "lab_disclaimer_acknowledgements (the one-time clinical / fitness lab disclaimer acknowledgement)",
+    sql: `select to_regclass('public.lab_disclaimer_acknowledgements') is not null
+             and exists(select 1 from pg_constraint where conname = 'lab_disclaimer_ack_family_051') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

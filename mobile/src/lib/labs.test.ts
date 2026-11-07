@@ -18,6 +18,12 @@ import {
   LAB_PART_MAX,
   type LabListItem,
   type LabStepResult,
+  disclaimerA11yLabel,
+  isAcknowledgementRequired,
+  mustAcknowledge,
+  withAcknowledgement,
+  type LabDisclaimer,
+  type LabView,
 } from "./labs.ts";
 import { localDataOwner } from "./localData.ts";
 
@@ -132,5 +138,43 @@ describe("REQ-124: lab access on Free and Plus", () => {
     assert.match(labA11yLabel(item({ access: "sample" })), /sample lab for this course/);
     assert.match(labA11yLabel(item({ access: "locked" })), /Part of the Pro plan/);
     assert.doesNotMatch(labA11yLabel(item({ access: "full" })), /plan/);
+  });
+});
+
+// REQ-125: the lab disclaimer the server sends, and the one-time
+// clinical / fitness acknowledgement before the first lab.
+describe("lab disclaimer (REQ-125)", () => {
+  const disclaimer = (over: Partial<LabDisclaimer["acknowledgement"]> = {}, family: LabDisclaimer["family"] = "clinical"): LabDisclaimer => ({
+    version: 1,
+    family,
+    title: "Practice lab: please read",
+    lines: ["Fictional cases.", "Not reviewed yet.", "Practice only."],
+    resultsNote: "Practice only.",
+    acknowledgement: { required: family !== "general", acknowledged: family === "general", acknowledgedAt: null, label: "I understand", ...over },
+  });
+  const view = (d?: LabDisclaimer) =>
+    ({ lab: { id: "l" }, run: null, runsFinished: 0, ...(d ? { disclaimer: d } : {}) }) as unknown as LabView;
+
+  test("a clinical or fitness lab must be acknowledged once; a general one never", () => {
+    assert.equal(mustAcknowledge(disclaimer()), true);
+    assert.equal(mustAcknowledge(disclaimer({}, "fitness")), true);
+    assert.equal(mustAcknowledge(disclaimer({ acknowledged: true })), false);
+    assert.equal(mustAcknowledge(disclaimer({}, "general")), false);
+    assert.equal(mustAcknowledge(undefined), false, "an older server's payload has no disclaimer to accept");
+  });
+  test("accepting folds the time into the view so Start appears", () => {
+    const v = withAcknowledgement(view(disclaimer()), "2026-11-07T00:00:00Z");
+    assert.equal(mustAcknowledge(v.disclaimer), false);
+    assert.equal(v.disclaimer!.acknowledgement.acknowledgedAt, "2026-11-07T00:00:00Z");
+    assert.equal(withAcknowledgement(view(), "x").disclaimer, undefined);
+  });
+  test("the card is one spoken label with every line", () => {
+    assert.equal(disclaimerA11yLabel(disclaimer()), "Practice lab: please read. Fictional cases. Not reviewed yet. Practice only.");
+  });
+  test("a 403 lab_disclaimer_required is recognised; other errors are not", () => {
+    assert.equal(isAcknowledgementRequired({ status: 403, data: { code: "lab_disclaimer_required" } }), true);
+    assert.equal(isAcknowledgementRequired({ status: 403, data: { error: "course disclaimer" } }), false);
+    assert.equal(isAcknowledgementRequired({ status: 402, data: { code: "lab_disclaimer_required" } }), false);
+    assert.equal(isAcknowledgementRequired(null), false);
   });
 });

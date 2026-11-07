@@ -1,4 +1,4 @@
-# Labs (REQ-123, REQ-124)
+# Labs (REQ-123, REQ-124, REQ-125)
 
 Labs are hands-on practice for the skills an exam tests by doing: writing a
 least-privilege policy, laying out a work breakdown structure, prioritising
@@ -121,12 +121,16 @@ rule itself is unchanged.
   kind, objective, state ("In progress: step 2 of 3", "Done: some parts to
   revisit" -- never "failed") and an "Awaiting expert review" badge until a
   lab is approved.
-- **Lab screen** (`/course/[trackId]/lab/[labId]`): the safety note, the
-  brief, then the current step with one labelled field per part. A case's
+- **Lab screen** (`/course/[trackId]/lab/[labId]`): the practice-lab
+  disclaimer (REQ-125, below) with "I understand" in place of Start on a
+  learner's first clinical or fitness lab, the safety note, the brief, then the current step with one labelled field per part. A case's
   later steps are not sent to the app until the earlier step is graded.
   After grading: a row per part (Met / Partly there / Not yet), the learner's
   answer, the model answer and kind feedback; at the end a summary. "Try it
-  again" starts a new run, labelled as practice that counts lightly.
+  again" starts a new run, labelled as practice that counts lightly. The
+  disclaimer stays above the brief with the results, and the summary ends
+  with a one-line practice note. "Report a problem" is on the screen from the
+  start, because the disclaimer points to it.
 - **Drafts** stay on the device until graded (`src/lib/useLabDraft.ts`),
   per user, lab, run and step, with the client attempt id of what was sent,
   so a resend after a dropped connection is replayed by the server. The
@@ -142,25 +146,65 @@ rule itself is unchanged.
 | `GET /api/labs?trackId=` / `?unitId=` / `?objectiveId=` | Labs the learner can open, with their state. No model call. |
 | `GET /api/labs/progress?trackId=` | Per-unit totals: labs, finished, correct. |
 | `GET /api/labs/:id[?runId=]` | One lab: brief, steps revealed so far, the open (or latest finished) run with per-part results and the rubric of graded steps only. |
-| `POST /api/labs/:id/runs { restart? }` | Start or resume a run (one open run per learner and lab). |
+| `POST /api/labs/:id/runs { restart? }` | Start or resume a run (one open run per learner and lab). A clinical or fitness lab needs the lab-disclaimer acknowledgement first (403, `code: "lab_disclaimer_required"`). |
+| `POST /api/labs/:id/acknowledgement { version }` | REQ-125: accept the practice-lab disclaimer for this lab's subject family (clinical or fitness), at the version the app showed. 201; 400 for a general lab or a superseded version. |
 | `POST /api/labs/:id/submit { runId, step, answers[], clientAttemptId? }` | Grade one step. Order: validation and visibility, replay of an already-graded id (same lab, run, step and answers, else the shared 409), the run/step check, rate limit, one grading call per submission (`withGradingClaim`), then the write. The last step records the attempt. |
 
 Visibility: a lab is served when its objective is visible to the learner
 (shared catalog or their own course), not retired, not pulled by "Report a
-problem", not rejected, and approved -- or awaiting review only when
-`LABS_SERVE_UNREVIEWED=on` **and** the course is not clinical, critical
-care, physical therapy or fitness. Disclaimer-gated courses are gated here
-too.
+problem", not rejected, and either approved or awaiting review.
+Disclaimer-gated courses are gated here too.
 
-**Review gating by subject family (REQ-124, decision 11).** Labs on courses
-in the taxonomy's `healthcare-*` categories (nursing, NCLEX, CCRN, physical
-therapy) and `health-fitness` (NASM and the other fitness courses) are
-**never** served until an expert approves them, whatever
-`LABS_SERVE_UNREVIEWED` says (`expertOnlyTrackSql` in `lib/labs.ts`; the
-same families `labSafetyFamily` frames as clinical and fitness). For other
-subjects `LABS_SERVE_UNREVIEWED=on` serves unreviewed labs, each carrying
-`reviewStatus`, which the app shows as an "Awaiting expert review" badge in
-the list and on the lab screen.
+**Serving (REQ-125, Nick 2026-11-07: "For now we can make the labs
+available but all labs should have a disclaimer to protect us").** Every lab
+is available now, including unreviewed ones in every subject family:
+`LABS_SERVE_UNREVIEWED` defaults to on, and only an explicit `off` (or `0`,
+`false`, `no`) hides unreviewed labs again, everywhere, with no app update
+(`servedReviewStatuses` in `lib/labs.ts`). This **reverses REQ-124 decision
+11**, under which unreviewed nursing, CCRN, physical-therapy and fitness labs
+were never served; the stronger clinical/fitness disclaimer and its
+one-time acknowledgement (below) stand in its place. Every lab not yet
+approved carries `reviewStatus`, which the app shows as an "Awaiting expert
+review" badge in the list and on the lab screen, and the disclaimer adds a
+"not reviewed" line. Tier gating is unchanged.
+
+## The practice-lab disclaimer (REQ-125)
+
+The wording lives in one place, `backend/lib/lab-disclaimer.ts`, and is
+sent with every lab (`disclaimer` on `GET /api/labs/:id` and the run
+routes, and on the self-reported lab card's `GET /api/objectives/:id/lab`),
+so it can be changed without an app update. The app shows it above the
+brief before the learner starts and keeps it there with the results; the
+result summary adds a one-line note.
+
+| Shown on | Text |
+|---|---|
+| Every lab | This lab is a practice exercise for exam preparation. It may contain errors and is not professional advice. Ascendra is not affiliated with or endorsed by the body that runs this exam. If something looks wrong, tap Report a problem. |
+| Not yet expert-reviewed | This lab hasn't been reviewed by a subject-matter expert yet. |
+| Clinical (nursing, NCLEX, CCRN, physical therapy) and fitness, shown first | The people and cases in this lab are fictional, for exam practice only. It is not medical, nursing, physical-therapy or fitness advice. Never use it to make decisions about real patients or clients. Follow your program, facility policy, licensed supervisors and current guidelines. In an emergency, call your local emergency services. |
+
+The "not affiliated" sentence is the generic form of the app's vendor line
+(`mobile/src/lib/vendor.ts`); there is no server-side copy of the per-vendor
+wording to share. The subject family is the course category's (the
+taxonomy's `healthcare-*` categories are clinical, `health-fitness` is
+fitness), the same rule `labSafetyFamily` uses for the grading prompt.
+
+**Acknowledgement.** Before a learner's first clinical lab, and again before
+their first fitness lab, the lab screen shows "I understand -- these labs are
+practice only" in place of Start. Accepting records a row in
+`lab_disclaimer_acknowledgements` (migration 051: learner, family, version,
+time), once per learner, family and version. The server refuses to start,
+resume or grade a clinical or fitness lab without one (403, "Before your
+first lab in this subject, read the practice-lab disclaimer and tap \"I
+understand\"."). The rows are in the account export
+(`labDisclaimerAcknowledgements`) and deleted with the account. The course
+disclaimer (migration 012, `track_acknowledgements`) was not reused: it is
+per course and keyed to the course's disclaimer version, while this one is
+per subject family.
+
+**Changing the wording.** Edit `lib/lab-disclaimer.ts`. Bump
+`LAB_DISCLAIMER_VERSION` when the meaning changes (not for a typo): every
+learner is asked to accept again before their next clinical or fitness lab.
 
 **Tier gating (REQ-124, decision 10).** Labs are Pro: `LABS_FEATURE =
 "labs"` (typed `satisfies Feature`, FAIL-510) is the one feature key, shared
@@ -319,8 +363,10 @@ lab is framed.
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as
-`needs_expert_review` and is **not served in production** until a person sets
-it to `approved` (`LABS_SERVE_UNREVIEWED` stays off in production). For
+`needs_expert_review`. Since REQ-125 these are served with the "Awaiting
+expert review" badge and the disclaimer above (set `LABS_SERVE_UNREVIEWED=off`
+to serve approved labs only). Review is still required, and the badge and
+the "not reviewed" line stay until a person sets a lab to `approved`. For
 **clinical and fitness labs this is a hard requirement**: each needs a
 licensed or certified subject expert (a nurse educator for NCLEX and CCRN, an
 NCCA-accredited trainer or educator for NASM) to read the brief, every step,

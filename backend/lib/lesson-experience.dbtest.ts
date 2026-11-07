@@ -3,6 +3,7 @@
 // migration applied. Route handlers are called directly; the model is a fake
 // client (no API key) that answers by which schema the request asked for.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { labDisclaimer } from "./lab-disclaimer";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -261,7 +262,9 @@ describe("labs", () => {
   test("the Done card gets the lab text without a model call; an objective without a lab gets none", async () => {
     const u = await newUser();
     const r = await json(await labGet(req(u), ctx(LAB)));
-    assert.deepEqual(r.body, { lab: { prompt: LAB_TEXT }, report: null });
+    // REQ-125: every lab carries the practice-lab disclaimer, this kind too
+    // (general family, no review state, so no "not reviewed" line).
+    assert.deepEqual(r.body, { lab: { prompt: LAB_TEXT, disclaimer: labDisclaimer("general", null) }, report: null });
     assert.deepEqual((await json(await labGet(req(u), ctx(NOLAB)))).body, { lab: null, report: null });
     assert.equal(sent.length, 0);
     assert.equal((await json(await labQuestionsPost(req(u, "POST"), ctx(NOLAB)))).status, 404);

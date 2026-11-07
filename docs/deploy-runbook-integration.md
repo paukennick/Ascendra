@@ -52,6 +52,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 049 | REQ-122: paid tiers, built but off -- `entitlements`, `billing_events`, `free_course_choice`, `allowance_uses` (four new tables, nothing existing altered). Apply BEFORE the backend deploy: the account export reads these tables, and `/api/health` probes them, even while `BILLING_ENABLED` is off (docs/billing.md) | not timed on the fixture (empty tables, no backfill) | no | (new tables only, 5 s lock_timeout) |
 | 050 | REQ-123: verifiable labs -- `labs`, `lab_runs`, `lab_run_steps`, attempt kind `labtask`, assessment types `lab_build` / `lab_case`, `attempts.lab_id` (no foreign key) with a NOT VALID check, the `lab` item kind. No rule change, no recompute. See "Migration 050" below | not timed on the fixture (new tables; one partial index on attempts) | no, if its index is built CONCURRENTLY first | the partial index `idx_attempts_user_lab` blocks attempt inserts while it builds inside the migration; build it first (below) and the migration skips it |
 | (REQ-124, no migration) | Plans and labs combined with Nick's decisions: no schema change -- a downgrade's kept paid period is an extra `entitlements` row (`external_id` `held:...`); 80 authored labs come from `npm run seed` (22 new CCRN Pediatric and Neonatal labs, all `needs_expert_review`). Deploy after 049 and 050. With `BILLING_ENABLED` off nothing a learner sees changes except that labs on clinical and fitness courses are never served unreviewed, even with `LABS_SERVE_UNREVIEWED` on, and a first-try lab run now moves the objective's review schedule. At switch-on run `npm run billing:grant -- --launch-comp` (dry run), then `--apply` (docs/billing.md, "Turning it on") | not applicable | no | none |
+| 051 | REQ-125: `lab_disclaimer_acknowledgements` (learner, family `clinical`/`fitness`, version, time; on delete cascade) -- the one-time practice-lab disclaimer acknowledgement before a learner's first clinical or fitness lab. One new empty table, additive. Deploy with the backend that reads it: from this backend on, unreviewed labs are served by default in every subject (`LABS_SERVE_UNREVIEWED` defaults on; set it `off` to keep serving approved labs only), and starting a clinical or fitness lab returns 403 until the learner accepts the disclaimer. Schema probe `051_lab_disclaimer_ack.sql` in `lib/schema-status.ts` | instant (empty table) | no | none |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
@@ -215,10 +216,13 @@ The migration's `create index if not exists` then does nothing. A later
 quiet moment can run `alter table attempts validate constraint
 attempts_labtask_shape;` (nothing old can fail it).
 
-**Lab content is not served until it is reviewed.** Every pilot lab is
-seeded as `needs_expert_review`; the backend serves only `approved` labs
-unless `LABS_SERVE_UNREVIEWED=on` is set (local development, or a closed
-beta the owner chooses). Approve a lab after a subject expert has read it
+**Unreviewed labs are served, with a disclaimer (REQ-125).** Every pilot
+lab is seeded as `needs_expert_review`. Since REQ-125 the backend serves
+them by default, in every subject, with an "Awaiting expert review" badge and
+the practice-lab disclaimer; clinical and fitness labs need a one-time
+acknowledgement (migration 051). Set `LABS_SERVE_UNREVIEWED=off` to serve
+only `approved` labs again (takes effect without an app update). Approve a
+lab after a subject expert has read it
 (docs/labs.md, "Expert review before launch"):
 
 ```sql

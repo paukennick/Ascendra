@@ -55,7 +55,26 @@ export default function Terms() {
         </Body>
       </Section>
 
-      <Section title="4. Your account">
+      {/* REQ-125: added 2026-11-07 when every lab was made available before
+          expert review. Draft wording for the lawyer, like the rest. */}
+      <Section title="4. Practice labs">
+        <Body>
+          [Draft — for legal review.] Hands-on labs (build, case and self-reported labs) are
+          educational practice for exam preparation. Their people, organisations and cases are
+          fictional; some labs have not yet been reviewed by a subject-matter expert, and any lab
+          may contain errors. Labs are not professional advice of any kind, including medical,
+          nursing, physical-therapy, fitness, legal, security or engineering advice.
+        </Body>
+        <Body>
+          Do not rely on a lab, its model answers or its feedback to make real-world decisions,
+          including about a patient, a client, a system or an organisation. Follow your program,
+          your employer's or facility's policies, licensed supervisors and current guidelines. In
+          an emergency, call your local emergency services. If a lab looks wrong, use "Report a
+          problem" on the lab.
+        </Body>
+      </Section>
+
+      <Section title="5. Your account">
         <Body>
           You're responsible for the accuracy of the information you give us, for keeping your
           password and any device you leave signed in secure, and for the activity that happens
@@ -68,7 +87,7 @@ export default function Terms() {
         </Body>
       </Section>
 
-      <Section title="5. Acceptable use">
+      <Section title="6. Acceptable use">
         <Body>
           Don't use Ascendra to scrape, resell, or redistribute its course content; attempt to
           bypass account, billing, or access controls; upload unlawful or infringing material
@@ -76,7 +95,7 @@ export default function Terms() {
         </Body>
       </Section>
 
-      <Section title="6. Limitation of liability">
+      <Section title="7. Limitation of liability">
         <Body>
           To the extent the law allows, Ascendra and its operators aren't liable for indirect,
           incidental, or consequential damages arising from your use of the service, including
@@ -85,7 +104,7 @@ export default function Terms() {
         </Body>
       </Section>
 
-      <Section title="7. Changes">
+      <Section title="8. Changes">
         <Body>
           We may update these terms as the product changes. Material changes will be reflected
           here with a new "last updated" date; continued use after a change means you accept the
@@ -94,7 +113,7 @@ export default function Terms() {
       </Section>
 
       <Divider style={{ marginTop: spacing.xl }} />
-      <Section title="8. Governing law & contact">
+      <Section title="9. Governing law & contact">
         <Body>
           These terms are governed by the laws of [jurisdiction — state/country to confirm],
           without regard to conflict-of-law rules. Questions about these terms: [support/legal

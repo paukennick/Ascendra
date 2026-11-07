@@ -18,6 +18,14 @@ import {
   type LabStepModel,
 } from "./lab-grading";
 import { judgeLabCheck, toLabContent } from "./lab-generation";
+import {
+  LAB_DISCLAIMER_GENERAL,
+  LAB_DISCLAIMER_SAFETY,
+  LAB_DISCLAIMER_UNREVIEWED,
+  LAB_DISCLAIMER_VERSION,
+  labDisclaimer,
+  needsAcknowledgement,
+} from "./lab-disclaimer";
 import { LAB_SETS } from "../supabase/seed/labs";
 import { seedLabContent } from "../supabase/seed/seed-lib";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
@@ -72,10 +80,17 @@ describe("lab content rules (REQ-123)", () => {
     changed.rubric[0].parts[1].modelAnswer = "different";
     assert.notEqual(labContentHash(changed), h);
   });
-  test("unreviewed labs are served only when LABS_SERVE_UNREVIEWED is on; rejected never", () => {
-    assert.deepEqual(servedReviewStatuses({}), ["approved"]);
-    assert.deepEqual(servedReviewStatuses({ LABS_SERVE_UNREVIEWED: "on" }), ["approved", "needs_expert_review"]);
-    assert.deepEqual(servedReviewStatuses({ LABS_SERVE_UNREVIEWED: "nope" }), ["approved"]);
+  // REQ-125 (Nick, 2026-11-07: "for now we can make the labs available"):
+  // the default flipped from off to on. Only an explicit off turns unreviewed
+  // labs off; anything else, unset included, serves them.
+  test("unreviewed labs are served unless LABS_SERVE_UNREVIEWED is set off; rejected never", () => {
+    const both = ["approved", "needs_expert_review"];
+    assert.deepEqual(servedReviewStatuses({}), both);
+    assert.deepEqual(servedReviewStatuses({ LABS_SERVE_UNREVIEWED: "on" }), both);
+    assert.deepEqual(servedReviewStatuses({ LABS_SERVE_UNREVIEWED: "nope" }), both);
+    for (const off of ["off", "0", "false", "no", " OFF "]) {
+      assert.deepEqual(servedReviewStatuses({ LABS_SERVE_UNREVIEWED: off }), ["approved"], off);
+    }
   });
   test("the tier-gating key is one name", () => {
     assert.equal(LABS_FEATURE, "labs");
@@ -250,5 +265,40 @@ describe("authored pilot content (supabase/seed/labs)", () => {
       const got = units.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
       assert.deepEqual(got, want, code);
     }
+  });
+});
+
+// REQ-125: the lab disclaimer's wording lives in one server constant and is
+// built per subject family and review status.
+describe("lab disclaimer (REQ-125)", () => {
+  test("every lab gets the general line; unreviewed adds the review line; clinical and fitness lead with the safety text", () => {
+    assert.deepEqual(labDisclaimer("general", "approved").lines, [LAB_DISCLAIMER_GENERAL]);
+    assert.deepEqual(labDisclaimer("general", "needs_expert_review").lines, [LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
+    assert.deepEqual(labDisclaimer("clinical", "needs_expert_review").lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
+    assert.deepEqual(labDisclaimer("fitness", "approved").lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_GENERAL]);
+    // Self-reported labs have no review state: no review line.
+    assert.deepEqual(labDisclaimer("general", null).lines, [LAB_DISCLAIMER_GENERAL]);
+  });
+  test("the wording says what Nick asked for", () => {
+    for (const s of ["practice exercise for exam preparation", "may contain errors", "not professional advice", "not affiliated", "Report a problem"]) {
+      assert.ok(LAB_DISCLAIMER_GENERAL.includes(s), s);
+    }
+    assert.match(LAB_DISCLAIMER_UNREVIEWED, /hasn't been reviewed by a subject-matter expert yet/);
+    for (const s of ["fictional", "exam practice only", "not medical, nursing, physical-therapy or fitness advice", "real patients or clients", "facility policy", "licensed supervisors", "current guidelines", "emergency services"]) {
+      assert.ok(LAB_DISCLAIMER_SAFETY.includes(s), s);
+    }
+  });
+  test("only clinical and fitness need the acknowledgement; it is acknowledged once a time is given", () => {
+    assert.deepEqual(labDisclaimer("general", "approved").acknowledgement.required, false);
+    assert.equal(labDisclaimer("general", "approved").acknowledgement.acknowledged, true);
+    const owed = labDisclaimer("clinical", "approved");
+    assert.deepEqual([owed.acknowledgement.required, owed.acknowledgement.acknowledged], [true, false]);
+    const done = labDisclaimer("fitness", "approved", "2026-11-07T00:00:00Z");
+    assert.deepEqual([done.acknowledgement.acknowledged, done.acknowledgement.acknowledgedAt], [true, "2026-11-07T00:00:00Z"]);
+    assert.equal(owed.version, LAB_DISCLAIMER_VERSION);
+    assert.ok(needsAcknowledgement("clinical") && needsAcknowledgement("fitness") && !needsAcknowledgement("general"));
+  });
+  test("every family has a short results note", () => {
+    for (const f of ["general", "clinical", "fitness"] as const) assert.ok(labDisclaimer(f, "approved").resultsNote.length > 20, f);
   });
 });

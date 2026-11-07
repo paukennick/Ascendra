@@ -4141,6 +4141,55 @@
         "CHANGELOG.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-125",
+      "category": "feature",
+      "title": "Labs available now, with a disclaimer on every lab (Nick, 2026-11-07)",
+      "description": "Nick: 'For now we can make the labs available but all labs should have a disclaimer to protect us.' Unreviewed labs are served by default in every subject family (LABS_SERVE_UNREVIEWED defaults on; off hides them), reversing REQ-124 decision 11; tier gating and the Awaiting expert review badge unchanged. One server-side, versioned disclaimer (lib/lab-disclaimer.ts) sent with every lab payload: general text on every lab, a not-reviewed line on unapproved labs, a stronger clinical/fitness text; shown before start and with results. A one-time acknowledgement per learner per subject family and version (migration 051 lab_disclaimer_acknowledgements; export; deleted with the account) is required and server-enforced (403 UserFacingError) before a clinical or fitness lab starts or is graded. Draft Terms gain a Practice labs clause for legal review.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/lab-disclaimer.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/app/api/labs",
+        "backend/app/api/objectives/[id]/lab/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/supabase/migrations/051_lab_disclaimer_ack.sql",
+        "mobile/src/lib/labs.ts",
+        "mobile/src/components/LabDisclaimer.tsx",
+        "mobile/src/components/labReport.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/app/(legal)/terms.tsx",
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Unreviewed labs served in every family by default with the badge",
+        "LABS_SERVE_UNREVIEWED=off hides unreviewed labs everywhere",
+        "Every lab payload carries the server disclaimer; unreviewed adds the review line; clinical/fitness lead with the safety text",
+        "Clinical/fitness labs cannot start or be graded until acknowledged (403); acknowledgement versioned per learner per family; in export; deleted with account",
+        "Terms draft has a Practice labs clause marked for legal review"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run test:db",
+        "mobile npm test",
+        "tsc both",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Free and Plus get no sample lab until some lab in the course is approved (the sample is the first APPROVED lab; unchanged by request)",
+        "The disclaimer wording and Terms clause are drafts that need the lawyer's review",
+        "Unreviewed clinical and fitness content now reaches learners; the disclaimer and acknowledgement mitigate but do not replace expert review"
+      ]
     }
   ]
 }

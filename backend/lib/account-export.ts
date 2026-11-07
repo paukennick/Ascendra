@@ -108,6 +108,10 @@ export const EXPORT_SECTIONS = {
   // learner's answers. A finished run's attempt is also under attempts.
   labRuns: "select * from lab_runs where user_id = $1 order by started_at asc, id asc",
   labRunSteps: "select * from lab_run_steps where user_id = $1 order by created_at asc, run_id asc, step_index asc",
+  // REQ-125 (migration 051): when the learner accepted the clinical or
+  // fitness lab disclaimer, and which version.
+  labDisclaimerAcknowledgements:
+    "select family, version, acknowledged_at from lab_disclaimer_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
   // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with
   // the IP addresses recorded. Events are matched by user id or by the
   // account's address (events before sign-in carry only the address).

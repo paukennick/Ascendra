@@ -6,6 +6,7 @@ import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField, VerdictBadge } from "@/components/ui";
 import { ReportProblem } from "@/components/ReportProblem";
+import { LabDisclaimerCard } from "@/components/LabDisclaimer";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { useLabDraft } from "@/lib/useLabDraft";
@@ -15,9 +16,12 @@ import {
   answersSignature,
   assistNote,
   canSubmit,
+  isAcknowledgementRequired,
+  mustAcknowledge,
   partA11yLabel,
   partRows,
   verdictMessage,
+  withAcknowledgement,
   type LabStepResult,
   type LabStepView,
   type LabSubmitResult,
@@ -35,6 +39,11 @@ import {
 // Accessibility: each answer field carries its part label; results rows are
 // single accessible elements with a spoken label; buttons are >= 48 dp;
 // colours are the theme's AA-checked tokens and state is always written out.
+//
+// REQ-125: the practice-lab disclaimer (server wording) sits above the brief
+// before the learner starts and stays there with the results; a clinical or
+// fitness lab shows "I understand" in place of Start until the learner has
+// accepted it once for that subject family.
 
 const PART_ICON: Record<PartRowState, React.ComponentProps<typeof Feather>["name"]> = {
   met: "check-circle",
@@ -72,6 +81,8 @@ export default function LabScreen() {
     try {
       setView(await api.post<LabView>(`/api/labs/${labId}/runs`, { restart }));
     } catch (err) {
+      // The disclaimer changed or was never accepted on this account: show it.
+      if (isAcknowledgementRequired(err)) load();
       setStartError(friendlyError(err));
     } finally {
       setStarting(false);
@@ -102,6 +113,8 @@ export default function LabScreen() {
   const run = view?.run ?? null;
   const open = run?.status === "open";
   const current = open ? lab?.steps.find((s) => s.index === run!.stepsDone) ?? null : null;
+  const disclaimer = view?.disclaimer;
+  const owesAck = mustAcknowledge(disclaimer);
 
   return (
     <Screen>
@@ -120,6 +133,14 @@ export default function LabScreen() {
               {lab.access === "sample" ? <Badge label="Sample lab" color={colors.good} icon="gift" /> : null}
             </View>
           </View>
+
+          {disclaimer ? (
+            <LabDisclaimerCard
+              disclaimer={disclaimer}
+              labId={lab.id}
+              onAcknowledged={(at) => setView((cur) => (cur ? withAcknowledgement(cur, at) : cur))}
+            />
+          ) : null}
 
           {lab.safetyNote ? (
             <Card>
@@ -148,7 +169,11 @@ export default function LabScreen() {
                   : "Write each part of the artifact in its own box. You'll see a score per part and a model answer."}
               </Body>
               {startError ? <ErrorBanner message={startError} onRetry={() => start(false)} /> : null}
-              <Button label="Start the lab" icon="play" loading={starting} onPress={() => start(false)} />
+              {owesAck ? (
+                <Muted>Read the note above and tap "{disclaimer!.acknowledgement.label}" to start.</Muted>
+              ) : (
+                <Button label="Start the lab" icon="play" loading={starting} onPress={() => start(false)} />
+              )}
             </Card>
           ) : null}
 
@@ -172,6 +197,7 @@ export default function LabScreen() {
                 <Body>{run.final.summary}</Body>
                 <Body>{verdictMessage(run.final.verdict, true)}</Body>
                 {assistNote(run.final) ? <Muted>{assistNote(run.final)}</Muted> : null}
+                {disclaimer ? <Muted style={{ fontSize: 13 }}>{disclaimer.resultsNote}</Muted> : null}
               </View>
               {startError ? <ErrorBanner message={startError} onRetry={() => start(true)} /> : null}
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
@@ -188,7 +214,8 @@ export default function LabScreen() {
             </Card>
           ) : null}
 
-          {run && run.results.length > 0 ? <ReportProblem target={{ kind: "lab", labId: lab.id }} /> : null}
+          {/* REQ-125: the disclaimer points here, so it is on the screen from the start. */}
+          <ReportProblem target={{ kind: "lab", labId: lab.id }} />
           {open && run && run.results.length > 0 ? (
             <Button label="Start over" variant="link" size="sm" fullWidth={false} onPress={() => start(true)} />
           ) : null}
