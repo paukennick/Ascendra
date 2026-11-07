@@ -85,13 +85,15 @@ export async function advanceDueSchedule(
   userId: string,
   objectiveId: string,
   attemptId: string,
-  now: Date
+  now: Date,
+  verdict: "correct" | "partial" | "incorrect" = "correct"
 ): Promise<boolean> {
   const due = await tx.queryOne<{ ok: boolean }>(
     `select due_on <= $3::date as ok from review_schedule where user_id = $1 and objective_id = $2`,
     [userId, objectiveId, utcDay(now)]
   );
   if (!due?.ok) return false;
-  const r = await stepSchedule(tx, userId, objectiveId, attemptId, "correct", false, now);
+  // REQ-117: a miss when due is logged and steps back like a review miss.
+  const r = await stepSchedule(tx, userId, objectiveId, attemptId, verdict, false, now);
   return r.advanced;
 }

@@ -141,6 +141,8 @@ describe("learner-aware coach (REQ-110, research #8)", () => {
   test("chat names the weakest objectives and mistake kinds in the per-call block, fenced; the stable block is unchanged", async () => {
     const u = await newUser();
     await lessonAnswer(u, objsA[1], "incorrect");
+    // REQ-117 (FAIL-354): Needs review needs answers on two different days.
+    await query(`update attempts set created_at = created_at - interval '1 day' where user_id = $1`, [u]);
     await lessonAnswer(u, objsA[1], "incorrect");
     await lessonAnswer(u, objsA[0], "correct");
     await json(await chatPost(req(u, "/api/chat", "POST", { trackId: track, message: "help me" })));
@@ -264,7 +266,7 @@ describe("placement check", () => {
     return json(await placementPost(req(u, `/api/courses/${track}/placement`, "POST", { action: "answer", seq: item.seq, choice, clientAttemptId: `pl-${randomUUID()}` }), params(track)));
   }
 
-  test("an expert tests out of what they answer; that is placement evidence only (Guided at most), with no Review entries", async () => {
+  test("an expert tests out of what they answer; that is placement evidence only (Introduced: a 4-option guess is not Guided, REQ-117), with no Review entries", async () => {
     const u = await newUser();
     const plan0 = await json(await planGet(req(u, `/api/courses/${track}/plan?today=2026-11-07`), params(track)));
     assert.equal(plan0.placement.offer, true);
@@ -283,17 +285,32 @@ describe("placement check", () => {
     );
     assert.ok(tested.length >= 3);
     const statuses = await query<{ status: string }>(`select status::text from mastery where user_id = $1`, [u]);
-    assert.ok(statuses.every((s) => s.status === "Guided"), JSON.stringify(statuses));
+    // REQ-117 (FAIL-354): placement answers no longer make an objective
+    // Guided on their own; the plan's "confirm" step carries them.
+    assert.ok(statuses.every((s) => s.status === "Introduced"), JSON.stringify(statuses));
     const types = await query<{ assessment_type: string; assisted: boolean }>(`select assessment_type, assisted from attempts where user_id = $1`, [u]);
     assert.ok(types.every((t) => t.assessment_type === "placement" && !t.assisted));
     assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from error_log where user_id = $1`, [u]))!.n, 0);
 
     // The plan skips ahead past them and confirms them at the end.
     const plan = await json(await planGet(req(u, `/api/courses/${track}/plan?today=2026-11-07`), params(track)));
-    assert.equal(plan.plan.remaining.confirm, tested.length);
+    // REQ-117 (FAIL-350): a correct answer late in a unit also covers the
+    // unit's earlier objectives the check jumped over.
+    const inferred = await queryOne<{ n: number }>(
+      `select count(*)::int as n from objectives o
+        where exists (select 1 from placement_items pi join placement_checks pc on pc.id = pi.placement_id
+                        join objectives po on po.id = pi.objective_id
+                       where pc.user_id = $1 and pi.correct and po.unit_id = o.unit_id and po.sort_order >= o.sort_order)`,
+      [u]
+    );
+    assert.ok(inferred!.n > tested.length, "objectives jumped over are inferred too");
+    assert.equal(plan.plan.remaining.confirm, inferred!.n);
     assert.equal(plan.placement.offer, false);
     const steps = plan.plan.thisWeek.steps as Array<{ kind: string; objectiveId: string }>;
-    assert.ok(!steps.slice(0, 1).some((s) => s.kind === "confirm"));
+    // New material first, confirmations at the end (REQ-117: here every
+    // objective was answered or jumped over, so only confirmations are left).
+    if (plan.plan.remaining.learn > 0) assert.ok(!steps.slice(0, 1).some((s) => s.kind === "confirm"));
+    else assert.ok(steps.every((s) => s.kind === "confirm"));
     // Replaying an answer changes nothing; a finished check is not restarted.
     const again = await json(await placementPost(req(u, `/api/courses/${track}/placement`, "POST", { action: "start" }), params(track)));
     assert.equal(again.status, "done");
@@ -338,7 +355,7 @@ describe("placement check", () => {
       );
     }
     const d = await detail(u, objsA[0]);
-    assert.equal(d!.status, "Guided");
+    assert.equal(d!.status, "Introduced", "REQ-117: placement alone is not even Guided");
   });
 });
 
@@ -359,22 +376,34 @@ describe("study plan, session choice and kept view", () => {
     assert.equal(cleared.plan.phase, "no_date");
   });
 
-  test("kept vs completed comes from spaced answers", async () => {
+  // REQ-117 (FAIL-345): kept / slipped come from answers given when a review
+  // was due (review_log), not from the latest spaced answer of any kind.
+  test("kept vs completed comes from answers at due reviews", async () => {
     const u = await newUser();
     const at = async (o: string, verdict: "correct" | "incorrect", ago: string) =>
-      query(
+      (await query<{ id: string }>(
         `insert into attempts (user_id, unit_id, objective_id, kind, stage, format, question, answer, verdict, created_at)
-         values ($1, $2, $3, 'lesson', 'solo', 'open', $4, 'a', $5, now() - $6::interval)`,
+         values ($1, $2, $3, 'lesson', 'solo', 'open', $4, 'a', $5, now() - $6::interval) returning id`,
         [u, unitA, o, `q-${randomUUID()}`, verdict, ago]
+      ))[0].id;
+    const dueReview = async (o: string, verdict: "correct" | "incorrect", ago: string, assisted = false) => {
+      const id = await at(o, verdict, ago);
+      await query(
+        `insert into review_log (user_id, objective_id, attempt_id, reviewed_at, verdict, assisted, was_due, step_before, step_after)
+         values ($1, $2, $3, now() - $4::interval, $5, $6, true, 0, 1)`,
+        [u, o, id, ago, verdict, assisted]
       );
-    await at(objsA[0], "correct", "5 days"); // kept: right again 3 days later
-    await at(objsA[0], "correct", "2 days");
-    await at(objsA[1], "correct", "5 days"); // slipped: wrong 3 days later
-    await at(objsA[1], "incorrect", "2 days");
-    await at(objsA[2], "correct", "2 hours"); // completed, not re-checked yet
+    };
+    await at(objsA[0], "correct", "5 days"); // kept: right at its due review
+    await dueReview(objsA[0], "correct", "2 days");
+    await at(objsA[1], "correct", "5 days"); // slipped: wrong at its due review
+    await dueReview(objsA[1], "incorrect", "2 days");
+    await at(objsA[2], "correct", "5 days"); // a spaced answer that was not a due review: unchecked
+    await at(objsA[2], "correct", "2 days");
+    await dueReview(objsA[2], "correct", "1 day", true); // helped: does not count
     await at(objsA[3], "incorrect", "1 hour"); // not completed
     const body = await json(await planGet(req(u, `/api/courses/${track}/plan`), params(track)));
-    assert.deepEqual(body.kept, { completed: 3, kept: 1, slipped: 1, unchecked: 1 });
+    assert.deepEqual(body.kept, { completed: 3, kept: 1, slipped: 1, unchecked: 1, recheck: 0 });
   });
 
   test("after a rough session the default is a winnable start", async () => {

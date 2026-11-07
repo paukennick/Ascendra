@@ -26,7 +26,12 @@ export interface PlanObjective {
   sortOrder: number;
   status: ObjectiveStatus | string;
   testedOut: boolean;
+  // REQ-117 (T8): exam-style practice already shows it (study-plan-store.ts).
+  examStrong?: boolean;
   kept: KeptState;
+  // REQ-117 (T3): its scheduled review is a full interval overdue
+  // (review_state(), migration 045). The level stands; it is due to re-check.
+  recheckDue?: boolean;
   lastAnsweredAt: string | null; // ISO timestamp of the latest graded answer
 }
 
@@ -68,7 +73,7 @@ const MAX_WEEK_STEPS = 12;
 
 const DONE: ReadonlySet<string> = new Set(["Independent", "Transfer-ready"]);
 
-export type StepKind = "warmup" | "learn" | "practice" | "confirm" | "review" | "mock" | "light";
+export type StepKind = "warmup" | "learn" | "practice" | "confirm" | "review" | "mock" | "light" | "stretch";
 
 export interface PlanStep {
   kind: StepKind;
@@ -96,7 +101,8 @@ export interface StudyPlan {
   mockExamDate: string | null;
   lightDay: string | null;
   roughLastSession: boolean;
-  remaining: { learn: number; practice: number; confirm: number; done: number; total: number; minutes: number };
+  // recheck: how many of the done ones are due to re-check (REQ-117).
+  remaining: { learn: number; practice: number; confirm: number; done: number; recheck: number; total: number; minutes: number };
   thisWeek: { steps: PlanStep[]; reviewItems: number; reviewMinutes: number; minutes: number };
   feasibility: {
     status: Feasibility;
@@ -134,7 +140,7 @@ interface WorkItem extends PlanStep {
 
 function kindFor(o: PlanObjective): "learn" | "practice" | "confirm" | "done" {
   if (DONE.has(o.status)) return "done";
-  if (o.testedOut) return "confirm";
+  if (o.testedOut || o.examStrong) return "confirm";
   if (o.status === "Not started") return "learn";
   return "practice";
 }
@@ -144,7 +150,14 @@ const REASON = {
   practice: "Started, not solid yet",
   needsReview: "Worth another look",
   confirm: "You tested out of this; one quick check confirms it",
+  examConfirm: "Your exam practice already shows this; one quick check confirms it",
+  stretch: "Solid already: explain it back or compare look-alikes to make it stick",
 };
+// REQ-117 (T16): once nothing is left to learn, the week offers stretch
+// steps on Independent objectives (highest exam weight first): explain it
+// back or compare look-alikes from the lesson's Done card, the second format
+// Transfer-ready needs. Only objectives already kept at a due review.
+export const STRETCH_MAX_STEPS = 5;
 
 // Needs-review objectives first, then the course in teaching order, then the
 // tested-out objectives to confirm before the mock exam.
@@ -159,7 +172,12 @@ function workQueue(input: PlanInput): WorkItem[] {
     unitId: o.unitId,
     title: o.title,
     minutes: PLAN_MINUTES[kind],
-    reason: kind === "practice" && o.status === "Needs review" ? REASON.needsReview : REASON[kind],
+    reason:
+      kind === "practice" && o.status === "Needs review"
+        ? REASON.needsReview
+        : kind === "confirm" && !o.testedOut && o.examStrong
+          ? REASON.examConfirm
+          : REASON[kind],
     needsReview: o.status === "Needs review" && !o.testedOut,
   });
   const needs: WorkItem[] = [];
@@ -244,8 +262,12 @@ export function buildStudyPlan(input: PlanInput): StudyPlan {
   const workPerWeek = weeklyMin * (1 - REVIEW_SHARE);
   const queue = workQueue(input);
   const needed = queue.reduce((s, w) => s + w.minutes, 0);
-  const counts = { learn: 0, practice: 0, confirm: 0, done: 0 };
-  for (const o of input.objectives) counts[kindFor(o)]++;
+  const counts = { learn: 0, practice: 0, confirm: 0, done: 0, recheck: 0 };
+  for (const o of input.objectives) {
+    const k = kindFor(o);
+    counts[k]++;
+    if (k === "done" && o.recheckDue) counts.recheck++;
+  }
   const rough = isRoughSession(input.lastSession);
   const paceWeeks = Math.ceil(needed / workPerWeek);
   const paceFinishDate = needed > 0 ? addDays(today, paceWeeks * 7) : null;
@@ -336,6 +358,15 @@ export function buildStudyPlan(input: PlanInput): StudyPlan {
       steps.push(stepOf(w));
       budget -= w.minutes;
     }
+    // Stretch steps fill whatever room the week has left (REQ-117, T16).
+    if (phase !== "final_week") {
+      const listed = new Set(steps.map((x) => x.objectiveId));
+      for (const st of stretchSteps(input)) {
+        if (steps.length >= MAX_WEEK_STEPS) break;
+        if (listed.has(st.objectiveId)) continue;
+        steps.push(st);
+      }
+    }
     if (phase === "building" && mockExamDate && daysBetween(today, mockExamDate) <= 7) {
       steps.push({
         kind: "mock",
@@ -364,6 +395,23 @@ export function buildStudyPlan(input: PlanInput): StudyPlan {
     },
     feasibility: { status, neededMinutes: needed, availableMinutes: available, paceFinishDate, options },
   };
+}
+
+function stretchSteps(input: PlanInput): PlanStep[] {
+  const weight = new Map(input.units.map((u) => [u.id, u.weight ?? 0]));
+  return input.objectives
+    .filter(
+      (o) =>
+        // kept = confirmed at a due review, so the stretch comes a day or
+        // more after the lesson: a spaced retrieval, not a restatement
+        o.status === "Independent" && o.kept === "kept" && !o.recheckDue &&
+        // not answered today: the explanation must come a day or more after
+        // the last answer to count as spaced (explain_back.win_needs_spacing)
+        (o.lastAnsweredAt == null || o.lastAnsweredAt.slice(0, 10) < input.today)
+    )
+    .sort((a, b) => (weight.get(b.unitId) ?? 0) - (weight.get(a.unitId) ?? 0) || a.sortOrder - b.sortOrder)
+    .slice(0, STRETCH_MAX_STEPS)
+    .map((o) => ({ kind: "stretch" as const, objectiveId: o.id, unitId: o.unitId, title: o.title, minutes: 8, reason: REASON.stretch }));
 }
 
 // ---- session choice (research #15)
@@ -449,19 +497,24 @@ export function sessionChoices(plan: StudyPlan, input: PlanInput): { defaultKind
 
 // ---- kept vs completed
 
+// REQ-117 (T6): kept / slipped are decided at DUE reviews, unaided
+// (review_state(), migration 045): kept = the latest correct and at least 2
+// of the last 3.
 export interface KeptSummary {
   completed: number; // objectives with at least one correct graded answer
-  kept: number; // ...whose latest spaced answer (a day or more after the one before) was correct
-  slipped: number; // ...whose latest spaced answer was not correct
-  unchecked: number; // ...not yet answered again after a gap
+  kept: number; // ...confirmed at their due reviews (latest correct, 2 of the last 3)
+  slipped: number; // ...whose due reviews are not (yet) holding
+  unchecked: number; // ...with no unaided answer at a due review yet
+  recheck: number; // ...of any of those, whose review is a full interval overdue
 }
 
-export function keptSummary(objectives: Pick<PlanObjective, "kept">[]): KeptSummary {
-  const s: KeptSummary = { completed: 0, kept: 0, slipped: 0, unchecked: 0 };
+export function keptSummary(objectives: Pick<PlanObjective, "kept" | "recheckDue">[]): KeptSummary {
+  const s: KeptSummary = { completed: 0, kept: 0, slipped: 0, unchecked: 0, recheck: 0 };
   for (const o of objectives) {
     if (!o.kept) continue;
     s.completed++;
     s[o.kept]++;
+    if (o.recheckDue) s.recheck++;
   }
   return s;
 }

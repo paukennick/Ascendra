@@ -4,7 +4,7 @@ process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { FALLBACK_HINTS, hintLeaks, MAX_TRIES, pickObjective, quizFeedback, safeHints } from "./coach-quiz";
-import { BEGINNER_STOP, nextPlacementObjective, PLACEMENT_MAX, placementSummaryMessage, type PlacementCandidate } from "./placement";
+import { BEGINNER_STOP, nextPlacementObjective, PLACEMENT_MAX, placementCap, placementSummaryMessage, type PlacementCandidate } from "./placement";
 import { learnerProfileBlock } from "./learner-profile";
 import { chatSystemPrompt } from "./prompts";
 
@@ -72,6 +72,22 @@ describe("placement: adaptive selection (pure)", () => {
     const seq = run(() => true);
     assert.ok(seq.length <= PLACEMENT_MAX);
     assert.deepEqual(seq, ["a1+", "b2+", "c1+", "b3+", "a3+", "c2+", "a4+", "a5+"]);
+  });
+
+  test("FAIL-350: the question cap grows with the course (12 to 30)", () => {
+    assert.equal(placementCap(10), 12);
+    assert.equal(placementCap(36), 12);
+    assert.equal(placementCap(60), 20);
+    assert.equal(placementCap(400), 30);
+    const big = Array.from({ length: 90 }, (_, i) => ({ objectiveId: `o${i}`, unitId: `U${i % 3}`, unitSort: i % 3, unitWeight: 10, sortOrder: i }));
+    const asked: { objectiveId: string; correct: boolean }[] = [];
+    for (;;) {
+      const id = nextPlacementObjective(big, asked);
+      if (!id) break;
+      asked.push({ objectiveId: id, correct: true });
+    }
+    assert.ok(asked.length > PLACEMENT_MAX, `asked ${asked.length}`);
+    assert.ok(asked.length <= 30);
   });
 
   test("a beginner stops after the first few misses (gentle on-ramp)", () => {

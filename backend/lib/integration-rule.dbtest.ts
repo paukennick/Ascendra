@@ -178,7 +178,8 @@ describe("041 mastery rule (REQ-112)", () => {
     const d = await detail(u, objs[0]);
     assert.equal(d!.answers, 2, "the unit check is one of the answers");
     assert.equal(d!.direct_answers, 1);
-    assert.ok(d!.formats.includes("scenario"), "a correct unit check is format evidence (family scenario)");
+    // REQ-117 (FAIL-340): unit-wide answers add accuracy only, never a format family.
+    assert.ok(!d!.formats.includes("scenario"), "a correct unit check is not format evidence");
     // Alone it gives no level, as a PBQ alone does not.
     const v = await newUser();
     await unitCheck(v, checkX, "correct", "1 hour");
@@ -196,8 +197,16 @@ describe("041 mastery rule (REQ-112)", () => {
     await unitCheck(other, checkY, "correct", "1 hour");
     const ws = Number((await detail(same, objs[1]))!.evidence_weight);
     const wo = Number((await detail(other, objs[1]))!.evidence_weight);
-    // Only the retest's own weight differs: x review_retest_factor (1.2).
-    assert.ok(ws > wo, `retest of the same item weighs more (${ws} vs ${wo})`);
+    // REQ-117 (FAIL-356): a second answer to the SAME item came after its
+    // model answer was shown, so it is a repeat (x assist_weight_repeat 0.25,
+    // and x review_retest_factor 1.2 still matches it); another item is a
+    // fresh answer at full weight.
+    assert.ok(ws < wo, `the same item again is a repeat and weighs less (${ws} vs ${wo})`);
+    const rep = await queryOne<{ n: number }>(
+      `select count(*)::int as n from mastery_detail($1, $2) d where d.evidence_weight > 0`,
+      [same, objs[1]]
+    );
+    assert.equal(rep!.n, 1);
   });
 
   test("(b) a Quiz me (zero-weight) answer is not an answer, not the latest answer, not a spacing anchor or an earlier miss", async () => {
@@ -249,7 +258,9 @@ describe("041 mastery rule (REQ-112)", () => {
     assert.equal((await detail(one, objs[4]))!.status, "Guided", "one correct two-option answer could be a guess");
     assert.deepEqual((await detail(one, objs[4]))!.formats, []);
     assert.equal((await detail(sameTwice, objs[4]))!.status, "Guided", "the same question twice is still one question");
-    assert.equal((await detail(two, objs[4]))!.status, "Independent");
+    // REQ-117 (FAIL-346): comparison cards count as a format family but never
+    // open Independent on their own (two coin flips made 11 of 36 Independent).
+    assert.equal((await detail(two, objs[4]))!.status, "Guided");
     assert.deepEqual((await detail(two, objs[4]))!.formats, ["discrimination"]);
   });
 
@@ -310,7 +321,7 @@ describe("(d) a correct, unassisted, spaced exam answer advances a due review", 
     await exam(u, objs[7], `exam-${randomUUID()}`);
     assert.deepEqual(await state(u), { stage: 1, step: 1, logs: 1 });
   });
-  test("not spaced (an answer an hour before), a repeat, or a miss: nothing moves", async () => {
+  test("not spaced (an answer an hour before) or a repeat: nothing moves; a spaced miss is a due review that slips (REQ-117)", async () => {
     const recent = await setup("1 hour");
     await exam(recent, objs[7], `exam-${randomUUID()}`);
     assert.deepEqual(await state(recent), { stage: 0, step: 0, logs: 0 });
@@ -322,20 +333,39 @@ describe("(d) a correct, unassisted, spaced exam answer advances a due review", 
     await exam(repeat, objs[7], q);
     assert.deepEqual(await state(repeat), { stage: 0, step: 0, logs: 0 });
 
+    // REQ-117 (FAIL-361): an unaided, spaced exam miss on a due objective is
+    // logged as a due review (it used to log nothing, so "kept" only ever
+    // saw the hits) and steps the schedule back (step 0 stays 0).
     const miss = await setup("3 days");
     await exam(miss, objs[7], `exam-${randomUUID()}`, "incorrect");
     assert.equal((await state(miss)).step, 0);
-    assert.equal((await state(miss)).logs, 0);
+    assert.equal((await state(miss)).logs, 1);
+    const lg = await queryOne<{ verdict: string; was_due: boolean }>(`select verdict, was_due from review_log where user_id = $1`, [miss]);
+    assert.deepEqual(lg, { verdict: "incorrect", was_due: true });
+    assert.equal((await queryOne<{ lapses: number }>(`select lapses from review_schedule where user_id = $1`, [miss]))!.lapses, 1);
   });
 });
 
-describe("(g) the kept view counts only unassisted spaced answers, review answers included", () => {
+// REQ-117 (FAIL-345): kept is decided at DUE reviews (review_log.was_due,
+// unaided), not by the latest spaced answer of any kind.
+describe("(g) the kept view counts only unassisted answers at due reviews", () => {
   const keptOf = async (u: string, o: string) => (await planObjectives(u, track)).find((p) => p.id === o)!.kept;
-  test("a spaced review answer keeps it; a spaced answer with help neither keeps nor slips it; placement does not space", async () => {
+  const logReview = (u: string, attempt: string, verdict: string, wasDue: boolean, assisted = false) =>
+    query(
+      `insert into review_log (user_id, objective_id, attempt_id, reviewed_at, verdict, assisted, was_due, step_before, step_after)
+       values ($1, $2, $3, now() - interval '1 hour', $4, $5, $6, 0, 1)`,
+      [u, objs[8], attempt, verdict, assisted, wasDue]
+    );
+  test("a due review answer keeps it; an early one, or one with help, neither keeps nor slips it; placement does not count", async () => {
     const reviewed = await newUser();
     await put(reviewed, objs[8], { verdict: "correct", ago: "3 days" });
-    await put(reviewed, objs[8], { kind: "review", stage: "review", verdict: "correct", ago: "1 hour", type: "free_response" });
+    await logReview(reviewed, await put(reviewed, objs[8], { kind: "review", stage: "review", verdict: "correct", ago: "1 hour", type: "free_response" }), "correct", true);
     assert.equal(await keptOf(reviewed, objs[8]), "kept");
+
+    const early = await newUser();
+    await put(early, objs[8], { verdict: "correct", ago: "3 days" });
+    await logReview(early, await put(early, objs[8], { kind: "review", stage: "review", verdict: "correct", ago: "1 hour", type: "free_response" }), "correct", false);
+    assert.equal(await keptOf(early, objs[8]), "unchecked", "a spaced answer before the review was due does not confirm it");
 
     const helped = await newUser();
     await put(helped, objs[8], { verdict: "correct", ago: "3 days" });

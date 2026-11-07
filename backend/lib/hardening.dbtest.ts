@@ -219,16 +219,22 @@ describe("mixed-case uuids share one lock", () => {
     // Under mastery_from_attempts (migration 029, REQ-097): correct then two
     // incorrect is 1/3 correct with the latest wrong -> Needs review; a write
     // that missed the other request's attempt sees 1/2 -> Guided.
+    // REQ-117 (045): Needs review needs answers on two days, and a repeat of
+    // one item counts once, so two different items answered right yesterday,
+    // then two different items wrong today: weighted 0.44 -> Needs review;
+    // a write missing one wrong answer sees 0.57 -> Guided.
     const expected = "Needs review";
     const stale = "Guided";
     assert.notEqual(expected, stale, "the test needs the stale and current statuses to differ");
     const base = { userId: u.id, unitId: unit, kind: "lesson" as const, stage: "fade", format: "mc" as const, question: "Q" };
     let staleCount = 0;
     for (const o of objectives) {
-      await recordAttemptAndUpdateMastery({ ...base, objectiveId: o, answer: "a", verdict: "correct" });
+      await recordAttemptAndUpdateMastery({ ...base, objectiveId: o, question: "Q0", answer: "a", verdict: "correct" });
+      await recordAttemptAndUpdateMastery({ ...base, objectiveId: o, question: "Q1", answer: "a", verdict: "correct" });
+      await query(`update attempts set created_at = created_at - interval '1 day' where user_id = $1 and objective_id = $2`, [u.id, o]);
       await Promise.all([
-        recordAttemptAndUpdateMastery({ ...base, objectiveId: o, answer: "b", verdict: "incorrect" }),
-        recordAttemptAndUpdateMastery({ ...base, objectiveId: o.toUpperCase(), answer: "c", verdict: "incorrect" }),
+        recordAttemptAndUpdateMastery({ ...base, objectiveId: o, question: "Q2", answer: "b", verdict: "incorrect" }),
+        recordAttemptAndUpdateMastery({ ...base, objectiveId: o.toUpperCase(), question: "Q3", answer: "c", verdict: "incorrect" }),
       ]);
       const m = await queryOne<{ status: string }>(`select status from mastery where user_id = $1 and objective_id = $2`, [
         u.id,

@@ -190,20 +190,81 @@ function words(s: string): string[] {
   return s.toLowerCase().match(/[a-z0-9']+/g) ?? [];
 }
 
-// Share (0-1) of the answer's 6-word runs that appear word for word in the
-// teaching text. An explanation pasted from the lesson is not the learner's
-// own words; it is graded, but as assisted ("reveal").
-export function copiedShare(answer: string, teach: string, n = 6): number {
-  const a = words(answer);
+// Function words and fillers carry no content: dropped before comparing, so
+// "um", "like", "basically" sprinkled through pasted text change nothing.
+const NON_CONTENT = new Set(
+  (
+    "a an the and or but nor so yet of to in on at by for with from into onto as is are was were be been being am " +
+    "it its it's this that these those there here then than which who whom whose what when where why how " +
+    "i me my we our you your he she they them their his her us do does did done has have had having " +
+    "will would can could should shall may might must not no just very really quite also too " +
+    "um uh er erm ah oh like basically actually literally kinda sorta okay ok well yeah right so " +
+    "you know i mean sort kind thing things stuff anyway etc"
+  ).split(/\s+/)
+);
+
+// Light stemming so "roles" / "role", "assigned" / "assign" match.
+function stem(w: string): string {
+  if (w.length > 5 && w.endsWith("ing")) return w.slice(0, -3);
+  if (w.length > 4 && w.endsWith("ed")) return w.slice(0, -2);
+  if (w.length > 4 && w.endsWith("es")) return w.slice(0, -2);
+  if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) return w.slice(0, -1);
+  return w;
+}
+
+export function contentWords(s: string): string[] {
+  return words(s)
+    .map((w) => w.replace(/'s$/, "").replace(/'/g, ""))
+    .filter((w) => w && !NON_CONTENT.has(w))
+    .map(stem);
+}
+
+// Share (0-1) of the answer's runs of COPY_RUN content words that sit close
+// together in the teaching text: at least COPY_RUN - 1 of them inside some
+// COPY_SPAN consecutive content words of the teaching text, in any order.
+// An explanation pasted from the lesson is not the learner's own words; it
+// is graded, but as assisted ("reveal").
+//
+// REQ-117 (Audit 3 A2, FAIL-357): this used to match exact 6-word runs of
+// every word, so one filler word every fifth word took a full paste from
+// 1.0 to 0.0. Comparing content words only (fillers and function words
+// dropped, light stemming), letting the run's words come in any order within
+// a short span, and letting one of them differ, survives filler, reordered
+// sentences and phrases, and the odd synonym; an explanation in the
+// learner's own words still shares few such runs (lib/understanding.test.ts).
+export const COPY_RUN = 5;
+export const COPY_SPAN = 8;
+
+export function copiedShare(answer: string, teach: string, n = COPY_RUN, span = COPY_SPAN): number {
+  const a = contentWords(answer);
   if (a.length < n) return 0;
-  const t = words(teach);
-  const grams = new Set<string>();
-  for (let i = 0; i + n <= t.length; i++) grams.add(t.slice(i, i + n).join(" "));
+  const t = contentWords(teach);
+  if (t.length < n - 1) return 0;
+  // Each teaching position's span, as a set, computed once.
+  const spans: Set<string>[] = [];
+  for (let i = 0; i < t.length; i++) spans.push(new Set(t.slice(i, i + span)));
+  const where = new Map<string, number[]>();
+  t.forEach((w, i) => (where.get(w) ?? where.set(w, []).get(w)!).push(i));
+  const need = n - 1;
   let hit = 0;
   let total = 0;
   for (let i = 0; i + n <= a.length; i++) {
     total++;
-    if (grams.has(a.slice(i, i + n).join(" "))) hit++;
+    const run = a.slice(i, i + n);
+    // Only spans that start within reach of a word of this run can hold it.
+    const starts = new Set<number>();
+    for (const w of run) for (const p of where.get(w) ?? []) for (let s0 = Math.max(0, p - span + 1); s0 <= p; s0++) starts.add(s0);
+    let found = false;
+    for (const s0 of starts) {
+      const sp = spans[s0];
+      let c = 0;
+      for (const w of run) if (sp.has(w)) c++;
+      if (c >= need) {
+        found = true;
+        break;
+      }
+    }
+    if (found) hit++;
   }
   return total ? hit / total : 0;
 }

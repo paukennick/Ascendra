@@ -1,7 +1,7 @@
 // REQ-110: shapes returned by GET/PUT /api/courses/:id/plan, the placement
 // check and "Quiz me" (backend/lib/study-plan.ts, placement.ts, coach-quiz.ts).
 
-export type StepKind = "warmup" | "learn" | "practice" | "confirm" | "review" | "mock" | "light";
+export type StepKind = "warmup" | "learn" | "practice" | "confirm" | "review" | "mock" | "light" | "stretch";
 
 export interface PlanStep {
   kind: StepKind;
@@ -29,7 +29,7 @@ export interface StudyPlan {
   mockExamDate: string | null;
   lightDay: string | null;
   roughLastSession: boolean;
-  remaining: { learn: number; practice: number; confirm: number; done: number; total: number; minutes: number };
+  remaining: { learn: number; practice: number; confirm: number; done: number; recheck?: number; total: number; minutes: number };
   thisWeek: { steps: PlanStep[]; reviewItems: number; reviewMinutes: number; minutes: number };
   feasibility: {
     status: Feasibility;
@@ -59,6 +59,7 @@ export interface KeptSummary {
   kept: number;
   slipped: number;
   unchecked: number;
+  recheck?: number; // REQ-117: due to re-check after a break
 }
 
 export interface PlanResponse {
