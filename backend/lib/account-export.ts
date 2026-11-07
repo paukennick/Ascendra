@@ -20,6 +20,10 @@ export const EXPORT_SECTIONS = {
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc",
   courseAcknowledgements: "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc",
+  // REQ-109: sprints and mock exams, and each question's saved answer.
+  examSessions: "select * from exam_sessions where user_id = $1 order by created_at asc",
+  examSessionItems:
+    "select si.* from exam_session_items si join exam_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, si.position asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

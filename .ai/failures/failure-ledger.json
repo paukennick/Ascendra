@@ -1666,6 +1666,75 @@
       "prevention_rules": [],
       "prevention_notes": "New attempt kinds reach mastery only through an explicit assessment_types row.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-200",
+      "date": "2026-11-07",
+      "title": "Readiness counted retired exam units after the exam-data merge",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After merging fix/exam-data (REQ-102, migration 033: course_units/objectives.retired_at) into the mastery-model base, courseReadiness() still read every unit and objective of a track, so a course whose old exam version had retired (SAP-C02 after 2026-11-17) would roll the retired domains into readiness and drag coverage down.",
+      "how_detected": "Blast-radius review of the merge before building mock exams, which reuse the readiness rollup.",
+      "root_cause": "REQ-102 added retirement and filtered it in every listing it knew about (progress-sql isActive); lib/readiness.ts came from the parallel REQ-100 branch and did not exist on fix/exam-data, so neither branch's author saw the other's reader. The text-level merge had no conflict there.",
+      "requirement": "REQ-109",
+      "affected": [
+        "backend/lib/readiness.ts"
+      ],
+      "fix_summary": "courseReadiness() filters units and objectives with isActive() like the course view.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-practice.dbtest.ts::rules every format keeps::readiness ignores retired units (merge of REQ-102 into the readiness rollup)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Pre-completion checklist: after merging a branch that adds a visibility/filter column, grep every reader of that table on the merged tree, including files the other branch never had.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-201",
+      "date": "2026-11-07",
+      "title": "Mock exams came out short of a domain's weight",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "In development, a 20-question mock on a 60/40 course built 16-18 questions: domain A needed 6 per objective but one generation call per objective wrote 5, so the domain got fewer questions than its exam weight.",
+      "how_detected": "exam-practice.dbtest.ts (first run)",
+      "root_cause": "Item generation was planned one call per objective with an empty slot, regardless of how many slots that objective had, and slots were filled only from their own objective.",
+      "requirement": "REQ-109",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "Calls per objective = ceil(empty slots / items per call), one call each first so a tight budget still covers the blueprint, made in sequence per objective so later calls avoid earlier stems; a second fill pass takes items from another objective of the same unit so the domain keeps its share.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-practice.dbtest.ts::a mock exam end to end::creating a mock fills the shared bank once and returns no keys"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The DB test asserts the per-domain question counts of a weighted mock, not only the total.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-202",
+      "date": "2026-11-07",
+      "title": "Exam practice DB test was order-dependent (about 1 run in 10 failed)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "exam-practice.dbtest.ts failed intermittently: once because the coach-guard check expected one specific answer key among randomly chosen items, once because two answers could land on one objective and correctly produce Needs review, which the test did not allow.",
+      "how_detected": "Fresh-database run of npm run test:db, then the test looped 20 times.",
+      "root_cause": "The test asserted on one sample of a randomised selection (items and slot order are shuffled per session) instead of on properties every sample has.",
+      "requirement": "REQ-109",
+      "affected": [
+        "backend/lib/exam-practice.dbtest.ts"
+      ],
+      "fix_summary": "Assertions now hold for every possible selection (any key from the fake bank; any level below Independent), and the file was run 25 times in a row clean.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-practice.dbtest.ts::a mock exam end to end::submit grades on the server and records answered questions as attempts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests over randomised selection assert invariants, and a new DB test with random selection is looped before it is committed.",
+      "recurrence_of": ""
     }
   ]
 }

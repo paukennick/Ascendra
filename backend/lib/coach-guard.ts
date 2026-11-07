@@ -9,7 +9,7 @@ import { query } from "@/lib/db";
 // fenced so it is read as data, not instructions.
 
 export interface OpenItem {
-  kind: "lesson" | "pbq" | "review";
+  kind: "lesson" | "pbq" | "review" | "exam";
   label: string; // objective or scenario title
   question: string;
   // Correct option text for a lesson item. Server-side only: used to check
@@ -19,6 +19,7 @@ export interface OpenItem {
 
 const MAX_ITEMS = 12;
 const MAX_QUESTION_CHARS = 400;
+const MAX_EXAM_ITEMS = 24;
 
 // Lesson items: the Guided and Solo questions of every lesson this learner
 // has opened in the track (lesson_progress), from the lesson they were shown
@@ -76,7 +77,27 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
       limit 6`,
     [userId, trackId, unitId ?? null]
   );
+  // REQ-109: questions in a sprint or mock exam this learner has open (not
+  // yet submitted). One entry per right choice, so the reply check catches
+  // any of them; ordering/matching items have no single key to check, but
+  // are still named so the model holds back.
+  const exam = await query<{ label: string; question: string; answer_key: string | null }>(
+    `select cu.title as label, i.stem as question, k.key as answer_key
+       from exam_sessions s
+       join exam_session_items si on si.session_id = s.id
+       join exam_items i on i.id = si.item_id
+       join course_units cu on cu.id = si.unit_id
+       left join lateral (
+         select i.body -> 'choices' ->> (c.value)::int as key
+           from jsonb_array_elements_text(coalesce(i.answer_key -> 'correct', '[]'::jsonb)) c
+       ) k on true
+      where s.user_id = $1 and s.track_id = $2 and s.status = 'in_progress'
+      order by si.position
+      limit ${MAX_EXAM_ITEMS}`,
+    [userId, trackId]
+  );
   return [
+    ...exam.map((r) => ({ kind: "exam" as const, label: r.label, question: r.question, answerKey: r.answer_key })),
     ...lesson.map((r) => ({ kind: r.kind, label: r.label, question: r.question, answerKey: r.answer_key })),
     ...pbq.map((r) => ({ kind: r.reviewing ? ("review" as const) : ("pbq" as const), label: r.label, question: r.question, answerKey: null })),
   ];
@@ -138,7 +159,12 @@ export function leakedItems(reply: string, items: OpenItem[], matched: OpenItem[
 // only, and which of them this message is about.
 export function openItemsBlock(items: OpenItem[], matched: OpenItem[]): string {
   if (!items.length) return "";
-  const kindLabel = { lesson: "lesson question, not answered yet", pbq: "PBQ, not answered yet", review: "pending review retest" };
+  const kindLabel = {
+    lesson: "lesson question, not answered yet",
+    pbq: "PBQ, not answered yet",
+    review: "pending review retest",
+    exam: "question in a practice exam they are taking now",
+  };
   const list = items
     .map((it, i) => {
       const q = it.question.length > MAX_QUESTION_CHARS ? `${it.question.slice(0, MAX_QUESTION_CHARS)}...` : it.question;
