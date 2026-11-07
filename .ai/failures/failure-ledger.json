@@ -880,6 +880,507 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-038",
+      "date": "2026-11-07",
+      "title": "Learners could set their own mastery level",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "PUT /api/objectives/:id/mastery accepted any status, including Transfer-ready, with no graded evidence.",
+      "how_detected": "B1 implementation review (Audit 2 follow-up)",
+      "root_cause": "An early manual override route (mirroring the artifact apps) was never removed once mastery became evidence-based.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/objectives/[id]/mastery/route.ts"
+      ],
+      "fix_summary": "PUT now returns 405; mastery is set only by mastery_from_attempts.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-put-removed.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-040",
+      "date": "2026-11-07",
+      "title": "serverError sent raw error text to clients",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "500 bodies carried Postgres/driver messages; on unauthenticated /api/health a connection failure could name the DB host or pooler user",
+      "how_detected": "audit 2",
+      "root_cause": "serverError returned err.message verbatim; nothing separated internal from user-facing errors",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/app/api/health/route.ts"
+      ],
+      "fix_summary": "Generic message plus request id; details logged server-side; UserFacingError for messages written for learners",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::serverError returns a generic message",
+        "backend/lib/hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-041",
+      "date": "2026-11-07",
+      "title": "/api/health ran its probes on every unauthenticated hit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Each hit ran select 1 plus one query per schema probe on a 5-connection pool, with no caching",
+      "how_detected": "audit 2",
+      "root_cause": "Health check written for a daily ping, never considered as a public load source; probe errors were also reported as missing migrations",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/health.ts",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "30 s result cache with in-flight sharing, 5 s for failures; connection-class errors rethrown as outages",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.test.ts::health cache",
+        "backend/lib/hardening.test.ts::schema probes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-042",
+      "date": "2026-11-07",
+      "title": "Rate limiter was check-then-insert",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Concurrent requests all read count < max and all got through, including past the 8-guess MFA verify cap",
+      "how_detected": "audit 2",
+      "root_cause": "checkRateLimit and recordAuthEvent were separate statements with no lock between them",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/auth/rateLimit.ts",
+        "backend/app/api"
+      ],
+      "fix_summary": "consumeRateLimit: advisory lock on (event, identifier), count and insert in one transaction; every route switched",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::rate limiter is atomic"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-043",
+      "date": "2026-11-07",
+      "title": "Login lockout bypassable by parallel guesses",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Parallel wrong passwords all wrote failed_login_count = 1; the 5-try lockout never triggered",
+      "how_detected": "audit 2",
+      "root_cause": "Read-modify-write of failed_login_count from a stale read",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/auth/lockout.ts",
+        "backend/app/api/auth/login/route.ts"
+      ],
+      "fix_summary": "reserveLoginAttempt: one guarded UPDATE reserves each password check and sets the lock at the 5th; correct password clears it",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::login lockout"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-044",
+      "date": "2026-11-07",
+      "title": "MFA disable had no rate limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A holder of an access token could guess the password and the 6-digit confirmation code without limit, sending an email each time",
+      "how_detected": "audit 2",
+      "root_cause": "Rate limiting was added per route as each was written; the disable routes were missed",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/app/api/auth/mfa/disable/route.ts",
+        "backend/app/api/auth/mfa/email/disable/route.ts"
+      ],
+      "fix_summary": "Shared per-user budget (10 per 15 min) on both MFA disable routes",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::MFA disable is rate limited"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-045",
+      "date": "2026-11-07",
+      "title": "Mixed-case uuids took different advisory locks",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Stale mastery 25/25 and duplicate open sessions 15/15 when one request used an uppercase id",
+      "how_detected": "audit 2",
+      "root_cause": "Lock keys were built from the raw id string while Postgres compares uuids case-insensitively",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/visibility.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/study-sessions.ts",
+        "backend/lib/lesson-store.ts"
+      ],
+      "fix_summary": "normUuid; lock keys lowercased; routes use the canonical ids the visibility checks return; session lock per learner",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::mixed-case uuids share one lock"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-046",
+      "date": "2026-11-07",
+      "title": "NUL characters and lone surrogates caused 500s",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "\\u0000 or half an emoji in grade, chat or progress text, and slice() at 8000 splitting an emoji, failed the INSERT",
+      "how_detected": "audit 2",
+      "root_cause": "No validation of text before it reached Postgres, which rejects both",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/text-input.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/lib/lesson-progress.ts"
+      ],
+      "fix_summary": "textField (400) for request fields, cleanText for the progress snapshot; kind/stage/confidence validated; non-uuid ids answered without a query",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::NUL characters and lone surrogates are 400s",
+        "backend/lib/hardening.test.ts::text input"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-047",
+      "date": "2026-11-07",
+      "title": "Chat replay could return another turn's reply",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Replay of a slow-inserted message returned the reply to the message sent after it (3/3)",
+      "how_detected": "audit 2",
+      "root_cause": "Reply found by 'first assistant row at or after the user row', a time heuristic",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/chat-store.ts"
+      ],
+      "fix_summary": "Assistant row id derived from the user row id (md5(id||':reply')); lookup by that id, heuristic kept only for older rows",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::chat replay returns this message's own reply"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-048",
+      "date": "2026-11-07",
+      "title": "Reused idempotency id silently dropped a new submission",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Same clientAttemptId or clientMessageId with a different answer, objective, route or track returned the old result",
+      "how_detected": "audit 2",
+      "root_cause": "Replay was keyed by id only, not bound to what was submitted",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/grading-service.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "Replay compares objective/scenario, kind, format, stage, question and answer (chat: track and message); mismatch is 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::idempotency ids are bound to the submission"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-049",
+      "date": "2026-11-07",
+      "title": "lesson_progress unbounded; huge fromStage 500; clock skew rejected the account copy",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "~100 KB per row with no row cap; fromStage 2^31 failed the int cast; a phone clock >60 s behind discarded the server copy",
+      "how_detected": "audit 2",
+      "root_cause": "Per-field caps only; Number.isInteger as the only check; savedAt compared across two clocks",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/app/api/objectives/[id]/progress/route.ts",
+        "backend/app/api/errors/[id]/route.ts",
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "Body cap 100k, 100 rows and 8 days per learner; fromStage 0..3 else 400; GET returns ageMs and the app restates savedAt on its own clock",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::lesson progress bounds",
+        "mobile/src/lib/hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-050",
+      "date": "2026-11-07",
+      "title": "Lesson generation unbounded via prefetch-next; text fields uncapped",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Walking prefetch-next through the catalog generated every lesson; question/answer/taughtText/message had no length cap",
+      "how_detected": "audit 2",
+      "root_cause": "Only regenerate was rate limited; first generation was assumed to be rare",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson"
+      ],
+      "fix_summary": "Per-learner budget (20/10 min) on starting a new shared generation in GET and prefetch; length caps on request text",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::lesson generation is bounded per learner"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-051",
+      "date": "2026-11-07",
+      "title": "Other reset tokens stayed valid after a password reset",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A second outstanding reset link could set the password again after a reset",
+      "how_detected": "audit 2",
+      "root_cause": "The reset consumed only the presented token",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/app/api/auth/reset-password/route.ts"
+      ],
+      "fix_summary": "Same transaction consumes every outstanding reset token, login challenge and email-change token for the user",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::password reset spends every outstanding credential"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-052",
+      "date": "2026-11-07",
+      "title": "Generation lease had no heartbeat",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A generation running past 120 s could be taken over while alive; a learner's later save overwrote the other",
+      "how_detected": "audit 2",
+      "root_cause": "Fixed lease with no renewal and no ownership check before save",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/lesson-store.ts",
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "renewClaim heartbeat every lease/4; a user-scope save is refused if the lease was lost",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::generation lease heartbeat"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-053",
+      "date": "2026-11-07",
+      "title": "pg Pool had no timeouts",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A stalled DB or full pool made requests hang; a failed rollback returned a poisoned connection to the pool",
+      "how_detected": "audit 2",
+      "root_cause": "Pool created with defaults",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/db.ts"
+      ],
+      "fix_summary": "connectionTimeoutMillis, client query_timeout, SET LOCAL statement/lock/idle timeouts per transaction, release(err) on broken connections",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::pool and transaction timeouts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-054",
+      "date": "2026-11-07",
+      "title": "8000-char truncation broke the answer signature",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A long resumed answer got a new attempt id and recorded a second attempt",
+      "how_detected": "audit 2",
+      "root_cause": "The signature embeds the answer and was stored truncated, so it no longer matched",
+      "requirement": "REQ-098",
+      "affected": [
+        "mobile/src/lib/lessonProgress.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Mobile caps free-response input at 4000 and the signature at the same length, below the server's 8000 cap",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/hardening.test.ts::answer signature",
+        "backend/lib/hardening.test.ts::answer signature survives the account copy"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-055",
+      "date": "2026-11-07",
+      "title": "Stale open study sessions never closed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Open sessions older than the window stayed open forever beside new ones",
+      "how_detected": "audit 2",
+      "root_cause": "The app never ends sessions and nothing closed them by age",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/study-sessions.ts"
+      ],
+      "fix_summary": "Each session start closes the learner's sessions idle past the window at last activity + 30 min",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::stale study sessions are closed"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-056",
+      "date": "2026-11-07",
+      "title": "Account export unbounded",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "40k rows produced 89 MB JSON and 175 MB heap in one response over 11 parallel connections",
+      "how_detected": "audit 2",
+      "root_cause": "Every section loaded in full at once",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/account-export.ts",
+        "backend/app/api/account/export/route.ts",
+        "mobile/src/lib/accountExport.ts"
+      ],
+      "fix_summary": "5000 rows per section per page with next offsets, one read-only snapshot transaction, rate limited; the app merges pages",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::account export is paged",
+        "mobile/src/lib/hardening.test.ts::paged account export"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-057",
+      "date": "2026-11-07",
+      "title": "Missing indexes on chat_messages and study_sessions; no probe for the attempts unique index",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Chat history/replay and session queries scanned whole tables; a half-applied 025 would not be detected",
+      "how_detected": "audit 2",
+      "root_cause": "Indexes were designed before the catalog was shared; probe checked only the column",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/supabase/migrations/030_hardening_indexes.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "Migration 030 indexes; probes for both and for attempts_user_client_attempt_unique",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration.dbtest.ts::a database with every migration applied is current"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Concurrent or boundary regression test in the hardening suites; pre-completion blast-radius and DB-test items",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-060",
       "date": "2026-11-07",
       "title": "MFA leave guard blocked sign-out and lock",
@@ -904,26 +1405,54 @@
       "recurrence_of": ""
     },
     {
-      "id": "FAIL-038",
+      "id": "FAIL-120",
       "date": "2026-11-07",
-      "title": "Learners could set their own mastery level",
+      "title": "Choice shuffle seeded from the raw objective id",
       "status": "fixed",
       "severity": "high",
-      "symptom": "PUT /api/objectives/:id/mastery accepted any status, including Transfer-ready, with no graded evidence.",
-      "how_detected": "B1 implementation review (Audit 2 follow-up)",
-      "root_cause": "An early manual override route (mirroring the artifact apps) was never removed once mastery became evidence-based.",
-      "requirement": "REQ-097",
+      "symptom": "Found while merging fix/hardening onto feat/mastery-integrity: the lesson GET and hint route seeded the per-learner choice shuffle with the objective id as the app sent it, while /api/grade (after REQ-098 normalization) seeds it with the canonical lowercase id. An iOS client sending an uppercase id would see one order and be graded against another, so a right answer could be marked wrong.",
+      "how_detected": "merge review",
+      "root_cause": "REQ-097 built presentationSeed from raw id strings; REQ-098 lowercased ids only at lock keys and route edges. Two branches each correct alone disagreed once combined, because a derived string (the seed) depends on id spelling.",
+      "requirement": "REQ-098",
       "affected": [
-        "backend/app/api/objectives/[id]/mastery/route.ts"
+        "backend/lib/choice-order.ts",
+        "backend/app/api/objectives/[id]/hint/route.ts",
+        "backend/app/api/grade/route.ts"
       ],
-      "fix_summary": "PUT now returns 405; mastery is set only by mastery_from_attempts.",
+      "fix_summary": "presentationSeed lowercases both ids; the hint and grade routes use the canonical id from visibleObjective.",
       "fix_commits": [],
       "regression_tests": [
-        "backend/lib/mastery-put-removed.dbtest.ts"
+        "backend/lib/choice-order.test.ts::presentationSeed ignores the case of the ids (REQ-098)",
+        "backend/lib/hardening.dbtest.ts::the sessions route and grade route accept uppercase ids and treat them as the same row"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Any string derived from an id (lock key, seed, map key) is built from the lowercase form; covered by the mixed-case hardening tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-121",
+      "date": "2026-11-07",
+      "title": "Whitespace-only resend refused as a conflict",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A free-response retry that differed only by trailing whitespace got 409 instead of replaying the stored grade.",
+      "how_detected": "Merge of B1 into B2 (review)",
+      "root_cause": "The mobile resend signature trims the answer but the request body does not; the server compared answers exactly.",
+      "requirement": "REQ-098",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Answers are compared after trimming surrounding whitespace.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.test.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
+      "prevention_notes": "Idempotency identity compares normalized answers, the same normalization the client signs.",
       "recurrence_of": ""
     },
     {

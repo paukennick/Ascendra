@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, tooManyRequests, serverError } from "@/lib/http";
 import { hashPassword } from "@/lib/auth/passwords";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { sendVerificationEmail } from "@/lib/email";
 
@@ -25,12 +25,11 @@ export async function POST(req: Request) {
     const ip = getClientIp(req);
 
     try {
-      await checkRateLimit("register", ip ?? normalizedEmail, { max: 5, windowMinutes: 60 });
+      await consumeRateLimit("register", ip ?? normalizedEmail, { max: 5, windowMinutes: 60 }, { ip });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("register", ip ?? normalizedEmail, { ip });
 
     const existing = await queryOne<{ id: string }>("select id from app_users where email = $1", [
       normalizedEmail,

@@ -6,7 +6,7 @@ import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import {
   loadObjective,
   rowToLesson,
@@ -17,6 +17,8 @@ import {
   pendingKey,
   REGEN_LIMIT,
   REGEN_RATE_EVENT,
+  GENERATE_LIMIT,
+  GENERATE_RATE_EVENT,
 } from "@/lib/lesson-generation";
 import { SHARED } from "@/lib/lesson-store";
 
@@ -74,6 +76,16 @@ export async function GET(
 
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
+
+    // REQ-098: starting a new generation counts against a per-learner budget.
+    try {
+      await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        return tooManyRequests("You've opened a lot of new lessons just now. Please wait a few minutes and try again.");
+      }
+      throw err;
+    }
 
     const handle = ensureGeneration(id, objRow, { scope: SHARED });
     const intro = await handle.introPromise;
@@ -137,14 +149,13 @@ export async function POST(
     if (!objRow) return notFound("Objective not found");
 
     try {
-      await checkRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT);
+      await consumeRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) {
         return tooManyRequests("You have regenerated this lesson a lot just now. Please wait a few minutes and try again.");
       }
       throw err;
     }
-    await recordAuthEvent(REGEN_RATE_EVENT, user.id, { userId: user.id });
 
     const handle = await startRegeneration(user.id, id, objRow);
     const intro = await handle.introPromise;

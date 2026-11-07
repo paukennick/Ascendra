@@ -1,23 +1,25 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   findClientAttempt,
   hasHintReveal,
   lessonCheckFor,
   recordAttemptIdempotent,
+  sameAttempt,
+  IdempotencyConflictError,
+  type AttemptIdentity,
   type LessonCheck,
 } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleObjective } from "@/lib/visibility";
+import { visibleObjective, normUuid } from "@/lib/visibility";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, storedIndexAt } from "@/lib/choice-order";
 
 export const dynamic = "force-dynamic";
-
-const MAX_ANSWER = 8000;
 
 // POST /api/grade -- grades one answer to a lesson's Guided ("fade") or Solo
 // ("solo") check and records the attempt, the mastery update and (if not
@@ -35,29 +37,52 @@ const MAX_ANSWER = 8000;
 // chosenIndex is a position in the order the choices were shown, which is
 // this learner's fixed shuffle (lib/choice-order.ts).
 //
+// REQ-098 on top: the free-response answer is length-capped and must be
+// storable text (400, not a 500 from the INSERT); confidence must be 1-5;
+// ids are the canonical lowercase ones from the visibility check; a reused
+// clientAttemptId for a different submission is a 409; the model call is
+// behind the atomic rate limit.
+//
 // Returns { verdict, feedback, classification, missedParts, assisted,
 //   assistReason, correctIndex (shown order), correctAnswer, why, attempt }.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { format, stage, objectiveId, unitId, confidence } = body ?? {};
+    const { format, stage, unitId } = body ?? {};
     const kind = body?.kind ?? "lesson";
 
     if (format !== "mc" && format !== "open") {
       return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
     }
     if (kind !== "lesson") return badRequest("only lesson checks are graded here");
-    if (typeof objectiveId !== "string" || !objectiveId) return badRequest("objectiveId is required");
+    if (typeof body?.objectiveId !== "string" || !body.objectiveId) return badRequest("objectiveId is required");
     if (stage !== "fade" && stage !== "solo") return badRequest("stage must be 'fade' or 'solo'");
     if (unitId !== undefined && unitId !== null && typeof unitId !== "string") return badRequest("unitId must be a string");
+    const rawConfidence = body.confidence;
+    if (rawConfidence != null && !(Number.isInteger(rawConfidence) && rawConfidence >= 1 && rawConfidence <= 5)) {
+      return badRequest("confidence must be a whole number from 1 to 5");
+    }
+    const confidence: number | null = rawConfidence ?? null;
+    // Free-response text is validated before any database work.
+    let openAnswer = "";
+    if (format === "open") {
+      const a = textField(body.answer, "answer", TEXT_LIMITS.answer, { required: true });
+      if (!a.ok) return badRequest(a.error);
+      if (!a.value.trim()) return badRequest("answer is required for format 'open'");
+      openAnswer = a.value;
+    }
 
     const authUser = await requireUser(req);
 
     // REQ-091: ids in the body are untrusted; the objective must be in a track
     // the caller can see, and a unitId sent alongside must be its own unit.
-    const objective = await visibleObjective(objectiveId, authUser.id);
+    // REQ-098: from here on the id is the canonical (lowercase) one the
+    // visibility check returns, so lock keys, the shuffle seed and replay
+    // comparisons match however the client spelled it.
+    const objective = await visibleObjective(body.objectiveId, authUser.id);
     if (!objective) return notFound("Objective not found");
-    if (unitId && objective.unit_id !== unitId) return badRequest("objectiveId does not belong to unitId");
+    if (unitId && objective.unit_id !== normUuid(unitId)) return badRequest("objectiveId does not belong to unitId");
+    const objectiveId = objective.id;
     await requireAcknowledgementForObjective(objectiveId, authUser.id);
 
     const found = await lessonCheckFor(authUser.id, objectiveId, stage);
@@ -73,22 +98,43 @@ export async function POST(req: Request) {
       why: check.why || null,
     };
 
+    // What is graded: the stored choice the shown position maps to, or the
+    // free-response text.
+    let answer: string;
+    let storedChoice: number | null = null;
+    if (format === "mc") {
+      storedChoice = storedIndexAt(order, body.chosenIndex);
+      if (storedChoice === null) return badRequest(`chosenIndex must be 0-${check.choices.length - 1}`);
+      answer = check.choices[storedChoice];
+    } else {
+      answer = openAnswer;
+    }
+
     // REQ-089: an id the app already submitted is a retry -- hand back the
     // stored result rather than grading again. Checked before the rate limit
     // and the model call. The key is added back only if the stored attempt was
     // for the question this lesson still has (a regenerate changes it).
+    // REQ-098: the replay is bound to the submission -- the same objective,
+    // stage and format and the same graded answer (chosen stored choice or
+    // free-response text). Anything else under a used id is a 409. The
+    // question is not part of it: it comes from the stored lesson, not the
+    // request.
+    const identity: AttemptIdentity = { objectiveId, kind: "lesson", format, stage, answer };
     const clientAttemptId = validClientAttemptId(body.clientAttemptId);
     if (clientAttemptId) {
       const prior = await findClientAttempt(authUser.id, clientAttemptId);
-      if (prior) return ok(withReveal(prior, check, reveal));
+      if (prior) {
+        if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+        return ok(withReveal(prior, check, reveal));
+      }
     }
+    // Two requests with the same id can still race past that check; the
+    // unique index makes the slower one fail, and it returns the winner's.
     const record = (input: Parameters<typeof recordAttemptIdempotent>[0]) =>
       recordAttemptIdempotent({ ...input, clientAttemptId });
     const common = { userId: authUser.id, unitId: objective.unit_id, objectiveId, kind: "lesson" as const, stage, confidence };
 
     if (format === "mc") {
-      const stored = storedIndexAt(order, body.chosenIndex);
-      if (stored === null) return badRequest(`chosenIndex must be 0-${check.choices.length - 1}`);
       // FAIL-039: Solo choices are only ever shown by the hint route, which
       // records the reveal. A Solo multiple-choice answer without one came
       // from an app build older than REQ-097 (its saved position can still
@@ -99,14 +145,14 @@ export async function POST(req: Request) {
           "Answer this check in your own words, or use \"Show choices\" first. If no choices appear, please update the app."
         );
       }
-      const correct = stored === check.correctIndex;
+      const correct = storedChoice === check.correctIndex;
       const verdict = correct ? "correct" : "incorrect";
       const feedback = `${correct ? "That's right." : "Not quite."} ${check.why}`.trim();
       const { attempt, prior } = await record({
         ...common,
         format: "mc",
         question: check.question,
-        answer: check.choices[stored],
+        answer,
         verdict,
         feedback,
         classification: "none",
@@ -115,16 +161,12 @@ export async function POST(req: Request) {
       return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt });
     }
 
-    const answer = body.answer;
-    if (typeof answer !== "string" || !answer.trim()) return badRequest("answer is required for format 'open'");
-    if (answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
     try {
-      await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
+      await consumeRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("grade_open", authUser.id);
     // REQ-076: grade in the voice of the learner's actual track/exam.
     const ctx = await coachContextForObjective(objectiveId);
     const graded = await gradeFreeResponse({
@@ -149,6 +191,7 @@ export async function POST(req: Request) {
     return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof IdempotencyConflictError) return conflict(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }

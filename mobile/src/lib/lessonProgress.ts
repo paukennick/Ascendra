@@ -175,7 +175,27 @@ export function newerSnapshot(a: LessonSnapshot | null, b: LessonSnapshot | null
 // same one that was already sent (a retry); any change to the answer is a
 // new attempt and gets a new id.
 export function answerSignature(mode: "mc" | "open", picked: number | null, openAnswer: string): string {
-  return mode === "mc" ? `mc:${picked ?? ""}` : `open:${openAnswer.trim()}`;
+  return mode === "mc" ? `mc:${picked ?? ""}` : `open:${openAnswer.trim().slice(0, OPEN_ANSWER_MAX)}`;
+}
+
+// REQ-098: the free-response input is capped at this length. The server
+// stores openAnswer and sentSignature (which embeds the answer) cut at 8000
+// characters, so an answer longer than that came back from the account copy
+// with a signature that no longer matched -- and the resumed answer was sent
+// under a new id, recording a second attempt. Capped here, both stay well
+// under the server's limit, so what is signed is exactly what is stored.
+export const OPEN_ANSWER_MAX = 4000;
+
+// REQ-098: the account copy's savedAt is the server's clock. A phone clock
+// more than a minute behind rejected it as "from the future" (parseSnapshot),
+// and smaller skews could pick the older of the two copies. The server also
+// sends ageMs (how long ago it was saved); this restates savedAt on the
+// phone's clock. Older servers send no ageMs and the value is left as is.
+export function toLocalClock(raw: unknown, now: number): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const o = raw as Record<string, unknown>;
+  if (typeof o.ageMs !== "number" || !Number.isFinite(o.ageMs) || o.ageMs < 0) return raw;
+  return { ...o, savedAt: now - o.ageMs };
 }
 
 export function attemptIdFor(

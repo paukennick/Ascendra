@@ -44,7 +44,13 @@ export async function PATCH(
     // read-then-write, so a retry can't skip a stage and a resolved entry
     // never moves past stage 3. `fromStage` is optional: the stage the
     // learner saw, so a repeat of the same tap is a no-op.
-    const fromStage = Number.isInteger(body?.fromStage) ? (body.fromStage as number) : null;
+    // REQ-098: stages are 0..3. A huge integer (2^31) used to pass
+    // Number.isInteger and fail the $3::int cast as a 500.
+    const rawStage = body?.fromStage;
+    if (rawStage != null && !(Number.isInteger(rawStage) && rawStage >= 0 && rawStage <= 3)) {
+      return badRequest("fromStage must be a whole number from 0 to 3");
+    }
+    const fromStage = rawStage == null ? null : (rawStage as number);
     const result = await advanceReviewStage(user.id, id, fromStage);
     if (!result) return notFound("Error log entry not found");
     return ok({ error: result.row, advanced: result.advanced });

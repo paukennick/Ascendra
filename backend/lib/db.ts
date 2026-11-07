@@ -19,6 +19,19 @@ export function sslOption(): false | { rejectUnauthorized: false } {
 // so we keep this pool small.
 let pool: Pool | null = null;
 
+export const POOL_CONNECT_TIMEOUT_MS = 10_000;
+export const QUERY_TIMEOUT_MS = 30_000;
+// Server-side limits for a transaction, set with SET LOCAL (scoped to the
+// transaction, so safe on a transaction-mode pooler where a session-level
+// SET would leak to the next client). statement_timeout stops the server
+// running a statement the client has given up on; lock_timeout bounds a
+// wait on a row lock; idle_in_transaction_session_timeout frees the backend
+// if this process stalls mid-transaction. Advisory locks taken with
+// pg_advisory_xact_lock wait under statement_timeout.
+export const TX_STATEMENT_TIMEOUT_MS = 20_000;
+export const TX_LOCK_TIMEOUT_MS = 10_000;
+export const TX_IDLE_TIMEOUT_MS = 30_000;
+
 function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
@@ -32,6 +45,15 @@ function getPool(): Pool {
       ssl: sslOption(),
       max: 5,
       idleTimeoutMillis: 10_000,
+      // REQ-098: none of these were set, so a stalled database or a full
+      // pool made requests hang until the platform killed them, holding
+      // the other four connections meanwhile.
+      // - waiting for a free pool connection (or a new one) gives up here;
+      connectionTimeoutMillis: POOL_CONNECT_TIMEOUT_MS,
+      // - the driver gives up on any one query after this (client side, so
+      //   it works through Supabase's transaction-mode pooler, which is not
+      //   guaranteed to accept server settings in the startup packet).
+      query_timeout: QUERY_TIMEOUT_MS,
     });
   }
   return pool;
@@ -42,12 +64,22 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
   params: unknown[] = []
 ): Promise<T[]> {
   const client = await getPool().connect();
+  let timedOut: Error | undefined;
   try {
     const res = await client.query<T>(text, params);
     return res.rows;
+  } catch (err) {
+    // The driver's query_timeout does not cancel the statement on the
+    // server, so that connection may still be busy: discard it.
+    if (isQueryTimeout(err)) timedOut = err as Error;
+    throw err;
   } finally {
-    client.release();
+    client.release(timedOut);
   }
+}
+
+export function isQueryTimeout(err: unknown): boolean {
+  return err instanceof Error && /query read timeout/i.test(err.message);
 }
 
 export async function queryOne<T extends QueryResultRow = QueryResultRow>(
@@ -68,7 +100,10 @@ export interface TxClient {
 // a multi-statement write built from it can half-succeed; anything that
 // must land all-or-nothing goes through here instead. Works on Supabase's
 // transaction-mode pooler, which pins one backend for the transaction.
-export async function withTransaction<R>(fn: (tx: TxClient) => Promise<R>): Promise<R> {
+export async function withTransaction<R>(
+  fn: (tx: TxClient) => Promise<R>,
+  opts: { readOnlySnapshot?: boolean } = {}
+): Promise<R> {
   const client = await getPool().connect();
   const tx: TxClient = {
     async query<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []) {
@@ -79,16 +114,33 @@ export async function withTransaction<R>(fn: (tx: TxClient) => Promise<R>): Prom
       return rows.length ? rows[0] : null;
     },
   };
+  // REQ-098: a connection whose rollback failed is in an unknown state;
+  // release(err) destroys it instead of returning it to the pool.
+  let broken: Error | undefined;
   try {
-    await client.query("begin");
+    // readOnlySnapshot: every statement sees one snapshot (account export).
+    await client.query(opts.readOnlySnapshot ? "begin isolation level repeatable read read only" : "begin");
+    await client.query(
+      `select set_config('statement_timeout', $1, true),
+              set_config('lock_timeout', $2, true),
+              set_config('idle_in_transaction_session_timeout', $3, true)`,
+      [`${TX_STATEMENT_TIMEOUT_MS}ms`, `${TX_LOCK_TIMEOUT_MS}ms`, `${TX_IDLE_TIMEOUT_MS}ms`]
+    );
     const result = await fn(tx);
     await client.query("commit");
     return result;
   } catch (err) {
-    await client.query("rollback").catch(() => undefined);
+    if (isQueryTimeout(err)) {
+      // Still busy on the server; destroying the connection rolls it back.
+      broken = err as Error;
+    } else {
+      await client.query("rollback").catch((rollbackErr: Error) => {
+        broken = rollbackErr;
+      });
+    }
     throw err;
   } finally {
-    client.release();
+    client.release(broken);
   }
 }
 

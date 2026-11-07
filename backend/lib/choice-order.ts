@@ -34,7 +34,8 @@ export function presentationOrder(seed: string, n: number): number[] {
 // question text are all in the app). Without the secret, "seed = the ids"
 // let anyone recompute the shuffle and read the answer's position off the
 // stored order the model tends to use. Stable for one learner, objective,
-// stage and question as long as the secret doesn't change.
+// stage and question as long as the secret doesn't change. REQ-098: ids are
+// lowercased first, so iOS's uppercase UUIDs give the same order.
 //
 // Key: CHOICE_ORDER_SECRET if set, otherwise a key derived from
 // AUTH_JWT_SECRET (an HMAC of a fixed label, so the JWT secret itself is
@@ -62,7 +63,7 @@ export function choiceOrderKey(env: Record<string, string | undefined> = process
 
 export function presentationSeed(userId: string, objectiveId: string, stage: string, question: string): string {
   return createHmac("sha256", choiceOrderKey())
-    .update(`${userId}\n${objectiveId}\n${stage}\n${question}`, "utf8")
+    .update(`${userId.toLowerCase()}\n${objectiveId.toLowerCase()}\n${stage}\n${question}`, "utf8")
     .digest("hex");
 }
 

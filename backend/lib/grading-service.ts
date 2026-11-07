@@ -87,10 +87,64 @@ export async function recordAttemptIdempotent(input: AttemptInput) {
   } catch (err) {
     if (input.clientAttemptId && isDuplicateClientAttempt(err)) {
       const prior = await findClientAttempt(input.userId, input.clientAttemptId);
-      if (prior) return { attempt: null, prior };
+      if (prior) {
+        assertSameAttempt(prior.attempt, input);
+        return { attempt: null, prior };
+      }
     }
     throw err;
   }
+}
+
+// REQ-098: a client attempt id names ONE submission. The replay used to
+// return whatever was stored under the id, so reusing an id for a different
+// answer, objective or route (/api/pbq after /api/grade) silently dropped
+// the new submission and answered with the old verdict. The replay is now
+// bound to what was submitted: the stored attempt must be for the same
+// objective / scenario, kind, format, stage, question and answer, or the
+// request is refused with 409. Compared field by field against the stored
+// row, so no schema change is needed.
+export class IdempotencyConflictError extends Error {
+  constructor(message = "This id was already used for a different submission.") {
+    super(message);
+    this.name = "IdempotencyConflictError";
+  }
+}
+
+// REQ-097 + REQ-098: `question` is optional. /api/grade no longer takes the
+// question from the request -- it is read from the stored lesson -- so its
+// identity is objective, kind, format, stage and the answer it graded (the
+// text of the chosen stored choice, or the free-response text). A retry
+// after the lesson was regenerated is still the same submission there.
+export type AttemptIdentity = Pick<
+  AttemptInput,
+  "objectiveId" | "pbqScenarioId" | "kind" | "format" | "stage" | "answer"
+> & { question?: string };
+
+const idOrNull = (v: unknown) => (typeof v === "string" && v ? v.toLowerCase() : null);
+
+export function sameAttempt(stored: Record<string, unknown>, req: AttemptIdentity): boolean {
+  return (
+    idOrNull(stored.objective_id) === idOrNull(req.objectiveId) &&
+    idOrNull(stored.pbq_scenario_id) === idOrNull(req.pbqScenarioId) &&
+    stored.kind === req.kind &&
+    stored.format === req.format &&
+    (stored.stage ?? null) === (req.stage ?? null) &&
+    (req.question === undefined || stored.question === req.question) &&
+    sameAnswer(stored.answer, req.answer)
+  );
+}
+
+// A retry of a failed submit may differ only in surrounding whitespace (the
+// app's resend signature trims; the request body doesn't). That is the same
+// submission, not a conflict.
+function sameAnswer(stored: unknown, sent: unknown): boolean {
+  if (typeof stored === "string" && typeof sent === "string") return stored.trim() === sent.trim();
+  return stored === sent;
+}
+
+export function assertSameAttempt(stored: Record<string, unknown>, req: AttemptIdentity): void {
+  if (!sameAttempt(stored, req)) throw new IdempotencyConflictError();
 }
 
 // REQ-097: everything needed to grade a lesson's Guided ("fade") or Solo

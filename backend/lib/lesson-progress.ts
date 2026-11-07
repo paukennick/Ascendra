@@ -3,6 +3,8 @@
 // saved position may be resumed (mobile/src/lib/lessonProgress.ts); the
 // server's job is to store only well-formed, bounded data for the caller.
 
+import { cleanText, hasUnstorableText } from "./text-input";
+
 export const RESUMABLE_STEPS = ["teach", "fade", "solo"] as const;
 export type ResumableStep = (typeof RESUMABLE_STEPS)[number];
 
@@ -38,9 +40,22 @@ export interface LessonProgressInput {
   checks: { fade?: CheckState; solo?: CheckState };
 }
 
+// REQ-098: cleanText rather than slice(): slice could cut an emoji in half
+// at the limit, and a NUL or lone surrogate in any field made the whole
+// save fail with a 500 (Postgres refuses both in text and jsonb).
 function text(v: unknown, max = MAX_TEXT): string | null {
-  return typeof v === "string" ? v.slice(0, max) : null;
+  return typeof v === "string" ? cleanText(v, max) : null;
 }
+
+// REQ-098: bounds on the account copy. Per-field caps alone allowed about
+// 100k characters per row and no limit on rows, so one account could store
+// thousands of 100 KB rows. The request body is capped before parsing,
+// and each learner keeps at most MAX_PROGRESS_ROWS positions, none older
+// than PROGRESS_MAX_AGE_DAYS (the app already discards a position older
+// than seven days, mobile/src/lib/lessonProgress.ts SNAPSHOT_MAX_AGE_MS).
+export const MAX_PROGRESS_BODY_CHARS = 100_000;
+export const MAX_PROGRESS_ROWS = 100;
+export const PROGRESS_MAX_AGE_DAYS = 8;
 
 function sanitizeCheck(v: unknown): CheckState | undefined {
   if (!v || typeof v !== "object") return undefined;
@@ -52,7 +67,7 @@ function sanitizeCheck(v: unknown): CheckState | undefined {
           verdict: r.verdict,
           feedback: text(r.feedback) ?? "",
           missedParts: Array.isArray(r.missedParts)
-            ? r.missedParts.filter((p): p is string => typeof p === "string").slice(0, 20).map((p) => p.slice(0, 500))
+            ? r.missedParts.filter((p): p is string => typeof p === "string").slice(0, 20).map((p) => cleanText(p, 500))
             : [],
           correctIndex:
             Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 && (r.correctIndex as number) < 20
@@ -80,7 +95,12 @@ export function sanitizeLessonProgress(body: unknown): LessonProgressInput | str
   if (typeof o.step !== "string" || !(RESUMABLE_STEPS as readonly string[]).includes(o.step)) {
     return `step must be one of: ${RESUMABLE_STEPS.join(", ")}`;
   }
-  if (typeof o.lessonKey !== "string" || !o.lessonKey || o.lessonKey.length > MAX_KEY) {
+  if (
+    typeof o.lessonKey !== "string" ||
+    !o.lessonKey ||
+    o.lessonKey.length > MAX_KEY ||
+    hasUnstorableText(o.lessonKey)
+  ) {
     return "lessonKey is required (max 64 characters)";
   }
   const c = o.confidence;
@@ -98,6 +118,14 @@ export function sanitizeLessonProgress(body: unknown): LessonProgressInput | str
     lessonKey: o.lessonKey,
     checks,
   };
+}
+
+// REQ-098: the stored position's age, so the app can place it on its own
+// clock. savedAt is the server's clock; a phone whose clock runs more than a
+// minute behind used to reject the account copy as "from the future", and
+// smaller skews could pick the older of the device and account copies.
+export function progressAgeMs(updatedAt: string | Date, now: string | Date): number {
+  return Math.max(0, new Date(now).getTime() - new Date(updatedAt).getTime());
 }
 
 // Client attempt ids: what the app sends with each graded answer so a
