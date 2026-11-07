@@ -21,4 +21,11 @@ describe("MFA screen leave guard", () => {
     assert.equal(backupCodesText(["AAAA-1111", "BBBB-2222"]), "AAAA-1111\nBBBB-2222");
     assert.equal(backupCodesText([]), "");
   });
+
+  test("never holds back a sign-out, session expiry or lock (FAIL-060)", () => {
+    for (const v of ["backup-codes", "totp-setup", "email-setup"] as const) {
+      assert.equal(mfaLeaveGuard(v, false, false), null);
+      assert.notEqual(mfaLeaveGuard(v, false, true), null);
+    }
+  });
 });
