@@ -5,6 +5,7 @@ adopter project's repository structure so an assistant can choose where
 to inspect next without reading the whole repository.
 
 - Generated at: `2026-11-07T11:35:47+00:00`
+- Generated at: `2026-11-07T11:25:02+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -122,6 +123,7 @@ backend/
     coach-guard.dbtest.ts
     coach-guard.test.ts
     coach-guard.ts
+    comptia-v8-coverage.test.ts
     db.ts
     email.ts
     exam-blueprint.ts
