@@ -233,8 +233,11 @@ export function Button({
   loading,
   icon,
   fullWidth = true,
+  accessibilityLabel,
 }: {
   label: string;
+  // Spoken instead of `label` when the visible text alone is ambiguous.
+  accessibilityLabel?: string;
   // May return a promise; the button then ignores further presses until it
   // settles (see src/lib/pressGuard.ts).
   onPress: () => void | Promise<unknown>;
@@ -266,6 +269,11 @@ export function Button({
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={isDisabled}
+      // REQ-095: announce as a button (with its disabled/busy state) so the
+      // new lesson actions aren't plain text to a screen reader.
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
       style={[
         variant === "link" ? styles.linkButton : styles.button,
         size === "sm" && variant !== "link" && styles.buttonSm,

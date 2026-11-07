@@ -82,6 +82,35 @@ describe("graded checks survive leaving the lesson", () => {
   });
 });
 
+describe("Solo defaults to free response (REQ-095)", () => {
+  const res = { verdict: "incorrect", feedback: "x", missedParts: [] };
+  const solo = (c: Record<string, unknown>) =>
+    parseSnapshot(snap({ step: "solo", checks: { solo: c } }), key, now)?.checks.solo;
+  const base = { picked: null, openAnswer: "", clientAttemptId: null, sentSignature: null, result: null };
+
+  test("a new Solo check starts in free response; Guided starts in multiple choice", () => {
+    assert.equal(emptyCheck("solo").mode, "open");
+    assert.equal(emptyCheck("fade").mode, "mc");
+    assert.equal(emptyCheck().mode, "mc");
+  });
+  test("an untouched Solo check saved under the old multiple-choice default resumes in free response", () => {
+    assert.equal(solo({ ...base, mode: "mc" })?.mode, "open");
+    assert.equal(solo({ ...base })?.mode, "open");
+  });
+  test("a Solo check where choices were used keeps multiple choice on resume", () => {
+    assert.equal(solo({ ...base, mode: "mc", picked: 2 })?.mode, "mc");
+    assert.equal(solo({ ...base, mode: "mc", picked: 2, result: res })?.mode, "mc");
+    assert.equal(solo({ ...base, mode: "open", openAnswer: "words", result: res })?.mode, "open");
+  });
+  test("a graded Solo result survives the round trip so the done screen can be derived from it", () => {
+    assert.equal(solo({ ...base, mode: "open", openAnswer: "words", result: res })?.result?.verdict, "incorrect");
+  });
+  test("Guided keeps whatever it was saved with", () => {
+    const f = parseSnapshot(snap({ checks: { fade: { ...base, mode: "mc" } } }), key, now)?.checks.fade;
+    assert.equal(f?.mode, "mc");
+  });
+});
+
 describe("attemptIdFor", () => {
   let n = 0;
   const make = () => `new-${++n}`;

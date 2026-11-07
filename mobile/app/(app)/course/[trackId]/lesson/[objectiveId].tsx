@@ -34,6 +34,14 @@ import {
   type LessonSnapshot,
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
+import {
+  choiceMarks,
+  describeMark,
+  offerRereadAfterCheck,
+  soloOutcome,
+  type ChoiceMark,
+  type MarkTone,
+} from "@/lib/lessonFeedback";
 
 type Step = "guess" | "teach" | "fade" | "solo" | "done";
 const STEPS: Step[] = ["guess", "teach", "fade", "solo"];
@@ -331,6 +339,7 @@ export default function LessonFlow() {
   }
 
   const headerTitle = objectiveTitle ?? "Lesson";
+  const notYet = soloOutcome(checks.solo) === "not-yet";
 
   if (error) {
     return (
@@ -432,9 +441,12 @@ export default function LessonFlow() {
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
-          state={checks.fade ?? emptyCheck()}
+          state={checks.fade ?? emptyCheck("fade")}
           onStateChange={(st) => setCheck("fade", st)}
           onDone={() => setStep("solo")}
+          // REQ-095: back to the explanation; the guess and the graded
+          // answer are kept, so coming forward again shows the same result.
+          onReread={() => setStep("teach")}
         />
       )}
 
@@ -453,7 +465,7 @@ export default function LessonFlow() {
           trackId={trackId}
           confidence={confidence}
           setConfidence={setConfidence}
-          state={checks.solo ?? emptyCheck()}
+          state={checks.solo ?? emptyCheck("solo")}
           onStateChange={(st) => setCheck("solo", st)}
           onDone={() => setStep("done")}
         />
@@ -461,10 +473,16 @@ export default function LessonFlow() {
 
       {step === "done" && (
         <Card elevated style={{ alignItems: "center", gap: spacing.sm }}>
-          <View style={styles.doneIcon}>
-            <Feather name="check" size={28} color={colors.good} />
+          {/* REQ-095: complete vs not-yet is derived from the stored Solo
+              result (checks.solo), so it is the same after a resume and is
+              never "complete" for a missed or ungraded Solo check. */}
+          <View style={notYet ? styles.doneIconNotYet : styles.doneIcon}>
+            <Feather name={notYet ? "alert-circle" : "check"} size={28} color={notYet ? colors.warn : colors.good} />
           </View>
-          <H2>Objective complete</H2>
+          <H2>{notYet ? "Not yet" : "Objective complete"}</H2>
+          {notYet ? (
+            <Muted style={{ textAlign: "center" }}>Not yet — this one will come back for review.</Muted>
+          ) : null}
           {reached ? (
             <Badge
               label={reached}
@@ -472,11 +490,33 @@ export default function LessonFlow() {
               icon={(masteryIcon[reached] ?? "circle") as React.ComponentProps<typeof Feather>["name"]}
             />
           ) : null}
-          <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>
+          {notYet ? null : <Muted style={{ textAlign: "center" }}>{masteryAdvice(reached)}</Muted>}
+          {notYet ? (
+            <>
+              <Button
+                label="Re-read the explanation"
+                icon="book-open"
+                // Keeps the guess and the graded checks (all lifted state),
+                // so this is a detour, not a reset.
+                onPress={() => setStep("teach")}
+              />
+              <Button
+                label="Try a different question"
+                variant="ghost"
+                icon="refresh-cw"
+                accessibilityLabel="Try a different question (regenerates this lesson)"
+                loading={regenerating}
+                disabled={regenerating}
+                // Same guarded handler as "Regenerate lesson" below.
+                onPress={regenerateLesson}
+              />
+            </>
+          ) : null}
           {next ? (
             <Button
               label="Next objective"
               icon="arrow-right"
+              variant={notYet ? "ghost" : "primary"}
               onPress={() =>
                 router.replace({
                   pathname: `/course/${trackId}/lesson/${next.id}`,
@@ -494,7 +534,7 @@ export default function LessonFlow() {
             <Button
               label="Back to course"
               icon="arrow-left"
-              variant={next ? "ghost" : "primary"}
+              variant={next || notYet ? "ghost" : "primary"}
               fullWidth={false}
               // REQ-093: pop back to the dashboard already in the stack
               // (or replace this screen with it) -- push stacked a second
@@ -513,15 +553,17 @@ export default function LessonFlow() {
                 })
               }
             />
-            <Button
-              label="Regenerate lesson"
-              variant="ghost"
-              fullWidth={false}
-              icon="refresh-cw"
-              loading={regenerating}
-              disabled={regenerating}
-              onPress={regenerateLesson}
-            />
+            {notYet ? null : (
+              <Button
+                label="Regenerate lesson"
+                variant="ghost"
+                fullWidth={false}
+                icon="refresh-cw"
+                loading={regenerating}
+                disabled={regenerating}
+                onPress={regenerateLesson}
+              />
+            )}
           </View>
           {regenError ? <ErrorBanner message={regenError} /> : null}
         </Card>
@@ -628,9 +670,11 @@ function GuessStep({
 }
 
 // Handles both the "fade" (guided practice) and "solo" (independent) check steps. The
-// learner picks the answer type themselves via the mode toggle below (defaults to
-// multiple-choice) -- both formats grade the same underlying question, so there's no
-// mastery gate on which one is available. The "guess" step (above) and PBQ scenarios
+// learner picks the answer type themselves via the mode toggle below -- both formats
+// grade the same underlying question, so there's no mastery gate on which one is
+// available. Guided defaults to multiple-choice; REQ-095: Solo defaults to free
+// response and shows the choices only behind an explicit "Show choices (hint)".
+// The "guess" step (above) and PBQ scenarios
 // (pbq.tsx) are the two cases where the format isn't a choice: guessing before being
 // taught has nothing to pick from, and a PBQ's multi-part scenario doesn't reduce to MC.
 function CheckStep({
@@ -648,6 +692,7 @@ function CheckStep({
   state,
   onStateChange,
   onDone,
+  onReread,
 }: {
   kind: "fade" | "solo";
   promptText: string;
@@ -663,6 +708,8 @@ function CheckStep({
   state: CheckState;
   onStateChange: (s: CheckState) => void;
   onDone: () => void;
+  // REQ-095: back to the explanation after a missed Guided item.
+  onReread?: () => void;
 }) {
   // REQ-089: answer, mode and graded result live in the parent so they are
   // saved with the lesson position (see LessonFlow).
@@ -775,22 +822,38 @@ function CheckStep({
 
       {!result && (
         <>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button label="Multiple choice" size="sm" fullWidth={false} variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
-            <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
-          </View>
-          <Muted style={{ fontSize: 12 }}>
-            {mode === "mc"
-              ? "Multiple choice earns up to Guided. Free response is what earns Independent."
-              : "Answer in your own words -- a correct free-response answer earns Independent."}
-          </Muted>
+          {kind === "fade" ? (
+            <>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Button label="Multiple choice" size="sm" fullWidth={false} variant={mode === "mc" ? "primary" : "ghost"} onPress={() => setMode("mc")} />
+                <Button label="Free response" size="sm" fullWidth={false} variant={mode === "open" ? "primary" : "ghost"} onPress={() => setMode("open")} />
+              </View>
+              <Muted style={{ fontSize: 12 }}>
+                {mode === "mc"
+                  ? "Multiple choice earns up to Guided. Free response is what earns Independent."
+                  : "Answer in your own words -- a correct free-response answer earns Independent."}
+              </Muted>
+            </>
+          ) : (
+            // REQ-095: Solo is unassisted. Free response first; the choices
+            // are an explicit hint the learner has to ask for. The mode
+            // (open/mc) is the saved state, so a revealed hint survives resume.
+            <Muted style={{ fontSize: 12 }}>
+              {mode === "mc"
+                ? "Choices are a hint: a correct multiple-choice answer caps mastery at Guided."
+                : "Answer in your own words -- a correct free-response answer earns Independent."}
+            </Muted>
+          )}
 
           {mode === "mc" ? (
-            <View style={{ gap: 8 }}>
+            <View style={{ gap: 8 }} accessibilityRole="radiogroup">
               {choices.map((c, i) => (
                 <Pressable
                   key={i}
                   onPress={() => setPicked(i)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={c}
+                  accessibilityState={{ selected: picked === i }}
                   style={[styles.choice, picked === i && styles.choiceActive]}
                 >
                   <View style={[styles.radio, picked === i && styles.radioActive]}>
@@ -801,6 +864,14 @@ function CheckStep({
               ))}
               <ConfidencePicker value={confidence} onChange={setConfidence} />
               <Button label="Submit" icon="send" loading={busy} onPress={submitMC} disabled={busy || picked == null} />
+              {kind === "solo" ? (
+                <Button
+                  label="Answer in free response instead"
+                  variant="link"
+                  icon="edit-3"
+                  onPress={() => setMode("open")}
+                />
+              ) : null}
             </View>
           ) : (
             <View style={{ gap: 8 }}>
@@ -814,6 +885,22 @@ function CheckStep({
               />
               <ConfidencePicker value={confidence} onChange={setConfidence} />
               <Button label="Submit" icon="send" loading={busy} onPress={submitOpen} disabled={busy || !openAnswer.trim()} />
+              {kind === "solo" ? (
+                <>
+                  <Button
+                    label="Show choices (hint)"
+                    variant="ghost"
+                    size="sm"
+                    fullWidth={false}
+                    icon="help-circle"
+                    accessibilityLabel="Show choices as a hint. Multiple choice caps mastery at Guided."
+                    onPress={() => setMode("mc")}
+                  />
+                  <Muted style={{ fontSize: 12 }}>
+                    Showing choices is a hint, and a correct multiple-choice answer caps mastery at Guided.
+                  </Muted>
+                </>
+              ) : null}
             </View>
           )}
 
@@ -824,6 +911,11 @@ function CheckStep({
 
       {result && (
         <View style={{ gap: 8 }}>
+          {/* REQ-095: the options stay on screen after grading so the learner
+              can see which one they chose and which was right. */}
+          {mode === "mc" && picked != null ? (
+            <GradedChoices choices={choices} picked={picked} correctIndex={correctIndex} verdict={result.verdict} />
+          ) : null}
           <VerdictBadge verdict={result.verdict} />
           <Body>{result.feedback}</Body>
           {result.missedParts && result.missedParts.length > 0 ? (
@@ -836,7 +928,14 @@ function CheckStep({
             </Muted>
           ) : null}
 
-          <Button label="Continue" icon="arrow-right" onPress={onDone} />
+          {onReread && offerRereadAfterCheck(kind, result.verdict) ? (
+            <>
+              <Button label="Re-read the explanation" icon="book-open" onPress={onReread} />
+              <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
+            </>
+          ) : (
+            <Button label="Continue" icon="arrow-right" onPress={onDone} />
+          )}
 
           {followUpSent ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -873,6 +972,58 @@ function CheckStep({
         </View>
       )}
     </Card>
+  );
+}
+
+// REQ-095: the answer options after grading. Not interactive. The learner's
+// choice and the correct one are marked with colour AND an icon AND a text
+// tag (and a spoken label), so no mark depends on colour alone. Which option
+// gets which mark is decided by choiceMarks() in src/lib/lessonFeedback.ts.
+const MARK_ICON: Record<ChoiceMark, React.ComponentProps<typeof Feather>["name"]> = {
+  none: "circle",
+  "picked-correct": "check-circle",
+  "picked-incorrect": "x-circle",
+  "correct-answer": "check-circle",
+};
+const TONE_COLOR: Record<MarkTone, string> = { good: colors.good, bad: colors.bad, neutral: colors.mutedDim };
+const TONE_DIM: Record<MarkTone, string> = { good: colors.goodDim, bad: colors.badDim, neutral: "transparent" };
+
+function GradedChoices({
+  choices,
+  picked,
+  correctIndex,
+  verdict,
+}: {
+  choices: string[];
+  picked: number;
+  correctIndex: number;
+  verdict: string;
+}) {
+  const marks = choiceMarks(choices.length, picked, correctIndex, verdict);
+  return (
+    <View style={{ gap: 8 }}>
+      {choices.map((c, i) => {
+        const d = describeMark(marks[i]);
+        const tone: MarkTone = d?.tone ?? "neutral";
+        return (
+          <View
+            key={i}
+            accessible
+            accessibilityLabel={d ? `${d.a11y}. ${c}` : c}
+            accessibilityState={{ disabled: true, selected: i === picked }}
+            style={[styles.choice, d && { borderColor: TONE_COLOR[tone], backgroundColor: TONE_DIM[tone] }]}
+          >
+            <Feather name={MARK_ICON[marks[i]]} size={18} color={TONE_COLOR[tone]} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Body>{c}</Body>
+              {d ? (
+                <Muted style={{ color: TONE_COLOR[tone], fontFamily: fonts.bodySemiBold, fontSize: 12 }}>{d.tag}</Muted>
+              ) : null}
+            </View>
+          </View>
+        );
+      })}
+    </View>
   );
 }
 
@@ -970,6 +1121,15 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.goodDim,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // REQ-095: neutral/warning counterpart for a Solo check that wasn't right.
+  doneIconNotYet: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.warnDim,
     alignItems: "center",
     justifyContent: "center",
   },
