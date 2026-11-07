@@ -12,6 +12,16 @@
 - Economics decision checklist considered for major tradeoff claims.
 - Computing, mathematical, or engineering foundations checklist considered for
   relevant technical assumptions.
+- Blast radius checked (REQ-096): for every changed function, query, table,
+  type or route, its other callers and readers were found (grep the name) and
+  each still behaves correctly. Changes beside existing code are where defects
+  hide -- the account export broke when a query was added next to it.
+- Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
+  race) have an integration test in `backend/lib/*.dbtest.ts` run against a
+  real Postgres with every migration applied (`npm run test:db`), not only
+  unit tests.
+- A new migration the code depends on has a probe in
+  `backend/lib/schema-status.ts`.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

@@ -10,7 +10,7 @@ settings correspond to `.ai/rules/universal-engineering-ruleset.json`.
 - `primary_language_or_stack`: `TypeScript -- Next.js 16 App Router (backend/) and Expo Router (mobile/)`
 - `package_manager`: `npm`
 - `build_command`: `backend: npm run build --prefix backend. mobile: no local build script -- native ships via eas build, web via mobile's export step copied into backend/public (see backend/scripts/build-webapp.sh).`
-- `test_command`: `npm test --prefix backend (node:test via tsx over backend/lib/*.test.ts) && npm test --prefix mobile (node:test over mobile/src/lib/*.test.ts); pure modules only, no DB.`
+- `test_command`: `npm test --prefix backend (node:test via tsx over backend/lib/*.test.ts) && npm test --prefix mobile (node:test over mobile/src/lib/*.test.ts); pure modules only. Stateful code: `npm run test:db --prefix backend` (node:test over backend/lib/*.dbtest.ts) against a Postgres with every migration applied -- CI's Database job does this on every PR; locally set DATABASE_URL and PGSSLMODE=disable.`
 - `lint_command`: `none configured -- no ESLint config exists yet in either package.`
 - `typecheck_command`: `npm run typecheck --prefix backend && npm run typecheck --prefix mobile (both tsc --noEmit)`
 - `changelog_location`: `CHANGELOG.md (repo root; one entry per requirement, newest first under Unreleased)`
@@ -18,6 +18,19 @@ settings correspond to `.ai/rules/universal-engineering-ruleset.json`.
 - `branching_or_pr_standard`: `trunk-based -- commits go directly to master, no PR workflow observed in history`
 - `comment_style`: `Minimal by default -- only non-obvious WHY (constraint, invariant, workaround), never restating WHAT the code does; no JSDoc/docstring blocks`
 - `requirement_id_prefix`: `REQ`
+
+## Project Practices (REQ-096)
+
+- Audits: run the `ascendra-audit` skill (`.ai/playbooks/audit.md`) before
+  starting a new feature area and after changes to the data model, auth,
+  grading or the AI models. A read-only audit also runs weekly as a scheduled
+  task. Audits report; fixes ship only in owner-approved batches.
+- Blast radius: before calling a change done, find every other caller or
+  reader of what changed and confirm it still works
+  (`.ai/checklists/pre-completion.md`).
+- The CI `Database` job (migrations from empty, schema probes, seed twice,
+  integration tests) stays on every PR. Do not skip, weaken or remove it to
+  get a green build.
 
 ## Default Safety Flags
 
