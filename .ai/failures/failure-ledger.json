@@ -565,6 +565,52 @@
       "prevention_rules": [],
       "prevention_notes": "Tests assert another learner's lesson and saved place are untouched",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-025",
+      "date": "2026-11-07",
+      "title": "PBQ simulator lost scenario and answer on navigation",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Leaving the PBQ screen and returning showed the unit picker; a long answer was gone",
+      "how_detected": "review",
+      "root_cause": "Scenario/answer/result held only in component state; API cannot re-fetch a scenario by id",
+      "requirement": "REQ-093",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/pbq.tsx"
+      ],
+      "fix_summary": "Per-user, per-unit snapshot in AsyncStorage storing the full scenario",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/pbqProgress.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Same save/restore pattern as lesson progress; parse rules unit tested",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-026",
+      "date": "2026-11-07",
+      "title": "MFA backup codes lost if the screen was left any way but Done",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Header back, swipe or hardware back discarded codes shown only once",
+      "how_detected": "review",
+      "root_cause": "Codes held only in state; no leave guard and no copy/share",
+      "requirement": "REQ-093",
+      "affected": [
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "beforeRemove confirmation, Copy and Share buttons",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mfaLeaveGuard.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Leave-guard decision logic unit tested",
+      "recurrence_of": ""
     }
   ]
 }

@@ -2755,6 +2755,39 @@
       "risk_notes": [
         "Migration 027 must be applied before deploy"
       ]
+    },
+    {
+      "id": "REQ-093",
+      "category": "defect",
+      "title": "Mobile screen flows: PBQ resume, backup-code guard, fresh screens, navigation, drafts, double taps",
+      "description": "Audit batch C. PBQ simulator saves its scenario, answer and result per user and unit and restores them. MFA backup codes get Copy/Share and a leave confirmation; leaving MFA setup part-way asks first. Mastery and history screens reload on focus. Back to course and the sidebar no longer stack duplicate screens. Chat and support drafts survive navigation. Account name field reseeds from the current user. Shared Button ignores repeat presses while a handler runs and within 300ms.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app",
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/lib"
+      ],
+      "acceptance_criteria": [
+        "Leaving the PBQ simulator and returning restores the scenario and answer",
+        "Backup codes cannot be dismissed without confirmation",
+        "Mastery/history show current data on return",
+        "No duplicate dashboard after Back to course"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Verified by reading and unit tests only; navigation guards and drafts need a device check",
+        "PBQ progress is per device (AsyncStorage)",
+        "not per account"
+      ]
     }
   ]
 }
