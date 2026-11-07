@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Image, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Image, Share, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import {
@@ -19,15 +19,62 @@ import {
   Tag,
   TextField,
 } from "@/components/ui";
+import { Alert } from "@/lib/alert";
+import { backupCodesText, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
 import { colors, radius } from "@/lib/theme";
 
-type MfaView = "status" | "totp-setup" | "email-setup" | "backup-codes" | "disable" | "regenerate";
 type MfaMethod = "totp" | "email";
 
 export default function MfaSettings() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const navigation = useNavigation();
+  const { user, refreshUser, status } = useAuth();
+  // Read inside the beforeRemove listener: a sign-out or lock must never be
+  // held back by the leave guard.
+  const statusRef = useRef(status);
+  statusRef.current = status;
   const [view, setView] = useState<MfaView>("status");
+
+  // REQ-093: leaving with backup codes on screen loses them for good (they
+  // are shown once and never stored), and leaving mid-setup silently drops
+  // the setup. A "beforeRemove" listener covers every way out -- header back,
+  // Android hardware back, the sidebar, router calls. (expo-router 57 does
+  // not re-export React Navigation's usePreventRemove; this event is the
+  // public equivalent.) The latest view is read through a ref so the
+  // listener doesn't need re-subscribing on every step.
+  const viewRef = useRef<MfaView>(view);
+  viewRef.current = view;
+  const allowLeave = useRef(false);
+  useEffect(() => {
+    return navigation.addListener("beforeRemove", (e) => {
+      const guard = mfaLeaveGuard(viewRef.current, allowLeave.current, statusRef.current === "signedIn");
+      if (!guard) return;
+      e.preventDefault();
+      const leave = () => {
+        allowLeave.current = true;
+        navigation.dispatch(e.data.action);
+      };
+      if (guard === "codes") {
+        Alert.alert(
+          "Have you saved your backup codes?",
+          "They are shown only once. Without them, you could be locked out if you lose your other sign-in methods.",
+          [
+            { text: "Keep this screen", style: "cancel" },
+            { text: "I've saved them", onPress: leave },
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Leave two-factor setup?",
+          "It isn't turned on until you enter the code. Your progress here will be lost.",
+          [
+            { text: "Keep setting up", style: "cancel" },
+            { text: "Leave", style: "destructive", onPress: leave },
+          ]
+        );
+      }
+    });
+  }, [navigation]);
   // Which method the "disable" or "regenerate" view acts on -- backup codes
   // and the disable flow are both per-method now.
   const [targetMethod, setTargetMethod] = useState<MfaMethod>("totp");
@@ -40,6 +87,7 @@ export default function MfaSettings() {
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [password, setPassword] = useState("");
   const [copied, setCopied] = useState(false);
+  const [codesCopied, setCodesCopied] = useState(false);
   // Set once /api/auth/mfa/(email/)disable reports this would be the last
   // remaining method -- the same password submission then also needs an
   // emailed confirmation code before it actually disables anything.
@@ -51,6 +99,37 @@ export default function MfaSettings() {
     await Clipboard.setStringAsync(manualSecret);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function copyCodes() {
+    try {
+      await Clipboard.setStringAsync(backupCodesText(backupCodes));
+      setCodesCopied(true);
+      setTimeout(() => setCodesCopied(false), 2000);
+    } catch {
+      Alert.alert("Couldn't copy", "Try Share instead, or write the codes down.");
+    }
+  }
+
+  // The OS share sheet (notes, password manager, email to self). Dismissing
+  // it is not an error; a platform without sharing (some web browsers) is.
+  async function shareCodes() {
+    try {
+      await Share.share({ message: backupCodesText(backupCodes) });
+    } catch {
+      Alert.alert("Couldn't open sharing", "Use Copy instead, or write the codes down.");
+    }
+  }
+
+  // Tapping this is the learner's confirmation that the codes are saved. The
+  // view ref is set at once (state only updates on the next render, which
+  // would be after router.back() has already hit the guard), and the codes
+  // are dropped from memory.
+  function finishBackupCodes() {
+    viewRef.current = "status";
+    setBackupCodes([]);
+    setView("status");
+    router.back();
   }
 
   async function startTotpSetup() {
@@ -213,7 +292,17 @@ export default function MfaSettings() {
             </Body>
           ))}
         </Card>
-        <Button label="Done" icon="check" onPress={() => { setView("status"); router.back(); }} />
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          <Button
+            label={codesCopied ? "Copied" : "Copy"}
+            icon={codesCopied ? "check" : "copy"}
+            variant="ghost"
+            fullWidth={false}
+            onPress={copyCodes}
+          />
+          <Button label="Share" icon="share" variant="ghost" fullWidth={false} onPress={shareCodes} />
+        </View>
+        <Button label="I've saved these codes" icon="check" onPress={finishBackupCodes} />
       </Screen>
     );
   }

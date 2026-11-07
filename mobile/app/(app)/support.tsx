@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import { View } from "react-native";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import {
   Badge,
   Body,
@@ -18,7 +19,9 @@ import {
   TextField,
 } from "@/components/ui";
 import { Alert } from "@/lib/alert";
+import { emptySupportFields, parseSupportFields, supportDraftKey, supportDraftPayload } from "@/lib/drafts";
 import { colors, spacing } from "@/lib/theme";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { SupportRequest, SupportRequestKind, SupportRequestStatus } from "@/types";
 
 const STATUS_COLOR: Record<SupportRequestStatus, string> = {
@@ -48,6 +51,32 @@ export default function Support() {
   const [courseSourceUrl, setCourseSourceUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // REQ-093: what's typed here survives leaving the screen. One draft per
+  // user and per kind (a half-written ticket and a half-written course
+  // request are separate), so the fields are swapped when the kind changes.
+  // A successful send empties the fields, which clears the stored draft.
+  const { user } = useAuth();
+  function applyFields(f: { subject: string; body: string; courseName: string; courseSourceUrl: string }) {
+    setSubject(f.subject);
+    setBody(f.body);
+    setCourseName(f.courseName);
+    setCourseSourceUrl(f.courseSourceUrl);
+  }
+  useStoredDraft(
+    user ? supportDraftKey(user.id, kind) : null,
+    supportDraftPayload({ subject, body, courseName, courseSourceUrl }),
+    (stored) => {
+      const f = stored ? parseSupportFields(stored) : null;
+      if (f) applyFields(f);
+    }
+  );
+  function switchKind(next: SupportRequestKind) {
+    if (next === kind) return;
+    applyFields(emptySupportFields());
+    setKind(next);
+    setError(null);
+  }
 
   const [requests, setRequests] = useState<SupportRequest[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -113,18 +142,12 @@ export default function Support() {
         <Chip
           label="Submit a ticket"
           active={!isCourseRequest}
-          onPress={() => {
-            setKind("ticket");
-            setError(null);
-          }}
+          onPress={() => switchKind("ticket")}
         />
         <Chip
           label="Request a course"
           active={isCourseRequest}
-          onPress={() => {
-            setKind("course_request");
-            setError(null);
-          }}
+          onPress={() => switchKind("course_request")}
         />
       </View>
 

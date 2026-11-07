@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { Track, Unit } from "@/types";
 import { Badge, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, Screen } from "@/components/ui";
@@ -20,13 +20,20 @@ export default function ProgressScreen() {
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
+        setError(null);
       })
       .catch((err) => setError(err.message));
   }, [trackId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // REQ-093: reload every time the screen regains focus, not just on mount.
+  // This screen stays mounted under the lesson/PBQ screens opened from it,
+  // so a mount-only load showed the matrix as it was before the learner
+  // finished anything. (Same pattern as the course dashboard and review.)
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   return (
     <Screen>

@@ -4,9 +4,12 @@ import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
 import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
+import { chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -27,6 +30,20 @@ export default function ChatScreen() {
   // same text again after a failure reuses it, so if the first request did
   // reach the server the stored reply comes back instead of a duplicate.
   const pendingRef = useRef<{ id: string; text: string } | null>(null);
+
+  // REQ-093: an unsent message survives leaving the screen. Per user and
+  // course; a prefill from the lesson shortcut wins over an older draft, and
+  // emptying the box (what a send does) clears it.
+  const { user } = useAuth();
+  useStoredDraft(
+    user && trackId ? chatDraftKey(user.id, trackId) : null,
+    chatDraftPayload(input, prefill),
+    (stored) => {
+      if (!stored || prefill) return;
+      const text = chatDraftText(stored);
+      if (text) setInput((current) => current || text);
+    }
+  );
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -59,6 +76,10 @@ export default function ChatScreen() {
         ...(prev ?? []),
         { role: "assistant", content: `(error getting reply: ${(err as Error).message})` },
       ]);
+      // The draft is only meant to be cleared by a *successful* send: put the
+      // text back (unless they've started something new) so it isn't lost and
+      // sending it again reuses its clientMessageId.
+      setInput((current) => current || text);
     } finally {
       setBusy(false);
     }

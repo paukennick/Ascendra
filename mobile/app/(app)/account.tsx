@@ -229,7 +229,14 @@ export default function Account() {
           </View>
         ) : (
           <Pressable
-            onPress={() => setEditingName(true)}
+            // REQ-093: nameInput was seeded from `user` once, at first mount,
+            // so a name changed elsewhere (another device, after the profile
+            // reloaded) showed up stale here. Reseed when editing starts.
+            onPress={() => {
+              setNameInput(user?.displayName ?? "");
+              setNameError(null);
+              setEditingName(true);
+            }}
             style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}
           >
             <H2>{user?.displayName ?? "Signed in"}</H2>
