@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { visibleObjective } from "@/lib/visibility";
 import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
@@ -43,6 +44,10 @@ export async function GET(
     // Was previously unauthenticated: any objective id would return its
     // lesson, and a cache miss would spend an Anthropic call doing it.
     const user = await requireUser(req);
+    // Audit 2: the access check REQ-091 added everywhere else. The disclaimer
+    // gate below returns silently for a track the caller can't see, so it is
+    // not an access check on its own.
+    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     // This learner's own regenerate still running in this process: wait for
@@ -112,6 +117,10 @@ export async function POST(
     // Regeneration always spends Anthropic calls, so this needs auth at
     // least as much as the GET does.
     const user = await requireUser(req);
+    // Audit 2: the access check REQ-091 added everywhere else. The disclaimer
+    // gate below returns silently for a track the caller can't see, so it is
+    // not an access check on its own.
+    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     // Double tap, or a retry while the first regenerate is still running:

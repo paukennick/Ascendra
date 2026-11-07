@@ -569,6 +569,7 @@
     {
       "id": "FAIL-025",
       "date": "2026-11-07",
+<<<<<<< HEAD
       "title": "PBQ simulator lost scenario and answer on navigation",
       "status": "fixed",
       "severity": "high",
@@ -610,6 +611,27 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "Leave-guard decision logic unit tested",
+=======
+      "title": "Lesson routes skipped the access check",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "GET/POST lesson and prefetch-next served or generated lessons for objectives in another user's private course",
+      "how_detected": "audit 2",
+      "root_cause": "Batch B split the routes between two engineers; the lesson routes belonged to the regeneration pass, which wasn't asked to add visibility, and the access pass was told not to touch them",
+      "requirement": "REQ-091",
+      "affected": [
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts"
+      ],
+      "fix_summary": "visibleObjective check before any read or generation, 404 otherwise",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-route-access.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Route-level regression test; when work is split across engineers, the lead re-checks the seams (blast-radius item in pre-completion)",
+>>>>>>> fix/integrity
       "recurrence_of": ""
     },
     {
