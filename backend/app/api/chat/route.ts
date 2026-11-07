@@ -102,10 +102,30 @@ export async function POST(req: Request) {
       [userId, trackId]
     );
 
-    const messages: ChatTurn[] = [...history.map((h) => ({ role: h.role, content: h.content })), { role: "user", content: message }];
+    // The history is a stable prefix (the next message appends to it), so a
+    // cache breakpoint on its last turn lets the following message read it
+    // from cache. The new message is not marked: it is not part of any later
+    // prefix until it has a reply. The request still ends with that user turn.
+    const messages: ChatTurn[] = [
+      ...history.map((h, i): ChatTurn => ({
+        role: h.role,
+        content: h.content,
+        ...(i === history.length - 1 ? { cacheBreakpoint: true } : {}),
+      })),
+      { role: "user", content: message },
+    ];
     const ctx = await coachContextForTrack(trackId);
     const system = chatSystemPrompt({ trackTitle: track.title, unitTitle, ctx: ctx ?? undefined });
-    const reply = await callClaude({ system, messages, maxTokens: 1200, model: getFastModel() });
+    const reply = await callClaude({
+      system,
+      messages,
+      maxTokens: 1200,
+      model: getFastModel(),
+      effort: "low",
+      thinking: "off",
+      purpose: "chat",
+      userId,
+    });
 
     // If a request with the same id finished while this one waited on
     // Anthropic, the unique index rejects this insert and the stored reply wins.

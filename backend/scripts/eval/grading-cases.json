@@ -1,0 +1,799 @@
+{
+  "_status": "draft — written by Claude, needs the owner's review before it is treated as ground truth",
+  "_about": "Free-response grading cases for scripts/eval/grading.ts. Each case: the question, the taught text the grader is given, a learner answer, the verdict a careful human grader should reach, and the sub-parts that answer missed (empty when none). Read every case where the production grader disagrees before deciding who is wrong. Edit expected values freely.",
+  "cases": [
+    {
+      "id": "sec-01",
+      "domain": "security-plus",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "Which kind of encryption would you use to encrypt a large file, and why?",
+      "taughtText": "Symmetric encryption uses one shared secret key for both encryption and decryption. It is fast and suited to bulk data, but the key must be distributed securely. Asymmetric encryption uses a public/private key pair: data encrypted with the public key can be decrypted only with the matching private key, and it is much slower.",
+      "answer": "Symmetric, because it's much faster for bulk data.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-02",
+      "domain": "security-plus",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "Explain what a salt is in password hashing and what attack it mitigates.",
+      "taughtText": "A salt is a random value added to a password before hashing. Each user gets a unique salt, stored alongside the hash. Because the salt differs per user, identical passwords produce different hashes, which defeats precomputed rainbow tables and stops an attacker cracking many identical passwords at once.",
+      "answer": "A salt is random data mixed into the password before it's hashed, unique per account. It stops rainbow table attacks since precomputed hashes won't match, and two users with the same password end up with different hashes.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-03",
+      "domain": "security-plus",
+      "tags": [
+        "correct-different-wording"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "What does the principle of least privilege require?",
+      "taughtText": "Least privilege means giving users, processes and systems only the access they need to do their job, and nothing more, for only as long as they need it.",
+      "answer": "Everyone gets just the minimum permissions required for their role, no extras, and elevated rights are removed when no longer needed.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-04",
+      "domain": "security-plus",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "A phishing email led an employee to enter credentials on a fake login page. Answer all three: (a) name the attack type, (b) name one technical control that would reduce the impact of the stolen credentials, (c) name one thing the employee should have checked before entering credentials.",
+      "taughtText": "Phishing uses deceptive messages to trick users into revealing credentials. Multifactor authentication (MFA) limits the damage of stolen passwords because a second factor is also required. Users should verify the sender address and the URL of a login page before entering credentials, and report suspicious messages.",
+      "answer": "(a) It's phishing. (b) Turning on MFA so the password alone isn't enough.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(c) what the employee should have checked before entering credentials (sender address / login page URL)"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "domain": "security-plus",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "For the CIA triad, (1) define confidentiality, (2) define integrity, (3) define availability.",
+      "taughtText": "Confidentiality: only authorized parties can read data. Integrity: data is accurate and unaltered except by authorized changes. Availability: authorized users can access systems and data when they need them.",
+      "answer": "Confidentiality means only the right people can see the data. Availability means the systems and data are up when users need them.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(2) the definition of integrity"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "domain": "security-plus",
+      "tags": [
+        "partial-single-question",
+        "two-things-asked"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "What are the two main things a digital signature provides?",
+      "taughtText": "A digital signature provides integrity (the content has not changed since it was signed) and authentication with non-repudiation (it proves who signed, and the signer cannot credibly deny it). It is created with the signer's private key and verified with the signer's public key.",
+      "answer": "It proves the message wasn't changed.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "authentication / non-repudiation of the signer"
+      ]
+    },
+    {
+      "id": "sec-07",
+      "domain": "security-plus",
+      "tags": [
+        "confidently-wrong"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "Which key is used to verify a digital signature?",
+      "taughtText": "A digital signature is created with the signer's private key and verified with the signer's public key. Anyone with the public key can verify it, but only the holder of the private key could have created it.",
+      "answer": "The signer's private key is used to verify it - that's the whole point, only the signer has it so only they can check it.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-08",
+      "domain": "security-plus",
+      "tags": [
+        "confidently-wrong",
+        "reversed"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "What is the main difference between an IDS and an IPS?",
+      "taughtText": "An intrusion detection system (IDS) monitors traffic and alerts on suspicious activity but does not block it; it is passive. An intrusion prevention system (IPS) sits in-line and can actively block or drop malicious traffic.",
+      "answer": "An IDS blocks attacks automatically while an IPS only sends alerts to the admin.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-09",
+      "domain": "security-plus",
+      "tags": [
+        "off-target"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "What is the purpose of a SIEM?",
+      "taughtText": "A security information and event management (SIEM) system collects and aggregates logs from many sources, correlates events, and generates alerts to support detection and investigation.",
+      "answer": "It's a firewall that filters traffic between the internal network and the internet.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "sec-10",
+      "domain": "security-plus",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "CompTIA Security+",
+        "trackType": "certification",
+        "credentialName": "CompTIA Security+",
+        "providerName": "CompTIA",
+        "examCode": "SY0-701"
+      },
+      "question": "Name the three main authentication factor categories and give one example of each.",
+      "taughtText": "Authentication factors fall into categories: something you know (password, PIN), something you have (smart card, hardware token, phone), and something you are (fingerprint, face). Multifactor authentication combines factors from at least two different categories.",
+      "answer": "Something you know like a password, something you are like a fingerprint.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "the 'something you have' category and an example (e.g. smart card or token)"
+      ]
+    },
+    {
+      "id": "aws-01",
+      "domain": "aws-saa",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Archive data is read about once a quarter but must be returned in milliseconds when needed. Which S3 storage class fits best?",
+      "taughtText": "S3 Standard-IA: infrequent access, millisecond retrieval, 30-day minimum storage duration. S3 Glacier Instant Retrieval: archive data accessed about once a quarter, millisecond retrieval, 90-day minimum, lower storage cost than Standard-IA. S3 Glacier Flexible Retrieval: archive, retrieval in minutes to hours. S3 Glacier Deep Archive: lowest cost, retrieval within hours (12 to 48).",
+      "answer": "Glacier Instant Retrieval.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-02",
+      "domain": "aws-saa",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Explain the difference between a security group and a network ACL.",
+      "taughtText": "Security groups are stateful, attach at the instance (network interface) level, and support only allow rules. Network ACLs are stateless, apply at the subnet level, and support both allow and deny rules evaluated in rule-number order.",
+      "answer": "Security groups work at the instance (ENI) level, are stateful so return traffic is automatically allowed, and only have allow rules. NACLs are at the subnet level, stateless so you need rules in both directions, and can allow or deny, processed in rule-number order.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-03",
+      "domain": "aws-saa",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "How does RDS Multi-AZ differ from a read replica?",
+      "taughtText": "RDS Multi-AZ keeps a synchronous standby in another Availability Zone for high availability and automatic failover; the standby does not serve read traffic in the classic single-standby deployment. Read replicas use asynchronous replication, serve read traffic to scale reads, can be in another Region, and are promoted manually.",
+      "answer": "Multi-AZ is for availability: a synchronous standby copy in another AZ that fails over automatically but doesn't take reads. Read replicas are async copies used to scale read traffic, and you promote them manually if you need to.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-04",
+      "domain": "aws-saa",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "A web tier must survive the failure of one Availability Zone. Answer all three: (a) which service distributes traffic across the instances, (b) which service replaces failed instances and keeps capacity, (c) how should the instances be placed across AZs?",
+      "taughtText": "An Application Load Balancer distributes incoming traffic across targets in multiple Availability Zones and routes only to healthy targets. An Auto Scaling group maintains desired capacity, replacing unhealthy instances, and can span multiple AZs. To tolerate an AZ failure, configure the Auto Scaling group with subnets in at least two AZs.",
+      "answer": "(a) An Application Load Balancer. (b) An Auto Scaling group.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(c) placing instances across at least two Availability Zones"
+      ]
+    },
+    {
+      "id": "aws-05",
+      "domain": "aws-saa",
+      "tags": [
+        "multi-part-skipped",
+        "two-things-asked"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Name two ways to protect S3 objects from accidental deletion and explain how each works.",
+      "taughtText": "Versioning keeps every version of an object, so a delete adds a delete marker and earlier versions stay recoverable. MFA Delete requires MFA to permanently delete a version or change the bucket's versioning state. S3 Object Lock (write once, read many) prevents deletion or overwrite for a retention period.",
+      "answer": "Turn on versioning, so a deleted object can be restored from a previous version.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "a second protection (MFA Delete or Object Lock) and how it works"
+      ]
+    },
+    {
+      "id": "aws-06",
+      "domain": "aws-saa",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Compare ElastiCache for Redis and Memcached on (a) data structures and (b) persistence and replication.",
+      "taughtText": "ElastiCache for Redis supports rich data structures (lists, sets, sorted sets, hashes), persistence, replication and Multi-AZ failover. ElastiCache for Memcached is a simple multi-threaded key-value cache with no persistence and no replication.",
+      "answer": "Redis supports richer data structures like sorted sets and hashes. Memcached is just simple key-value.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(b) persistence and replication differences"
+      ]
+    },
+    {
+      "id": "aws-07",
+      "domain": "aws-saa",
+      "tags": [
+        "confidently-wrong"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "What happens to the data on an instance store volume when the EC2 instance is stopped?",
+      "taughtText": "Instance store volumes are physically attached to the host and provide temporary block storage. Their data lasts only for the life of the instance: it is lost if the instance is stopped, hibernated or terminated, or the drive fails (it survives a reboot). EBS volumes persist independently of the instance.",
+      "answer": "The data is kept. Instance store is persistent block storage just like EBS, so you can stop and start the instance without losing anything.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-08",
+      "domain": "aws-saa",
+      "tags": [
+        "confidently-wrong",
+        "security-antipattern"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "How should a Lambda function be given permission to read objects from an S3 bucket?",
+      "taughtText": "Give a Lambda function access to AWS services with an IAM role (its execution role) carrying a policy that allows only the needed actions. Avoid embedding long-term access keys in code.",
+      "answer": "Create an IAM user, generate an access key pair and hard-code it in the function so it can authenticate to S3. That's the standard way.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-09",
+      "domain": "aws-saa",
+      "tags": [
+        "plausible-confusion"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Which Route 53 routing policy sends each user to the resource with the lowest network latency for them?",
+      "taughtText": "Latency routing sends users to the Region that gives them the lowest latency. Geolocation routing routes by the user's location. Weighted routing splits traffic by proportion. Failover routing sends traffic to a standby when the primary is unhealthy.",
+      "answer": "Geolocation routing.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "aws-10",
+      "domain": "aws-saa",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "AWS Certified Solutions Architect - Associate",
+        "trackType": "certification",
+        "credentialName": "AWS Certified Solutions Architect - Associate",
+        "providerName": "Amazon Web Services",
+        "examCode": "SAA-C03"
+      },
+      "question": "Which AWS service provides a managed message queue to decouple application components?",
+      "taughtText": "Amazon SQS is a fully managed message queue service that decouples application components: producers send messages to a queue and consumers poll and process them independently.",
+      "answer": "SQS",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-01",
+      "domain": "ccrn",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "ABG: pH 7.28, PaCO2 58 mmHg, HCO3 24 mEq/L. Identify the acid-base disorder.",
+      "taughtText": "Normal arterial values: pH 7.35-7.45, PaCO2 35-45 mmHg, HCO3 22-26 mEq/L. In respiratory acidosis the pH is low and the PaCO2 is high; the kidneys compensate over days by retaining bicarbonate.",
+      "answer": "Respiratory acidosis, uncompensated.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-02",
+      "domain": "ccrn",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "A patient on a heparin infusion has an aPTT of 110 seconds (target 60-80). What is your priority action?",
+      "taughtText": "A supratherapeutic aPTT on a heparin infusion raises bleeding risk. Per protocol, stop or reduce the infusion, assess for bleeding and notify the provider. Protamine sulfate is the reversal agent if there is significant bleeding.",
+      "answer": "Hold the infusion per the protocol, assess for any signs of bleeding, and notify the provider. Protamine is the reversal agent if there's significant bleeding.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-03",
+      "domain": "ccrn",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "Explain why a patient in cardiogenic shock typically has an elevated SVR.",
+      "taughtText": "In cardiogenic shock cardiac output falls. The sympathetic nervous system and the renin-angiotensin-aldosterone system respond by vasoconstricting to maintain blood pressure, which raises systemic vascular resistance (SVR). The higher afterload can further worsen the failing heart.",
+      "answer": "Because the heart isn't pumping enough, the body compensates by vasoconstricting through the sympathetic system and RAAS to hold up blood pressure, so SVR goes up - which unfortunately increases afterload on an already failing heart.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-04",
+      "domain": "ccrn",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "A patient has a suspected tension pneumothorax. (a) Name two expected findings. (b) State the immediate treatment.",
+      "taughtText": "Tension pneumothorax: air trapped in the pleural space under pressure causes absent breath sounds on the affected side, tracheal deviation away from the affected side, jugular vein distension, hypotension and hypoxia. Immediate treatment is needle decompression (second intercostal space, midclavicular line, or fifth intercostal space, anterior axillary line), followed by a chest tube.",
+      "answer": "Absent breath sounds on one side and tracheal deviation away from that side, with low blood pressure.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(b) the immediate treatment (needle decompression)"
+      ]
+    },
+    {
+      "id": "ccrn-05",
+      "domain": "ccrn",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "For a patient started on a norepinephrine infusion: (1) state its primary receptor effect, (2) state the expected hemodynamic effect, (3) name the key nursing precaution about the IV site.",
+      "taughtText": "Norepinephrine is a vasopressor that mainly stimulates alpha-1 receptors (vasoconstriction) with some beta-1 activity. It raises SVR and mean arterial pressure. Give it through a central line when possible because extravasation can cause severe tissue necrosis; treat extravasation with phentolamine.",
+      "answer": "It's a vasopressor acting on alpha receptors to vasoconstrict, which raises SVR and MAP.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(3) the IV-site precaution (central line preferred; extravasation risk and tissue necrosis)"
+      ]
+    },
+    {
+      "id": "ccrn-06",
+      "domain": "ccrn",
+      "tags": [
+        "safety-omission"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "What are the priority nursing actions for a patient with DKA who is about to receive an insulin infusion? Include fluid and potassium considerations.",
+      "taughtText": "In DKA, begin isotonic fluid resuscitation first. Check potassium before starting insulin: if K+ is below 3.3 mEq/L, hold insulin and replace potassium first, because insulin drives potassium into cells and can cause dangerous hypokalemia. Then start a continuous regular insulin infusion, monitor glucose hourly, and add dextrose when glucose falls to about 200-250 mg/dL.",
+      "answer": "Start fluids, then an insulin drip, and check glucose every hour.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "checking / replacing potassium before starting insulin (hold insulin if K+ < 3.3)"
+      ]
+    },
+    {
+      "id": "ccrn-07",
+      "domain": "ccrn",
+      "tags": [
+        "confidently-wrong",
+        "safety-critical"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "A patient with an acute ischemic stroke has BP 210/115 and is a candidate for thrombolysis. What should be done about the blood pressure?",
+      "taughtText": "Before alteplase for acute ischemic stroke, blood pressure must be below 185/110 mmHg; treat with agents such as labetalol or nicardipine. After thrombolysis keep BP below 180/105. Permissive hypertension (up to about 220/120) applies only to patients who are NOT receiving thrombolysis.",
+      "answer": "Leave it alone - permissive hypertension up to 220/120 is always appropriate in stroke because you need pressure to perfuse the penumbra, so go ahead and give the alteplase.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-08",
+      "domain": "ccrn",
+      "tags": [
+        "confidently-wrong"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "A patient on digoxin has new nausea and visual halos. What do you suspect, and what antidote exists for serious cases?",
+      "taughtText": "Digoxin toxicity causes nausea, anorexia, visual disturbances (halos, yellow-green vision) and arrhythmias. Hypokalemia, hypomagnesemia and hypercalcemia increase the risk. The therapeutic level is about 0.5-2 ng/mL. Digoxin immune fab is the antidote for serious toxicity.",
+      "answer": "This is most likely subtherapeutic dosing, so I'd ask for a higher dose. There's no antidote for digoxin.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-09",
+      "domain": "ccrn",
+      "tags": [
+        "reversed"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "Which hemodynamic pattern is expected in hypovolemic shock?",
+      "taughtText": "In hypovolemic shock preload falls: CVP and PAOP are low, cardiac output decreases, and SVR rises as compensation.",
+      "answer": "High CVP and PAOP with a low SVR.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "ccrn-10",
+      "domain": "ccrn",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "CCRN Adult Certification",
+        "trackType": "certification",
+        "credentialName": "CCRN (Adult) Critical Care Nursing Certification",
+        "providerName": "AACN",
+        "categorySlug": "healthcare-nursing",
+        "categoryName": "Healthcare & Nursing"
+      },
+      "question": "What is the first-line treatment for pulseless ventricular tachycardia?",
+      "taughtText": "Pulseless ventricular tachycardia and ventricular fibrillation are shockable rhythms: begin CPR and defibrillate as soon as a defibrillator is available, then resume CPR, give epinephrine every 3-5 minutes, and consider amiodarone.",
+      "answer": "CPR and immediate defibrillation.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-01",
+      "domain": "pt",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "What MMT grade describes a muscle that completes full range of motion against gravity but cannot tolerate any added resistance?",
+      "taughtText": "Manual muscle test grades: 0 no contraction; 1 trace contraction; 2 full range of motion with gravity eliminated; 3 full range of motion against gravity; 4 full range against gravity with moderate resistance; 5 normal strength against maximal resistance.",
+      "answer": "3 (Fair).",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-02",
+      "domain": "pt",
+      "tags": [
+        "correct-full"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "Describe the gait deviation and its cause in a patient with a weak right gluteus medius.",
+      "taughtText": "Weak gluteus medius produces a Trendelenburg gait: during single-leg stance on the weak side the pelvis drops on the opposite (swing) side. In a compensated Trendelenburg gait the trunk leans toward the weak side to shift the center of mass over the stance limb.",
+      "answer": "A Trendelenburg gait: when she's standing on the right leg the left side of the pelvis drops because the right glute med can't hold the pelvis level. She might lean her trunk to the right to compensate.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-03",
+      "domain": "pt",
+      "tags": [
+        "correct-different-wording"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "Why should you avoid applying therapeutic heat over an area with impaired sensation?",
+      "taughtText": "Impaired sensation prevents the patient from reporting excessive heat, which raises the risk of burns. Other contraindications to superficial heat include acute inflammation, active bleeding, malignancy and impaired circulation.",
+      "answer": "They can't feel or tell you if it's too hot, so they could get burned without knowing.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-04",
+      "domain": "pt",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "A patient is 2 weeks post total knee arthroplasty. (a) State the knee flexion goal at this stage. (b) Name one exercise to improve quadriceps activation. (c) Name one sign of a possible DVT to monitor.",
+      "taughtText": "By about 2 weeks after total knee arthroplasty a typical goal is at least 90 degrees of knee flexion with near-full extension. Quad sets and straight-leg raises improve quadriceps activation. Signs of a DVT include unilateral calf pain or tenderness, swelling, warmth and redness; a suspected DVT needs urgent medical referral.",
+      "answer": "(a) About 90 degrees of flexion. (b) Quad sets.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(c) a sign of possible DVT (e.g. calf pain, swelling, warmth)"
+      ]
+    },
+    {
+      "id": "pt-05",
+      "domain": "pt",
+      "tags": [
+        "multi-part-skipped"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "(a) Which spinal level is tested by the Achilles reflex? (b) By the patellar reflex? (c) By the biceps reflex?",
+      "taughtText": "Deep tendon reflex levels: biceps C5-C6; brachioradialis C6; triceps C7; patellar L3-L4; Achilles S1.",
+      "answer": "(a) S1. (b) L3-L4.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(c) the biceps reflex level (C5-C6)"
+      ]
+    },
+    {
+      "id": "pt-06",
+      "domain": "pt",
+      "tags": [
+        "multi-part-skipped",
+        "skipped-middle-part"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "A patient is learning to use a cane after a left total hip replacement. (a) Which hand holds the cane? (b) Which leg moves with the cane? (c) Going up stairs, which leg leads?",
+      "taughtText": "A cane is held in the hand opposite the affected leg. The cane moves forward together with the affected leg. On stairs, 'up with the good, down with the bad': the unaffected leg leads going up and the affected leg leads going down.",
+      "answer": "(a) The right hand, opposite the surgical hip. (c) The good (right) leg goes up first.",
+      "expectedVerdict": "partial",
+      "expectedMissedParts": [
+        "(b) which leg moves with the cane (the affected left leg)"
+      ]
+    },
+    {
+      "id": "pt-07",
+      "domain": "pt",
+      "tags": [
+        "confidently-wrong"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "Which artery is most likely involved in a stroke causing contralateral weakness of the face and arm more than the leg, with aphasia?",
+      "taughtText": "Middle cerebral artery (MCA) stroke: contralateral hemiparesis and sensory loss of the face and upper extremity more than the lower extremity, aphasia if the dominant hemisphere is involved, and contralateral homonymous hemianopia. Anterior cerebral artery stroke affects the contralateral lower extremity more than the arm.",
+      "answer": "The anterior cerebral artery - it supplies the motor strip, so arm and face weakness with aphasia is the classic ACA picture.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-08",
+      "domain": "pt",
+      "tags": [
+        "confidently-wrong"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "What does a positive Lachman test indicate?",
+      "taughtText": "The Lachman test, performed with the knee in 20-30 degrees of flexion, assesses anterior translation of the tibia on the femur. Excessive translation with a soft end-feel indicates an ACL tear.",
+      "answer": "A torn PCL, since the tibia slides backward on the femur.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-09",
+      "domain": "pt",
+      "tags": [
+        "confidently-wrong",
+        "unsafe"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "A patient has orthostatic hypotension after prolonged bed rest. How should you progress them to standing?",
+      "taughtText": "Progress a patient with orthostatic hypotension gradually: raise the head of the bed, then sit at the edge of the bed, then stand, pausing to monitor blood pressure, heart rate and symptoms. A tilt table, ankle pumps, and compression stockings or an abdominal binder can help venous return.",
+      "answer": "Have them stand up quickly and walk right away, since staying upright forces the body to adjust faster.",
+      "expectedVerdict": "incorrect",
+      "expectedMissedParts": []
+    },
+    {
+      "id": "pt-10",
+      "domain": "pt",
+      "tags": [
+        "terse-correct"
+      ],
+      "track": {
+        "trackTitle": "NPTE - Physical Therapist",
+        "trackType": "certification",
+        "credentialName": "National Physical Therapy Examination (PT)",
+        "providerName": "FSBPT"
+      },
+      "question": "Which muscle is primarily responsible for ankle dorsiflexion with inversion?",
+      "taughtText": "Tibialis anterior dorsiflexes and inverts the foot. It is innervated by the deep fibular (peroneal) nerve.",
+      "answer": "Tibialis anterior.",
+      "expectedVerdict": "correct",
+      "expectedMissedParts": []
+    }
+  ]
+}

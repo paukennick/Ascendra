@@ -4,7 +4,23 @@
 // track with no taxonomy still gets a sane generic line.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { coachRules, goalLine, domainFraming, withRules, chatSystemPrompt } from "./prompts";
+import {
+  coachRules,
+  goalLine,
+  domainFraming,
+  withRules,
+  systemWithRules,
+  flattenSystem,
+  chatSystemPrompt,
+  lessonIntroPrompt,
+  lessonPracticePrompt,
+  gradeFreeResponsePrompt,
+  gradePBQPrompt,
+  pbqGenerationPrompt,
+  guessFeedbackPrompt,
+  gradeResultSchema,
+  pbqScenarioSchema,
+} from "./prompts";
 
 describe("goalLine", () => {
   test("certification tracks name the credential, exam code and provider", () => {
@@ -70,11 +86,75 @@ describe("withRules / chatSystemPrompt", () => {
   });
 
   test("chat prompt tells the coach to re-grade pasted disputes on substance", () => {
-    const out = chatSystemPrompt({
-      trackTitle: "Security+",
-      ctx: { trackTitle: "Security+", trackType: "certification" },
-    });
+    const out = flattenSystem(
+      chatSystemPrompt({
+        trackTitle: "Security+",
+        ctx: { trackTitle: "Security+", trackType: "certification" },
+      })
+    );
     assert.match(out, /re-grade it yourself/);
     assert.match(out, /pass the Security\+ exam/);
+  });
+});
+
+// Phase 0: the system prompt is two parts so the stable coach rules can be
+// sent as their own cached block. The flattened text must be exactly what the
+// single string used to be.
+describe("SystemPrompt structure", () => {
+  const ctx = { trackTitle: "T", trackType: "certification", credentialName: "Cred" };
+
+  test("stable is the coach rules for the track; task is only the per-call instruction", () => {
+    const sp = systemWithRules("TASK", ctx);
+    assert.equal(sp.stable, coachRules(ctx));
+    assert.equal(sp.task, "TASK");
+  });
+
+  test("flattening reproduces withRules exactly", () => {
+    assert.equal(flattenSystem(systemWithRules("TASK", ctx)), withRules("TASK", ctx));
+    assert.equal(flattenSystem("already a string"), "already a string");
+  });
+
+  test("every prompt builder returns the same stable block for the same track, and a distinct task", () => {
+    const c = { trackTitle: "Track", trackType: "skills" };
+    const systems = [
+      lessonIntroPrompt({ trackTitle: "Track", unitTitle: "U", objectiveTitle: "O", ctx: c }).system,
+      lessonPracticePrompt({ trackTitle: "Track", unitTitle: "U", objectiveTitle: "O", ctx: c }).system,
+      guessFeedbackPrompt({ objectiveTitle: "O", guessPrompt: "g", teach: "t", guess: "x", ctx: c }).system,
+      gradeFreeResponsePrompt({ taughtText: "t", question: "q", answer: "a", ctx: c }).system,
+      pbqGenerationPrompt({ trackTitle: "Track", unitTitle: "U", unitObjectives: ["o"], ctx: c }).system,
+      gradePBQPrompt({ scenario: "s", subParts: ["p"], answer: "a", ctx: c }).system,
+      chatSystemPrompt({ trackTitle: "Track", ctx: c }),
+    ];
+    for (const s of systems) assert.equal(s.stable, coachRules(c));
+    assert.equal(new Set(systems.map((s) => s.task)).size, systems.length);
+  });
+
+  test("per-request values never leak into the cached block", () => {
+    const sp = lessonIntroPrompt({
+      trackTitle: "Track",
+      unitTitle: "UNIQUE-UNIT",
+      objectiveTitle: "UNIQUE-OBJECTIVE",
+      avoid: { teach: "UNIQUE-AVOID", fadeProblem: "f", soloCheck: "s" },
+      ctx: { trackTitle: "Track" },
+    });
+    for (const v of ["UNIQUE-UNIT", "UNIQUE-OBJECTIVE", "UNIQUE-AVOID"]) {
+      assert.ok(!sp.system.stable.includes(v));
+      assert.ok(!sp.system.task.includes(v));
+      assert.ok(sp.user.includes(v));
+    }
+  });
+});
+
+describe("structured-output schemas", () => {
+  test("gradeResultSchema accepts a valid grade and rejects a verdict outside the enum", () => {
+    const ok = { verdict: "partial", feedback: "f", classification: "incomplete", missedParts: ["b"] };
+    assert.deepEqual(gradeResultSchema.parse(ok), ok);
+    assert.throws(() => gradeResultSchema.parse({ ...ok, verdict: "mostly" }));
+    assert.throws(() => gradeResultSchema.parse({ verdict: "correct", feedback: "f", classification: "none" }));
+  });
+  test("pbqScenarioSchema needs title, scenario and a subParts string array", () => {
+    const ok = { title: "t", scenario: "s", subParts: ["a", "b"] };
+    assert.deepEqual(pbqScenarioSchema.parse(ok), ok);
+    assert.throws(() => pbqScenarioSchema.parse({ title: "t", scenario: "s" }));
   });
 });

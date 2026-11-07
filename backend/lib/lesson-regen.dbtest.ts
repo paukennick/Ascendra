@@ -36,18 +36,35 @@ async function newObjective(): Promise<string> {
 
 // Stands in for the model. Every call yields distinct text, records the
 // `avoid` it was given, and can be slowed so concurrent callers overlap.
-function fakeGenerator(label: string, opts: { introMs?: number; failIntro?: boolean } = {}) {
-  const calls = { intro: 0, practice: 0, avoid: [] as (LessonAvoid | undefined)[] };
+function fakeGenerator(
+  label: string,
+  opts: { introMs?: number; practiceMs?: number; failIntro?: boolean; failPractice?: boolean } = {}
+) {
+  const calls = {
+    intro: 0,
+    practice: 0,
+    avoid: [] as (LessonAvoid | undefined)[],
+    users: [] as (string | undefined)[],
+    // "intro:start", "practice:start", "intro:end", ... in the order they happened.
+    events: [] as string[],
+  };
   const gen: LessonGenerator = {
-    async intro(_o, avoid) {
+    async intro(_o, avoid, meta) {
       const n = ++calls.intro;
       calls.avoid.push(avoid);
+      calls.users.push(meta?.userId);
+      calls.events.push("intro:start");
       if (opts.introMs) await new Promise((r) => setTimeout(r, opts.introMs));
+      calls.events.push("intro:end");
       if (opts.failIntro) throw new Error("model unavailable");
       return { guessPrompt: `${label} guess ${n}`, teach: `${label} teach ${n}` };
     },
     async practice() {
       const n = ++calls.practice;
+      calls.events.push("practice:start");
+      if (opts.practiceMs) await new Promise((r) => setTimeout(r, opts.practiceMs));
+      calls.events.push("practice:end");
+      if (opts.failPractice) throw new Error("practice model unavailable");
       return {
         fadeProblem: `${label} fade ${n}`,
         fadeChoices: ["a", "b", "c", "d"],
@@ -112,6 +129,62 @@ describe("first generation stays shared", () => {
     assert.equal(await h.introPromise, null, "no second intro for a lesson that already exists");
     assert.equal((await h.fullPromise).teach, "one teach 1");
     assert.equal(calls.intro, 0);
+  });
+});
+
+describe("intro and practice run in parallel", () => {
+  test("both calls start before either finishes", async () => {
+    const obj = await newObjective();
+    const { gen, calls } = fakeGenerator("par", { introMs: 80, practiceMs: 80 });
+    const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
+    const full = await h.fullPromise;
+    assert.deepEqual(calls.events.slice(0, 2).sort(), ["intro:start", "practice:start"]);
+    assert.ok(
+      calls.events.indexOf("practice:start") < calls.events.indexOf("intro:end"),
+      `practice started only after intro finished: ${calls.events.join(",")}`
+    );
+    assert.equal(full.teach, "par teach 1");
+    assert.equal(full.solo_check, "par solo 1");
+  });
+
+  test("the intro is still handed out ahead of a slower practice half", async () => {
+    const obj = await newObjective();
+    const { gen, calls } = fakeGenerator("early", { introMs: 20, practiceMs: 250 });
+    const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
+    const intro = await h.introPromise;
+    assert.equal(intro?.teach, "early teach 1");
+    assert.ok(!calls.events.includes("practice:end"), "intro resolved while practice was still running");
+    assert.equal((await h.fullPromise).fade_problem, "early fade 1");
+  });
+
+  test("a practice failure fails the generation but the intro was already delivered; nothing is stored", async () => {
+    const obj = await newObjective();
+    const { gen } = fakeGenerator("pf", { failPractice: true });
+    const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
+    h.fullPromise.catch(() => {});
+    assert.equal((await h.introPromise)?.teach, "pf teach 1");
+    await assert.rejects(h.fullPromise, /practice model unavailable/);
+    assert.equal(await getSharedLesson(obj), null);
+    assert.equal(await isClaimLive(obj, SHARED), false, "lease released");
+  });
+
+  test("an intro failure fails both promises and leaves no unhandled rejection from the practice call", async () => {
+    const obj = await newObjective();
+    const { gen } = fakeGenerator("if", { failIntro: true, failPractice: true, practiceMs: 40 });
+    const h = ensureGeneration(obj, objRow, { scope: SHARED, generator: gen, pending: instance(), ...fast });
+    await assert.rejects(h.introPromise, /model unavailable/);
+    await assert.rejects(h.fullPromise, /model unavailable/);
+    await new Promise((r) => setTimeout(r, 100)); // let the discarded practice call reject
+  });
+
+  test("a regenerate attributes its calls to the learner; the shared generation to nobody", async () => {
+    const obj = await newObjective();
+    const shared = fakeGenerator("s");
+    await ensureGeneration(obj, objRow, { scope: SHARED, generator: shared.gen, pending: instance(), ...fast }).fullPromise;
+    assert.deepEqual(shared.calls.users, [undefined]);
+    const regen = fakeGenerator("r");
+    await (await startRegeneration(userA, obj, objRow, { generator: regen.gen, pending: instance(), ...fast })).fullPromise;
+    assert.deepEqual(regen.calls.users, [userA]);
   });
 });
 
