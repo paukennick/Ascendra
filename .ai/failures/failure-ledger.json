@@ -925,6 +925,221 @@
       "prevention_rules": [],
       "prevention_notes": "Mastery has one writer (mastery_from_attempts); any route that writes the mastery table must go through it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-039",
+      "date": "2026-11-07",
+      "title": "App builds from before REQ-097 crash on the Solo hint",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "rowToLesson stopped sending soloChoices; the old lesson screen does lesson.soloChoices!.map(...) when the learner opens Show choices, so old builds crashed. An old build's saved Solo pick (old unshuffled order) was also graded against the new shuffle.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The payload change was checked only against the new app; nobody read the old screen to see which fields it dereferences without a guard, and the grade route accepted a Solo choice index without the hint the new flow always records first.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "Lesson payload sends soloChoices: [] (old builds fall back to free response). /api/grade refuses a Solo multiple-choice answer with no recorded hint reveal with a 400 whose error text old builds show in their error banner; nothing is recorded.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::9. App builds from before REQ-097 degrade instead of crashing (FAIL-039)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Before removing or reshaping a response field, read the previous released screen (git show <last release>:mobile/...) for unguarded dereferences of it, and keep the field with a safe empty value.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-110",
+      "date": "2026-11-07",
+      "title": "Deploy gap: repeats written by old code counted as unassisted",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Between running 029 and deploying the code, old code inserts attempts with assisted = false and overwrites mastery with its latest-answer rule; mastery_from_attempts trusted the stored flag, so a resubmitted Solo item counted as a fresh success.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The rule depended on a column only the new code fills, so its correctness depended on deploy timing.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql"
+      ],
+      "fix_summary": "mastery_from_attempts derives a repeat from history (same user, objective, stage, question earlier) and a hint from lesson_hint_reveals (revealed before the answer), trusting assisted only when it is true. Every grade recomputes the pair; 029 header says to run select recompute_mastery() once after deploying the code.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::10. Attempts written by pre-029 code during the deploy gap (FAIL-110)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A rule in SQL must be computable from data every live code version writes; a flag set only by new code may narrow, never widen, credit.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-111",
+      "date": "2026-11-07",
+      "title": "Self-set mastery levels survived the 029 recompute",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "recompute_mastery() only visited pairs with attempts, so a Transfer-ready row set through the removed PUT override, with no attempts, kept its level.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The recompute was driven from attempts, not from the rows it was meant to correct, and mastery_from_attempts returned no row for zero evidence.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "mastery_from_attempts returns Not started for no evidence; recompute_mastery() visits every existing mastery row as well as every pair with graded attempts. Rows whose only evidence was a PBQ also become Not started (PBQ is not objective evidence).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::backs up the old state first",
+        "then recomputes under the new rules"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A recompute must iterate the table it rewrites, not only the evidence table.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-112",
+      "date": "2026-11-07",
+      "title": "029 held ACCESS EXCLUSIVE on attempts through the whole backfill",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On a 1.9M-attempt fixture 029 ran 44 s in one transaction after ALTER TABLE attempts; reads of attempts and error_log timed out for the whole run.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "Schema changes and data backfill were in one file; the runner applies a file as one transaction, so the ALTER's lock lasted until the backfill committed.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029_mastery_recompute.sql",
+        "backend/supabase/migrations/029b_mastery_backfill.sql",
+        "backend/package.json"
+      ],
+      "fix_summary": "029 keeps only schema (index built first under SHARE, then the ALTERs, lock_timeout 5s): 0.76-1.06 s. Backup, backfill and first recompute moved to 029b (runner sorts it after 029 and before 030 and records it in schema_migrations): 52-61 s holding only row locks; probe reads of attempts, error_log and mastery and attempts inserts stayed under 0.5 s throughout (before: 44 s, reads timed out). test:db now runs files one at a time because 029b rewrites every learner's mastery.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Migrations that ALTER a large table keep data work in a separate file; measure against a production-sized fixture with a concurrent read probe.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-113",
+      "date": "2026-11-07",
+      "title": "Learner answer could break out of the grading prompt fence",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "gradeFreeResponsePrompt stripped <learner_answer> tags in one pass, so </learner_</learner_answer>answer> left a working closing tag; PBQ answers and guesses were not fenced at all.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "Removing a known token is not escaping: removal can reassemble the token from its pieces.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/prompts.ts"
+      ],
+      "fix_summary": "All learner text placed in a prompt (free response, PBQ, guess) is HTML-escaped and fenced (fenceLearnerText), so it contains no < or >. Chat sends the learner message as its own user turn and needs no fence.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/prompts.test.ts::learner text can't break out of its fence"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Learner text in prompts goes through fenceLearnerText; never strip tags.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-114",
+      "date": "2026-11-07",
+      "title": "Documented 029 restore rewound progress made after the backup",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The restore put every backed-up mastery and review row back, overwriting grades and Got it taps made after 029, and left rows the recompute had created.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The restore keyed only on row id, not on whether the row had changed since the backup.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql"
+      ],
+      "fix_summary": "Restore only rows with updated_at <= backed_up_at; rows the recompute created are recorded with created_by_029 and deleted if untouched; review state is no longer restored (029 never changes it).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::the documented restore puts untouched levels back and leaves later progress alone"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A documented restore must say which rows it touches and is run by a test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-115",
+      "date": "2026-11-07",
+      "title": "029 backups outlived account deletion",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mastery_backup_029 and error_log_backup_029 had no foreign key to app_users, so DELETE /api/account left the learner's history behind.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "Account deletion relies on ON DELETE CASCADE; new per-user tables must join it.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/supabase/migrations/029b_mastery_backfill.sql"
+      ],
+      "fix_summary": "user_id references app_users(id) on delete cascade in both backup tables.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-recompute.dbtest.ts::deleting the account removes its backup rows"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every new table holding per-user data references app_users ON DELETE CASCADE.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-116",
+      "date": "2026-11-07",
+      "title": "Choice shuffle seed was computable by the learner",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "presentationSeed was the user id, objective id, stage and question, all visible to the app, so the shuffle (and the right answer's position) could be recomputed.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "Determinism was taken for unpredictability; the seed had no secret.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/lib/choice-order.ts",
+        "backend/.env.example"
+      ],
+      "fix_summary": "Seed is an HMAC-SHA256 under CHOICE_ORDER_SECRET, or a key derived from AUTH_JWT_SECRET when unset; stable per learner, objective, stage and question.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/choice-order.test.ts::presentationSeed"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Anything that hides an answer must depend on a server secret.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-117",
+      "date": "2026-11-07",
+      "title": "Hint route had no cross-user access test",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "No test showed that a second user calling POST /api/objectives/:id/hint on someone else's private objective gets 404 and records nothing.",
+      "how_detected": "PR #22 independent review (reproduced with fixture scripts)",
+      "root_cause": "The route's access check was added with the route but only the happy path was tested.",
+      "requirement": "REQ-097",
+      "affected": [
+        "backend/app/api/objectives/[id]/hint/route.ts"
+      ],
+      "fix_summary": "Added the test (the route already behaved correctly).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::11. The hint route is scoped to the caller (FAIL-117)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every new route gets an other-user test (REQ-091 pattern).",
+      "recurrence_of": ""
     }
   ]
 }
