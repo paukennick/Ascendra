@@ -94,7 +94,7 @@ export function LabCard({ objectiveId, userId }: { objectiveId: string; userId: 
     if (!questions || !labReportReady(answers, questions.length)) return;
     setBusy(true);
     setError(null);
-    const signature = JSON.stringify(answers);
+    const signature = JSON.stringify([objectiveId, answers]);
     const id = sent && sent.signature === signature ? sent.id : Crypto.randomUUID();
     setSent({ id, signature });
     try {
