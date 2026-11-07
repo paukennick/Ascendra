@@ -41,9 +41,15 @@ export async function dueObjectives(userId: string, today: string, trackId: stri
        select objective_id, due_on, step, lapses from review_schedule
         where user_id = $1 and due_on <= $2::date
      ), err as (
-       select objective_id, min(next_review_at) as due_on from error_log
-        where user_id = $1 and not resolved and objective_id is not null and next_review_at <= $2::date
-        group by objective_id
+       -- REQ-117 (T9, T14): only for objectives with no schedule. Once an
+       -- objective is scheduled, a miss already steps its schedule back; the
+       -- error_log entry re-asking it as well brought a missed 60-day item
+       -- back onto the 60-day gap within three weeks, and made the plan
+       -- count one item per miss instead of one per objective.
+       select e.objective_id, min(e.next_review_at) as due_on from error_log e
+        where e.user_id = $1 and not e.resolved and e.objective_id is not null and e.next_review_at <= $2::date
+          and not exists (select 1 from review_schedule rs where rs.user_id = $1 and rs.objective_id = e.objective_id)
+        group by e.objective_id
      ), due as (
        select coalesce(s.objective_id, e.objective_id) as objective_id,
               least(s.due_on, e.due_on) as due_on,
@@ -82,6 +88,31 @@ export async function dueObjectives(userId: string, today: string, trackId: stri
     trackId: r.track_id,
     trackTitle: r.track_title,
   }));
+}
+
+// REQ-117 (Audit 3 T10, FAIL-349): objectives whose last two graded answers
+// (any setting the weighted model counts, never a retry) were both missed.
+// The review session opens them with a short re-teach and the choices shown
+// (an easier, recognition-first entry) instead of a third cold miss.
+export const STRUGGLE_MISSES = 2;
+export async function strugglingObjectives(userId: string, objectiveIds: string[], q: Q = query): Promise<Set<string>> {
+  if (!objectiveIds.length) return new Set();
+  const rows = await q(
+    `select x.objective_id from (
+       select a.objective_id, a.verdict,
+              row_number() over (partition by a.objective_id order by a.created_at desc, a.id desc) as rn
+         from attempts a
+         join assessment_types ty on ty.type_name = attempt_type_of(a.kind, a.stage, a.format, a.assessment_type)
+        where a.user_id = $1 and a.objective_id = any($2::uuid[]) and a.verdict is not null and a.format <> 'pbq' and a.voided_at is null
+          and (a.kind = 'lesson' or a.assessment_type is not null)
+          and ty.cognitive_weight > 0 and a.assist_reason is distinct from 'retry'
+     ) x
+     where x.rn <= $3
+     group by x.objective_id
+     having count(*) = $3 and bool_and(x.verdict <> 'correct')`,
+    [userId, objectiveIds, STRUGGLE_MISSES]
+  );
+  return new Set(rows.map((r) => r.objective_id as string));
 }
 
 // The learner's most recent review session with answers, for the
@@ -442,7 +473,7 @@ export interface ReviewAnswerInput {
   feedback: string;
   classification: string;
   missedParts: string[];
-  assisted: boolean; // choices shown before a typed answer
+  assisted: boolean; // choices shown before the answer (also read from the item itself)
   clientAttemptId: string | null;
   now?: Date;
 }
@@ -463,13 +494,13 @@ export interface ReviewAnswerOutcome {
 //
 // The attempt is kind 'review', stage 'review', with assessment_type
 // free_response or multiple_choice: direct, spaced evidence in the weighted
-// model (migration 031), unassisted unless the choices were shown before a
-// typed answer (assist_reason 'hint').
+// model (migration 031), unassisted unless the choices were shown before the
+// answer, typed or picked (assist_reason 'hint', REQ-117).
 export async function recordReviewAnswer(input: ReviewAnswerInput): Promise<ReviewAnswerOutcome> {
   const now = input.now ?? new Date();
   return withTransaction(async (tx) => {
-    const item = await tx.queryOne<{ attempt_id: string | null; answered_at: string | null }>(
-      `select si.attempt_id, si.answered_at from review_session_items si
+    const item = await tx.queryOne<{ attempt_id: string | null; answered_at: string | null; choices_shown_at: string | null }>(
+      `select si.attempt_id, si.answered_at, si.choices_shown_at from review_session_items si
          join review_sessions s on s.id = si.session_id
         where si.session_id = $1 and si.position = $2 and s.user_id = $3
         for update of si`,
@@ -478,7 +509,12 @@ export async function recordReviewAnswer(input: ReviewAnswerInput): Promise<Revi
     if (!item) throw new Error("review session item not found");
     if (item.answered_at) throw new AlreadyAnsweredError(item.attempt_id);
 
-    const assistReason: AssistReason | null = input.assisted ? "hint" : null;
+    // REQ-117 (T4, FAIL-343): any answer given after the choices were shown
+    // is helped -- a pick from them as much as a typed answer. Read here,
+    // under the item's row lock, not taken from the caller: a pick from the
+    // choices used to count as unaided recall and climb to the 60-day rung.
+    const helped = input.assisted || !!item.choices_shown_at;
+    const assistReason: AssistReason | null = helped ? "hint" : null;
     const attempt = await recordAttemptTx(tx, {
       userId: input.userId,
       unitId: input.unitId,
@@ -499,7 +535,7 @@ export async function recordReviewAnswer(input: ReviewAnswerInput): Promise<Revi
 
     // The grader may also have found it assisted (a repeat of an earlier
     // question); either way it is not an unaided review answer.
-    const assisted = input.assisted || attempt.assisted === true;
+    const assisted = helped || attempt.assisted === true;
     const sched = await stepSchedule(tx, input.userId, input.objectiveId, attempt.id as string, input.verdict, assisted, now);
 
     const unaided = input.verdict === "correct" && !assisted;

@@ -2,6 +2,7 @@ import { misconceptionPromptBlock } from "@/lib/understanding-store";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import { getSharedLesson } from "@/lib/lesson-store";
+import { refresherExcerpt } from "@/lib/understanding";
 import { coachContextForObjective, coachContextForTrack } from "@/lib/coach-context";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -34,6 +35,7 @@ import {
   saveTerms,
   sessionItems,
   startOrResumeSession,
+  strugglingObjectives,
   termsFor,
   unseenItems,
   type SessionItemRow,
@@ -42,6 +44,7 @@ import { utcDay } from "@/lib/review-scheduler";
 import { findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
+import { withGradingClaim } from "@/lib/grading-claims";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
 import { factCheckGate, type CheckItem } from "@/lib/fact-check";
 import { flagItem, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
@@ -101,13 +104,27 @@ export interface SessionView {
     question: string;
     answered: boolean;
     verdict: string | null;
+    // REQ-117 (FAIL-349): the last two answers on this objective were missed:
+    // a short excerpt of its lesson to read first, and the choices offered up
+    // front (recognition first; a correct pick still moves it out to a week).
+    reteach: string | null;
+    easierEntry: boolean;
   }[];
 }
+
+export const RETEACH_WORDS = 120;
 
 export async function sessionView(userId: string, sessionId: string): Promise<SessionView | null> {
   const s = await openSession(userId, sessionId);
   if (!s) return null;
   const items = (await sessionItems(sessionId)).filter((i) => i.question);
+  const open = items.filter((i) => !i.answered_at).map((i) => i.objective_id);
+  const struggling = await strugglingObjectives(userId, open);
+  const reteach = new Map<string, string | null>();
+  for (const id of struggling) {
+    const lesson = await getSharedLesson(id);
+    reteach.set(id, lesson?.teach ? refresherExcerpt(lesson.teach, RETEACH_WORDS).text : null);
+  }
   return {
     id: s.id,
     gentleStart: s.gentle_start,
@@ -122,6 +139,8 @@ export async function sessionView(userId: string, sessionId: string): Promise<Se
       question: i.question!,
       answered: !!i.answered_at,
       verdict: i.verdict,
+      reteach: !i.answered_at ? reteach.get(i.objective_id) ?? null : null,
+      easierEntry: !i.answered_at && struggling.has(i.objective_id),
     })),
   };
 }
@@ -370,99 +389,111 @@ export async function answerItem(userId: string, sessionId: string, position: nu
     if (a) return replay(a);
   }
 
-  const assisted = body.format === "open" && !!item.choices_shown_at;
-  let graded: { verdict: "correct" | "partial" | "incorrect"; feedback: string; classification: string; missedParts: string[] };
-  let answerText: string;
-  if (body.format === "mc") {
-    if (!item.choices_shown_at) throw new ReviewError(400, "Show the choices before picking one.");
-    const stored = storedIndexAt(order, body.chosenIndex);
-    if (stored === null) throw new ReviewError(400, `chosenIndex must be 0-${ri.choices.length - 1}`);
-    const correct = stored === ri.correct_index;
-    answerText = ri.choices[stored];
-    graded = {
-      verdict: correct ? "correct" : "incorrect",
-      feedback: `${correct ? "That's right." : "Not this time -- here is the idea to hold on to."} ${ri.why}`.trim(),
-      classification: "none",
-      missedParts: [],
-    };
-  } else {
-    const answer = body.answer ?? "";
-    if (!answer.trim()) throw new ReviewError(400, "answer is required for format 'open'");
-    // REQ-116: refused before the billed model call, not after it.
-    if (hasUnstorableText(answer)) throw new ReviewError(400, "answer contains characters that can't be stored");
+  // REQ-117 (FAIL-359): racing copies of one typed answer share one model call.
+  const replayStored = async () => {
+    const prior = body.clientAttemptId ? await findClientAttempt(userId, body.clientAttemptId) : null;
+    if (!prior) return null;
+    if (!replayMatches(prior.attempt, sameItem)) throw new ReviewError(409, REPLAY_CONFLICT);
+    return replay(prior.attempt);
+  };
+  return withGradingClaim(userId, body.format === "open" ? body.clientAttemptId : null, () => gradeAndRecord(), replayStored);
+
+  async function gradeAndRecord() {
+    // REQ-117 (FAIL-343): a pick from the choices is helped too.
+    const assisted = !!item.choices_shown_at;
+    let graded: { verdict: "correct" | "partial" | "incorrect"; feedback: string; classification: string; missedParts: string[] };
+    let answerText: string;
+    if (body.format === "mc") {
+      if (!item.choices_shown_at) throw new ReviewError(400, "Show the choices before picking one.");
+      const stored = storedIndexAt(order, body.chosenIndex);
+      if (stored === null) throw new ReviewError(400, `chosenIndex must be 0-${ri.choices.length - 1}`);
+      const correct = stored === ri.correct_index;
+      answerText = ri.choices[stored];
+      graded = {
+        verdict: correct ? "correct" : "incorrect",
+        feedback: `${correct ? "That's right." : "Not this time -- here is the idea to hold on to."} ${ri.why}`.trim(),
+        classification: "none",
+        missedParts: [],
+      };
+    } else {
+      const answer = body.answer ?? "";
+      if (!answer.trim()) throw new ReviewError(400, "answer is required for format 'open'");
+      // REQ-116: refused before the billed model call, not after it.
+      if (hasUnstorableText(answer)) throw new ReviewError(400, "answer contains characters that can't be stored");
+      try {
+        await consumeRateLimit("review_grade", userId, { max: 40, windowMinutes: 10 }, { userId });
+      } catch (err) {
+        if (err instanceof RateLimitError) throw new ReviewError(429, err.message);
+        throw err;
+      }
+      const lesson = await getSharedLesson(item.objective_id);
+      const ctx = await coachContextForObjective(item.objective_id);
+      const right = ri.choices[ri.correct_index];
+      const result = await gradeFreeResponse({
+        taughtText: lesson?.teach ?? "",
+        question: ri.question,
+        answerKey: ri.why ? `${right}\nWhy: ${ri.why}` : right,
+        answer,
+        ctx: ctx ?? undefined,
+        userId,
+        purpose: "review_grade",
+      });
+      answerText = answer;
+      // REQ-114 (Audit 3 H3): the grader judged this item's key wrong and graded
+      // on the facts; that counts as this learner's flag on the shared item.
+      if (result.classification === KEY_SUSPECT) {
+        const ref: ItemRef = { kind: "review", itemId: ri.id, objectiveId: item.objective_id, question: ri.question };
+        const flagged = await flagItem(ref, { userId, source: "key_suspect" }).catch(() => null);
+        if (flagged?.recheck) inBackground(() => flagged.recheck!);
+      }
+      graded = {
+        verdict: result.verdict,
+        feedback: result.feedback,
+        classification: result.classification,
+        missedParts: result.missedParts ?? [],
+      };
+    }
+
     try {
-      await consumeRateLimit("review_grade", userId, { max: 40, windowMinutes: 10 }, { userId });
+      const out = await recordReviewAnswer({
+        userId,
+        sessionId,
+        position,
+        objectiveId: item.objective_id,
+        unitId: item.unit_id,
+        reviewItemId: ri.id,
+        terms,
+        format: body.format,
+        question: ri.question,
+        answer: answerText,
+        ...graded,
+        assisted,
+        clientAttemptId: body.clientAttemptId,
+        now,
+      });
+      return {
+        ...graded,
+        assisted,
+        ...reveal,
+        terms,
+        termsCredited: out.termsCredited,
+        nextDueOn: out.nextDueOn,
+        advanced: out.advanced,
+        replayed: false,
+      };
     } catch (err) {
-      if (err instanceof RateLimitError) throw new ReviewError(429, err.message);
+      if (err instanceof AlreadyAnsweredError) {
+        const a = await answeredItem(sessionId, position);
+        if (a) return replay(a);
+      }
+      if (body.clientAttemptId && isDuplicateClientAttempt(err)) {
+        const prior = await findClientAttempt(userId, body.clientAttemptId);
+        if (prior) {
+          if (!replayMatches(prior.attempt, sameItem)) throw new ReviewError(409, REPLAY_CONFLICT);
+          return replay(prior.attempt);
+        }
+      }
       throw err;
     }
-    const lesson = await getSharedLesson(item.objective_id);
-    const ctx = await coachContextForObjective(item.objective_id);
-    const right = ri.choices[ri.correct_index];
-    const result = await gradeFreeResponse({
-      taughtText: lesson?.teach ?? "",
-      question: ri.question,
-      answerKey: ri.why ? `${right}\nWhy: ${ri.why}` : right,
-      answer,
-      ctx: ctx ?? undefined,
-      userId,
-      purpose: "review_grade",
-    });
-    answerText = answer;
-    // REQ-114 (Audit 3 H3): the grader judged this item's key wrong and graded
-    // on the facts; that counts as this learner's flag on the shared item.
-    if (result.classification === KEY_SUSPECT) {
-      const ref: ItemRef = { kind: "review", itemId: ri.id, objectiveId: item.objective_id, question: ri.question };
-      const flagged = await flagItem(ref, { userId, source: "key_suspect" }).catch(() => null);
-      if (flagged?.recheck) inBackground(() => flagged.recheck!);
-    }
-    graded = {
-      verdict: result.verdict,
-      feedback: result.feedback,
-      classification: result.classification,
-      missedParts: result.missedParts ?? [],
-    };
-  }
-
-  try {
-    const out = await recordReviewAnswer({
-      userId,
-      sessionId,
-      position,
-      objectiveId: item.objective_id,
-      unitId: item.unit_id,
-      reviewItemId: ri.id,
-      terms,
-      format: body.format,
-      question: ri.question,
-      answer: answerText,
-      ...graded,
-      assisted,
-      clientAttemptId: body.clientAttemptId,
-      now,
-    });
-    return {
-      ...graded,
-      assisted,
-      ...reveal,
-      terms,
-      termsCredited: out.termsCredited,
-      nextDueOn: out.nextDueOn,
-      advanced: out.advanced,
-      replayed: false,
-    };
-  } catch (err) {
-    if (err instanceof AlreadyAnsweredError) {
-      const a = await answeredItem(sessionId, position);
-      if (a) return replay(a);
-    }
-    if (body.clientAttemptId && isDuplicateClientAttempt(err)) {
-      const prior = await findClientAttempt(userId, body.clientAttemptId);
-      if (prior) {
-        if (!replayMatches(prior.attempt, sameItem)) throw new ReviewError(409, REPLAY_CONFLICT);
-        return replay(prior.attempt);
-      }
-    }
-    throw err;
   }
 }

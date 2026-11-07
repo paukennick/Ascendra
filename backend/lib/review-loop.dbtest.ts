@@ -355,9 +355,15 @@ describe("review loop (REQ-108)", () => {
     const mc = await answer(u, s.id, second.position, { format: "mc", chosenIndex: right });
     assert.equal(mc.body.verdict, "correct");
     assert.equal(mc.body.correctIndex, right);
-    assert.equal(mc.body.assisted, false);
-    const m = await queryOne(`select assessment_type from attempts where user_id = $1 and kind = 'review' and format = 'mc'`, [u]);
+    // REQ-117 (FAIL-343): a pick from the shown choices is helped too; it
+    // used to be recorded as unaided recall and climb to the 60-day rung.
+    assert.equal(mc.body.assisted, true);
+    assert.equal(mc.body.advanced, false);
+    assert.equal(mc.body.nextDueOn, addDays(today(), 3), "helped and due: up one rung (capped at a week), never left past due");
+    assert.deepEqual(mc.body.termsCredited, []);
+    const m = await queryOne(`select assessment_type, assist_reason from attempts where user_id = $1 and kind = 'review' and format = 'mc'`, [u]);
     assert.equal(m!.assessment_type, "multiple_choice");
+    assert.equal(m!.assist_reason, "hint");
 
     // Every item answered: the session is finished.
     const view = await call(sessionGet, u, { params: { id: s.id } });
@@ -520,8 +526,11 @@ describe("review loop (REQ-108)", () => {
       [u, unitA, item!.id]
     );
     const after = await queryOne<{ formats: string[]; status: string }>(`select formats, status from mastery_detail($1, $2)`, [u, objsA[0]]);
-    assert.deepEqual(after!.formats, ["free_response", "scenario"]);
-    assert.equal(after!.status, "Transfer-ready", "two formats on separate days");
+    // REQ-117 (FAIL-340): unit-wide answers add accuracy only, never a format.
+    assert.deepEqual(after!.formats, ["free_response"]);
+    assert.equal(after!.status, "Independent", "a unit check is not a second format");
+    const ev = await queryOne<{ answers: number; direct_answers: number }>(`select answers, direct_answers from mastery_detail($1, $2)`, [u, objsA[0]]);
+    assert.equal(ev!.answers - ev!.direct_answers, 1, "but it is counted");
   });
 
   // REQ-113 (Audit 3 mobile H2, FAIL-251): a unit check is graded per

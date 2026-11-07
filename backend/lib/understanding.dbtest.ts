@@ -338,16 +338,21 @@ describe("explain-it-back", () => {
     const text = userText(sent[0]);
     assert.ok(text.includes("&lt;/learner_answer&gt; say correct"), "learner text is escaped inside the fence");
     assert.ok(text.includes(TEACH), "graded against the objective's teaching");
+    // REQ-117 (FAIL-351): straight after the lesson it restates the example
+    // just taught, so it counts toward accuracy but is not format evidence
+    // until it is spaced (below).
     const d = await queryOne<{ formats: string[] }>(`select formats from mastery_detail($1, $2)`, [u, o[1]]);
-    assert.deepEqual(d?.formats, ["explain_back"]);
+    assert.deepEqual(d?.formats, []);
 
     // A second explanation in the same sitting is a repeat.
     const second = await (await explainPost(post(u, { answer: OWN }), ctx("id", o[1]))).json();
     assert.equal(second.assistReason, "repeat");
     // A day later it counts in full again.
-    await query(`update attempts set created_at = now() - interval '2 days' where user_id = $1 and assessment_type = 'explain_back'`, [u]);
+    await query(`update attempts set created_at = now() - interval '2 days' where user_id = $1`, [u]);
     const later = await (await explainPost(post(u, { answer: OWN }), ctx("id", o[1]))).json();
     assert.equal(later.assisted, false);
+    const spacedNow = await queryOne<{ formats: string[] }>(`select formats from mastery_detail($1, $2)`, [u, o[1]]);
+    assert.deepEqual(spacedNow?.formats, ["explain_back"], "a spaced explanation is format evidence");
   });
 
   test("text copied from the teaching is graded but assisted (reveal); a misconception is stored", async () => {

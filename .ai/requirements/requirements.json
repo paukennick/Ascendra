@@ -3765,6 +3765,50 @@
       ]
     },
     {
+      "id": "REQ-117",
+      "category": "defect",
+      "title": "Audit 3 teaching science and mastery integrity: honest levels, readiness and plan",
+      "description": "Fix the Audit 3 teaching findings 1-16 and adversary findings 1, 2, 3, 4, 9 (plus perf audit HIGH-2 for the rule). Migration 045 changes the mastery rule: unit-wide answers (PBQ, unit check) add accuracy only at a unit-size-scaled weight and a re-answer of the same scenario/item is a repeat; help lowers weight not credit and only the latest repeat of an item counts; comparison cards never open Independent; Transfer-ready needs a spaced last win 72 h after the first and explain-back counts only when spaced; Guided excludes placement guesses; Needs review needs two days; independent 0.70, transfer 0.80, half-life 30. review_state() is the one definition of kept (due reviews, unaided, last 3) and due-to-re-check, plus a retention factor; readiness multiplies by retention, caps unconfirmed objectives at 0.6 and needs 70% kept for ready. The plan counts due reviews from dueObjectives, confirms exam-strong and placement-inferred objectives and offers stretch steps. Review: any answer after the choices is helped, helped-when-due climbs at most to the 7-day rung, a lapse at 21/60 days drops to step 1, error_log no longer re-asks scheduled objectives, struggling objectives open with a re-teach and the choices. Placement cap scales with course size. Explain-back copy detector compares content words in short spans. Model text is cleaned before storage. grading_claims makes racing copies of one submission call the model once. 045b recomputes every learner.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/045_mastery_honesty.sql",
+        "backend/supabase/migrations/045b_mastery_honesty_backfill.sql",
+        "backend/lib",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "mobile/src/lib",
+        "mobile/src/types",
+        "mobile/app/(app)/review-session.tsx",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "A guesser never reaches Independent or kept in meaningful numbers",
+        "A crammer is not ready on day 0 and readiness falls with absence",
+        "Spaced honest learners progress without a daily loop",
+        "Readiness levels and plan agree",
+        "Plan due count equals the review screen",
+        "PBQ replay is a repeat",
+        "Copy detector survives filler reordering and light synonyms",
+        "Model NUL text does not lose an answer",
+        "Racing copies of one submission make one model call",
+        "Mastery drift 0 after 045b"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test (backend and mobile)",
+        "tsc",
+        "persona simulation before/after",
+        "045/045b timed on the 1.9M-attempt fixture"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "Stored levels change for every learner (045b);Product judgements listed in the report"
+      ]
+    },
+    {
       "id": "REQ-119",
       "category": "feature",
       "title": "Audit 3 product basics: privacy AI facts, terms acceptance, first run, next step, vendor disclaimers, reminders, events, exam outcomes, empty states, course requests",

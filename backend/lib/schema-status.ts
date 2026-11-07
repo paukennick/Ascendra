@@ -357,6 +357,26 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                        or (table_name = 'email_verification_tokens' and column_name = 'set_password'))) = 6 as ok`,
   },
   {
+    // REQ-117: the Audit 3 rule (unit-wide answers accuracy only, help lowers
+    // weight, comparison cards never open Independent, spaced Transfer-ready),
+    // the kept / re-check definition and the grading lease.
+    migration: "045_mastery_honesty.sql",
+    what: "assessment_types.opens_independent / win_needs_spacing, the 045 mastery_detail(), review_state() and grading_claims",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public' and table_name = 'assessment_types'
+                     and column_name in ('opens_independent', 'win_needs_spacing')) = 2
+             and exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%opens_independent%')
+             and to_regprocedure('public.review_state(uuid, uuid, date)') is not null
+             and to_regclass('public.grading_claims') is not null
+             and exists(select 1 from mastery_model_params where name = 'readiness_min_kept_share') as ok`,
+  },
+  {
+    // Remove this probe when the backup is dropped (runbook).
+    migration: "045b_mastery_honesty_backfill.sql",
+    what: "mastery_backup_045 table (045b backup and recompute under the 045 rule ran)",
+    sql: `select to_regclass('public.mastery_backup_045') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

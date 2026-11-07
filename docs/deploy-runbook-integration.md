@@ -1,4 +1,4 @@
-# Deploy runbook: integration release (migrations 029 to 041b)
+# Deploy runbook: integration release (migrations 029 to 045b)
 
 This extends [deploy-runbook-mastery.md](deploy-runbook-mastery.md), which
 covers 029/029b on their own. Use this page when production is behind more
@@ -41,16 +41,40 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 040 | comparison cards, explain-back, misconceptions | 0.4 s | no | ≤ 130 ms |
 | 041 | integration mastery rule, `attempts.part_scores` | 0.3 s | no | (too short to sample) |
 | **041b** | backup to `mastery_backup_041`, recompute under 041 | **145 s** | **yes** | ≤ 180 ms / ≤ 210 ms, none failed |
+| 042 | item flags and quality, `attempts.voided_at` (REQ-114) | 0.8 s | no | (too short to sample) |
+| 043 | `ai_calls (user_id, created_at)` index for the daily AI budget (REQ-115) | not timed on the fixture | no | builds an index on `ai_calls`; on a large table use CREATE INDEX CONCURRENTLY by hand first |
+| 044 | auth hardening columns and two `auth_events` indexes (REQ-116); apply BEFORE the backend deploy (see below) | not timed on the fixture | no | builds indexes on `auth_events` |
+| 045 | Audit 3 mastery rule, `review_state()`, `grading_claims`, two partial indexes on attempts (REQ-117) | 3.7 s | no | reads ≤ 13 ms; attempt inserts waited up to 2.5 s while the indexes built |
+| **045b** | backup to `mastery_backup_045`, recompute under 045 | **370 s** | **yes** | ≤ 54 ms / ≤ 770 ms, none failed |
 | 047 | `exam_session_items.save_seq` (REQ-113, ordered exam saves); NOT NULL with a constant default, catalog-only | not timed on the fixture | no | (instant ACCESS EXCLUSIVE, 5 s lock_timeout) |
 | 048 | REQ-119: `terms_acceptances`, `learner_onboarding` (existing accounts marked past first run), `learner_events` with AFTER triggers on attempts, lesson_progress, review_sessions, exam_sessions, placement_checks, and `exam_outcomes` | not timed on the fixture (one insert per account for the backfill) | no | (instant SHARE ROW EXCLUSIVE per trigger, 5 s lock_timeout) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
-029b, 031b and 041b. No read or insert failed or timed out at any point. On
+029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
+
+No read or insert failed or timed out at any point. On
 the fixture 041b changed no level (its history has only lesson answers, which
 041 scores as 031 did); on production it changes the levels of learners with
 unit checks, Quiz me, placement or comparison-card answers.
 
-**Why the three `b` files need a quiet window.** Each is one transaction. It
+045 and 045b (REQ-117) were measured on the same fixture plus two heavy
+learners (5,000 and 26,000 attempts on a 259-objective course, a tenth of
+them PBQs and unit checks) with the same probe running. 045 builds two
+partial indexes on attempts inside its transaction: reads go on, and an
+attempt insert waits while they build (up to 2.5 s on the fixture; scale with
+the size of attempts). 045b changes many levels on real data -- on the
+fixture 102,622 of 320,523 rows, mostly Guided to Independent (the old
+fixture history is all repeats of two Solo items, which 045 no longer
+counts as wrong) and Needs review to Guided (Needs review now needs answers
+on two different days) -- so its row locks cover most graded pairs until it
+commits: keep the quiet window. The 045 rule is also what makes heavy
+learners fast again (perf audit HIGH-2): one objective for the
+26,000-attempt learner took 6.8 s under 041 and 15 ms under 045 (5,000
+attempts: 335 ms -> 12 ms). Measured on 2026-11-07 with nothing else
+running; a first run while other load shared the machine took 428 s for
+045b (reads ≤ 32 ms, inserts ≤ 844 ms, none failed).
+
+**Why the recomputing `b` files (029b, 031b, 041b, 045b) need a quiet window.** Each is one transaction. It
 holds a row lock on every mastery row it changes until it commits, so a grade
 of one of those (learner, objective) pairs waits until the end -- up to the
 whole file's run time. Reads of every table, and inserts, are not blocked
@@ -67,7 +91,7 @@ long query: if one fails on a lock timeout, run `--all` again.
 
 2. **Apply every migration** in the quiet window:
    `npm run migrate -- --all`
-   About nine minutes on the fixture; scale with your attempt count.
+   About 15 minutes on the fixture; scale with your attempt count.
 
 3. **Deploy the backend** straight after (merge the release; Vercel deploys
    `master`). Keep the gap short. Until it is live the old backend is still
@@ -79,9 +103,9 @@ long query: if one fails on a lock timeout, run `--all` again.
    Outside a transaction block (it commits every 500 pairs). It takes the
    grader's per-pair lock, so it never overwrites a grade made while it runs,
    and skips rows already current. Fixture: 131 s for 320,004 pairs with one
-   row changing. Safe to stop and run again. This one call covers 029, 031
-   and 041: they all recompute through `mastery_from_attempts()`, which is
-   041's rule by now, and since 041 `mastery_pairs()` also visits pairs that
+   row changing (after 045b: 150 s for 320,523 pairs, 1 changed). Safe to stop and run again. This one call covers 029, 031,
+   041 and 045: they all recompute through `mastery_from_attempts()`, which is
+   045's rule by now, and since 041 `mastery_pairs()` also visits pairs that
    only have exam, review or comparison-card answers.
 
 5. **Publish the app update.** `cd mobile && npx eas update --channel production`
@@ -109,6 +133,16 @@ long query: if one fails on a lock timeout, run `--all` again.
    newest first, each only together with putting that file's predecessor rule
    back, because the next graded answer recomputes from whatever rule is
    installed:
+   - to undo 045: re-run section 3 of `041_mastery_rule_integration.sql`
+     (041's `mastery_detail`), then the `do $$` block at the end of
+     `042_item_quality.sql` (it re-adds the voided-answer filter), set the
+     six tuning values back (`update mastery_model_params set value = ...`:
+     assist_credit_hint 0.5, assist_credit_repeat 0.25, independent_accuracy
+     0.60, transfer_accuracy 0.75, transfer_min_gap_hours 24,
+     recency_half_life_days 60), then the RESTORE block in the
+     `045b_mastery_honesty_backfill.sql` header. Deploy the previous backend
+     first: the REQ-117 code reads `review_state()` and the 045 tuning rows,
+     which stay installed and are harmless to the old code;
    - to undo 041: re-run section 3 of `031_weighted_mastery.sql` (031's
      `mastery_detail`) and the `mastery_pairs` definition from
      `029_mastery_recompute.sql`, then the RESTORE block in the
@@ -135,6 +169,7 @@ drop table if exists mastery_backup_029;   -- probe: 029b_mastery_backfill.sql
 drop table if exists error_log_backup_029;
 drop table if exists mastery_backup_031;   -- probe: 031b_weighted_mastery_backfill.sql (checks the table too)
 drop table if exists mastery_backup_041;   -- probe: 041b_mastery_rule_backfill.sql
+drop table if exists mastery_backup_045;   -- probe: 045b_mastery_honesty_backfill.sql
 ```
 
 Not verified from this repo: production's real row counts (scale the times

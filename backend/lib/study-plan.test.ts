@@ -234,7 +234,48 @@ describe("keptSummary", () => {
       kept: 2,
       slipped: 1,
       unchecked: 1,
+      recheck: 0,
     });
+  });
+
+  test("REQ-117: counts objectives due to re-check", () => {
+    assert.equal(keptSummary([{ kept: "kept", recheckDue: true }, { kept: "slipped" }]).recheck, 1);
+  });
+});
+
+describe("REQ-117 plan honesty", () => {
+  test("FAIL-347: an objective exam practice already shows is a quick confirm, not more practice", () => {
+    const i = input({ objectives: objs([{ id: "a", unitId: "u1", status: "Guided", kept: "unchecked", examStrong: true }]) });
+    const p = buildStudyPlan(i);
+    assert.equal(p.remaining.confirm, 1);
+    assert.equal(p.remaining.practice, 0);
+    assert.match(p.thisWeek.steps[0].reason, /exam practice/);
+  });
+
+  test("FAIL-347: done objectives due to re-check are counted", () => {
+    const i = input({ objectives: objs([{ id: "a", unitId: "u1", status: "Transfer-ready", kept: "kept", recheckDue: true }]) });
+    assert.equal(buildStudyPlan(i).remaining.recheck, 1);
+  });
+
+  test("FAIL-355: a finished learner gets stretch steps on kept Independent objectives, highest weight first", () => {
+    const o = objs([
+      { id: "a", unitId: "u1", status: "Independent", kept: "kept" },
+      { id: "b", unitId: "u2", status: "Independent", kept: "kept" },
+      { id: "c", unitId: "u2", status: "Transfer-ready", kept: "kept" },
+      { id: "d", unitId: "u2", status: "Independent", kept: "unchecked" },
+    ]);
+    const p = buildStudyPlan(input({ objectives: o }));
+    assert.deepEqual(p.thisWeek.steps.map((s) => `${s.kind}:${s.objectiveId}`), ["stretch:a", "stretch:b"]);
+    // ...after any remaining work, and never for something answered today.
+    const mixed = objs([
+      { id: "a", unitId: "u1", status: "Independent", kept: "kept", lastAnsweredAt: "2026-11-07T08:00:00Z" },
+      { id: "b", unitId: "u2", status: "Independent", kept: "kept", lastAnsweredAt: "2026-11-05T08:00:00Z" },
+      { id: "c", unitId: "u2", status: "Guided", kept: "unchecked" },
+    ]);
+    assert.deepEqual(
+      buildStudyPlan(input({ objectives: mixed })).thisWeek.steps.map((s) => `${s.kind}:${s.objectiveId}`),
+      ["practice:c", "stretch:b"]
+    );
   });
 });
 

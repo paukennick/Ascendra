@@ -22,6 +22,9 @@ export function readinessSummary(r: CourseReadiness | null | undefined): Readine
   const practiced = `You've practiced ${r.practiced} of ${r.objectives} objectives (${share}).`;
   const accuracy =
     r.accuracyPercent == null ? null : `On what you've practiced, your weighted accuracy is ${r.accuracyPercent}%.`;
+  // REQ-117: "ready" also needs most of the exam confirmed at a due review.
+  const confirmed =
+    r.keptPercent == null ? null : `${r.keptPercent}% confirmed at a spaced review${r.blueprintWeighted ? " (by exam weight)" : ""}.`;
   const focus = r.domains.find((d) => d.unitId === r.focusUnitId);
   const next = focus ? `Biggest gain next: ${focus.title}.` : null;
   const keep = (xs: Array<string | null>) => xs.filter((x): x is string => !!x);
@@ -43,13 +46,13 @@ export function readinessSummary(r: CourseReadiness | null | undefined): Readine
       return {
         headline: "Looking exam-ready",
         percent: r.readinessPercent,
-        lines: keep([practiced, accuracy, "Keep it fresh with spaced review so it stays that way."]),
+        lines: keep([practiced, accuracy, confirmed, "Keep it fresh with spaced review so it stays that way."]),
       };
     default:
       return {
         headline: "Building readiness",
         percent: r.readinessPercent,
-        lines: keep([practiced, accuracy, next]),
+        lines: keep([practiced, accuracy, confirmed, next]),
       };
   }
 }

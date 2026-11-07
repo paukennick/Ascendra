@@ -81,6 +81,13 @@ export default function ReviewSessionScreen() {
   const answer = draft.text;
   const setAnswer = draft.setText;
 
+  // REQ-117: after two misses in a row on this objective, open with the
+  // choices (recognition first) rather than a third cold attempt.
+  useEffect(() => {
+    if (item && !result && item.easierEntry && !choices && !busy) revealChoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.position, result]);
+
   function resetQuestion() {
     setChoices(null);
     setPicked(null);
@@ -205,6 +212,12 @@ export default function ReviewSessionScreen() {
           <Muted numberOfLines={2}>
             {item!.unitTitle} · {item!.objectiveTitle}
           </Muted>
+          {item!.reteach && !result ? (
+            <View style={styles.reteach} accessibilityLabel={`A quick refresher first. ${item!.reteach}`}>
+              <Muted>A quick refresher first: this one has been tricky, and that's fine.</Muted>
+              <Body>{item!.reteach}</Body>
+            </View>
+          ) : null}
           <Body>{item!.question}</Body>
 
           {!result ? (
@@ -224,8 +237,8 @@ export default function ReviewSessionScreen() {
                 ))}
                 <Button label="Check" icon="send" loading={busy} disabled={busy || picked == null} onPress={() => submit("mc")} />
                 <Muted style={{ fontSize: 13 }}>
-                  Picking from choices is recognition: it keeps this in your review, but only an answer in your own words
-                  moves it to a longer gap.
+                  Picking from choices is recognition: a right pick brings this back within a week, and an answer in your
+                  own words moves it to a longer gap.
                 </Muted>
               </View>
             ) : (
@@ -272,6 +285,7 @@ export default function ReviewSessionScreen() {
 }
 
 const styles = StyleSheet.create({
+  reteach: { gap: spacing.xs, padding: spacing.sm, borderRadius: radius.md, backgroundColor: colors.cardAlt },
   input: {
     borderWidth: 1,
     borderColor: colors.inputBorder,

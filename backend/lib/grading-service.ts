@@ -4,6 +4,7 @@ import { getLessonFor } from "@/lib/lesson-store";
 import { toDateOnlyString } from "@/lib/mastery";
 import { lessonItemKey } from "@/lib/choice-order";
 import { optionReasonsFor } from "@/lib/lesson-store";
+import { cleanText } from "@/lib/text-input";
 
 // classification is a model-generated freeform tag (see
 // backend/lib/prompts.ts's grading prompts: "a short tag for the kind of
@@ -409,10 +410,11 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // PBQ revision is a retry, an exam answer a repeat, an explain-back copy a
   // reveal, and a caller-known reason (review "hint") is kept.
   const assistReason = await assistReasonFor(query, input);
+  const clean = modelTextCleaner();
 
   const extraCols: { col: string; value: unknown }[] = [];
   if (input.unitCheckItemId) extraCols.push({ col: "unit_check_item_id", value: input.unitCheckItemId });
-  if (input.partScores && input.partScores.length) extraCols.push({ col: "part_scores", value: JSON.stringify(input.partScores) });
+  if (input.partScores && input.partScores.length) extraCols.push({ col: "part_scores", value: JSON.stringify(cleanDeep(input.partScores)) });
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
@@ -431,16 +433,16 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.question,
       input.answer,
       input.verdict,
-      input.feedback ?? null,
-      clampClassification(input.classification),
-      input.missedParts ? JSON.stringify(input.missedParts) : null,
+      clean(input.feedback),
+      clean(clampClassification(input.classification)),
+      input.missedParts ? JSON.stringify(input.missedParts.map((m) => clean(m) ?? "")) : null,
       input.confidence ?? null,
       input.clientAttemptId ?? null,
       assistReason !== null,
       assistReason,
       input.assessmentType ?? null,
-      input.modelAnswer ?? null,
-      input.fixNext ?? null,
+      clean(input.modelAnswer),
+      clean(input.fixNext),
       input.retryOf ?? null,
       input.labObjectiveId ?? null,
       // unit_check_item_id (037) and part_scores (041) are only named when
@@ -520,6 +522,20 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   if (examReview) {
     await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date());
   }
+  // REQ-117 (FAIL-361): an unaided, spaced exam MISS on a due objective is a
+  // due review too: it steps the schedule back and is logged, so "kept"
+  // (review_state, migration 045) sees the misses and not only the hits.
+  // Before, only correct exam answers were logged, so a mock-only learner
+  // read kept 33 of 36 whatever the misses.
+  const examMiss =
+    input.repeatAnySetting === true &&
+    input.verdict !== "correct" &&
+    assistReason === null &&
+    !!input.objectiveId &&
+    ((await query(`select attempt_spaced($1) as ok`, [attempt.id]))[0] as { ok?: boolean } | undefined)?.ok === true;
+  if (examMiss) {
+    await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date(), input.verdict);
+  }
   if (reviewEvidence || examReview) {
     await query(
       `update error_log
@@ -560,16 +576,32 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
         input.objectiveId ?? null,
         input.pbqScenarioId ?? null,
         attempt.id,
-        input.question.slice(0, 200),
+        cleanText(input.question, 200),
         input.answer,
-        input.feedback ?? null,
-        clampClassification(input.classification),
+        clean(input.feedback),
+        clean(clampClassification(input.classification)),
         toDateOnlyString(next),
       ]
     );
   }
 
   return attempt;
+}
+
+// REQ-117 (Audit 3 A3, FAIL-358): text from the model (feedback, missed
+// parts, model answer, fix-next line, classification, per-part scores) is
+// cleaned before it is stored. A schema-valid reply carrying a NUL or a lone
+// surrogate made the INSERT fail, so the learner's answer was lost with a
+// 500. Learner text is still validated at the route (textField).
+export const MODEL_TEXT_MAX = 20_000;
+function modelTextCleaner() {
+  return (v: string | null | undefined): string | null => (v == null ? null : cleanText(v, MODEL_TEXT_MAX));
+}
+export function cleanDeep(v: unknown): unknown {
+  if (typeof v === "string") return cleanText(v, MODEL_TEXT_MAX);
+  if (Array.isArray(v)) return v.map(cleanDeep);
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [cleanText(k, 200), cleanDeep(x)]));
+  return v;
 }
 
 // "hint": the Solo choices were on screen -- answered as multiple choice, or
@@ -583,6 +615,22 @@ async function assistReasonFor(
 ): Promise<AssistReason | null> {
   if (input.retryOf) return "retry";
   if (input.assist) return input.assist;
+  // REQ-117 (Audit 3 A1, FAIL-356): a unit-wide answer (PBQ or unit check)
+  // to a scenario or item this learner already answered -- and so saw graded,
+  // with the model answer -- is a repeat, as a lesson item is. It used to be
+  // recorded unassisted, so a pasted-back model answer counted as full
+  // evidence. Migration 045's rule derives the same from history.
+  if (!input.objectiveId && (input.pbqScenarioId || input.unitCheckItemId)) {
+    const seen = await query(
+      `select 1 from attempts
+        where user_id = $1 and objective_id is null and verdict is not null
+          and (($2::uuid is not null and pbq_scenario_id = $2::uuid)
+            or ($3::uuid is not null and unit_check_item_id = $3::uuid))
+        limit 1`,
+      [input.userId, input.pbqScenarioId ?? null, input.unitCheckItemId ?? null]
+    );
+    return seen.length ? "repeat" : null;
+  }
   // REQ-109: see repeatAnySetting. Without this a reused item would earn
   // full credit.
   if (input.repeatAnySetting && input.objectiveId) {

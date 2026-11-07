@@ -119,3 +119,19 @@ describe("plan step links (REQ-112 h)", () => {
     assert.equal(stepRoute({ ...base, kind: "warmup" }, "trk"), null);
   });
 });
+
+describe("REQ-117 kept wording", () => {
+  test("due-to-re-check objectives get their own line", () => {
+    const lines = keptLines({ completed: 3, kept: 2, slipped: 0, unchecked: 1, recheck: 2 });
+    assert.ok(lines.some((l) => /2 are due to re-check after a break/.test(l)));
+    assert.ok(!keptLines({ completed: 3, kept: 3, slipped: 0, unchecked: 0 }).some((l) => /re-check/.test(l)));
+  });
+});
+
+describe("REQ-117 stretch step", () => {
+  test("opens explain-it-back for the objective", () => {
+    const r = stepRoute({ kind: "stretch", objectiveId: "o1", unitId: "u1", title: "RBAC", minutes: 8, reason: "x" }, "t1");
+    assert.equal(r?.pathname, "/course/t1/explain/o1");
+    assert.equal(stepLabel({ kind: "stretch", objectiveId: "o1", title: "RBAC", minutes: 8, reason: "x" }), "Stretch: RBAC");
+  });
+});

@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { addDays, fixedScheduler, FIXED_INTERVALS_DAYS, schedulerFor, utcDay, type ScheduleState } from "./review-scheduler";
+import { addDays, fixedScheduler, FIXED_INTERVALS_DAYS, HELPED_MAX_STEP, schedulerFor, utcDay, type ScheduleState } from "./review-scheduler";
 
 const at = (iso: string) => new Date(iso);
 const state = (over: Partial<ScheduleState> = {}): ScheduleState => ({
@@ -36,7 +36,7 @@ describe("fixed_v1 review scheduler (REQ-108)", () => {
     assert.deepEqual([...FIXED_INTERVALS_DAYS], [1, 3, 7, 21, 60]);
   });
 
-  test("an early correct answer, or a helped one, does not move the schedule", () => {
+  test("an early correct answer does not move the schedule; a helped one when due is capped at the 7-day rung (REQ-117, FAIL-343)", () => {
     const s = state({ step: 2, dueOn: "2026-11-20" });
     const early = fixedScheduler.next(s, { verdict: "correct", assisted: false, reviewedAt: at("2026-11-10T09:00:00Z") });
     assert.equal(early.wasDue, false);
@@ -49,17 +49,43 @@ describe("fixed_v1 review scheduler (REQ-108)", () => {
     assert.equal(helped.wasDue, true);
     assert.equal(helped.advanced, false);
     assert.equal(helped.next.step, 2);
+    // FAIL-343: it used to keep the past due date, so it was served again the next day.
+    assert.equal(helped.next.dueOn, "2026-11-28");
+
+    const fromTop = fixedScheduler.next(state({ step: 4, dueOn: "2026-11-21" }), { verdict: "correct", assisted: true, reviewedAt: at("2026-11-21T09:00:00Z") });
+    assert.equal(fromTop.next.step, HELPED_MAX_STEP, "help at the 60-day rung comes back down to a week");
+  });
+
+  test("FAIL-343: always answering with the choices shown is never a daily loop", () => {
+    let s = state();
+    let served = 0;
+    for (let d = 0; d < 40; d++) {
+      const day = addDays("2026-11-08", d);
+      if (s.dueOn > day) continue;
+      served++;
+      s = fixedScheduler.next(s, { verdict: "correct", assisted: true, reviewedAt: at(`${day}T12:00:00Z`) }).next;
+    }
+    assert.equal(s.step, HELPED_MAX_STEP);
+    assert.ok(served <= 8, `served ${served} times in 40 days`);
   });
 
   test("a miss steps back one rung and counts a lapse, due or not; never below 0", () => {
-    const s = state({ step: 3, dueOn: "2026-12-30" });
+    const s = state({ step: 2, dueOn: "2026-12-30" });
     const r = fixedScheduler.next(s, { verdict: "incorrect", assisted: false, reviewedAt: at("2026-12-01T09:00:00Z") });
-    assert.equal(r.next.step, 2);
+    assert.equal(r.next.step, 1);
     assert.equal(r.next.lapses, 1);
-    assert.equal(r.next.dueOn, addDays("2026-12-01", 7));
+    assert.equal(r.next.dueOn, addDays("2026-12-01", 3));
     const floor = fixedScheduler.next(state(), { verdict: "incorrect", assisted: false, reviewedAt: at("2026-11-08T09:00:00Z") });
     assert.equal(floor.next.step, 0);
     assert.equal(floor.next.dueOn, "2026-11-09");
+  });
+
+  test("FAIL-353: a miss at the 21- or 60-day rung drops to step 1, not one rung", () => {
+    for (const step of [3, 4]) {
+      const r = fixedScheduler.next(state({ step, dueOn: "2026-12-01" }), { verdict: "incorrect", assisted: false, reviewedAt: at("2026-12-01T09:00:00Z") });
+      assert.equal(r.next.step, 1);
+      assert.equal(r.next.dueOn, addDays("2026-12-01", 3));
+    }
   });
 
   test("a partial answer holds the step and comes back after the previous rung's interval", () => {

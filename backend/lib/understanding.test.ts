@@ -6,6 +6,7 @@ import {
   cleanPrerequisites,
   conceptsNamed,
   copiedShare,
+  COPIED_SHARE_LIMIT,
   diagnoseMcMiss,
   explainBackQuestion,
   graderDiagnosis,
@@ -101,6 +102,61 @@ describe("explain-it-back", () => {
     assert.ok(copiedShare(teach, teach) > 0.9);
     assert.ok(copiedShare("You give each job a set of rights, then put people in jobs so they inherit what that job can do.", teach) < 0.1);
     assert.equal(copiedShare("too short", teach), 0);
+  });
+
+  // FAIL-357 (Audit 3 A2): one filler word every fifth word used to take a
+  // full paste from 1.0 to 0.0.
+  const lesson =
+    "Role-based access control assigns permissions to roles rather than to individual users. " +
+    "A user receives permissions only by being assigned one or more roles in the organisation. " +
+    "When a person changes jobs, an administrator removes the old role and assigns the new one, " +
+    "so permissions follow the job instead of piling up on the account. " +
+    "This makes least privilege easier to enforce and access reviews faster, because auditors check a handful of roles " +
+    "instead of thousands of individual grants.";
+  const fillers = ["um", "like", "basically", "you know", "actually"];
+  const everyFifth = (text: string) =>
+    text
+      .split(" ")
+      .map((w, i) => (i % 5 === 4 ? `${w} ${fillers[i % fillers.length]}` : w))
+      .join(" ");
+
+  test("FAIL-357: pasted lesson text with filler every fifth word is still copied", () => {
+    assert.ok(copiedShare(everyFifth(lesson), lesson) >= COPIED_SHARE_LIMIT, String(copiedShare(everyFifth(lesson), lesson)));
+    assert.ok(copiedShare(lesson.split(" ").join(" um "), lesson) >= COPIED_SHARE_LIMIT, "filler after every word");
+  });
+
+  test("FAIL-357: reordered sentences and swapped neighbours are still copied", () => {
+    const sentences = lesson.split(". ");
+    const reordered = [...sentences].reverse().join(". ");
+    assert.ok(copiedShare(reordered, lesson) >= COPIED_SHARE_LIMIT, String(copiedShare(reordered, lesson)));
+    const swapped = lesson
+      .split(" ")
+      .map((w, i, all) => (i % 4 === 0 && i + 1 < all.length ? all[i + 1] : i % 4 === 1 ? all[i - 1] : w))
+      .join(" ");
+    assert.ok(copiedShare(swapped, lesson) >= COPIED_SHARE_LIMIT, String(copiedShare(swapped, lesson)));
+  });
+
+  test("FAIL-357: a light synonym pass is still copied", () => {
+    const syn = lesson
+      .replace(/permissions/g, "rights")
+      .replace("individual users", "single people")
+      .replace("administrator", "admin")
+      .replace("faster", "quicker");
+    assert.ok(copiedShare(everyFifth(syn), lesson) >= COPIED_SHARE_LIMIT, String(copiedShare(everyFifth(syn), lesson)));
+  });
+
+  test("FAIL-357: an explanation in the learner's own words is not flagged", () => {
+    const own =
+      "Think of a hospital. Instead of handing every nurse a custom list of what they may open, the hospital defines a nurse " +
+      "job and a doctor job, each with its own set of rights. New staff just get the job, and when someone moves to another " +
+      "ward you swap the job instead of hunting down every grant. It keeps people to the minimum they need, and checking " +
+      "who can do what means looking at a few jobs rather than everybody's account.";
+    assert.ok(copiedShare(own, lesson) < 0.2, String(copiedShare(own, lesson)));
+    // Uses the lesson's key terms in a sentence of its own: fine.
+    const terms =
+      "With role-based access control I would give the finance role read access to invoices, put Priya in finance, " +
+      "and when she moves to sales take finance away so her old access does not linger.";
+    assert.ok(copiedShare(terms, lesson) < COPIED_SHARE_LIMIT, String(copiedShare(terms, lesson)));
   });
   test("the learner's text is fenced and escaped in the grading prompt", () => {
     const { user } = explainBackGradePrompt({

@@ -81,6 +81,7 @@ const STEP_VERB: Record<PlanStep["kind"], string> = {
   review: "Review",
   mock: "Mock exam",
   light: "Light day",
+  stretch: "Stretch",
 };
 
 export function stepLabel(s: PlanStep): string {
@@ -101,8 +102,10 @@ export function reviewLine(plan: StudyPlan): string {
 export function keptLines(k: KeptSummary): string[] {
   if (k.completed === 0) return ["Once you've got a few objectives right, this shows how many you keep over time."];
   const lines = [`You've kept ${k.kept} of the ${k.completed} objectives you've completed.`];
-  if (k.unchecked) lines.push(`${k.unchecked} haven't had a spaced check yet. A quick review a day or more later shows whether they stuck.`);
-  if (k.slipped) lines.push(`${k.slipped} slipped on the last check. That's normal forgetting, and they're back in your plan.`);
+  if (k.unchecked) lines.push(`${k.unchecked} haven't had a review come due yet. Answering it then, in your own words, shows whether they stuck.`);
+  if (k.slipped) lines.push(`${k.slipped} slipped on recent checks. That's normal forgetting, and they're back in your plan.`);
+  // REQ-117: a level stands, but after a long gap it is due to re-check.
+  if (k.recheck) lines.push(`${k.recheck} ${k.recheck === 1 ? "is" : "are"} due to re-check after a break. A short review brings ${k.recheck === 1 ? "it" : "them"} back.`);
   return lines;
 }
 
@@ -150,6 +153,8 @@ export function stepRoute(s: PlanStep, trackId: string, trackTitle?: string): St
     return { pathname: `/course/${trackId}/exam`, params: trackTitle ? { trackTitle } : {} };
   }
   if (!s.objectiveId) return null;
+  // REQ-117: a stretch step goes straight to explain-it-back.
+  if (s.kind === "stretch") return { pathname: `/course/${trackId}/explain/${s.objectiveId}`, params: { objectiveTitle: s.title } };
   return {
     pathname: `/course/${trackId}/lesson/${s.objectiveId}`,
     params: { ...(s.unitId ? { unitId: s.unitId } : {}), objectiveTitle: s.title },

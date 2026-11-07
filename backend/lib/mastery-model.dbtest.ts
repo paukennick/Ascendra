@@ -116,15 +116,22 @@ describe("weighted mastery model (031)", () => {
   });
 
   test("two formats on separate days reach Transfer-ready; the same two in one sitting do not", async () => {
+    // REQ-117 (045): the second format is a spaced explain-back (a unit PBQ
+    // no longer counts as a format, FAIL-340), 72 h+ after the first win.
     const spaced = await newUser();
-    await answer(spaced, objsA[1], { verdict: "correct", ago: "3 days" });
-    await pbq(spaced, "correct", "1 hour");
+    await answer(spaced, objsA[1], { verdict: "correct", ago: "4 days" });
+    await answer(spaced, objsA[1], { verdict: "correct", ago: "1 hour", type: "explain_back" });
     assert.equal(await level(spaced, objsA[1]), "Transfer-ready");
+    const withPbq = await newUser();
+    await answer(withPbq, objsA[1], { verdict: "correct", ago: "3 days" });
+    await pbq(withPbq, "correct", "1 hour");
+    assert.deepEqual((await detail(withPbq, objsA[1]))?.formats, ["free_response"], "a unit PBQ is accuracy only");
+    assert.equal(await level(withPbq, objsA[1]), "Independent");
 
     const sitting = await newUser();
     await answer(sitting, objsA[1], { verdict: "correct", ago: "20 minutes" });
-    await pbq(sitting, "correct", "10 minutes");
-    assert.deepEqual((await detail(sitting, objsA[1]))?.formats, ["free_response", "performance"]);
+    await answer(sitting, objsA[1], { verdict: "correct", ago: "10 minutes", type: "explain_back" });
+    assert.deepEqual((await detail(sitting, objsA[1]))?.formats, ["free_response"], "an explain-back straight after counts only when spaced");
     assert.equal(await level(sitting, objsA[1]), "Independent", "one sitting stays below the top");
   });
 
@@ -191,8 +198,9 @@ describe("weighted mastery model (031)", () => {
 
   test("a new assessment type slots in by name; an unknown name is refused", async () => {
     const u = await newUser();
-    await answer(u, objsA[7], { verdict: "correct", ago: "2 days", type: "explain_back" });
-    await answer(u, objsA[7], { verdict: "correct", ago: "1 hour" });
+    // REQ-117: explain-back counts when spaced, and the formats 72 h apart.
+    await answer(u, objsA[7], { verdict: "correct", ago: "5 days" });
+    await answer(u, objsA[7], { verdict: "correct", ago: "1 day", type: "explain_back" });
     assert.deepEqual((await detail(u, objsA[7]))?.formats, ["explain_back", "free_response"]);
     assert.equal(await level(u, objsA[7]), "Transfer-ready");
     await assert.rejects(answer(u, objsA[7], { verdict: "correct", ago: "1 hour", type: "made_up_type" }), /foreign key/);
@@ -204,7 +212,9 @@ describe("weighted mastery model (031)", () => {
     assert.equal(await detail(u, objsA[8]), null);
     await answer(u, objsA[8], { verdict: "correct", ago: "3 days" });
     await query(`select recompute_mastery($1)`, [u]);
-    assert.equal(await stored(u, objsA[8]), "Transfer-ready", "the earlier PBQ counts once there is direct evidence");
+    // REQ-117 (FAIL-340): it counts toward accuracy, not as a second format.
+    assert.equal(await stored(u, objsA[8]), "Independent", "the earlier PBQ counts once there is direct evidence");
+    assert.match((await queryOne<{ evidence: string }>(`select evidence from mastery where user_id = $1 and objective_id = $2`, [u, objsA[8]]))!.evidence, /1 unit-wide/);
 
     const v = await newUser();
     await answer(v, objsA[9], { verdict: "correct", ago: "2 days" });
@@ -220,7 +230,9 @@ describe("weighted mastery model (031)", () => {
       answer: "a",
       verdict: "correct",
     });
-    assert.equal(await stored(v, objsA[9]), "Transfer-ready");
+    // Updated live (the evidence now names the PBQ); REQ-117: not a format.
+    assert.equal(await stored(v, objsA[9]), "Independent");
+    assert.match((await queryOne<{ evidence: string }>(`select evidence from mastery where user_id = $1 and objective_id = $2`, [v, objsA[9]]))!.evidence, /1 unit-wide/);
     assert.equal(await stored(v, objsA[8]), undefined, "an unstudied objective gets no row");
   });
 });
@@ -442,7 +454,8 @@ describe("031 keeps 029's guarantees", () => {
     await old(o.later, "Introduced", 1);
     await answer(u, o.noRow, { verdict: "correct", ago: "3 days" });
     // Each of the last three: a free response 3 days ago plus the unit's
-    // correct PBQ a day ago -- two formats on separate days.
+    // correct PBQ a day ago -- Independent (REQ-117: a unit PBQ is accuracy
+    // only, and the formats need 72 h; this test is about the restore).
 
     // 031b recomputes every learner, so it runs on its own connection inside a
     // transaction that is rolled back (FAIL-076).
@@ -471,9 +484,9 @@ describe("031 keeps 029's guarantees", () => {
       assert.equal(byObj[o.noRow].created_by_031, true, "the row the recompute created is marked");
       assert.equal(await status(o.selfSet), "Not started", "a self-set level with no evidence is dropped");
       assert.equal(await status(o.pbqOnly), "Not started", "a PBQ alone is not a level");
-      assert.equal(await status(o.recomputed), "Transfer-ready");
-      assert.equal(await status(o.later), "Transfer-ready");
-      assert.equal(await status(o.noRow), "Transfer-ready", "a missing row is created from its attempts");
+      assert.equal(await status(o.recomputed), "Independent");
+      assert.equal(await status(o.later), "Independent");
+      assert.equal(await status(o.noRow), "Independent", "a missing row is created from its attempts");
 
       // Real progress after the backup: a graded answer rewrote this row.
       await c.query(`update mastery set status = 'Guided', score_0_4 = 2, updated_at = now() where user_id = $1 and objective_id = $2`, [

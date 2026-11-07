@@ -54,6 +54,12 @@
   cached history, never in the system blocks; a model route answers a bad or
   empty model reply with a 503, not a 500; a new grader gets a runner in
   `scripts/eval/live.ts`.
+- A change to the mastery rule, readiness, the review schedule or the plan
+  (REQ-117) is run through the persona simulation (crammer, spaced, guesser,
+  hinter, struggler, returning, expert ...; Audit 3 teaching harness) before
+  and after, and the rule is timed on a learner with 26k attempts
+  (lib/mastery-honesty.dbtest.ts FAIL-360): any correlated subquery over
+  attempts uses a full index key, never an OR of keys (FAIL-360).
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

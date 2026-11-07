@@ -26,6 +26,7 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
+import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 
 export const dynamic = "force-dynamic";
 
@@ -198,59 +199,78 @@ export async function POST(req: Request) {
       if (found.status === "ok") revisedParts = partsToRevise(scenario.sub_parts, found.target.missed_parts);
     }
 
-    try {
-      await consumeRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
-    } catch (err) {
-      if (err instanceof RateLimitError) return tooManyRequests(err.message);
-      throw err;
-    }
-
-    const ctx = await coachContextForUnit(unitId);
-    // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
-    // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
-    const { parts: _parts, partScores, trivial: _trivial, ...grade } = await gradePbqAnswer({
-      scenario: scenario.scenario,
-      subParts: scenario.sub_parts,
-      answer,
-      revisionOf: revisedParts,
-      ctx: ctx ?? undefined,
-      userId: authUser.id,
-      purpose: "pbq_grade",
-    });
-    const graded = grade;
-
-    // Two requests with the same id can race past the check above; the
-    // unique index fails the slower one and it returns the winner's result.
-    const { attempt, prior } = await recordAttemptIdempotent({
-      userId: authUser.id,
-      unitId,
+    // REQ-117 (FAIL-359): racing copies of one submission share one model call.
+    const identity = {
       pbqScenarioId: scenario.id,
-      clientAttemptId,
-      kind: "pbq",
-      format: "pbq",
+      kind: "pbq" as const,
+      format: "pbq" as const,
+      stage: null,
       question: scenario.title,
       answer,
-      verdict: graded.verdict,
-      feedback: graded.feedback,
-      classification: graded.classification,
-      missedParts: graded.missedParts ?? [],
-      modelAnswer: graded.modelAnswer ?? null,
-      fixNext: graded.fixNext ?? null,
-      retryOf,
-      confidence,
-      partScores,
-    });
+    };
+    const replayStored = async () => {
+      const prior = clientAttemptId ? await findClientAttempt(authUser.id, clientAttemptId) : null;
+      if (!prior) return null;
+      if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+      return ok(prior);
+    };
+    const gradePbq = async () => {
+      try {
+        await consumeRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
+      } catch (err) {
+        if (err instanceof RateLimitError) return tooManyRequests(err.message);
+        throw err;
+      }
 
-    if (prior) return ok(prior);
-    return ok({
-      ...grade,
-      partScores,
-      assisted: attempt?.assisted === true,
-      assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
-      ...(revisedParts ? { revisedParts } : {}),
-      attempt,
-    });
+      const ctx = await coachContextForUnit(unitId);
+      // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
+      // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
+      const { parts: _parts, partScores, trivial: _trivial, ...grade } = await gradePbqAnswer({
+        scenario: scenario.scenario,
+        subParts: scenario.sub_parts,
+        answer,
+        revisionOf: revisedParts,
+        ctx: ctx ?? undefined,
+        userId: authUser.id,
+        purpose: "pbq_grade",
+      });
+      const graded = grade;
+
+      // Two requests with the same id can race past the check above; the
+      // unique index fails the slower one and it returns the winner's result.
+      const { attempt, prior } = await recordAttemptIdempotent({
+        userId: authUser.id,
+        unitId,
+        pbqScenarioId: scenario.id,
+        clientAttemptId,
+        kind: "pbq",
+        format: "pbq",
+        question: scenario.title,
+        answer,
+        verdict: graded.verdict,
+        feedback: graded.feedback,
+        classification: graded.classification,
+        missedParts: graded.missedParts ?? [],
+        modelAnswer: graded.modelAnswer ?? null,
+        fixNext: graded.fixNext ?? null,
+        retryOf,
+        confidence,
+        partScores,
+      });
+
+      if (prior) return ok(prior);
+      return ok({
+        ...grade,
+        partScores,
+        assisted: attempt?.assisted === true,
+        assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
+        ...(revisedParts ? { revisedParts } : {}),
+        attempt,
+      });
+    };
+    return await withGradingClaim(authUser.id, clientAttemptId, gradePbq, replayStored);
   } catch (err) {
+    if (err instanceof GradingInProgressError) return conflict(err.message);
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);

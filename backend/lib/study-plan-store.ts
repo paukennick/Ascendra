@@ -1,5 +1,6 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne } from "@/lib/db";
+import { dueObjectives } from "@/lib/review-store";
 import { isDateOnly, type KeptState, type PlanInput, type PlanObjective, type PlanUnit } from "@/lib/study-plan";
 
 // REQ-110: reads everything lib/study-plan.ts needs for one learner and
@@ -67,16 +68,25 @@ export function validateSettings(
   return { ok: true, value: { examDate: examDate as string | null, weeklyHours: Math.round(hours * 2) / 2 } };
 }
 
-// Per objective: stored status, whether placement tested it out, and its
-// "kept" state, from graded direct answers the weighted model counts (an
-// assessment type with weight above 0 -- review answers included -- never a
-// retry): an objective is completed once any such answer is correct.
-// REQ-112 (g): kept / slipped is decided by the latest answer that is BOTH
-// unassisted and spaced, spaced by the rule's own definition
-// (attempt_spaced(), migration 041: placement and Quiz me never anchor or
-// count as spacing). A spaced answer given with help (choices shown, a
-// repeat of a seen question, copied text) neither keeps nor slips it;
-// unchecked = no such answer yet.
+// Per objective: stored status, whether placement tested it out, whether
+// exam-style practice already shows it, and its "kept" state.
+//
+// completed: any graded direct answer the weighted model counts (weight above
+// 0, never a retry) is correct.
+// REQ-117 (T6, FAIL-345): kept / slipped / unchecked and "due to re-check"
+// come from review_state() (migration 045) -- the same definition course
+// readiness uses -- which reads only answers given when a review was DUE,
+// unaided. The latest spaced answer of any kind used to decide it, so a
+// missed item re-asked the next day until a guess landed read "kept".
+// REQ-117 (T11, FAIL-350): placement adapts by jumping ahead in a unit, so a
+// correct answer late in a unit also marks the unit's earlier objectives as
+// tested out (a miss closes the unit, so nothing after a miss is inferred).
+// REQ-117 (T8, FAIL-347): examStrong = at least 80% right over 4 or more
+// unaided exam-style answers (sprint or mock) on 2 or more days; the plan
+// asks for one quick confirming check instead of more practice.
+export const EXAM_STRONG_ACCURACY = 0.8;
+export const EXAM_STRONG_MIN_ANSWERS = 4;
+
 export async function planObjectives(userId: string, trackId: string): Promise<PlanObjective[]> {
   const rows = await query<{
     id: string;
@@ -85,13 +95,14 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
     sort_order: number;
     status: string | null;
     tested_out: boolean;
+    exam_strong: boolean;
     completed: boolean | null;
-    last_spaced: string | null;
+    kept: string | null;
+    recheck_due: boolean | null;
     last_at: Date | null;
   }>(
     `with a as (
-       select a.objective_id, a.id, a.created_at, a.verdict,
-              (not a.assisted and a.assist_reason is null) as unassisted
+       select a.objective_id, a.created_at, a.verdict
          from attempts a
          join objectives o on o.id = a.objective_id
          join course_units cu on cu.id = o.unit_id
@@ -101,29 +112,46 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
           and (a.kind = 'lesson' or a.assessment_type is not null)
           and ty.cognitive_weight > 0 and a.assist_reason is distinct from 'retry'
      ), k as (
+       select a.objective_id, bool_or(a.verdict = 'correct') as completed, max(a.created_at) as last_at
+         from a group by a.objective_id
+     ), x as (
        select a.objective_id,
-              bool_or(a.verdict = 'correct') as completed,
-              (array_agg(a.verdict::text order by a.created_at desc, a.id desc)
-                 filter (where a.unassisted and attempt_spaced(a.id)))[1] as last_spaced,
-              max(a.created_at) as last_at
-         from a
+              count(*) as n,
+              count(*) filter (where a.verdict = 'correct') as c,
+              count(distinct (a.created_at at time zone 'UTC')::date) as days
+         from attempts a
+         join objectives o on o.id = a.objective_id
+         join course_units cu on cu.id = o.unit_id
+        where a.user_id = $1 and cu.track_id = $2 and a.kind = 'quiz' and a.stage in ('sprint', 'mock')
+          and a.verdict is not null and not a.assisted and a.voided_at is null
         group by a.objective_id
+     ), pl as (
+       select pi.objective_id, pi.correct, po.unit_id, po.sort_order
+         from placement_items pi
+         join placement_checks pc on pc.id = pi.placement_id
+         join objectives po on po.id = pi.objective_id
+        where pc.user_id = $1
      )
      select o.id, o.unit_id, o.title, o.sort_order, m.status::text as status,
-            exists (select 1 from placement_items pi join placement_checks pc on pc.id = pi.placement_id
-                     where pc.user_id = $1 and pi.objective_id = o.id and pi.correct) as tested_out,
-            k.completed, k.last_spaced, k.last_at
+            exists (select 1 from pl where pl.correct and pl.unit_id = o.unit_id and pl.sort_order >= o.sort_order
+                       and (pl.objective_id = o.id or not exists (
+                             select 1 from pl miss where miss.correct = false and miss.unit_id = o.unit_id
+                                and miss.sort_order <= o.sort_order))) as tested_out,
+            coalesce(x.n >= ${EXAM_STRONG_MIN_ANSWERS} and x.days >= 2 and x.c >= ${EXAM_STRONG_ACCURACY} * x.n, false) as exam_strong,
+            k.completed, rs.kept, rs.recheck_due, k.last_at
        from objectives o
        join course_units cu on cu.id = o.unit_id
        left join mastery m on m.objective_id = o.id and m.user_id = $1
        left join k on k.objective_id = o.id
+       left join x on x.objective_id = o.id
+       left join lateral review_state($1, o.id) rs on true
       where cu.track_id = $2 and ${isActive("o")} and ${isActive("cu")}
       order by cu.sort_order, o.sort_order`,
     [userId, trackId]
   );
   return rows.map((r) => {
     let kept: KeptState = null;
-    if (r.completed) kept = r.last_spaced == null ? "unchecked" : r.last_spaced === "correct" ? "kept" : "slipped";
+    if (r.completed) kept = r.kept === "kept" || r.kept === "slipped" ? r.kept : "unchecked";
     return {
       id: r.id,
       unitId: r.unit_id,
@@ -131,7 +159,9 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
       sortOrder: r.sort_order,
       status: r.status ?? "Not started",
       testedOut: r.tested_out,
+      examStrong: r.exam_strong,
       kept,
+      recheckDue: r.recheck_due === true,
       lastAnsweredAt: r.last_at ? new Date(r.last_at).toISOString() : null,
     };
   });
@@ -143,11 +173,9 @@ export async function loadPlanInput(userId: string, trackId: string, today: stri
     [trackId]
   );
   const objectives = await planObjectives(userId, trackId);
-  const due = await queryOne<{ n: number }>(
-    `select count(*)::int as n from error_log e join course_units cu on cu.id = e.unit_id
-      where e.user_id = $1 and cu.track_id = $2 and not e.resolved and e.next_review_at <= $3::date`,
-    [userId, trackId, today]
-  );
+  // REQ-117 (T9, FAIL-348): the same count the review screen serves from
+  // (one per objective, schedule first), not one per error_log row.
+  const due = await dueObjectives(userId, today, trackId);
   // The latest study day in this course: lesson and PBQ answers only (a
   // placement check or a coached quiz is not "a session that went badly").
   const last = await queryOne<{ day: string; answers: number; correct: number }>(
@@ -175,7 +203,7 @@ export async function loadPlanInput(userId: string, trackId: string, today: stri
     weeklyHours: settings.weeklyHours,
     units: units.map((u): PlanUnit => ({ id: u.id, title: u.title, weight: u.weight == null ? null : Number(u.weight), sortOrder: u.sort_order })),
     objectives,
-    dueReviews: due?.n ?? 0,
+    dueReviews: due.length,
     lastSession: last ?? null,
     examMinutes: exam?.duration_minutes ?? null,
   };

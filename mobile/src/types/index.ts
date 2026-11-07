@@ -80,6 +80,7 @@ export interface DomainReadiness {
   coveragePercent: number;
   accuracyPercent: number | null;
   readinessPercent: number;
+  keptPercent?: number;
 }
 
 export interface CourseReadiness {
@@ -88,6 +89,8 @@ export interface CourseReadiness {
   readinessPercent: number;
   coveragePercent: number;
   accuracyPercent: number | null;
+  // REQ-117: blueprint-weighted share confirmed at a due review.
+  keptPercent?: number;
   objectives: number;
   practiced: number;
   focusUnitId: string | null;
@@ -290,6 +293,10 @@ export interface ReviewSessionItem {
   question: string;
   answered: boolean;
   verdict: "correct" | "partial" | "incorrect" | null;
+  // REQ-117: the last two answers on it were missed -- read this first, and
+  // the choices are offered up front.
+  reteach?: string | null;
+  easierEntry?: boolean;
 }
 
 export interface ReviewSession {
