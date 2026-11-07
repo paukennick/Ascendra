@@ -5,6 +5,7 @@ adopter project's repository structure so an assistant can choose where
 to inspect next without reading the whole repository.
 
 - Generated at: `2026-11-07T10:09:20+00:00`
+- Generated at: `2026-11-07T10:30:34+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -194,6 +195,7 @@ backend/
       028_ai_calls.sql
       029_mastery_recompute.sql
       032_lesson_progress_tombstone.sql
+      029b_mastery_backfill.sql
     seed/
       tracks/
       data.ts

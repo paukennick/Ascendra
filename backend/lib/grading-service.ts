@@ -178,6 +178,14 @@ export async function advanceReviewStage(
   return current ? { row: current, advanced: false } : null;
 }
 
+// Whether this learner has been shown the choices for this item.
+export async function hasHintReveal(userId: string, objectiveId: string, stage: string, question: string) {
+  return !!(await queryOne(
+    `select 1 from lesson_hint_reveals where user_id = $1 and objective_id = $2 and item_key = $3`,
+    [userId, objectiveId, lessonItemKey(stage, question)]
+  ));
+}
+
 // REQ-089: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded
