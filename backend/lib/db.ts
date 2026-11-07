@@ -1,4 +1,18 @@
-import { Pool, type QueryResultRow } from "pg";
+import { Pool, types, type QueryResultRow } from "pg";
+
+// REQ-090: pg hands back count() (bigint) and numeric columns as strings.
+// Every one in this schema is a small count or a weight/percentage (the
+// only numeric columns are numeric(5,2) weights), so parse them to numbers
+// once, here. The app compared them as strings before -- "9" >= "10" is
+// true -- which marked a 9-of-10 unit complete and skipped it.
+types.setTypeParser(types.builtins.INT8, (v) => Number(v));
+types.setTypeParser(types.builtins.NUMERIC, (v) => Number(v));
+
+// TLS is on for every hosted database (Supabase). CI's throwaway Postgres
+// service has no TLS, so PGSSLMODE=disable turns it off there only.
+export function sslOption(): false | { rejectUnauthorized: false } {
+  return process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false };
+}
 
 // Single shared pg Pool across warm serverless invocations. Vercel + Supabase's
 // pooled ("Transaction mode", port 6543) connection string is the intended target,
@@ -15,7 +29,7 @@ function getPool(): Pool {
     }
     pool = new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: sslOption(),
       max: 5,
       idleTimeoutMillis: 10_000,
     });
@@ -75,5 +89,14 @@ export async function withTransaction<R>(fn: (tx: TxClient) => Promise<R>): Prom
     throw err;
   } finally {
     client.release();
+  }
+}
+
+// For scripts and integration tests that need the process to exit promptly.
+export async function closePool(): Promise<void> {
+  if (pool) {
+    const p = pool;
+    pool = null;
+    await p.end();
   }
 }

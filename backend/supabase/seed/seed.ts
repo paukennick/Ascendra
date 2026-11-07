@@ -54,7 +54,7 @@ async function main() {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set (set it in backend/.env.local or the environment).");
   }
-  const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
 
   try {
     // Legacy owner whose private catalog copies get adopted (see header).
