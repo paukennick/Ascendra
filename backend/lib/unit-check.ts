@@ -8,6 +8,7 @@ import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/
 import { unitCheckPrompt, unitCheckSchema } from "@/lib/review-prompts";
 import { md5 } from "@/lib/review-plan";
 import { ReviewError } from "@/lib/review-service";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 
 // REQ-108 (research item #1): the unit gate check. Every unit carries a
 // gate statement in the seed (course_units.gate_description) -- what a
@@ -181,7 +182,13 @@ export async function gradeUnitCheck(
   if (!item) throw new ReviewError(404, "Unit check not found");
   if (clientAttemptId) {
     const prior = await findClientAttempt(userId, clientAttemptId);
-    if (prior) return { ...prior, subParts: item.sub_parts };
+    if (prior) {
+      // REQ-116: only a replay of this unit-check item.
+      if (!replayMatches(prior.attempt, { kind: "unitcheck", unitCheckItemId: item.id })) {
+        throw new ReviewError(409, REPLAY_CONFLICT);
+      }
+      return { ...prior, subParts: item.sub_parts };
+    }
   }
   try {
     await consumeRateLimit("unitcheck_grade", userId, { max: 20, windowMinutes: 10 }, { userId });

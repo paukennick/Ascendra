@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError, tooManyRequests } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, tooManyRequests, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sendSupportRequestNotification } from "@/lib/email";
 
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    const payload = await req.json();
+    const payload = await readJson(req);
 
     const kind = payload?.kind as Kind;
     if (!KINDS.includes(kind)) return badRequest(`kind must be one of: ${KINDS.join(", ")}`);

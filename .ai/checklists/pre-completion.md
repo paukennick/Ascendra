@@ -28,6 +28,15 @@
   long-timeout route list has every model route (FAIL-234), logout sweeps
   every per-user device key (FAIL-235), and tests written against an older
   rule were updated, not deleted (FAIL-232).
+- Auth and abuse (REQ-116, FAIL-310..329): an action that changes a
+  credential, the email address or a sign-in method asks the learner to
+  confirm it's them (lib/auth/reauth.ts) and ends other sessions
+  (lib/auth/sessionControl.ts); a route that replays by client id checks
+  the stored attempt is for the same item (lib/replay-binding.ts or
+  sameAttempt); request bodies go through readJson, learner text through
+  textField before any model call, and client-supplied ids through
+  lib/visibility.ts; anything that mails an address the caller typed goes
+  through mayEmail and escapes it.
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

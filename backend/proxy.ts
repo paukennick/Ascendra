@@ -7,16 +7,21 @@ import type { NextRequest } from "next/server";
 // working from anywhere. ALLOWED_ORIGINS (.env.local / Vercel env) is a
 // comma-separated list of extra origins on top of the defaults below --
 // add a LAN IP there to test the web preview from another device.
-const DEFAULT_ALLOWED_ORIGINS = [
-  "https://www.ascendra-learn.com",
-  "https://ascendra-learn.com",
-  "http://localhost:8081",
-];
+//
+// REQ-116 (audit 3, low): the Expo web dev server (localhost:8081) is only
+// a default outside production. In production any page on the visitor's own
+// machine could otherwise call the API from that origin. Add it through
+// ALLOWED_ORIGINS if a production backend ever needs it.
+export function allowedOriginsFor(env: { NODE_ENV?: string; ALLOWED_ORIGINS?: string }): string[] {
+  return [
+    "https://www.ascendra-learn.com",
+    "https://ascendra-learn.com",
+    ...(env.NODE_ENV === "production" ? [] : ["http://localhost:8081"]),
+    ...(env.ALLOWED_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
+  ];
+}
 
-const allowedOrigins = [
-  ...DEFAULT_ALLOWED_ORIGINS,
-  ...(process.env.ALLOWED_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
-];
+const allowedOrigins = allowedOriginsFor(process.env);
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers: Record<string, string> = {

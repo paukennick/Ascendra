@@ -16,7 +16,9 @@
 // remove the screen on purpose, and keeping it would leave backup codes on
 // screen for a signed-out or locked device (Audit 2, FAIL-060).
 
-export type MfaView = "status" | "totp-setup" | "email-setup" | "backup-codes" | "disable" | "regenerate";
+// "totp-reauth" (REQ-116): confirming it's you before adding an authenticator
+// while two-factor is already on. Nothing has started yet, so no guard.
+export type MfaView = "status" | "totp-reauth" | "totp-setup" | "email-setup" | "backup-codes" | "disable" | "regenerate";
 export type MfaLeaveGuard = "codes" | "setup" | null;
 
 export function mfaLeaveGuard(view: MfaView, allowLeave: boolean, signedIn = true): MfaLeaveGuard {

@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, pbqGradeResultSchema, normalizePartScores } from "@/lib/prompts";
 import {
@@ -128,7 +128,7 @@ export async function GET(req: Request) {
 // and fixNext with the verdict, and revisedParts when it was a revision.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { scenarioId } = body ?? {};
     if (!scenarioId || typeof scenarioId !== "string" || !body?.answer || typeof body.answer !== "string") {
       return badRequest("scenarioId and answer are required");

@@ -1,11 +1,18 @@
 import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
-import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import {
+  consumeRateLimit,
+  recordAuthEvent,
+  RateLimitError,
+  MFA_USER_EVENT,
+  MFA_USER_LIMIT,
+  MFA_USER_LOCKED_MESSAGE,
+} from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +24,7 @@ export const dynamic = "force-dynamic";
 // backup codes -- whichever method(s) the account has enabled.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { challengeToken, code, deviceLabel } = body ?? {};
     if (!challengeToken || typeof challengeToken !== "string" || !code || typeof code !== "string") {
       return badRequest("challengeToken and code are required");
@@ -56,6 +63,23 @@ export async function POST(req: Request) {
       return unauthorized("MFA is not configured for this account.");
     }
 
+    // REQ-116 (audit 3, finding 4): the per-challenge cap above allowed 8
+    // guesses per login, and anyone with the password can start as many
+    // logins as they like. Code checks are now also counted per ACCOUNT
+    // across every challenge (MFA_USER_LIMIT); a correct code clears the
+    // count, so the owner is never held back by their own earlier typos.
+    try {
+      await consumeRateLimit(MFA_USER_EVENT, user.id, MFA_USER_LIMIT, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        return new Response(JSON.stringify({ error: MFA_USER_LOCKED_MESSAGE }), {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw err;
+    }
+
     let matched = user.totp_secret_enc ? await verifyTotpCode(decrypt(user.totp_secret_enc), code) : false;
 
     if (!matched && user.email_mfa_enabled) {
@@ -87,6 +111,7 @@ export async function POST(req: Request) {
     const consumed = await consumeLoginChallenge(challenge.id, backupCodeId);
     if (consumed === "challenge_used") return unauthorized("Login challenge already used.");
     if (consumed === "backup_code_used") return unauthorized("Incorrect code.");
+    await query(`delete from auth_events where event_type = $1 and identifier = $2`, [MFA_USER_EVENT, user.id]);
     await recordAuthEvent("login_success", user.email, { ip: getClientIp(req), userId: user.id });
 
     const session = await completeLogin(user, {

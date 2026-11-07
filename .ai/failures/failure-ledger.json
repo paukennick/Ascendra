@@ -3790,6 +3790,579 @@
       ],
       "prevention_notes": "DB test.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-310",
+      "date": "2026-11-07",
+      "title": "A stolen access token alone could change the account email and take the account",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /api/account/email accepted { newEmail } with only a bearer token; confirming it then forgot-password gave the attacker the account (audit 3 RAN the chain).",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The email-change route was written as a profile edit, not as a credential change; the old address was only told after the change.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/account/email/route.ts",
+        "backend/lib/auth/emailTokens.ts",
+        "backend/lib/auth/reauth.ts"
+      ],
+      "fix_summary": "Re-authentication (password, TOTP/backup code, or fresh Google sign-in) required; old address alerted at request time with a cancel link that also signs out everywhere; confirmation re-checks token_version and cancel; only the newest request is live.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::a stolen access token alone can no longer change the email",
+        "backend/lib/auth-hardening.dbtest.ts::with the password: old address alerted at request time",
+        "cancel link voids the change and signs out",
+        "backend/lib/auth-hardening.dbtest.ts::the confirmation re-checks: a password change in between voids it; only the newest request counts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-311",
+      "date": "2026-11-07",
+      "title": "A stolen access token could replace an enabled authenticator and mint backup codes",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "mfa/setup and mfa/enable needed no proof when MFA was already on; the owner's real code then got 401.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Setup/enable were designed for first enrollment only; nobody considered re-enrollment on an account that already has MFA.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/auth/mfa/setup/route.ts",
+        "backend/app/api/auth/mfa/enable/route.ts"
+      ],
+      "fix_summary": "With MFA on, setup requires reauth and marks the pending secret (totp_pending_reauth_at); enable refuses unmarked secrets; enabling ends other sessions and returns a fresh access token.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::setup without re-authentication is refused; the owner's code still works",
+        "backend/lib/auth-hardening.dbtest.ts::with a current code: setup and enable work",
+        "other sessions end",
+        "caller gets a fresh token",
+        "backend/lib/auth-hardening.dbtest.ts::a pending secret started before MFA was on can't be enabled once it is"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-312",
+      "date": "2026-11-07",
+      "title": "Reusing an old clientAttemptId revealed an unanswered question's answer key",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Review answer and comparison answer returned the stored replay plus this item's correctIndex/correctAnswer/why for any of the learner's own client ids; nothing was recorded.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The replay lookup was keyed on the id only; REQ-098's sameAttempt binding was applied to grade and pbq but not to routes added later by feature branches.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/review-service.ts",
+        "backend/app/api/comparison-items/[itemId]/answer/route.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "replayMatches (lib/replay-binding.ts) checks kind/stage/objective or unit-check item/question; mismatch is 409.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.dbtest.ts::review: an id used on item 0 can't reveal item 1's key (409); the same item still replays",
+        "backend/lib/security-a3.dbtest.ts::comparison: an id recorded elsewhere gets 409",
+        "not the answer",
+        "backend/lib/security-a3.dbtest.ts::explain-back: an id recorded for another objective gets 409"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-313",
+      "date": "2026-11-07",
+      "title": "MFA code guesses were capped per challenge, not per account",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "32 wrong codes across 4 fresh logins were all checked.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The limit was keyed on the challenge token hash so an intercepted challenge was bounded, but a password holder can mint challenges freely.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "Per-account limit mfa_verify_user (10 per 15 min) with a kind message; cleared on success.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::ten wrong codes across fresh logins",
+        "then a kind 429",
+        "backend/lib/auth-hardening.dbtest.ts::a correct code clears the count"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-314",
+      "date": "2026-11-07",
+      "title": "Account deletion left the email and IPs in auth_events forever",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After DELETE /api/account the user's email and IP were still in auth_events; nothing purged old rows.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "auth_events.user_id is on delete set null and its identifier column holds the email; deletion relied on cascades only.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/account/route.ts",
+        "backend/lib/auth/retention.ts",
+        "backend/app/api/cron/purge-auth-data/route.ts",
+        "backend/vercel.json"
+      ],
+      "fix_summary": "purgeUserAuthEvents in the deletion transaction (user id, email, email|ip keys, user-id identifiers); purgeExpiredAuthData (90 days) on a daily Vercel cron with CRON_SECRET; indexes in 044.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::after deletion no auth_events row holds the email",
+        "its login keys",
+        "the user id or its IP",
+        "backend/lib/auth-hardening.dbtest.ts::purgeExpiredAuthData removes rows older than 90 days only; the cron route needs CRON_SECRET"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-315",
+      "date": "2026-11-07",
+      "title": "Avatar upload decompression bomb",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A 61 KB PNG declaring 8000x8000 took RSS from 267 to 652 MB.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Only the upload byte size was capped; Jimp decodes the full bitmap.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/auth/avatar.ts"
+      ],
+      "fix_summary": "PNG/JPEG header dimensions read before decoding (max 4096 a side, 16 MP); other formats refused; jpeg-js decoder given maxResolutionInMP/maxMemoryUsageInMB.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.dbtest.ts::an 8000x8000 PNG is refused fast without the memory spike; a small one is accepted",
+        "backend/lib/security-a3.test.ts::refuses sides over 4096",
+        "more than 16 MP",
+        "and unknown formats"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-316",
+      "date": "2026-11-07",
+      "title": "/api/errors stored any unit/objective id and returned its titles; unbounded text; no limits",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "User B read A's private objective/unit/track titles; a 3 MB errorText was stored; 30 courses created back to back.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The manual error-log route predates lib/visibility.ts and text-input.ts and was never brought under them.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/errors/route.ts",
+        "backend/app/api/courses/route.ts"
+      ],
+      "fix_summary": "visibleUnit/visibleObjective (404), textField caps, rate limits on error entries and course creation; GET hides titles of invisible tracks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.dbtest.ts::another learner's private unit/objective ids: 404 and no titles",
+        "backend/lib/security-a3.dbtest.ts::a 3 MB errorText is refused; entries are rate limited",
+        "backend/lib/security-a3.dbtest.ts::course creation: description capped",
+        "10 an hour"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-317",
+      "date": "2026-11-07",
+      "title": "Pre-registration squatting left the squatter's password usable",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An attacker registered the victim's email; the victim's verify click made the attacker's password work; Google sign-in linked onto it keeping the password.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Verification proved the inbox but trusted the password chosen before it; a second registration was refused instead of handled.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/auth/register/route.ts",
+        "backend/lib/auth/emailTokens.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/auth/resend-verification/route.ts"
+      ],
+      "fix_summary": "Second registration of an unverified address flags all its verification links set_password (and resends keep the flag); following one clears the password, ends sessions and links to set a password; Google sign-in onto an unverified account clears password and sessions.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::the owner's sign-up sends a set-password link; following it removes the squatter's password",
+        "backend/lib/auth-hardening.dbtest.ts::Google sign-in onto an unverified password account clears the password and sessions"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-318",
+      "date": "2026-11-07",
+      "title": "Login revealed which emails are registered (timing and 423)",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Unknown email answered in 1-6 ms vs ~300 ms; a locked account answered 423 vs 401.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "No bcrypt on the no-account path; lock reported with its own status.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/auth/login/route.ts",
+        "backend/lib/auth/passwords.ts"
+      ],
+      "fix_summary": "Dummy bcrypt compare on every no-check path; every failure is 401 with one message.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::unknown email",
+        "wrong password and a paused pair all answer 401 with one message",
+        "backend/lib/auth-hardening.dbtest.ts::an unknown email costs a bcrypt check like a known one"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-319",
+      "date": "2026-11-07",
+      "title": "Anyone could lock any learner out repeatedly",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Five wrong passwords from anyone locked the account for 15 minutes.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The lock was per account only.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/auth/lockout.ts",
+        "backend/app/api/auth/login/route.ts",
+        "backend/lib/hardening.dbtest.ts"
+      ],
+      "fix_summary": "Five-check limit per (email, IP) pair in auth_events; per-account counter kept as a 50-try backstop; a correct password or reset clears the pairs.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/hardening.dbtest.ts::20 concurrent wrong passwords from one IP run at most 5 checks and pause that IP only",
+        "backend/lib/auth-hardening.dbtest.ts::unknown email",
+        "wrong password and a paused pair all answer 401 with one message"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-320",
+      "date": "2026-11-07",
+      "title": "Current-password guesses in change-password were unlimited",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Eight wrong current passwords were all checked with no limit.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Only the login path had a guess limit.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts",
+        "backend/app/api/account/route.ts"
+      ],
+      "fix_summary": "Shared per-account reauth budget (10 per 15 min) for change-password, account deletion and every re-authentication.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::change-password: current-password guesses are limited (429 after 10)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-321",
+      "date": "2026-11-07",
+      "title": "Security alert email pasted the new address into HTML",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "An address carrying markup was rendered as a link in the alert.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "sendSecurityAlertEmail interpolated message text unescaped.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/email.ts",
+        "backend/app/api/account/email/route.ts"
+      ],
+      "fix_summary": "Message escaped; addresses with <>\" refused.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::low: the alert escapes the new address (no HTML injection)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-322",
+      "date": "2026-11-07",
+      "title": "Auth mails were limited per requesting IP only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Several IPs could flood one inbox with reset/verification mails.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Limits keyed on the requester, not the target.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/forgot-password/route.ts",
+        "backend/app/api/auth/resend-verification/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/account/email/route.ts"
+      ],
+      "fix_summary": "mayEmail: 5 an hour per target address, silently skipped over the limit.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::password reset mail: at most 5 an hour per target address",
+        "answer unchanged"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-323",
+      "date": "2026-11-07",
+      "title": "Access tokens stayed valid after deletion, logout-all or a password change",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The deleted user's token still read /api/auth/sessions for up to 15 minutes.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Stateless JWTs with no revocation check.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/auth/requireUser.ts",
+        "backend/lib/auth/tokens.ts",
+        "backend/lib/auth/sessionControl.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "fix_summary": "token_version (044) in each token, compared by one PK lookup in requireUser; bumped on logout-all, password change/reset, MFA on, cancel, squat clear; caller gets a fresh token.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::stale access tokens: deletion",
+        "logout-all and password change end them at once",
+        "backend/lib/auth-hardening.dbtest.ts::a token signed before migration 044 (no ver/fam) still works until the version moves"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-324",
+      "date": "2026-11-07",
+      "title": "Malformed input answered 500 on 60 route/input combinations",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Bad JSON, non-UUID ids and NUL characters reached req.json() or Postgres and came back as 500.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Each route called req.json() bare; Postgres input errors were not classified.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/app/api/auth/login/route.ts",
+        "backend/app/api/errors/route.ts",
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "Shared readJson (400) and serverError maps 22P02/22021/22P05/22003/22001 to 400; the audit sweep now reports no 500.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.test.ts::readJson turns a bad body into a 400 through serverError",
+        "backend/lib/security-a3.test.ts::database refusals of client input (bad uuid",
+        "NUL",
+        "too long) are 400; others stay 500",
+        "backend/lib/auth-hardening.dbtest.ts::malformed JSON answers 400",
+        "not 500"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-325",
+      "date": "2026-11-07",
+      "title": "A NUL in a review or explain-back answer cost a model call before failing",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The model was called, then the insert failed with a 500.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Text checks ran at insert time, after grading.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/review-service.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/objectives/[id]/lab/report/route.ts"
+      ],
+      "fix_summary": "hasUnstorableText checked before the rate limit and model call.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.dbtest.ts::review typed answer with NUL: 400 and no model call",
+        "backend/lib/security-a3.dbtest.ts::explain-back with NUL: 400 and no model call"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-326",
+      "date": "2026-11-07",
+      "title": "Production started with .env.example placeholder secrets",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A deploy with AUTH_JWT_SECRET=change-me-... would run with a key published in the repo.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Secrets were checked for presence only.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/env-check.ts",
+        "backend/instrumentation.ts",
+        "backend/lib/auth/tokens.ts"
+      ],
+      "fix_summary": "Instrumentation register() refuses production startup with placeholder values; JWT getter refuses too.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.test.ts::refused only in production",
+        "backend/lib/security-a3.test.ts::the .env.example values are placeholders; real-looking ones are not"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-327",
+      "date": "2026-11-07",
+      "title": "Production CORS allowed http://localhost:8081",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Any page served from localhost:8081 on a visitor's machine could call the production API from a browser.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "The dev origin was in the default list for every environment.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/proxy.ts"
+      ],
+      "fix_summary": "localhost only outside production (allowedOriginsFor).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-a3.test.ts::production allows no localhost origin by default; development does"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-328",
+      "date": "2026-11-07",
+      "title": "Data export omitted the learner's sign-in events, IPs and sessions",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "auth_events and refresh_tokens were excluded from the export.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Excluded wholesale as credentials/security log.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "signInEvents and sessions (no hashes) sections.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::the export includes the learner's own sign-in events with IP",
+        "and sessions without hashes"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-329",
+      "date": "2026-11-07",
+      "title": "Google-only accounts could never turn MFA off",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The disable routes demanded a password the account doesn't have.",
+      "how_detected": "Audit 3 security review (RAN unless noted)",
+      "root_cause": "Disable flow written for password accounts only.",
+      "requirement": "REQ-116",
+      "affected": [
+        "backend/lib/auth/mfaDisableGate.ts",
+        "backend/app/api/auth/mfa/disable/route.ts",
+        "backend/app/api/auth/mfa/email/disable/route.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "Google-only accounts prove it with the emailed code (or a fresh Google sign-in / code plus the emailed code for the last method).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/auth-hardening.dbtest.ts::Google-only account can turn MFA off with the emailed code"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: credential-changing actions need re-authentication and end sessions; replay ids are bound to their item; every new route uses readJson, textField and visibility checks; regression tests named here.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -1,14 +1,16 @@
 import crypto from "node:crypto";
 import { queryOne, withTransaction } from "@/lib/db";
-import { ok, badRequest, serverError } from "@/lib/http";
+import { ok, badRequest, serverError, readJson } from "@/lib/http";
 import { hashPassword } from "@/lib/auth/passwords";
+import { bumpTokenVersion } from "@/lib/auth/sessionControl";
+import { clearLoginPairs } from "@/lib/auth/lockout";
 
 export const dynamic = "force-dynamic";
 
 // POST /api/auth/reset-password — { token, newPassword }
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { token, newPassword } = body ?? {};
     if (!token || typeof token !== "string" || !newPassword || typeof newPassword !== "string") {
       return badRequest("token and newPassword are required");
@@ -49,6 +51,8 @@ export async function POST(req: Request) {
       await tx.query(`update refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null`, [
         consumed.user_id,
       ]);
+      // REQ-116: and every access token already issued.
+      await bumpTokenVersion(consumed.user_id, tx);
       // REQ-098: spend every other outstanding credential that was issued
       // before the reset. Other reset links stayed valid until they expired,
       // so a second link (from a leaked inbox, say) could undo this reset.
@@ -66,9 +70,10 @@ export async function POST(req: Request) {
         `update email_change_tokens set consumed_at = now() where user_id = $1 and consumed_at is null`,
         [consumed.user_id]
       );
-      return true;
+      return (await tx.queryOne<{ email: string }>(`select email from app_users where id = $1`, [consumed.user_id]))?.email ?? "";
     });
-    if (!reset) {
+    if (reset) await clearLoginPairs(reset);
+    if (reset === false) {
       return badRequest("This reset link is invalid or has expired. Request a new one.");
     }
 

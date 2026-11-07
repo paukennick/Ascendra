@@ -9,6 +9,7 @@ import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-servic
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { labAnswersFor, labObjective, labQuestionsFor } from "@/lib/lesson-experience";
 import { labReportAnswer, labReportQuestion, labReportTaughtText } from "@/lib/prompts";
+import { hasUnstorableText } from "@/lib/text-input";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
     const answers = labAnswersFor(body?.answers, questions.length);
     if (typeof answers === "string") return badRequest(answers);
+    // REQ-116: refused before the billed model call.
+    if (answers.some(hasUnstorableText)) return badRequest("an answer contains characters that can't be stored");
 
     const question = labReportQuestion(questions);
     const answer = labReportAnswer(answers);

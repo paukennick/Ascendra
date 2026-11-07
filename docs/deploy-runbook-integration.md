@@ -138,3 +138,47 @@ drop table if exists mastery_backup_041;   -- probe: 041b_mastery_rule_backfill.
 Not verified from this repo: production's real row counts (scale the times
 above), whether the Vercel Git integration promotes on merge, and Supabase's
 SQL editor with `CALL` and internal commits (use psql).
+
+## Migration 044: auth hardening (REQ-116, audit 3 security)
+
+`044_auth_hardening.sql` is additive: `app_users.token_version` (integer,
+default 0) and `totp_pending_reauth_at`, three columns and a partial unique
+index on `email_change_tokens`, `email_verification_tokens.set_password`, and
+two indexes on `auth_events` (`user_id`, `created_at`). Columns with a
+constant default don't rewrite the table on Postgres 11+; the two
+`auth_events` indexes are built without CONCURRENTLY, so they block writes to
+`auth_events` (sign-ins, rate limits) for the build -- seconds at most on a
+table the new retention purge keeps to 90 days, but run it in the same quiet
+window. Not measured on the 1.9M-attempt fixture (it has no auth_events
+volume); on the local test database it applies in well under a second.
+
+**Order matters.** Apply 044 BEFORE deploying the backend: `requireUser`
+reads `app_users.token_version` on every signed-in request, so code ahead of
+the migration fails every authenticated route (`/api/health` reports the 044
+probe). Tokens issued before the deploy carry no version and count as 0, so
+nobody is signed out by it.
+
+Before the deploy:
+
+1. Set `CRON_SECRET` in the Vercel project's environment variables (a long
+   random value). `vercel.json` now schedules `GET /api/cron/purge-auth-data`
+   daily at 09:30 UTC; Vercel sends `Authorization: Bearer $CRON_SECRET`.
+   Without it the route answers 503 and nothing is purged.
+2. Check no secret in Vercel still has its `backend/.env.example`
+   placeholder value: in production the server now refuses to start if one
+   does (`instrumentation.ts`, `lib/env-check.ts`).
+3. If the Expo web preview is ever pointed at the production backend from
+   `http://localhost:8081`, add that origin to `ALLOWED_ORIGINS`: it is no
+   longer a production default.
+
+Rollback: the previous backend ignores every 044 object, so roll the code
+back first and leave the schema. To drop it afterwards:
+
+```sql
+alter table app_users drop column if exists token_version, drop column if exists totp_pending_reauth_at;
+alter table email_change_tokens drop column if exists cancel_token_hash, drop column if exists token_version,
+  drop column if exists cancelled_at;
+alter table email_verification_tokens drop column if exists set_password;
+drop index if exists idx_auth_events_user;
+drop index if exists idx_auth_events_created;
+```

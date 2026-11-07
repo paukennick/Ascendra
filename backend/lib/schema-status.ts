@@ -317,6 +317,17 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.mastery_backup_041') is not null as ok`,
   },
   {
+    // REQ-116: requireUser reads token_version on every authenticated
+    // request, so without it every signed-in route fails.
+    migration: "044_auth_hardening.sql",
+    what: "app_users.token_version, totp_pending_reauth_at, email-change cancel and set-password columns (every signed-in request)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name = 'app_users' and column_name in ('token_version', 'totp_pending_reauth_at'))
+                       or (table_name = 'email_change_tokens' and column_name in ('cancel_token_hash', 'token_version', 'cancelled_at'))
+                       or (table_name = 'email_verification_tokens' and column_name = 'set_password'))) = 6 as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

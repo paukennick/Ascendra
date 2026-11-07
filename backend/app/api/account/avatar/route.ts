@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { processAvatarUpload, AvatarError } from "@/lib/auth/avatar";
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    const body = await req.json();
+    const body = await readJson(req);
     const imageBase64 = body?.imageBase64;
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return badRequest("imageBase64 is required");

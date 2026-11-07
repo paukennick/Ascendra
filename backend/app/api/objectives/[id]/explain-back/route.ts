@@ -1,4 +1,6 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
+import { hasUnstorableText } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
@@ -80,12 +82,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
     if (clientAttemptId) {
       const prior = await findClientAttempt(user.id, clientAttemptId);
-      if (prior) return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
+      if (prior) {
+        // REQ-116: only a replay of this objective's explain-back.
+        if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain" })) {
+          return conflict(REPLAY_CONFLICT);
+        }
+        return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });
+      }
     }
 
     const answer = body?.answer;
     if (typeof answer !== "string" || !answer.trim()) return badRequest("answer is required");
     if (answer.length > MAX_ANSWER) return badRequest(`answer must be at most ${MAX_ANSWER} characters`);
+    // REQ-116: a NUL or lone surrogate can't be stored; refuse it before the
+    // billed model call rather than failing after it.
+    if (hasUnstorableText(answer)) return badRequest("answer contains characters that can't be stored");
     if (answer.trim().split(/\s+/).length < MIN_WORDS) {
       return badRequest("Try a few sentences — imagine explaining it to a friend who has never heard of it.");
     }

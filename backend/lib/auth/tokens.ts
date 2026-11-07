@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { query, queryOne, withTransaction } from "../db";
+import { isPlaceholderSecret } from "../env-check";
 
 // Access tokens are stateless JWTs -- short-lived specifically because they
 // can't be revoked mid-flight. Refresh tokens are opaque random values;
@@ -16,24 +17,48 @@ function getJwtSecret(): string {
       "AUTH_JWT_SECRET is not set. Add it in Vercel project env vars (or .env.local for local dev) — see backend/.env.example."
     );
   }
+  // REQ-116: also refused per use, in case the startup hook didn't run.
+  if (process.env.NODE_ENV === "production" && isPlaceholderSecret(secret)) {
+    throw new Error("AUTH_JWT_SECRET still has the .env.example placeholder value. Set a real secret.");
+  }
   return secret;
 }
 
+// REQ-116: `ver` is the account's token_version when the token was signed
+// (migration 044). requireUser refuses a token whose version is behind the
+// account's, which is how logout-all, a password change or reset, enabling
+// MFA and account deletion end access tokens already handed out, instead of
+// leaving them usable for up to 15 minutes. A token without `ver` (signed
+// before 044) counts as version 0. `fam` is the refresh-token family of the
+// session the token belongs to, so "sign out every other device" can keep
+// the caller's own session.
 export interface AccessTokenPayload {
   sub: string; // user id
   email: string;
+  ver?: number;
+  fam?: string | null;
 }
 
 export function signAccessToken(payload: AccessTokenPayload): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL_SECONDS });
+  const claims: Record<string, unknown> = { sub: payload.sub, email: payload.email };
+  if (typeof payload.ver === "number") claims.ver = payload.ver;
+  if (payload.fam) claims.fam = payload.fam;
+  return jwt.sign(claims, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL_SECONDS });
 }
 
-export function verifyAccessToken(token: string): AccessTokenPayload {
-  const decoded = jwt.verify(token, getJwtSecret()) as jwt.JwtPayload & { email?: string };
+export function verifyAccessToken(token: string): Required<Pick<AccessTokenPayload, "sub" | "email" | "ver">> & {
+  fam: string | null;
+} {
+  const decoded = jwt.verify(token, getJwtSecret()) as jwt.JwtPayload & { email?: string; ver?: unknown; fam?: unknown };
   if (!decoded.sub || !decoded.email) {
     throw new Error("Malformed access token payload.");
   }
-  return { sub: decoded.sub, email: decoded.email };
+  return {
+    sub: decoded.sub,
+    email: decoded.email,
+    ver: typeof decoded.ver === "number" && Number.isInteger(decoded.ver) ? decoded.ver : 0,
+    fam: typeof decoded.fam === "string" ? decoded.fam : null,
+  };
 }
 
 function hashToken(raw: string): string {
@@ -86,7 +111,7 @@ export class RefreshTokenError extends Error {}
 export async function rotateRefreshToken(
   rawToken: string,
   meta: RefreshTokenMeta = {}
-): Promise<{ userId: string; raw: string }> {
+): Promise<{ userId: string; raw: string; familyId: string }> {
   const tokenHash = hashToken(rawToken);
   const newRaw = generateOpaqueToken();
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
@@ -120,9 +145,9 @@ export async function rotateRefreshToken(
       ]
     );
     await tx.query(`update refresh_tokens set replaced_by_id = $2 where id = $1`, [consumed.id, inserted?.id ?? null]);
-    return { userId: consumed.user_id };
+    return { userId: consumed.user_id, familyId: consumed.family_id };
   });
-  if (rotated) return { userId: rotated.userId, raw: newRaw };
+  if (rotated) return { userId: rotated.userId, raw: newRaw, familyId: rotated.familyId };
 
   // Not consumed: work out why. A concurrent loser blocks on the winner's row
   // lock until it commits, so the winner's successor is already visible to

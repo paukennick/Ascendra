@@ -1,9 +1,8 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { consumeRateLimit, RateLimitError, MFA_DISABLE_EVENT, MFA_DISABLE_LIMIT } from "@/lib/auth/rateLimit";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { verifyPassword } from "@/lib/auth/passwords";
-import { requestMfaDisableConfirmation, checkMfaDisableConfirmation } from "@/lib/auth/mfa";
+import { mfaDisableGate } from "@/lib/auth/mfaDisableGate";
 import { sendSecurityAlertEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +15,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    const body = await req.json();
-    const { password, confirmationCode } = body ?? {};
-    if (!password || typeof password !== "string") {
-      return badRequest("password is required");
-    }
+    const body = (await readJson(req)) ?? {};
     try {
       await consumeRateLimit(MFA_DISABLE_EVENT, user.id, MFA_DISABLE_LIMIT, { userId: user.id });
     } catch (err) {
@@ -28,25 +23,13 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    const row = await queryOne<{ password_hash: string | null; totp_secret_enc: string | null }>(
-      `select password_hash, totp_secret_enc from app_users where id = $1`,
-      [user.id]
-    );
-    if (!row?.password_hash || !(await verifyPassword(password, row.password_hash))) {
-      return unauthorized("Incorrect password.");
-    }
-
-    const totpStillEnabled = !!row.totp_secret_enc;
-    const isLastMethod = !totpStillEnabled;
-
-    if (isLastMethod) {
-      if (!confirmationCode || typeof confirmationCode !== "string") {
-        await requestMfaDisableConfirmation(user.id, user.email, "email", "email verification codes");
-        return ok({ confirmationRequired: true });
-      }
-      const confirmed = await checkMfaDisableConfirmation(user.id, "email", confirmationCode);
-      if (!confirmed) return unauthorized("Incorrect or expired confirmation code.");
-    }
+    const row = await queryOne<{ totp_secret_enc: string | null }>(`select totp_secret_enc from app_users where id = $1`, [
+      user.id,
+    ]);
+    const totpStillEnabled = !!row?.totp_secret_enc;
+    // REQ-116: the proof, including Google-only accounts (lib/auth/mfaDisableGate.ts).
+    const gate = await mfaDisableGate(user, body, "email", "email verification codes", !totpStillEnabled);
+    if (gate !== "proceed") return gate;
 
     await query(
       `update app_users set email_mfa_enabled = false, email_mfa_pending_code_hash = null,

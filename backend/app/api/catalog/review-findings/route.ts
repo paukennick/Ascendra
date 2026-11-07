@@ -1,5 +1,5 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireReviewAgent, ReviewAgentAuthError } from "@/lib/auth/requireReviewAgent";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ const RECHECK_INTERVAL = "4 months";
 export async function POST(req: Request) {
   try {
     requireReviewAgent(req);
-    const body = await req.json();
+    const body = await readJson(req);
     const { trackCode, conclusion, evidenceUrl, summary, checkedAt } = body ?? {};
 
     if (!trackCode || !conclusion || !evidenceUrl || !summary) {
