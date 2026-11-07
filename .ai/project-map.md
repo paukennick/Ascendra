@@ -11,6 +11,7 @@ to inspect next without reading the whole repository.
 - Generated at: `2026-11-07T09:56:43+00:00`
 - Generated at: `2026-11-07T11:29:39+00:00`
 - Generated at: `2026-11-07T11:30:25+00:00`
+- Generated at: `2026-11-07T11:31:29+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -88,6 +89,7 @@ backend/
       health/
       objectives/
       pbq/
+      review/
       sessions/
       support/
       taxonomy/
@@ -189,6 +191,15 @@ backend/
     revision.test.ts
     revision.ts
     rich-feedback.dbtest.ts
+    review-loop.dbtest.ts
+    review-plan.test.ts
+    review-plan.ts
+    review-prompts.ts
+    review-routes.ts
+    review-scheduler.test.ts
+    review-scheduler.ts
+    review-service.ts
+    review-store.ts
     schema-status.test.ts
     schema-status.ts
     study-plan-store.ts
@@ -203,6 +214,7 @@ backend/
     understanding.dbtest.ts
     understanding.test.ts
     understanding.ts
+    unit-check.ts
     visibility.ts
   public/
     .well-known/
@@ -265,6 +277,8 @@ backend/
       036_pbq_generation_claims.sql
       040_deep_understanding.sql
       039_coach_plan.sql
+      037_review_loop.sql
+      037b_review_loop_backfill.sql
     seed/
       tracks/
       catalog.ts
@@ -312,9 +326,12 @@ mobile/
       account.tsx
       explore.tsx
       index.tsx
+      review-coverage.tsx
+      review-session.tsx
       review.tsx
       settings.tsx
       support.tsx
+      unit-check.tsx
     (auth)/
       _layout.tsx
       forgot-password.tsx
@@ -391,6 +408,8 @@ mobile/
       progress.ts
       regenerateError.test.ts
       regenerateError.ts
+      reviewSession.test.ts
+      reviewSession.ts
       secureStorage.ts
       studyPlan.test.ts
       studyPlan.ts

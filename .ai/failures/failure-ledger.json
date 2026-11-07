@@ -3029,6 +3029,74 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-190",
+      "date": "2026-11-07",
+      "title": "Coach guard did not know about open review questions",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With Today's review added, a learner could ask Ask the coach for the answer to a review question waiting in their session: openItemsFor listed only lesson items and PBQs, so the reply check had no key for it.",
+      "how_detected": "Blast-radius review of readers of attempts and open items while building REQ-108",
+      "root_cause": "The coach guard enumerates open items per source table; a new question source (review_session_items) was added without adding it to the enumeration. Nothing ties new assessment sources to the guard.",
+      "requirement": "REQ-108",
+      "affected": [
+        "backend/lib/coach-guard.ts"
+      ],
+      "fix_summary": "openItemsFor also lists prepared, unanswered review questions in open sessions, with the correct option as the server-side key.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/review-loop.dbtest.ts::the coach guard treats an unanswered review question as open",
+        "with its key"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Pre-completion blast-radius check (REQ-096) applied to any new question source: grep openItemsFor and add the source.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-191",
+      "date": "2026-11-07",
+      "title": "Recording the unit check id would have broken every graded answer before migration 037",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "First draft of recordAttemptTx always named attempts.unit_check_item_id in its INSERT; on a database that has not had 037 applied (code deployed first, migrations by hand) every lesson and PBQ grade would fail with column does not exist.",
+      "how_detected": "Self-review against the deploy order notes in 029/031 before running tests",
+      "root_cause": "A shared write path was extended with a column from a new migration, while migrations are applied by hand and can lag the deploy.",
+      "requirement": "REQ-108",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "The column is named in the INSERT only when a unit check id is given; lesson and PBQ grading send the same statement as before plus assessment_type (031).",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Needs a database without 037 while the test suite applies every migration; the schema probe for 037 reports the gap in /api/health instead.",
+      "prevention_rules": [],
+      "prevention_notes": "Shared write paths only name columns from a new migration when the new feature uses them; schema probes added for 037/037b.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-192",
+      "date": "2026-11-07",
+      "title": "Term extraction read action lists as terms",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A title like 'Engaging stakeholders: identifying and analyzing them, tailoring communication to their needs, and executing a stakeholder engagement plan' produced three clauses as named terms, which term coverage would then track.",
+      "how_detected": "Running termsFromTitle over all 5,277 seeded objective titles and reading a sample",
+      "root_cause": "The deterministic rule accepted any short comma list after a colon; some seed titles list skills (gerund clauses), not terms.",
+      "requirement": "REQ-108",
+      "affected": [
+        "backend/lib/review-plan.ts"
+      ],
+      "fix_summary": "A list where half or more of the items start with a lowercase -ing verb is left to the cached model extraction.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/review-plan.test.ts::leaves non-list titles and clause lists to the model"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Deterministic extraction is checked against the whole seed, not hand-picked titles.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-200",
       "date": "2026-11-07",
       "title": "Readiness counted retired exam units after the exam-data merge",

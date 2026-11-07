@@ -26,7 +26,7 @@ export interface AttemptInput {
   unitId?: string | null;
   objectiveId?: string | null;
   pbqScenarioId?: string | null;
-  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab";
+  kind: "lesson" | "quiz" | "pbq" | "unitcheck" | "lab" | "review";
   stage?: string | null;
   format: "mc" | "open" | "pbq";
   question: string;
@@ -62,12 +62,19 @@ export interface AttemptInput {
   // assessmentType is a repeat when this learner already answered the same
   // item of the same type -- within `repeatWindowHours` if given, otherwise
   // ever (see typedAssistReason).
+  // REQ-108: review answers pass "hint" when the choices were shown before
+  // a typed answer. One field for every caller-known reason.
   assist?: AssistReason | null;
   repeatWindowHours?: number | null;
   // REQ-109: exam-style answers (sprint / mock) are repeats when this learner
   // answered the same question on this objective in ANY setting -- a lesson
   // check, an earlier sprint or mock -- because the answer was shown then.
   repeatAnySetting?: boolean;
+  // REQ-108: a unit check's item (attempts.unit_check_item_id, migration 037).
+  unitCheckItemId?: string | null;
+  // REQ-108: false skips the error_log row for a miss (unit checks are
+  // offered again from Review instead).
+  errorLog?: boolean;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
@@ -369,7 +376,9 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
   return withTransaction((tx) => recordAttemptTx(tx, input));
 }
 
-async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
+// Exported for callers that add their own writes to the same transaction
+// (REQ-108: lib/review-store.ts).
+export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const query = tx.query.bind(tx);
   const userId = input.userId;
   // REQ-106: see AttemptInput.labObjectiveId. Refused here as well as by the
@@ -389,14 +398,17 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
 
   // REQ-097: was this answer given with help? Decided here, under the lock
   // above, so two first answers racing can't both count as the first.
+  // FAIL-231 (integration): every kind goes through assistReasonFor, so a
+  // PBQ revision is a retry, an exam answer a repeat, an explain-back copy a
+  // reveal, and a caller-known reason (review "hint") is kept.
   const assistReason = await assistReasonFor(query, input);
 
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
        verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
-       assessment_type, model_answer, fix_next, retry_of, lab_objective_id)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+       assessment_type, model_answer, fix_next, retry_of, lab_objective_id${input.unitCheckItemId ? ", unit_check_item_id" : ""})
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22${input.unitCheckItemId ? ",$23" : ""})
      returning *`,
     [
       userId,
@@ -421,6 +433,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.fixNext ?? null,
       input.retryOf ?? null,
       input.labObjectiveId ?? null,
+      // unit_check_item_id (037) is only named when set, so lesson and PBQ
+      // grading keep working on a database 037 has not reached yet.
+      ...(input.unitCheckItemId ? [input.unitCheckItemId] : []),
     ]
   );
   const attempt = attemptRows[0];
@@ -504,7 +519,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // review, and a second entry would schedule the same item twice.
   // REQ-106: nor for a lab report. It is optional, self-reported practice on
   // the learner's own machine; a weak report is feedback, not a review item.
-  if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab") {
+  // REQ-108: nor when the caller asks for none (unit checks come back from
+  // Review instead).
+  if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab" && input.errorLog !== false) {
     const next = new Date();
     next.setDate(next.getDate() + 1);
     await query(

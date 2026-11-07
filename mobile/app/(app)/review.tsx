@@ -1,69 +1,57 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View } from "react-native";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
-import type { ErrorLogEntry } from "@/types";
+import type { ErrorLogEntry, ReviewToday } from "@/types";
 import {
-  Badge,
   Body,
   Button,
   Card,
-  Chip,
   EmptyState,
   ErrorBanner,
+  H1,
   H2,
   Loading,
   Muted,
   Screen,
   SectionHeader,
 } from "@/components/ui";
-import { colors, fonts, spacing } from "@/lib/theme";
+import { spacing } from "@/lib/theme";
+import { forTodayLabel, nextReviewLabel, utcToday } from "@/lib/reviewSession";
 
-// REQ-073: the spaced-review queue. Every non-correct answer has always
-// been written to error_log with a 1 / 7 / 21-day review date, and the
-// README has advertised that scheduler since day one -- but no screen ever
-// read it back, so the schedule ran silently and nothing ever came due in
-// front of the learner. This is that missing screen.
+// REQ-108: Review is now a hub with three things on it, none of them a wall
+// of due items:
 //
-// "Due" means next_review_at has arrived. "Got it" advances the entry one
-// stage (1 -> 7 -> 21 days -> resolved); "Dismiss" resolves immediately.
-// "Open lesson" is the honest way to re-check: it goes through the real
-// lesson flow again, which (via /api/grade) writes a fresh attempt. REQ-097:
-// a correct Solo answer there moves the entry on only once it is due, and a
-// question already answered before can't raise mastery (its answer was
-// shown) -- "Try a different question" in the lesson gives a fresh one.
-// "Retry scenario" does the same for a missed PBQ. The review entry itself is
-// only bookkeeping about when to look again.
-
-type Filter = "due" | "all";
-
-const STAGE_LABEL: Record<number, string> = {
-  0: "1-day review",
-  1: "7-day review",
-  2: "21-day review",
-};
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
+// 1. Today's review -- "N for today" and one Start button. Everything the
+//    learner has reached Guided on comes back on a 1/3/7/21/60-day ladder,
+//    and anything missed comes back too; each comes back with a NEW
+//    question, answered for real (the old "Got it" self-report is gone).
+//    The session itself is app/(app)/review-session.tsx.
+// 2. Unit checks ready -- a few units whose objectives have all been
+//    studied, each with a short transfer scenario from the unit's gate.
+// 3. Missed scenarios -- a missed PBQ still has "Retry scenario" (REQ-097),
+//    since a scenario is not part of the daily question session.
+//
+// Missed lesson questions used to be listed here one card each; they are now
+// folded into Today's review for their objective.
 
 export default function ReviewScreen() {
   const router = useRouter();
-  const [entries, setEntries] = useState<ErrorLogEntry[] | null>(null);
-  const [filter, setFilter] = useState<Filter>("due");
+  const [today, setToday] = useState<ReviewToday | null>(null);
+  const [scenarios, setScenarios] = useState<ErrorLogEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setError(null);
     api
-      .get<{ errors: ErrorLogEntry[] }>(`/api/errors${filter === "due" ? "?due=1" : ""}`)
-      .then((res) => setEntries(res.errors))
+      .get<ReviewToday>("/api/review/today")
+      .then(setToday)
       .catch((err) => setError(err.message));
-  }, [filter]);
+    api
+      .get<{ errors: ErrorLogEntry[] }>("/api/errors?due=1")
+      .then((res) => setScenarios(res.errors.filter((e) => !!e.pbq_scenario_id)))
+      .catch(() => setScenarios([]));
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,147 +59,107 @@ export default function ReviewScreen() {
     }, [load])
   );
 
-  async function act(entry: ErrorLogEntry, action: "reviewed" | "resolve") {
-    setBusyId(entry.id);
-    // Optimistic: drop the row now, put it back if the server disagrees.
-    setEntries((prev) => prev?.filter((e) => e.id !== entry.id) ?? prev);
+  async function dismiss(entry: ErrorLogEntry) {
+    setScenarios((prev) => prev?.filter((e) => e.id !== entry.id) ?? prev);
     try {
-      // fromStage: the stage this row was showing, so a repeated tap can't
-      // advance it a second time (see PATCH /api/errors/:id).
-      await api.patch(`/api/errors/${entry.id}`, { action, fromStage: entry.review_stage });
+      await api.patch(`/api/errors/${entry.id}`, { action: "resolve" });
     } catch (err) {
       setError((err as Error).message);
-      setEntries((prev) => (prev ? [entry, ...prev] : prev));
-    } finally {
-      setBusyId(null);
+      setScenarios((prev) => (prev ? [entry, ...prev] : prev));
     }
   }
 
-  // Grouped by course so a learner studying two tracks sees them apart.
-  const sections = useMemo(() => {
-    if (!entries) return [];
-    const byTrack = new Map<string, { title: string; data: ErrorLogEntry[] }>();
-    for (const e of entries) {
-      const key = e.track_id ?? "none";
-      const group = byTrack.get(key) ?? { title: e.track_title ?? "Other", data: [] };
-      group.data.push(e);
-      byTrack.set(key, group);
-    }
-    return Array.from(byTrack.values());
-  }, [entries]);
+  const next = today && !today.forToday ? nextReviewLabel(today.nextDueOn, utcToday()) : null;
 
   return (
     <Screen>
       <Stack.Screen options={{ title: "Review" }} />
-      <Muted>
-        Questions you missed come back on a 1, 7, then 21-day schedule. Re-open the lesson to
-        re-check yourself, or mark one as understood to move it to the next interval.
-      </Muted>
-      <View style={{ flexDirection: "row", gap: spacing.sm }}>
-        <Chip label="Due now" active={filter === "due"} onPress={() => setFilter("due")} />
-        <Chip label="All scheduled" active={filter === "all"} onPress={() => setFilter("all")} />
-      </View>
-
+      <H1>Review</H1>
       {error ? <ErrorBanner message={error} /> : null}
-      {!entries && !error ? <Loading /> : null}
 
-      {sections.map((section) => (
-        <React.Fragment key={section.title}>
-          <SectionHeader label={section.title} />
-          {section.data.map((e) => {
-            const busy = busyId === e.id;
-            return (
-              <Card key={e.id}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}>
-                  <Muted style={{ flex: 1 }} numberOfLines={1}>
-                    {e.unit_title ?? ""}
-                  </Muted>
-                  <Badge
-                    label={STAGE_LABEL[e.review_stage] ?? `stage ${e.review_stage}`}
-                    color={colors.warn}
-                    icon="clock"
-                  />
-                </View>
-                {e.objective_title ? <H2>{e.objective_title}</H2> : null}
-                <Body>{e.topic}</Body>
-                <Muted>Your answer: {e.error_text}</Muted>
-                {e.why ? <Body style={{ fontSize: 14 }}>{e.why}</Body> : null}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <Muted style={{ fontSize: 12 }}>
-                    {e.next_review_at ? `Due ${formatDate(e.next_review_at)}` : ""}
-                  </Muted>
-                  {e.classification && e.classification !== "none" ? (
-                    <Muted style={{ fontSize: 12, fontFamily: fonts.mono }}>{e.classification}</Muted>
-                  ) : null}
-                </View>
-                <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-                  {e.track_id && e.objective_id ? (
-                    <Button
-                      label="Open lesson"
-                      size="sm"
-                      fullWidth={false}
-                      icon="book-open"
-                      onPress={() =>
-                        router.push({
-                          pathname: `/course/${e.track_id}/lesson/${e.objective_id}`,
-                          params: { unitId: e.unit_id ?? undefined, objectiveTitle: e.objective_title },
-                        })
-                      }
-                    />
-                  ) : null}
-                  {/* REQ-097: a missed PBQ has no objective, so "Open lesson"
-                      never showed; it can now be retried, and a correct retry
-                      once it is due moves it to the next interval. */}
-                  {e.track_id && e.pbq_scenario_id ? (
-                    <Button
-                      label="Retry scenario"
-                      size="sm"
-                      fullWidth={false}
-                      icon="layers"
-                      onPress={() =>
-                        router.push({
-                          pathname: `/course/${e.track_id}/pbq`,
-                          params: { unitId: e.unit_id ?? undefined, scenarioId: e.pbq_scenario_id ?? undefined },
-                        })
-                      }
-                    />
-                  ) : null}
-                  <Button
-                    label="Got it"
-                    size="sm"
-                    variant="ghost"
-                    fullWidth={false}
-                    icon="check"
-                    loading={busy}
-                    onPress={() => act(e, "reviewed")}
-                  />
-                  <Button
-                    label="Dismiss"
-                    size="sm"
-                    variant="ghost"
-                    fullWidth={false}
-                    icon="x"
-                    disabled={busy}
-                    onPress={() => act(e, "resolve")}
-                  />
-                </View>
-              </Card>
-            );
-          })}
-        </React.Fragment>
-      ))}
+      <Card elevated>
+        <H2>Today's review</H2>
+        {!today && !error ? <Loading /> : null}
+        {today ? (
+          <>
+            <Body>{forTodayLabel(today.forToday, today.dueCount)}</Body>
+            <Muted>
+              {today.forToday
+                ? "A short mix of things you have learned, each with a new question. Stop whenever you like; anything you skip stays for later."
+                : next
+                  ? next.replace("This one comes back", "Your next review is")
+                  : "Study a lesson and it will start coming back here on a 1, 3, 7, 21 and 60-day schedule."}
+            </Muted>
+            {today.forToday ? (
+              <Button label="Start" icon="play" onPress={() => router.push("/review-session")} />
+            ) : null}
+            <Button
+              label="Terms you have shown you know"
+              variant="link"
+              fullWidth={false}
+              onPress={() => router.push("/review-coverage")}
+            />
+          </>
+        ) : null}
+      </Card>
 
-      {entries && entries.length === 0 ? (
+      {today && today.unitChecks.length ? (
+        <>
+          <SectionHeader label="Unit checks ready" />
+          {today.unitChecks.map((c) => (
+            <Card key={c.unitId}>
+              <Muted numberOfLines={1}>{c.trackTitle}</Muted>
+              <H2>{c.unitTitle}</H2>
+              <Muted>
+                {c.lastVerdict
+                  ? "Try it again with a new scenario when you're ready."
+                  : "You've studied every objective in this unit. One short scenario checks you can use it somewhere new."}
+              </Muted>
+              <Button
+                label={c.lastVerdict ? "Try the unit check again" : "Take the unit check"}
+                size="sm"
+                fullWidth={false}
+                icon="target"
+                onPress={() => router.push({ pathname: "/unit-check", params: { unitId: c.unitId } })}
+              />
+            </Card>
+          ))}
+        </>
+      ) : null}
+
+      {scenarios && scenarios.length ? (
+        <>
+          <SectionHeader label="Missed scenarios" />
+          {scenarios.slice(0, 3).map((e) => (
+            <Card key={e.id}>
+              <Muted numberOfLines={1}>{e.unit_title ?? ""}</Muted>
+              <Body>{e.topic}</Body>
+              <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+                {e.track_id ? (
+                  <Button
+                    label="Retry scenario"
+                    size="sm"
+                    fullWidth={false}
+                    icon="layers"
+                    onPress={() =>
+                      router.push({
+                        pathname: `/course/${e.track_id}/pbq`,
+                        params: { unitId: e.unit_id ?? undefined, scenarioId: e.pbq_scenario_id ?? undefined },
+                      })
+                    }
+                  />
+                ) : null}
+                <Button label="Dismiss" size="sm" variant="ghost" fullWidth={false} icon="x" onPress={() => dismiss(e)} />
+              </View>
+            </Card>
+          ))}
+          {scenarios.length > 3 ? <Muted>{scenarios.length - 3} more after these.</Muted> : null}
+        </>
+      ) : null}
+
+      {today && !today.forToday && !today.unitChecks.length && scenarios && !scenarios.length ? (
         <Card>
-          <EmptyState
-            icon="check-circle"
-            title={filter === "due" ? "Nothing due today" : "Nothing scheduled"}
-            message={
-              filter === "due"
-                ? "Missed questions come back here when their review date arrives."
-                : "Answer a few practice questions and anything you miss will be scheduled here."
-            }
-          />
+          <EmptyState icon="check-circle" title="All caught up" message="Nothing is due right now." />
         </Card>
       ) : null}
     </Screen>

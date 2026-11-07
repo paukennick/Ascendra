@@ -3401,6 +3401,63 @@
       ]
     },
     {
+      "id": "REQ-108",
+      "category": "feature",
+      "title": "Review loop: spaced review of everything learned, daily mixed review, unit gate checks, term coverage",
+      "description": "Owner request 2026-11-07 (research items 1, 2, 3, 10). SCHEDULE: every (learner, objective) is enrolled in review_schedule when it first reaches Guided/Independent/Transfer-ready (trigger mastery_review_enrol on mastery, so every writer enrols; 037b enrols existing rows spread over 7 days). lib/review-scheduler.ts fixed_v1 ladder 1/3/7/21/60 days: a correct unassisted answer when due climbs one rung; early or helped correct changes nothing; partial holds the step and returns after the previous rung; a miss steps back one rung and counts a lapse. schedulerFor(name) lets an FSRS scheduler replace it per row; review_log stores verdict, assisted, was_due, elapsed_days, scheduled_days, step and due before/after per review. TODAY'S REVIEW: POST /api/review/sessions plans up to 12 due objectives (schedule due or missed-question due; visible and acknowledged courses; not already reviewed today) interleaved across units, 8 and opening with the best-remembered objective after a rough session (3+ answered, under half right); resumes today's unfinished session. Each item is a NEW question from the shared lesson teach text, written by the fast model in one batched call per course per session and cached in review_items (shared, source_hash = md5 of the teach text); a learner is served a cached question they have not answered, preferring untested terms, else a new one is written. No choices or key before answering; Show choices is recorded server-side (choices_shown_at) and a typed answer after it is a hint; MC uses the learner's HMAC shuffle. Answers are attempts kind 'review', stage 'review', assessment_type free_response or multiple_choice, so the 031 rule counts them as direct spaced evidence (fresh-question path to Transfer-ready); recorded with the schedule step, review log, term coverage, error_log advance and session item in one transaction (recordAttemptTx exported). Got it removed from Review. UNIT CHECKS: GET/POST /api/units/:id/check, offered when every objective of the unit has a non-Not-started mastery row; one scenario from course_units.gate_description (fast model, cached per unit in unit_check_items, gate_hash), graded by gradePBQPrompt, recorded kind 'unitcheck', format 'pbq', objective null, unit_id, assessment_type 'unit_check' (registered: family scenario, weight 1.25, application level, unit_scope), unit_check_item_id; no error_log row. RULE GAP: 031 unit branch reads only kind 'pbq', so unit checks do not move mastery until the rule owner widens it to unit_scope assessment types (one-line change shown in review-loop.dbtest.ts). TERMS: objective_terms from the title when it lists short terms (lib/review-plan.ts termsFromTitle), else extracted once by the model in the same batch; learner_term_coverage credited on correct unassisted review answers; GET /api/review/coverage and the Terms you know screen. COACH: openItemsFor lists unanswered review questions with their key. Mobile: Review hub (N for today, unit checks ready, missed scenarios with Retry), review-session, unit-check, review-coverage screens.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/037_review_loop.sql",
+        "backend/supabase/migrations/037b_review_loop_backfill.sql",
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-plan.ts",
+        "backend/lib/review-prompts.ts",
+        "backend/lib/review-store.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/review-routes.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/coach-guard.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/review",
+        "backend/app/api/units/[id]/check/route.ts",
+        "mobile/app/(app)/review.tsx",
+        "mobile/app/(app)/review-session.tsx",
+        "mobile/app/(app)/unit-check.tsx",
+        "mobile/app/(app)/review-coverage.tsx",
+        "mobile/src/lib/reviewSession.ts",
+        "mobile/src/types/index.ts"
+      ],
+      "acceptance_criteria": [
+        "Reaching Guided schedules an objective; Introduced does not",
+        "Ladder 1/3/7/21/60 advances only on a correct unassisted answer when due; a miss steps back",
+        "Session is capped at 12 (8 after a rough session) and interleaved across units",
+        "No choices or key sent before answering; typed after Show choices is a hint",
+        "Review answers are direct evidence (kind review with assessment_type) in the weighted model",
+        "Questions are written in one batched cheap-model call and reused by other learners without a call",
+        "A learner never gets a review question they already answered",
+        "Unit check offered only after every objective is studied; cached and shared; recorded as unitcheck/unit_check",
+        "Term coverage credited only on correct unassisted answers; questions rotate toward untested terms"
+      ],
+      "validation_required": [
+        "npm run test:db (review-loop.dbtest.ts)",
+        "npm test (review-plan.test.ts; review-scheduler.test.ts)",
+        "mobile npm test (reviewSession.test.ts)",
+        "tsc in backend and mobile"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Unit checks do not move mastery until the 031 unit branch reads unit_scope types",
+        "Concurrent first starts can each write questions for the same objective (extra cost only)",
+        "Generation latency for a 12-question batch on first use of an objective"
+      ]
+    },
+    {
       "id": "REQ-109",
       "category": "feature",
       "title": "Exam practice: exam-style question formats, timed sprints, mock exams, confidence calibration",

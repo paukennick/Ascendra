@@ -264,6 +264,35 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                           and table_name = 'placement_items' and column_name = 'correct_index') as ok`,
   },
   {
+    migration: "037_review_loop.sql",
+    what: "review loop tables (Today's review, schedule, terms, unit checks)",
+    sql: `select to_regclass('public.review_schedule') is not null and to_regclass('public.review_log') is not null
+             and to_regclass('public.review_items') is not null and to_regclass('public.review_sessions') is not null
+             and to_regclass('public.review_session_items') is not null and to_regclass('public.objective_terms') is not null
+             and to_regclass('public.learner_term_coverage') is not null and to_regclass('public.unit_check_items') is not null as ok`,
+  },
+  {
+    migration: "037_review_loop.sql",
+    what: "attempt kind 'review', assessment type 'unit_check' and attempts.unit_check_item_id (review answers, unit checks)",
+    sql: `select exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                      where t.typname = 'attempt_kind' and e.enumlabel = 'review')
+             and exists(select 1 from assessment_types where type_name = 'unit_check')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'unit_check_item_id') as ok`,
+  },
+  {
+    migration: "037_review_loop.sql",
+    what: "mastery trigger that schedules objectives reaching Guided for review",
+    sql: `select exists(select 1 from pg_trigger where tgname = 'mastery_review_enrol' and not tgisinternal) as ok`,
+  },
+  {
+    // 037 adds the key NOT VALID; only 037b validates it (and enrols existing
+    // learners), so a validated key is the sign 037b ran.
+    migration: "037b_review_loop_backfill.sql",
+    what: "existing Guided+ objectives scheduled for review (037b)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'attempts_unit_check_item_fkey' and convalidated) as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

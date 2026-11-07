@@ -35,6 +35,11 @@ export type AiPurpose =
   | "explain_back"
   // REQ-110: one shared "Quiz me" question per objective (lib/coach-quiz.ts).
   | "coach_quiz"
+  // REQ-108: Today's review and unit checks.
+  | "review_generate"
+  | "review_grade"
+  | "unitcheck_generate"
+  | "unitcheck_grade"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

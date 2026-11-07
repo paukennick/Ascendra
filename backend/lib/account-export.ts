@@ -47,6 +47,13 @@ export const EXPORT_SECTIONS = {
                       from placement_checks pc where pc.user_id = $1 order by pc.started_at asc, pc.id asc`,
   coachQuizTurns: `select t.*, i.question, i.objective_id from coach_quiz_turns t join coach_quiz_items i on i.id = t.item_id
                     where t.user_id = $1 order by t.created_at asc, t.id asc`,
+  // REQ-108: the review loop.
+  reviewSchedule: "select * from review_schedule where user_id = $1 order by enrolled_at asc, objective_id asc",
+  reviewLog: "select * from review_log where user_id = $1 order by reviewed_at asc, id asc",
+  reviewSessions: "select * from review_sessions where user_id = $1 order by created_at asc, id asc",
+  reviewSessionItems:
+    "select si.* from review_session_items si join review_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, s.id asc, si.position asc",
+  termCoverage: "select * from learner_term_coverage where user_id = $1 order by first_correct_at asc, objective_id asc, term asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
 } as const;
