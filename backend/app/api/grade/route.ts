@@ -27,6 +27,7 @@ import {
   shuffleForPresentation,
   storedIndexAt,
 } from "@/lib/choice-order";
+import { diagnoseLessonMc, recordGraderMisconception } from "@/lib/understanding-grading";
 
 export const dynamic = "force-dynamic";
 
@@ -53,13 +54,19 @@ export const dynamic = "force-dynamic";
 //
 // Returns { verdict, feedback, classification, missedParts, modelAnswer?,
 //   fixNext?, assisted, assistReason, correctIndex (shown order),
-//   correctAnswer, why, optionReasons (shown order, or null), attempt }.
+//   correctAnswer, why, optionReasons (shown order, or null), attempt,
+//   diagnosis }.
 //
 // REQ-098 on top: the free-response answer is length-capped and must be
 // storable text (400, not a 500 from the INSERT); confidence must be 1-5;
 // ids are the canonical lowercase ones from the visibility check; a reused
 // clientAttemptId for a different submission is a 409; the model call is
 // behind the atomic rate limit.
+//
+// REQ-111: diagnosis is { sentence, confusedWith, conceptSetId } naming the
+// likely misconception behind a miss (null otherwise), stored per learner in
+// learner_misconceptions. Multiple choice: from the option picked, with no
+// model call. Free response: the grader's misconception tag.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -183,7 +190,18 @@ export async function POST(req: Request) {
         classification: "none",
       });
       if (prior) return ok(withReveal(prior, check, reveal));
-      return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt });
+      const diagnosis = correct
+        ? null
+        : await diagnoseLessonMc({
+            userId: authUser.id,
+            objectiveId,
+            attemptId: attempt.id,
+            stage,
+            choices: check.choices,
+            pickedIndex: storedChoice!,
+            correctIndex: check.correctIndex,
+          });
+      return ok({ verdict, feedback, classification: "none", missedParts: [], ...assistOf(attempt), ...reveal, attempt, diagnosis });
     }
 
     // (answer text was validated, and length-capped, before any database work)
@@ -224,7 +242,15 @@ export async function POST(req: Request) {
       retryOf,
     });
     if (prior) return ok(withReveal(prior, check, reveal));
-    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt });
+    const diagnosis = await recordGraderMisconception({
+      userId: authUser.id,
+      objectiveId,
+      attemptId: attempt.id,
+      verdict: graded.verdict,
+      misconception: graded.misconception,
+      confusedWith: graded.confusedWith,
+    });
+    return ok({ ...graded, ...assistOf(attempt), ...reveal, attempt, diagnosis });
   } catch (err) {
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);

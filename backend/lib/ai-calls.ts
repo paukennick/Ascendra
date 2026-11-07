@@ -27,6 +27,12 @@ export type AiPurpose =
   // REQ-106: lab report questions (once per objective) and lab report grading.
   | "lab_questions"
   | "lab_grade"
+  // REQ-111: deep understanding. concept_sets / prereq_map / learned_set run
+  // once per course (shared); explain_back once per explanation submitted.
+  | "concept_sets"
+  | "prereq_map"
+  | "learned_set"
+  | "explain_back"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

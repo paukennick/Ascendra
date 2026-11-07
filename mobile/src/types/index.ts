@@ -153,7 +153,7 @@ export interface GradeResult {
   // answered before. "retry" (REQ-105): a revision written with the first
   // answer's feedback in view. Each keeps the answer from lifting mastery.
   assisted?: boolean;
-  assistReason?: "hint" | "repeat" | "retry" | null;
+  assistReason?: "hint" | "repeat" | "retry" | "reveal" | null;
   // REQ-105, returned only with the verdict: one reason per option in the
   // shown order (lesson multiple choice; null for an older cached lesson),
   // the grader's model answer and "what to fix" line (free response and
@@ -163,6 +163,9 @@ export interface GradeResult {
   fixNext?: string | null;
   revisedParts?: string[];
   attempt?: { id: string };
+  // REQ-111: "reveal" -- an explain-it-back copied from the lesson text.
+  // The likely misconception behind a miss, in one sentence.
+  diagnosis?: { sentence: string; confusedWith: string | null; conceptSetId: string | null } | null;
 }
 
 export interface Attempt {

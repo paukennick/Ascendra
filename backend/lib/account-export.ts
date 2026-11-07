@@ -37,6 +37,9 @@ export const EXPORT_SECTIONS = {
   examSessions: "select * from exam_sessions where user_id = $1 order by created_at asc, id asc",
   examSessionItems:
     "select si.* from exam_session_items si join exam_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, s.id asc, si.position asc",
+  // REQ-111: what the learner has misdiagnosed, and refreshers opened.
+  misconceptions: "select * from learner_misconceptions where user_id = $1 order by created_at asc, id asc",
+  prerequisiteRefreshers: "select * from prerequisite_refreshers where user_id = $1 order by opened_at asc, id asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
 } as const;

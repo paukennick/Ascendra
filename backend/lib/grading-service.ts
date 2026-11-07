@@ -57,11 +57,25 @@ export interface AttemptInput {
   // lower mastery. The weighted mastery model can read this column once it
   // decides what a lab is worth.
   labObjectiveId?: string | null;
+  // REQ-111: the caller already knows this answer was assisted (comparison
+  // card reopened, explain-back text copied). Otherwise an answer with an
+  // assessmentType is a repeat when this learner already answered the same
+  // item of the same type -- within `repeatWindowHours` if given, otherwise
+  // ever (see typedAssistReason).
+  assist?: AssistReason | null;
+  repeatWindowHours?: number | null;
+  // REQ-109: exam-style answers (sprint / mock) are repeats when this learner
+  // answered the same question on this objective in ANY setting -- a lesson
+  // check, an earlier sprint or mock -- because the answer was shown then.
+  repeatAnySetting?: boolean;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
 // model answer on screen.
-export type AssistReason = "hint" | "repeat" | "retry";
+//
+// "reveal" (REQ-111): the learner saw the answer's source (the comparison card
+// reopened, or explain-back text copied from the lesson) before answering.
+export type AssistReason = "hint" | "repeat" | "retry" | "reveal";
 
 // REQ-089: the stored attempt for an id the app has already submitted, in
 // the shape /api/grade returns, or null if this id is new.
@@ -526,17 +540,17 @@ async function assistReasonFor(
   input: AttemptInput
 ): Promise<AssistReason | null> {
   if (input.retryOf) return "retry";
-  // REQ-109: an exam-style answer (sprint / mock) is a repeat when this
-  // learner already answered the same question on this objective in any
-  // setting -- a lesson check, an earlier sprint or mock -- because the answer
-  // was shown then. Without this a reused item would earn full credit.
-  if (input.kind === "quiz" && input.assessmentType && input.objectiveId) {
+  if (input.assist) return input.assist;
+  // REQ-109: see repeatAnySetting. Without this a reused item would earn
+  // full credit.
+  if (input.repeatAnySetting && input.objectiveId) {
     const seen = await query(
       `select 1 from attempts where user_id = $1 and objective_id = $2 and question = $3 limit 1`,
       [input.userId, input.objectiveId, input.question]
     );
     return seen.length ? "repeat" : null;
   }
+  if (input.assessmentType) return typedAssistReason(query, input);
   if (input.kind !== "lesson" || !input.objectiveId || (input.stage !== "fade" && input.stage !== "solo")) return null;
   if (input.stage === "solo") {
     if (input.format === "mc") return "hint";
@@ -549,6 +563,23 @@ async function assistReasonFor(
   const before = await query(
     `select 1 from attempts where user_id = $1 and objective_id = $2 and stage = $3 and question = $4 limit 1`,
     [input.userId, input.objectiveId, input.stage, input.question]
+  );
+  return before.length ? "repeat" : null;
+}
+
+// REQ-111: the same rules for an answer with an explicit assessment type.
+// A reason the caller already knows wins; otherwise an earlier answer by this
+// learner to the same item (same objective, type and question) makes it a
+// repeat, because grading showed the answer then. Runs under the grade lock.
+async function typedAssistReason(query: TxClient["query"], input: AttemptInput): Promise<AssistReason | null> {
+  if (input.assist) return input.assist;
+  if (!input.objectiveId) return null;
+  const before = await query(
+    `select 1 from attempts
+      where user_id = $1 and objective_id = $2 and assessment_type = $3 and question = $4
+        and ($5::numeric is null or created_at > now() - make_interval(secs => $5::double precision * 3600))
+      limit 1`,
+    [input.userId, input.objectiveId, input.assessmentType, input.question, input.repeatWindowHours ?? null]
   );
   return before.length ? "repeat" : null;
 }

@@ -231,6 +231,25 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select to_regclass('public.pbq_generation_claims') is not null as ok`,
   },
   {
+    migration: "040_deep_understanding.sql",
+    what: "comparison cards, prerequisite map and misconception tables (REQ-111 deep understanding)",
+    sql: `select to_regclass('public.course_insights') is not null
+             and to_regclass('public.concept_sets') is not null
+             and to_regclass('public.concept_set_members') is not null
+             and to_regclass('public.discrimination_items') is not null
+             and to_regclass('public.learned_set_attempts') is not null
+             and to_regclass('public.objective_prerequisites') is not null
+             and to_regclass('public.learner_misconceptions') is not null
+             and to_regclass('public.prerequisite_refreshers') is not null as ok`,
+  },
+  {
+    // Without these rows a discrimination or explain-back attempt fails the
+    // attempts.assessment_type foreign key.
+    migration: "040_deep_understanding.sql",
+    what: "discrimination and explain_back assessment types (comparison-card and explain-it-back answers)",
+    sql: `select count(*) = 2 as ok from assessment_types where type_name in ('discrimination', 'explain_back')`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are

@@ -9,6 +9,7 @@ to inspect next without reading the whole repository.
 - Generated at: `2026-11-07T11:28:36+00:00`
 - Generated at: `2026-11-07T11:24:59+00:00`
 - Generated at: `2026-11-07T09:56:43+00:00`
+- Generated at: `2026-11-07T11:29:39+00:00`
 - Root: `Ascendra`
 - Max depth: `4`
 - Max entries: `600`
@@ -76,6 +77,8 @@ backend/
       auth/
       catalog/
       chat/
+      comparison-items/
+      comparisons/
       courses/
       errors/
       exam/
@@ -182,6 +185,13 @@ backend/
     schema-status.ts
     study-sessions.ts
     text-input.ts
+    understanding-ai.ts
+    understanding-grading.ts
+    understanding-prompts.ts
+    understanding-store.ts
+    understanding.dbtest.ts
+    understanding.test.ts
+    understanding.ts
     visibility.ts
   public/
     .well-known/
@@ -242,6 +252,7 @@ backend/
       035_lesson_experience.sql
       030_hardening_indexes.sql
       036_pbq_generation_claims.sql
+      040_deep_understanding.sql
     seed/
       tracks/
       catalog.ts
@@ -329,6 +340,7 @@ mobile/
       Sidebar.tsx
       teachCards.tsx
       ui.tsx
+      Understanding.tsx
       UpdateBanner.tsx
     content/
       disclaimers.ts
@@ -370,6 +382,8 @@ mobile/
       theme.ts
       time.test.ts
       time.ts
+      understanding.test.ts
+      understanding.ts
       useStoredDraft.ts
       webAutofillStyles.ts
       webLeaveGuard.ts

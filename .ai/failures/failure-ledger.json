@@ -3096,6 +3096,78 @@
       "prevention_rules": [],
       "prevention_notes": "Tests over randomised selection assert invariants, and a new DB test with random selection is looped before it is committed.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-220",
+      "date": "2026-11-07",
+      "title": "finishInsight: one SQL parameter used as varchar and text",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Course concept-set generation always ended 'failed': Postgres 'inconsistent types deduced for parameter $4'.",
+      "how_detected": "understanding.dbtest.ts (comparison cards, first test)",
+      "root_cause": "The same placeholder was assigned to course_insights.status (varchar) and compared in a CASE to a text literal, so Postgres deduced two types for it.",
+      "requirement": "REQ-111",
+      "affected": [
+        "backend/lib/understanding-store.ts::finishInsight"
+      ],
+      "fix_summary": "Cast the parameter ($4::text) at both uses.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts::first request starts generation; the course is generated once; bad sets are dropped"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Stateful SQL is exercised through a DB test before commit (pre-completion checklist); the failure surfaced there, not in production.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-221",
+      "date": "2026-11-07",
+      "title": "Routes called next/server after() outside a request scope",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Comparisons and refresher routes returned 500 when invoked directly (tests, scripts): 'after was called outside a request scope'.",
+      "how_detected": "understanding.dbtest.ts route tests",
+      "root_cause": "after() only works inside a Next request; route handlers imported and called directly have none, and the background generation call was made unconditionally.",
+      "requirement": "REQ-111",
+      "affected": [
+        "backend/lib/understanding-ai.ts::inBackground",
+        "backend/app/api/courses/[id]/comparisons/route.ts",
+        "backend/app/api/objectives/[id]/refresher/route.ts"
+      ],
+      "fix_summary": "inBackground() wraps after() and falls back to an unawaited, error-swallowing call outside a request.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts::the route lists the card without answer keys; other courses' cards are hidden"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Background work goes through inBackground(), which is safe in and out of a request.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-222",
+      "date": "2026-11-07",
+      "title": "Regex escape lost inside a TS template literal SQL string",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "learnedSetCandidates normalised confused_with with regexp '\\s+' written as \\s in a template literal, which JavaScript turns into a plain 's'.",
+      "how_detected": "Self-review of the generated source before the first DB test run",
+      "root_cause": "Backslash escapes in template literals are interpreted by JavaScript before the SQL reaches Postgres; \\s is not a JS escape and collapses to 's'.",
+      "requirement": "REQ-111",
+      "affected": [
+        "backend/lib/understanding-store.ts::learnedSetCandidates"
+      ],
+      "fix_summary": "Doubled the backslash so Postgres receives \\s+.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts::a confusion shared by three learners gets one card",
+        "generated once"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The learned-set DB test feeds 'Kinesis ' and 'kinesis' from different learners and requires them grouped as one confusion.",
+      "recurrence_of": ""
     }
   ]
 }

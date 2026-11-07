@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View }
 import { Feather } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
+import { MisconceptionNote, RefresherOffer, UnderstandingActions } from "@/components/Understanding";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { GradeResult, LessonContent, MasteryStatus, NextObjective } from "@/types";
@@ -747,6 +748,7 @@ export default function LessonFlow() {
               Up next: {next.title}
             </Muted>
           ) : null}
+          <UnderstandingActions trackId={trackId} objectiveId={objectiveId} objectiveTitle={headerTitle} status={reached} />
           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Button
               label="Back to course"
@@ -1079,6 +1081,7 @@ function CheckStep({
           modelAnswer: res.modelAnswer ?? null,
           fixNext: res.fixNext ?? null,
           attemptId: res.attempt?.id ?? null,
+          diagnosis: res.diagnosis ?? null,
         },
       });
     } catch (err) {
@@ -1282,6 +1285,9 @@ function CheckStep({
               fallbackWhy={result.why ?? null}
             />
           ) : null}
+          {/* REQ-111: the likely mix-up, and a refresher of a weak prerequisite. */}
+          <MisconceptionNote diagnosis={result.diagnosis} />
+          <RefresherOffer objectiveId={objectiveId} verdict={result.verdict} />
           {/* REQ-097: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
           {mode === "open" && result.verdict !== "correct" && result.correctAnswer ? (

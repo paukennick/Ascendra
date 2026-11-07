@@ -60,7 +60,7 @@ export interface CheckResult {
   correctIndex?: number | null;
   correctAnswer?: string | null;
   why?: string | null;
-  assistReason?: "hint" | "repeat" | "retry" | null;
+  assistReason?: "hint" | "repeat" | "retry" | "reveal" | null;
   // REQ-105: one reason per option in the shown order (null for a lesson
   // cached before reasons existed), the grader's model answer and "what to
   // fix" line, and the attempt id a revision points at.
@@ -68,6 +68,8 @@ export interface CheckResult {
   modelAnswer?: string | null;
   fixNext?: string | null;
   attemptId?: string | null;
+  // REQ-111: the likely mix-up behind a miss, saved so a resume shows it.
+  diagnosis?: { sentence: string; confusedWith: string | null; conceptSetId: string | null } | null;
 }
 
 // Everything a Guided/Solo check needs to come back exactly as it was.
@@ -176,7 +178,7 @@ export function parseSnapshot(raw: unknown, currentLessonKey: string, now: numbe
   };
 }
 
-const ASSIST_REASONS = ["hint", "repeat", "retry"] as const;
+const ASSIST_REASONS = ["hint", "repeat", "retry", "reveal"] as const;
 
 function parseResult(r: Record<string, unknown> | null | undefined): CheckResult | null {
   if (!r || typeof r !== "object" || typeof r.verdict !== "string") return null;
@@ -197,6 +199,7 @@ function parseResult(r: Record<string, unknown> | null | undefined): CheckResult
     modelAnswer: typeof r.modelAnswer === "string" ? r.modelAnswer : null,
     fixNext: typeof r.fixNext === "string" ? r.fixNext : null,
     attemptId: typeof r.attemptId === "string" ? r.attemptId : null,
+    diagnosis: parseDiagnosis(r.diagnosis),
   };
 }
 
@@ -336,4 +339,16 @@ export function shouldAdoptLateServer(
 const ANON_PREFIX = "ascendra.lessonProgress.anon.";
 export function anonSnapshotKeys(keys: readonly string[]): string[] {
   return keys.filter((k) => k.startsWith(ANON_PREFIX));
+}
+
+// REQ-111: a stored diagnosis, or null for anything malformed.
+export function parseDiagnosis(v: unknown): CheckResult["diagnosis"] {
+  if (!v || typeof v !== "object") return null;
+  const d = v as Record<string, unknown>;
+  if (typeof d.sentence !== "string" || !d.sentence.trim()) return null;
+  return {
+    sentence: d.sentence,
+    confusedWith: typeof d.confusedWith === "string" ? d.confusedWith : null,
+    conceptSetId: typeof d.conceptSetId === "string" ? d.conceptSetId : null,
+  };
 }

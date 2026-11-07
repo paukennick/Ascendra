@@ -709,6 +709,7 @@ export async function submitSession(sessionId: string, userId: string) {
         confidence: r.confidence,
         clientAttemptId: `exam:${sessionId}:${r.position}`,
         assessmentType: item.format,
+        repeatAnySetting: true,
       });
       attemptId = (attempt?.id ?? (prior?.attempt as { id?: string } | undefined)?.id ?? null) as string | null;
     }
