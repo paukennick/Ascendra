@@ -20,6 +20,8 @@ import { IBMPlexMono_400Regular } from "@expo-google-fonts/ibm-plex-mono/400Regu
 import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
 import { IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono/600SemiBold";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
+import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
@@ -72,6 +74,7 @@ function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
 
 function RootNavigator() {
   const { status, webIdleWarningSecondsLeft } = useAuth();
+  const { gate } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
   const { updateReady, applyUpdate, dismiss } = useAppUpdates();
@@ -92,8 +95,12 @@ function RootNavigator() {
       router.replace("/lock");
     } else if (status === "signedIn" && (inAuthGroup || onLockScreen)) {
       router.replace("/");
+    } else if (status === "signedIn") {
+      // REQ-119: the one-tap Terms prompt, then first run (src/lib/legal.ts).
+      const to = gateRedirect(gate, segments);
+      if (to) router.replace(to);
     }
-  }, [status, segments, router]);
+  }, [status, segments, router, gate]);
 
   return (
     <>
@@ -136,7 +143,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <AuthProvider>
-        <RootNavigator />
+        <OnboardingProvider>
+          <RootNavigator />
+        </OnboardingProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

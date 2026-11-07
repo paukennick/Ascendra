@@ -2,6 +2,8 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, tooManyRequests } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sendSupportRequestNotification } from "@/lib/email";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+import { textField } from "@/lib/text-input";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,13 @@ const MAX_URL = 2000;
 // flood both the queue and the mailbox.
 const RATE_LIMIT_PER_HOUR = 10;
 
+// REQ-119 (FAIL-400): a NUL character or half an emoji (a lone surrogate)
+// in any field reached the INSERT and came back as a 500. textField refuses
+// both with a 400, as every other learner-text route does (REQ-098).
 function trimmedString(value: unknown, max: number): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  if (!trimmed || trimmed.length > max) return null;
+  if (!trimmed || !textField(trimmed, "field", max).ok) return null;
   return trimmed;
 }
 
@@ -84,13 +89,17 @@ export async function POST(req: Request) {
       trackId = owned.id;
     }
 
-    const recent = await queryOne<{ count: string }>(
-      `select count(*)::text as count from support_requests
-        where user_id = $1 and created_at > now() - interval '1 hour'`,
-      [user.id]
-    );
-    if (recent && Number(recent.count) >= RATE_LIMIT_PER_HOUR) {
-      return tooManyRequests("You've submitted several requests recently. Try again in a little while.");
+    // REQ-119 (FAIL-401): this was a count of the last hour's rows followed
+    // by the insert, so requests sent at once all counted under the cap and
+    // all got in (each emailing a human). consumeRateLimit counts and
+    // records in one locked step.
+    try {
+      await consumeRateLimit("support_request", user.id, { max: RATE_LIMIT_PER_HOUR, windowMinutes: 60 }, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        return tooManyRequests("You've submitted several requests recently. Try again in a little while.");
+      }
+      throw err;
     }
 
     const created = await queryOne(

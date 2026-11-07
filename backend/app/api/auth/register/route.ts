@@ -5,16 +5,17 @@ import { hashPassword } from "@/lib/auth/passwords";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { sendVerificationEmail } from "@/lib/email";
+import { recordSignupTermsAcceptance } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
 const TOKEN_TTL_HOURS = 24;
 
-// POST /api/auth/register — { email, password, displayName? }
+// POST /api/auth/register — { email, password, displayName?, acceptedTermsVersion? }
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, displayName } = body ?? {};
+    const { email, password, displayName, acceptedTermsVersion } = body ?? {};
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
     }
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
       [normalizedEmail, displayName ?? null, passwordHash]
     );
     if (!userRow) throw new Error("Failed to create account.");
+    // REQ-119: the sign-up form's "I agree" (version + time); none sent means
+    // the account is asked once on its first launch instead.
+    await recordSignupTermsAcceptance(userRow.id, acceptedTermsVersion, "register");
 
     const rawToken = crypto.randomBytes(32).toString("base64url");
     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");

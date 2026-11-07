@@ -4338,6 +4338,193 @@
       ],
       "prevention_notes": "Answer handlers guard with a ref (or the shared pressGuard), not state.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-400",
+      "date": "2026-11-07",
+      "title": "Support and course requests answered 500 for a NUL or lone surrogate",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/support with a NUL character or half an emoji in subject, body or course name failed the INSERT (invalid byte sequence for encoding UTF8: 0x00) and returned 500.",
+      "how_detected": "Re-verifying Audit 3 product L2 (Request a course) against the code; fail-before test",
+      "root_cause": "The route validated with its own trimmedString (type and length only) instead of lib/text-input.ts textField, which every other learner-text route adopted in REQ-098; the support route predates that and was never moved over.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "trimmedString now also requires textField to accept the value, so unstorable text is a 400.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::FAIL-400: a NUL or half an emoji in a field is a 400",
+        "not a 500"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every route that stores typed text checks it with textField; the regression test covers each support field.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-401",
+      "date": "2026-11-07",
+      "title": "Support request hourly cap could be raced past",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Requests sent at once all counted the last hour's rows under the cap of 10 and all inserted, each emailing a human.",
+      "how_detected": "Re-verification while adding Explore's Request a course; fail-before test with 14 concurrent requests",
+      "root_cause": "Count-then-insert in two statements with no lock; consumeRateLimit (REQ-098) exists for exactly this but the support route kept its own check.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "The route calls consumeRateLimit('support_request', userId, 10 per hour), which counts and records under an advisory lock.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::FAIL-401: requests sent at once can't get past the hourly cap"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Rate limits use consumeRateLimit, never a count followed by a write.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-402",
+      "date": "2026-11-07",
+      "title": "Course page primary button did nothing, and said Continue studying with nothing started",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "With zero progress the button read Continue studying; when the first unfinished unit (by counts) listed no objectives, pressing it did nothing.",
+      "how_detected": "Audit 3 product M4, re-verified in course/[trackId]/index.tsx",
+      "root_cause": "The target was found in two steps inline in the screen: the first unit whose mastered count was below its total, then an objective inside that unit only; nothing handled an empty list or the not-started state.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "src/lib/nextStep.ts picks across all units in course order: Start course, Continue (half-done first) or Review, or no button when there are no objectives.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-402: a first unfinished unit with no objectives listed no longer makes the button do nothing"
+      ],
+      "no_test_reason": "The old logic was inline in the screen (no component renderer here), so there is no fail-before run; the helper test pins the new behaviour.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Navigation targets are computed in a tested helper, not inline in a screen.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-403",
+      "date": "2026-11-07",
+      "title": "Review told a brand-new learner they were all caught up",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The Review hub's empty state said All caught up / Nothing is due right now to someone who had never studied anything.",
+      "how_detected": "Audit 3 product L1",
+      "root_cause": "The empty state did not distinguish nothing scheduled yet (nextDueOn null) from nothing due today.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(app)/review.tsx"
+      ],
+      "fix_summary": "src/lib/emptyStates.ts reviewEmpty(nextDueOn) says what Review is and offers a next action when nothing is scheduled.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-403: Review doesn't tell someone who hasn't learned anything that they're 'all caught up'"
+      ],
+      "no_test_reason": "Old copy was inline in the screen; the helper test covers the new behaviour.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Empty-state copy lives in src/lib/emptyStates.ts with tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-404",
+      "date": "2026-11-07",
+      "title": "Terms acceptance never recorded; Google sign-up skipped it",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "app_users had no terms columns and no table recorded acceptance; the agree checkbox existed only on the phone, and a new Google account was created without seeing the Terms.",
+      "how_detected": "Audit 3 product H5",
+      "root_cause": "Consent was treated as a client-side form check, not data; Google sign-up was added later as a separate path.",
+      "requirement": "REQ-119",
+      "affected": [
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "mobile/app/(auth)/register.tsx",
+        "mobile/app/(auth)/login.tsx"
+      ],
+      "fix_summary": "Migration 048 terms_acceptances; register and new Google accounts record the current version with source; GET /api/onboarding and POST /api/onboarding/terms ask everyone else once on launch; in the export.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/product-basics.dbtest.ts::sign-up records the current version with its source; an old or missing version records nothing",
+        "backend/lib/product-basics.dbtest.ts::the register and Google sign-up routes both record the acceptance they are sent",
+        "backend/lib/product-basics.dbtest.ts::a new account must accept; only the current version is accepted; the first time is kept",
+        "mobile/src/lib/productBasics.test.ts::the app's terms version is the server's current one"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A mobile test pins the app's terms version to the server's; a static test pins both sign-up routes to the helper.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-405",
+      "date": "2026-11-07",
+      "title": "Privacy policy misstated what goes to the AI provider",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The policy said only Ask Coach messages went to an unnamed AI provider; seven grading/feedback features also send learner text to Anthropic, and retention claimed rolling purges that the code does not do.",
+      "how_detected": "Audit 3 product H3; re-verified by grepping callClaude purposes and every delete statement",
+      "root_cause": "The page was written when chat was the only model call and was not revisited as grading features were added; no check ties the page to the code.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(legal)/privacy.tsx"
+      ],
+      "fix_summary": "Section 5 names Anthropic and every feature that sends typed text, what is sent with it, and Anthropic's training and retention terms with sources; section 6 states actual retention (no automatic purge of expired tokens or sign-in records).",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-405: names Anthropic and every feature that sends what a learner types"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A test fails if the page loses the provider name or any learner-text feature; adding an AI purpose that sends learner text should add it to the page and the test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-406",
+      "date": "2026-11-07",
+      "title": "Not-affiliated disclaimers named only CompTIA",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Disclaimer, Terms and FAQ named only CompTIA while the catalog uses marks from AWS, Microsoft, Google, PMI, NCSBN and others; no course showed its own exam body.",
+      "how_detected": "Audit 3 product M6",
+      "root_cause": "Disclaimers were written for the first (Security+) course and never updated as the catalog grew.",
+      "requirement": "REQ-119",
+      "affected": [
+        "mobile/app/(legal)/disclaimer.tsx",
+        "mobile/app/(legal)/terms.tsx",
+        "mobile/app/(legal)/faq.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx"
+      ],
+      "fix_summary": "Course pages show a line naming exam.providerName (src/lib/vendor.ts); the Disclaimer lists every provider in the catalog; Terms, FAQ and Settings name the main ones.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/productBasics.test.ts::FAIL-406: the Disclaimer page lists the catalog's trademark owners",
+        "not only CompTIA",
+        "mobile/src/lib/productBasics.test.ts::names the exam's own provider"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The course line is built from credential_providers data, so a new vendor is named without a code change; TRADEMARK_OWNERS should be updated with the catalog.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -19,6 +19,7 @@ import {
 import { spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { forTodayLabel, nextReviewLabel, utcToday } from "@/lib/reviewSession";
+import { reviewEmpty } from "@/lib/emptyStates";
 
 // REQ-108: Review is now a hub with three things on it, none of them a wall
 // of due items:
@@ -160,7 +161,17 @@ export default function ReviewScreen() {
 
       {today && !today.forToday && !today.unitChecks.length && scenarios && !scenarios.length ? (
         <Card>
-          <EmptyState icon="check-circle" title="All caught up" message="Nothing is due right now." />
+          {(() => {
+            const e = reviewEmpty(today.nextDueOn);
+            return (
+              <EmptyState
+                icon={today.nextDueOn ? "check-circle" : "rotate-ccw"}
+                title={e.title}
+                message={e.message}
+                action={e.action ? { label: e.action.label, onPress: () => router.push("/") } : undefined}
+              />
+            );
+          })()}
         </Card>
       ) : null}
     </Screen>

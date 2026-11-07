@@ -4,6 +4,8 @@ import { BrandMark, Screen, Card, Divider, H1, Muted, TextField, Button, ErrorBa
 import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
+import { Text } from "react-native";
+import { colors } from "@/lib/theme";
 
 export default function Login() {
   const router = useRouter();
@@ -135,6 +137,20 @@ export default function Login() {
               disabled={!request}
               onPress={onGooglePress}
             />
+            {/* REQ-119 (H5): Google sign-up used to create an account without
+                the Terms ever being shown. A new account made here records
+                this agreement (version and time). */}
+            <Muted style={{ fontSize: 13, textAlign: "center" }}>
+              By continuing with Google you agree to the{" "}
+              <Text style={{ color: colors.link }} accessibilityRole="link" onPress={() => router.push("/terms")}>
+                Terms of Service
+              </Text>{" "}
+              and{" "}
+              <Text style={{ color: colors.link }} accessibilityRole="link" onPress={() => router.push("/privacy")}>
+                Privacy Policy
+              </Text>
+              .
+            </Muted>
           </>
         ) : null}
       </Card>

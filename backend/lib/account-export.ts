@@ -81,6 +81,12 @@ export const EXPORT_SECTIONS = {
     "select * from lesson_progress_tombstones where user_id = $1 order by cleared_at asc, objective_id asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
+  // REQ-119 (migration 048): Terms/Privacy acceptances, the first-run
+  // record, learning events and reported exam results.
+  termsAcceptances: "select * from terms_acceptances where user_id = $1 order by accepted_at asc, terms_version asc",
+  onboarding: "select * from learner_onboarding where user_id = $1 order by user_id asc",
+  learnerEvents: "select * from learner_events where user_id = $1 order by created_at asc, id asc",
+  examOutcomes: "select * from exam_outcomes where user_id = $1 order by exam_date asc, id asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

@@ -3652,6 +3652,55 @@
       "risk_notes": [
         "Migration 047 must run before the backend deploy (the session view reads save_seq); Accent changed from #4C6FEF to #5A7BF0 for contrast - a visible brand shift for Nick to review; Layout and TalkBack behaviour not checked on a device"
       ]
+    },
+    {
+      "id": "REQ-119",
+      "category": "feature",
+      "title": "Audit 3 product basics: privacy AI facts, terms acceptance, first run, next step, vendor disclaimers, reminders, events, exam outcomes, empty states, course requests",
+      "description": "Implement the Audit 3 product fixes that need no decision from Nick: correct the privacy policy's AI disclosure against the code and Anthropic's published terms; record Terms/Privacy acceptance (version and time) at email and Google sign-up and ask existing accounts once; a gentle, skippable first run for any starting point; a Start course / Continue / Review primary button; per-vendor not-affiliated lines and a trademark list; opt-in kind local study reminders with quiet hours; a minimal first-party learner_events table with npm run metrics; I took the exam outcome capture; empty states with one next action; Explore Request a course. Migration 048.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/048_product_basics.sql",
+        "backend/lib",
+        "backend/app/api/onboarding",
+        "backend/app/api/exam-outcomes",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/scripts/metrics.ts",
+        "mobile/app",
+        "mobile/src",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Privacy page names Anthropic and every feature that sends learner text with sourced retention and training facts and stays a draft",
+        "Acceptance recorded with version and time at sign-up and by a one-tap prompt; in export",
+        "First run is skippable and lands on a clear first step",
+        "Primary course button always navigates",
+        "Course pages and Disclaimer name the exam body",
+        "Reminders off by default with quiet hours and kind copy tested",
+        "Events table minimal; deleted with account; in export; npm run metrics prints activation D1 D7 and reviews per active learner",
+        "Exam outcomes editable and deletable; in export",
+        "Empty states give one next action",
+        "Course requests rate-limited atomically with text caps"
+      ],
+      "validation_required": [
+        "npm run test:db (fresh DB)",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "Background sign-out default unchanged (Nick's decision) so a reminder tap after leaving the app opens the login screen",
+        "Legal text remains a draft for a lawyer",
+        "expo-notifications needs a new native build; device check required"
+      ]
     }
   ]
 }

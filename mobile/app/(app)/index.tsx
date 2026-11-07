@@ -11,6 +11,7 @@ import { CourseCard } from "@/components/CourseCard";
 import { Sidebar } from "@/components/Sidebar";
 import { colors, fonts, spacing } from "@/lib/theme";
 import { homeReviewCard } from "@/lib/homeReview";
+import { HOME_EMPTY } from "@/lib/emptyStates";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -190,11 +191,12 @@ export default function Home() {
               <EmptyState icon="book-open" title="No courses yet" message="Check back soon — new courses show up here automatically." />
             </Card>
           ) : tracks && !mostRecent && !favorites.length ? (
-            <Card onPress={() => router.push("/explore")}>
+            <Card>
               <EmptyState
                 icon="compass"
-                title="Nothing started yet"
-                message="Tap Browse all courses above to pick where to begin."
+                title={HOME_EMPTY.title}
+                message={HOME_EMPTY.message}
+                action={{ label: HOME_EMPTY.action!.label, icon: "compass", onPress: () => router.push("/explore") }}
               />
             </Card>
           ) : null

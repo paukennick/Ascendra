@@ -623,14 +623,18 @@ export function ErrorBanner({
   );
 }
 
+// REQ-119 (Audit 3 product item 8): an empty screen says what it is for and
+// offers one next action (`action`), instead of a dead end.
 export function EmptyState({
   icon = "inbox",
   title,
   message,
+  action,
 }: {
   icon?: IconName;
   title: string;
   message?: string;
+  action?: { label: string; onPress: () => void; icon?: IconName };
 }) {
   return (
     <View style={styles.emptyState}>
@@ -639,6 +643,9 @@ export function EmptyState({
       </View>
       <Body style={{ fontFamily: fonts.bodySemiBold }}>{title}</Body>
       {message ? <Muted style={{ textAlign: "center" }}>{message}</Muted> : null}
+      {action ? (
+        <Button label={action.label} icon={action.icon ?? "arrow-right"} size="sm" fullWidth={false} onPress={action.onPress} />
+      ) : null}
     </View>
   );
 }

@@ -26,6 +26,10 @@ import { CoursePlanPanel } from "@/components/CoursePlanPanel";
 import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
+import { nextCourseStep } from "@/lib/nextStep";
+import { vendorDisclaimer } from "@/lib/vendor";
+import { COURSE_NO_UNITS } from "@/lib/emptyStates";
+import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 
 interface AcknowledgementState {
   required: boolean;
@@ -49,6 +53,8 @@ export default function CourseDashboard() {
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
+  // REQ-119 (M6): the exam's provider, for the "not affiliated" line.
+  const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ack, setAck] = useState<AcknowledgementState | null>(null);
@@ -84,11 +90,14 @@ export default function CourseDashboard() {
   const load = useCallback(() => {
     setError(null);
     api
-      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness }>(`/api/courses/${trackId}`)
+      .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
+        `/api/courses/${trackId}`
+      )
       .then((res) => {
         setTrack(res.track);
         setUnits(res.units);
         setReadinessData(res.readiness ?? null);
+        setExam(res.exam ?? null);
       })
       .catch((err) => setError(err.message));
     // Asked for separately so a course that needs no disclaimer -- which is
@@ -107,10 +116,12 @@ export default function CourseDashboard() {
     }, [load])
   );
 
-  // "Continue" jumps to the first unit that still has an unmastered objective.
-  const continueUnit = units?.find(
-    (u) => (u.mastered_objectives ?? 0) < (u.total_objectives ?? 0)
-  );
+  // REQ-119 (Audit 3 product M4): "Start course" with nothing started,
+  // "Continue" to the next right objective, "Review" when all are done
+  // (src/lib/nextStep.ts). It used to say "Continue studying" from zero and
+  // did nothing when the unit it picked listed no objectives.
+  const step = nextCourseStep(units);
+  const vendorLine = track ? vendorDisclaimer(exam, track.track_type) : null;
 
   // REQ-100: readiness from weighted accuracy across every question type,
   // rolled up by the exam blueprint, with coverage shown apart from accuracy
@@ -186,21 +197,21 @@ export default function CourseDashboard() {
               </View>
             ) : null}
 
-            <Button
-              label="Continue studying"
-              icon="play"
-              onPress={() => {
-                const nextObjective =
-                  continueUnit?.objectives?.find(
-                    (o) => o.mastery_status !== "Independent" && o.mastery_status !== "Transfer-ready"
-                  ) ?? continueUnit?.objectives?.[0];
-                if (nextObjective)
-                  router.push({
-                    pathname: `/course/${trackId}/lesson/${nextObjective.id}`,
-                    params: { unitId: continueUnit?.id, objectiveTitle: nextObjective.title },
-                  });
-              }}
-            />
+            {step ? (
+              <Button
+                label={step.label}
+                accessibilityLabel={step.a11y}
+                icon={step.kind === "review" ? "rotate-cw" : "play"}
+                onPress={() => {
+                  if (step.kind === "review") router.push("/review");
+                  else
+                    router.push({
+                      pathname: `/course/${trackId}/lesson/${step.objectiveId}`,
+                      params: { unitId: step.unitId, objectiveTitle: step.objectiveTitle },
+                    });
+                }}
+              />
+            ) : null}
 
             {/* REQ-109: timed sprints and mock exams. */}
             <Button
@@ -241,6 +252,9 @@ export default function CourseDashboard() {
               ))}
             </View>
           </Card>
+
+          {/* REQ-119: "How did the exam go?" once the plan's exam date has passed. */}
+          <ExamOutcomePrompt trackId={trackId} trackTitle={track.title} />
 
           {/* REQ-110: placement offer, session choice, plan and kept summary. */}
           <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
@@ -346,8 +360,32 @@ export default function CourseDashboard() {
 
           {units && units.length === 0 ? (
             <Card>
-              <EmptyState icon="folder" title="No units yet" />
+              <EmptyState
+                icon="folder"
+                title={COURSE_NO_UNITS.title}
+                message={COURSE_NO_UNITS.message}
+                action={{
+                  label: COURSE_NO_UNITS.action!.label,
+                  icon: "life-buoy",
+                  onPress: () => router.push({ pathname: "/support", params: { kind: "ticket" } }),
+                }}
+              />
             </Card>
+          ) : null}
+
+          <Button
+            label="I took the exam"
+            accessibilityLabel="I took the exam: record how it went"
+            variant="link"
+            fullWidth={false}
+            onPress={() => router.push({ pathname: `/course/${trackId}/outcome`, params: { trackTitle: track.title } })}
+          />
+
+          {/* REQ-119 (M6): names this exam's owner, not only CompTIA. */}
+          {vendorLine ? (
+            <Muted style={{ fontSize: 12, marginTop: spacing.sm }}>
+              {vendorLine}
+            </Muted>
           ) : null}
         </>
       ) : null}

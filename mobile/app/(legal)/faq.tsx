@@ -26,10 +26,12 @@ export default function Faq() {
         </Body>
       </Section>
 
-      <Section title="Is Ascendra affiliated with CompTIA or any certification body?">
+      <Section title="Is Ascendra affiliated with CompTIA, AWS or any certification body?">
         <Body>
-          No. Ascendra is independent and isn't produced, endorsed, or affiliated with CompTIA or
-          any other certification or exam body. See the Disclaimer for the full wording.
+          No. Ascendra is independent and isn't produced, endorsed, or affiliated with CompTIA,
+          Amazon Web Services, Microsoft, Google, PMI or any other certification or exam body;
+          their names and trademarks belong to them. Each course page names the body behind its
+          exam, and the Disclaimer lists them all.
         </Body>
       </Section>
 
