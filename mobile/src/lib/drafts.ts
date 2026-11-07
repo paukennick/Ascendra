@@ -117,3 +117,48 @@ export function parseSupportFields(payload: string): SupportFields | null {
   };
   return supportDraftPayload(fields) === null ? null : fields;
 }
+
+// REQ-113 (Audit 3 mobile M3): typed answers on the review session, the unit
+// check and explain-back lived only in React state, so leaving the screen or
+// Android killing the app in the background lost them (explain-back allows
+// 4000 characters). They now use the same envelope and write path, under the
+// draft key shape the logout sweep already removes (src/lib/localData.ts):
+//   ascendra.draft.<thread>.<userId>.<id>
+// The id of an answer already sent goes with the text, so a resend after the
+// app was killed mid-request is replayed by the server, not graded twice.
+export type AnswerDraftThread = "review" | "unitcheck" | "explain";
+
+export function answerDraftKey(thread: AnswerDraftThread, userId: string, id: string): string {
+  // Dots would split the key into extra segments; ids are UUIDs, positions numbers.
+  return `ascendra.draft.${thread}.${userId}.${id.replace(/\./g, "_")}`;
+}
+
+export interface AnswerDraft {
+  text: string;
+  // clientAttemptId sent with `sentText`, reused if that same text is resent.
+  sentId: string | null;
+  sentText: string | null;
+}
+
+export const ANSWER_DRAFT_MAX = 20_000;
+
+export function answerDraftPayload(d: AnswerDraft): string | null {
+  if (!d.text.trim() && !d.sentId) return null;
+  return JSON.stringify({ text: d.text, sentId: d.sentId, sentText: d.sentText });
+}
+
+export function parseAnswerDraft(payload: string | null): AnswerDraft | null {
+  if (!payload) return null;
+  try {
+    const o = JSON.parse(payload) as Record<string, unknown>;
+    if (!o || typeof o.text !== "string") return null;
+    const sentId = typeof o.sentId === "string" && o.sentId.length <= 64 ? o.sentId : null;
+    return {
+      text: o.text.slice(0, ANSWER_DRAFT_MAX),
+      sentId,
+      sentText: sentId && typeof o.sentText === "string" ? o.sentText.slice(0, ANSWER_DRAFT_MAX) : null,
+    };
+  } catch {
+    return null;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
@@ -111,14 +111,14 @@ export default function Register() {
           <Text style={{ color: colors.mutedDim, fontFamily: fonts.body, flex: 1, fontSize: 13, lineHeight: 18 }}>
             I agree to the{" "}
             <Text
-              style={{ color: colors.accent, fontFamily: fonts.bodySemiBold }}
+              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
               onPress={() => router.push("/terms")}
             >
               Terms & Disclaimer
             </Text>{" "}
             and{" "}
             <Text
-              style={{ color: colors.accent, fontFamily: fonts.bodySemiBold }}
+              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
               onPress={() => router.push("/privacy")}
             >
               Privacy Policy

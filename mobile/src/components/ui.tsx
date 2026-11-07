@@ -13,9 +13,21 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { createPressGuard } from "@/lib/pressGuard";
-import { colors, fonts, radius, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
+import { BADGE_WASH, blend } from "@/lib/contrast";
+import { t } from "@/lib/i18n";
+import { isReducedMotion, useReducedMotion } from "@/lib/useReducedMotion";
+import { colors, fonts, radius, readableOn, shadow, spacing, verdictColor, verdictIcon } from "@/lib/theme";
+
+// REQ-113 (Audit 3 mobile M9, H4): Android's minimum touch target. Controls
+// smaller than this to look at get hitSlop to reach it.
+export const MIN_TOUCH = 48;
+const slopFor = (w: number, h: number = w) => {
+  const x = Math.max(0, Math.ceil((MIN_TOUCH - w) / 2));
+  const y = Math.max(0, Math.ceil((MIN_TOUCH - h) / 2));
+  return { top: y, bottom: y, left: x, right: x };
+};
 
 type IconName = React.ComponentProps<typeof Feather>["name"];
 type TextStyleProp = React.ComponentProps<typeof Text>["style"];
@@ -30,10 +42,17 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Shared press-scale micro-interaction. Plain RN Animated (no reanimated
 // installed) is enough for a one-shot scale on press in/out.
+// REQ-113 (L1): no scale when the system asks for reduced motion.
 function useScalePress(target = 0.97) {
   const scale = useRef(new Animated.Value(1)).current;
-  const onPressIn = () => Animated.spring(scale, { toValue: target, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
-  const onPressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 4 }).start();
+  const onPressIn = () => {
+    if (isReducedMotion()) return;
+    Animated.spring(scale, { toValue: target, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
+  };
+  const onPressOut = () => {
+    if (isReducedMotion()) return scale.setValue(1);
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 4 }).start();
+  };
   return { scale, onPressIn, onPressOut };
 }
 
@@ -52,6 +71,9 @@ export function Screen({
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={styles.screenContent}
       showsVerticalScrollIndicator={false}
+      // REQ-113 (M10): with the keyboard open, the first tap on a button
+      // (e.g. "Check my answer") used to only close the keyboard.
+      keyboardShouldPersistTaps="handled"
     >
       {children}
     </ScrollView>
@@ -63,11 +85,16 @@ export function Card({
   style,
   onPress,
   elevated,
+  accessibilityLabel,
+  accessibilityHint,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
   elevated?: boolean;
+  // REQ-113 (M8): a pressable card is announced as one button with this label.
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.98);
   if (!onPress) {
@@ -78,6 +105,9 @@ export function Card({
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       style={[styles.card, elevated && shadow.sm, style, { transform: [{ scale }] }]}
     >
       {children}
@@ -114,14 +144,20 @@ export function Muted({
 }
 
 export function SectionHeader({ label, style }: { label: string; style?: ViewStyle }) {
-  return <Text style={[styles.sectionHeader, style]}>{label}</Text>;
+  return (
+    <Text style={[styles.sectionHeader, style]} accessibilityRole="header">
+      {label}
+    </Text>
+  );
 }
 
 export function BrandMark({ size = 56 }: { size?: number }) {
   return (
     <View style={styles.brandWrap}>
       <Image
-        source={require("../../assets/icon.png")}
+        // REQ-113 (M2): a 192 px copy; the 1024 px app icon (741 KB) was
+        // bundled just to draw this at 56 px.
+        source={require("../../assets/brand-mark.png")}
         style={[styles.brandMark, { width: size, height: size, borderRadius: size * 0.28 }]}
       />
       <Text style={styles.brandName}>Ascendra</Text>
@@ -165,7 +201,7 @@ export function Avatar({
         { width: size, height: size, borderRadius: size / 2 },
       ]}
     >
-      <Text style={{ color: colors.accent, fontFamily: fonts.displayBold, fontSize: size * 0.38 }}>{initials}</Text>
+      <Text style={{ color: colors.link, fontFamily: fonts.displayBold, fontSize: size * 0.38 }}>{initials}</Text>
     </View>
   );
 }
@@ -180,18 +216,31 @@ export function Badge({
   icon?: IconName;
 }) {
   const c = color ?? colors.accent;
+  // REQ-113 (M1): text lifted to 4.5:1 on its own wash (accent and muted
+  // badges were 3.2:1).
+  const wash = c.startsWith("#") && c.length === 7 ? blend(c, BADGE_WASH, colors.card) : null;
+  const fg = wash ? readableOn(c, wash) : c;
   return (
-    <View style={[styles.badge, { backgroundColor: withAlpha(c, 0.16) }]}>
-      {icon ? <Feather name={icon} size={12} color={c} /> : null}
-      <Text style={[styles.badgeText, { color: c }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: withAlpha(c, BADGE_WASH) }]}>
+      {icon ? <Feather name={icon} size={12} color={fg} /> : null}
+      <Text style={[styles.badgeText, { color: fg }]}>{label}</Text>
     </View>
   );
 }
 
+// REQ-113 (L4): a verdict is information, not a mark against the learner.
+// It used to show the raw word in lower case ("incorrect", in red).
+export const VERDICT_LABEL: Record<string, string> = {
+  correct: "Correct",
+  partial: "Partly right",
+  incorrect: "Not yet",
+  ungraded: "Not graded",
+};
+
 export function VerdictBadge({ verdict }: { verdict: string }) {
-  const c = verdictColor[verdict] ?? colors.mutedDim;
-  const icon = (verdictIcon[verdict] ?? "help-circle") as IconName;
-  return <Badge label={verdict} color={c} icon={icon} />;
+  const c = verdict === "incorrect" ? colors.warn : verdictColor[verdict] ?? colors.mutedDim;
+  const icon = (verdict === "incorrect" ? "rotate-ccw" : verdictIcon[verdict] ?? "help-circle") as IconName;
+  return <Badge label={VERDICT_LABEL[verdict] ?? verdict} color={c} icon={icon} />;
 }
 
 export function Tag({ label }: { label: string }) {
@@ -213,9 +262,15 @@ export function Chip({
   onPress: () => void;
   icon?: IconName;
 }) {
+  // REQ-113 (M8, M9): a role and selected state (the selection was colour
+  // only), and a 48 dp target.
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!active }}
+      hitSlop={{ top: 7, bottom: 7 }}
       style={({ pressed }) => [
         styles.chip,
         active && styles.chipActive,
@@ -289,7 +344,11 @@ export function Button({
         variant === "primary" && { backgroundColor: colors.accent },
         variant === "ghost" && { backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border },
         variant === "danger" && { backgroundColor: colors.bad },
-        isDisabled && { opacity: 0.5 },
+        // REQ-113 (M1): a disabled filled button used to fade to 2.0:1. It now
+        // takes the ghost surface with muted text (6:1), so it still reads
+        // clearly while looking unavailable. Busy (loading) keeps its colour.
+        disabled && !loading && variant !== "link" && styles.buttonDisabled,
+        disabled && !loading && variant === "link" && { opacity: 0.6 },
         !fullWidth && { alignSelf: "flex-start" },
         { transform: [{ scale }] },
       ]}
@@ -298,13 +357,14 @@ export function Button({
         <ActivityIndicator size="small" color={iconColor} />
       ) : (
         <>
-          {icon ? <Feather name={icon} size={16} color={iconColor} style={{ marginRight: 8 }} /> : null}
+          {icon ? <Feather name={icon} size={16} color={disabled && variant !== "link" ? colors.muted : iconColor} style={{ marginRight: 8 }} /> : null}
           <Text
             style={[
               variant === "link" ? styles.linkText : styles.buttonText,
               variant === "ghost" && { color: colors.text },
               variant === "primary" && { color: colors.accentText },
               variant === "danger" && { color: "#2a0509" },
+              disabled && !loading && variant !== "link" && { color: colors.muted },
             ]}
           >
             {label}
@@ -315,16 +375,26 @@ export function Button({
   );
 }
 
+// REQ-113 (Audit 3 mobile H4): icon-only buttons were read by TalkBack as
+// "unlabelled" (no label, no role) and were 32-40 dp. The label is now
+// required, the role and disabled state are set, and hitSlop brings the
+// touch target to 48 dp whatever the drawn size.
 export function IconButton({
   icon,
   onPress,
   size = 40,
   variant = "ghost",
+  accessibilityLabel,
+  accessibilityHint,
+  disabled,
 }: {
   icon: IconName;
   onPress: () => void;
+  accessibilityLabel: string;
+  accessibilityHint?: string;
   size?: number;
   variant?: "ghost" | "solid";
+  disabled?: boolean;
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.9);
   return (
@@ -332,10 +402,17 @@ export function IconButton({
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!disabled }}
+      hitSlop={slopFor(size)}
       style={[
         styles.iconButton,
         { width: size, height: size, borderRadius: size / 2 },
         variant === "solid" && { backgroundColor: colors.accent, borderColor: colors.accent },
+        disabled && { opacity: 0.5 },
         { transform: [{ scale }] },
       ]}
     >
@@ -362,7 +439,7 @@ export function FavoriteButton({
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
-      hitSlop={8}
+      hitSlop={slopFor(size)}
       style={[
         { width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center" },
         active && { backgroundColor: withAlpha(colors.warn, 0.16) },
@@ -404,9 +481,15 @@ export function TextField({
   TextInputProps,
   "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "importantForAutofill" | "maxLength" | "multiline"
 >) {
+  // REQ-113 (M8): the visible label was separate text, not linked to the
+  // input, so a screen reader announced an unnamed field. The input now
+  // carries the label (and any error) itself; web links them by id too.
+  const labelId = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
     <View style={{ gap: 6 }}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldLabel} nativeID={`lbl-${labelId}`} importantForAccessibility="no">
+        {label}
+      </Text>
       <View
         style={[
           styles.inputWrap,
@@ -422,12 +505,14 @@ export function TextField({
           placeholderTextColor={colors.mutedDim}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
+          accessibilityLabel={error ? `${label}. ${error}` : label}
+          aria-labelledby={`lbl-${labelId}`}
           style={[styles.input, minHeight ? { minHeight, textAlignVertical: "top" } : null]}
           {...rest}
         />
       </View>
       {error ? (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }} accessibilityLiveRegion="polite">
           <Feather name="alert-circle" size={12} color={colors.bad} />
           <Text style={{ color: colors.bad, fontSize: 12 }}>{error}</Text>
         </View>
@@ -447,16 +532,38 @@ function colorForPercent(percent: number): string {
   return colors.good;
 }
 
-export function ProgressBar({ percent, height = 8 }: { percent: number; height?: number }) {
+export function ProgressBar({
+  percent,
+  height = 8,
+  animated = true,
+  accessibilityLabel,
+}: {
+  percent: number;
+  height?: number;
+  // REQ-113 (L3): long lists turn this off (one animation per row was heavy
+  // on cheap phones).
+  animated?: boolean;
+  accessibilityLabel?: string;
+}) {
   const clamped = Math.max(0, Math.min(100, percent));
-  const widthAnim = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReducedMotion();
+  const still = !animated || reduceMotion;
+  const widthAnim = useRef(new Animated.Value(still ? clamped : 0)).current;
 
   React.useEffect(() => {
-    Animated.timing(widthAnim, { toValue: clamped, duration: 500, useNativeDriver: false }).start();
-  }, [clamped, widthAnim]);
+    // REQ-113 (L1): no fill animation under reduced motion.
+    if (still) widthAnim.setValue(clamped);
+    else Animated.timing(widthAnim, { toValue: clamped, duration: 500, useNativeDriver: false }).start();
+  }, [clamped, widthAnim, still]);
 
   return (
-    <View style={[styles.progressTrack, { height, borderRadius: height / 2 }]}>
+    <View
+      style={[styles.progressTrack, { height, borderRadius: height / 2 }]}
+      accessible={!!accessibilityLabel}
+      accessibilityRole={accessibilityLabel ? "progressbar" : undefined}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityValue={accessibilityLabel ? { min: 0, max: 100, now: Math.round(clamped) } : undefined}
+    >
       <Animated.View
         style={[
           styles.progressFill,
@@ -480,11 +587,38 @@ export function Loading({ label }: { label?: string }) {
   );
 }
 
-export function ErrorBanner({ message }: { message: string }) {
+// REQ-113 (M8): announced when it appears (alert role + live region); it
+// used to be silent to a screen reader. (M6): an optional Retry, so a failed
+// first load isn't a dead end that needs leaving and coming back.
+export function ErrorBanner({
+  message,
+  onRetry,
+  retryLabel,
+}: {
+  message: string;
+  onRetry?: () => void | Promise<unknown>;
+  retryLabel?: string;
+}) {
   return (
-    <View style={[styles.card, styles.errorBanner]}>
-      <Feather name="alert-triangle" size={16} color={colors.bad} />
-      <Text style={{ color: colors.bad, flex: 1 }}>{message}</Text>
+    <View
+      style={[styles.card, styles.errorBanner]}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="assertive"
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <Feather name="alert-triangle" size={16} color={colors.bad} />
+        <Text style={{ color: colors.bad, flex: 1, fontFamily: fonts.body, fontSize: 14, lineHeight: 20 }}>{message}</Text>
+      </View>
+      {onRetry ? (
+        <Button
+          label={retryLabel ?? t("error.retry")}
+          icon="refresh-cw"
+          variant="ghost"
+          size="sm"
+          fullWidth={false}
+          onPress={onRetry}
+        />
+      ) : null}
     </View>
   );
 }
@@ -544,7 +678,12 @@ export function ListRow({
   );
   if (!onPress || right) return content;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => pressed && { opacity: 0.7 }}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={value ? `${label}, ${value}` : label}
+      style={({ pressed }) => pressed && { opacity: 0.7 }}
+    >
       {content}
     </Pressable>
   );
@@ -575,10 +714,12 @@ export function ChoiceSheet({
 }) {
   if (!visible) return null;
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.choiceBackdrop} onPress={onCancel} accessibilityLabel="Dismiss">
+    <Modal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
+      <Pressable style={styles.choiceBackdrop} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Dismiss">
         <Pressable style={styles.choiceSheet} onPress={(e) => e.stopPropagation()}>
-          <H3 style={{ marginBottom: message ? spacing.xs : spacing.md }}>{title}</H3>
+          <Text style={[styles.h3, { marginBottom: message ? spacing.xs : spacing.md }]} accessibilityRole="header">
+            {title}
+          </Text>
           {message ? <Body style={{ marginBottom: spacing.md }}>{message}</Body> : null}
           <View style={{ gap: spacing.sm }}>
             {options.map((opt) => (
@@ -688,14 +829,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 13,
     paddingHorizontal: 18,
+    minHeight: MIN_TOUCH,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
   },
-  buttonSm: { paddingVertical: 9, paddingHorizontal: 14 },
+  // REQ-113 (M9): every button at least 48 dp tall (small ones were ~36,
+  // links ~39).
+  buttonSm: { paddingVertical: 9, paddingHorizontal: 14, minHeight: MIN_TOUCH },
+  buttonDisabled: { backgroundColor: colors.cardAlt, borderWidth: 1, borderColor: colors.border },
   buttonText: { fontFamily: fonts.bodySemiBold, fontSize: 14 },
-  linkButton: { paddingVertical: 10, alignItems: "center", flexDirection: "row", justifyContent: "center" },
-  linkText: { color: colors.accent, fontFamily: fonts.bodySemiBold, fontSize: 14 },
+  linkButton: { paddingVertical: 10, minHeight: MIN_TOUCH, alignItems: "center", flexDirection: "row", justifyContent: "center" },
+  linkText: { color: colors.link, fontFamily: fonts.bodySemiBold, fontSize: 14 },
   iconButton: {
     alignItems: "center",
     justifyContent: "center",
@@ -710,7 +855,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardAlt,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    // REQ-113 (M1): the field's outline at 3:1 (was 1.2:1).
+    borderColor: colors.inputBorder,
     paddingHorizontal: 14,
   },
   input: {
@@ -729,8 +875,6 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: spacing.sm,
     borderColor: withAlpha(colors.bad, 0.4),
     backgroundColor: withAlpha(colors.bad, 0.08),
@@ -755,6 +899,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     paddingVertical: spacing.md,
+    minHeight: MIN_TOUCH,
   },
   listRowIcon: {
     width: 32,

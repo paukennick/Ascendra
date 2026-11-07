@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { CourseReadiness, Track, Unit } from "@/types";
@@ -130,14 +130,14 @@ export default function CourseDashboard() {
           title: track?.title ?? "Course",
           headerLeft: () => (
             <View style={{ flexDirection: "row" }}>
-              <IconButton icon="chevron-left" onPress={() => router.back()} size={34} />
-              <IconButton icon="menu" onPress={() => setSidebarOpen(true)} size={34} />
+              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={() => router.back()} size={34} />
+              <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
             </View>
           ),
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} trackId={trackId} track={track} units={units} />
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={load} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
       {track && pendingDisclaimer ? (
@@ -164,7 +164,7 @@ export default function CourseDashboard() {
           <Card elevated style={{ borderColor: colors.accent }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Muted>Overall progress</Muted>
-              <Muted style={{ color: colors.accent, fontFamily: fonts.bodyBold }}>{track.percent_progress ?? 0}%</Muted>
+              <Muted style={{ color: colors.link, fontFamily: fonts.bodyBold }}>{track.percent_progress ?? 0}%</Muted>
             </View>
             <ProgressBar percent={track.percent_progress ?? 0} />
             <Muted style={{ fontSize: 12 }}>
@@ -213,20 +213,31 @@ export default function CourseDashboard() {
               }
             />
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm }}>
+            {/* REQ-113 (Audit 3 mobile H3, H4): five fixed 72 dp items needed
+                360 dp but a 360 dp phone has about 294 here, so "Compare" sat
+                mostly off-screen. Each item now takes a fifth of the row
+                (at least 56 dp, so five fit in 294 dp; narrower rows wrap
+                instead of overflowing), and the whole item -- icon and caption -- is one labelled
+                button of at least 48 dp. */}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: spacing.sm, rowGap: spacing.sm }}>
               {QUICK_ACTIONS.map((a) => (
-                <View key={a.path} style={{ alignItems: "center", gap: 6, width: 72 }}>
-                  <IconButton
-                    icon={a.icon}
-                    onPress={() =>
-                      router.push({
-                        pathname: `/course/${trackId}/${a.path}`,
-                        params: { trackTitle: track.title },
-                      })
-                    }
-                  />
-                  <Muted style={{ textAlign: "center", fontSize: 11 }}>{a.label}</Muted>
-                </View>
+                <Pressable
+                  key={a.path}
+                  accessibilityRole="button"
+                  accessibilityLabel={a.label}
+                  onPress={() =>
+                    router.push({
+                      pathname: `/course/${trackId}/${a.path}`,
+                      params: { trackTitle: track.title },
+                    })
+                  }
+                  style={({ pressed }) => [styles.quickAction, pressed && { opacity: 0.7 }]}
+                >
+                  <View style={styles.quickIcon}>
+                    <Feather name={a.icon} size={18} color={colors.text} />
+                  </View>
+                  <Muted style={{ textAlign: "center", fontSize: 12, lineHeight: 15 }}>{a.label}</Muted>
+                </Pressable>
               ))}
             </View>
           </Card>
@@ -245,8 +256,10 @@ export default function CourseDashboard() {
               <Card key={u.id}>
                 <Pressable
                   onPress={() => toggleExpanded(u.id)}
-                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}
+                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", minHeight: 48 }}
                   accessibilityRole="button"
+                  accessibilityLabel={`${u.title}. ${u.mastered_objectives ?? 0} of ${u.total_objectives ?? 0} objectives at Independent or above${(u.needs_review_objectives ?? 0) > 0 ? `. ${u.needs_review_objectives} to review` : ""}`}
+                  accessibilityHint={isOpen ? "Hides the objectives" : "Shows the objectives"}
                   accessibilityState={{ expanded: isOpen }}
                 >
                   <View style={{ flex: 1, gap: 2 }}>
@@ -280,6 +293,8 @@ export default function CourseDashboard() {
                               params: { unitId: u.id, objectiveTitle: o.title },
                             })
                           }
+                          accessibilityRole="button"
+                          accessibilityLabel={`${idx + 1}. ${o.title}. ${status}`}
                           style={({ pressed }) => [styles.objectiveRow, pressed && { opacity: 0.7 }]}
                         >
                           <View style={[styles.statusDot, { backgroundColor: masteryColor[status] ?? colors.mutedDim }]} />
@@ -346,8 +361,28 @@ const styles = {
     alignItems: "center" as const,
     gap: 10,
     paddingVertical: 8,
+    minHeight: 48,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
+  quickAction: {
+    flexBasis: "20%" as const,
+    flexGrow: 1,
+    minWidth: 56,
+    minHeight: 48,
+    alignItems: "center" as const,
+    gap: 6,
+    paddingHorizontal: 2,
+  },
+  quickIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
 };

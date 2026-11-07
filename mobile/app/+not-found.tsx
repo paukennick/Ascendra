@@ -13,7 +13,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "@/auth/AuthContext";
 import { Button, H1, Muted, Screen } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";

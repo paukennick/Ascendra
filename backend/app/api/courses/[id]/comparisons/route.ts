@@ -18,7 +18,11 @@ export const dynamic = "force-dynamic";
 // "learned" card for a confusion three or more learners share (each tried
 // once ever), also in the background.
 //
-// Returns { pending, sets: [{ id, source, howToTell, dimensions, concepts,
+// REQ-113 (Audit 3 mobile L4): `failed` is true when the last try at writing
+// this course's cards failed (it is retried after a back-off), so the app can
+// say so instead of "no look-alikes were found".
+//
+// Returns { pending, failed, sets: [{ id, source, howToTell, dimensions, concepts,
 //   questionCount, yourMixUps }] }. No answer keys are included.
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,7 +41,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       inBackground(() => generateLearnedSets(id));
     }
     const sets = await conceptSetsForTrack(id, user.id, objectiveId);
-    return ok({ pending: state !== "ready" && state !== "failed", sets });
+    return ok({ pending: state !== "ready" && state !== "failed", failed: state === "failed" && sets.length === 0, sets });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

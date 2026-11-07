@@ -358,7 +358,12 @@ export default function MfaSettings() {
           <Muted style={{ textAlign: "center" }}>Can't scan? Copy this code into your authenticator app:</Muted>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Tag label={manualSecret ?? ""} />
-            <IconButton icon={copied ? "check" : "copy"} size={32} onPress={copySecret} />
+            <IconButton
+              icon={copied ? "check" : "copy"}
+              size={32}
+              accessibilityLabel={copied ? "Code copied" : "Copy the setup code"}
+              onPress={copySecret}
+            />
           </View>
           {copied ? <Muted style={{ color: colors.good }}>Copied to clipboard</Muted> : null}
         </Card>

@@ -474,6 +474,7 @@ interface SessionItemRow extends ExamItemRow {
   flagged: boolean;
   confidence: number | null;
   time_spent_ms: number;
+  save_seq: string | number;
   verdict: "correct" | "partial" | "incorrect" | null;
   credited: boolean | null;
   partial_score: string | number | null;
@@ -490,7 +491,7 @@ async function loadSession(sessionId: string, userId: string): Promise<SessionRo
 async function loadItems(sessionId: string): Promise<SessionItemRow[]> {
   return query<SessionItemRow>(
     `select si.position, si.unit_id, cu.title as unit_title, cu.weight as unit_weight,
-            si.response, si.flagged, si.confidence, si.time_spent_ms, si.verdict, si.credited, si.partial_score,
+            si.response, si.flagged, si.confidence, si.time_spent_ms, si.save_seq, si.verdict, si.credited, si.partial_score,
             si.attempt_id, a.assist_reason,
             ${ITEM_COLUMNS.split(", ").map((c) => `i.${c}`).join(", ")}
        from exam_session_items si
@@ -526,6 +527,8 @@ export async function sessionView(sessionId: string, userId: string) {
       flagged: r.flagged,
       confidence: r.confidence,
       timeSpentMs: r.time_spent_ms,
+      // REQ-113: the last save number applied; the app numbers on from it.
+      saveSeq: Number(r.save_seq ?? 0),
       // Only once graded: the verdict, the key and the explanation.
       ...(submitted
         ? {
@@ -609,8 +612,18 @@ export async function saveItem(
   sessionId: string,
   userId: string,
   position: number,
-  body: { response?: unknown; flagged?: unknown; confidence?: unknown; timeSpentMs?: unknown }
-) {
+  body: { response?: unknown; flagged?: unknown; confidence?: unknown; timeSpentMs?: unknown; seq?: unknown }
+): Promise<{ saved: boolean; stale?: boolean; seq?: number }> {
+  // REQ-113 (Audit 3 mobile H1, migration 042): the app numbers its saves per
+  // question. A save numbered at or below the last one applied arrived late
+  // (out of order, or a retry of a save the app had already given up on); a
+  // newer save already won, so it is ignored, not an error. No number (an
+  // older app) is applied as before.
+  let seq: number | null = null;
+  if (body.seq !== undefined && body.seq !== null) {
+    if (!Number.isSafeInteger(body.seq) || (body.seq as number) < 1) throw new ExamSessionError("seq must be a positive whole number", 400);
+    seq = body.seq as number;
+  }
   const s = await loadSession(sessionId, userId);
   if (s.status !== "in_progress") throw new ExamSessionError("This session has already ended.", 409);
   if (pastDeadline(s)) {
@@ -663,17 +676,30 @@ export async function saveItem(
     add("time_spent_ms = greatest(time_spent_ms, ?::int)", Math.min(Math.round(t as number), cap));
   }
   if (!sets.length) throw new ExamSessionError("Nothing to save", 400);
+  let seqCheck = "";
+  if (seq !== null) {
+    params.push(seq);
+    sets.push(`save_seq = $${params.length}`);
+    seqCheck = ` and si.save_seq < $${params.length}`;
+  }
   // The status check is repeated in the UPDATE so a save racing a submit
-  // can't change an answer after it was graded.
+  // can't change an answer after it was graded; the sequence check in the
+  // same statement so two saves of one question can't both win.
   const updated = await queryOne<{ position: number }>(
     `update exam_session_items si set ${sets.join(", ")}
        from exam_sessions s
-      where si.session_id = $1 and si.position = $2 and s.id = si.session_id and s.status = 'in_progress'
+      where si.session_id = $1 and si.position = $2 and s.id = si.session_id and s.status = 'in_progress'${seqCheck}
       returning si.position`,
     params
   );
-  if (!updated) throw new ExamSessionError("This session has already ended.", 409);
-  return { saved: true };
+  if (!updated) {
+    if (seq !== null) {
+      const still = await queryOne<{ status: string }>(`select status from exam_sessions where id = $1`, [sessionId]);
+      if (still?.status === "in_progress") return { saved: false, stale: true, seq };
+    }
+    throw new ExamSessionError("This session has already ended.", 409);
+  }
+  return seq !== null ? { saved: true, seq } : { saved: true };
 }
 
 // ---------------------------------------------------------------------------

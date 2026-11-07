@@ -1,7 +1,7 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { gradePBQPrompt, gradeResultSchema } from "@/lib/prompts";
+import { gradePBQPrompt, normalizePartScores, pbqGradeResultSchema } from "@/lib/prompts";
 import { coachContextForUnit } from "@/lib/coach-context";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
@@ -191,17 +191,25 @@ export async function gradeUnitCheck(
   }
   const ctx = await coachContextForUnit(status.unitId);
   const { system, user } = gradePBQPrompt({ scenario: item.scenario, subParts: item.sub_parts, answer, ctx: ctx ?? undefined });
+  // REQ-113 (Audit 3 mobile H2): graded per sub-part like a PBQ (REQ-107).
+  // With only missedParts the app had to match label text, so a reworded or
+  // "Part 2:"-prefixed label showed a missed part as covered next to a
+  // failing verdict. +300 tokens for the per-part list, as on /api/pbq.
   const graded = await callClaudeStructured({
     system,
     messages: [{ role: "user", content: user }],
-    schema: gradeResultSchema,
-    maxTokens: 900,
+    schema: pbqGradeResultSchema,
+    maxTokens: 1200,
     model: getFastModel(),
     effort: "high",
     thinking: "off",
     purpose: "unitcheck_grade",
     userId,
   });
+  const { parts, ...grade } = graded;
+  // Lined up with the check's own labels; null when the grader's list can't
+  // be matched, and the app then says "not scored" rather than guessing.
+  const partScores = normalizePartScores(item.sub_parts, parts, graded.missedParts ?? []);
   try {
     const attempt = await withTransaction((tx) =>
       recordAttemptTx(tx, {
@@ -218,10 +226,11 @@ export async function gradeUnitCheck(
         clientAttemptId,
         assessmentType: "unit_check",
         unitCheckItemId: item.id,
+        partScores,
         errorLog: false,
       })
     );
-    return { ...graded, attempt, subParts: item.sub_parts, replayed: false };
+    return { ...grade, partScores, attempt, subParts: item.sub_parts, replayed: false };
   } catch (err) {
     if (clientAttemptId && isDuplicateClientAttempt(err)) {
       const prior = await findClientAttempt(userId, clientAttemptId);

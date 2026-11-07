@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
@@ -26,6 +27,9 @@ export default function ChatScreen() {
   const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // REQ-113 (Audit 3 mobile M7): a failed reply used to be added to the
+  // thread as if the coach had said "(error getting reply: ...)".
+  const [sendError, setSendError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
   // The id of the message last sent, kept until it gets a reply. Sending the
   // same text again after a failure reuses it, so if the first request did
@@ -51,7 +55,7 @@ export default function ChatScreen() {
     api
       .get<{ messages: ChatMessage[] }>(`/api/chat?trackId=${trackId}`)
       .then((res) => setMessages(res.messages))
-      .catch((err) => setLoadError((err as Error).message));
+      .catch((err) => setLoadError(friendlyError(err)));
   }, [trackId]);
 
   useEffect(() => {
@@ -60,6 +64,7 @@ export default function ChatScreen() {
 
   async function send() {
     if (!input.trim()) return;
+    setSendError(null);
     const userMsg: ChatMessage = { role: "user", content: input };
     setMessages((prev) => [...(prev ?? []), userMsg]);
     const text = input;
@@ -73,10 +78,10 @@ export default function ChatScreen() {
       pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
     } catch (err) {
-      setMessages((prev) => [
-        ...(prev ?? []),
-        { role: "assistant", content: `(error getting reply: ${(err as Error).message})` },
-      ]);
+      // Take the unanswered message back out of the thread; its text goes
+      // back in the box below, ready to send again.
+      setMessages((prev) => (prev && prev[prev.length - 1] === userMsg ? prev.slice(0, -1) : prev));
+      setSendError(friendlyError(err, { kept: true }));
       // The draft is only meant to be cleared by a *successful* send: put the
       // text back (unless they've started something new) so it isn't lost and
       // sending it again reuses its clientMessageId.
@@ -154,9 +159,11 @@ export default function ChatScreen() {
           />
         )}
 
+        {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
+            accessibilityLabel="Message to the coach"
             multiline
             placeholder="Ask anything about this track..."
             maxLength={CHAT_DRAFT_MAX}
@@ -175,9 +182,15 @@ export default function ChatScreen() {
               }
             }}
           />
+          {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
+              a 48 dp touch target around the 36 dp circle. */}
           <Pressable
             onPress={send}
             disabled={busy || !input.trim()}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+            accessibilityState={{ disabled: busy || !input.trim(), busy }}
+            hitSlop={6}
             style={[styles.sendButton, (busy || !input.trim()) && { opacity: 0.4 }]}
           >
             <Feather name="send" size={17} color={colors.accentText} />
@@ -221,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     backgroundColor: colors.cardAlt,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     borderRadius: radius.xl,
     padding: 6,
     paddingLeft: 14,

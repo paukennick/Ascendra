@@ -3617,6 +3617,41 @@
         "041b recompute holds row locks on changed mastery rows until commit: run in a quiet window",
         "Discrimination evidence lands on the right concept's objective so two-option cards need two scenarios with the same answer concept before format evidence is possible"
       ]
+    },
+    {
+      "id": "REQ-113",
+      "category": "defect",
+      "title": "Audit 3 mobile fixes: exam saves, unit-check part scores, accessibility, bundle size, offline errors",
+      "description": "Fix the verified Audit 3 mobile findings (H1-H5, M1-M10, L1-L6): exam answers saved in order with a server sequence check (migration 042) and flushed before submit; unit checks graded per sub-part; quick actions that fit a 360 dp phone; labelled 48 dp icon buttons; Home and the menu lead to today's spaced review; WCAG AA theme contrast; per-weight font and icon imports; typed answers kept on the device; inline retries and calm network errors; screen-reader roles, labels and states; keyboard taps; reduced motion; i18n groundwork with a date picker; a virtualised coverage list and an isolated exam clock; tone and double-tap fixes; a study plan that reloads.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app",
+        "mobile/src",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/exam/sessions/[id]/items/[position]/route.ts",
+        "backend/app/api/courses/[id]/comparisons/route.ts",
+        "backend/supabase/migrations/042_exam_save_sequence.sql"
+      ],
+      "acceptance_criteria": [
+        "Each verified finding fixed with a test or a stated device check; Out-of-order exam saves cannot overwrite a newer answer and submit refuses while saves have failed; Unit check rows come from per-part scores and never default to covered; Theme pairs pass WCAG AA in a test that fails on regression; Android export assets shrink"
+      ],
+      "validation_required": [
+        "npm run test:db (fresh DB)",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "npx expo export --platform android before and after",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Migration 042 must run before the backend deploy (the session view reads save_seq); Accent changed from #4C6FEF to #5A7BF0 for contrast - a visible brand shift for Nick to review; Layout and TalkBack behaviour not checked on a device"
+      ]
     }
   ]
 }

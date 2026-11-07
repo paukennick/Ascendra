@@ -468,6 +468,12 @@ describe("claims and account data", () => {
       throw new Error("model down");
     };
     assert.equal(await ensureConceptSets(privateTrack), "failed");
+    // REQ-113 (Audit 3 mobile L4, FAIL-268): the app is told the cards failed
+    // to generate, rather than shown "no look-alike concepts were found".
+    const owner = (await queryOne<{ user_id: string }>(`select user_id from subject_tracks where id = $1`, [privateTrack]))!.user_id;
+    const failedList = await (await comparisonsGet(get(owner), ctx("id", privateTrack))).json();
+    assert.equal(failedList.failed, true);
+    assert.equal(failedList.pending, false);
     assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), false);
     await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
     assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), true);

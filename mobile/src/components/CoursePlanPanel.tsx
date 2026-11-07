@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import type { PlanResponse, SessionChoice, SessionKind } from "@/types/plan";
-import { Badge, Button, Card, H2, Muted } from "@/components/ui";
+import { Badge, Button, Card, ErrorBanner, H2, Muted } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { feasibilityLines, keptLines, localToday, planHeadline, sessionA11yLabel } from "@/lib/studyPlan";
 
@@ -27,6 +28,8 @@ const ICONS: Record<SessionKind, React.ComponentProps<typeof Feather>["name"]> =
 export function CoursePlanPanel({ trackId, trackTitle }: { trackId: string; trackTitle: string }) {
   const router = useRouter();
   const [data, setData] = useState<PlanResponse | null>(null);
+  // REQ-113 (Audit 3 mobile L5): "Start from the beginning" failed silently.
+  const [skipError, setSkipError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api
@@ -80,15 +83,17 @@ export function CoursePlanPanel({ trackId, trackTitle }: { trackId: string; trac
                 variant="ghost"
                 size="sm"
                 fullWidth={false}
-                onPress={() =>
-                  api
+                onPress={() => {
+                  setSkipError(null);
+                  return api
                     .post(`/api/courses/${trackId}/placement`, { action: "skip" })
                     .then(load)
-                    .catch(() => undefined)
-                }
+                    .catch((err) => setSkipError(friendlyError(err)));
+                }}
               />
             ) : null}
           </View>
+          {skipError ? <ErrorBanner message={skipError} /> : null}
         </Card>
       ) : null}
 

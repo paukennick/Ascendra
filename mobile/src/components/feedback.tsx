@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Body, Muted } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { describeMark, optionLetter, type MarkTone, type ReasonRow } from "@/lib/lessonFeedback";
@@ -42,7 +42,7 @@ export function Collapsible({
         style={styles.collapsibleHead}
       >
         <Feather name={open ? "chevron-down" : "chevron-right"} size={18} color={colors.accent} />
-        <Body style={{ flex: 1, color: colors.accent, fontFamily: fonts.bodySemiBold }}>{label}</Body>
+        <Body style={{ flex: 1, color: colors.link, fontFamily: fonts.bodySemiBold }}>{label}</Body>
       </Pressable>
       {open ? <View style={{ gap: spacing.sm }}>{children}</View> : null}
     </View>
@@ -127,7 +127,7 @@ export function FeedbackPanel({
 
 const styles = StyleSheet.create({
   collapsible: { gap: spacing.sm },
-  collapsibleHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  collapsibleHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 48 },
   nextStep: {
     flexDirection: "row",
     alignItems: "flex-start",

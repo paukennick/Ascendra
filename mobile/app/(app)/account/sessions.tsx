@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useFocusEffect } from "expo-router";
 import { api } from "@/api/client";
 import { Card, Divider, EmptyState, ErrorBanner, IconButton, Loading, Muted, Screen, SectionHeader } from "@/components/ui";
@@ -91,7 +91,12 @@ export default function Sessions() {
                 {revokingId === s.id ? (
                   <ActivityIndicator size="small" color={colors.accent} />
                 ) : (
-                  <IconButton icon="log-out" size={32} onPress={() => confirmRevoke(s)} />
+                  <IconButton
+                    icon="log-out"
+                    size={32}
+                    accessibilityLabel={`Sign out ${describeDevice(s)}`}
+                    onPress={() => confirmRevoke(s)}
+                  />
                 )}
               </View>
             </View>
