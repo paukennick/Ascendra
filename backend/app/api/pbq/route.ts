@@ -5,6 +5,7 @@ import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, gradeResultSche
 import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario } from "@/lib/visibility";
+import { isActive } from "@/lib/progress-sql";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForUnit,
@@ -67,7 +68,7 @@ export async function GET(req: Request) {
     await recordAuthEvent("pbq_generate", authUser.id);
 
     const objectives = await query<{ title: string }>(
-      `select title from objectives where unit_id = $1 order by sort_order asc`,
+      `select o.title from objectives o where o.unit_id = $1 and ${isActive("o")} order by o.sort_order asc`,
       [unitId]
     );
 

@@ -10,6 +10,15 @@ export interface SeedUnit {
   gate?: string;
   objectives: string[];
   labs?: (string | null)[]; // parallel to objectives, Security+ only
+  // REQ-102 (migration 033): when an exam version changes, the outgoing
+  // version's units are not deleted or rewritten in place -- rewriting an
+  // objective's title would silently re-point every learner's mastery and
+  // attempts at different content, and deleting would cascade their mastery
+  // away. Instead the unit stays at its array position (its sort_order, and
+  // so its row identity) with retiredAt set; the seed stamps retired_at on
+  // the unit and every objective in it, and the app stops listing it once
+  // that moment has passed. Successor units are appended after it.
+  retiredAt?: string; // ISO timestamp
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*
@@ -55,6 +64,16 @@ export interface SeedCredential {
   durationMinutes?: number;
   questionFormat?: string;
   passingScorePolicy?: string;
+  // REQ-102: the exam version this one replaces on the same credential.
+  // The seed marks that older credential_exams row superseded_by this one
+  // and records its last test date, rather than leaving it looking current.
+  supersedes?: { examCode: string; lastExamDate: string };
+  // REQ-102: domain weights must total 100. A few vendors print weights
+  // that do not (AACN's "may not equal 100 due to rounding", PMI's CSPP at
+  // 101, ABPTS's CCS rows at 85). Those are kept exactly as printed, and
+  // this field says why -- the blueprint test accepts a non-100 total only
+  // when it is explained here.
+  publishedWeightsNote?: string;
 }
 
 export interface SeedTrack {
@@ -315,12 +334,63 @@ export const MSCS_TRACK: SeedTrack = {
   ],
 };
 
+// REQ-102: the five CompTIA tracks in this file predate the `credential`
+// block, so the app had no exam code, format, or passing score for them --
+// the flagship Security+ track included. Every fact in the blocks below was
+// read on 2026-11-07 from the comptia.org exam page cited beside it.
+const COMPTIA = {
+  providerSlug: "comptia",
+  providerName: "CompTIA",
+  providerUrl: "https://www.comptia.org/certifications",
+  subcategorySlug: "comptia-certifications",
+  credentialType: "certification",
+  basis: "vendor_exam",
+} as const;
+const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
+// Security+ V7 (SY0-701). Source:
+// https://www.comptia.org/en-us/certifications/security/v7/ -- launched
+// 2023-11-07; max 90 questions, multiple choice and performance-based; 90
+// minutes; pass 750 on 100-900; domains 12/22/18/28/20. The page states
+// English retires 2027-06-11 (Japanese, Portuguese, Spanish, Thai on
+// 2027-08-13), so 'transitioning' like AWSDVA/AWSANS.
+//
+// Successor: Security+ V8 (SY0-801), launching 2026-11-17 per
+// https://www.comptia.org/en-us/certifications/security/v8/ -- same 90
+// questions / 90 minutes / 750 pass, but renamed Domain 2 ("Threats,
+// Vulnerabilities, and Attacks") and new weights 16/24/19/27/14. This track
+// still teaches SY0-701, which stays bookable until 2027-06-11; rebasing it
+// onto SY0-801 is a separate content job (new objectives from the V8
+// objectives PDF) due by the review date below, and whether to rebase or
+// to add a parallel V8 track while V7 remains open is Nick's call.
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
   title: "Security+ Coach",
   description: "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/security/v7/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  contentReviewDueAt: "2026-11-17T00:00:00Z",
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "security-plus",
+    credentialName: "CompTIA Security+",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/security/",
+    examCode: "SY0-701",
+    examRevision: "V7",
+    status: "transitioning",
+    effectiveDate: "2023-11-07",
+    retirementDate: "2027-06-11", // English; comptia.org/en-us/certifications/security/v7/
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/security/v7/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "CompTIA Network+ and two years of experience in a security or systems administrator role.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
   units: [
     {
       title: "General Security Concepts",
@@ -684,6 +754,33 @@ export const LINUXPLUS_TRACK: SeedTrack = {
   description: "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/linux/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en-us/certifications/linux/ -- Linux+ V8
+  // (XK0-006), launched 2025-07-15, retirement "estimated 2028", no newer
+  // version announced; max 90 questions, multiple choice and
+  // performance-based; 90 minutes; pass 720 on 100-900. Domain weights
+  // 23/20/22/18/17 match the units below (the page lists Security and
+  // Automation before Troubleshooting; unit order is kept so row identity
+  // does not move).
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "linux-plus",
+    credentialName: "CompTIA Linux+",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/linux/",
+    examCode: "XK0-006",
+    examRevision: "V8",
+    status: "active",
+    effectiveDate: "2025-07-15",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/linux/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "About 12 months of hands-on Linux server experience; CompTIA A+, Network+, or Server+ (or comparable knowledge) recommended.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "720 on a scale of 100-900.",
+  },
   units: [
     {
       title: "System Management",
@@ -806,6 +903,40 @@ export const CYSAPLUS_TRACK: SeedTrack = {
   description: "CompTIA CySA+ CS0-003 exam prep across 4 weighted domains, with SOC-analyst drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v3/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  contentReviewDueAt: "2026-11-07T00:00:00Z",
+  // Source: https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v3/
+  // -- CySA+ V3 (CS0-003), launched 2023-06-06; max 85 questions, multiple
+  // choice and performance-based; 165 minutes; pass 750 on 100-900; weights
+  // 33/30/20/17 (match the units below). The page states "CySA+ V3 will
+  // retire in English on December 22, 2026" (Japanese, Portuguese, Spanish
+  // on 2027-03-23), hence 'transitioning'.
+  //
+  // Successor already live: CySA+ V4 (CS0-004), launched 2026-06-23 per
+  // https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/ --
+  // 85 questions, 165 minutes, pass 750, weights 34/26/24/16. Rebasing this
+  // track onto CS0-004 needs the V4 objectives document and is due now
+  // (contentReviewDueAt); flagged in the REQ-102 report rather than guessed.
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "cysa-plus",
+    credentialName: "CompTIA Cybersecurity Analyst (CySA+)",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/",
+    examCode: "CS0-003",
+    examRevision: "V3",
+    status: "transitioning",
+    effectiveDate: "2023-06-06",
+    retirementDate: "2026-12-22", // English; comptia.org/en-us/certifications/cybersecurity-analyst/v3/
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v3/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "Network+ or Security+ (or equivalent knowledge) and at least 4 years of hands-on work as an incident response analyst, SOC analyst, or similar role.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 85 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
   units: [
     {
       title: "Security Operations",
@@ -893,6 +1024,33 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
   description: "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en/certifications/pentest/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en/certifications/pentest/ -- PenTest+ V3
+  // (PT0-003), launched 2024-12-17, retirement "estimated 2027"; max 90
+  // questions, multiple choice and performance-based; 165 minutes; pass 750
+  // on 100-900; weights 13/21/17/35/14 (match the units below). A V4 draft
+  // is listed on CompTIA's "exam objectives under development" page
+  // (https://www.comptia.org/en-em/resources/comptia-exam-objectives-under-development/)
+  // with no launch date, so nothing to transition yet.
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "pentest-plus",
+    credentialName: "CompTIA PenTest+",
+    credentialUrl: "https://www.comptia.org/en/certifications/pentest/",
+    examCode: "PT0-003",
+    examRevision: "V3",
+    status: "active",
+    effectiveDate: "2024-12-17",
+    officialObjectivesUrl: "https://www.comptia.org/en/certifications/pentest/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "3-4 years in a penetration tester job role, with Network+ and Security+ or equivalent knowledge.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
   units: [
     {
       title: "Engagement Management",
@@ -978,6 +1136,32 @@ export const SECURITYX_TRACK: SeedTrack = {
   description: "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en-us/certifications/securityx/ --
+  // SecurityX V5 (CAS-005), launched 2024-12-17, retirement "estimated
+  // 2027"; max 90 questions, multiple choice and performance-based; up to
+  // 165 minutes; pass/fail only, no scaled score; weights 20/27/31/22 (match
+  // the units below). A V6 draft is listed on the "exam objectives under
+  // development" page with no launch date.
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "securityx",
+    credentialName: "CompTIA SecurityX",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+    examCode: "CAS-005",
+    examRevision: "V5",
+    status: "active",
+    effectiveDate: "2024-12-17",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "At least 10 years of general hands-on IT experience, including 5 years of hands-on security, with Network+, Security+, CySA+, Cloud+, and PenTest+ or equivalent knowledge.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "Pass/fail only; CompTIA reports no scaled score.",
+  },
   units: [
     {
       title: "Governance, Risk, Compliance",
