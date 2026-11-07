@@ -178,6 +178,14 @@ export async function advanceReviewStage(
   return current ? { row: current, advanced: false } : null;
 }
 
+// Whether this learner has been shown the choices for this item.
+export async function hasHintReveal(userId: string, objectiveId: string, stage: string, question: string) {
+  return !!(await queryOne(
+    `select 1 from lesson_hint_reveals where user_id = $1 and objective_id = $2 and item_key = $3`,
+    [userId, objectiveId, lessonItemKey(stage, question)]
+  ));
+}
+
 // REQ-089: the attempt, the mastery update and the review-log changes are
 // one transaction. With client attempt ids, a retry replays the stored
 // attempt instead of re-running this -- so a write that half-succeeded
@@ -243,8 +251,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     );
   } else if (input.format === "pbq" && input.unitId) {
     // REQ-100: a PBQ covers its whole unit, so it is evidence for every
-    // objective of the unit this learner has already studied (the function
-    // returns nothing for an objective with no direct answers). Take the same
+    // objective of the unit this learner has already studied. An objective
+    // with no direct answers comes back Not started; it only gets written if
+    // it already has a row (as recompute_mastery() would), so a PBQ never
+    // creates rows for objectives the learner hasn't studied. Take the same
     // per-objective locks the lesson path takes, in id order so two PBQs
     // cannot deadlock, before reading attempts.
     await query(
@@ -257,6 +267,8 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
        select $1, o.id, m.status, m.score, m.evidence, now()
          from objectives o cross join lateral mastery_from_attempts($1, o.id) m
         where o.unit_id = $2
+          and (m.status <> 'Not started'
+               or exists (select 1 from mastery x where x.user_id = $1 and x.objective_id = o.id))
        on conflict (user_id, objective_id) do update set
          status = excluded.status, score_0_4 = excluded.score_0_4, evidence = excluded.evidence, updated_at = now()
        where mastery.status is distinct from excluded.status

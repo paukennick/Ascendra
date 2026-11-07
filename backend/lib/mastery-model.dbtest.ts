@@ -13,8 +13,16 @@ import { query, queryOne, closePool, sslOption } from "./db";
 import { signAccessToken } from "./auth/tokens";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
 import { GET as courseGet } from "../app/api/courses/[id]/route";
+import { checkSchema, migrationsToApply } from "./schema-status";
 
-const SQL_031 = readFileSync(join(__dirname, "../supabase/migrations/031_weighted_mastery.sql"), "utf8");
+const MIGRATIONS = join(__dirname, "../supabase/migrations");
+const SQL_031 = readFileSync(join(MIGRATIONS, "031_weighted_mastery.sql"), "utf8");
+const SQL_031B = readFileSync(join(MIGRATIONS, "031b_weighted_mastery_backfill.sql"), "utf8");
+// 031 then 031b, as the runner applies them (here inside the caller's transaction).
+async function migrate031(c: Client) {
+  await c.query(SQL_031);
+  await c.query(SQL_031B);
+}
 const run = Date.now().toString(36);
 const track = randomUUID();
 const unitA = randomUUID(); // blueprint weight 70
@@ -37,7 +45,7 @@ interface Ans {
   question?: string;
   verdict: "correct" | "partial" | "incorrect";
   ago: string;
-  assist?: "hint" | "repeat" | "reveal";
+  assist?: "hint" | "repeat" | "reveal" | "retry";
   type?: string;
 }
 async function answer(u: string, o: string, a: Ans) {
@@ -233,7 +241,7 @@ describe("031 re-run", () => {
         b029: (await c.query(`select * from mastery_backup_029 order by mastery_id`)).rows,
         b031: (await c.query(`select * from mastery_backup_031 where user_id = $1 order by mastery_id`, [u])).rows,
       });
-      await c.query(SQL_031);
+      await migrate031(c);
       const first = await snap();
       assert.equal(first.b031.length, 1);
       assert.equal(first.b031[0].status, "Independent");
@@ -242,7 +250,7 @@ describe("031 re-run", () => {
       // learner's stored level out of date.
       await c.query(`update mastery_model_params set value = 0.95 where name = 'readiness_ready_coverage'`);
       await c.query(`update mastery set status = 'Guided', score_0_4 = 2 where user_id = $1`, [u]);
-      await c.query(SQL_031);
+      await migrate031(c);
       const p = await c.query(`select value from mastery_model_params where name = 'readiness_ready_coverage'`);
       assert.equal(Number(p.rows[0].value), 0.95, "a re-run does not overwrite a tuned value");
       const second = await snap();
@@ -251,7 +259,7 @@ describe("031 re-run", () => {
       const level = (rows: Array<Record<string, unknown>>) => rows.map(({ updated_at: _ignored, ...r }) => r);
       assert.deepEqual(level(second.mastery), level(first.mastery), "the re-run recomputed the stale level back");
       const again = await snap();
-      await c.query(SQL_031);
+      await migrate031(c);
       assert.deepEqual(await snap(), again, "a third run changes nothing");
     } finally {
       await c.query("rollback");
@@ -288,5 +296,254 @@ describe("course readiness (blueprint-weighted, coverage-gated)", () => {
     assert.equal(r.focusUnitId, unitA, "the heaviest gap is the suggested focus");
     const b = r.domains.find((d: { unitId: string }) => d.unitId === unitB);
     assert.deepEqual([b.practiced, b.objectives, b.coveragePercent], [2, 2, 100]);
+  });
+});
+
+// The first version of 031 dropped guarantees 029 had just gained in review
+// (PR #22): it trusted a stored assisted = false, returned no row for "no
+// evidence", restored every backed-up row and kept backups after account
+// deletion (FAIL-082, 083, 085, 086).
+describe("031 keeps 029's guarantees", () => {
+  const ruleRow = async (u: string, o: string) =>
+    queryOne<{ status: string; score: number }>(`select status, score from mastery_from_attempts($1, $2)`, [u, o]);
+
+  test("a repeat or a Solo multiple choice written with assisted = false scores as if flagged (FAIL-082)", async () => {
+    const unflagged = await newUser();
+    const flagged = await newUser();
+    // As pre-029 code wrote them during the deploy gap: no flag.
+    await answer(unflagged, objsA[0], { verdict: "incorrect", ago: "2 hours", question: "same" });
+    await answer(unflagged, objsA[0], { verdict: "correct", ago: "1 hour", question: "same" });
+    await answer(unflagged, objsA[1], { format: "mc", verdict: "correct", ago: "1 hour" });
+    // As the current code writes them.
+    await answer(flagged, objsA[0], { verdict: "incorrect", ago: "2 hours", question: "same" });
+    await answer(flagged, objsA[0], { verdict: "correct", ago: "1 hour", question: "same", assist: "repeat" });
+    await answer(flagged, objsA[1], { format: "mc", verdict: "correct", ago: "1 hour", assist: "hint" });
+    for (const o of [objsA[0], objsA[1]]) {
+      const a = await detail(unflagged, o);
+      const b = await detail(flagged, o);
+      assert.deepEqual(a, b);
+      assert.equal(a?.status, "Guided");
+      assert.deepEqual(a?.formats, []);
+    }
+  });
+
+  test("a hint revealed before the answer counts even when the attempt says unassisted; one revealed after does not (FAIL-082)", async () => {
+    const before = await newUser();
+    const afterwards = await newUser();
+    const reveal = (u: string, ago: string) =>
+      query(
+        `insert into lesson_hint_reveals (user_id, objective_id, item_key, revealed_at)
+         values ($1, $2, lesson_item_key('solo', 'hinted q'), now() - $3::interval)`,
+        [u, objsA[2], ago]
+      );
+    await reveal(before, "2 hours");
+    await answer(before, objsA[2], { verdict: "correct", ago: "1 hour", question: "hinted q" });
+    await answer(afterwards, objsA[2], { verdict: "correct", ago: "1 hour", question: "hinted q" });
+    await reveal(afterwards, "0 seconds");
+    assert.equal(await level(before, objsA[2]), "Guided");
+    assert.deepEqual((await detail(before, objsA[2]))?.formats, []);
+    assert.equal(await level(afterwards, objsA[2]), "Independent");
+  });
+
+  // feat/rich-feedback (034) stores "revise my answer after seeing feedback"
+  // as assist_reason = 'retry'. The learner saw the model answer, so a retry
+  // is left out of the accuracy and never counts as a format.
+  test("a retry earns no credit, has no weight and is never format evidence (REQ-100)", async () => {
+    const params = await query<{ name: string; value: string }>(
+      `select name, value from mastery_model_params where name in ('assist_credit_retry', 'assist_weight_retry') order by name`
+    );
+    assert.deepEqual(params.map((r) => [r.name, Number(r.value)]), [["assist_credit_retry", 0], ["assist_weight_retry", 0]]);
+
+    const missOnly = await newUser();
+    const retried = await newUser();
+    for (const u of [missOnly, retried]) {
+      await answer(u, objsA[4], { verdict: "correct", ago: "3 days" });
+      await answer(u, objsA[4], { verdict: "incorrect", ago: "2 hours", question: "missed q" });
+    }
+    // Revised after feedback, correct this time -- stored both ways the
+    // branch might write it: flagged, and (defensively) unflagged.
+    await answer(retried, objsA[4], { verdict: "correct", ago: "1 hour", question: "missed q", assist: "retry" });
+    await query(
+      `insert into attempts (user_id, unit_id, objective_id, kind, stage, format, question, answer, verdict, assisted, assist_reason, created_at)
+       values ($1, $2, $3, 'lesson', 'solo', 'open', 'other missed q', 'a', 'correct', false, 'retry', now() - interval '30 minutes')`,
+      [retried, unitA, objsA[4]]
+    );
+    const a = await detail(missOnly, objsA[4]);
+    const b = await detail(retried, objsA[4]);
+    assert.equal(b?.weighted_accuracy, a?.weighted_accuracy, "retries leave the accuracy exactly as it was");
+    assert.equal(b?.status, a?.status);
+    assert.deepEqual(b?.formats, a?.formats, "no format from a retry");
+
+    // A retry alone can't lift an objective out of Introduced, nor make one
+    // miss read as two for Needs review.
+    const fresh = await newUser();
+    await answer(fresh, objsA[5], { verdict: "incorrect", ago: "2 hours", question: "q" });
+    await answer(fresh, objsA[5], { verdict: "correct", ago: "1 hour", question: "q", assist: "retry" });
+    assert.equal(await level(fresh, objsA[5]), "Introduced");
+  });
+
+  test("only lesson answers and PBQs are evidence; another kind counts only when its assessment type is named", async () => {
+    const other = async (u: string, o: string, kind: string, verdict: string, type: string | null) =>
+      query(
+        `insert into attempts (user_id, unit_id, objective_id, kind, stage, format, question, answer, verdict, assessment_type, created_at)
+         values ($1, $2, $3, $4::attempt_kind, null, 'open', $5, 'a', $6, $7, now() - interval '2 hours')`,
+        [u, unitA, o, kind, `${kind}-${randomUUID()}`, verdict, type]
+      );
+    const quizOnly = await newUser();
+    await other(quizOnly, objsA[6], "quiz", "correct", null);
+    await other(quizOnly, objsA[6], "unitcheck", "correct", null);
+    assert.deepEqual(await ruleRow(quizOnly, objsA[6]), { status: "Not started", score: 0 });
+    assert.equal(await detail(quizOnly, objsA[6]), null);
+
+    // A missed quiz neither lowers the accuracy nor makes a later lesson
+    // answer a review retest.
+    const mixed = await newUser();
+    const lessonOnly = await newUser();
+    for (const u of [mixed, lessonOnly]) await answer(u, objsA[6], { verdict: "correct", ago: "1 hour" });
+    await query(
+      `insert into attempts (user_id, unit_id, objective_id, kind, format, question, answer, verdict, created_at)
+       values ($1, $2, $3, 'quiz', 'open', 'quiz q', 'a', 'incorrect', now() - interval '3 days')`,
+      [mixed, unitA, objsA[6]]
+    );
+    assert.deepEqual(await detail(mixed, objsA[6]), await detail(lessonOnly, objsA[6]));
+
+    // Named in the tuning table, it counts like that type.
+    const named = await newUser();
+    await other(named, objsA[7], "lab", "correct", "free_response");
+    assert.equal(await level(named, objsA[7]), "Independent");
+  });
+
+  test("no direct evidence is Not started; mastery_detail still returns nothing (FAIL-083)", async () => {
+    const u = await newUser();
+    assert.deepEqual(await ruleRow(u, objsA[3]), { status: "Not started", score: 0 });
+    await pbq(u, "correct", "1 hour");
+    assert.deepEqual(await ruleRow(u, objsA[3]), { status: "Not started", score: 0 }, "a PBQ alone gives no level");
+    assert.equal(await detail(u, objsA[3]), null, "readiness reads no row as not practiced");
+  });
+
+  test("031b: self-set and PBQ-only levels reset, the restore leaves later progress alone, backups go with the account (FAIL-083, 085, 086)", async () => {
+    const u = await newUser();
+    const o = { selfSet: objsA[0], pbqOnly: objsA[1], recomputed: objsA[2], later: objsA[3], noRow: objsA[4] };
+    const old = (obj: string, status: string, score: number) =>
+      query(`insert into mastery (user_id, objective_id, status, score_0_4, evidence) values ($1, $2, $3, $4, 'pre-031')`, [
+        u,
+        obj,
+        status,
+        score,
+      ]);
+    await old(o.selfSet, "Transfer-ready", 4);
+    await pbq(u, "correct", "1 day");
+    await old(o.pbqOnly, "Independent", 3);
+    await answer(u, o.recomputed, { verdict: "correct", ago: "3 days" });
+    await old(o.recomputed, "Guided", 2);
+    await answer(u, o.later, { verdict: "correct", ago: "3 days" });
+    await old(o.later, "Introduced", 1);
+    await answer(u, o.noRow, { verdict: "correct", ago: "3 days" });
+    // Each of the last three: a free response 3 days ago plus the unit's
+    // correct PBQ a day ago -- two formats on separate days.
+
+    // 031b recomputes every learner, so it runs on its own connection inside a
+    // transaction that is rolled back (FAIL-076).
+    const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+    await c.connect();
+    try {
+      await c.query("begin");
+      const status = async (obj: string) =>
+        (await c.query(`select status from mastery where user_id = $1 and objective_id = $2`, [u, obj])).rows[0]?.status;
+      await migrate031(c);
+      // now() does not move inside one transaction; model the migration having
+      // committed a minute ago, so the writes below read as later than the backup.
+      await c.query(`update mastery set updated_at = updated_at - interval '1 minute' where user_id = $1 and updated_at = now()`, [u]);
+      await c.query(
+        `update mastery_backup_031 set backed_up_at = backed_up_at - interval '1 minute',
+                updated_at = case when created_by_031 then updated_at - interval '1 minute' else updated_at end
+          where user_id = $1`,
+        [u]
+      );
+
+      const backup = (await c.query(`select objective_id, status, created_by_031 from mastery_backup_031 where user_id = $1`, [u]))
+        .rows as Array<{ objective_id: string; status: string | null; created_by_031: boolean }>;
+      const byObj = Object.fromEntries(backup.map((b) => [b.objective_id, b]));
+      assert.equal(backup.length, 5);
+      assert.equal(byObj[o.selfSet].status, "Transfer-ready", "backup holds the pre-031 value");
+      assert.equal(byObj[o.noRow].created_by_031, true, "the row the recompute created is marked");
+      assert.equal(await status(o.selfSet), "Not started", "a self-set level with no evidence is dropped");
+      assert.equal(await status(o.pbqOnly), "Not started", "a PBQ alone is not a level");
+      assert.equal(await status(o.recomputed), "Transfer-ready");
+      assert.equal(await status(o.later), "Transfer-ready");
+      assert.equal(await status(o.noRow), "Transfer-ready", "a missing row is created from its attempts");
+
+      // Real progress after the backup: a graded answer rewrote this row.
+      await c.query(`update mastery set status = 'Guided', score_0_4 = 2, updated_at = now() where user_id = $1 and objective_id = $2`, [
+        u,
+        o.later,
+      ]);
+      const header = SQL_031B.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
+      const block = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1);
+      assert.equal(block[0], "begin;");
+      assert.equal(block[block.length - 1], "commit;");
+      await c.query(block.slice(1, -1).join("\n")); // the body only: its commit would end this transaction
+      assert.equal(await status(o.selfSet), "Transfer-ready");
+      assert.equal(await status(o.pbqOnly), "Independent");
+      assert.equal(await status(o.recomputed), "Guided");
+      assert.equal(await status(o.later), "Guided", "progress after the backup is kept");
+      assert.equal(await status(o.noRow), undefined, "the row the recompute created is gone, as before 031");
+
+      await c.query(`delete from app_users where id = $1`, [u]); // what DELETE /api/account does
+      const left = await c.query(`select count(*)::int as n from mastery_backup_031 where user_id = $1`, [u]);
+      assert.equal(left.rows[0].n, 0, "backup rows go with the account");
+    } finally {
+      await c.query("rollback");
+      await c.end();
+    }
+  });
+
+  test("031 is schema only, under a lock timeout; the assessment_type key is added NOT VALID and 031b validates it (FAIL-084)", async () => {
+    const r = await queryOne<{ convalidated: boolean }>(
+      `select convalidated from pg_constraint where conname = 'attempts_assessment_type_fkey' and conrelid = 'attempts'::regclass`
+    );
+    assert.equal(r?.convalidated, true);
+    assert.match(SQL_031, /^set local lock_timeout = '5s';$/m);
+    assert.match(SQL_031, /not valid;/);
+    assert.doesNotMatch(SQL_031, /^select recompute_mastery\(\);$/m, "031 is schema only");
+    assert.doesNotMatch(SQL_031, /^insert into mastery_backup_031/m);
+    assert.match(SQL_031B, /^select recompute_mastery\(\);$/m);
+  });
+
+  test("the schema probe tells the first version of 031 from the current one, and asks for 031 only (FAIL-089)", async () => {
+    const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+    await c.connect();
+    try {
+      await c.query("begin");
+      const run = (sql: string) => c.query<{ ok: boolean }>(sql).then((r) => r.rows);
+      assert.deepEqual((await checkSchema(run)).missing, []);
+      // The first version's wrapper: no row for no evidence.
+      await c.query(`create or replace function mastery_from_attempts(p_user uuid, p_objective uuid)
+        returns table (status mastery_status, score int, evidence text) language sql stable as $$
+          select d.status, d.score, d.evidence from mastery_detail(p_user, p_objective) d $$`);
+      const s = await checkSchema(run);
+      assert.deepEqual(migrationsToApply(s), ["031_weighted_mastery.sql"], JSON.stringify(s.missing));
+    } finally {
+      await c.query("rollback");
+      await c.end();
+    }
+  });
+
+  test("the schema probe reports a database that ran 031 but skipped 031b", async () => {
+    const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+    await c.connect();
+    try {
+      await c.query("begin");
+      const run = (sql: string) => c.query<{ ok: boolean }>(sql).then((r) => r.rows);
+      // The state 031 leaves behind: the key added NOT VALID, nothing validated yet.
+      await c.query(`alter table attempts drop constraint attempts_assessment_type_fkey`);
+      await c.query(`alter table attempts add constraint attempts_assessment_type_fkey
+                       foreign key (assessment_type) references assessment_types(type_name) not valid`);
+      const s = await checkSchema(run);
+      assert.deepEqual(migrationsToApply(s), ["031b_weighted_mastery_backfill.sql"], JSON.stringify(s.missing));
+    } finally {
+      await c.query("rollback");
+      await c.end();
+    }
   });
 });

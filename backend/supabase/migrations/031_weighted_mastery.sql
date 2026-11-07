@@ -3,18 +3,39 @@
 -- assessments").
 --
 -- Replaces the rule inside mastery_from_attempts() (migration 029) with a
--- weighted-accuracy model over every kind of graded answer, then recomputes
--- every learner's stored mastery with it. The function keeps its signature,
--- so live grading (lib/grading-service.ts) and recompute_mastery() (029) use
--- the new rule without changes. 029's backup tables are not touched; this
--- file takes its own backup (mastery_backup_031) first.
+-- weighted-accuracy model over every kind of graded answer. The function
+-- keeps its signature, so live grading (lib/grading-service.ts) and
+-- recompute_mastery() (029) use the new rule without changes. This file is
+-- schema and functions only; the backup (mastery_backup_031) and the
+-- recompute of every learner are in 031b_weighted_mastery_backfill.sql, which
+-- the runner applies straight after this file in its own transaction. 029's
+-- backup tables are not touched by either.
+--
+-- DEPLOY ORDER (same as 029):
+--   1. npm run migrate -- --all      (applies 031, then 031b)
+--   2. deploy the backend code
+--   3. after deploying the code, run `select recompute_mastery()` once. The
+--      code still running between 1 and 2 already uses this rule (it calls
+--      mastery_from_attempts), but it does not recompute a unit's objectives
+--      after a graded PBQ; this call catches those pairs.
+--
+-- LOCKING. Everything here is catalog-only, with lock_timeout 5 s so a
+-- long-running query on attempts makes this fail (retry it) instead of
+-- queueing every read behind the ALTER. The foreign key on the new
+-- attempts.assessment_type column is added NOT VALID (no scan under the
+-- ALTER's ACCESS EXCLUSIVE lock; new rows are still checked) and validated
+-- in 031b under a lock that does not block reads or writes.
 --
 -- THE MODEL (mastery_detail; mastery_from_attempts returns its first three
 -- columns). Every number named below lives in mastery_model_params or
 -- assessment_types, defined in section 1, with a note on each row.
 --
--- Evidence for (learner, objective):
---   * every graded answer on the objective itself ("direct" evidence), and
+-- Evidence for (learner, objective) -- lesson answers and PBQs only, as in
+-- 029; another attempt kind (quiz, unitcheck, lab) counts only when its
+-- attempt names an assessment_types row in assessment_type, i.e. when the
+-- tuning table says what it is and how much it weighs:
+--   * every graded lesson answer on the objective itself ("direct"
+--     evidence), and
 --   * every graded PBQ on the objective's unit (PBQs cover a whole unit and
 --     have no objective). PBQ evidence only adds to objectives that already
 --     have direct evidence: a PBQ alone never gives an objective a level.
@@ -22,9 +43,11 @@
 -- Each answer gets a CREDIT and a WEIGHT.
 --   credit = verdict credit (correct 1, partial partial_credit, incorrect 0)
 --            x assist credit (unassisted 1; hint assist_credit_hint;
---              reveal assist_credit_reveal; repeat assist_credit_repeat)
+--              reveal assist_credit_reveal; repeat assist_credit_repeat;
+--              retry assist_credit_retry)
 --   weight = cognitive weight of the answer's assessment type
 --              (guided step < multiple choice < free response < PBQ)
+--            x assist_weight_retry      if it is a retry (0: left out)
 --            x unit_scope_factor        if it is a unit-wide PBQ
 --            x spacing_factor           if it came spacing_gap_hours or more
 --                                       after the learner's previous answer
@@ -60,10 +83,35 @@
 -- Score 0-4 is unchanged: Introduced 1, Guided 2, Independent 3,
 -- Transfer-ready 4, Needs review 1.
 --
+-- No direct evidence (none at all, or only unit PBQs): mastery_detail returns
+-- no row, and mastery_from_attempts returns Not started (score 0), as 029
+-- does, so recompute_mastery() (which visits every pair with attempts AND
+-- every existing mastery row) resets a self-set or PBQ-only level.
+--
 -- Kept from 029 (B1): one sitting cannot reach Transfer-ready (24-hour gap);
 -- repeats and hints are assisted, so they earn reduced credit and never count
 -- as format evidence; the guided step and multiple choice never lift an
 -- objective above Guided on their own.
+--
+-- WHICH ANSWERS ARE ASSISTED. As in 029, a stored assisted = false is not
+-- trusted, because code older than 029 (still serving during the deploy gap)
+-- wrote every attempt with the default false. For an answer on an objective:
+--   - assisted = true                    -> its stored assist_reason
+--   - Solo step answered as multiple choice -> hint (the choices were shown)
+--   - Solo step whose choices are in lesson_hint_reveals, revealed at or
+--     before the answer                 -> hint
+--   - Guided or Solo step whose item (same stage and question) the learner
+--     had answered before               -> repeat
+--   - assist_reason = 'retry' (checked first, whatever the stored flag):
+--     the learner revised a missed answer after seeing feedback and the model
+--     answer (feat/rich-feedback, migration 034, which also adds retry_of;
+--     this rule keys only on the reason, so it works before and after 034).
+--     A retry earns no credit and has no weight -- it is left out of the
+--     accuracy entirely -- never counts as format evidence, and is neither
+--     the "latest answer" nor one of the answers counted for Needs review.
+-- The same precedence as assistReasonFor() in lib/grading-service.ts, so an
+-- answer the current code flags and one the old code left unflagged score
+-- the same. Unit PBQs carry their stored flag only.
 --
 -- New assessment types slot in by name: insert a row into assessment_types
 -- and write attempts.assessment_type = '<name>' when recording the answer.
@@ -75,33 +123,15 @@
 -- `select recompute_mastery();` so stored levels follow. Re-running this file
 -- never overwrites a tuned value (inserts are ON CONFLICT DO NOTHING).
 --
--- ORDER OF WORK, and why it is safe to run twice:
---   1. additive DDL and the tuning rows (IF NOT EXISTS / ON CONFLICT DO NOTHING)
---   2. BACKUP of mastery to mastery_backup_031 before anything changes; ON
---      CONFLICT DO NOTHING keeps the original pre-031 values on a re-run.
---      mastery_backup_029 is never read or written here.
---   3. the new functions (CREATE OR REPLACE)
---   4. recompute_mastery(): rewrites only rows whose status, score or
---      evidence differ, so a second run on the same day changes nothing.
---      (Evidence text carries the weighted accuracy, which drifts as evidence
---      ages, so a run on a later day may refresh rows -- by design.)
---
--- RESTORE (puts mastery back to just before the first run of this file; only
--- meaningful together with restoring 029's mastery_from_attempts, because the
--- next graded answer recomputes from whatever rule is installed):
---
---   begin;
---   update mastery m
---      set status = b.status, score_0_4 = b.score_0_4,
---          evidence = b.evidence, updated_at = b.updated_at
---     from mastery_backup_031 b
---    where b.mastery_id = m.id;
---   commit;
---
--- To see whose level changed:
---   select b.user_id, b.objective_id, b.status as before, m.status as after
---     from mastery_backup_031 b join mastery m on m.id = b.mastery_id
---    where b.status is distinct from m.status;
+-- ORDER OF WORK (safe to run twice: IF NOT EXISTS / ON CONFLICT DO NOTHING /
+-- CREATE OR REPLACE throughout):
+--   1. new tables: the tuning rows and the empty backup table (its user_id
+--      cascades on account deletion)
+--   2. attempts.assessment_type, with its foreign key NOT VALID
+--   3. the new functions
+-- The backup, the recompute and the restore SQL are in 031b.
+
+set local lock_timeout = '5s';
 
 -- 1. Schema and tuning tables --------------------------------------------------
 
@@ -143,6 +173,8 @@ insert into mastery_model_params (name, value, note) values
   ('assist_credit_hint', 0.5, 'Credit multiplier when the Solo choices were on screen (assist_reason hint).'),
   ('assist_credit_reveal', 0.25, 'Credit multiplier when the answer had been revealed (assist_reason reveal; reserved).'),
   ('assist_credit_repeat', 0.25, 'Credit multiplier for answering an item already answered, whose answer was shown (assist_reason repeat).'),
+  ('assist_credit_retry', 0, 'Credit multiplier for revising a missed answer after seeing feedback and the model answer (assist_reason retry, migration 034).'),
+  ('assist_weight_retry', 0, 'Weight multiplier for a retry (assist_reason retry). 0 leaves retries out of the accuracy entirely.'),
   ('spacing_gap_hours', 24, 'An answer at least this long after the previous answer on the objective is spaced.'),
   ('spacing_factor', 1.5, 'Weight multiplier for a spaced answer (a same-session answer has 1).'),
   ('review_retest_factor', 1.2, 'Weight multiplier when the learner had missed this objective or PBQ scenario on an earlier day.'),
@@ -160,9 +192,40 @@ insert into mastery_model_params (name, value, note) values
   ('readiness_ready_coverage', 0.9, 'Blueprint-weighted share of objectives practiced needed before a course can read as ready.')
 on conflict (name) do nothing;
 
+-- Filled by 031b, before the recompute. One row per mastery row; rows the
+-- recompute creates are recorded with created_by_031 = true so the restore
+-- can remove them. Backup rows go with the account (FAIL-115 for 029).
+create table if not exists mastery_backup_031 (
+    mastery_id uuid primary key,
+    user_id uuid references app_users(id) on delete cascade,
+    objective_id uuid,
+    status mastery_status,          -- null when created_by_031
+    score_0_4 int,
+    evidence text,
+    updated_at timestamptz,
+    created_by_031 boolean not null default false,
+    backed_up_at timestamptz not null default now()
+);
+create index if not exists idx_mastery_backup_031_user on mastery_backup_031(user_id);
+
+-- 2. attempts.assessment_type -------------------------------------------------------
+
 -- Explicit type for answer kinds the enums below cannot express (explain-back,
--- scenario). Null means "derive it" (attempt_type_of).
-alter table attempts add column if not exists assessment_type text references assessment_types(type_name);
+-- scenario). Null means "derive it" (attempt_type_of). The column is null on
+-- every existing row, so adding it is catalog-only; the foreign key is added
+-- NOT VALID so it scans nothing here (it still checks every new row), and
+-- 031b validates it.
+alter table attempts add column if not exists assessment_type text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'attempts_assessment_type_fkey'
+                    and conrelid = 'attempts'::regclass) then
+    alter table attempts add constraint attempts_assessment_type_fkey
+      foreign key (assessment_type) references assessment_types(type_name) not valid;
+  end if;
+end $$;
+
+-- 3. The rule ----------------------------------------------------------------------
 
 create or replace function attempt_type_of(p_kind attempt_kind, p_stage text, p_format attempt_format, p_explicit text)
 returns text language sql immutable as $$
@@ -174,25 +237,6 @@ returns text language sql immutable as $$
              else 'free_response'
            end)
 $$;
-
--- 2. Backup, before any data changes -------------------------------------------
-
-create table if not exists mastery_backup_031 (
-    mastery_id uuid primary key,
-    user_id uuid,
-    objective_id uuid,
-    status mastery_status,
-    score_0_4 int,
-    evidence text,
-    updated_at timestamptz,
-    backed_up_at timestamptz not null default now()
-);
-
-insert into mastery_backup_031 (mastery_id, user_id, objective_id, status, score_0_4, evidence, updated_at)
-select id, user_id, objective_id, status, score_0_4, evidence, updated_at from mastery
-on conflict (mastery_id) do nothing;
-
--- 3. The rule ----------------------------------------------------------------------
 
 create or replace function mastery_detail(p_user uuid, p_objective uuid)
 returns table (
@@ -213,6 +257,8 @@ language sql stable as $$
       max(value) filter (where name = 'assist_credit_hint') as assist_credit_hint,
       max(value) filter (where name = 'assist_credit_reveal') as assist_credit_reveal,
       max(value) filter (where name = 'assist_credit_repeat') as assist_credit_repeat,
+      max(value) filter (where name = 'assist_credit_retry') as assist_credit_retry,
+      max(value) filter (where name = 'assist_weight_retry') as assist_weight_retry,
       max(value) filter (where name = 'spacing_gap_hours') as spacing_gap_hours,
       max(value) filter (where name = 'spacing_factor') as spacing_factor,
       max(value) filter (where name = 'review_retest_factor') as review_retest_factor,
@@ -229,21 +275,41 @@ language sql stable as $$
   ), obj as (
     select unit_id from objectives where id = p_objective
   ), ev as (
-    select a.id, a.created_at, a.verdict, a.assisted, a.assist_reason, a.pbq_scenario_id,
+    -- assist: null = unassisted. Derived from history, not only from the
+    -- stored flag (see WHICH ANSWERS ARE ASSISTED in the header).
+    select a.id, a.created_at, a.verdict, a.pbq_scenario_id,
+           case
+             when a.assist_reason = 'retry' then 'retry'
+             when a.assisted then coalesce(a.assist_reason, 'hint')
+             when a.stage = 'solo' and a.format = 'mc' then 'hint'
+             when a.stage = 'solo' and exists (
+               select 1 from lesson_hint_reveals h
+                where h.user_id = a.user_id and h.objective_id = a.objective_id
+                  and h.item_key = lesson_item_key(a.stage, a.question)
+                  and h.revealed_at <= a.created_at) then 'hint'
+             when a.stage in ('fade', 'solo') and exists (
+               select 1 from attempts r
+                where r.user_id = a.user_id and r.objective_id = a.objective_id
+                  and r.stage = a.stage and r.question = a.question
+                  and (r.created_at, r.id) < (a.created_at, a.id)) then 'repeat'
+           end as assist,
            false as via_unit,
            attempt_type_of(a.kind, a.stage, a.format, a.assessment_type) as type_name
       from attempts a
      where a.user_id = p_user and a.objective_id = p_objective
        and a.format <> 'pbq' and a.verdict is not null
+       and (a.kind = 'lesson' or a.assessment_type is not null)
     union all
-    select a.id, a.created_at, a.verdict, a.assisted, a.assist_reason, a.pbq_scenario_id,
+    select a.id, a.created_at, a.verdict, a.pbq_scenario_id,
+           case when a.assist_reason = 'retry' then 'retry'
+                when a.assisted then coalesce(a.assist_reason, 'hint') end as assist,
            true as via_unit,
            attempt_type_of(a.kind, a.stage, a.format, a.assessment_type) as type_name
       from attempts a
       join obj on true
       left join pbq_scenarios sc on sc.id = a.pbq_scenario_id
      where a.user_id = p_user and a.objective_id is null
-       and a.format = 'pbq' and a.verdict is not null
+       and a.kind = 'pbq' and a.format = 'pbq' and a.verdict is not null
        and coalesce(a.unit_id, sc.unit_id) = obj.unit_id
   ), t as (
     select ev.*, ty.format_family, ty.cognitive_weight, ty.application_level,
@@ -251,6 +317,7 @@ language sql stable as $$
            exists (
              select 1 from attempts r
               where r.user_id = p_user and r.verdict in ('partial', 'incorrect')
+                and (r.kind in ('lesson', 'pbq') or r.assessment_type is not null)
                 and ((not ev.via_unit and r.objective_id = p_objective)
                   or (ev.via_unit and r.pbq_scenario_id = ev.pbq_scenario_id))
                 and (r.created_at at time zone 'UTC')::date < (ev.created_at at time zone 'UTC')::date
@@ -262,23 +329,26 @@ language sql stable as $$
     select t.*,
            (case t.verdict when 'correct' then 1 when 'partial' then p.partial_credit else 0 end)
            * (case
-                when not t.assisted then 1
-                when t.assist_reason = 'repeat' then p.assist_credit_repeat
-                when t.assist_reason = 'reveal' then p.assist_credit_reveal
+                when t.assist is null then 1
+                when t.assist = 'retry' then p.assist_credit_retry
+                when t.assist = 'repeat' then p.assist_credit_repeat
+                when t.assist = 'reveal' then p.assist_credit_reveal
                 else p.assist_credit_hint
               end) as credit,
            t.cognitive_weight
+           * (case when t.assist = 'retry' then p.assist_weight_retry else 1 end)
            * (case when t.via_unit then p.unit_scope_factor else 1 end)
            * (case when t.prev_at is not null
                     and extract(epoch from t.created_at - t.prev_at) >= p.spacing_gap_hours * 3600
                    then p.spacing_factor else 1 end)
            * (case when t.review_retest then p.review_retest_factor else 1 end)
            * power(0.5::numeric, greatest(t.age_days, 0)::numeric / p.recency_half_life_days) as weight,
-           (t.verdict = 'correct' and not t.assisted and t.application_level) as format_win
+           (t.verdict = 'correct' and t.assist is null and t.application_level) as format_win
       from t cross join p
   ), s as (
     select count(*)::int as n,
            count(*) filter (where not via_unit)::int as n_direct,
+           count(*) filter (where not via_unit and assist is distinct from 'retry')::int as n_scored,
            coalesce(sum(weight), 0) as ew,
            coalesce(sum(weight * credit), 0) as ewc,
            coalesce(bool_or(credit > 0), false) as any_credit,
@@ -287,13 +357,14 @@ language sql stable as $$
            array_agg(distinct format_family order by format_family) filter (where format_win) as fams,
            min(created_at) filter (where format_win) as first_win,
            max(created_at) filter (where format_win) as last_win,
-           (select w2.verdict from w w2 where not w2.via_unit order by w2.created_at desc, w2.id desc limit 1) as last_direct_verdict
+           (select w2.verdict from w w2 where not w2.via_unit and w2.assist is distinct from 'retry'
+               order by w2.created_at desc, w2.id desc limit 1) as last_direct_verdict
       from w
   ), st as (
     select s.*, p.*, acc.acc,
            (case
               when s.n_direct = 0 then null
-              when s.last_direct_verdict = 'incorrect' and s.n_direct >= p.needs_review_min_attempts
+              when s.last_direct_verdict = 'incorrect' and s.n_scored >= p.needs_review_min_attempts
                    and acc.acc < p.needs_review_accuracy then 'Needs review'
               when s.direct_win and acc.acc >= p.transfer_accuracy and s.n_formats >= p.transfer_min_formats
                    and extract(epoch from s.last_win - s.first_win) >= p.transfer_min_gap_hours * 3600 then 'Transfer-ready'
@@ -328,13 +399,14 @@ language sql stable as $$
 $$;
 
 -- Same signature as 029, so live grading and recompute_mastery() pick up the
--- new rule unchanged.
+-- new rule unchanged. Like 029 it always returns exactly one row: Not started
+-- when there is no direct evidence (mastery_detail returns none).
 create or replace function mastery_from_attempts(p_user uuid, p_objective uuid)
 returns table (status mastery_status, score int, evidence text)
 language sql stable as $$
-  select d.status, d.score, d.evidence from mastery_detail(p_user, p_objective) d
+  select coalesce(d.status, 'Not started'::mastery_status),
+         coalesce(d.score, 0),
+         coalesce(d.evidence, 'no graded answers on this objective')
+    from (select 1) one
+    left join mastery_detail(p_user, p_objective) d on true
 $$;
-
--- 4. Recompute ---------------------------------------------------------------------
-
-select recompute_mastery();

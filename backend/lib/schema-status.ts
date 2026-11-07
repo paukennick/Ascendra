@@ -81,8 +81,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
   },
   {
     migration: "029_mastery_recompute.sql",
-    what: "mastery_from_attempts() function (every graded answer)",
-    sql: `select to_regprocedure('public.mastery_from_attempts(uuid,uuid)') is not null as ok`,
+    // Checks the current version, not just the name: the first version of
+    // 029 returned no row for "no evidence" and trusted attempts.assisted for
+    // repeats (FAIL-110/111).
+    // Once 031's rule is installed the 031 probes below judge the function:
+    // re-applying 029 would put the old rule back, so this one doesn't ask for it.
+    what: "mastery_from_attempts() function, current version (every graded answer)",
+    sql: `select exists(select 1 from pg_proc where proname = 'mastery_from_attempts' and prosrc like '%mastery_detail%')
+             or coalesce((select status = 'Not started'
+                             from mastery_from_attempts('00000000-0000-0000-0000-000000000000'::uuid,
+                                                        '00000000-0000-0000-0000-000000000000'::uuid)), false) as ok`,
   },
   {
     migration: "029_mastery_recompute.sql",
@@ -115,6 +123,30 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "mastery_from_attempts() uses the weighted model (031), not the 029 rule",
     sql: `select coalesce(bool_and(prosrc like '%mastery_detail%'), false) as ok
             from pg_proc where proname = 'mastery_from_attempts'`,
+  },
+  {
+    // Checks the current version of 031, not just the name: the first version
+    // trusted a stored assisted = false (so attempts written by pre-029 code
+    // in the deploy gap earned full credit) and returned no row for "no
+    // evidence", so self-set levels survived the recompute (FAIL-082/083).
+    migration: "031_weighted_mastery.sql",
+    what: "mastery_detail() / mastery_from_attempts(), current 031 version (history-derived assists, Not started)",
+    sql: `select coalesce((select status = 'Not started'
+                             from mastery_from_attempts('00000000-0000-0000-0000-000000000000'::uuid,
+                                                        '00000000-0000-0000-0000-000000000000'::uuid)), false)
+             and exists(select 1 from pg_proc where proname = 'mastery_detail'
+                          and prosrc like '%lesson_hint_reveals%') as ok`,
+  },
+  {
+    // 031 creates the backup table empty and adds the assessment_type key NOT
+    // VALID; only 031b fills the backup, recomputes and validates the key. The
+    // validated key is the durable sign 031b ran (an empty backup is normal on
+    // a database that had no mastery rows yet), so skipping 031b is reported.
+    migration: "031b_weighted_mastery_backfill.sql",
+    what: "mastery_backup_031 taken and every learner recomputed under the weighted model (031b)",
+    sql: `select to_regclass('public.mastery_backup_031') is not null
+             and exists(select 1 from pg_constraint
+                         where conname = 'attempts_assessment_type_fkey' and convalidated) as ok`,
   },
   {
     migration: "031_weighted_mastery.sql",

@@ -367,7 +367,11 @@ describe("cross-instance generation claims", () => {
     const { gen: g0 } = fakeGenerator("shared");
     await ensureGeneration(obj, objRow, { scope: SHARED, generator: g0, pending: instance(), ...fast }).fullPromise;
 
-    const { gen } = fakeGenerator("regen", { introMs: 100 });
+    // FAIL-088: practice must still be running when the lease is checked.
+    // With practice instant, the regenerate could write the lesson and release
+    // its lease between the intro resolving and the check below (about 1 run
+    // in 12 of the full suite); practiceMs keeps the lease held for ~400 ms.
+    const { gen } = fakeGenerator("regen", { introMs: 100, practiceMs: 500 });
     const h = await startRegeneration(userA, obj, objRow, { generator: gen, pending: instance(), ...fast });
     await h.introPromise; // practice still running, lease still held
     assert.equal(await isClaimLive(obj, { kind: "user", userId: userA }), true);
