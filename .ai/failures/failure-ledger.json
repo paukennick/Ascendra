@@ -1519,6 +1519,29 @@
       "prevention_rules": [],
       "prevention_notes": "New attempt kinds reach mastery only through an explicit assessment_types row.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-210",
+      "date": "2026-11-07",
+      "title": "New dbtest failed typecheck: randomUUID arrays typed as template-literal UUIDs",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "tsc --noEmit: Argument of type 'string' is not assignable to parameter of type '${string}-${string}-...' in lib/coach-plan.dbtest.ts",
+      "how_detected": "typecheck before commit",
+      "root_cause": "Arrays built with Array.from(() => randomUUID()) infer node's branded UUID template type, so indexOf/includes with a plain string objective id fail to typecheck; the test ran under tsx (no typecheck) so only tsc caught it",
+      "requirement": "REQ-110",
+      "affected": [
+        "backend/lib/coach-plan.dbtest.ts"
+      ],
+      "fix_summary": "Annotated the id arrays as string[], as mastery-model.dbtest.ts already does",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/coach-plan.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Run npx tsc --noEmit after writing a dbtest; tsx does not typecheck. Existing pre-completion checklist already requires typecheck.",
+      "recurrence_of": ""
     }
   ]
 }

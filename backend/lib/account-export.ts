@@ -20,6 +20,12 @@ export const EXPORT_SECTIONS = {
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc",
   courseAcknowledgements: "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc",
+  // REQ-110.
+  studyPlans: "select * from study_plans where user_id = $1",
+  placementChecks: `select pc.*, coalesce((select json_agg(pi order by pi.seq) from placement_items pi where pi.placement_id = pc.id and pi.correct is not null), '[]') as items
+                      from placement_checks pc where pc.user_id = $1 order by pc.started_at asc`,
+  coachQuizTurns: `select t.*, i.question, i.objective_id from coach_quiz_turns t join coach_quiz_items i on i.id = t.item_id
+                    where t.user_id = $1 order by t.created_at asc`,
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

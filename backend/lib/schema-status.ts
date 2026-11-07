@@ -156,6 +156,20 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'attempts' and column_name = 'assessment_type'
           ) as ok`,
   },
+  {
+    migration: "039_coach_plan.sql",
+    what: "coach_quiz and placement assessment types (Quiz me, placement check)",
+    sql: `select (select cognitive_weight = 0 and not application_level from assessment_types where type_name = 'coach_quiz')
+             and (select not application_level from assessment_types where type_name = 'placement') as ok`,
+  },
+  {
+    migration: "039_coach_plan.sql",
+    what: "study_plans, placement_checks/placement_items, coach_quiz_items/coach_quiz_turns tables (study plan, placement, Quiz me)",
+    sql: `select to_regclass('public.study_plans') is not null and to_regclass('public.placement_checks') is not null
+             and to_regclass('public.coach_quiz_items') is not null and to_regclass('public.coach_quiz_turns') is not null
+             and exists(select 1 from information_schema.columns where table_schema = 'public'
+                          and table_name = 'placement_items' and column_name = 'correct_index') as ok`,
+  },
 ];
 
 export interface SchemaStatus {

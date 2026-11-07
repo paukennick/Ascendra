@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
@@ -21,6 +21,7 @@ export default function ChatScreen() {
     prefill?: string;
     unitId?: string;
   }>();
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
@@ -101,6 +102,15 @@ export default function ChatScreen() {
             <Muted>{trackTitle ? `${trackTitle} · ` : ""}Open Q&A — not graded, doesn't touch mastery</Muted>
           </View>
         </View>
+        {/* REQ-110: the coach quizzes the learner on their weakest objectives. */}
+        <Button
+          label="Quiz me on my weak spots"
+          icon="help-circle"
+          size="sm"
+          variant="ghost"
+          fullWidth={false}
+          onPress={() => router.push({ pathname: `/course/${trackId}/quiz`, params: { trackTitle } })}
+        />
 
         {!messages && loadError ? (
           <View style={{ gap: spacing.sm, paddingVertical: spacing.md }}>
