@@ -126,7 +126,10 @@ after(async () => {
 
 // ------------------------------------------------------------ MEDIUM-4
 describe("review session start (FAIL-374, FAIL-375)", () => {
-  test("a fresh plan of 12 cached questions takes at most 10 queries and no model call", async () => {
+  // Budget: REQ-118's 10, plus REQ-116's token check in requireUser (one
+  // primary-key read per signed-in request) and REQ-117's one batched
+  // "missed twice in a row" read for the re-teach card.
+  test("a fresh plan of 12 cached questions takes at most 12 queries and no model call", async () => {
     const u = await newUser("review");
     const { objectives } = await makeCourse(u);
     const today = utcDay(new Date());
@@ -139,7 +142,7 @@ describe("review session start (FAIL-374, FAIL-375)", () => {
     const body = await result.json();
     assert.equal(body.session.total, 12, JSON.stringify(body));
     assert.equal(body.unavailable, 0);
-    assert.ok(n <= 10, `fresh plan used ${n} queries (was 65 before REQ-118):\n${sql.map((s) => s.slice(0, 80)).join("\n")}`);
+    assert.ok(n <= 12, `fresh plan used ${n} queries (was 65 before REQ-118):\n${sql.map((s) => s.slice(0, 80)).join("\n")}`);
     // Every item got an unseen cached question, one per objective.
     const items = await query<{ review_item_id: string | null; objective_id: string }>(
       `select si.review_item_id, si.objective_id from review_session_items si where si.session_id = $1`,
@@ -184,7 +187,7 @@ describe("review session start (FAIL-374, FAIL-375)", () => {
 
 // ------------------------------------------------------------ MEDIUM-5
 describe("course view (FAIL-376, FAIL-377)", () => {
-  test("warm view is 3 queries; a new answer invalidates the cached readiness", async () => {
+  test("warm view is 4 queries (3 + the token check); a new answer invalidates the cached readiness", async () => {
     clearCourseViewCaches();
     const u = await newUser("course");
     const { track, objectives } = await makeCourse(u);
@@ -200,7 +203,8 @@ describe("course view (FAIL-376, FAIL-377)", () => {
     assert.equal(coldBody.units[0].objectives.length, N_OBJ / 2);
 
     const warm = await countQueries(view);
-    assert.ok(warm.n <= 3, `warm course view used ${warm.n} queries (was 9)`);
+    // 3, plus REQ-116's token check in requireUser.
+    assert.ok(warm.n <= 4, `warm course view used ${warm.n} queries (was 9)`);
     assert.deepEqual((await warm.result.json()).readiness, coldBody.readiness);
 
     await recordAttemptAndUpdateMastery({
@@ -370,7 +374,14 @@ describe("046 indexes (FAIL-379, FAIL-380)", () => {
     assert.match(plans.auth, /auth_events_user/);
     assert.match(plans.ai, /ai_calls_user_created/);
     assert.match(plans.unit, /attempts_unit|attempts_user_unit_created/);
-    assert.match(plans.userUnit, /attempts_user_unit_created/);
+    // Two indexes can serve this lookup (idx_attempts_user_created filters by
+    // unit); on a test-sized table the planner's pick between them depends on
+    // statistics, so the plan is only required to use an index, and the new
+    // index's definition is checked directly.
+    assert.match(plans.userUnit, /Index/);
+    const def = await query<{ indexdef: string }>(`select indexdef from pg_indexes where indexname like '%attempts_user_unit_created%'`);
+    assert.equal(def.length, 1);
+    assert.match(def[0].indexdef, /\(user_id, unit_id, created_at DESC\)/);
   });
 });
 

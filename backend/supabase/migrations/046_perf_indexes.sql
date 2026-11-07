@@ -10,8 +10,8 @@
 --   attempts_unit                foreign key attempts.unit_id had no index,
 --                                so deleting or retiring a unit scanned all
 --                                attempts.
---   auth_events_user             foreign keys with ON DELETE SET NULL and no
---   ai_calls_user_created        index: deleting one account scanned 3M
+--   auth_events_user (now 044)   foreign keys with ON DELETE SET NULL and no
+--   ai_calls_user_created (043)  index: deleting one account scanned 3M
 --                                auth_events and 1.2M ai_calls rows (fixture).
 --                                ai_calls_user_created also serves per-learner
 --                                spend reads (user_id, created_at range).
@@ -47,11 +47,12 @@ create index if not exists attempts_user_unit_created
 create index if not exists attempts_unit
   on attempts (unit_id);
 
-create index if not exists auth_events_user
-  on auth_events (user_id) where user_id is not null;
-
-create index if not exists ai_calls_user_created
-  on ai_calls (user_id, created_at) where user_id is not null;
+-- auth_events (user_id) and ai_calls (user_id, created_at) are indexed by
+-- 044 (idx_auth_events_user) and 043 (ai_calls_user_created_idx); not
+-- duplicated here. item_flags.user_id (042) is a foreign key into app_users
+-- that account deletion follows.
+create index if not exists item_flags_user
+  on item_flags (user_id) where user_id is not null;
 
 create index if not exists review_session_items_answered
   on review_session_items (session_id, objective_id) where answered_at is not null;

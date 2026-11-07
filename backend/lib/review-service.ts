@@ -1,4 +1,5 @@
 import { misconceptionPromptBlock } from "@/lib/understanding-store";
+import { query } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import { getSharedLesson } from "@/lib/lesson-store";
@@ -122,9 +123,18 @@ export async function sessionView(userId: string, sessionId: string): Promise<Se
   const open = items.filter((i) => !i.answered_at).map((i) => i.objective_id);
   const struggling = await strugglingObjectives(userId, open);
   const reteach = new Map<string, string | null>();
-  for (const id of struggling) {
-    const lesson = await getSharedLesson(id);
-    reteach.set(id, lesson?.teach ? refresherExcerpt(lesson.teach, RETEACH_WORDS).text : null);
+  // One read for every struggling objective's lesson text (REQ-118's query
+  // budget for session start), not one per objective.
+  if (struggling.size) {
+    const rows = await query<{ objective_id: string; teach: string | null }>(
+      `select objective_id, teach from lesson_content where objective_id = any($1::uuid[])`,
+      [[...struggling]]
+    );
+    const teachOf = new Map(rows.map((r) => [r.objective_id, r.teach]));
+    for (const id of struggling) {
+      const teach = teachOf.get(id);
+      reteach.set(id, teach ? refresherExcerpt(teach, RETEACH_WORDS).text : null);
+    }
   }
   return {
     id: s.id,

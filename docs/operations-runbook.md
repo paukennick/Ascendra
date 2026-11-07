@@ -59,8 +59,7 @@ pooler or inside a transaction block):
 ```sql
 create index concurrently if not exists attempts_user_unit_created on attempts (user_id, unit_id, created_at desc);
 create index concurrently if not exists attempts_unit on attempts (unit_id);
-create index concurrently if not exists auth_events_user on auth_events (user_id) where user_id is not null;
-create index concurrently if not exists ai_calls_user_created on ai_calls (user_id, created_at) where user_id is not null;
+create index concurrently if not exists item_flags_user on item_flags (user_id) where user_id is not null;
 create index concurrently if not exists review_session_items_answered on review_session_items (session_id, objective_id) where answered_at is not null;
 create index concurrently if not exists error_log_attempt on error_log (attempt_id) where attempt_id is not null;
 create index concurrently if not exists review_log_attempt on review_log (attempt_id) where attempt_id is not null;
