@@ -19,7 +19,13 @@ import {
   TextField,
 } from "@/components/ui";
 import { Alert } from "@/lib/alert";
+import { withBackgroundHold } from "@/lib/backgroundHold";
+import { isShareDismissal } from "@/lib/mfaLeaveGuard";
 import { colors } from "@/lib/theme";
+
+// A photo upload or a full data export is bigger than an ordinary request,
+// so it gets longer than the client's 15 s default (FAIL-061).
+const LARGE_REQUEST_TIMEOUT_MS = 60_000;
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Account() {
@@ -42,7 +48,7 @@ export default function Account() {
     if (!asset.base64) return;
     setAvatarBusy(true);
     try {
-      await api.post("/api/account/avatar", { imageBase64: asset.base64 });
+      await api.post("/api/account/avatar", { imageBase64: asset.base64 }, { timeoutMs: LARGE_REQUEST_TIMEOUT_MS });
       await refreshUser();
     } catch (err) {
       Alert.alert("Couldn't update photo", (err as Error).message);
@@ -51,34 +57,41 @@ export default function Account() {
     }
   }
 
+  // The permission prompt, the photo library and the camera all report as
+  // "background" on Android, so the background sign-out is held off while
+  // they are open (FAIL-062, src/lib/backgroundHold.ts).
   async function pickFromLibrary() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await withBackgroundHold(() => ImagePicker.requestMediaLibraryPermissionsAsync());
     if (!perm.granted) {
       Alert.alert("Photo access needed", "Allow photo library access in your device settings to set a profile picture.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-      base64: true,
-    });
+    const result = await withBackgroundHold(() =>
+      ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      })
+    );
     if (!result.canceled && result.assets[0]) await uploadAvatar(result.assets[0]);
   }
 
   async function takePhoto() {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    const perm = await withBackgroundHold(() => ImagePicker.requestCameraPermissionsAsync());
     if (!perm.granted) {
       Alert.alert("Camera access needed", "Allow camera access in your device settings to take a profile picture.");
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-      base64: true,
-    });
+    const result = await withBackgroundHold(() =>
+      ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      })
+    );
     if (!result.canceled && result.assets[0]) await uploadAvatar(result.assets[0]);
   }
 
@@ -163,9 +176,12 @@ export default function Account() {
   async function exportData() {
     setExportBusy(true);
     try {
-      const data = await api.get<Record<string, unknown>>("/api/account/export");
-      await Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" });
+      const data = await api.get<Record<string, unknown>>("/api/account/export", { timeoutMs: LARGE_REQUEST_TIMEOUT_MS });
+      await withBackgroundHold(() =>
+        Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" })
+      );
     } catch (err) {
+      if (isShareDismissal(err)) return;
       Alert.alert("Couldn't export data", (err as Error).message);
     } finally {
       setExportBusy(false);

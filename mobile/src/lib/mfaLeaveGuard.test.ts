@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { backupCodesText, mfaLeaveGuard } from "./mfaLeaveGuard.ts";
+import { backupCodesText, isShareDismissal, mfaLeaveGuard } from "./mfaLeaveGuard.ts";
 
 describe("MFA screen leave guard", () => {
   test("backup codes on screen block leaving", () => {
@@ -27,5 +27,20 @@ describe("MFA screen leave guard", () => {
       assert.equal(mfaLeaveGuard(v, false, false), null);
       assert.notEqual(mfaLeaveGuard(v, false, true), null);
     }
+  });
+});
+
+describe("share sheet dismissal (FAIL-069)", () => {
+  test("a cancelled web share (AbortError) is not an error", () => {
+    const abort = new Error("Share canceled");
+    abort.name = "AbortError";
+    assert.equal(isShareDismissal(abort), true);
+    assert.equal(isShareDismissal({ name: "AbortError" }), true);
+  });
+  test("real failures still are", () => {
+    assert.equal(isShareDismissal(new Error("Share is not supported")), false);
+    assert.equal(isShareDismissal(Object.assign(new Error("x"), { name: "NotAllowedError" })), false);
+    assert.equal(isShareDismissal(null), false);
+    assert.equal(isShareDismissal("AbortError"), false);
   });
 });
