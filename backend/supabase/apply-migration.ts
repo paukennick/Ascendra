@@ -17,7 +17,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 import "./seed/env-local";
-import { checkSchema, migrationsToApply } from "../lib/schema-status";
+import { checkSchema, formatMasteryDrift, masteryDrift, migrationsToApply } from "../lib/schema-status";
 
 const MIGRATIONS_DIR = join(__dirname, "migrations");
 
@@ -64,6 +64,8 @@ async function main() {
         for (const m of status.missing) console.log(`  - ${m.what}  (${m.migration})`);
         console.log(`Apply: ${migrationsToApply(status).map((f) => `npm run migrate -- ${f}`).join(" && ")}`);
       }
+      // FAIL-119: informational -- levels the rule would change.
+      console.log(formatMasteryDrift(await masteryDrift(async (sql) => (await pool.query(sql)).rows)));
       if (unrecorded.length) {
         console.log(
           `\nNot in the schema_migrations ledger (${unrecorded.length}). Normal for migrations applied ` +
