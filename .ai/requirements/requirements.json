@@ -3585,6 +3585,38 @@
         "changelog"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-112",
+      "category": "feature",
+      "title": "Integration of every open learning-feature branch, and the mastery rule for every assessment type",
+      "description": "Build integration/all from feat/exam-practice by merging feat/new-exam-courses, feat/lesson-experience, feat/pbq-per-learner, fix/mobile-flows-2, feat/understanding, feat/coach-plan and feat/review-loop, fix the silent conflicts, and make the follow-ups the feature builders flagged: (a) unit checks count in the rule's unit branch and review-retest matching covers unit-check items; (b) zero-weight types (coach_quiz) are not answers, latest answers, spacing anchors or earlier misses, and placement is not spacing evidence; (c) discrimination counts as format evidence only after two correct answers on different questions; (d) a correct, unassisted, spaced exam answer advances a due review; (e) lab reports stay out of mastery; (f) one coach-guard function lists every open item kind; (g) kept view counts only unassisted spaced answers, review answers included; (h) the plan's mock-exam step opens exam practice; (i) review question generation uses misconceptionPromptBlock; (j) server lesson progress keeps the mix-up note and PBQ part scores survive a replay. Migrations 041/041b; deploy order in docs/deploy-runbook-integration.md.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "Each merge is one merge commit with conflicts resolved keeping both behaviours",
+        "Each follow-up has a test that failed before the change",
+        "Fresh DB: migrate --all and --status current with mastery matching the rule; seed twice; test:db passes three times",
+        "Backend and mobile unit tests and tsc pass",
+        "All migrations applied to the 1.9M-attempt fixture with timings and read availability recorded"
+      ],
+      "validation_required": [
+        "npm run test:db x3",
+        "npm test (backend and mobile)",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md",
+        "README.md"
+      ],
+      "risk_notes": [
+        "041b recompute holds row locks on changed mastery rows until commit: run in a quiet window",
+        "Discrimination evidence lands on the right concept's objective so two-option cards need two scenarios with the same answer concept before format evidence is possible"
+      ]
     }
   ]
 }

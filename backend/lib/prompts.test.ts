@@ -289,7 +289,16 @@ test("the practice prompt's example no longer shows the correct index as 0", () 
 
 // REQ-107: per-part scores on a graded PBQ.
 describe("PBQ per-part scores", () => {
-  const base = { verdict: "partial", feedback: "f", classification: "incomplete", missedParts: ["Contain"] };
+  // FAIL-232: the PBQ schema extends gradeResultSchema, which REQ-105 made
+  // require modelAnswer and fixNext.
+  const base = {
+    verdict: "partial",
+    feedback: "f",
+    classification: "incomplete",
+    missedParts: ["Contain"],
+    modelAnswer: "m",
+    fixNext: "n",
+  };
   test("pbqGradeResultSchema needs a score from the enum on every part", () => {
     const ok = { ...base, parts: [{ part: "Identify", score: "met", comment: "c" }] };
     assert.deepEqual(pbqGradeResultSchema.parse(ok), ok);

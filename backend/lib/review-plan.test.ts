@@ -1,5 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
+import { reviewBatchPrompt } from "./review-prompts";
 import {
   chooseCachedItem,
   cleanTerms,
@@ -121,5 +122,16 @@ describe("terms (REQ-108, research item #10)", () => {
     assert.equal(chooseCachedItem(items, new Set())?.id, "old", "all covered: oldest unseen");
     assert.equal(chooseCachedItem(items, new Set(["keyboard"])), null, "untested term no item covers: write one");
     assert.equal(chooseCachedItem([], new Set()), null);
+  });
+});
+
+// REQ-112 (i): a learner's mix-ups go into that objective's block; none, no text.
+describe("review batch prompt with mix-ups", () => {
+  const base = { key: "o1", title: "T", unitTitle: "U", teach: "teach", knownTerms: [], targetTerms: [] };
+  test("the fenced block sits inside its own objective", () => {
+    const { user } = reviewBatchPrompt({ trackTitle: "C", objectives: [{ ...base, mixups: "\n\n<learner_mixups>\nX\n</learner_mixups>" }, { ...base, key: "o2" }] });
+    const blocks = [...user.matchAll(/<objective key="(o\d)">([\s\S]*?)<\/objective>/g)];
+    assert.match(blocks[0][2], /<learner_mixups>\nX\n<\/learner_mixups>/);
+    assert.doesNotMatch(blocks[1][2], /learner_mixups/);
   });
 });

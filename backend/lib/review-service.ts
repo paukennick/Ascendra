@@ -1,3 +1,4 @@
+import { misconceptionPromptBlock } from "@/lib/understanding-store";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import { getSharedLesson } from "@/lib/lesson-store";
@@ -196,6 +197,12 @@ async function writeQuestions(
   group: { item: SessionItemRow; teach: string; hash: string; known: string[] | null; target: string[] }[]
 ): Promise<void> {
   const ctx = await coachContextForTrack(trackId);
+  // REQ-112 (i): aim new questions at this learner's recorded mix-ups. No
+  // extra model call: one indexed read per objective; a failure only drops
+  // the hint.
+  const mixups = await Promise.all(
+    group.map((g) => misconceptionPromptBlock(userId, g.item.objective_id).catch(() => ""))
+  );
   const objectives: ReviewBatchObjective[] = group.map((g, i) => ({
     key: `o${i + 1}`,
     title: g.item.objective_title,
@@ -203,6 +210,7 @@ async function writeQuestions(
     teach: g.teach,
     knownTerms: g.known,
     targetTerms: g.target,
+    mixups: mixups[i],
   }));
   const { system, user } = reviewBatchPrompt({
     trackTitle: group[0].item.track_title,

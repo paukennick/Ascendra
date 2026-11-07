@@ -138,3 +138,20 @@ export function hoursError(input: string): string | null {
   if (n < 0.5 || n > 60) return "Between 0.5 and 60 hours a week.";
   return null;
 }
+
+// REQ-112 (h): where tapping a plan step goes. A lesson-type step opens its
+// objective's lesson; the mock-exam step opens the exam practice screen
+// (REQ-109), where the mock is started. Anything else (a warm-up or light-day
+// note with no objective) is not a link: null.
+export type StepRoute = { pathname: string; params: Record<string, string> };
+
+export function stepRoute(s: PlanStep, trackId: string, trackTitle?: string): StepRoute | null {
+  if (s.kind === "mock") {
+    return { pathname: `/course/${trackId}/exam`, params: trackTitle ? { trackTitle } : {} };
+  }
+  if (!s.objectiveId) return null;
+  return {
+    pathname: `/course/${trackId}/lesson/${s.objectiveId}`,
+    params: { ...(s.unitId ? { unitId: s.unitId } : {}), objectiveTitle: s.title },
+  };
+}

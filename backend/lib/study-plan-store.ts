@@ -68,12 +68,15 @@ export function validateSettings(
 }
 
 // Per objective: stored status, whether placement tested it out, and its
-// "kept" state. Kept is worked out from graded direct answers the weighted
-// model counts (an assessment type with weight above 0, never a retry):
-// an objective is completed once any such answer is correct; it is kept if
-// its latest SPACED answer -- one at least spacing_gap_hours after the answer
-// before it -- was correct, slipped if that answer was not, and unchecked if
-// it has no spaced answer yet.
+// "kept" state, from graded direct answers the weighted model counts (an
+// assessment type with weight above 0 -- review answers included -- never a
+// retry): an objective is completed once any such answer is correct.
+// REQ-112 (g): kept / slipped is decided by the latest answer that is BOTH
+// unassisted and spaced, spaced by the rule's own definition
+// (attempt_spaced(), migration 041: placement and Quiz me never anchor or
+// count as spacing). A spaced answer given with help (choices shown, a
+// repeat of a seen question, copied text) neither keeps nor slips it;
+// unchecked = no such answer yet.
 export async function planObjectives(userId: string, trackId: string): Promise<PlanObjective[]> {
   const rows = await query<{
     id: string;
@@ -86,11 +89,9 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
     last_spaced: string | null;
     last_at: Date | null;
   }>(
-    `with p as (
-       select coalesce(max(value) filter (where name = 'spacing_gap_hours'), 24) * 3600 as gap from mastery_model_params
-     ), a as (
+    `with a as (
        select a.objective_id, a.id, a.created_at, a.verdict,
-              lag(a.created_at) over (partition by a.objective_id order by a.created_at, a.id) as prev_at
+              (not a.assisted and a.assist_reason is null) as unassisted
          from attempts a
          join objectives o on o.id = a.objective_id
          join course_units cu on cu.id = o.unit_id
@@ -102,9 +103,9 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
        select a.objective_id,
               bool_or(a.verdict = 'correct') as completed,
               (array_agg(a.verdict::text order by a.created_at desc, a.id desc)
-                 filter (where a.prev_at is not null and extract(epoch from a.created_at - a.prev_at) >= p.gap))[1] as last_spaced,
+                 filter (where a.unassisted and attempt_spaced(a.id)))[1] as last_spaced,
               max(a.created_at) as last_at
-         from a cross join p
+         from a
         group by a.objective_id
      )
      select o.id, o.unit_id, o.title, o.sort_order, m.status::text as status,

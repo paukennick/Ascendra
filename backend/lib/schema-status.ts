@@ -293,6 +293,30 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conname = 'attempts_unit_check_item_fkey' and convalidated) as ok`,
   },
   {
+    // REQ-112: the integration rule (unit-scope types, zero-weight and
+    // non-spacing types left out, min_format_wins), not just its name.
+    migration: "041_mastery_rule_integration.sql",
+    what: "assessment_types.spacing_evidence / min_format_wins and the 041 mastery_detail() (every graded answer)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public' and table_name = 'assessment_types'
+                     and column_name in ('spacing_evidence', 'min_format_wins')) = 2
+             and exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%min_format_wins%')
+             and to_regprocedure('public.attempt_spaced(uuid)') is not null as ok`,
+  },
+  {
+    migration: "041_mastery_rule_integration.sql",
+    what: "attempts.part_scores column (PBQ per-part scores on a replayed answer)",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'attempts' and column_name = 'part_scores') as ok`,
+  },
+  {
+    // 041b is data, not schema: its backup table is the one object it
+    // creates. Remove this probe when the backup is dropped (runbook).
+    migration: "041b_mastery_rule_backfill.sql",
+    what: "mastery_backup_041 table (041b backup and recompute under the integration rule ran)",
+    sql: `select to_regclass('public.mastery_backup_041') is not null as ok`,
+  },
+  {
     // FAIL-119: 029b is data, not schema, so no object above notices if it
     // was skipped -- and skipping it leaves every learner on the old levels.
     // Its backup table is the one object it creates. (When the backups are
@@ -355,12 +379,11 @@ export const MASTERY_DRIFT_SQL = `
   select (select count(*) from mastery m
             cross join lateral mastery_from_attempts(m.user_id, m.objective_id) f
            where (m.status, m.score_0_4, m.evidence) is distinct from (f.status, f.score, f.evidence))::int as differing,
-         (select count(*) from (
-            select distinct a.user_id, a.objective_id from attempts a
-             where a.user_id is not null and a.objective_id is not null
-               and a.kind = 'lesson' and a.format <> 'pbq' and a.verdict is not null
-               and not exists (select 1 from mastery m where m.user_id = a.user_id and m.objective_id = a.objective_id)
-          ) p)::int as missing`;
+         -- REQ-112: the recompute's own pair list (mastery_pairs, 029/041), so
+         -- pairs with only exam, review or comparison answers are seen too.
+         (select count(*) from mastery_pairs() p
+           where not exists (select 1 from mastery m where m.user_id = p.user_id and m.objective_id = p.objective_id)
+         )::int as missing`;
 
 export interface MasteryDrift {
   differing: number;

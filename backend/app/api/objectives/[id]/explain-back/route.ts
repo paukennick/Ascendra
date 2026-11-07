@@ -1,7 +1,7 @@
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { visibleObjective } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { getLessonFor } from "@/lib/lesson-store";
@@ -97,12 +97,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!lesson?.row.teach) return notFound("No lesson for this objective yet");
 
     try {
-      await checkRateLimit("explain_back", user.id, { max: 20, windowMinutes: 10 });
+      // REQ-098 / FAIL-230: atomic count-and-record.
+      await consumeRateLimit("explain_back", user.id, { max: 20, windowMinutes: 10 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("explain_back", user.id);
 
     const title = await objectiveTitle(id);
     const question = explainBackQuestion(title);

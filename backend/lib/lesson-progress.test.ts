@@ -112,3 +112,35 @@ describe("validClientTime (REQ-101)", () => {
     for (const v of [undefined, null, "1762500000000", 0, -5, NaN, Infinity, 1e15]) assert.equal(validClientTime(v), null);
   });
 });
+
+// REQ-112 (j): the mix-up note (REQ-111) is part of a saved result, so a
+// resume from the account copy shows it; malformed ones are dropped.
+describe("saved diagnosis", () => {
+  const save = (diagnosis: unknown) =>
+    sanitizeLessonProgress({
+      step: "solo",
+      lessonKey: "k",
+      checks: { solo: { mode: "mc", result: { verdict: "incorrect", feedback: "f", diagnosis } } },
+    });
+  test("a well-formed diagnosis is kept", () => {
+    const d = { sentence: "You may be mixing up RBAC with MAC.", confusedWith: "MAC", conceptSetId: "11111111-2222-3333-4444-555555555555" };
+    const r = save(d);
+    assert.ok(typeof r !== "string");
+    assert.deepEqual(r.checks.solo?.result?.diagnosis, d);
+  });
+  test("an empty or malformed one is dropped; a bad set id is nulled", () => {
+    for (const bad of [null, "text", { sentence: "  " }, { confusedWith: "x" }]) {
+      const r = save(bad);
+      assert.ok(typeof r !== "string");
+      assert.equal(r.checks.solo?.result?.diagnosis, null);
+    }
+    const r = save({ sentence: "s", confusedWith: 5, conceptSetId: "nope" });
+    assert.ok(typeof r !== "string");
+    assert.deepEqual(r.checks.solo?.result?.diagnosis, { sentence: "s", confusedWith: null, conceptSetId: null });
+  });
+  test("a reveal assist reason (explain-back copied) is kept", () => {
+    const r = sanitizeLessonProgress({ step: "solo", lessonKey: "k", checks: { solo: { mode: "open", result: { verdict: "correct", feedback: "f", assistReason: "reveal" } } } });
+    assert.ok(typeof r !== "string");
+    assert.equal(r.checks.solo?.result?.assistReason, "reveal");
+  });
+});

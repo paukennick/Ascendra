@@ -53,6 +53,12 @@ export interface ReviewBatchObjective {
   // null: extract the terms in this call.
   knownTerms: string[] | null;
   targetTerms: string[];
+  // REQ-112 (i): this learner's recent mix-ups on the objective, already
+  // fenced as data (misconceptionPromptBlock, lib/understanding-store.ts), or
+  // "" / undefined when there are none. The question stays one any learner
+  // can be served (the system text forbids addressing a learner); it just
+  // aims at telling the mixed-up ideas apart.
+  mixups?: string;
 }
 
 export function reviewBatchPrompt(params: {
@@ -83,7 +89,7 @@ Objective: ${o.title}
 ${terms}
 ${target}
 Teaching text:
-${o.teach.slice(0, TEACH_CHARS)}
+${o.teach.slice(0, TEACH_CHARS)}${o.mixups ? o.mixups : ""}
 </objective>`;
   });
   const user = `Course/track: ${params.trackTitle}

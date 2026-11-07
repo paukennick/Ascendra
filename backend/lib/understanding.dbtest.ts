@@ -228,8 +228,12 @@ describe("comparison cards (generated once per course, mocked model)", () => {
       `select kind, stage, assessment_type, objective_id from attempts where user_id = $1`, [u]
     ))!;
     assert.deepEqual([att.kind, att.stage, att.assessment_type], ["quiz", "discriminate", "discrimination"]);
-    const d = await queryOne<{ formats: string[] }>(`select formats from mastery_detail($1, $2)`, [u, att.objective_id]);
-    assert.deepEqual(d?.formats, ["discrimination"]);
+    // REQ-112 (c), migration 041: one correct answer to a two-option question
+    // could be a guess, so it is not yet format evidence; the second correct
+    // answer, on a different question, makes it so (below).
+    const formatsNow = async () =>
+      (await queryOne<{ formats: string[] }>(`select formats from mastery_detail($1, $2)`, [u, att.objective_id]))?.formats ?? [];
+    assert.deepEqual(await formatsNow(), []);
 
     // Same request again: replayed, not recorded twice.
     await answerPost(post(u, { chosenIndex: right, clientAttemptId: `cid-${run}-1` }), ctx("itemId", q.item.id));
@@ -238,7 +242,13 @@ describe("comparison cards (generated once per course, mocked model)", () => {
     // The other question next, then both seen: the oldest comes back as seen.
     const q2 = await (await questionGet(get(u), ctx("setId", set.id))).json();
     assert.notEqual(q2.item.id, q.item.id);
-    await answerPost(post(u, { chosenIndex: 0 }), ctx("itemId", q2.item.id));
+    const item2 = (await queryOne<{ answer_position: number }>(`select answer_position from discrimination_items where id = $1`, [q2.item.id]))!;
+    const right2 = q2.item.options.indexOf(item2.answer_position === 0 ? "Mandatory access control" : "Role-based access control");
+    await answerPost(post(u, { chosenIndex: right2 }), ctx("itemId", q2.item.id));
+    // The second question's right concept is the other objective, so each
+    // objective still has one correct answer: neither is format evidence yet
+    // (lib/integration-rule.dbtest.ts covers two on the same objective).
+    assert.deepEqual(await formatsNow(), []);
     const q3 = await (await questionGet(get(u), ctx("setId", set.id))).json();
     assert.equal(q3.seen, true);
     const again = await (await answerPost(post(u, { chosenIndex: right }), ctx("itemId", q.item.id))).json();

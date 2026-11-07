@@ -57,7 +57,7 @@ ascendra/
 │   │   ├── prompts.ts            Lesson/grading/PBQ/chat prompt builders
 │   │   └── mastery.ts            0–4 rubric, proficiency check, spaced-review scheduler
 │   └── supabase/
-│       ├── migrations/           30 migrations, additive-only — see below
+│       ├── migrations/           45 migrations (including the `b` data files), additive-only — see below
 │       └── seed/                 Catalog content: data.ts (core tracks) + tracks/{aws,azure,gcp,nursing}.ts
 ├── mobile/                      Expo Router app — iOS, Android (EAS), and web export
 │   └── app/(app)/, (auth)/, (legal)/   Screens, grouped by auth state; legal = FAQ/disclaimer/privacy/cookies/terms
@@ -71,7 +71,7 @@ ascendra/
 
 Additive-only — nothing has ever been dropped or destructively rewritten.
 
-`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes) · `029` assisted attempts, hint reveals, `mastery_from_attempts()` and a recompute of every learner's mastery (current mastery and review state backed up to tables first; restore SQL in the file header) (REQ-097) · `030` indexes for chat history and study sessions (REQ-098) · `036` `pbq_generation_claims`, a per-learner lease so one learner's simultaneous scenario requests generate once (REQ-107).
+`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes) · `029` assisted attempts, hint reveals, `mastery_from_attempts()` and a recompute of every learner's mastery (current mastery and review state backed up to tables first; restore SQL in the file header) (REQ-097) · `030` indexes for chat history and study sessions (REQ-098) · `031`/`031b` weighted cross-format mastery (REQ-100) · `032` lesson-position tombstones (REQ-101) · `033` exam blueprints, `retired_at` (REQ-102) · `034` option reasons, model answers, revisions (REQ-105) · `035` teach cards, lab reports (REQ-106) · `036` `pbq_generation_claims`, a per-learner lease so one learner's simultaneous scenario requests generate once (REQ-107) · `037`/`037b` review loop and unit checks (REQ-108) · `038` exam practice (REQ-109) · `039` study plan, placement, Quiz me (REQ-110) · `040` comparison cards, explain-back, misconceptions (REQ-111) · `041`/`041b` the mastery rule for every assessment type, PBQ part scores (REQ-112).
 
 #### Supabase Data API and row-level security (check by hand)
 
@@ -128,7 +128,7 @@ Set these in Vercel (**Project Settings → Environment Variables**, all three e
 
 Import the repo in Vercel with **Root Directory** set to `backend`. Sanity check after deploy: `GET /api/health` → `{"status":"ok"}`.
 
-**Deploying migrations 029/029b (mastery integrity, REQ-097):** follow [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) step by step — migrations before the backend deploy, then the batched recompute, then the app update, and the reverse order to roll back. Production also needs `CHOICE_ORDER_SECRET` set (see `backend/.env.example`).
+**Deploying migrations 029 through 041b (mastery integrity and every learning feature since):** follow [docs/deploy-runbook-integration.md](docs/deploy-runbook-integration.md), which extends [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) step by step — migrations before the backend deploy, then the batched recompute, then the app update, and the reverse order to roll back. Production also needs `CHOICE_ORDER_SECRET` set (see `backend/.env.example`).
 
 ### 4. Mobile app
 
@@ -158,6 +158,7 @@ Staying current is the harder, ongoing half. A **Claude API Managed Agent** runs
 | [docs/education-taxonomy.md](docs/education-taxonomy.md) | Category/subcategory model, freshness models, publication rules |
 | [docs/catalog-review-agent.md](docs/catalog-review-agent.md) | The quarterly agent's resources, credential rotation, manual testing, troubleshooting |
 | [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) | Deploy and rollback order for migrations 029/029b (mastery integrity), backup cleanup |
+| [docs/deploy-runbook-integration.md](docs/deploy-runbook-integration.md) | Every migration from 029 to 041b in order: quiet windows, timings, the post-deploy recompute, app update, rollback |
 | [`.ai/`](.ai/context-brief.md) | AI-assistant working rules — requirement tracking, playbooks, project map |
 | `backend/AGENTS.md`, `backend/CLAUDE.md` | Backend-specific notes for AI coding assistants (this Next.js version has its own quirks) |
 

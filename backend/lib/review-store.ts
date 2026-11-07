@@ -1,7 +1,8 @@
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { recordAttemptTx, type AssistReason } from "@/lib/grading-service";
-import { schedulerFor, utcDay, type ScheduleState } from "@/lib/review-scheduler";
+import { utcDay } from "@/lib/review-scheduler";
+import { stepSchedule } from "@/lib/review-step";
 import {
   md5,
   planSession,
@@ -541,75 +542,6 @@ export async function recordReviewAnswer(input: ReviewAnswerInput): Promise<Revi
   });
 }
 
-async function stepSchedule(
-  tx: TxClient,
-  userId: string,
-  objectiveId: string,
-  attemptId: string,
-  verdict: "correct" | "partial" | "incorrect",
-  assisted: boolean,
-  now: Date
-): Promise<{ wasDue: boolean | null; advanced: boolean; nextDueOn: string | null }> {
-  const row = await tx.queryOne<{
-    scheduler: string;
-    step: number;
-    due_on: string;
-    reps: number;
-    lapses: number;
-    last_reviewed_at: Date | null;
-    enrolled_at: Date;
-  }>(
-    `select scheduler, step, to_char(due_on, 'YYYY-MM-DD') as due_on, reps, lapses, last_reviewed_at, enrolled_at
-       from review_schedule where user_id = $1 and objective_id = $2 for update`,
-    [userId, objectiveId]
-  );
-  if (!row) {
-    // Not enrolled (never reached Guided): the answer is logged, nothing to step.
-    await tx.query(
-      `insert into review_log (user_id, objective_id, attempt_id, verdict, assisted, was_due) values ($1, $2, $3, $4, $5, true)`,
-      [userId, objectiveId, attemptId, verdict, assisted]
-    );
-    return { wasDue: null, advanced: false, nextDueOn: null };
-  }
-  const scheduler = schedulerFor(row.scheduler);
-  const state: ScheduleState = {
-    step: row.step,
-    dueOn: row.due_on,
-    reps: row.reps,
-    lapses: row.lapses,
-    lastReviewedAt: row.last_reviewed_at ? new Date(row.last_reviewed_at) : null,
-    enrolledAt: new Date(row.enrolled_at),
-  };
-  const r = scheduler.next(state, { verdict, assisted, reviewedAt: now });
-  await tx.query(
-    `update review_schedule set step = $3, due_on = $4::date, reps = $5, lapses = $6, last_reviewed_at = $7,
-            scheduler = $8, updated_at = now()
-      where user_id = $1 and objective_id = $2`,
-    [userId, objectiveId, r.next.step, r.next.dueOn, r.next.reps, r.next.lapses, r.next.lastReviewedAt, scheduler.name]
-  );
-  await tx.query(
-    `insert into review_log (user_id, objective_id, attempt_id, reviewed_at, verdict, assisted, was_due, elapsed_days,
-                             scheduled_days, scheduler, step_before, step_after, due_before, due_after)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::date, $14::date)`,
-    [
-      userId,
-      objectiveId,
-      attemptId,
-      now,
-      verdict,
-      assisted,
-      r.wasDue,
-      r.elapsedDays,
-      r.scheduledDays,
-      scheduler.name,
-      state.step,
-      r.next.step,
-      state.dueOn,
-      r.next.dueOn,
-    ]
-  );
-  return { wasDue: r.wasDue, advanced: r.advanced, nextDueOn: r.next.dueOn };
-}
 
 // The stored result of an answered session item, for a replayed submit.
 export async function answeredItem(sessionId: string, position: number) {

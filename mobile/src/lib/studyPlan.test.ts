@@ -1,6 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
+  stepRoute,
   examDateError,
   feasibilityLines,
   formatDate,
@@ -98,5 +99,23 @@ describe("study plan wording (REQ-110)", () => {
     assert.equal(hoursError("5"), null);
     assert.match(hoursError("")!, /number/);
     assert.match(hoursError("0.2")!, /Between/);
+  });
+});
+
+describe("plan step links (REQ-112 h)", () => {
+  const base = { title: "T", minutes: 30, reason: "r" };
+  test("the mock-exam step opens the exam practice screen", () => {
+    assert.deepEqual(stepRoute({ ...base, kind: "mock", title: "Mock exam (2027-01-23)" }, "trk", "Security+"), {
+      pathname: "/course/trk/exam",
+      params: { trackTitle: "Security+" },
+    });
+  });
+  test("a lesson step opens its lesson; a step with no objective is not a link", () => {
+    assert.deepEqual(stepRoute({ ...base, kind: "learn", objectiveId: "o1", unitId: "u1" }, "trk"), {
+      pathname: "/course/trk/lesson/o1",
+      params: { unitId: "u1", objectiveTitle: "T" },
+    });
+    assert.equal(stepRoute({ ...base, kind: "light" }, "trk"), null);
+    assert.equal(stepRoute({ ...base, kind: "warmup" }, "trk"), null);
   });
 });

@@ -215,6 +215,13 @@ export async function POST(req: Request) {
       userId: authUser.id,
     });
 
+    // REQ-107: a score per sub-part, lined up with the scenario's own labels
+    // (null when the grader's list can't be matched; the app then falls back
+    // to missedParts). REQ-112 (j): stored with the attempt, so a replay
+    // returns them too.
+    const { parts, ...grade } = graded;
+    const partScores = normalizePartScores(scenario.sub_parts, parts, graded.missedParts ?? []);
+
     // Two requests with the same id can race past the check above; the
     // unique index fails the slower one and it returns the winner's result.
     const { attempt, prior } = await recordAttemptIdempotent({
@@ -234,16 +241,13 @@ export async function POST(req: Request) {
       fixNext: graded.fixNext ?? null,
       retryOf,
       confidence,
+      partScores,
     });
 
     if (prior) return ok(prior);
-    // REQ-107: a score per sub-part, lined up with the scenario's own labels
-    // (null when the grader's list can't be matched; the app then falls back
-    // to missedParts).
-    const { parts, ...grade } = graded;
     return ok({
       ...grade,
-      partScores: normalizePartScores(scenario.sub_parts, parts, graded.missedParts ?? []),
+      partScores,
       assisted: attempt?.assisted === true,
       assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
       ...(revisedParts ? { revisedParts } : {}),

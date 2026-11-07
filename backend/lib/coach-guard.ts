@@ -8,12 +8,25 @@ import { query } from "@/lib/db";
 // reply against the answer key before it is sent or saved. Learner text is
 // fenced so it is read as data, not instructions.
 
+// REQ-112 (f): every kind of item a learner can have open, in one list, so
+// a new item kind cannot be added without the guard knowing it. Each kind
+// has a regression test in lib/integration-guard.dbtest.ts.
+export const OPEN_ITEM_KINDS = ["lesson", "pbq", "review", "unit_check", "comparison", "quiz", "exam"] as const;
+export type OpenItemKind = (typeof OPEN_ITEM_KINDS)[number];
+
 export interface OpenItem {
-  // "quiz": an open "Quiz me" question (REQ-110, lib/coach-quiz.ts).
-  kind: "lesson" | "pbq" | "review" | "exam" | "quiz";
-  label: string; // objective or scenario title
+  // lesson: an unanswered Guided/Solo item of an opened lesson.
+  // pbq: the PBQ scenario this learner would be served for a unit.
+  // review: a pending retest (lesson item or PBQ with an unresolved review
+  //   entry) or a prepared Today's review question (REQ-108).
+  // unit_check: a stored unit gate check they have not answered (REQ-108).
+  // comparison: a comparison-card question they have not answered (REQ-111).
+  // quiz: an open "Quiz me" question (REQ-110).
+  // exam: a question in a sprint or mock exam in progress (REQ-109).
+  kind: OpenItemKind;
+  label: string; // objective, unit or scenario title
   question: string;
-  // Correct option text for a lesson item. Server-side only: used to check
+  // Correct option text where there is one. Server-side only: used to check
   // the reply, never sent to the model or the app.
   answerKey: string | null;
 }
@@ -21,15 +34,18 @@ export interface OpenItem {
 const MAX_ITEMS = 12;
 const MAX_QUESTION_CHARS = 400;
 const MAX_EXAM_ITEMS = 24;
+const MAX_PER_KIND = 6;
+
+type Row = { label: string; question: string; answer_key: string | null };
+const items = (kind: OpenItemKind, rows: Row[]): OpenItem[] =>
+  rows.map((r) => ({ kind, label: r.label, question: r.question, answerKey: r.answer_key }));
 
 // Lesson items: the Guided and Solo questions of every lesson this learner
 // has opened in the track (lesson_progress), from the lesson they were shown
 // (their own regenerated one if any), that they have not answered -- or that
-// have an unresolved review entry, so a retest is still pending.
-// PBQ items: per unit the scenario the PBQ screen serves (the newest), plus
-// any scenario with an unresolved review entry, unless answered correctly.
-export async function openItemsFor(userId: string, trackId: string, unitId?: string | null): Promise<OpenItem[]> {
-  const lesson = await query<{ kind: "lesson" | "review"; label: string; question: string; answer_key: string | null }>(
+// have an unresolved review entry, so a retest is still pending ("review").
+async function lessonItems(userId: string, trackId: string): Promise<OpenItem[]> {
+  const rows = await query<Row & { kind: "lesson" | "review" }>(
     `with lp as (
        select o.id as objective_id, o.title, lp.updated_at,
               case when ov.user_id is not null then ov.fade_problem else lc.fade_problem end as fade_q,
@@ -64,7 +80,16 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
       limit ${MAX_ITEMS}`,
     [userId, trackId]
   );
-  const pbq = await query<{ label: string; question: string; reviewing: boolean }>(
+  return rows.map((r) => ({ kind: r.kind, label: r.label, question: r.question, answerKey: r.answer_key }));
+}
+
+// PBQ items: per unit, the scenario GET /api/pbq would serve this learner
+// (REQ-107: the newest one they have not attempted -- FAIL-233: this used to
+// be the unit's newest scenario from anyone, so after answering it the one
+// actually on screen was not guarded), plus any scenario with an unresolved
+// review entry ("review") unless since answered correctly.
+async function pbqItems(userId: string, trackId: string, unitId: string | null): Promise<OpenItem[]> {
+  const rows = await query<{ label: string; question: string; reviewing: boolean }>(
     `select s.title as label, s.scenario as question,
             exists (select 1 from error_log e where e.user_id = $1 and e.pbq_scenario_id = s.id and not e.resolved) as reviewing
        from pbq_scenarios s
@@ -73,16 +98,102 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
         and ($3::uuid is null or s.unit_id = $3::uuid)
         and not exists (select 1 from attempts a where a.user_id = $1 and a.pbq_scenario_id = s.id and a.verdict = 'correct')
         and (exists (select 1 from error_log e where e.user_id = $1 and e.pbq_scenario_id = s.id and not e.resolved)
-             or s.id = (select s2.id from pbq_scenarios s2 where s2.unit_id = s.unit_id order by s2.generated_at desc limit 1))
+             or s.id = (select s2.id from pbq_scenarios s2
+                         where s2.unit_id = s.unit_id
+                           and not exists (select 1 from attempts a2 where a2.user_id = $1 and a2.pbq_scenario_id = s2.id)
+                         order by s2.generated_at desc, s2.id limit 1))
       order by s.generated_at desc
-      limit 6`,
-    [userId, trackId, unitId ?? null]
+      limit ${MAX_PER_KIND}`,
+    [userId, trackId, unitId]
   );
-  // REQ-109: questions in a sprint or mock exam this learner has open (not
-  // yet submitted). One entry per right choice, so the reply check catches
-  // any of them; ordering/matching items have no single key to check, but
-  // are still named so the model holds back.
-  const exam = await query<{ label: string; question: string; answer_key: string | null }>(
+  return rows.map((r) => ({ kind: r.reviewing ? ("review" as const) : ("pbq" as const), label: r.label, question: r.question, answerKey: null }));
+}
+
+// REQ-108: questions waiting in this learner's open Today's review
+// (prepared, not yet answered).
+async function reviewSessionItems(userId: string, trackId: string, unitId: string | null): Promise<OpenItem[]> {
+  const rows = await query<Row>(
+    `select o.title as label, ri.question, ri.choices ->> ri.correct_index as answer_key
+       from review_session_items si
+       join review_sessions s on s.id = si.session_id
+       join review_items ri on ri.id = si.review_item_id
+       join objectives o on o.id = si.objective_id
+       join course_units cu on cu.id = o.unit_id
+      where s.user_id = $1 and cu.track_id = $2 and si.answered_at is null and s.finished_at is null
+        and ($3::uuid is null or cu.id = $3::uuid)
+      order by si.position
+      limit ${MAX_PER_KIND}`,
+    [userId, trackId, unitId]
+  ).catch(() => [] as Row[]); // before migration 037 the tables are missing; the rest still applies
+  return items("review", rows);
+}
+
+// REQ-108: a stored unit gate check for a unit this learner has studied in,
+// under the unit's current gate text, that they have not answered and whose
+// unit they have not passed. (GET /api/units/:id/check serves exactly such an
+// item.) A scenario: no single key to check, named so the model holds back.
+async function unitCheckItems(userId: string, trackId: string, unitId: string | null): Promise<OpenItem[]> {
+  const rows = await query<Row>(
+    `select cu.title as label, i.scenario as question, null::text as answer_key
+       from unit_check_items i
+       join course_units cu on cu.id = i.unit_id
+      where cu.track_id = $2 and ($3::uuid is null or cu.id = $3::uuid)
+        and i.gate_hash = md5(coalesce(cu.gate_description, ''))
+        and not exists (select 1 from attempts a where a.user_id = $1 and a.unit_check_item_id = i.id)
+        and not exists (select 1 from attempts a where a.user_id = $1 and a.unit_id = cu.id
+                          and a.kind = 'unitcheck' and a.verdict = 'correct')
+        and exists (select 1 from mastery m join objectives o on o.id = m.objective_id
+                     where m.user_id = $1 and o.unit_id = cu.id and m.status <> 'Not started')
+      order by i.generated_at, i.id
+      limit ${MAX_PER_KIND}`,
+    [userId, trackId, unitId]
+  ).catch(() => [] as Row[]);
+  return items("unit_check", rows);
+}
+
+// REQ-111: comparison-card questions this learner has not answered, on
+// cards that touch an objective they have studied. The key is the right
+// concept's name.
+async function comparisonItems(userId: string, trackId: string): Promise<OpenItem[]> {
+  const rows = await query<Row>(
+    `select (select string_agg(m.name, ' vs ' order by m.position) from concept_set_members m where m.set_id = d.set_id) as label,
+            d.scenario as question,
+            (select m.name from concept_set_members m where m.set_id = d.set_id and m.position = d.answer_position) as answer_key
+       from discrimination_items d
+       join concept_sets cs on cs.id = d.set_id
+      where cs.track_id = $2
+        and not exists (select 1 from attempts a where a.user_id = $1 and a.assessment_type = 'discrimination'
+                          and a.question = d.scenario)
+        and exists (select 1 from concept_set_members cm join mastery ms on ms.objective_id = cm.objective_id
+                     where cm.set_id = d.set_id and ms.user_id = $1 and ms.status <> 'Not started')
+      order by d.created_at, d.id
+      limit ${MAX_PER_KIND}`,
+    [userId, trackId]
+  ).catch(() => [] as Row[]);
+  return items("comparison", rows);
+}
+
+// REQ-110: an open "Quiz me" question (was openQuizItemsFor in
+// lib/coach-quiz.ts, added by the chat route beside this list).
+async function quizItems(userId: string, trackId: string): Promise<OpenItem[]> {
+  const rows = await query<{ title: string; question: string; choices: string[]; correct_index: number }>(
+    `select o.title, i.question, i.choices, i.correct_index
+       from coach_quiz_turns t
+       join coach_quiz_items i on i.id = t.item_id
+       join objectives o on o.id = i.objective_id
+      where t.user_id = $1 and t.track_id = $2 and t.status = 'open'
+      order by t.created_at desc limit 3`,
+    [userId, trackId]
+  ).catch(() => [] as { title: string; question: string; choices: string[]; correct_index: number }[]);
+  return rows.map((r) => ({ kind: "quiz" as const, label: r.title, question: r.question, answerKey: r.choices[r.correct_index] ?? null }));
+}
+
+// REQ-109: questions in a sprint or mock exam this learner has open (not
+// yet submitted). One entry per right choice, so the reply check catches
+// any of them; ordering/matching items have no single key to check, but are
+// still named so the model holds back.
+async function examItems(userId: string, trackId: string): Promise<OpenItem[]> {
+  const rows = await query<Row>(
     `select cu.title as label, i.stem as question, k.key as answer_key
        from exam_sessions s
        join exam_session_items si on si.session_id = s.id
@@ -96,28 +207,24 @@ export async function openItemsFor(userId: string, trackId: string, unitId?: str
       order by si.position
       limit ${MAX_EXAM_ITEMS}`,
     [userId, trackId]
-  );
-  // REQ-108: questions waiting in this learner's open Today's review
-  // (prepared, not yet answered): the coach must not answer those either.
-  const reviewing = await query<{ label: string; question: string; answer_key: string | null }>(
-    `select o.title as label, ri.question, ri.choices ->> ri.correct_index as answer_key
-       from review_session_items si
-       join review_sessions s on s.id = si.session_id
-       join review_items ri on ri.id = si.review_item_id
-       join objectives o on o.id = si.objective_id
-       join course_units cu on cu.id = o.unit_id
-      where s.user_id = $1 and cu.track_id = $2 and si.answered_at is null and s.finished_at is null
-        and ($3::uuid is null or cu.id = $3::uuid)
-      order by si.position
-      limit 6`,
-    [userId, trackId, unitId ?? null]
-  ).catch(() => []); // before migration 037 the tables are missing; the rest still applies
-  return [
-    ...exam.map((r) => ({ kind: "exam" as const, label: r.label, question: r.question, answerKey: r.answer_key })),
-    ...reviewing.map((r) => ({ kind: "review" as const, label: r.label, question: r.question, answerKey: r.answer_key })),
-    ...lesson.map((r) => ({ kind: r.kind, label: r.label, question: r.question, answerKey: r.answer_key })),
-    ...pbq.map((r) => ({ kind: r.reviewing ? ("review" as const) : ("pbq" as const), label: r.label, question: r.question, answerKey: null })),
-  ];
+  ).catch(() => [] as Row[]);
+  return items("exam", rows);
+}
+
+// Every open item for this learner in this track (and unit, where a kind is
+// unit-scoped). The one function the chat route calls.
+export async function openItemsFor(userId: string, trackId: string, unitId?: string | null): Promise<OpenItem[]> {
+  const u = unitId ?? null;
+  const parts = await Promise.all([
+    examItems(userId, trackId),
+    quizItems(userId, trackId),
+    reviewSessionItems(userId, trackId, u),
+    lessonItems(userId, trackId),
+    pbqItems(userId, trackId, u),
+    unitCheckItems(userId, trackId, u),
+    comparisonItems(userId, trackId),
+  ]);
+  return parts.flat();
 }
 
 // Learner text inside tags the model is told to treat as data. Tag look-alikes
@@ -176,12 +283,14 @@ export function leakedItems(reply: string, items: OpenItem[], matched: OpenItem[
 // only, and which of them this message is about.
 export function openItemsBlock(items: OpenItem[], matched: OpenItem[]): string {
   if (!items.length) return "";
-  const kindLabel = {
+  const kindLabel: Record<OpenItemKind, string> = {
     lesson: "lesson question, not answered yet",
     pbq: "PBQ, not answered yet",
     review: "pending review retest",
-    exam: "question in a practice exam they are taking now",
+    unit_check: "unit check scenario, not answered yet",
+    comparison: "comparison-card question, not answered yet",
     quiz: "Quiz me question, not answered yet",
+    exam: "question in a practice exam they are taking now",
   };
   const list = items
     .map((it, i) => {

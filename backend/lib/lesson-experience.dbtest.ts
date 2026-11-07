@@ -324,7 +324,9 @@ describe("labs", () => {
     );
     assert.equal(g.status, 200);
     const m = await queryOne<{ evidence: string }>(`select evidence from mastery where user_id = $1 and objective_id = $2`, [u, LAB]);
-    assert.match(m!.evidence, /^1 graded/);
+    // FAIL-232: the evidence text is the weighted rule's (031): one answer,
+    // on this objective -- the lab report is not among them.
+    assert.match(m!.evidence, /over 1 answers \(1 on this objective, 0 unit PBQ\)/);
   });
 
   test("the database refuses a lab attempt that carries objective_id", async () => {

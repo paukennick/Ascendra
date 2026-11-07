@@ -5,7 +5,6 @@ import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
 import { recordPracticeAttemptTx } from "@/lib/practice-attempts";
 import { weakSpotsFor, type WeakSpot } from "@/lib/learner-profile";
-import type { OpenItem } from "@/lib/coach-guard";
 
 // REQ-110 (research #8): "Quiz me on my weak spots".
 //
@@ -361,19 +360,4 @@ export async function answerQuizTurn(
       replayed: false,
     };
   });
-}
-
-// For the chat guard: an open quiz question is held back like an unanswered
-// lesson item, so "Ask the coach" cannot be used to look its answer up.
-export async function openQuizItemsFor(userId: string, trackId: string): Promise<OpenItem[]> {
-  const rows = await query<{ title: string; question: string; choices: string[]; correct_index: number }>(
-    `select o.title, i.question, i.choices, i.correct_index
-       from coach_quiz_turns t
-       join coach_quiz_items i on i.id = t.item_id
-       join objectives o on o.id = i.objective_id
-      where t.user_id = $1 and t.track_id = $2 and t.status = 'open'
-      order by t.created_at desc limit 3`,
-    [userId, trackId]
-  );
-  return rows.map((r) => ({ kind: "quiz" as const, label: r.title, question: r.question, answerKey: r.choices[r.correct_index] ?? null }));
 }

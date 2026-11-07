@@ -1,3 +1,4 @@
+import { advanceDueSchedule } from "@/lib/review-step";
 import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { getLessonFor } from "@/lib/lesson-store";
 import { toDateOnlyString } from "@/lib/mastery";
@@ -72,6 +73,9 @@ export interface AttemptInput {
   repeatAnySetting?: boolean;
   // REQ-108: a unit check's item (attempts.unit_check_item_id, migration 037).
   unitCheckItemId?: string | null;
+  // REQ-112 (j): the PBQ grader's per-part scores (attempts.part_scores,
+  // migration 041), stored so a replayed request returns them.
+  partScores?: unknown[] | null;
   // REQ-108: false skips the error_log row for a miss (unit checks are
   // offered again from Review instead).
   errorLog?: boolean;
@@ -97,6 +101,7 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     assist_reason: AssistReason | null;
     model_answer: string | null;
     fix_next: string | null;
+    part_scores?: unknown;
   }>(
     `select * from attempts where user_id = $1 and client_attempt_id = $2`,
     [userId, clientAttemptId]
@@ -111,6 +116,8 @@ export async function findClientAttempt(userId: string, clientAttemptId: string)
     assistReason: row.assist_reason ?? null,
     ...(row.model_answer ? { modelAnswer: row.model_answer } : {}),
     ...(row.fix_next ? { fixNext: row.fix_next } : {}),
+    // REQ-112 (j): a PBQ's per-part scores (migration 041).
+    ...(Array.isArray(row.part_scores) ? { partScores: row.part_scores } : {}),
     attempt: row,
     replayed: true,
   };
@@ -403,12 +410,15 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // reveal, and a caller-known reason (review "hint") is kept.
   const assistReason = await assistReasonFor(query, input);
 
+  const extraCols: { col: string; value: unknown }[] = [];
+  if (input.unitCheckItemId) extraCols.push({ col: "unit_check_item_id", value: input.unitCheckItemId });
+  if (input.partScores && input.partScores.length) extraCols.push({ col: "part_scores", value: JSON.stringify(input.partScores) });
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
        verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
-       assessment_type, model_answer, fix_next, retry_of, lab_objective_id${input.unitCheckItemId ? ", unit_check_item_id" : ""})
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22${input.unitCheckItemId ? ",$23" : ""})
+       assessment_type, model_answer, fix_next, retry_of, lab_objective_id${extraCols.map((c) => `, ${c.col}`).join("")})
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22${extraCols.map((_, i) => `,$${23 + i}`).join("")})
      returning *`,
     [
       userId,
@@ -433,9 +443,9 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.fixNext ?? null,
       input.retryOf ?? null,
       input.labObjectiveId ?? null,
-      // unit_check_item_id (037) is only named when set, so lesson and PBQ
-      // grading keep working on a database 037 has not reached yet.
-      ...(input.unitCheckItemId ? [input.unitCheckItemId] : []),
+      // unit_check_item_id (037) and part_scores (041) are only named when
+      // set, so other grading keeps working on a database without them.
+      ...extraCols.map((c) => c.value),
     ]
   );
   const attempt = attemptRows[0];
@@ -495,7 +505,22 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     // practice, not evidence the item has been kept.
     assistReason !== "retry" &&
     ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
-  if (reviewEvidence) {
+  // REQ-112 (d): a correct, unassisted exam answer (sprint or mock) that is
+  // spaced -- by the mastery rule's own definition, attempt_spaced() in 041
+  // -- is a retrieval like a review answer, so it moves a DUE review on: the
+  // error_log entries for its objective (below) and the review schedule
+  // (lib/review-step.ts). Not spaced, assisted (a repeat of a seen question)
+  // or not due: nothing moves. A missed exam answer gets its own entry below.
+  const examReview =
+    input.repeatAnySetting === true &&
+    input.verdict === "correct" &&
+    assistReason === null &&
+    !!input.objectiveId &&
+    ((await query(`select attempt_spaced($1) as ok`, [attempt.id]))[0] as { ok?: boolean } | undefined)?.ok === true;
+  if (examReview) {
+    await advanceDueSchedule(tx, userId, input.objectiveId!, attempt.id as string, new Date());
+  }
+  if (reviewEvidence || examReview) {
     await query(
       `update error_log
           set review_stage = review_stage + 1,

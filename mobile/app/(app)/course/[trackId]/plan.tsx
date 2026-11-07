@@ -18,6 +18,7 @@ import {
   reviewLine,
   stepLabel,
   stepMeta,
+  stepRoute,
 } from "@/lib/studyPlan";
 
 // REQ-110: the study plan, built back from the exam date (or paced from the
@@ -84,9 +85,11 @@ export default function PlanScreen() {
     return undefined;
   }
 
+  // REQ-112 (h): lesson steps open their lesson, the mock-exam step opens
+  // exam practice (lib/studyPlan.ts stepRoute).
   function openStep(s: PlanStep) {
-    if (!s.objectiveId) return;
-    router.push({ pathname: `/course/${trackId}/lesson/${s.objectiveId}`, params: { unitId: s.unitId, objectiveTitle: s.title } });
+    const to = stepRoute(s, trackId, trackTitle);
+    if (to) router.push(to as never);
   }
 
   const plan = data?.plan;
@@ -171,8 +174,8 @@ export default function PlanScreen() {
               <Pressable
                 key={`${s.kind}-${s.objectiveId ?? i}`}
                 onPress={() => openStep(s)}
-                disabled={!s.objectiveId}
-                accessibilityRole={s.objectiveId ? "button" : "text"}
+                disabled={!stepRoute(s, trackId)}
+                accessibilityRole={stepRoute(s, trackId) ? "button" : "text"}
                 accessibilityLabel={`${stepLabel(s)}. ${stepMeta(s)}`}
                 style={({ pressed }) => [
                   { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 8, minHeight: 44, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border },
@@ -183,7 +186,7 @@ export default function PlanScreen() {
                   <Muted style={{ color: colors.text, fontFamily: fonts.bodyBold }}>{stepLabel(s)}</Muted>
                   <Muted style={{ fontSize: 13 }}>{stepMeta(s)}</Muted>
                 </View>
-                {s.objectiveId ? <Feather name="chevron-right" size={16} color={colors.mutedDim} /> : null}
+                {stepRoute(s, trackId) ? <Feather name="chevron-right" size={16} color={colors.mutedDim} /> : null}
               </Pressable>
             ))}
             <Muted>{reviewLine(plan)}</Muted>

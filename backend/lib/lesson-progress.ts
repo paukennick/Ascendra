@@ -40,9 +40,31 @@ export interface SavedResult {
   modelAnswer: string | null;
   fixNext: string | null;
   attemptId: string | null;
+  // REQ-111 / REQ-112 (j): the "you may be mixing up X with Y" note on a
+  // miss, kept so a resume on another device shows it too.
+  diagnosis: SavedDiagnosis | null;
 }
 
-const ASSIST_REASONS = ["hint", "repeat", "retry"];
+export interface SavedDiagnosis {
+  sentence: string;
+  confusedWith: string | null;
+  conceptSetId: string | null;
+}
+
+// A stored diagnosis, cleaned; null for anything malformed.
+export function sanitizeDiagnosis(v: unknown): SavedDiagnosis | null {
+  if (!v || typeof v !== "object") return null;
+  const d = v as Record<string, unknown>;
+  const sentence = typeof d.sentence === "string" ? cleanText(d.sentence, 500).trim() : "";
+  if (!sentence) return null;
+  return {
+    sentence,
+    confusedWith: typeof d.confusedWith === "string" ? cleanText(d.confusedWith, 200) : null,
+    conceptSetId: typeof d.conceptSetId === "string" && /^[0-9a-f-]{36}$/i.test(d.conceptSetId) ? d.conceptSetId : null,
+  };
+}
+
+const ASSIST_REASONS = ["hint", "repeat", "retry", "reveal"];
 
 export interface LessonProgressInput {
   step: ResumableStep;
@@ -120,6 +142,7 @@ function sanitizeResult(r: Record<string, unknown> | null | undefined): SavedRes
           modelAnswer: text(r.modelAnswer),
           fixNext: text(r.fixNext, 1000),
           attemptId: text(r.attemptId, MAX_KEY),
+          diagnosis: sanitizeDiagnosis(r.diagnosis),
         }
       : null;
 }

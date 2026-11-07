@@ -3259,6 +3259,537 @@
       "prevention_rules": [],
       "prevention_notes": "The learned-set DB test feeds 'Kinesis ' and 'kinesis' from different learners and requires them grouped as one confusion.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-230",
+      "date": "2026-11-07",
+      "title": "Model-backed routes from parallel branches used the non-atomic rate limit",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Lab questions/report (REQ-106), exam item generation (REQ-109), Quiz me (REQ-110), explain-back (REQ-111), review question generation and grading and unit checks (REQ-108) all called checkRateLimit then recordAuthEvent, so N simultaneous requests each read 'under the limit' and all reached the model.",
+      "how_detected": "Merge review of every file the merged branches added, then a source scan",
+      "root_cause": "REQ-098 replaced the two-step pattern with consumeRateLimit on fix/hardening, but the feature branches were cut from feat/mastery-model before it and copied the older pattern; the merges had no text conflict in those new files.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/app/api/objectives/[id]/lab/questions/route.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/app/api/coach/quiz/route.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "Each now calls consumeRateLimit (exam generation and review batches once per model call); the separate recordAuthEvent calls are gone.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-static.test.ts::no code outside lib/auth/rateLimit.ts calls checkRateLimit; recordAuthEvent is only for auth logging"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The static test fails on any checkRateLimit call outside lib/auth/rateLimit.ts or recordAuthEvent outside auth routes; pre-completion checklist line on cross-branch contracts.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-231",
+      "date": "2026-11-07",
+      "title": "Auto-merged grader skipped the assist rules for every non-lesson attempt",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "After merging feat/review-loop, recordAttemptTx computed assistReason only for kind 'lesson' and took input.assistReason for everything else, so a PBQ revision (REQ-105) was recorded unassisted, an exam answer to a question already seen (REQ-109) was not a repeat, and explain-back 'reveal' / comparison-card 'hint' (REQ-111) were dropped -- all scoring as full unaided evidence.",
+      "how_detected": "Reading both sides' intent while resolving the grading-service conflict",
+      "root_cause": "review-loop and understanding each added their own caller-supplied assist field (assistReason vs assist) and review-loop rewrote the call site; git merged the line without conflict because the other branches changed assistReasonFor's body, not the call.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/grading-service.ts::recordAttemptTx",
+        "backend/lib/grading-service.ts::assistReasonFor",
+        "backend/lib/review-store.ts::recordReviewAnswer"
+      ],
+      "fix_summary": "One field (assist) for a caller-known reason; every kind goes through assistReasonFor (retry, caller reason, exam repeatAnySetting, typed repeat, lesson rules). Exam answers set repeatAnySetting; review answers pass assist and the schedule step honours a grader-detected repeat.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-merge.dbtest.ts::a PBQ revision is a retry",
+        "backend/lib/integration-merge.dbtest.ts::an exam question seen before is a repeat; a caller-known reason (review hint, explain-back reveal) is kept"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB tests cover each kind's assist; checklist line on cross-branch contracts.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-232",
+      "date": "2026-11-07",
+      "title": "Tests written against an older rule or schema failed on the merged tree",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lesson-experience expected 029's evidence text; mastery-model inserted a 'lab' attempt with an objective (035's check refuses it); prompts.test's PBQ fixture lacked REQ-105's required modelAnswer/fixNext; review-loop and understanding tests asserted the pre-041 rule (unit checks ignored, one discrimination answer is format evidence).",
+      "how_detected": "test:db and npm test on the merged tree",
+      "root_cause": "Each branch's tests were correct for its own base; the integrated rule and schema changed what they assume.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/lesson-experience.dbtest.ts",
+        "backend/lib/mastery-model.dbtest.ts",
+        "backend/lib/prompts.test.ts",
+        "backend/lib/review-loop.dbtest.ts",
+        "backend/lib/understanding.dbtest.ts"
+      ],
+      "fix_summary": "Updated each assertion to the integrated behaviour (031/041 evidence text, a unitcheck kind, full PBQ grade fixture, unit checks count, two discrimination answers needed), keeping what each test protects.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-experience.dbtest.ts::a later lesson grade recomputes mastery without counting the lab report",
+        "backend/lib/review-loop.dbtest.ts::unit check evidence counts in the unit branch like a PBQ (041)",
+        "backend/lib/understanding.dbtest.ts::a discrimination answer is graded server-side and counts as application evidence; a repeat does not"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checklist: tests written against an older rule are updated, not deleted.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-233",
+      "date": "2026-11-07",
+      "title": "Coach guard protected the unit's newest PBQ, not the one this learner is served",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With REQ-107 a learner is served the newest scenario THEY have not attempted; the guard still named the unit's newest scenario from anyone, so after answering it the scenario actually on screen was not held back.",
+      "how_detected": "Semantic review of every reader of pbq_scenarios after the merge",
+      "root_cause": "coach-guard.ts (REQ-100) and pbq-scenarios.ts (REQ-107) were written in parallel against different serving rules.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/coach-guard.ts::pbqItems"
+      ],
+      "fix_summary": "The guard's PBQ subquery now picks the newest scenario of the unit this learner has not attempted, as GET /api/pbq does.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-guard.dbtest.ts::PBQ: the scenario guarded is the one this learner would be served next, not the unit's newest (FAIL-233)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-234",
+      "date": "2026-11-07",
+      "title": "New model-backed routes were cut off by the app's 15 s default timeout",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "fix/mobile-flows-2 added a 15 s request timeout with a list of model routes that get 180 s; exam session creation, lab questions/report, explain-back, Today's review start and typed answers, unit checks and Quiz me were not in it, so they would fail while the server was still generating or grading.",
+      "how_detected": "Cross-checking MODEL_ROUTES against every route that calls the model after the merge",
+      "root_cause": "The timeout list was written on a branch that did not have those routes.",
+      "requirement": "REQ-112",
+      "affected": [
+        "mobile/src/api/client.ts::MODEL_ROUTES"
+      ],
+      "fix_summary": "Added the eight routes; reads on the same paths keep 15 s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/apiClient.test.ts::routes added by exam, labs, explain-back, review, unit checks and Quiz me wait for the model"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Mobile test; checklist line.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-235",
+      "date": "2026-11-07",
+      "title": "Lab report drafts survived logout",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "REQ-106 stores lab report answers under ascendra.labDraft.<user>.<objective>; FAIL-070's logout sweep (fix/mobile-flows-2) only knew draft, pbqProgress and lessonProgress keys, so a learner's lab answers stayed on a shared device.",
+      "how_detected": "Listing every AsyncStorage key the merged app writes",
+      "root_cause": "The sweep's key list was written on a branch without the lab draft.",
+      "requirement": "REQ-112",
+      "affected": [
+        "mobile/src/lib/localData.ts::localDataOwner"
+      ],
+      "fix_summary": "labDraft keys belong to their user and are swept and write-guarded like the others.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/mobileFlows2.test.ts::lab report drafts go with the account"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Mobile test; checklist line.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-236",
+      "date": "2026-11-07",
+      "title": "Account export missed lesson_progress_tombstones and had no coverage check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The per-learner tombstones table from 032 (REQ-101) was in no export section; nothing would notice the next missing table.",
+      "how_detected": "Comparing every table with a user_id against EXPORT_SECTIONS",
+      "root_cause": "Export sections are hand-listed per branch; branches added tables without a shared check.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "Added lessonProgressTombstones (total order for paging) and EXPORT_EXCLUDED_TABLES with a reason for each table deliberately left out; new sections from review-loop, coach-plan and understanding got total orders for REQ-098 paging.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-guard.dbtest.ts::every table with a user_id is exported or excluded with a reason"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The DB test fails for any user_id table in neither list.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-237",
+      "date": "2026-11-07",
+      "title": "Retired objectives in listings written on branches without retired_at",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Placement candidates, the study plan, the coach's weak spots, Today's review due list and coverage, unit-check counts (a retired objective blocked the check forever), comparison-card outline, learned sets and refreshers all listed retired objectives; the PBQ generator also lost 033's filter in the hardening merge.",
+      "how_detected": "Grep of every objectives/course_units listing after each merge (pre-completion FAIL-200 line)",
+      "root_cause": "retired_at (033) reached feat/exam-practice; understanding, coach-plan and review-loop were cut before it, and REQ-107 rewrote the PBQ route. Same class as FAIL-200.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/understanding-store.ts",
+        "backend/lib/placement.ts",
+        "backend/lib/learner-profile.ts",
+        "backend/lib/study-plan-store.ts",
+        "backend/lib/review-store.ts",
+        "backend/lib/unit-check.ts",
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "isActive() on objectives and units in each listing.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-merge.dbtest.ts::study plan, review due list, unit check counts, coach weak spots and the comparison-card outline skip a retired objective"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Existing FAIL-200 checklist line, now with a DB test across the merged readers.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-238",
+      "date": "2026-11-07",
+      "title": "Record-file merges duplicated changelog entries and left docs stale",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Keep-both merging left REQ-100 twice and REQ-097 in three versions in CHANGELOG.md; REQ-108 had no entry; README still said 30 migrations and listed none after 036.",
+      "how_detected": "Reading the merged CHANGELOG and README",
+      "root_cause": "The resolver concatenates both sides of a conflicting hunk; the review-loop branch never wrote its entry.",
+      "requirement": "REQ-112",
+      "affected": [
+        "CHANGELOG.md",
+        "README.md"
+      ],
+      "fix_summary": "Kept the longest version of each duplicated entry, added REQ-108 and REQ-112, README now counts 45 migration files and lists 031 to 041b.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Checked by reading after each record merge.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Checked by reading after each record merge.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-239",
+      "date": "2026-11-07",
+      "title": "Missed PBQ sub-parts drawn red after REQ-105 made them amber",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "REQ-107's per-part rows marked a missed part with a red x-circle and 'Missed'; REQ-105 deliberately shows misses in amber ('to work on') so a mistake reads as information.",
+      "how_detected": "Resolving the pbq.tsx conflict",
+      "root_cause": "Both branches restyled the same rows independently.",
+      "requirement": "REQ-112",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/pbq.tsx::PART_LOOK"
+      ],
+      "fix_summary": "Missed parts use the warning colour, an alert icon and 'To work on'; each row has an accessibility label with its score and comment.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Visual style; needs a device check.",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Visual style; needs a device check.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-240",
+      "date": "2026-11-07",
+      "title": "Unit checks were recorded but never counted toward mastery",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "031's unit branch read only kind 'pbq'; 037's unit_check type (unit_scope) never counted, and review-retest matching knew only PBQ scenarios.",
+      "how_detected": "Flagged by the review-loop builder",
+      "root_cause": "The rule predates the type; review-loop could not change the rule (owned elsewhere) and flagged it.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/supabase/migrations/041_mastery_rule_integration.sql::mastery_detail"
+      ],
+      "fix_summary": "The unit branch reads every unit_scope type; retest matching also matches unit_check_item_id.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::(a) a unit check counts in the unit branch like a PBQ, only beside direct evidence",
+        "backend/lib/integration-rule.dbtest.ts::(a) review-retest matching covers unit-check items: same item earns the retest factor, another item does not"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-241",
+      "date": "2026-11-07",
+      "title": "Zero-weight and placement answers still steered Needs review and spacing",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A Quiz me miss (weight 0) could be the 'latest answer' that makes an objective Needs review, counted as an answer, anchored spacing and made later answers retests; a placement answer made the next day's lesson answer 'spaced'.",
+      "how_detected": "Flagged by the coach-plan builder",
+      "root_cause": "031 left zero weight to the multiplier only; placement arrived later.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/supabase/migrations/041_mastery_rule_integration.sql::mastery_detail"
+      ],
+      "fix_summary": "Zero-weight types are dropped before counting; assessment_types.spacing_evidence (false for placement, coach_quiz) excludes them from spacing and retests.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::(b) a Quiz me (zero-weight) answer is not an answer, not the latest answer, not a spacing anchor or an earlier miss",
+        "backend/lib/integration-rule.dbtest.ts::(b) placement is not a spacing anchor, not spaced itself, and its miss does not make a later answer a retest"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB tests; the column is tunable.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-242",
+      "date": "2026-11-07",
+      "title": "A guessed two-option comparison answer counted as format evidence",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "One correct answer to a two-option discrimination question opened a format family and Independent.",
+      "how_detected": "Flagged by the understanding builder",
+      "root_cause": "031 treats any correct unassisted application-level answer as format evidence.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/supabase/migrations/041_mastery_rule_integration.sql::mastery_detail"
+      ],
+      "fix_summary": "assessment_types.min_format_wins (discrimination 2): format evidence only after that many correct answers on different questions.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::(c) a comparison-card question counts as format evidence only after two correct answers on different questions"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-243",
+      "date": "2026-11-07",
+      "title": "Correct spaced exam answers never counted as the due review",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A learner who answered a due objective correctly, unaided, in a sprint still had it due in Review.",
+      "how_detected": "Flagged by the exam-practice builder",
+      "root_cause": "Only lesson Solo answers and PBQ retries advanced review entries; exam practice was flagged as a follow-up.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/grading-service.ts::recordAttemptTx",
+        "backend/lib/review-step.ts"
+      ],
+      "fix_summary": "A correct, unassisted exam answer that attempt_spaced() calls spaced advances due error_log entries and a due review_schedule row one step (stepSchedule moved to lib/review-step.ts to avoid an import cycle).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::spaced and unassisted: the due review entry and the schedule both move one step",
+        "backend/lib/integration-rule.dbtest.ts::not spaced (an answer an hour before), a repeat, or a miss: nothing moves"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-244",
+      "date": "2026-11-07",
+      "title": "Coach guard missed comparison-card and unit-check questions; Quiz me was a separate list",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Open comparison-card questions and unit checks were not named to the coach or checked in its reply; Quiz me items were appended by the chat route outside the guard.",
+      "how_detected": "Flagged by the understanding builder; review of all open item kinds",
+      "root_cause": "Each branch extended the guard (or not) on its own.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/coach-guard.ts::openItemsFor",
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "One function lists lesson, PBQ, review, unit check, comparison, Quiz me and exam items (OPEN_ITEM_KINDS), each with its own prompt wording.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-guard.dbtest.ts::a learner with one of each has every kind listed, with the answer key where there is one",
+        "backend/lib/integration-guard.dbtest.ts::each kind leaves the list once it is answered or closed"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB tests iterate OPEN_ITEM_KINDS.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-245",
+      "date": "2026-11-07",
+      "title": "Kept view counted assisted spaced answers and placement spacing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An answer given after 'Show choices' a day later marked an objective kept; a lesson answer the day after placement counted as a spaced check.",
+      "how_detected": "Flagged in the integration brief",
+      "root_cause": "The kept query used its own lag() over every weighted answer.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/study-plan-store.ts::planObjectives"
+      ],
+      "fix_summary": "Kept/slipped come from the latest answer that is unassisted and attempt_spaced() (the rule's own definition).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::a spaced review answer keeps it; a spaced answer with help neither keeps nor slips it; placement does not space"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-246",
+      "date": "2026-11-07",
+      "title": "Study plan's mock-exam step was not a link",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The 'Mock exam' step had no objective, so it was rendered as text.",
+      "how_detected": "Flagged by the coach-plan builder",
+      "root_cause": "The plan was built before exam practice existed.",
+      "requirement": "REQ-112",
+      "affected": [
+        "mobile/src/lib/studyPlan.ts::stepRoute",
+        "mobile/app/(app)/course/[trackId]/plan.tsx"
+      ],
+      "fix_summary": "stepRoute sends mock steps to the exam practice screen and lesson steps to their lesson.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/studyPlan.test.ts::the mock-exam step opens the exam practice screen"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Mobile test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-247",
+      "date": "2026-11-07",
+      "title": "Review questions ignored the learner's recorded mix-ups",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "misconceptionPromptBlock existed (REQ-111) but nothing called it.",
+      "how_detected": "Flagged by the understanding builder",
+      "root_cause": "Review generation (REQ-108) was written in parallel.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/review-service.ts::writeQuestions",
+        "backend/lib/review-prompts.ts"
+      ],
+      "fix_summary": "Each objective block in the batch carries the learner's fenced mix-up tags; no extra model call.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::a new review question batch carries the learner's misconception tags, fenced as data",
+        "backend/lib/review-plan.test.ts::the fenced block sits inside its own objective"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-248",
+      "date": "2026-11-07",
+      "title": "Mix-up note and PBQ part scores were lost on resume and replay",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The server's lesson-position sanitizer dropped the diagnosis (and the 'reveal' assist), and a replayed PBQ answer came back without per-part scores.",
+      "how_detected": "Flagged in the integration brief",
+      "root_cause": "Both were added on branches that never saw the other's storage.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/lib/lesson-progress.ts::sanitizeResult",
+        "backend/lib/grading-service.ts::findClientAttempt",
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "Saved results keep a cleaned diagnosis; attempts.part_scores (041) stores the normalised scores and findClientAttempt returns them.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-progress.test.ts::a well-formed diagnosis is kept",
+        "backend/lib/integration-rule.dbtest.ts::the stored attempt carries the scores and a resend with the same id returns them"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Tests.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-249",
+      "date": "2026-11-07",
+      "title": "Recompute and drift check only visited pairs with lesson answers",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mastery_pairs() and --status's 'missing' count only looked at kind 'lesson' attempts, so a pair with only exam, review or comparison answers and no mastery row was never recomputed or reported.",
+      "how_detected": "Reviewing what recompute_mastery_batched visits for the integration runbook",
+      "root_cause": "029 predates typed answers.",
+      "requirement": "REQ-112",
+      "affected": [
+        "backend/supabase/migrations/041_mastery_rule_integration.sql::mastery_pairs",
+        "backend/lib/schema-status.ts::MASTERY_DRIFT_SQL"
+      ],
+      "fix_summary": "mastery_pairs reads every countable answer (lesson or typed, never lab); the drift check uses mastery_pairs().",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/integration-rule.dbtest.ts::mastery_pairs reaches pairs that only have typed answers (exam, review, comparison)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "DB test.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -409,7 +409,9 @@ describe("031 keeps 029's guarantees", () => {
 
     // Named in the tuning table, it counts like that type.
     const named = await newUser();
-    await other(named, objsA[7], "lab", "correct", "free_response");
+    // FAIL-232: was kind 'lab', which migration 035 now refuses with an
+    // objective_id (lab reports are never mastery evidence).
+    await other(named, objsA[7], "unitcheck", "correct", "free_response");
     assert.equal(await level(named, objsA[7]), "Independent");
   });
 

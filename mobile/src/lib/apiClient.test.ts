@@ -83,6 +83,26 @@ describe("request timeout (FAIL-061)", () => {
     assert.equal(requestTimeoutMs("/api/objectives/o1/lessons-index"), DEFAULT_TIMEOUT_MS);
   });
 
+  // FAIL-234: model-backed routes the feature branches added.
+  test("routes added by exam, labs, explain-back, review, unit checks and Quiz me wait for the model", () => {
+    for (const p of [
+      "/api/exam/sessions",
+      "/api/objectives/o1/lab/questions",
+      "/api/objectives/o1/lab/report",
+      "/api/objectives/o1/explain-back",
+      "/api/review/sessions",
+      "/api/review/sessions/s1/items/0/answer",
+      "/api/units/u1/check",
+      "/api/coach/quiz",
+    ]) {
+      assert.equal(requestTimeoutMs(p), MODEL_TIMEOUT_MS, p);
+    }
+    // Reads that never call the model keep the short default.
+    for (const p of ["/api/exam/sessions/s1", "/api/review/today", "/api/objectives/o1/lab", "/api/review/coverage"]) {
+      assert.equal(requestTimeoutMs(p), DEFAULT_TIMEOUT_MS, p);
+    }
+  });
+
   test("a per-call override wins; nonsense overrides fall back to the default", () => {
     assert.equal(requestTimeoutMs("/api/tracks", 60_000), 60_000);
     assert.equal(requestTimeoutMs("/api/chat", 5_000), 5_000);

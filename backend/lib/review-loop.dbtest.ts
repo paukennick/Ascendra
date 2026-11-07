@@ -494,7 +494,10 @@ describe("review loop (REQ-108)", () => {
     assert.notEqual(got3.body.check.id, got.body.check.id);
   });
 
-  test("unit check evidence: the current rule does not read it; the proposed one-line widening would count it like a PBQ", async () => {
+  // REQ-112 (a): migration 041 made the rule's unit branch read every
+  // unit_scope type, so this test now checks the result instead of the
+  // proposed one-line widening it used to try inside a rolled-back transaction.
+  test("unit check evidence counts in the unit branch like a PBQ (041)", async () => {
     const u = await newUser();
     for (const o of objsA) await study(u, o);
     await query(`update attempts set created_at = now() - interval '3 days' where user_id = $1`, [u]);
@@ -507,28 +510,9 @@ describe("review loop (REQ-108)", () => {
        values ($1, $2, 'unitcheck', 'pbq', 'T', 'a', 'correct', 'unit_check', $3)`,
       [u, unitA, item!.id]
     );
-    const nowFormats = await queryOne<{ formats: string[] }>(`select formats from mastery_detail($1, $2)`, [u, objsA[0]]);
-    assert.deepEqual(nowFormats!.formats, ["free_response"], "031 reads only kind 'pbq' in its unit branch");
-
-    const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
-    await c.connect();
-    try {
-      await c.query("begin");
-      const def = (await c.query(`select pg_get_functiondef('mastery_detail(uuid,uuid)'::regprocedure) as d`)).rows[0].d as string;
-      const pred = "and a.kind = 'pbq' and a.format = 'pbq' and a.verdict is not null";
-      assert.ok(def.includes(pred), "the unit-branch predicate this proposal replaces");
-      const widened = def.replace(
-        pred,
-        "and (a.kind = 'pbq' or a.assessment_type in (select type_name from assessment_types where unit_scope)) and a.format = 'pbq' and a.verdict is not null"
-      );
-      await c.query(widened);
-      const after = (await c.query(`select formats, status from mastery_detail($1, $2)`, [u, objsA[0]])).rows[0];
-      assert.deepEqual(after.formats, ["free_response", "scenario"]);
-      assert.equal(after.status, "Transfer-ready", "two formats on separate days");
-    } finally {
-      await c.query("rollback");
-      await c.end();
-    }
+    const after = await queryOne<{ formats: string[]; status: string }>(`select formats, status from mastery_detail($1, $2)`, [u, objsA[0]]);
+    assert.deepEqual(after!.formats, ["free_response", "scenario"]);
+    assert.equal(after!.status, "Transfer-ready", "two formats on separate days");
   });
 
   test("account export carries the review data; schema probes pass", async () => {

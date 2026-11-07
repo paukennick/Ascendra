@@ -19,6 +19,15 @@
 - After merging another branch that adds a visibility or filter column (for
   example `retired_at`), every reader of that table on the merged tree applies
   it, including files the other branch never had (FAIL-200).
+- After merging branches built in parallel (REQ-112), check the cross-branch
+  contracts no text conflict shows: every route that calls the model uses
+  `consumeRateLimit` (FAIL-230; lib/integration-static.test.ts), every attempt
+  kind goes through `assistReasonFor` (FAIL-231), the coach guard lists every
+  open item kind (FAIL-244), every per-learner table is exported or excluded
+  with a reason (FAIL-236; lib/integration-guard.dbtest.ts), the app's
+  long-timeout route list has every model route (FAIL-234), logout sweeps
+  every per-user device key (FAIL-235), and tests written against an older
+  rule were updated, not deleted (FAIL-232).
 - Stateful changes (SQL, migrations, auth, grading, anything with a retry or a
   race) have an integration test in `backend/lib/*.dbtest.ts` run against a
   real Postgres with every migration applied (`npm run test:db`), not only

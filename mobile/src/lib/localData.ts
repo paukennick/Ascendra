@@ -11,6 +11,8 @@
 //   ascendra.draft.<thread>.<userId>.<id>   (chat, support)
 //   ascendra.pbqProgress.<userId>.<unitId>
 //   ascendra.lessonProgress.<userId>.<objectiveId>
+//   ascendra.labDraft.<userId>.<objectiveId>   (lab report answers, REQ-106;
+//                                             FAIL-235: missed until integration)
 
 const PREFIX = "ascendra.";
 
@@ -19,7 +21,7 @@ export function localDataOwner(key: string): string | null {
   if (!key.startsWith(PREFIX)) return null;
   const parts = key.slice(PREFIX.length).split(".");
   if (parts[0] === "draft") return parts.length >= 4 && parts[2] ? parts[2] : null;
-  if (parts[0] === "pbqProgress" || parts[0] === "lessonProgress") return parts.length >= 3 && parts[1] ? parts[1] : null;
+  if (parts[0] === "pbqProgress" || parts[0] === "lessonProgress" || parts[0] === "labDraft") return parts.length >= 3 && parts[1] ? parts[1] : null;
   return null;
 }
 

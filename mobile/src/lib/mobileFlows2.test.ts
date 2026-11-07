@@ -105,6 +105,13 @@ describe("local data removed on logout (FAIL-070)", () => {
       snapshotStorageKey(me, "o1"),
     ].sort());
   });
+  // FAIL-235: lab report drafts (REQ-106) are the learner's text too.
+  test("lab report drafts go with the account", () => {
+    const lab = `ascendra.labDraft.${me}.o1`;
+    const otherLab = `ascendra.labDraft.${other}.o1`;
+    assert.deepEqual(userLocalDataKeys([lab, otherLab], me), [lab]);
+    assert.equal(localDataOwner(lab), me);
+  });
   test("another user's keys and unrelated keys are kept", () => {
     const mine = new Set(userLocalDataKeys(keys, me));
     assert.equal(mine.has(chatDraftKey(other, "t1")), false);

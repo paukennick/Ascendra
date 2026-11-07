@@ -19,6 +19,27 @@
 
 export const EXPORT_PAGE_ROWS = 5_000;
 
+// REQ-112: tables with a user_id that are deliberately NOT in the export, and
+// why. lib/integration-guard.dbtest.ts fails when a table with a user_id is
+// in neither list, so a new per-learner table cannot be forgotten again.
+export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
+  auth_events: "rate-limit and sign-in audit events (security log)",
+  refresh_tokens: "credential hashes",
+  password_reset_tokens: "credential hashes",
+  email_verification_tokens: "credential hashes",
+  email_change_tokens: "credential hashes",
+  login_challenges: "short-lived MFA challenges",
+  mfa_backup_codes: "credential hashes",
+  oauth_accounts: "sign-in provider links (credentials)",
+  ai_calls: "operational cost and latency log (no learner content)",
+  lesson_content_overrides: "generated lesson text, not learner input (pre-existing exclusion)",
+  pbq_generation_claims: "a minutes-long generation lease, no content",
+  mastery_backup_029: "rollback backup, dropped after 30 days",
+  error_log_backup_029: "rollback backup, dropped after 30 days",
+  mastery_backup_031: "rollback backup, dropped after 30 days",
+  mastery_backup_041: "rollback backup, dropped after 30 days",
+};
+
 export const EXPORT_SECTIONS = {
   profile: "select id, email, display_name, created_at from app_users where id = $1",
   tracks: "select * from subject_tracks where user_id = $1 order by created_at asc, id asc",
@@ -54,6 +75,10 @@ export const EXPORT_SECTIONS = {
   reviewSessionItems:
     "select si.* from review_session_items si join review_sessions s on s.id = si.session_id where s.user_id = $1 order by s.created_at asc, s.id asc, si.position asc",
   termCoverage: "select * from learner_term_coverage where user_id = $1 order by first_correct_at asc, objective_id asc, term asc",
+  // REQ-101 / FAIL-236: when the learner finished or cleared each lesson
+  // position (migration 032) -- their activity, missed from the export.
+  lessonProgressTombstones:
+    "select * from lesson_progress_tombstones where user_id = $1 order by cleared_at asc, objective_id asc",
   // REQ-097 (FAIL-187): which Solo items the learner revealed the choices for.
   lessonHintReveals: "select * from lesson_hint_reveals where user_id = $1 order by revealed_at asc, objective_id asc, item_key asc",
 } as const;

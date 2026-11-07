@@ -69,6 +69,16 @@ const MODEL_ROUTES: readonly RegExp[] = [
   /^\/api\/grade(?:$|\?)/,
   /^\/api\/objectives\/[^/?]+\/lesson(?:$|[/?])/,
   /^\/api\/objectives\/[^/?]+\/guess-feedback(?:$|\?)/,
+  // FAIL-234 (integration): model-backed routes added by the feature
+  // branches after this list was written. Each would otherwise be cut off
+  // at 15 s while the server was still generating or grading.
+  /^\/api\/exam\/sessions(?:$|\?)/, // REQ-109: creating a sprint/mock writes missing bank items
+  /^\/api\/objectives\/[^/?]+\/lab\/(?:questions|report)(?:$|\?)/, // REQ-106
+  /^\/api\/objectives\/[^/?]+\/explain-back(?:$|\?)/, // REQ-111
+  /^\/api\/review\/sessions(?:$|\?)/, // REQ-108: preparing today's questions
+  /^\/api\/review\/sessions\/[^/?]+\/items\/[^/?]+\/answer(?:$|\?)/, // REQ-108: typed answers are graded
+  /^\/api\/units\/[^/?]+\/check(?:$|\?)/, // REQ-108: unit check written and graded
+  /^\/api\/coach\/quiz(?:$|\?)/, // REQ-110: first ask of an objective writes its question
 ];
 
 export function requestTimeoutMs(path: string, override?: number): number {
