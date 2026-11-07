@@ -11,14 +11,15 @@
 //
 // 2. Trivial answers. "." graded "correct" twice put an objective at
 //    Independent with weighted accuracy 1.0. trivialAnswer() catches an
-//    answer that is punctuation only, under two words, a stock non-answer
+//    answer that is punctuation only, one word with no answer key, a stock non-answer
 //    ("idk", "no idea"), or that only restates the question; such an answer
 //    is graded incorrect here, without a model call.
-//    One exception keeps short right answers honest: a one-word answer that
-//    matches the answer key (or a word or acronym in it) is NOT trivial --
-//    "256" to "SHA-256 output is ___ bits" still goes to the grader. Where
-//    there is no key (PBQ, unit check, lab report, explain-back) every
-//    one-word answer is trivial: none of those can be answered in a word.
+//    One exception keeps short right answers honest: where there is an answer
+//    key, a one-word answer is NOT trivial -- "256" to "SHA-256 output is ___
+//    bits", or a synonym the key doesn't use, still goes to the grader, which
+//    sees the key. Where there is no key (PBQ, unit check, lab report,
+//    explain-back) every one-word answer is trivial: none of those can be
+//    answered in a word.
 //
 // Applies to free-response grading (lib/free-response-grader.ts: lesson
 // grade, lab report, Today's review, the grading eval), PBQ, unit check and
@@ -76,7 +77,11 @@ export function trivialAnswer(
   if (NON_ANSWERS.has(flat)) return "non_answer";
   const keyWords = new Set(normalizeWords(opts.answerKey ?? "").filter((w) => !STOP.has(w)));
   if (words.length < 2) {
-    if (keyWords.size && words.every((w) => keyWords.has(w))) return null;
+    // With a key, one word may be a right answer the key words differently (a
+    // synonym, another name for the service), so the grader -- which sees the
+    // key -- decides. Without a key (PBQ, unit check, lab, explain-back) no
+    // question can be answered in one word.
+    if (keyWords.size) return null;
     return "too_short";
   }
   // Restating: every content word of the answer is already in the question,

@@ -23,11 +23,10 @@ after(() => {
 
 describe("M1: trivial answers (FAIL-296)", () => {
   const q = { question: "Which cipher mode turns a block cipher into a stream cipher using a counter value per block?", answerKey: "Counter mode (CTR)" };
-  test("punctuation, empty, one word that is not the key, stock non-answers, the question restated", () => {
+  test("punctuation, empty, stock non-answers, the question restated", () => {
     assert.equal(trivialAnswer(".", q), "punctuation");
     assert.equal(trivialAnswer("  ", q), "empty");
     assert.equal(trivialAnswer("?!...", q), "punctuation");
-    assert.equal(trivialAnswer("ECB", q), "too_short");
     assert.equal(trivialAnswer("idk", q), "non_answer");
     assert.equal(trivialAnswer("I don't know", q), "non_answer");
     assert.equal(trivialAnswer("no idea", q), "non_answer");
@@ -37,6 +36,10 @@ describe("M1: trivial answers (FAIL-296)", () => {
   test("real answers are not trivial: the key in one word, a short right answer, an answer that reuses question words", () => {
     assert.equal(trivialAnswer("CTR", q), null);
     assert.equal(trivialAnswer("counter", q), null);
+    // With a key, any single word goes to the grader: it may be a right answer
+    // the key words differently, and the grader (which sees the key) decides.
+    assert.equal(trivialAnswer("ECB", q), null);
+    assert.equal(trivialAnswer("CTR-mode", { ...q, answerKey: "Counter" }), null);
     assert.equal(trivialAnswer("256", { question: "SHA-256 output is ___ bits", answerKey: "256\nWhy: the name" }), null);
     assert.equal(trivialAnswer("Counter mode turns a block cipher into a stream cipher", q), null);
     assert.equal(trivialAnswer("Symmetric, because it's faster", { question: "Which kind of encryption for a large file, and why?" }), null);
