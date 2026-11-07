@@ -2,7 +2,9 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, gradeResultSchema } from "@/lib/prompts";
-import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
+import { findClientAttempt, isDuplicateRetry, recordAttemptIdempotent, retryTargetFor } from "@/lib/grading-service";
+import { ALREADY_REVISED, partsToRevise, retryRefusal } from "@/lib/revision";
+import { conflict } from "@/lib/http";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -112,6 +114,12 @@ export async function GET(req: Request) {
 // track, visibility check and acknowledgement gate) comes from the scenario.
 // clientAttemptId works as it does on /api/grade: a repeat returns the
 // stored result instead of grading and recording a second attempt.
+//
+// REQ-105: { retryOf: <missed attempt id> } revises just the sub-parts that
+// attempt missed (all of them if it named none), with its feedback and model
+// answer on screen. Graded on those sub-parts only, recorded as assisted
+// ("retry"), allowed once per attempt (409 after that). Returns modelAnswer
+// and fixNext with the verdict, and revisedParts when it was a revision.
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -138,6 +146,17 @@ export async function POST(req: Request) {
       if (prior) return ok(prior);
     }
 
+    // REQ-105: which sub-parts a revision covers -- the ones the revised
+    // attempt missed, matched against this scenario's own labels.
+    const retryOf = body.retryOf ?? null;
+    let revisedParts: string[] | undefined;
+    if (retryOf !== null) {
+      const found = await retryTargetFor(authUser.id, retryOf);
+      const refused = retryRefusal(found, (t) => t.kind === "pbq" && t.pbq_scenario_id === scenario.id);
+      if (refused) return refused;
+      if (found.status === "ok") revisedParts = partsToRevise(scenario.sub_parts, found.target.missed_parts);
+    }
+
     try {
       await checkRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
     } catch (err) {
@@ -151,13 +170,16 @@ export async function POST(req: Request) {
       scenario: scenario.scenario,
       subParts: scenario.sub_parts,
       answer,
+      revisionOf: revisedParts,
       ctx: ctx ?? undefined,
     });
     const graded = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: user }],
       schema: gradeResultSchema,
-      maxTokens: 900,
+      // REQ-105: +300 headroom for the model answer (one line per sub-part)
+      // and fixNext; max_tokens is a ceiling, not a cost.
+      maxTokens: 1200,
       model: getFastModel(),
       effort: "high",
       thinking: "off",
@@ -180,12 +202,22 @@ export async function POST(req: Request) {
       feedback: graded.feedback,
       classification: graded.classification,
       missedParts: graded.missedParts ?? [],
+      modelAnswer: graded.modelAnswer ?? null,
+      fixNext: graded.fixNext ?? null,
+      retryOf,
       confidence,
     });
 
     if (prior) return ok(prior);
-    return ok({ ...graded, attempt });
+    return ok({
+      ...graded,
+      assisted: attempt?.assisted === true,
+      assistReason: (attempt?.assist_reason as string | null | undefined) ?? null,
+      ...(revisedParts ? { revisedParts } : {}),
+      attempt,
+    });
   } catch (err) {
+    if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);

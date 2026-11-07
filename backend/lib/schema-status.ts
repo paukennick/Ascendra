@@ -107,6 +107,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
   },
+  {
+    migration: "034_rich_feedback.sql",
+    what: "lesson option reasons, attempts model answer / retry_of (every graded answer and lesson save)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name in ('lesson_content', 'lesson_content_overrides')
+                           and column_name in ('fade_option_reasons', 'solo_option_reasons'))
+                       or (table_name = 'attempts' and column_name in ('model_answer', 'fix_next', 'retry_of')))) = 7
+              and to_regclass('public.attempts_retry_of_unique') is not null as ok`,
+  },
 ];
 
 export interface SchemaStatus {

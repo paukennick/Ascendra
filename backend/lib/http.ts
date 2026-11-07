@@ -23,6 +23,12 @@ export function forbidden(message = "Forbidden") {
   return NextResponse.json({ error: message, acknowledgementRequired: true }, { status: 403 });
 }
 
+// The request is valid but conflicts with what is already recorded (REQ-105:
+// a second revision of the same answer).
+export function conflict(message: string) {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
 export function tooManyRequests(message = "Too many requests") {
   return NextResponse.json({ error: message }, { status: 429 });
 }

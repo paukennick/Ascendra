@@ -70,6 +70,8 @@ export function choiceMarks(
 
 // REQ-097: why a graded answer could not raise mastery, if it couldn't.
 export function assistNote(assistReason: string | null | undefined): string | null {
+  // REQ-105: a revision is assisted by design -- the feedback was on screen.
+  if (assistReason === "retry") return REVISED_NOTE;
   if (assistReason === "repeat") {
     return "You've answered this question before, so this answer can't raise your mastery level. \"Try a different question\" gives you a fresh one.";
   }
@@ -89,7 +91,10 @@ export function gradeSubmitError(err: unknown): string {
   return "Couldn't reach the server, so this answer hasn't been graded yet. Your answer is kept -- tap Retry.";
 }
 
-export type MarkTone = "good" | "bad" | "neutral";
+// REQ-105: a missed pick is marked in the calm "warn" tone, not red -- a
+// wrong option is information about what to look at next, not an alarm.
+// "bad" stays in the type for any caller that still wants it.
+export type MarkTone = "good" | "warn" | "bad" | "neutral";
 
 export interface MarkDescriptor {
   // Visible text beside the option, so the mark is not colour-only.
@@ -104,10 +109,96 @@ export function describeMark(mark: ChoiceMark): MarkDescriptor | null {
     case "picked-correct":
       return { tag: "Your answer - correct", a11y: "Your answer, correct", tone: "good" };
     case "picked-incorrect":
-      return { tag: "Your answer - incorrect", a11y: "Your answer, incorrect", tone: "bad" };
+      return { tag: "Your answer - not this one", a11y: "Your answer, not correct", tone: "warn" };
     case "correct-answer":
       return { tag: "Correct answer", a11y: "Correct answer", tone: "good" };
     default:
       return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// REQ-105: explain every option, show a model answer, then revise once.
+
+// Same promise as TRY_AGAIN_NOTE: practice with the answer in view is
+// assisted, so it can't raise the level; a fresh question can.
+export const REVISE_NOTE = "Revise with the feedback in view. This practice won't raise your level; a new question will.";
+export const REVISED_NOTE =
+  "You revised with the feedback in view, so this practice won't raise your level; a new question will.";
+
+// Shown once under a missed verdict: a miss is information, not a judgment.
+export const MISS_FRAMING = "Not yet -- and that's useful: the notes below show exactly what to adjust.";
+
+export interface ReasonRow {
+  index: number; // position in the shown order
+  mark: ChoiceMark;
+  reason: string;
+}
+
+// The per-option reasons in reading order: the learner's pick first, then the
+// correct option, then the rest as shown. null when the server sent no usable
+// list (a lesson cached before option reasons existed) -- the screen then
+// shows the single `why`, as before.
+export function reasonRows(
+  reasons: string[] | null | undefined,
+  count: number,
+  picked: number | null | undefined,
+  correctIndex: number | null | undefined,
+  verdict: string
+): ReasonRow[] | null {
+  if (!Array.isArray(reasons) || reasons.length !== count || count === 0) return null;
+  if (!reasons.every((r) => typeof r === "string" && r.trim())) return null;
+  const marks = choiceMarks(count, picked, correctIndex, verdict);
+  const first: number[] = [];
+  if (validIndex(picked, count)) first.push(picked);
+  if (validIndex(correctIndex, count) && !first.includes(correctIndex) && marks[correctIndex] !== "none") {
+    first.push(correctIndex);
+  }
+  const rest = Array.from({ length: count }, (_, i) => i).filter((i) => !first.includes(i));
+  return [...first, ...rest].map((i) => ({ index: i, mark: marks[i], reason: reasons[i] }));
+}
+
+// Option letters for the reasons list, so each reason can be matched to its
+// option without relying on position or colour.
+export function optionLetter(i: number): string {
+  return String.fromCharCode(65 + i);
+}
+
+interface RevisableResult {
+  verdict: string;
+  attemptId?: string | null;
+  assistReason?: string | null;
+}
+
+// A missed free-response answer can be revised once, with its feedback in
+// view. Not a multiple-choice miss (the key is already on screen), not a
+// revision of a revision, and not without the attempt id the server needs.
+export function offerRevision(
+  mode: "mc" | "open",
+  result: RevisableResult | null | undefined,
+  firstResult: unknown
+): boolean {
+  return (
+    mode === "open" &&
+    !!result &&
+    isMiss(result.verdict) &&
+    !firstResult &&
+    result.assistReason !== "retry" &&
+    typeof result.attemptId === "string" &&
+    result.attemptId.length > 0
+  );
+}
+
+// PBQ: same rule (the PBQ screen has no multiple choice).
+export function offerPbqRevision(result: RevisableResult | null | undefined, firstResult: unknown): boolean {
+  return offerRevision("open", result, firstResult);
+}
+
+// The check state for starting a revision: the missed result moves to
+// firstResult (kept on screen), the answer stays in the box to edit, and the
+// next submit is a new attempt (fresh client id).
+export function startRevision<S extends { result: R | null; clientAttemptId: string | null; sentSignature: string | null; firstResult?: R | null }, R>(
+  state: S
+): S {
+  return { ...state, firstResult: state.result, result: null, clientAttemptId: null, sentSignature: null };
 }

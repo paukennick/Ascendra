@@ -44,17 +44,24 @@ import { regenerateErrorMessage } from "@/lib/regenerateError";
 import { planCourseReturn } from "@/lib/courseReturn";
 import { routePath } from "@/lib/navPlan";
 import {
+  MISS_FRAMING,
+  REVISE_NOTE,
   TRY_AGAIN_NOTE,
   assistNote,
   choiceMarks,
   describeMark,
   gradeSubmitError,
+  isMiss,
   offerRereadAfterCheck,
+  offerRevision,
   offerTryAgain,
+  reasonRows,
   soloOutcome,
+  startRevision,
   type ChoiceMark,
   type MarkTone,
 } from "@/lib/lessonFeedback";
+import { Collapsible, FeedbackPanel, NextStep, OptionReasons } from "@/components/feedback";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -827,6 +834,10 @@ function CheckStep({
   // REQ-089: answer, mode and graded result live in the parent so they are
   // saved with the lesson position (see LessonFlow).
   const { mode, picked, openAnswer, result } = state;
+  // REQ-105: set once the learner chose to revise a missed free-response
+  // answer; its feedback stays on screen while revising and after.
+  const firstResult = state.firstResult ?? null;
+  const revising = !!firstResult && !result;
   const update = (patch: Partial<CheckState>) => onStateChange({ ...state, ...patch });
   const setMode = (m: "mc" | "open") => update({ mode: m });
   const setPicked = (i: number) => update({ picked: i });
@@ -892,6 +903,8 @@ function CheckStep({
         objectiveId,
         unitId,
         ...(format === "mc" ? { chosenIndex: picked } : { answer: openAnswer }),
+        // REQ-105: a revision names the missed attempt it revises.
+        ...(format === "open" && firstResult?.attemptId ? { retryOf: firstResult.attemptId } : {}),
         confidence,
       });
       onStateChange({
@@ -904,6 +917,10 @@ function CheckStep({
           correctAnswer: res.correctAnswer ?? null,
           why: res.why ?? null,
           assistReason: res.assistReason ?? null,
+          optionReasons: res.optionReasons ?? null,
+          modelAnswer: res.modelAnswer ?? null,
+          fixNext: res.fixNext ?? null,
+          attemptId: res.attempt?.id ?? null,
         },
       });
     } catch (err) {
@@ -951,7 +968,33 @@ function CheckStep({
       </View>
       <Body>{promptText}</Body>
 
-      {!result && (
+      {!result && revising && firstResult ? (
+        // REQ-105: revising a missed free-response answer, with the first
+        // answer's feedback and model answer still in view.
+        <View style={{ gap: 8 }}>
+          <FeedbackPanel title="Feedback on your first answer" result={firstResult} />
+          <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+          <TextInput
+            multiline
+            accessibilityLabel="Your revised answer"
+            placeholder="Revise your answer"
+            placeholderTextColor={colors.mutedDim}
+            value={openAnswer}
+            onChangeText={setOpenAnswer}
+            style={styles.input}
+          />
+          <Button
+            label={submitFailed ? "Retry" : "Submit revision"}
+            icon={submitIcon}
+            loading={busy}
+            onPress={submitOpen}
+            disabled={busy || !openAnswer.trim()}
+          />
+          {error ? <ErrorBanner message={error} /> : null}
+        </View>
+      ) : null}
+
+      {!result && !revising && (
         <>
           {kind === "fade" ? (
             <>
@@ -1055,10 +1098,30 @@ function CheckStep({
           {mode === "mc" && picked != null && choices ? (
             <GradedChoices choices={choices} picked={picked} correctIndex={result.correctIndex ?? null} verdict={result.verdict} />
           ) : null}
+          {/* REQ-105: a revision keeps the first answer's feedback reachable. */}
+          {firstResult ? (
+            <Collapsible label="Feedback on your first answer">
+              <FeedbackPanel result={firstResult} />
+            </Collapsible>
+          ) : null}
           <VerdictBadge verdict={result.verdict} />
+          {isMiss(result.verdict) && !firstResult ? (
+            <Muted style={{ fontSize: 12 }}>{MISS_FRAMING}</Muted>
+          ) : null}
           <Body>{result.feedback}</Body>
           {result.missedParts && result.missedParts.length > 0 ? (
             <Muted>Missed: {result.missedParts.join(", ")}</Muted>
+          ) : null}
+          {isMiss(result.verdict) && result.fixNext ? <NextStep text={result.fixNext} /> : null}
+          {/* REQ-105: why each option is or isn't right, the learner's pick
+              and the correct one first. A lesson cached before option
+              reasons existed has none: its single explanation shows instead. */}
+          {mode === "mc" && choices ? (
+            <OptionReasons
+              rows={reasonRows(result.optionReasons, choices.length, picked, result.correctIndex ?? null, result.verdict)}
+              choices={choices}
+              fallbackWhy={result.why ?? null}
+            />
           ) : null}
           {/* REQ-097: the key arrives only with the verdict. After a
               free-response miss, show the expected answer too. */}
@@ -1067,6 +1130,26 @@ function CheckStep({
               Expected answer: {result.correctAnswer}
               {result.why ? ` -- ${result.why}` : ""}
             </Muted>
+          ) : null}
+          {mode === "open" && result.modelAnswer ? (
+            <Collapsible label="Show a model answer">
+              <Body>{result.modelAnswer}</Body>
+            </Collapsible>
+          ) : null}
+          {offerRevision(mode, result, firstResult) ? (
+            <>
+              <Button
+                label="Revise my answer"
+                icon="edit-3"
+                accessibilityLabel="Revise my answer once, with this feedback in view. This practice won't raise your level."
+                onPress={() => {
+                  setError(null);
+                  setSubmitFailed(false);
+                  onStateChange(startRevision(state));
+                }}
+              />
+              <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+            </>
           ) : null}
           {assistNote(result.assistReason) ? (
             <Muted style={{ fontSize: 12 }}>{assistNote(result.assistReason)}</Muted>
@@ -1082,7 +1165,7 @@ function CheckStep({
               <Button label="Re-read the explanation" icon="book-open" onPress={onReread} />
               <Button label="Continue" icon="arrow-right" variant="ghost" onPress={onDone} />
             </>
-          ) : onTryAgain && offerTryAgain(kind, result.verdict) ? (
+          ) : onTryAgain && offerTryAgain(kind, result.verdict) && !offerRevision(mode, result, firstResult) ? (
             <>
               <Button
                 label="Try again"
@@ -1150,8 +1233,8 @@ const MARK_ICON: Record<ChoiceMark, React.ComponentProps<typeof Feather>["name"]
   "picked-incorrect": "x-circle",
   "correct-answer": "check-circle",
 };
-const TONE_COLOR: Record<MarkTone, string> = { good: colors.good, bad: colors.bad, neutral: colors.mutedDim };
-const TONE_DIM: Record<MarkTone, string> = { good: colors.goodDim, bad: colors.badDim, neutral: "transparent" };
+const TONE_COLOR: Record<MarkTone, string> = { good: colors.good, warn: colors.warn, bad: colors.bad, neutral: colors.mutedDim };
+const TONE_DIM: Record<MarkTone, string> = { good: colors.goodDim, warn: colors.warnDim, bad: colors.badDim, neutral: "transparent" };
 
 function GradedChoices({
   choices,

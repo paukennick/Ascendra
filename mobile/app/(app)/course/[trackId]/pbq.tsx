@@ -9,6 +9,8 @@ import { pbqDraftKey } from "@/lib/drafts";
 import { attemptIdFor } from "@/lib/lessonProgress";
 import { parsePbqPayload, pbqPayload } from "@/lib/pbqProgress";
 import { useStoredDraft } from "@/lib/useStoredDraft";
+import { MISS_FRAMING, REVISE_NOTE, assistNote, isMiss, offerPbqRevision } from "@/lib/lessonFeedback";
+import { Collapsible, FeedbackPanel, NextStep } from "@/components/feedback";
 import type { Attempt, GradeResult, PBQScenario, Unit } from "@/types";
 import {
   Body,
@@ -52,6 +54,9 @@ export default function PBQScreen() {
   const [scenario, setScenario] = useState<PBQScenario | null>(null);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
+  // REQ-105: the first, missed result once the learner chose to revise the
+  // missed sub-parts. Its feedback stays on screen while revising and after.
+  const [firstResult, setFirstResult] = useState<GradeResult | null>(null);
   const [history, setHistory] = useState<Attempt[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +75,7 @@ export default function PBQScreen() {
           scenario,
           answer,
           result,
+          firstResult,
           clientAttemptId: sentRef.current?.id ?? null,
           sentSignature: sentRef.current?.signature ?? null,
         })
@@ -82,6 +88,7 @@ export default function PBQScreen() {
     setScenario(snap.scenario);
     setAnswer(snap.answer);
     setResult(snap.result);
+    setFirstResult(snap.firstResult ?? null);
     sentRef.current =
       snap.clientAttemptId && snap.sentSignature ? { id: snap.clientAttemptId, signature: snap.sentSignature } : null;
   });
@@ -120,6 +127,7 @@ export default function PBQScreen() {
         setScenario(res.scenario);
         setAnswer("");
         setResult(null);
+        setFirstResult(null);
         sentRef.current = null;
       })
       .catch((err) => {
@@ -138,6 +146,7 @@ export default function PBQScreen() {
     setBusy(true);
     setError(null);
     setResult(null);
+    setFirstResult(null);
     setAnswer("");
     sentRef.current = null;
     try {
@@ -159,7 +168,9 @@ export default function PBQScreen() {
     // Same scenario and same answer resent after a failure keeps its id, so
     // if the first request did reach the server this one gets that result
     // back instead of a second recorded attempt. Any change is a new attempt.
-    const signature = `pbq:${scenario.id}:${answer.trim()}`;
+    // REQ-105: a revision is its own attempt even if the text didn't change.
+    const retryOf = firstResult?.attempt?.id ?? null;
+    const signature = `pbq:${scenario.id}:${retryOf ? `rev:${retryOf}:` : ""}${answer.trim()}`;
     const clientAttemptId = attemptIdFor(
       { clientAttemptId: sentRef.current?.id ?? null, sentSignature: sentRef.current?.signature ?? null },
       signature,
@@ -172,6 +183,7 @@ export default function PBQScreen() {
         scenarioId: scenario.id,
         unitId,
         answer,
+        ...(retryOf ? { retryOf } : {}),
       });
       setResult(res);
       loadHistory();
@@ -182,6 +194,7 @@ export default function PBQScreen() {
       if (err instanceof ApiError && err.status === 404) {
         setScenario(null);
         setResult(null);
+        setFirstResult(null);
         setAnswer("");
         sentRef.current = null;
         setError("That scenario is no longer available. Generate a new one.");
@@ -194,7 +207,13 @@ export default function PBQScreen() {
   }
 
   const selectedUnit = units?.find((u) => u.id === unitId);
-  const missed = new Set((result?.missedParts ?? []).map((p) => p.trim().toLowerCase()));
+  // While revising, the sub-parts show the first result's marks. After a
+  // revision the server graded only the revised parts, so anything it
+  // doesn't list as missed is covered.
+  const shownResult = result ?? firstResult;
+  const missed = new Set((shownResult?.missedParts ?? []).map((p) => p.trim().toLowerCase()));
+  const revising = !!firstResult && !result;
+  const missedLabels = scenario?.sub_parts.filter((p) => missed.has(p.trim().toLowerCase())) ?? [];
 
   return (
     <Screen>
@@ -242,19 +261,27 @@ export default function PBQScreen() {
             <Body>{scenario.scenario}</Body>
             <View style={{ gap: 6, marginTop: 4 }}>
               {scenario.sub_parts.map((part, i) => {
-                const graded = !!result;
+                const graded = !!shownResult;
                 const wasMissed = missed.has(part.trim().toLowerCase());
-                const color = !graded ? colors.muted : wasMissed ? colors.bad : colors.good;
+                // REQ-105: a missed part is amber ("to work on"), not red.
+                const color = !graded ? colors.muted : wasMissed ? colors.warn : colors.good;
                 const icon: React.ComponentProps<typeof Feather>["name"] = !graded
                   ? "circle"
                   : wasMissed
-                    ? "x-circle"
+                    ? "alert-circle"
                     : "check-circle";
+                const status = !graded ? "" : wasMissed ? " - to work on" : " - covered";
                 return (
-                  <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View
+                    key={i}
+                    accessible
+                    accessibilityLabel={`Sub-part ${i + 1}: ${part}${status ? `, ${status.slice(3)}` : ""}`}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                  >
                     <Feather name={icon} size={15} color={color} />
                     <Muted style={{ flex: 1, color: graded ? colors.text : colors.muted }}>
                       {i + 1}. {part}
+                      {status}
                     </Muted>
                   </View>
                 );
@@ -264,9 +291,20 @@ export default function PBQScreen() {
 
           {!result ? (
             <Card>
+              {revising && firstResult ? (
+                // REQ-105: revise just the missed sub-parts, feedback in view.
+                <>
+                  <FeedbackPanel title="Feedback on your first answer" result={firstResult} />
+                  <Body>
+                    Revise just {missedLabels.length ? `these sub-parts: ${missedLabels.join("; ")}` : "the missed sub-parts"}.
+                  </Body>
+                  <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+                </>
+              ) : null}
               <TextInput
                 multiline
-                placeholder="Address every sub-part above in your answer"
+                accessibilityLabel={revising ? "Your revision of the missed sub-parts" : "Your answer"}
+                placeholder={revising ? "Your revision of the missed sub-parts" : "Address every sub-part above in your answer"}
                 placeholderTextColor={colors.mutedDim}
                 value={answer}
                 onChangeText={setAnswer}
@@ -281,12 +319,47 @@ export default function PBQScreen() {
                   textAlignVertical: "top",
                 }}
               />
-              <Button label="Submit answer" icon="send" loading={busy} onPress={submit} disabled={!answer.trim() || busy} />
+              <Button
+                label={revising ? "Submit revision" : "Submit answer"}
+                icon="send"
+                loading={busy}
+                onPress={submit}
+                disabled={!answer.trim() || busy}
+              />
             </Card>
           ) : (
             <Card elevated>
+              {firstResult ? (
+                <Collapsible label="Feedback on your first answer">
+                  <FeedbackPanel result={firstResult} />
+                </Collapsible>
+              ) : null}
               <VerdictBadge verdict={result.verdict} />
+              {isMiss(result.verdict) && !firstResult ? <Muted style={{ fontSize: 12 }}>{MISS_FRAMING}</Muted> : null}
               <Body>{result.feedback}</Body>
+              {isMiss(result.verdict) && result.fixNext ? <NextStep text={result.fixNext} /> : null}
+              {result.modelAnswer ? (
+                <Collapsible label="Show a model answer">
+                  <Body>{result.modelAnswer}</Body>
+                </Collapsible>
+              ) : null}
+              {assistNote(result.assistReason) ? <Muted style={{ fontSize: 12 }}>{assistNote(result.assistReason)}</Muted> : null}
+              {offerPbqRevision({ ...result, attemptId: result.attempt?.id ?? null }, firstResult) ? (
+                <>
+                  <Button
+                    label="Revise the missed parts"
+                    icon="edit-3"
+                    accessibilityLabel="Revise the missed sub-parts once, with this feedback in view. This practice won't raise your level."
+                    onPress={() => {
+                      setError(null);
+                      setFirstResult(result);
+                      setResult(null);
+                      sentRef.current = null;
+                    }}
+                  />
+                  <Muted style={{ fontSize: 12 }}>{REVISE_NOTE}</Muted>
+                </>
+              ) : null}
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
                 <Button label="Try another scenario" icon="refresh-cw" fullWidth={false} onPress={() => generate(true)} />
                 <Button
@@ -297,6 +370,7 @@ export default function PBQScreen() {
                   onPress={() => {
                     setScenario(null);
                     setResult(null);
+                    setFirstResult(null);
                     setAnswer("");
                     sentRef.current = null;
                   }}

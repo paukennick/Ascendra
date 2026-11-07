@@ -23,11 +23,24 @@ export interface LessonRow {
   solo_choices: string[];
   solo_correct_index: number;
   solo_why: string;
+  // REQ-105 (migration 034): one reason per stored choice, same order. Null
+  // for lessons cached before it; grading falls back to *_why. Never sent in
+  // the lesson payload.
+  fade_option_reasons: string[] | null;
+  solo_option_reasons: string[] | null;
   model: string;
   generated_at: string;
 }
 
 export type LessonContent = LessonIntroContent & LessonPracticeContent;
+
+// Reasons are stored only when there is exactly one string per choice; a
+// partial list could pair a reason with the wrong option.
+export function optionReasonsFor(reasons: unknown, choices: unknown): string[] | null {
+  if (!Array.isArray(reasons) || !Array.isArray(choices) || reasons.length !== choices.length) return null;
+  if (!reasons.every((r) => typeof r === "string" && r.trim())) return null;
+  return reasons as string[];
+}
 
 export type LessonScope = { kind: "shared" } | { kind: "user"; userId: string };
 
@@ -46,7 +59,7 @@ export function scopeKey(scope: LessonScope): string {
 export const CLAIM_LEASE_SECONDS = 120;
 
 const LESSON_COLUMNS = `guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-  solo_check, solo_choices, solo_correct_index, solo_why, model, generated_at`;
+  solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model, generated_at`;
 
 export type LessonSource = "override" | "shared";
 
@@ -94,8 +107,14 @@ function contentParams(content: LessonContent, model: string): unknown[] {
     JSON.stringify(content.soloChoices),
     content.soloCorrectIndex,
     content.soloWhy,
+    jsonOrNull(optionReasonsFor(content.fadeOptionReasons, content.fadeChoices)),
+    jsonOrNull(optionReasonsFor(content.soloOptionReasons, content.soloChoices)),
     model,
   ];
+}
+
+function jsonOrNull(v: unknown): string | null {
+  return v == null ? null : JSON.stringify(v);
 }
 
 // Persists a finished lesson and returns the row that is now stored.
@@ -116,8 +135,8 @@ export async function saveLesson(
     const rows = await query<LessonRow>(
       `insert into lesson_content
         (objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-         solo_check, solo_choices, solo_correct_index, solo_why, model)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        on conflict (objective_id) do nothing
        returning ${LESSON_COLUMNS}`,
       [objectiveId, ...params]
@@ -130,8 +149,8 @@ export async function saveLesson(
   const rows = await query<LessonRow>(
     `insert into lesson_content_overrides
       (user_id, objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why,
-       solo_check, solo_choices, solo_correct_index, solo_why, model)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, model)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
      on conflict (user_id, objective_id) do update set
        guess_prompt = excluded.guess_prompt,
        teach = excluded.teach,
@@ -143,6 +162,8 @@ export async function saveLesson(
        solo_choices = excluded.solo_choices,
        solo_correct_index = excluded.solo_correct_index,
        solo_why = excluded.solo_why,
+       fade_option_reasons = excluded.fade_option_reasons,
+       solo_option_reasons = excluded.solo_option_reasons,
        model = excluded.model,
        generated_at = now()
      returning ${LESSON_COLUMNS}`,

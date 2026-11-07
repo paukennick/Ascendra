@@ -47,6 +47,28 @@ describe("sanitizeLessonProgress", () => {
     assert.equal(r.checks.solo.result.correctIndex, null);
     assert.equal(r.checks.solo.result.assistReason, null);
   });
+  // REQ-105
+  test("keeps option reasons, model answer, fix line, attempt id and the first (missed) result of a revision", () => {
+    const first = { verdict: "partial", feedback: "f1", modelAnswer: "M", fixNext: "F", attemptId: "11111111-2222-3333-4444-555555555555" };
+    const r = sanitizeLessonProgress({
+      ...base,
+      checks: {
+        fade: { mode: "mc", result: { verdict: "incorrect", feedback: "f", optionReasons: ["a", "b", "c", "d"] } },
+        solo: { mode: "open", firstResult: first, result: { verdict: "correct", feedback: "f2", assistReason: "retry" } },
+      },
+    }) as any;
+    assert.deepEqual(r.checks.fade.result.optionReasons, ["a", "b", "c", "d"]);
+    assert.equal(r.checks.fade.firstResult, null);
+    assert.equal(r.checks.solo.firstResult.modelAnswer, "M");
+    assert.equal(r.checks.solo.firstResult.fixNext, "F");
+    assert.equal(r.checks.solo.firstResult.attemptId, first.attemptId);
+    assert.equal(r.checks.solo.result.assistReason, "retry");
+    const junk = sanitizeLessonProgress({
+      ...base,
+      checks: { fade: { mode: "mc", result: { verdict: "incorrect", feedback: "f", optionReasons: ["a", 2] } } },
+    }) as any;
+    assert.equal(junk.checks.fade.result.optionReasons, null);
+  });
   test("caps stored text length", () => {
     const r = sanitizeLessonProgress({ ...base, guess: "x".repeat(20000) }) as { guess: string };
     assert.equal(r.guess.length, 8000);
