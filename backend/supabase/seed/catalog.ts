@@ -5,6 +5,7 @@
 import {
   MSCS_TRACK,
   SECPLUS_TRACK,
+  SECPLUSV8_TRACK,
   PYTHON_TRACK,
   JAVASCRIPT_TRACK,
   LINUXPLUS_TRACK,
@@ -29,6 +30,9 @@ import { MS_HEALTH_INFORMATICS_TRACK } from "./tracks/informatics";
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
   SECPLUS_TRACK,
+  // REQ-103: after SECPLUS -- its credential marks SECPLUS's SY0-701 exam
+  // row superseded, so that row must already exist on a fresh database.
+  SECPLUSV8_TRACK,
   PYTHON_TRACK,
   JAVASCRIPT_TRACK,
   LINUXPLUS_TRACK,

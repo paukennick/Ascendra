@@ -2790,6 +2790,49 @@
       ]
     },
     {
+      "id": "REQ-094",
+      "category": "maintenance",
+      "title": "AI modernization: 5.5 models, structured output, caching, call log, eval harness, pre-generation script",
+      "description": "Phase 0 of the teaching overhaul. Moves defaults to claude-sonnet-5-5 (lessons) and claude-haiku-5-5 (grading, chat, guess feedback, PBQ) before claude-sonnet-4-5 retires (tentatively 2026-11-30); per-model request params (no temperature; Sonnet thinking off = between_tools, Haiku = disabled; output_config.effort; 4.5 models still work); lesson halves generated in parallel; structured output for grading and PBQ; prompt caching of stable system blocks and chat history; every AI call logged to ai_calls (migration 028); PBQ model column fixed; evaluation harness (eval:lessons, eval:grading with 40 draft cases); npm run pregen estimates/submits/collects a Batch API pre-generation of missing catalog lessons (never runs by itself).",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/anthropic.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/free-response-grader.ts",
+        "backend/app/api/grade",
+        "backend/app/api/pbq",
+        "backend/app/api/chat",
+        "backend/supabase/migrations/028_ai_calls.sql",
+        "backend/scripts/eval",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts"
+      ],
+      "acceptance_criteria": [
+        "No request sends temperature or a rejected thinking type",
+        "Lesson halves start together",
+        "Every AI call logged without failing the request",
+        "pregen defaults to estimate"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "build",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Live API acceptance of request shapes unverified (no key here); run eval:lessons and eval:grading before deploying",
+        "Migration 028 needed for logging (calls still succeed without it)",
+        "Grading cases are a draft for owner review"
+      ]
+    },
+    {
       "id": "REQ-095",
       "category": "defect",
       "title": "Lesson screen tells the truth about graded checks",
@@ -2845,49 +2888,6 @@
         "changelog"
       ],
       "risk_notes": []
-    },
-    {
-      "id": "REQ-094",
-      "category": "maintenance",
-      "title": "AI modernization: 5.5 models, structured output, caching, call log, eval harness, pre-generation script",
-      "description": "Phase 0 of the teaching overhaul. Moves defaults to claude-sonnet-5-5 (lessons) and claude-haiku-5-5 (grading, chat, guess feedback, PBQ) before claude-sonnet-4-5 retires (tentatively 2026-11-30); per-model request params (no temperature; Sonnet thinking off = between_tools, Haiku = disabled; output_config.effort; 4.5 models still work); lesson halves generated in parallel; structured output for grading and PBQ; prompt caching of stable system blocks and chat history; every AI call logged to ai_calls (migration 028); PBQ model column fixed; evaluation harness (eval:lessons, eval:grading with 40 draft cases); npm run pregen estimates/submits/collects a Batch API pre-generation of missing catalog lessons (never runs by itself).",
-      "priority": "critical",
-      "status": "needs_review",
-      "minimum_access_scope": [
-        "backend/lib/anthropic.ts",
-        "backend/lib/ai-calls.ts",
-        "backend/lib/lesson-generation.ts",
-        "backend/lib/prompts.ts",
-        "backend/lib/free-response-grader.ts",
-        "backend/app/api/grade",
-        "backend/app/api/pbq",
-        "backend/app/api/chat",
-        "backend/supabase/migrations/028_ai_calls.sql",
-        "backend/scripts/eval",
-        "backend/scripts/pregenerate.ts",
-        "backend/scripts/pregenerate-lib.ts"
-      ],
-      "acceptance_criteria": [
-        "No request sends temperature or a rejected thinking type",
-        "Lesson halves start together",
-        "Every AI call logged without failing the request",
-        "pregen defaults to estimate"
-      ],
-      "validation_required": [
-        "typecheck",
-        "unit_tests",
-        "integration_tests",
-        "build",
-        "manual_verification"
-      ],
-      "documentation_required": [
-        "changelog"
-      ],
-      "risk_notes": [
-        "Live API acceptance of request shapes unverified (no key here); run eval:lessons and eval:grading before deploying",
-        "Migration 028 needed for logging (calls still succeed without it)",
-        "Grading cases are a draft for owner review"
-      ]
     },
     {
       "id": "REQ-097",
@@ -2996,6 +2996,82 @@
         "Security+ SY0-801 launches 2026-11-17 and CySA+ CS0-004 is live: rebases not done",
         "DVA-C03 rebase not done",
         "MLA-C02 GA date only in AWS blog not exam page"
+      ]
+    },
+    {
+      "id": "REQ-103",
+      "category": "feature",
+      "title": "CompTIA Security+ V8 (SY0-801) parallel course and CySA+ rebase to CS0-004",
+      "description": "Adds SECPLUSV8, a parallel Security+ course for SY0-801 (launch 2026-11-17) beside SECPLUS (SY0-701, English bookable until 2027-06-11, not retired), and rebases CYSAPLUS onto CS0-004 (live 2026-06-23) with retire-and-append: the four CS0-003 units and their 22 objectives keep their rows, ids, text and learner history and are retired at 2026-12-23T12:00Z (after English CS0-003's last day, 2026-12-22); four CS0-004 units are appended. Domains, weights and objective terms come from CompTIA's exam objectives PDFs (Exam Objectives Document Version 2.0 for each) and the comptia.org V8 and CySA+ V4 pages. Credential blocks carry exam code, duration, question count and types, passing score, domain weights, dates, and supersedes links (SY0-801 supersedes SY0-701 with last day 2027-06-11; CS0-004 supersedes CS0-003 with last day 2026-12-22). Nick's decisions: parallel V8 course; CySA+ retire-and-append.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/lib/comptia-v8-coverage.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "SECPLUSV8 seeded with five SY0-801 domains 16/24/19/27/14 and every official sub-objective term named",
+        "SECPLUS still teaches SY0-701 unretired and its exam row is superseded by SY0-801 with last day 2027-06-11",
+        "CYSAPLUS teaches CS0-004 (34/26/24/16) with every official sub-objective term named",
+        "CS0-003 objective ids text and learner mastery survive seeding twice and are hidden only after 2026-12-23T12:00Z",
+        "Every new unit has objectives and a gate and labs parallel to objectives",
+        "Seed run twice creates no duplicates"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db after migrate --all and seed twice",
+        "upgrade-path check: old seed + CS0-003 mastery then new seed twice",
+        "npx tsc --noEmit",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "CS0-004 objectives PDF found by web search on CompTIA's document host and not linked from comptia.org",
+        "Mastery not carried from CS0-003 to CS0-004 objectives",
+        "Both CySA+ versions listed until 2026-12-23T12:00Z",
+        "SY0-801 retirement date not published (estimated 3 years after launch)",
+        "Mobile courseEmoji/courseAccent have no SECPLUSV8 entry so it uses the category fallback"
+      ]
+    },
+    {
+      "id": "REQ-104",
+      "category": "feature",
+      "title": "AWS Developer Associate moves to DVA-C03, keeping DVA-C02 learner history",
+      "description": "AWSDVA taught DVA-C02, whose last test day is 2026-11-30; DVA-C03 (guide published, registration open since 2026-10-27) is in use from 2026-12-01 with domains 30/26/22/22, a new AI-security task (2.3) and scored AI-assisted development skills. Rebase AWSDVA with the REQ-102 retire-and-append pattern: keep the four DVA-C02 units and objectives at their sort_order with retiredAt 2026-12-01T12:00Z (after 2026-11-30 has ended in UTC-12), append four DVA-C03 units sourced skill by skill from the official guide, credential block on DVA-C03 superseding DVA-C02. Retired C02 unit titles get a (DVA-C02) suffix because three C03 domains reuse C02 names and both sets are listed until retirement.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/lib/catalog-blueprints.test.ts",
+        "backend/lib/exam-blueprints.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "AWSDVA credential is DVA-C03 active effective 2026-12-01 and supersedes DVA-C02 with last day 2026-11-30",
+        "Every DVA-C03 skill (72 across 12 tasks) is covered by an objective with its source cited",
+        "Active domain weights are 30/26/22/22",
+        "DVA-C02 units and objectives keep row ids and learner mastery and are retired at 2026-12-01T12:00Z",
+        "No two units in a track share a title",
+        "Seed run twice creates no duplicates"
+      ],
+      "validation_required": [
+        "npm test",
+        "npx tsc --noEmit",
+        "npm run test:db after migrate --all and seed twice",
+        "Upgrade path: seed DVA-C02 then add mastery then seed DVA-C03 twice and confirm mastery row intact",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Exam duration 130 minutes is from the certification page not the C03 guide",
+        "Learners' C02 mastery does not carry to C03 objectives by design"
       ]
     }
   ]

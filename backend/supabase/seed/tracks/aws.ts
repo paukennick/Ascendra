@@ -24,6 +24,7 @@
 // pass: AWSSAP moved to SAP-C03 (see its block), DVA-C02's last day
 // corrected, MLA-C02's GA date recorded. Tracks not touched were confirmed
 // by exam code only; their domain weights were not re-read this pass.
+// REQ-104 (2026-11-07): AWSDVA moved to DVA-C03 the same way (see its block).
 //
 // Re-verify each track's `credential.lastVendorVerifiedAt` against the live
 // exam guide before a release; migration 007 refuses to store any exam record
@@ -511,62 +512,105 @@ export const AWS_AIF_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// Associate: AWS Certified Developer - Associate (DVA-C02)
-// 130 minutes, 65 questions (50 scored, 15 unscored), scaled 100-1000, pass 720.
-// Domains: 32% / 26% / 24% / 18%.
+// Associate: AWS Certified Developer - Associate (DVA-C03)
 //
-// Marked 'transitioning', not 'active': AWS opened registration for DVA-C03
-// on 2026-10-27; the last day to sit DVA-C02 is 2026-11-30 and DVA-C03 GA
-// delivery starts 2026-12-01 (AWS Training and Certification blog,
-// https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/,
-// read 2026-11-07; the exam-guide index above also lists DVA-C02 as being
-// retired with last day November 30, 2026). This file previously recorded
-// 2026-12-01 as the last day -- that is the first C03 day.
+// REQ-104 (2026-11-07): moved from DVA-C02 to DVA-C03. Sources, all read
+// 2026-11-07:
+//   - DVA-C03 exam guide (HTML, and the PDF it links, which was used as the
+//     verbatim text for every task and skill below):
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html
+//     https://docs.aws.amazon.com/pdfs/aws-certification/latest/developer-associate-03/developer-associate-03.pdf
+//     "Registration for the updated version of the exam (DVA-C03) opened on
+//     October 27, 2026. The last day to take the current version of the
+//     exam (DVA-C02) is November 30, 2026."
+//     50 scored + 15 unscored questions; two response types only, multiple
+//     choice and multiple response (no ordering, matching or case-study
+//     items, unlike some other 2026 AWS exams); scaled 100-1000, minimum
+//     passing score 720, compensatory scoring. Domains 30/26/22/22.
+//   - DVA-C02 -> DVA-C03 comparison: C02 "in use until November 30, 2026",
+//     C03 "in use beginning December 1, 2026"; added, moved and merged skills:
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/dva-03-comparison.html
+//   - Per-domain skills: .../developer-associate-03/developer-associate-03-domain1.html
+//     through -domain4.html under the same docs path (same text as the PDF).
+//   - In-scope services list (used only where an objective names a service
+//     the skill itself does not -- each such objective is marked
+//     "in-scope list" in a comment):
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/dva-03-in-scope-services.html
+//   - Duration 130 minutes -- NOT in the exam guide, which states no time
+//     limit. Taken from the AWS certification page
+//     (https://aws.amazon.com/de/certification/certification-levels/certified-developer-associate,
+//     "130 minutes", "65 questions"; its links point at the DVA-C03 guide).
+//     That page does not name the version in its text, so treat the 130 as
+//     unverified for C03 specifically until the English page or a C03
+//     announcement states it.
 //
-// REQ-102 follow-up, not done here: the DVA-C03 guide is published
-// (https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03.html),
-// so this track is due the same retire-and-append rebase AWSSAP got.
+// HOW THE SWITCH IS MODELLED -- exactly as AWSSAP's SAP-C02 -> SAP-C03:
+//   - The four DVA-C02 units stay at sort_order 0-3 with retiredAt set; their
+//     objective rows and every learner's mastery, attempts, error log and
+//     cached lessons on them are kept. retiredAt is 2026-12-01T12:00Z: the
+//     moment 2026-11-30 (DVA-C02's last day) has ended in UTC-12, the last
+//     time zone to finish it.
+//   - One deviation from SAP: three C03 domains keep C02's exact names
+//     ("Development with AWS Services", "Security", "Troubleshooting and
+//     Optimization"), and both sets are listed until retirement. So the
+//     retired C02 unit titles carry a " (DVA-C02)" suffix -- otherwise the
+//     course page and attempt/error history (which show unit titles) would
+//     show two indistinguishable "Security" units. Row ids are unchanged
+//     (units are matched by sort_order, not title), so no history moves.
+//   - The four DVA-C03 domains are new units at sort_order 4-7. Mastery is
+//     NOT copied across: C03 merged and moved skills (comparison page), so a
+//     C02 objective has no one-to-one C03 counterpart, and carried-over
+//     mastery would claim evidence the learner never produced.
+//   - credential_exams gets a new DVA-C03 row; the DVA-C02 row is kept,
+//     marked superseded_by DVA-C03 with retirement_date 2026-11-30.
 //
-// The DVA-C02 guide also carries an "emerging topics" section -- AI-assisted
-// code generation and review, AI-generated tests, AI in CI/CD, AI-assisted
-// error analysis. Those appear only as unscored pretest questions, so they are
-// deliberately not a weighted unit here; the scored Amazon Q Developer skills
-// (1.1.11 and 3.3.6) are objectives in their own domains.
+// AI content is now scored: C02's unscored "emerging topics" became scored
+// skills (1.1.9, 1.1.10, 3.2.5, 3.3.9, 4.1.5, 4.3.6) and a whole new task,
+// 2.3 (AI security). The guide puts FM selection, prompt engineering, RAG
+// design and guardrail/AI-governance design out of scope, so those
+// objectives stay at the developer's level: call, secure, filter, log.
+// Amazon Q Developer, named in C02, is not in C03's in-scope list (Kiro and
+// Amazon Bedrock / AgentCore are), so no C03 objective names it.
 // ---------------------------------------------------------------------------
+const DVA_C02_RETIRED_AT = "2026-12-01T12:00:00Z";
+const DVA_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
 export const AWS_DVA_TRACK: SeedTrack = {
   code: "AWSDVA",
   title: "AWS Developer Associate Coach",
   description:
-    "AWS Certified Developer - Associate (DVA-C02): writing, securing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB access patterns, encryption and secrets, CI/CD deployment strategies, and observability when it breaks.",
+    "AWS Certified Developer - Associate (DVA-C03): writing, securing, testing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB and caching, IAM, encryption and secrets, securing calls to AI services, containers and CI/CD with rollback, and observability and optimization, with AI-assisted development throughout.",
   trackType: "certification",
   subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
-    "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
-  sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-10-27T00:00:00Z",
+    "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+  sourceVerifiedAt: DVA_VERIFIED_AT,
+  contentReviewDueAt: "2027-06-01T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-developer-associate",
     credentialName: "AWS Certified Developer - Associate",
     credentialUrl: "https://aws.amazon.com/certification/certified-developer-associate/",
-    examCode: "DVA-C02",
-    status: "transitioning",
-    retirementDate: "2026-11-30", // last day to sit DVA-C02; see block comment for source
+    examCode: "DVA-C03",
+    status: "active",
+    effectiveDate: "2026-12-01", // first C03 exam day; dva-03-comparison.html
     officialObjectivesUrl:
-      "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+      "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+    lastVendorVerifiedAt: DVA_VERIFIED_AT,
     recommendedExperience:
-      "1 or more years developing and maintaining applications with AWS services, and proficiency in at least one high-level programming language. Designing architectures, building CI/CD pipelines, administering IAM users and groups, server administration, and network design are out of scope.",
-    durationMinutes: 130,
+      "1 or more years of hands-on experience developing and maintaining applications with AWS services; proficiency in at least one high-level programming language; experience with application development tools, including AI tools. Out of scope: designing architectures, designing and creating CI/CD pipelines, administering IAM users and groups, administering servers and operating systems, selecting foundation models, prompt engineering and RAG design, designing AI safety frameworks, guardrails and AI governance, designing ETL pipelines, and designing AWS networking.",
+    durationMinutes: 130, // certification page; the exam guide states no time limit -- see block comment
     questionFormat:
-      "65 questions (50 scored, 15 unscored); multiple choice and multiple response",
+      "65 questions (50 scored, 15 unscored); multiple choice and multiple response only -- no ordering, matching, or case-study items",
     passingScorePolicy:
       "Scaled score 100-1000; minimum passing score 720; compensatory scoring, so no per-domain minimum",
+    supersedes: { examCode: "DVA-C02", lastExamDate: "2026-11-30" },
   },
   units: [
     {
-      title: "Development with AWS Services",
+      title: "Development with AWS Services (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 32,
       gate: "Write a Lambda function that talks to DynamoDB and a queue, and explain every configuration choice you made -- memory, timeout, concurrency, partition key, retry behavior -- in terms of what would break without it.",
       objectives: [
@@ -602,7 +646,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Security",
+      title: "Security (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 26,
       gate: "Given application code holding a secret, a token, and customer PII, say where each one should actually live, which AWS service holds it, and who can decrypt it.",
       objectives: [
@@ -629,7 +674,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Deployment",
+      title: "Deployment (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 24,
       gate: "Take a working application from a laptop to production through a pipeline: package it, template it, stage it, release it with a strategy you can name, and roll it back.",
       objectives: [
@@ -662,7 +708,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Troubleshooting and Optimization",
+      title: "Troubleshooting and Optimization (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 18,
       gate: "Given a slow or failing application, find the cause from metrics, logs, and traces -- then name the specific optimization and the number you expect it to move.",
       objectives: [
@@ -689,6 +736,155 @@ export const AWS_DVA_TRACK: SeedTrack = {
         "Application-level caching for performance",
         "Optimizing application resource usage",
         "Analyzing performance issues and finding bottlenecks in application logs",
+      ],
+    },
+    // ----- DVA-C03 domains (sort_order 4-7). Objectives paraphrase the
+    // skills in each task of the DVA-C03 guide, one idea apiece; the skill
+    // number each one comes from is in the trailing comment.
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain1.html
+      title: "Development with AWS Services",
+      weight: 30,
+      gate: "Build a small event-driven feature end to end -- an API that accepts work, a queue or event bus that carries it, a Lambda function that processes it into DynamoDB -- and explain each coupling, retry, key, and configuration choice in terms of what would break without it.",
+      objectives: [
+        "Tightly coupled versus loosely coupled systems", // 1.1.1
+        "Decoupling system components with AWS services", // 1.1.1
+        "Synchronous versus asynchronous patterns, and when each fits", // 1.1.2
+        "Synchronous request-response through Amazon API Gateway", // 1.1.2
+        "Asynchronous processing with Amazon SQS", // 1.1.2
+        "Event-driven workflows with Amazon EventBridge", // 1.1.2, 1.1.8
+        "Fault-tolerant, resilient application code", // 1.1.3
+        "Retry with backoff when a call fails", // 1.1.3
+        "Graceful degradation when a dependency is unavailable", // 1.1.3
+        "Creating, extending, and maintaining APIs", // 1.1.4
+        "Request and response transformations in an API", // 1.1.4
+        "Enforcing validation rules on API requests", // 1.1.4
+        "Calling AWS services from code with the service APIs and the AWS SDKs", // 1.1.5
+        "Managing streaming data with AWS services such as Amazon Kinesis and Amazon Data Firehose", // 1.1.6; services from the in-scope list
+        "Serializing and deserializing data to integrate application code with AWS services", // 1.1.7 (moved from C02 1.3)
+        "Amazon S3 Event Notifications as an event source", // 1.1.8
+        "Event-driven patterns with Amazon SQS and Amazon SNS", // 1.1.8
+        "Spec-driven code generation with AI-assisted development tools such as Kiro", // 1.1.9; Kiro from the in-scope list
+        "Automated code review and security scanning with AI-assisted tools", // 1.1.9
+        "Intelligent code completion and AI refactoring suggestions -- and checking what they produce", // 1.1.9
+        "Integrating managed AWS AI services into an application", // 1.1.10
+        "Calling Amazon Bedrock models from application code", // 1.1.10; Bedrock from the in-scope list
+        "Giving a Lambda function access to private resources in a VPC", // 1.2.1
+        "Configuring a Lambda function: memory, concurrency, timeout, runtime, handler", // 1.2.2
+        "Lambda layers and extensions", // 1.2.2
+        "Environment variables and parameters in a Lambda function", // 1.2.2
+        "Handling Lambda event lifecycles and errors with destinations and dead-letter queues", // 1.2.3
+        "Integrating Lambda with AWS services through code, event source mappings, and destinations", // 1.2.4
+        "Lambda integrations with API Gateway and Amazon DynamoDB", // 1.2.4
+        "Managing data lifecycles: S3 Lifecycle policies, TTL, and retention periods", // 1.3.1
+        "Choosing a data store by access pattern: Amazon ElastiCache, DynamoDB, Amazon S3, Amazon RDS", // 1.3.2
+        "Choosing the caching solution that fits the data store you picked", // 1.3.3
+        "DynamoDB keys, attributes, and indexes", // 1.3.4
+        "High-cardinality partition keys, and why they keep partition access balanced", // 1.3.4
+        "DynamoDB read consistency: strongly consistent versus eventually consistent reads", // 1.3.4
+        "DynamoDB query versus scan, and the cost of reaching for scan", // 1.3.4
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain2.html
+      title: "Security",
+      weight: 26,
+      gate: "Given an application that signs users in, stores customer PII, holds a database secret, and sends user text to a foundation model, say where each credential and piece of data lives, who can decrypt or read it, and what stops it leaking into the model, its training data, or the logs.",
+      objectives: [
+        "Implementing identity federation", // 2.1.1
+        "Amazon Cognito user pools and identity pools for application sign-in and AWS credentials", // 2.1.1; Cognito from the in-scope list
+        "Fine-grained access control in an application", // 2.1.2
+        "Security tokens, including bearer tokens, for securing applications", // 2.1.2
+        "Multi-factor authentication (MFA) as an access control", // 2.1.2
+        "Configuring programmatic access to AWS", // 2.1.3
+        "Presigned URLs for secure, time-limited access with Amazon S3 and Amazon CloudFront", // 2.1.4 (new in C03)
+        "Making authenticated calls to AWS services", // 2.1.5
+        "Defining permissions for IAM principals: users, roles, and services", // 2.1.6
+        "Resource-based permissions, and how they combine with identity-based ones", // 2.1.6
+        "Assuming an IAM role through AWS STS", // 2.1.7; STS from the in-scope list
+        "Encryption at rest and encryption in transit, defined precisely", // 2.2.1
+        "Certificate management with AWS Certificate Manager and AWS Private CA", // 2.2.2
+        "Client-side versus server-side encryption, and choosing between them", // 2.2.3
+        "Using encryption keys to encrypt and decrypt data with AWS KMS", // 2.2.4; KMS from the in-scope list
+        "Generating certificates and SSH keys for development purposes", // 2.2.5
+        "Identifying sensitive data: personally identifiable information (PII) and protected health information (PHI)", // 2.2.6
+        "Masking sensitive data and limiting who can access it", // 2.2.6
+        "Using secret management services such as AWS Secrets Manager instead of secrets in code", // 2.2.7
+        "Requesting and managing access to AI services, such as Amazon Bedrock model access", // 2.3.1
+        "Private connectivity to AI services through VPC endpoints (AWS PrivateLink)", // 2.3.2
+        "Making sure AI service inputs and outputs are not used to train models", // 2.3.2
+        "Content filtering on AI model inputs and outputs", // 2.3.3
+        "Sensitive information detection and PII/PHI redaction in AI inputs and outputs", // 2.3.3
+        "Denied topic policies for AI applications", // 2.3.3
+        "Protecting AI applications from prompt injection and manipulation", // 2.3.3
+        "Tool-use authorization for AI agents", // 2.3.4
+        "Session isolation between AI agent sessions", // 2.3.4
+        "Human-in-the-loop approval for sensitive AI agent actions", // 2.3.4
+        "Keeping sensitive content out of monitoring logs when calling AI services", // 2.3.5
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain3.html
+      title: "Testing and Deployment",
+      weight: 22,
+      gate: "Take a working service from a laptop to production: package it (zip or container image), test it with real test events and mocked dependencies, template it, push it through a pipeline across environments with a release strategy you can name, and roll it back.",
+      objectives: [
+        "Managing a code module's dependencies inside the package: environment variables, configuration files, container images", // 3.1.1
+        "Building container images for deployment with Dockerfiles", // 3.1.2 (new in C03)
+        "Managing container images in Amazon ECR: image tagging and lifecycle policies", // 3.1.2 (new in C03)
+        "Using code repositories in deployment environments", // 3.1.3
+        "Environment-specific configuration with AWS AppConfig", // 3.1.4
+        "Environment-specific configuration and secrets with Systems Manager Parameter Store and Secrets Manager", // 3.1.4
+        "Environment-specific configuration through API Gateway and Lambda settings", // 3.1.4
+        "API Gateway stages, stage-specific URLs, and endpoints", // 3.1.5 (moved from C02 3.4)
+        "Developing and validating tests with AWS SAM, including local unit tests", // 3.2.1 (SAM unit testing moved from C02 1.1)
+        "Validating infrastructure code with AWS CDK and AWS CloudFormation tests", // 3.2.1
+        "Mocking external dependencies with API Gateway", // 3.2.2
+        "Creating application test events: JSON payloads for Lambda functions and API Gateway APIs", // 3.2.3
+        "Lambda aliases as application environments", // 3.2.4
+        "Container image tags as application environments", // 3.2.4
+        "AWS Amplify branches and AWS Copilot environments", // 3.2.4
+        "Separate API Gateway APIs per environment", // 3.2.4
+        "Generating tests with AWS AI tools", // 3.2.5 (new in C03)
+        "Automating test execution, result analysis, regression testing, and coverage tracking with AI tools", // 3.2.5 (new in C03)
+        "Lambda deployment packaging: .zip files, container images, and layers", // 3.3.1
+        "Deploying containers on Amazon ECS: task definitions and the AWS Fargate launch type", // 3.3.2 (new in C03)
+        "Deploying containers on Amazon EKS: manifests and rolling updates", // 3.3.2 (new in C03)
+        "Using infrastructure as code templates: AWS CloudFormation and AWS SAM", // 3.3.3
+        "Deploying application revisions to target environments with AWS CodeDeploy", // 3.3.4
+        "Orchestrating CI/CD with AWS CodePipeline: starting from a linked repository and promoting through environments", // 3.3.5
+        "Deployment strategies: blue/green, canary, and rolling", // 3.3.6
+        "Automatic and manual rollback with AWS CloudFormation and AWS CodeDeploy", // 3.3.7
+        "Source control labels and branches for versions and releases", // 3.3.8
+        "AWS AI tools in CI/CD: deployment approvals, environment provisioning, and post-deployment validation", // 3.3.9 (new in C03)
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain4.html
+      title: "Troubleshooting and Optimization",
+      weight: 22,
+      gate: "Given a slow or failing application, find the cause from its metrics, logs, and traces (and say what an AI troubleshooting suggestion got right or wrong), then name the specific optimization -- concurrency, memory, messaging, or caching -- and the number you expect it to move.",
+      objectives: [
+        "Debugging application code to identify defects", // 4.1.1
+        "Debugging service integration issues", // 4.1.1
+        "Interpreting application metrics, logs, and traces together", // 4.1.2
+        "Querying logs in Amazon CloudWatch Logs to find the relevant data", // 4.1.3; CloudWatch Logs from the in-scope list
+        "Troubleshooting deployment failures from output logs", // 4.1.4
+        "Using AWS AI tools to analyze errors and suggest fixes -- and verifying the suggestion", // 4.1.5 (new in C03)
+        "A logging strategy that records application behavior and state", // 4.2.1
+        "Structured logging for application events and user actions", // 4.2.1
+        "Emitting custom metrics from application code", // 4.2.2
+        "Notification alerts for specific actions, such as quota limits and deployment completions", // 4.2.3
+        "Implementing tracing with AWS services and tools such as AWS X-Ray", // 4.2.4; X-Ray from the in-scope list
+        "Monitoring workload health: application health checks, liveness probes, and readiness probes", // 4.2.5
+        "Lambda provisioned concurrency", // 4.3.1
+        "Amazon EC2 Auto Scaling as a concurrency lever", // 4.3.1
+        "Thread pool and connection pool management", // 4.3.1
+        "Optimizing memory and compute for an application, including Lambda performance tuning", // 4.3.2 (Lambda tuning moved from C02 1.2)
+        "Optimizing messaging with SQS queues and SNS fan-out", // 4.3.3
+        "Caching with Amazon ElastiCache, DynamoDB Accelerator (DAX), and Amazon CloudFront", // 4.3.4
+        "Detecting performance bottlenecks with Amazon CloudWatch", // 4.3.5
+        "Using AWS AI tools to find optimization opportunities: bottlenecks, resource usage, and code efficiency", // 4.3.6 (new in C03)
       ],
     },
   ],
