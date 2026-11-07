@@ -6,7 +6,7 @@ runs it as the `ascendra-audit` skill (`.claude/skills/ascendra-audit/`).
 
 Task-scoped work reads the files a task touches and stops. An audit looks
 across the whole app on purpose, because the defects that matter most here
-live next to earlier changes, not inside them (REQ-096).
+live next to earlier changes, not inside them (REQ-137).
 
 ## Rules
 

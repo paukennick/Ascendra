@@ -12,7 +12,7 @@
 - Economics decision checklist considered for major tradeoff claims.
 - Computing, mathematical, or engineering foundations checklist considered for
   relevant technical assumptions.
-- Blast radius checked (REQ-096): for every changed function, query, table,
+- Blast radius checked (REQ-137): for every changed function, query, table,
   type or route, its other callers and readers were found (grep the name) and
   each still behaves correctly. Changes beside existing code are where defects
   hide -- the account export broke when a query was added next to it.

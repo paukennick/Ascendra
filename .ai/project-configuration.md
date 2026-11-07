@@ -19,7 +19,7 @@ settings correspond to `.ai/rules/universal-engineering-ruleset.json`.
 - `comment_style`: `Minimal by default -- only non-obvious WHY (constraint, invariant, workaround), never restating WHAT the code does; no JSDoc/docstring blocks`
 - `requirement_id_prefix`: `REQ`
 
-## Project Practices (REQ-096)
+## Project Practices (REQ-137)
 
 - Audits: run the `ascendra-audit` skill (`.ai/playbooks/audit.md`) before
   starting a new feature area and after changes to the data model, auth,

@@ -8,7 +8,7 @@ description: Run a read-only, multi-reviewer audit of Ascendra for bugs that tas
 Read-only. This skill finds and verifies problems; it never fixes them. Fixes
 happen afterwards, in batches the owner approves (see "After the audit").
 
-Why this exists (REQ-096): a task-scoped session reads the files its task
+Why this exists (REQ-137): a task-scoped session reads the files its task
 touches and stops, by design. The bugs found in the 2026-11-06 audit lived in
 the code *next to* earlier changes — the account export broke when REQ-082
 added a query beside it; grading could half-write because nothing ever ran it
