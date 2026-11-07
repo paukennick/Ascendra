@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/requireAcknowledgement";
 import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForTrack } from "@/lib/coach-context";
+import { fenceLearnerText, guardedReply, matchOpenItems, openItemsBlock, openItemsFor } from "@/lib/coach-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -106,26 +107,43 @@ export async function POST(req: Request) {
     // cache breakpoint on its last turn lets the following message read it
     // from cache. The new message is not marked: it is not part of any later
     // prefix until it has a reply. The request still ends with that user turn.
+    // REQ-100: every learner turn, history included, is fenced as data. The
+    // wrapping is deterministic, so the cached history prefix still matches.
     const messages: ChatTurn[] = [
       ...history.map((h, i): ChatTurn => ({
         role: h.role,
-        content: h.content,
+        content: h.role === "user" ? fenceLearnerText(h.content) : h.content,
         ...(i === history.length - 1 ? { cacheBreakpoint: true } : {}),
       })),
-      { role: "user", content: message },
+      { role: "user", content: fenceLearnerText(message) },
     ];
+    // REQ-100: items this learner has not answered yet are named to the model
+    // (questions only, never the key), and the reply is checked against their
+    // answer keys before it is saved or sent (lib/coach-guard.ts).
+    const openItems = await openItemsFor(userId, trackId, unitId ?? null);
+    const matched = matchOpenItems(message, openItems);
     const ctx = await coachContextForTrack(trackId);
-    const system = chatSystemPrompt({ trackTitle: track.title, unitTitle, ctx: ctx ?? undefined });
-    const reply = await callClaude({
-      system,
-      messages,
-      maxTokens: 1200,
-      model: getFastModel(),
-      effort: "low",
-      thinking: "off",
-      purpose: "chat",
-      userId,
+    const system = chatSystemPrompt({
+      trackTitle: track.title,
+      unitTitle,
+      ctx: ctx ?? undefined,
+      openItems: openItemsBlock(openItems, matched),
     });
+    const { reply } = await guardedReply(
+      (extraNote) =>
+        callClaude({
+          system: extraNote ? { ...system, task: system.task + extraNote } : system,
+          messages,
+          maxTokens: 1200,
+          model: getFastModel(),
+          effort: "low",
+          thinking: "off",
+          purpose: "chat",
+          userId,
+        }),
+      openItems,
+      matched
+    );
 
     // If a request with the same id finished while this one waited on
     // Anthropic, the unique index rejects this insert and the stored reply wins.

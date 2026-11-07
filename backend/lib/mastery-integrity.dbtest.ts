@@ -151,7 +151,9 @@ describe("1. Guided work does not earn Independent or Transfer-ready", () => {
     assert.equal((await mastery(u, o))?.status, "Independent");
   });
 
-  test("Transfer-ready needs two unassisted Solo successes at least 24 hours apart", async () => {
+  // REQ-100 (migration 031) replaced "two Solo successes 24 hours apart" with
+  // two formats on separate days; the full model is in mastery-model.dbtest.ts.
+  test("Transfer-ready needs unassisted evidence in two formats, at least 24 hours apart", async () => {
     const u = await newUser();
     const o = objs[1];
     await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
@@ -160,11 +162,19 @@ describe("1. Guided work does not earn Independent or Transfer-ready", () => {
     await useOverride(u, o, "Solo v2: a different question");
     await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "right again" });
     assert.equal((await mastery(u, o))?.status, "Independent");
-    // Same evidence, but the first success was two days ago: spaced, so Transfer-ready.
+    // Spacing the two free responses two days apart is still one format: Independent.
     await query(
       `update attempts set created_at = created_at - interval '2 days'
         where user_id = $1 and objective_id = $2 and question = $3`,
       [u, o, SOLO_Q]
+    );
+    await recompute(u, o);
+    assert.equal((await mastery(u, o))?.status, "Independent");
+    // A correct PBQ on the unit today adds a second format on a later day.
+    await query(
+      `insert into attempts (user_id, unit_id, pbq_scenario_id, kind, format, question, answer, verdict)
+       values ($1, $2, $3, 'pbq', 'pbq', 'PBQ', 'a', 'correct')`,
+      [u, unit, scenario]
     );
     await recompute(u, o);
     assert.equal((await mastery(u, o))?.status, "Transfer-ready");
@@ -533,7 +543,10 @@ describe("10. Attempts written by pre-029 code during the deploy gap (FAIL-110)"
     await oldCodeMastery(u, o, "Transfer-ready", 4);
     const changed = await queryOne<{ n: number }>(`select recompute_mastery($1) as n`, [u]);
     assert.equal(changed?.n, 1);
-    assert.equal((await mastery(u, o))?.status, "Independent", "one item answered twice is one success");
+    // REQ-100 (031): one success plus a repeat at reduced credit -- weighted
+    // accuracy about 54%, under Independent's 60% -- so Guided. Under the 029
+    // rule this was Independent; either way, never Transfer-ready.
+    assert.equal((await mastery(u, o))?.status, "Guided", "one item answered twice is one success, the repeat earns little");
   });
 
   test("a hint recorded before the answer counts even when the attempt says unassisted", async () => {

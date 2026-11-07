@@ -2,10 +2,12 @@ import { query } from "@/lib/db";
 import { ok, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitMasteryLateral } from "@/lib/progress-sql";
+import { courseReadiness } from "@/lib/readiness";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/courses/:id — one track with its units (+ per-unit mastery rollup) and objectives.
+// GET /api/courses/:id — one track with its units (+ per-unit mastery rollup), objectives,
+// and REQ-100 readiness (coverage, accuracy and blueprint-weighted readiness; lib/readiness.ts).
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -75,7 +77,9 @@ export async function GET(
       acknowledgement = { required: true, acknowledged: existing.length > 0 };
     }
 
-    return ok({ track: tracks[0], units: unitsWithObjectives, acknowledgement });
+    const readiness = await courseReadiness(id, userId);
+
+    return ok({ track: tracks[0], units: unitsWithObjectives, acknowledgement, readiness });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

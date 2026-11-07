@@ -5,22 +5,50 @@
 // fixture written the way the old code left it, then run them a third time to
 // prove a re-run changes nothing and never overwrites the backup.
 //
-// 029b recomputes EVERY learner's mastery, so test:db runs files one at a
-// time (--test-concurrency=1); run concurrently, it would rewrite other test
-// files' fixture rows mid-test.
+// REQ-100 (FAIL-076): re-running these files puts 029's mastery_from_attempts
+// back. Committed, that silently replaced the live 031 rule for every test
+// running alongside and for the rest of the run, and 029b's recompute rewrote
+// every learner's mastery with it. The whole file runs on one connection
+// inside one transaction that is rolled back at the end, so neither the 029
+// rule nor its recompute is ever visible outside it. test:db also runs files
+// one at a time (--test-concurrency=1): while this transaction is open it
+// holds row locks on every mastery row 029b rewrote.
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { query, queryOne, closePool } from "./db";
+import { Client, type QueryResultRow } from "pg";
+import { sslOption } from "./db";
 
 const MIGRATIONS = join(__dirname, "../supabase/migrations");
 const SCHEMA_SQL = readFileSync(join(MIGRATIONS, "029_mastery_recompute.sql"), "utf8");
 const BACKFILL_SQL = readFileSync(join(MIGRATIONS, "029b_mastery_backfill.sql"), "utf8");
-// As the runner applies them: each file in its own transaction, 029 first.
-async function migrate() {
-  for (const sql of [SCHEMA_SQL, BACKFILL_SQL]) await query(`begin;\n${sql}\ncommit;`);
+const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+async function query<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []): Promise<T[]> {
+  return (await client.query<T>(text, params)).rows;
+}
+async function queryOne<T extends QueryResultRow = QueryResultRow>(text: string, params: unknown[] = []): Promise<T | null> {
+  return (await query<T>(text, params))[0] ?? null;
+}
+// The runner applies 029 then 029b, each in its own transaction and later
+// than anything before it. Here both run inside this file's one transaction,
+// where now() never moves, so "later" is modelled: after each run this
+// learner's mastery and backup timestamps are moved back a minute, as if the
+// migration had committed a minute ago. Without that, every write in the file
+// would carry the backup's own timestamp and the restore's "untouched since
+// the backup" test (updated_at <= backed_up_at) could not tell them apart.
+async function migrate(...users: string[]) {
+  await query(SCHEMA_SQL);
+  await query(BACKFILL_SQL);
+  const who = users.length ? users : [user];
+  await query(`update mastery set updated_at = updated_at - interval '1 minute' where user_id = any($1::uuid[]) and updated_at = now()`, [who]);
+  await query(
+    `update mastery_backup_029 set backed_up_at = backed_up_at - interval '1 minute',
+            updated_at = case when created_by_029 then updated_at - interval '1 minute' else updated_at end
+      where user_id = any($1::uuid[]) and backed_up_at = now()`,
+    [who]
+  );
 }
 const run = Date.now().toString(36);
 const user = randomUUID();
@@ -68,6 +96,8 @@ const snapshot = async () => ({
 });
 
 before(async () => {
+  await client.connect();
+  await client.query("begin");
   await query(`insert into app_users (id, email) values ($1, $2)`, [user, `rc-${run}@example.test`]);
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'RC', 'certification', $3)`, [
     track,
@@ -120,12 +150,10 @@ before(async () => {
   assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from mastery_backup_029 where user_id = $1`, [user]))!.n, 0);
 });
 
+// Rolls back the fixture, every 029/029b re-run and the restore together.
 after(async () => {
-  await query(`delete from mastery_backup_029 where user_id = $1`, [user]);
-  await query(`delete from error_log_backup_029 where user_id = $1`, [user]);
-  await query(`delete from app_users where id = $1`, [user]);
-  await query(`delete from subject_tracks where id = $1`, [track]);
-  await closePool();
+  await client.query("rollback");
+  await client.end();
 });
 
 describe("029 recompute", () => {
@@ -194,7 +222,12 @@ describe("029 recompute", () => {
   // and removes the rows the recompute created.
   test("the documented restore puts untouched levels back and leaves later progress alone", async () => {
     const header = BACKFILL_SQL.split("\n").filter((l) => l.startsWith("--   ")).map((l) => l.slice(5));
-    const restore = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1).join("\n");
+    const block = header.slice(header.indexOf("begin;"), header.indexOf("commit;") + 1);
+    assert.equal(block[0], "begin;");
+    assert.equal(block[block.length - 1], "commit;");
+    // Run the body only: its own commit would end this file's transaction and
+    // commit everything after it, the 029 rule included.
+    const restore = block.slice(1, -1).join("\n");
     assert.match(restore, /update mastery m/);
     // Real progress after the backup: a graded answer rewrote this row.
     await query(
@@ -260,7 +293,7 @@ describe("029 recompute", () => {
        values ($1, $2, $3, 't', 'e', 0, current_date)`,
       [gone, unit, o.spaced]
     );
-    await migrate();
+    await migrate(gone);
     const count = async () =>
       (await queryOne<{ n: number }>(
         `select (select count(*) from mastery_backup_029 where user_id = $1)

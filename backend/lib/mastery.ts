@@ -17,7 +17,7 @@ export const SCORE_MEANING: Record<number, string> = {
   1: "Recognizes terms but shaky recall/application",
   2: "Can answer guided/MC-level questions",
   3: "Can answer free-response and scenario questions independently",
-  4: "Answers independently and correctly again on a later day (spaced retrieval)",
+  4: "Answers independently and correctly in at least two formats (e.g. free response and a PBQ) on separate days",
 };
 
 // Spaced review schedule: 1 / 7 / 21 days out. review_stage 0 -> next review in 1 day,
@@ -38,10 +38,12 @@ export function toDateOnlyString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-// REQ-097: the status itself is computed in the database by
-// mastery_from_attempts() (migration 029) from the learner's whole attempt
-// history, so live grading and the 029 recompute share one rule. Tests:
-// lib/mastery-integrity.dbtest.ts.
+// REQ-097 / REQ-100: the status itself is computed in the database by
+// mastery_from_attempts() from the learner's whole attempt history, so live
+// grading and the recompute share one rule. Since migration 031 that rule is
+// a weighted cross-format model; its weights and thresholds live in the
+// mastery_model_params and assessment_types tables. Tests:
+// lib/mastery-integrity.dbtest.ts, lib/mastery-model.dbtest.ts.
 
 export function statusToScore(status: MasteryStatus): number {
   switch (status) {
