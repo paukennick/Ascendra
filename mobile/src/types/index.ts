@@ -1,3 +1,5 @@
+import type { TeachCards } from "@/lib/lessonExperience";
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -81,7 +83,12 @@ export interface Objective {
 
 export interface LessonContent {
   guessPrompt: string;
+  // Always present: for a lesson with cards it is the same teaching as one
+  // text (what grading reads), for an older cached lesson the only teaching.
   teach: string;
+  // REQ-106: Teach as 3-4 short cards plus one self-explanation prompt.
+  // Absent for lessons cached before cards; `teach` is then shown as before.
+  teachCards?: TeachCards;
   // Absent while the practice half is still generating in the background --
   // see `practicePending` on the lesson GET/POST response. Always present
   // once that flag is false.

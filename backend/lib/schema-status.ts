@@ -117,6 +117,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                        or (table_name = 'attempts' and column_name in ('model_answer', 'fix_next', 'retry_of')))) = 7
               and to_regclass('public.attempts_retry_of_unique') is not null as ok`,
   },
+  {
+    migration: "035_lesson_experience.sql",
+    what: "lesson teach cards, lab report questions, attempts.lab_objective_id (every lesson save and lab report)",
+    sql: `select (select count(*) from information_schema.columns
+                   where table_schema = 'public'
+                     and ((table_name in ('lesson_content', 'lesson_content_overrides') and column_name = 'teach_cards')
+                       or (table_name = 'attempts' and column_name = 'lab_objective_id'))) = 3
+              and to_regclass('public.lab_report_questions') is not null
+              and exists(select 1 from pg_constraint where conname = 'attempts_lab_not_mastery_evidence') as ok`,
+  },
 ];
 
 export interface SchemaStatus {

@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 // ungraded comparison. Intentionally separate from /api/grade: this never
 // touches attempts or mastery (see the comment on guessFeedbackPrompt in
 // backend/lib/prompts.ts for why), so it has none of that route's
-// verdict/classification/missedParts shape -- just { feedback }.
+// verdict/classification/missedParts shape -- just { feedback, guessMatch }.
 //
 // Body: { guess: string }
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -56,7 +56,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       guess,
       ctx: objective?.ctx ?? undefined,
     });
-    const { feedback } = await callClaudeStructured({
+    const { feedback, guessMatch } = await callClaudeStructured({
       system,
       messages: [{ role: "user", content: userPrompt }],
       schema: guessFeedbackSchema,
@@ -68,7 +68,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       userId: user.id,
     });
 
-    return ok({ feedback });
+    // REQ-106: guessMatch only steers the optional "skip Guided" / "full
+    // worked example" suggestion in the app. Not a verdict, not recorded.
+    return ok({ feedback, guessMatch: guessMatch ?? null });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

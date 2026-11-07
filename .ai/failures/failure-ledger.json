@@ -1287,6 +1287,51 @@
       "prevention_rules": [],
       "prevention_notes": "Every new route gets an other-user test (REQ-091 pattern).",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-160",
+      "date": "2026-11-07",
+      "title": "Lesson stepper showed no step as done on the Done screen",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "On the lesson's Done step the Guess/Teach/Guided/Solo stepper rendered every step as not started (no check marks).",
+      "how_detected": "review while adding the skipped-Guided marker (REQ-106)",
+      "root_cause": "StepHeader computed the active index with STEPS.indexOf(step); STEPS has no 'done', so indexOf returned -1 and no step counted as past.",
+      "requirement": "REQ-106",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Done now counts as past every step; a Guided step skipped through the adaptive suggestion is marked skipped (icon and spoken label), not done.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Render-only component in the screen file; mobile tests run pure modules only (node --test src/lib/*.test.ts). Needs a device check.",
+      "prevention_rules": [],
+      "prevention_notes": "Index lookups into a step list must handle steps outside the list; prefer an explicit order map.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-161",
+      "date": "2026-11-07",
+      "title": "Adding teach state to Position broke samePosition for callers without it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "mobile lessonProgress test 'samePosition ignores object identity but not content' failed: a position without teach state no longer equalled FRESH_POSITION.",
+      "how_detected": "existing unit test during REQ-106",
+      "root_cause": "samePosition compared JSON.stringify(a.teach) with JSON.stringify(b.teach); a position built without the new field stringified to undefined while FRESH_POSITION carried EMPTY_TEACH, so the restore guard would have saved a restored position again.",
+      "requirement": "REQ-106",
+      "affected": [
+        "mobile/src/lib/lessonProgress.ts"
+      ],
+      "fix_summary": "Missing teach state is compared as EMPTY_TEACH.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/lessonProgress.test.ts",
+        "mobile/src/lib/lessonExperience.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a field is added to a compared shape, default it in the comparison so older callers and saved data compare equal.",
+      "recurrence_of": ""
     }
   ]
 }

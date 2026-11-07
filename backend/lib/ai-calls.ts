@@ -22,6 +22,9 @@ export type AiPurpose =
   | "pbq_grade"
   | "chat"
   | "guess_feedback"
+  // REQ-106: lab report questions (once per objective) and lab report grading.
+  | "lab_questions"
+  | "lab_grade"
   // scripts/eval/* only; those scripts also set AI_CALL_LOG=off.
   | "eval_lesson"
   | "eval_judge"

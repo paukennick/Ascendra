@@ -37,9 +37,18 @@ function useScalePress(target = 0.97) {
   return { scale, onPressIn, onPressOut };
 }
 
-export function Screen({ children }: { children: React.ReactNode }) {
+// scrollRef (REQ-106): lets a screen bring new content into view, e.g. the
+// top of the next Teach card after "Next card" at the bottom of a long one.
+export function Screen({
+  children,
+  scrollRef,
+}: {
+  children: React.ReactNode;
+  scrollRef?: React.Ref<ScrollView>;
+}) {
   return (
     <ScrollView
+      ref={scrollRef}
       style={{ flex: 1, backgroundColor: colors.bg }}
       contentContainerStyle={styles.screenContent}
       showsVerticalScrollIndicator={false}

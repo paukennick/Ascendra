@@ -48,7 +48,35 @@ export interface LessonProgressInput {
   guessFeedback: string | null;
   confidence: number | null;
   lessonKey: string;
-  checks: { fade?: CheckState; solo?: CheckState };
+  // REQ-106: Teach-step state lives in the existing checks jsonb under
+  // "teach" -- no new column.
+  checks: { fade?: CheckState; solo?: CheckState; teach?: TeachState };
+}
+
+// REQ-106: where the learner is in the Teach cards, their answer to the one
+// self-explanation prompt (never graded, never mastery evidence; it is kept
+// only with the saved position and goes when the lesson is finished) and the
+// guess-match signal behind the Guided suggestion.
+export interface TeachState {
+  card: number;
+  explain: string;
+  explainDone: boolean;
+  guessMatch: "close" | "partial" | "off" | null;
+}
+
+const MAX_CARDS = 10;
+const MAX_EXPLAIN = 2000;
+const GUESS_MATCHES = ["close", "partial", "off"];
+
+export function sanitizeTeach(v: unknown): TeachState | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const o = v as Record<string, unknown>;
+  return {
+    card: Number.isInteger(o.card) && (o.card as number) >= 0 && (o.card as number) < MAX_CARDS ? (o.card as number) : 0,
+    explain: text(o.explain, MAX_EXPLAIN) ?? "",
+    explainDone: o.explainDone === true,
+    guessMatch: typeof o.guessMatch === "string" && GUESS_MATCHES.includes(o.guessMatch) ? (o.guessMatch as TeachState["guessMatch"]) : null,
+  };
 }
 
 function text(v: unknown, max = MAX_TEXT): string | null {
@@ -113,6 +141,8 @@ export function sanitizeLessonProgress(body: unknown): LessonProgressInput | str
   const solo = sanitizeCheck(checksIn.solo);
   if (fade) checks.fade = fade;
   if (solo) checks.solo = solo;
+  const teach = sanitizeTeach(o.teach ?? checksIn.teach);
+  if (teach) checks.teach = teach;
   return {
     step: o.step as ResumableStep,
     guess: text(o.guess) ?? "",

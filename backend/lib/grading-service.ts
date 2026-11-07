@@ -46,6 +46,12 @@ export interface AttemptInput {
   // REQ-105: this answer revises the missed attempt with this id, with that
   // attempt's feedback on screen. Recorded as assisted ("retry").
   retryOf?: string | null;
+  // REQ-106: a lab report's objective. Lab attempts keep objective_id NULL
+  // (a database check enforces it) so mastery_from_attempts never sees them:
+  // on this branch a self-reported lab is recorded, but it must not raise or
+  // lower mastery. The weighted mastery model can read this column once it
+  // decides what a lab is worth.
+  labObjectiveId?: string | null;
 }
 
 // "retry" (REQ-105): a revision written with the first answer's feedback and
@@ -285,6 +291,11 @@ export async function recordAttemptAndUpdateMastery(input: AttemptInput) {
 async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const query = tx.query.bind(tx);
   const userId = input.userId;
+  // REQ-106: see AttemptInput.labObjectiveId. Refused here as well as by the
+  // attempts_lab_not_mastery_evidence check, with a clearer message.
+  if (input.kind === "lab" && input.objectiveId) {
+    throw new Error("A lab attempt is linked through labObjectiveId, never objectiveId (it is not mastery evidence)");
+  }
 
   // Serialise grades for the same learner and objective, so two at once
   // can't each compute accuracy without the other's attempt and have the
@@ -301,8 +312,8 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
        verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
-       model_answer, fix_next, retry_of)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+       model_answer, fix_next, retry_of, lab_objective_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
      returning *`,
     [
       userId,
@@ -325,6 +336,7 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.modelAnswer ?? null,
       input.fixNext ?? null,
       input.retryOf ?? null,
+      input.labObjectiveId ?? null,
     ]
   );
   const attempt = attemptRows[0];
@@ -381,7 +393,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // seeded with review_stage 0 (first review due in 1 day). Not for a missed
   // revision (REQ-105): the attempt it revises already put this item in
   // review, and a second entry would schedule the same item twice.
-  if (input.verdict !== "correct" && assistReason !== "retry") {
+  // REQ-106: nor for a lab report. It is optional, self-reported practice on
+  // the learner's own machine; a weak report is feedback, not a review item.
+  if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab") {
     const next = new Date();
     next.setDate(next.getDate() + 1);
     await query(
