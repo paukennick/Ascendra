@@ -1,15 +1,13 @@
-import { query, queryOne } from "@/lib/db";
+import { queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { verifyPassword } from "@/lib/auth/passwords";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
+import { reserveLoginAttempt, clearLoginFailures } from "@/lib/auth/lockout";
 
 export const dynamic = "force-dynamic";
-
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MINUTES = 15;
 
 interface UserRow {
   id: string;
@@ -17,8 +15,6 @@ interface UserRow {
   display_name: string | null;
   password_hash: string | null;
   email_verified_at: string | null;
-  failed_login_count: number;
-  locked_until: string | null;
   mfa_enabled: boolean;
   totp_secret_enc: string | null;
   email_mfa_enabled: boolean;
@@ -37,7 +33,7 @@ export async function POST(req: Request) {
     const userAgent = getUserAgent(req);
 
     const user = await queryOne<UserRow>(
-      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until,
+      `select id, email, display_name, password_hash, email_verified_at,
               mfa_enabled, totp_secret_enc, email_mfa_enabled
        from app_users where email = $1`,
       [normalizedEmail]
@@ -48,7 +44,10 @@ export async function POST(req: Request) {
       return unauthorized("Invalid email or password.");
     }
 
-    if (user.locked_until && new Date(user.locked_until).getTime() > Date.now()) {
+    // REQ-098: reserve this password check before running it (one guarded
+    // UPDATE, see lib/auth/lockout.ts). Parallel guesses used to all read
+    // the same failed_login_count and write back 1, so the lockout never hit.
+    if (!(await reserveLoginAttempt(user.id))) {
       return new Response(
         JSON.stringify({
           error: "Account temporarily locked due to repeated failed login attempts. Try again later.",
@@ -59,16 +58,10 @@ export async function POST(req: Request) {
 
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) {
-      const newCount = user.failed_login_count + 1;
-      const lockedUntil = newCount >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000) : null;
-      await query(`update app_users set failed_login_count = $1, locked_until = $2 where id = $3`, [
-        newCount,
-        lockedUntil,
-        user.id,
-      ]);
       await recordAuthEvent("login_fail", normalizedEmail, { ip, userId: user.id });
       return unauthorized("Invalid email or password.");
     }
+    await clearLoginFailures(user.id);
 
     if (!user.email_verified_at) {
       return new Response(

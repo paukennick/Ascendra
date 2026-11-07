@@ -3,7 +3,7 @@ import { ok, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,12 +19,11 @@ export async function POST(req: Request) {
     const user = await requireUser(req);
 
     try {
-      await checkRateLimit("mfa_email_setup_send", user.id, { max: 5, windowMinutes: 10 });
+      await consumeRateLimit("mfa_email_setup_send", user.id, { max: 5, windowMinutes: 10 }, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) return new Response(JSON.stringify({ error: err.message }), { status: 429 });
       throw err;
     }
-    await recordAuthEvent("mfa_email_setup_send", user.id, { userId: user.id });
 
     const code = generateEmailCode();
     const expiresAt = new Date(Date.now() + PENDING_TTL_MINUTES * 60 * 1000);

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
+import { fetchFullExport } from "@/lib/accountExport";
 import { useAuth } from "@/auth/AuthContext";
 
 export default function Account() {
@@ -163,7 +164,8 @@ export default function Account() {
   async function exportData() {
     setExportBusy(true);
     try {
-      const data = await api.get<Record<string, unknown>>("/api/account/export");
+      // REQ-098: the export is paged; this fetches and merges every page.
+      const data = await fetchFullExport((path) => api.get<Record<string, unknown>>(path));
       await Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" });
     } catch (err) {
       Alert.alert("Couldn't export data", (err as Error).message);

@@ -18,6 +18,17 @@ export function isUuid(v: unknown): v is string {
   return typeof v === "string" && UUID.test(v);
 }
 
+// REQ-098: the canonical (lowercase) form of a UUID, or null if it isn't one.
+// Postgres compares uuid values case-insensitively, but strings built from
+// an id -- advisory-lock keys, in-memory map keys, `!==` checks -- do not.
+// iOS prints UUIDs in uppercase, so an uppercase and a lowercase copy of one
+// id took different locks: two grades on one objective ran at once and left
+// mastery stale, and two session starts on one track both inserted. Ids are
+// lowercased here at the edge and wherever a key is built from one.
+export function normUuid(v: unknown): string | null {
+  return isUuid(v) ? v.toLowerCase() : null;
+}
+
 export class NotVisibleError extends Error {
   constructor(what = "Not found") {
     super(what);

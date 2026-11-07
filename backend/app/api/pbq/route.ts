@@ -1,16 +1,22 @@
 import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { pbqGenerationPrompt, gradePBQPrompt, pbqScenarioSchema, gradeResultSchema } from "@/lib/prompts";
-import { findClientAttempt, recordAttemptIdempotent } from "@/lib/grading-service";
+import {
+  findClientAttempt,
+  recordAttemptIdempotent,
+  sameAttempt,
+  IdempotencyConflictError,
+} from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleScenario } from "@/lib/visibility";
+import { visibleScenario, isUuid } from "@/lib/visibility";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForUnit,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +32,7 @@ export async function GET(req: Request) {
     const unitId = searchParams.get("unitId");
     const fresh = searchParams.get("fresh") === "1";
     if (!unitId) return badRequest("unitId query param is required");
+    if (!isUuid(unitId)) return notFound("Unit not found");
 
     const unit = await queryOne<{ title: string; track_title: string }>(
       `select cu.title, st.title as track_title
@@ -45,12 +52,11 @@ export async function GET(req: Request) {
     }
 
     try {
-      await checkRateLimit("pbq_generate", authUser.id, { max: 15, windowMinutes: 10 });
+      await consumeRateLimit("pbq_generate", authUser.id, { max: 15, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("pbq_generate", authUser.id);
 
     const objectives = await query<{ title: string }>(
       `select title from objectives where unit_id = $1 order by sort_order asc`,
@@ -101,10 +107,19 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { scenarioId, answer, confidence } = body ?? {};
-    if (!scenarioId || typeof scenarioId !== "string" || !answer || typeof answer !== "string") {
+    const { scenarioId } = body ?? {};
+    if (!scenarioId || typeof scenarioId !== "string" || !body?.answer || typeof body.answer !== "string") {
       return badRequest("scenarioId and answer are required");
     }
+    // REQ-098: length cap and storable text (400, not a 500 from the INSERT).
+    const a = textField(body.answer, "answer", TEXT_LIMITS.pbqAnswer, { required: true });
+    if (!a.ok) return badRequest(a.error);
+    const answer = a.value;
+    const rawConfidence = body.confidence;
+    if (rawConfidence != null && !(Number.isInteger(rawConfidence) && rawConfidence >= 1 && rawConfidence <= 5)) {
+      return badRequest("confidence must be a whole number from 1 to 5");
+    }
+    const confidence: number | null = rawConfidence ?? null;
 
     const authUser = await requireUser(req);
 
@@ -119,18 +134,30 @@ export async function POST(req: Request) {
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.
     const clientAttemptId = validClientAttemptId(body.clientAttemptId);
+    // REQ-098: only a replay of the same scenario and answer; anything else
+    // under a used id is a 409 instead of the old result.
     if (clientAttemptId) {
       const prior = await findClientAttempt(authUser.id, clientAttemptId);
-      if (prior) return ok(prior);
+      if (prior) {
+        const identity = {
+          pbqScenarioId: scenario.id,
+          kind: "pbq" as const,
+          format: "pbq" as const,
+          stage: null,
+          question: scenario.title,
+          answer,
+        };
+        if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+        return ok(prior);
+      }
     }
 
     try {
-      await checkRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
+      await consumeRateLimit("pbq_grade", authUser.id, { max: 40, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("pbq_grade", authUser.id);
 
     const ctx = await coachContextForUnit(unitId);
     const { system, user } = gradePBQPrompt({
@@ -173,6 +200,7 @@ export async function POST(req: Request) {
     return ok({ ...graded, attempt });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof IdempotencyConflictError) return conflict(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }

@@ -57,7 +57,7 @@ ascendra/
 │   │   ├── prompts.ts            Lesson/grading/PBQ/chat prompt builders
 │   │   └── mastery.ts            0–4 rubric, proficiency check, spaced-review scheduler
 │   └── supabase/
-│       ├── migrations/           25 migrations, additive-only — see below
+│       ├── migrations/           29 migrations, additive-only — see below
 │       └── seed/                 Catalog content: data.ts (core tracks) + tracks/{aws,azure,gcp,nursing}.ts
 ├── mobile/                      Expo Router app — iOS, Android (EAS), and web export
 │   └── app/(app)/, (auth)/, (legal)/   Screens, grouped by auth state; legal = FAQ/disclaimer/privacy/cookies/terms
@@ -71,7 +71,27 @@ ascendra/
 
 Additive-only — nothing has ever been dropped or destructively rewritten.
 
-`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes).
+`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes) · `030` indexes for chat history and study sessions (REQ-098).
+
+#### Supabase Data API and row-level security (check by hand)
+
+No migration enables row-level security (RLS). The backend never uses Supabase's Data API (PostgREST): it talks to Postgres directly through `DATABASE_URL`, and every query is scoped by `user_id` in code. That is only safe while the Data API cannot read these tables. If it can, anyone holding the project's public `anon` key could read `app_users.password_hash`, refresh-token hashes and every learner's data straight over HTTPS.
+
+This can't be checked from the repo, so check it in the Supabase dashboard (REQ-098):
+
+1. **Project Settings → API (Data API)**: if the Data API is off, or `public` is not in its exposed schemas, nothing below matters. Turning it off is the simplest fix, since the app does not use it.
+2. If it is on, run this in the SQL editor. Every row should show `rls_enabled = true`; any `false` row is readable by the `anon` and `authenticated` roles:
+
+   ```sql
+   select c.relname as table_name, c.relrowsecurity as rls_enabled, pg_get_userbyid(c.relowner) as owner
+     from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+    order by c.relrowsecurity, c.relname;
+   ```
+
+3. Before enabling RLS, confirm the backend's own connection bypasses it, or the app will see empty tables. Run `select current_user, rolbypassrls from pg_roles where rolname = current_user;` **through the same connection string as `DATABASE_URL`** (the pooler user `postgres.<project-ref>` maps to `postgres`). RLS does not apply to a table's owner or to a role with `rolbypassrls`; the `owner` column above should be that same role. If both hold, `alter table public.<name> enable row level security;` with no policies blocks the Data API roles and leaves the backend unchanged. Don't use `force row level security`, which applies RLS to the owner too.
+
+No enable-RLS migration ships in this repo, because whether it would lock out the backend depends on production role settings that can only be confirmed by running step 3.
 
 ---
 

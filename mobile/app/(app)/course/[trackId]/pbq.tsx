@@ -7,7 +7,7 @@ import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { pbqDraftKey } from "@/lib/drafts";
 import { attemptIdFor } from "@/lib/lessonProgress";
-import { parsePbqPayload, pbqPayload } from "@/lib/pbqProgress";
+import { PBQ_ANSWER_MAX, parsePbqPayload, pbqPayload } from "@/lib/pbqProgress";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Attempt, GradeResult, PBQScenario, Unit } from "@/types";
 import {
@@ -236,6 +236,7 @@ export default function PBQScreen() {
               <TextInput
                 multiline
                 placeholder="Address every sub-part above in your answer"
+                maxLength={PBQ_ANSWER_MAX}
                 placeholderTextColor={colors.mutedDim}
                 value={answer}
                 onChangeText={setAnswer}

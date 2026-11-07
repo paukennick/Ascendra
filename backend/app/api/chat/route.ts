@@ -1,16 +1,17 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError } from "@/lib/http";
 import { callClaude, getFastModel, type ChatTurn } from "@/lib/anthropic";
 import { chatSystemPrompt } from "@/lib/prompts";
-import { findChatReply, saveChatTurn } from "@/lib/chat-store";
+import { findChatTurn, saveChatTurn, sameChatTurn, ChatIdConflictError } from "@/lib/chat-store";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleTrack, visibleUnit } from "@/lib/visibility";
+import { visibleTrack, visibleUnit, isUuid } from "@/lib/visibility";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForTrack,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForTrack } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,8 @@ export async function GET(req: Request) {
     const trackId = searchParams.get("trackId");
     if (!trackId) return badRequest("trackId query param is required");
     const user = await requireUser(req);
+    // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+    if (!isUuid(trackId)) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
     const rows = await query(
       `select * from chat_messages where user_id = $1 and track_id = $2 order by created_at asc`,
@@ -45,11 +48,15 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { trackId, unitId, message } = body ?? {};
-    if (!trackId || typeof trackId !== "string" || !message || typeof message !== "string") {
+    const { unitId } = body ?? {};
+    if (!body?.trackId || typeof body.trackId !== "string" || !body.message || typeof body.message !== "string") {
       return badRequest("trackId and message are required");
     }
     if (unitId != null && typeof unitId !== "string") return badRequest("unitId must be a string");
+    // REQ-098: length cap and storable text (a NUL used to be a 500).
+    const m = textField(body.message, "message", TEXT_LIMITS.chatMessage, { required: true });
+    if (!m.ok) return badRequest(m.error);
+    const message = m.value;
 
     const user = await requireUser(req);
     const userId = user.id;
@@ -57,8 +64,10 @@ export async function POST(req: Request) {
     // REQ-091: the track must be visible to the caller, and a unit must be
     // visible and belong to that track (it is stored on the message and
     // named in the prompt, so a foreign unit id would leak its title).
-    const track = await visibleTrack(trackId, userId);
+    const track = await visibleTrack(body.trackId, userId);
     if (!track) return notFound("Track not found");
+    // REQ-098: canonical (lowercase) id from here on.
+    const trackId = track.id;
     if (unitId) {
       const unit = await visibleUnit(unitId, userId);
       if (!unit) return notFound("Unit not found");
@@ -68,19 +77,23 @@ export async function POST(req: Request) {
 
     // A message id the app already sent is a retry: hand back the stored
     // reply instead of paying for another one and saving the question twice.
+    // REQ-098: only for the same message on the same track; a reused id
+    // with anything else is a 409.
     const clientMessageId = validClientAttemptId(body.clientMessageId);
     if (clientMessageId) {
-      const stored = await findChatReply(userId, clientMessageId);
-      if (stored !== null) return ok({ reply: stored, replayed: true });
+      const stored = await findChatTurn(userId, clientMessageId);
+      if (stored !== null) {
+        if (!sameChatTurn(stored, trackId, message)) return conflict(new ChatIdConflictError().message);
+        return ok({ reply: stored.reply, replayed: true });
+      }
     }
 
     try {
-      await checkRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
+      await consumeRateLimit("chat_message", userId, { max: 30, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("chat_message", userId);
 
     let unitTitle: string | undefined;
     if (unitId) {
@@ -133,6 +146,7 @@ export async function POST(req: Request) {
     return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof ChatIdConflictError) return conflict(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }

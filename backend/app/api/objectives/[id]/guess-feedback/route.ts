@@ -9,7 +9,8 @@ import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const body = await req.json();
     const guess = typeof body?.guess === "string" ? body.guess.trim() : "";
     if (!guess) return badRequest("guess is required");
+    // REQ-098: bounded before it goes into a model prompt.
+    const g = textField(guess, "guess", TEXT_LIMITS.answer, { required: true });
+    if (!g.ok) return badRequest(g.error);
 
     const user = await requireUser(req);
     // REQ-091: 404 for an objective in another user's private track, before
@@ -35,12 +39,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await requireAcknowledgementForObjective(id, user.id);
 
     try {
-      await checkRateLimit("guess_feedback", user.id, { max: 40, windowMinutes: 10 });
+      await consumeRateLimit("guess_feedback", user.id, { max: 40, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("guess_feedback", user.id);
 
     const [lessonRow, objective] = await Promise.all([
       // The lesson this learner actually saw: their regenerated one if any.

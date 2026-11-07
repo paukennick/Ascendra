@@ -7,7 +7,15 @@ import {
   requireAcknowledgementForObjective,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { loadObjective, ensureGeneration, pendingGeneration, pendingKey } from "@/lib/lesson-generation";
+import {
+  loadObjective,
+  ensureGeneration,
+  pendingGeneration,
+  pendingKey,
+  GENERATE_LIMIT,
+  GENERATE_RATE_EVENT,
+} from "@/lib/lesson-generation";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
 
 // The objective immediately after this one in course order: same unit with
@@ -105,6 +113,16 @@ export async function POST(
 
     const objRow = await loadObjective(nextId);
     if (!objRow) return notFound("Next objective not found");
+
+    // REQ-098: a prefetch that would start a generation spends the same
+    // per-learner budget as a lesson GET. Over it, the prefetch is skipped
+    // (it is best-effort); the real visit will generate if the budget allows.
+    try {
+      await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) return ok({ nextObjectiveId: nextId, next, status: "rate-limited" });
+      throw err;
+    }
 
     // Fully fire-and-forget: nobody is waiting on this response for actual
     // lesson content, so there's no reason to await the intro half inline

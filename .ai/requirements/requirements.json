@@ -2888,6 +2888,44 @@
         "Migration 028 needed for logging (calls still succeed without it)",
         "Grading cases are a draft for owner review"
       ]
+    },
+    {
+      "id": "REQ-098",
+      "category": "security",
+      "title": "Audit 2 hardening: errors, rate limits, races, input bounds, indexes",
+      "description": "Fixes the backend security, schema and adversarial findings of audit 2 (2026-11-07): generic 500s with a request id; cached /api/health; atomic rate limiter; atomic login lockout; MFA-disable rate limit; lowercase uuid lock keys; NUL/lone-surrogate and length checks as 400s; idempotency ids bound to the submission (409 on mismatch) and chat replay by derived reply id; lesson_progress caps and clock-skew tolerance; per-learner budget on new lesson generation; password reset spends all outstanding tokens; generation lease heartbeat; pool and transaction timeouts; answer-signature cap; stale study sessions closed; paged account export; migration 030 indexes and probes; RLS check documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib",
+        "backend/app/api",
+        "backend/supabase/migrations/030_hardening_indexes.sql",
+        "mobile/src/lib",
+        "mobile/app/(app)",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Each race has a concurrent integration test that fails on the old code",
+        "Each input bug has a boundary test",
+        "Migration 030 applies and its probes pass",
+        "No raw error text in 500 responses"
+      ],
+      "validation_required": [
+        "npm run test:db",
+        "npm test",
+        "tsc backend and mobile",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Supabase RLS state unverified in production",
+        "query_timeout is client-side only for non-transaction queries"
+      ]
     }
   ]
 }

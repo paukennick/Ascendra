@@ -12,9 +12,28 @@ export const SESSION_WINDOW_MINUTES = 30;
 // and Recent order by (courses.last_studied_at is max(started_at)), so
 // touching it keeps that recency honest. Two visits at once are serialised
 // by an advisory lock, so they can't both insert.
+//
+// REQ-098: the lock used to be keyed by the raw track id string, so an
+// uppercase and a lowercase copy of one id took different locks and both
+// inserted. It is now keyed by the learner alone (lowercased), and the
+// track id is compared as a uuid by Postgres. And the app never ends a session (it has no "stop studying"
+// moment), so open rows past the window used to stay open forever. Each
+// start now closes the learner's open sessions that have gone quiet for
+// longer than the window, on any track, ending them at their last activity
+// plus the window (never in the future).
 export async function startOrTouchSession(userId: string, trackId: string) {
   return withTransaction(async (tx) => {
-    await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`session:${userId}:${trackId}`]);
+    // One lock per learner (not per track): the close-stale step below
+    // touches rows on every track, and two starts on different tracks
+    // updating the same rows in different orders could deadlock.
+    await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`session:${userId.toLowerCase()}`]);
+    await tx.query(
+      `update study_sessions
+          set ended_at = least(now(), started_at + make_interval(mins => $2))
+        where user_id = $1 and ended_at is null
+          and started_at <= now() - make_interval(mins => $2)`,
+      [userId, SESSION_WINDOW_MINUTES]
+    );
     const touched = await tx.queryOne<Record<string, unknown>>(
       `update study_sessions set started_at = now()
         where id = (

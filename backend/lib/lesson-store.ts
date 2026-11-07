@@ -36,7 +36,8 @@ export const SHARED: LessonScope = { kind: "shared" };
 // Stable string for a scope: the claim table's `scope` column and the
 // in-memory map key.
 export function scopeKey(scope: LessonScope): string {
-  return scope.kind === "shared" ? "shared" : `user:${scope.userId}`;
+  // REQ-098: lowercased; the claim row's scope is a string, not a uuid.
+  return scope.kind === "shared" ? "shared" : `user:${scope.userId.toLowerCase()}`;
 }
 
 // A claim older than this is treated as abandoned (its instance crashed or
@@ -164,6 +165,21 @@ export async function tryClaim(objectiveId: string, scope: LessonScope, token: s
        where lesson_generation_claims.claimed_at < now() - make_interval(secs => $4::double precision)
      returning claim_token`,
     [objectiveId, scopeKey(scope), token, CLAIM_LEASE_SECONDS]
+  );
+  return rows.length > 0;
+}
+
+// REQ-098: heartbeat. The holder pushes its lease forward while it is still
+// generating, so a slow generation (model retries, a slow API) is not taken
+// over at CLAIM_LEASE_SECONDS by a second instance while the first is alive.
+// Only the holder's own token renews; false means the lease was lost (this
+// instance stalled past the lease and someone else took over).
+export async function renewClaim(objectiveId: string, scope: LessonScope, token: string): Promise<boolean> {
+  const rows = await query(
+    `update lesson_generation_claims set claimed_at = now()
+      where objective_id = $1 and scope = $2 and claim_token = $3
+      returning 1`,
+    [objectiveId, scopeKey(scope), token]
   );
   return rows.length > 0;
 }

@@ -1,7 +1,8 @@
 import { query } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleTrack } from "@/lib/visibility";
+import { visibleTrack, isUuid } from "@/lib/visibility";
+import { textField } from "@/lib/text-input";
 import { startOrTouchSession } from "@/lib/study-sessions";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,8 @@ export async function GET(req: Request) {
     const conditions = ["user_id = $1"];
     const values: unknown[] = [user.id];
     if (trackId) {
+      // REQ-098: a non-uuid id used to reach Postgres and come back as a 500.
+      if (!isUuid(trackId)) return ok({ sessions: [] });
       conditions.push(`track_id = $${values.length + 1}`);
       values.push(trackId);
     }
@@ -39,8 +42,10 @@ export async function POST(req: Request) {
     if (!trackId || typeof trackId !== "string") return badRequest("trackId is required");
     const user = await requireUser(req);
     // REQ-091: a session can only be logged against a track the caller can see.
-    if (!(await visibleTrack(trackId, user.id))) return notFound("Track not found");
-    const { session, created } = await startOrTouchSession(user.id, trackId);
+    const track = await visibleTrack(trackId, user.id);
+    if (!track) return notFound("Track not found");
+    // REQ-098: the canonical (lowercase) id, however the client spelled it.
+    const { session, created } = await startOrTouchSession(user.id, track.id);
     return ok({ session }, created ? 201 : 200);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
@@ -54,9 +59,13 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { id, summary } = body ?? {};
     if (!id) return badRequest("id is required");
+    if (summary != null && typeof summary !== "string") return badRequest("summary must be a string");
+    const s = textField(summary, "summary", 4_000);
+    if (!s.ok) return badRequest(s.error);
     // REQ-079: was unauthenticated and matched by id alone -- anyone could
     // end anyone's session. Scoped to the caller's own rows.
     const user = await requireUser(req);
+    if (!isUuid(id)) return notFound("Session not found");
     const rows = await query(
       `update study_sessions set ended_at = now(), summary = coalesce($3, summary)
         where id = $1 and user_id = $2 returning *`,

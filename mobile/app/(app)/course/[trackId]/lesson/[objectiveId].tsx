@@ -27,8 +27,10 @@ import {
   isResumable,
   lessonFingerprint,
   newerSnapshot,
+  OPEN_ANSWER_MAX,
   parseSnapshot,
   snapshotStorageKey,
+  toLocalClock,
   type CheckKind,
   type CheckState,
   type LessonSnapshot,
@@ -153,7 +155,7 @@ export default function LessonFlow() {
       const [server, local] = await Promise.all([
         api
           .get<{ progress: unknown }>(`/api/objectives/${objectiveId}/progress`)
-          .then((r) => parseSnapshot(r.progress, lessonKey, Date.now()))
+          .then((r) => parseSnapshot(toLocalClock(r.progress, Date.now()), lessonKey, Date.now()))
           .catch(() => null),
         AsyncStorage.getItem(key)
           .then((raw) => parseSnapshot(raw, lessonKey, Date.now()))
@@ -657,6 +659,7 @@ function GuessStep({
         multiline
         placeholder="Your guess (or leave blank if you don't know)"
         placeholderTextColor={colors.mutedDim}
+        maxLength={OPEN_ANSWER_MAX}
         value={value}
         onChangeText={onChange}
         style={styles.input}
@@ -879,6 +882,7 @@ function CheckStep({
                 multiline
                 placeholder="Your answer"
                 placeholderTextColor={colors.mutedDim}
+                maxLength={OPEN_ANSWER_MAX}
                 value={openAnswer}
                 onChangeText={setOpenAnswer}
                 style={styles.input}
@@ -954,6 +958,7 @@ function CheckStep({
               <TextInput
                 placeholder="e.g. I think my answer covered that — here's why..."
                 placeholderTextColor={colors.mutedDim}
+                maxLength={OPEN_ANSWER_MAX}
                 value={followUp}
                 onChangeText={setFollowUp}
                 style={styles.input}

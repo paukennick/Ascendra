@@ -85,10 +85,51 @@ export async function recordAttemptIdempotent(input: AttemptInput) {
   } catch (err) {
     if (input.clientAttemptId && isDuplicateClientAttempt(err)) {
       const prior = await findClientAttempt(input.userId, input.clientAttemptId);
-      if (prior) return { attempt: null, prior };
+      if (prior) {
+        assertSameAttempt(prior.attempt, input);
+        return { attempt: null, prior };
+      }
     }
     throw err;
   }
+}
+
+// REQ-098: a client attempt id names ONE submission. The replay used to
+// return whatever was stored under the id, so reusing an id for a different
+// answer, objective or route (/api/pbq after /api/grade) silently dropped
+// the new submission and answered with the old verdict. The replay is now
+// bound to what was submitted: the stored attempt must be for the same
+// objective / scenario, kind, format, stage, question and answer, or the
+// request is refused with 409. Compared field by field against the stored
+// row, so no schema change is needed.
+export class IdempotencyConflictError extends Error {
+  constructor(message = "This id was already used for a different submission.") {
+    super(message);
+    this.name = "IdempotencyConflictError";
+  }
+}
+
+export type AttemptIdentity = Pick<
+  AttemptInput,
+  "objectiveId" | "pbqScenarioId" | "kind" | "format" | "stage" | "question" | "answer"
+>;
+
+const idOrNull = (v: unknown) => (typeof v === "string" && v ? v.toLowerCase() : null);
+
+export function sameAttempt(stored: Record<string, unknown>, req: AttemptIdentity): boolean {
+  return (
+    idOrNull(stored.objective_id) === idOrNull(req.objectiveId) &&
+    idOrNull(stored.pbq_scenario_id) === idOrNull(req.pbqScenarioId) &&
+    stored.kind === req.kind &&
+    stored.format === req.format &&
+    (stored.stage ?? null) === (req.stage ?? null) &&
+    stored.question === req.question &&
+    stored.answer === req.answer
+  );
+}
+
+export function assertSameAttempt(stored: Record<string, unknown>, req: AttemptIdentity): void {
+  if (!sameAttempt(stored, req)) throw new IdempotencyConflictError();
 }
 
 // The correct choice for a lesson's Guided ("fade") or Solo ("solo") check,
@@ -164,7 +205,10 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // can't each compute accuracy without the other's attempt and have the
   // later write overwrite mastery with a stale status. Released at commit.
   if (input.objectiveId) {
-    await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade:${userId}:${input.objectiveId}`]);
+    // REQ-098: lowercased, so an uppercase copy of the same id takes the same lock.
+    await query(`select pg_advisory_xact_lock(hashtext($1))`, [
+      `grade:${userId.toLowerCase()}:${input.objectiveId.toLowerCase()}`,
+    ]);
   }
 
   const attemptRows = await query(

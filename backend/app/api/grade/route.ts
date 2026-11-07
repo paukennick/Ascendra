@@ -1,19 +1,26 @@
-import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
   cachedCorrectIndex,
   findClientAttempt,
   recordAttemptIdempotent,
+  sameAttempt,
+  IdempotencyConflictError,
+  type AttemptIdentity,
 } from "@/lib/grading-service";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleObjective, visibleUnit } from "@/lib/visibility";
+import { visibleObjective, visibleUnit, normUuid } from "@/lib/visibility";
+import { textField, TEXT_LIMITS } from "@/lib/text-input";
+
+// The attempt_kind enum (migration 001).
+const ATTEMPT_KINDS = ["lesson", "quiz", "pbq", "unitcheck", "lab"];
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
   requireAcknowledgementForUnit,
   AcknowledgementError,
 } from "@/lib/auth/requireAcknowledgement";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective, coachContextForUnit } from "@/lib/coach-context";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +41,28 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { format, kind, stage, objectiveId, unitId, question, confidence } = body ?? {};
+    const { format, kind } = body ?? {};
 
-    if (!format || !kind || !question) {
+    if (!format || !kind || !body?.question) {
       return badRequest("format, kind, and question are required");
     }
+
+    // REQ-098: these went straight to the INSERT, so a kind outside the enum,
+    // a stage over 50 characters, a confidence of 9 or "abc", a NUL
+    // character or half an emoji all came back as a 500. They are 400s now,
+    // and free text has a length cap (lib/text-input.ts).
+    if (!ATTEMPT_KINDS.includes(kind)) return badRequest(`kind must be one of: ${ATTEMPT_KINDS.join(", ")}`);
+    const q = textField(body.question, "question", TEXT_LIMITS.question, { required: true });
+    if (!q.ok) return badRequest(q.error);
+    const question = q.value;
+    const st = textField(body.stage, "stage", TEXT_LIMITS.stage);
+    if (!st.ok) return badRequest(st.error);
+    const stage: string | null = st.value || null;
+    const rawConfidence = body.confidence;
+    if (rawConfidence != null && !(Number.isInteger(rawConfidence) && rawConfidence >= 1 && rawConfidence <= 5)) {
+      return badRequest("confidence must be a whole number from 1 to 5");
+    }
+    const confidence: number | null = rawConfidence ?? null;
 
     const authUser = await requireUser(req);
 
@@ -48,32 +72,64 @@ export async function POST(req: Request) {
     // mastery / review entries) could be filed against someone else's course.
     // requireAcknowledgement* is not an access check: it returns silently
     // for a track the caller can't see.
-    for (const [name, v] of [["objectiveId", objectiveId], ["unitId", unitId]] as const) {
+    for (const [name, v] of [["objectiveId", body.objectiveId], ["unitId", body.unitId]] as const) {
       if (v !== undefined && v !== null && typeof v !== "string") return badRequest(`${name} must be a string`);
     }
-    let attemptUnitId: string | undefined = unitId || undefined;
-    if (objectiveId) {
-      const objective = await visibleObjective(objectiveId, authUser.id);
+    // REQ-098: from here on the ids are the canonical (lowercase) ones the
+    // visibility checks return, so lock keys and comparisons match however
+    // the client spelled them. A non-uuid id is simply not found.
+    let objectiveId: string | undefined;
+    let unitId: string | undefined;
+    if (body.objectiveId) {
+      const objective = await visibleObjective(body.objectiveId, authUser.id);
       if (!objective) return notFound("Objective not found");
-      if (unitId && objective.unit_id !== unitId) {
+      if (body.unitId && objective.unit_id !== normUuid(body.unitId)) {
         return badRequest("objectiveId does not belong to unitId");
       }
-      attemptUnitId = objective.unit_id;
+      objectiveId = objective.id;
+      unitId = objective.unit_id;
       await requireAcknowledgementForObjective(objectiveId, authUser.id);
-    } else if (unitId) {
-      const unit = await visibleUnit(unitId, authUser.id);
+    } else if (body.unitId) {
+      const unit = await visibleUnit(body.unitId, authUser.id);
       if (!unit) return notFound("Unit not found");
+      unitId = unit.id;
       await requireAcknowledgementForUnit(unitId, authUser.id);
     }
+    const attemptUnitId = unitId;
 
     // REQ-089: an id the app already submitted is a retry (dropped
     // connection, double tap, resumed lesson) -- hand back the stored result
     // rather than grading again, recording a second attempt and moving
     // mastery twice. Checked before the rate limit and the Anthropic call.
+    //
+    // REQ-098: the replay is bound to the submission. The same id with a
+    // different answer, objective, stage or question is a 409, not the old
+    // verdict (see assertSameAttempt), so the answer is worked out first.
+    if (format !== "mc" && format !== "open") {
+      return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
+    }
+    let answer: string;
+    if (format === "mc") {
+      if (!Number.isInteger(body.chosenIndex)) {
+        return badRequest("chosenIndex is required for format 'mc'");
+      }
+      const ct = textField(body.chosenText, "chosenText", TEXT_LIMITS.answer);
+      if (!ct.ok) return badRequest(ct.error);
+      answer = body.chosenText != null ? ct.value : String(body.chosenIndex);
+    } else {
+      const a = textField(body.answer, "answer", TEXT_LIMITS.answer, { required: true });
+      if (!a.ok) return badRequest("answer and taughtText are required for format 'open'");
+      answer = a.value;
+    }
+    const identity: AttemptIdentity = { objectiveId, kind, format, stage, question, answer };
+
     const clientAttemptId = validClientAttemptId(body.clientAttemptId);
     if (clientAttemptId) {
       const prior = await findClientAttempt(authUser.id, clientAttemptId);
-      if (prior) return ok(prior);
+      if (prior) {
+        if (!sameAttempt(prior.attempt, identity)) return conflict(new IdempotencyConflictError().message);
+        return ok(prior);
+      }
     }
     // Two requests with the same id can still race past that check; the
     // unique index makes the slower one fail, and it returns the winner's.
@@ -81,10 +137,10 @@ export async function POST(req: Request) {
       recordAttemptIdempotent({ ...input, clientAttemptId });
 
     if (format === "mc") {
-      const { chosenIndex, chosenText, why } = body;
-      if (!Number.isInteger(chosenIndex)) {
-        return badRequest("chosenIndex is required for format 'mc'");
-      }
+      const { chosenIndex } = body;
+      const w = textField(body.why, "why", TEXT_LIMITS.why);
+      if (!w.ok) return badRequest(w.error);
+      const why = w.value;
       // The client's correctIndex is not trusted: anyone with a token could
       // send correctIndex = chosenIndex and be graded correct every time.
       // For a lesson check the answer key is the cached lesson_content row.
@@ -118,7 +174,7 @@ export async function POST(req: Request) {
         stage,
         format: "mc",
         question,
-        answer: chosenText ?? String(chosenIndex),
+        answer,
         verdict,
         feedback,
         classification: "none",
@@ -128,18 +184,20 @@ export async function POST(req: Request) {
       return ok({ verdict, feedback, classification: "none", missedParts: [], attempt });
     }
 
-    if (format === "open") {
-      const { answer, taughtText } = body;
-      if (!answer || !taughtText) {
-        return badRequest("answer and taughtText are required for format 'open'");
+    {
+      const tt = textField(body.taughtText, "taughtText", TEXT_LIMITS.taughtText, { required: true });
+      if (!tt.ok) {
+        return badRequest(
+          body.taughtText ? tt.error : "answer and taughtText are required for format 'open'"
+        );
       }
+      const taughtText = tt.value;
       try {
-        await checkRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
+        await consumeRateLimit("grade_open", authUser.id, { max: 40, windowMinutes: 10 });
       } catch (err) {
         if (err instanceof RateLimitError) return tooManyRequests(err.message);
         throw err;
       }
-      await recordAuthEvent("grade_open", authUser.id);
       // REQ-076: grade in the voice of the learner's actual track/exam.
       const ctx = objectiveId
         ? await coachContextForObjective(objectiveId)
@@ -171,10 +229,9 @@ export async function POST(req: Request) {
       if (prior) return ok(prior);
       return ok({ ...graded, attempt });
     }
-
-    return badRequest("format must be 'mc' or 'open' (use /api/pbq for PBQ grading)");
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
+    if (err instanceof IdempotencyConflictError) return conflict(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
     return serverError(err);
   }
