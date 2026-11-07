@@ -156,6 +156,25 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              where table_schema = 'public' and table_name = 'attempts' and column_name = 'assessment_type'
           ) as ok`,
   },
+  {
+    migration: "040_deep_understanding.sql",
+    what: "comparison cards, prerequisite map and misconception tables (REQ-111 deep understanding)",
+    sql: `select to_regclass('public.course_insights') is not null
+             and to_regclass('public.concept_sets') is not null
+             and to_regclass('public.concept_set_members') is not null
+             and to_regclass('public.discrimination_items') is not null
+             and to_regclass('public.learned_set_attempts') is not null
+             and to_regclass('public.objective_prerequisites') is not null
+             and to_regclass('public.learner_misconceptions') is not null
+             and to_regclass('public.prerequisite_refreshers') is not null as ok`,
+  },
+  {
+    // Without these rows a discrimination or explain-back attempt fails the
+    // attempts.assessment_type foreign key.
+    migration: "040_deep_understanding.sql",
+    what: "discrimination and explain_back assessment types (comparison-card and explain-it-back answers)",
+    sql: `select count(*) = 2 as ok from assessment_types where type_name in ('discrimination', 'explain_back')`,
+  },
 ];
 
 export interface SchemaStatus {

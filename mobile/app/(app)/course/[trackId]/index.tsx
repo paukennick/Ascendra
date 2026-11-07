@@ -38,6 +38,8 @@ const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label
   { icon: "bar-chart-2", label: "Mastery", path: "progress" },
   { icon: "clock", label: "History", path: "history" },
   { icon: "layers", label: "PBQ sim", path: "pbq" },
+  // REQ-111: comparison cards for look-alike concepts.
+  { icon: "columns", label: "Compare", path: "compare" },
 ];
 
 export default function CourseDashboard() {

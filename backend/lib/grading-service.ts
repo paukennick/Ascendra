@@ -38,9 +38,18 @@ export interface AttemptInput {
   // REQ-089: one id per submitted answer from the app. A second request
   // with the same id is a retry, not a new attempt (see findClientAttempt).
   clientAttemptId?: string | null;
+  // REQ-111: an assessment type beyond the lesson's own (explain_back,
+  // discrimination); stored in attempts.assessment_type so the weighted model
+  // counts it. Such an answer is assisted when `assist` says so (the caller
+  // knows the comparison card was reopened, or the text was copied), or when
+  // this learner already answered the same item of the same type -- within
+  // `repeatWindowHours` if given, otherwise ever (see typedAssistReason).
+  assessmentType?: string | null;
+  assist?: AssistReason | null;
+  repeatWindowHours?: number | null;
 }
 
-export type AssistReason = "hint" | "repeat";
+export type AssistReason = "hint" | "repeat" | "reveal";
 
 // REQ-089: the stored attempt for an id the app has already submitted, in
 // the shape /api/grade returns, or null if this id is new.
@@ -212,8 +221,9 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   const attemptRows = await query(
     `insert into attempts
       (user_id, unit_id, objective_id, pbq_scenario_id, kind, stage, format, question, answer,
-       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       verdict, feedback, classification, missed_parts, confidence, client_attempt_id, assisted, assist_reason,
+       assessment_type)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
      returning *`,
     [
       userId,
@@ -233,6 +243,7 @@ async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
       input.clientAttemptId ?? null,
       assistReason !== null,
       assistReason,
+      input.assessmentType ?? null,
     ]
   );
   const attempt = attemptRows[0];
@@ -344,6 +355,7 @@ async function assistReasonFor(
   query: TxClient["query"],
   input: AttemptInput
 ): Promise<AssistReason | null> {
+  if (input.assessmentType) return typedAssistReason(query, input);
   if (input.kind !== "lesson" || !input.objectiveId || (input.stage !== "fade" && input.stage !== "solo")) return null;
   if (input.stage === "solo") {
     if (input.format === "mc") return "hint";
@@ -356,6 +368,23 @@ async function assistReasonFor(
   const before = await query(
     `select 1 from attempts where user_id = $1 and objective_id = $2 and stage = $3 and question = $4 limit 1`,
     [input.userId, input.objectiveId, input.stage, input.question]
+  );
+  return before.length ? "repeat" : null;
+}
+
+// REQ-111: the same rules for an answer with an explicit assessment type.
+// A reason the caller already knows wins; otherwise an earlier answer by this
+// learner to the same item (same objective, type and question) makes it a
+// repeat, because grading showed the answer then. Runs under the grade lock.
+async function typedAssistReason(query: TxClient["query"], input: AttemptInput): Promise<AssistReason | null> {
+  if (input.assist) return input.assist;
+  if (!input.objectiveId) return null;
+  const before = await query(
+    `select 1 from attempts
+      where user_id = $1 and objective_id = $2 and assessment_type = $3 and question = $4
+        and ($5::numeric is null or created_at > now() - make_interval(secs => $5::double precision * 3600))
+      limit 1`,
+    [input.userId, input.objectiveId, input.assessmentType, input.question, input.repeatWindowHours ?? null]
   );
   return before.length ? "repeat" : null;
 }

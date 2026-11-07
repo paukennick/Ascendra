@@ -20,6 +20,9 @@ export const EXPORT_SECTIONS = {
   lessonProgress: "select * from lesson_progress where user_id = $1 order by updated_at asc",
   courseAcknowledgements: "select * from track_acknowledgements where user_id = $1 order by acknowledged_at asc",
   supportRequests: "select * from support_requests where user_id = $1 order by created_at asc",
+  // REQ-111.
+  misconceptions: "select * from learner_misconceptions where user_id = $1 order by created_at asc",
+  prerequisiteRefreshers: "select * from prerequisite_refreshers where user_id = $1 order by opened_at asc",
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

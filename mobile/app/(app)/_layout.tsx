@@ -27,6 +27,8 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/chat" options={{ title: "Ask the coach" }} />
       <Stack.Screen name="course/[trackId]/progress" options={{ title: "Mastery" }} />
       <Stack.Screen name="course/[trackId]/history" options={{ title: "History" }} />
+      <Stack.Screen name="course/[trackId]/compare" options={{ title: "Compare look-alikes" }} />
+      <Stack.Screen name="course/[trackId]/explain/[objectiveId]" options={{ title: "Explain it back" }} />
     </Stack>
   );
 }

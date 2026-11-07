@@ -28,7 +28,9 @@ export interface CheckResult {
   correctIndex?: number | null;
   correctAnswer?: string | null;
   why?: string | null;
-  assistReason?: "hint" | "repeat" | null;
+  assistReason?: "hint" | "repeat" | "reveal" | null;
+  // REQ-111: the likely mix-up behind a miss, saved so a resume shows it.
+  diagnosis?: { sentence: string; confusedWith: string | null; conceptSetId: string | null } | null;
 }
 
 // Everything a Guided/Solo check needs to come back exactly as it was.
@@ -157,7 +159,9 @@ function parseCheck(v: unknown, kind: CheckKind): CheckState | null {
             correctIndex: Number.isInteger(r.correctIndex) && (r.correctIndex as number) >= 0 ? (r.correctIndex as number) : null,
             correctAnswer: typeof r.correctAnswer === "string" ? r.correctAnswer : null,
             why: typeof r.why === "string" ? r.why : null,
-            assistReason: r.assistReason === "hint" || r.assistReason === "repeat" ? r.assistReason : null,
+            assistReason:
+              r.assistReason === "hint" || r.assistReason === "repeat" || r.assistReason === "reveal" ? r.assistReason : null,
+            diagnosis: parseDiagnosis(r.diagnosis),
           }
         : null,
   };
@@ -190,4 +194,16 @@ export function attemptIdFor(
 // finished, so reopening it should start a fresh attempt -- both clear.
 export function isResumable(step: string): step is ResumableStep {
   return RESUMABLE.includes(step);
+}
+
+// REQ-111: a stored diagnosis, or null for anything malformed.
+export function parseDiagnosis(v: unknown): CheckResult["diagnosis"] {
+  if (!v || typeof v !== "object") return null;
+  const d = v as Record<string, unknown>;
+  if (typeof d.sentence !== "string" || !d.sentence.trim()) return null;
+  return {
+    sentence: d.sentence,
+    confusedWith: typeof d.confusedWith === "string" ? d.confusedWith : null,
+    conceptSetId: typeof d.conceptSetId === "string" ? d.conceptSetId : null,
+  };
 }
