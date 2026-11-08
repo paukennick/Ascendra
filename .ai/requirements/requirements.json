@@ -4662,6 +4662,64 @@
         "CHANGELOG.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-140",
+      "category": "feature",
+      "title": "What's new: release notes from one backend file, shown once per release on any device",
+      "description": "Release notes live in backend/lib/release-notes.ts (one place, like lib/lab-disclaimer.ts) so a note ships with a backend deploy and no app-store update. Each entry: id (YYYY-MM-DD[-x]), date, title, 3-6 items (headline, one sentence, optional Feather icon), optional requires gate (billing). Per-learner seen marker app_users.whats_new_seen_id (migration 054): new accounts get the newest id at sign-up (email and Google), NULL accounts see the newest note once. GET /api/whats-new returns gated entries and unseen ids; POST /api/whats-new/seen {id} moves the marker forward only, idempotent, unknown ids 400. The app offers a dismissible sheet on Home focus once the launch questions are settled (not over agree, welcome, lessons, exams or labs), Got it marks it seen, failures are silent; Settings > What's new lists every note. First note: release 2026-11-07.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/whats-new.ts",
+        "backend/app/api/whats-new",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/supabase/migrations/054_whats_new_seen.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/account-export.ts",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "mobile/src/lib/whatsNew.ts",
+        "mobile/src/components/WhatsNew.tsx",
+        "mobile/app/(app)",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Notes validated by unit test (unique sorted ids",
+        "lengths",
+        "icons",
+        "gates",
+        "no pricing text ungated)",
+        "New email and Google accounts have the newest id and see nothing",
+        "NULL accounts see only the newest note once",
+        "POST is idempotent never moves back and answers 400 for unknown or malformed ids",
+        "Schema probe for 054 and rollback drops the column",
+        "Sheet only on focused Home after launch questions; hidden on blur; fails silent",
+        "Settings row opens the history screen",
+        "Every claim in the first note matches CHANGELOG"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database",
+        "mobile typecheck",
+        "mobile tests",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md"
+      ],
+      "risk_notes": [
+        "Any dismissal of the sheet (Got it",
+        "backdrop",
+        "back button",
+        "See all updates) marks the note seen",
+        "Notes hidden by a gate are not re-offered to a learner whose marker is already past them when the gate opens",
+        "If GET /api/onboarding fails the sheet is not offered that launch"
+      ]
     }
   ]
 }

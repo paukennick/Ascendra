@@ -14,7 +14,7 @@ API roles (migration 026). Only the backend server reads and writes them.
 
 | Table | What it holds | Why | Kept | Account deletion | In export |
 |---|---|---|---|---|---|
-| `app_users` | email, display name, password hash, profile photo, MFA settings and encrypted TOTP secret | account and sign-in | while account open | deleted | yes (profile; no secrets) |
+| `app_users` | email, display name, password hash, profile photo, MFA settings and encrypted TOTP secret, the newest "What's new" note dismissed | account and sign-in | while account open | deleted | yes (profile; no secrets) |
 | `oauth_accounts` | Google account ID and email | Google sign-in | while linked | deleted (cascade) | yes (provider, email) |
 | `refresh_tokens` | session token hash, device label, user agent, IP address | keeping you signed in; session list | 30 days after the session ends (cron) | deleted (cascade) | yes (no hashes) |
 | `auth_events` | event type, email or user ID as identifier, IP address | rate limits, security history | 90 days (cron) | **deleted explicitly** by `DELETE /api/account` (FK only nulls user_id, and the identifier is the email) | yes (type, IP, time) |

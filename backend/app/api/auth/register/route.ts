@@ -7,6 +7,7 @@ import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
+import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
 
@@ -84,10 +85,12 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await hashPassword(password);
+    // REQ-140: a new account has seen every release note so far, so "What's
+    // new" never interrupts its first run.
     const userRow = await queryOne<{ id: string }>(
-      `insert into app_users (email, display_name, password_hash) values ($1, $2, $3)
+      `insert into app_users (email, display_name, password_hash, whats_new_seen_id) values ($1, $2, $3, $4)
        on conflict (email) do nothing returning id`,
-      [normalizedEmail, displayName ?? null, passwordHash]
+      [normalizedEmail, displayName ?? null, passwordHash, LATEST_RELEASE_NOTE_ID]
     );
     // Lost a race with another registration of the same address: answer
     // the same way as above, without mail.

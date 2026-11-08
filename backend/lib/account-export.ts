@@ -54,7 +54,7 @@ export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
 };
 
 export const EXPORT_SECTIONS = {
-  profile: "select id, email, display_name, created_at from app_users where id = $1",
+  profile: "select id, email, display_name, created_at, whats_new_seen_id from app_users where id = $1",
   tracks: "select * from subject_tracks where user_id = $1 order by created_at asc, id asc",
   favorites: "select track_id, created_at from course_favorites where user_id = $1 order by created_at asc, track_id asc",
   mastery: "select * from mastery where user_id = $1 order by id asc",

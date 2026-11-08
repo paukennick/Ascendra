@@ -27,7 +27,7 @@
 --   4. The release's tables (each named; nothing pre-release is dropped),
 --      and the two rollup views 033 redefined, back to master's text.
 --   5. The release's columns, constraints and indexes on pre-release tables.
---   6. The release's rows in schema_migrations (027a-053). The 001-022 rows
+--   6. The release's rows in schema_migrations (027a-054). The 001-022 rows
 --      the baseline step added stay: the schema does have those files.
 -- What it cannot undo: enum values (attempt_kind 'review', 'labtask';
 -- attempt_format 'lab'). Postgres cannot drop an enum value without
@@ -201,7 +201,8 @@ alter table attempts
   drop column if exists unit_check_item_id,
   drop column if exists void_reason,
   drop column if exists voided_at;
-alter table app_users drop column if exists token_version, drop column if exists totp_pending_reauth_at;
+alter table app_users drop column if exists token_version, drop column if exists totp_pending_reauth_at,
+  drop column if exists whats_new_seen_id;
 alter table chat_messages drop column if exists client_message_id;
 alter table course_units drop column if exists retired_at;
 alter table objectives drop column if exists retired_at;

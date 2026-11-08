@@ -70,6 +70,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where t.typname = 'attempt_format' and e.enumlabel = 'lab') as ok`,
   },
   {
+    // REQ-140: sign-up writes it, GET/POST /api/whats-new read and move it.
+    migration: "054_whats_new_seen.sql",
+    what: "app_users.whats_new_seen_id (sign-up, the What's new sheet)",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'app_users' and column_name = 'whats_new_seen_id') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
