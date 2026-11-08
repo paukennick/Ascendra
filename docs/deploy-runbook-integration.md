@@ -123,7 +123,7 @@ sends. The mobile app needs a store build for the new native module
 (section "Forward order" step 5 below); until learners install it the old
 app keeps working against the new backend.
 
-**Total: about 15-20 minutes**, most of it waiting for the Vercel build and
+**Total: about 15-20 minutes planned; 25 minutes in practice (the seed alone took 22 from GitHub)**, most of it waiting for the Vercel build and
 the seed.
 
 ### 7. Rollback, if needed (the way back, in order)
@@ -206,7 +206,7 @@ Times are UTC on 2026-11-08 unless marked; Pacific is 8 hours behind.
 4. **Backend (04:35).** PR #40 merged to master as 4080462; Vercel built and
    promoted it. `/api/health` answered `{"status":"ok","schema":"current"}`.
 5. **Seed and recompute.** GitHub Actions, run 42447459047 on
-   `ops/post-deploy-production`, started 04:36: the seed was still running (over 15 minutes from GitHub; the database showed it progressing). Result to be recorded here.
+   `ops/post-deploy-production`, 04:36-04:58: seed complete in 21.6 minutes (all courses updated, the 80 authored labs loaded: AWSSAA 10, PMP 9, NCLEXRN 14, NASMCPT 11, CCRN Adult/Peds/Neo 12 each); `recompute_mastery_batched` checked 8 of 8 pairs, 0 rows changed; `--status` current, every stored level matches.
 6. **Still to do:** the in-app checks in step 6 and the mobile store build.
 
 What went wrong on the way, so the next deploy avoids it:
