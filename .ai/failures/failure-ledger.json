@@ -7548,6 +7548,34 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-529",
+      "date": "2026-11-07",
+      "title": "A new review entry could be due at once when the server's local date was behind the database's",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mastery-integrity.dbtest.ts 'Only due review entries advance' failed (expected review_stage 0, got 1) when run in an evening in America/Los_Angeles and passed under UTC (CI); same failure on unmodified master. In production terms: a missed answer's review entry, meant to be first due tomorrow, could be due immediately, so the next correct answer advanced it early and skipped the 1-day review.",
+      "how_detected": "flaky local test run (TZ=America/Los_Angeles after 16:00 PST)",
+      "root_cause": "recordAttemptTx (backend/lib/grading-service.ts) and POST /api/errors (backend/app/api/errors/route.ts) computed next_review_at as tomorrow from new Date() + setDate, formatted with toDateOnlyString's local getters: the Node process's time zone. Every due check (grading-service, review-store, GET /api/errors, the review views) compares next_review_at <= current_date: the database session's zone (UTC in Supabase and CI). When Node's local date was a day behind the database's, 'tomorrow' equalled the database's today and the entry was due at once; a day ahead, it was due a day late. CI and Vercel run UTC, which hid it.",
+      "requirement": "REQ-145",
+      "affected": [
+        "backend/lib/grading-service.ts",
+        "backend/app/api/errors/route.ts"
+      ],
+      "fix_summary": "Both inserts write next_review_at = current_date + 1 in SQL, so it is set and compared on one clock; the JS date and the toDateOnlyString imports are gone from those paths.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::a new review entry is first due tomorrow by the database's date",
+        "whatever the server's time zone",
+        "backend/lib/mastery-integrity.dbtest.ts::a correct answer leaves a not-yet-due entry alone and moves a due one exactly once"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        "data.contract_preservation"
+      ],
+      "prevention_notes": "A date that SQL compares with current_date is computed in SQL (current_date + n), never from the Node process's local date; review-schedule code already uses UTC days (review-scheduler.ts utcDay). The regression test runs both writers under UTC-12 and UTC+14 and asserts one of them disagrees with the database's date, so it fails on the old code at any wall-clock time, including under TZ=UTC.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-530",
       "date": "2026-11-07",
       "title": "Old store builds show an empty Solo multiple-choice list",
