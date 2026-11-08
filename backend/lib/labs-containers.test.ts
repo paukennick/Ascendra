@@ -15,7 +15,7 @@ import { KUBERNETES_TRACKS } from "../supabase/seed/tracks/kubernetes";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
-const HANDS_ON = ["CKA", "CKAD"] as const;
+const HANDS_ON = ["CKA", "CKAD", "CKS"] as const;
 // Multiple-choice exams: labs apply the concepts (read output, choose, design).
 const CONCEPTUAL = ["KCNA"] as const;
 // Every container/Kubernetes course with a lab set.
@@ -84,6 +84,24 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     assert.match(ckad.credential?.passingScorePolicy ?? "", /66%/);
   });
 
+  test("CKS's domains and weights are the official v1.37 curriculum, and it requires the CKA", () => {
+    const cks = tracks.get("CKS")!;
+    assert.deepEqual(
+      activeUnits(cks).map((u) => [u.title, u.weight]),
+      [
+        ["Cluster Setup", 15],
+        ["Cluster Hardening", 15],
+        ["System Hardening", 10],
+        ["Minimize Microservice Vulnerabilities", 20],
+        ["Supply Chain Security", 20],
+        ["Monitoring, Logging and Runtime Security", 20],
+      ]
+    );
+    assert.equal(cks.credential?.durationMinutes, 120);
+    assert.match(cks.credential?.passingScorePolicy ?? "", /67%/);
+    assert.match(cks.credential?.recommendedExperience ?? "", /passed the Certified Kubernetes Administrator/);
+  });
+
   test("KCNA's domains and weights are the official four-domain curriculum", () => {
     const kcna = tracks.get("KCNA")!;
     assert.deepEqual(
@@ -149,7 +167,7 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const labs = setFor(code).labs;
       for (const lab of labs) {
         const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
-        assert.match(answers, /kubectl|helm |apiVersion:|^\s*(spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
+        assert.match(answers, /kubectl|helm |cosign |trivy |apiVersion:|^\s*(FROM|spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
         if (lab.kind === "case") {
           const shown = lab.steps.map((s) => s.text).join("\n");
           assert.match(shown, /\$ kubectl|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\/ # /, `${code}/${lab.slug}: the case shows authored command output`);

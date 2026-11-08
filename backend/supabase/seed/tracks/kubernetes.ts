@@ -368,4 +368,116 @@ export const KCNA_TRACK: SeedTrack = {
   ],
 };
 
-export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK, KCNA_TRACK];
+// ---------------------------------------------------------------------------
+// Certified Kubernetes Security Specialist (CKS)
+// Performance-based, 2 hours, online proctored, Kubernetes v1.37 when
+// checked; pass mark 67%; $445 with one free retake; valid 2 years; requires
+// a current CKA. Domains (CKS_Curriculum v1.37.pdf): Cluster Setup 15%,
+// Cluster Hardening 15%, System Hardening 10%, Minimize Microservice
+// Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and
+// Runtime Security 20%.
+// ---------------------------------------------------------------------------
+export const CKS_TRACK: SeedTrack = {
+  code: "CKS",
+  title: "Certified Kubernetes Security Specialist (CKS) Coach",
+  description:
+    "CKS: the hands-on security exam for people who already hold the CKA. Harden the cluster from the CIS benchmark up: RBAC and ServiceAccounts, API access, kernel hardening with AppArmor and seccomp, Pod Security Standards, sandboxed runtimes and mTLS, a verified and signed supply chain, and runtime detection, audit logs and incident investigation.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cks",
+    credentialName: "Certified Kubernetes Security Specialist",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/",
+    basis: "vendor_exam",
+    examCode: "CKS",
+    objectivesRevision: "Curriculum v1.37",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CKS_Curriculum%20v1.37.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "Candidates must have taken and passed the Certified Kubernetes Administrator (CKA) exam before attempting the CKS. Intermediate level; the Linux Foundation pairs it with Kubernetes Security Essentials (LFS260).",
+    durationMinutes: 120,
+    questionFormat:
+      "Online, proctored, performance-based: hands-on security tasks solved at the command line against live Kubernetes clusters, with kubernetes.io and the documentation of the listed tools (Falco, AppArmor, Trivy, etc.) open. The exam environment tracks the latest Kubernetes minor release within about 4-8 weeks; v1.37 when checked.",
+    passingScorePolicy:
+      "67% or above to pass (Linux Foundation candidate FAQ). Certification valid for 2 years; one retake included. Earning or renewing CKS on or after June 18, 2026 also extends the holder's CKA (CARE program).",
+  },
+  units: [
+    {
+      title: "Cluster Setup",
+      weight: 15,
+      gate: "Given a freshly installed cluster, write the network policies, Ingress TLS and component settings that close its default exposures, and prove each one against the CIS benchmark or a direct test.",
+      objectives: [
+        "Use network security policies to restrict cluster-level access: default-deny NetworkPolicies per namespace and explicit allow rules for the few paths workloads need",
+        "Use the CIS Kubernetes Benchmark to review the security configuration of the API server, etcd, kubelet and CoreDNS, reading kube-bench results and fixing flags in static pod manifests and the kubelet configuration",
+        "Properly set up Ingress objects with TLS: certificates in kubernetes.io/tls Secrets, host-scoped tls sections and redirecting plain HTTP",
+        "Protect node metadata and endpoints: block Pod egress to the cloud metadata service with NetworkPolicy and close the kubelet read-only port and anonymous access",
+        "Verify platform binaries before deploying by checking kubectl, kubeadm and kubelet downloads against the published SHA-512 checksums",
+      ],
+    },
+    {
+      title: "Cluster Hardening",
+      weight: 15,
+      gate: "Given a cluster with over-broad access, reduce every subject to least privilege, remove ServiceAccount exposure, restrict who can reach the API, and plan the upgrade that removes a known vulnerability.",
+      objectives: [
+        "Use role-based access control to minimize exposure: audit existing bindings, replace cluster-admin and wildcard rules with scoped Roles, and verify with kubectl auth can-i",
+        "Exercise caution with ServiceAccounts: disable token automount, keep the default ServiceAccount unprivileged, create dedicated accounts with minimal permissions and use short-lived projected tokens",
+        "Restrict access to the Kubernetes API: disable anonymous authentication, keep the API server off the public internet, use Node and RBAC authorization and client certificates or OIDC",
+        "Upgrade Kubernetes to avoid vulnerabilities: read a Kubernetes CVE advisory, decide the target patch version, and upgrade control plane and nodes with kubeadm in the supported order",
+      ],
+    },
+    {
+      title: "System Hardening",
+      weight: 10,
+      gate: "Given a node and a workload, shrink the host's attack surface, confine the container with AppArmor and seccomp, and make the node's cloud identity and network reach as small as the workload needs.",
+      objectives: [
+        "Minimize the host OS footprint: remove unneeded packages and services, close listening ports, and keep nodes to the minimum a kubelet and runtime need",
+        "Use least-privilege identity and access management for nodes and workloads: scoped cloud instance roles, no shared credentials, and workload identity instead of static keys",
+        "Minimize external access to the network: host firewalls and security groups that admit only the control plane, kubelet and node-port ranges that are actually used",
+        "Appropriately use kernel hardening tools: load and apply AppArmor profiles to containers, and apply seccomp profiles (RuntimeDefault or Localhost) through the Pod securityContext",
+      ],
+    },
+    {
+      title: "Minimize Microservice Vulnerabilities",
+      weight: 20,
+      gate: "Given a multi-tenant namespace, enforce the right Pod Security Standard, protect Secrets at rest and in use, isolate untrusted workloads with a sandboxed runtime, and encrypt Pod-to-Pod traffic.",
+      objectives: [
+        "Use appropriate Pod Security Standards: apply the privileged, baseline and restricted profiles through Pod Security Admission namespace labels and fix workloads that fail them",
+        "Manage Kubernetes Secrets securely: encryption at rest with an EncryptionConfiguration, RBAC on secrets, mounting over environment variables, and external secret stores",
+        "Understand and implement isolation techniques: multi-tenancy with namespaces, quotas and policies, and sandboxed containers with RuntimeClass (gVisor, Kata Containers)",
+        "Implement Pod-to-Pod encryption with a service mesh (Istio mTLS with PeerAuthentication) or a CNI's transparent encryption (Cilium WireGuard or IPsec)",
+        "Write a hardened container securityContext: runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation false, dropped capabilities, no privileged or host namespaces",
+      ],
+    },
+    {
+      title: "Supply Chain Security",
+      weight: 20,
+      gate: "Given an application's build and deploy pipeline, shrink its images, produce and verify an SBOM and signature, admit only trusted registries, and read static-analysis findings into concrete manifest fixes.",
+      objectives: [
+        "Minimize the base image footprint with multi-stage builds, distroless or minimal bases, pinned digests and no shells or package managers in the runtime image",
+        "Understand your supply chain: generate and read an SBOM (syft, Trivy), know what CI/CD and artifact repositories introduce, and track image provenance",
+        "Secure your supply chain: permit only approved registries with admission control (ValidatingAdmissionPolicy or ImagePolicyWebhook), and sign and verify images with cosign",
+        "Perform static analysis of user workloads and container images with tools such as Kubesec, KubeLinter and Trivy, and fix the findings in the manifests",
+        "Scan images for known vulnerabilities before deployment and decide what blocks a release",
+      ],
+    },
+    {
+      title: "Monitoring, Logging and Runtime Security",
+      weight: 20,
+      gate: "Given runtime alerts and audit logs from a cluster under attack, identify the phase of the attack and the compromised workload, contain it, and configure the detection and immutability that would have caught it sooner.",
+      objectives: [
+        "Perform behavioral analytics to detect malicious activity with Falco: read and write rules, interpret alerts and identify the Pod and process behind them",
+        "Detect threats within physical infrastructure, apps, networks, data, users and workloads from syscall, network and audit evidence",
+        "Investigate and identify phases of an attack and bad actors within the environment: initial access, execution, persistence, privilege escalation, lateral movement and exfiltration in Kubernetes terms",
+        "Ensure immutability of containers at runtime: read-only root filesystems, no privilege escalation, no exec into production Pods, and recreating rather than patching containers",
+        "Use Kubernetes audit logs to monitor access: write an audit Policy with levels per resource and verb, enable it on the API server, and query the log for who did what",
+      ],
+    },
+  ],
+};
+
+export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK, KCNA_TRACK, CKS_TRACK];
