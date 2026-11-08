@@ -4957,6 +4957,46 @@
         "Screenshots go stale as the UI changes; re-capture with the documented local path",
         "Course and lab counts change as the seed grows"
       ]
+    },
+    {
+      "id": "REQ-149",
+      "category": "feature",
+      "title": "Authored labs for the remaining fitness courses (ACE, ACSM, NSCA-CPT, NSCA CSCS, NCCPT)",
+      "description": "48 authored build and case labs at the NASM-CPT pilot's depth for ACECPT (9), ACSMCPT (7), NSCACPT (10), NSCACSCS (12) and NCCPTCPT (10), following the adopted hybrid density unit by unit, each in its certifying body's own model and vocabulary (ACE IFT Model and ABC approach; ACSM preparticipation screening algorithm, FITT-VP, HRR and RPE; NSCA periodization, training load chart, technique and spotting; CSCS needs analysis, testing, monitoring and heat illness; NCCPT nutrition review, periodization and kinetic-chain checkpoints). FITNESS_SAFETY on every lab, fictional people only, every quoted value cited to an authoritative source checked 2026-11-07; all needs_expert_review.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/fitness-acecpt.ts",
+        "backend/supabase/seed/labs/fitness-acsmcpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacscs.ts",
+        "backend/supabase/seed/labs/fitness-nccptcpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-fitness.test.ts",
+        "docs/labs.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an exact active objective",
+        "Each course matches unitPlan hybrid unit by unit",
+        "Every lab carries FITNESS_SAFETY and a fictional brief and never asks about a real client",
+        "Each quoted guideline value is cited in the file header with the date checked",
+        "Seed is idempotent (run twice)"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on a migrated database",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a certified fitness reviewer approves each lab",
+        "NCCPT outline could not be re-fetched this session"
+      ]
     }
   ]
 }
