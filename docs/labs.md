@@ -360,6 +360,31 @@ The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
 lab is framed.
 
+### More project-management courses (REQ-150)
+
+Authored to the same depth as the PMP pilot, one file per course
+(`seed/labs/pm-*.ts`), each following (d) unit by unit
+(`lib/labs-pm.test.ts` checks it, and that no objective gets two labs).
+Every number in a rubric is worked in its reference answer.
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CAPM (2023 ECO) | 10 (7 build, 3 case) | 3/2/2/3 | [CAPM ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf) |
+| PMI-ACP (Nov 2024 / Mar 2026 ECO) | 10 (6 build, 4 case) | 3/2/2/3 | [PMI-ACP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf) |
+| PMI-RMP (Jan 2023 ECO) | 11 (8 build, 3 case) | 2/3/2/2/2 | [PMI-RMP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf) |
+| PMI-SP | 10 (6 build, 4 case) | 2/3/2/1/2 | [PMI-SP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf) |
+| PMI-PBA | 11 (8 build, 3 case) | 2/2/3/2/2 | [PMI-PBA ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf) |
+| CompTIA Project+ (PK0-005) | 7 (5 build, 2 case) | 3/1/1/2 | [Project+](https://www.comptia.org/en-us/certifications/project/) |
+
+Quantitative labs: CPM and float (CAPM, PMI-SP, Project+), PERT and
+triangular three-point estimates with path variance, resource levelling,
+earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
+break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
+Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
+weighted option scoring with a weight sensitivity (PMI-PBA). Still to
+author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
+CSPP.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

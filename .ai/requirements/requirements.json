@@ -4770,6 +4770,42 @@
         "pricing) must be answered before Phase 1b",
         "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer"
       ]
+    },
+    {
+      "id": "REQ-150",
+      "category": "feature",
+      "title": "Verifiable labs for more project-management courses: CAPM, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, CompTIA Project+",
+      "description": "59 authored build and case labs (needs_expert_review, GENERAL_SAFETY) at the PMP pilot's depth, one file per course in backend/supabase/seed/labs/pm-*.ts, each following the adopted hybrid density unit by unit, aligned to each exam's official outline, with every number in a rubric worked in its model answer. PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and CSPP remain.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs",
+        "backend/lib/labs-pm.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an active objective",
+        "Each course matches unitPlan(hybrid) unit by unit",
+        "At most one lab per objective",
+        "Seed runs twice idempotently",
+        "Calculations verified independently"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on local Postgres",
+        "npm run test:db",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a qualified PM reviewer reads it",
+        "PMI ECO PDFs for RMP SP PBA were read via mirrors or pmi.org pages because the PDFs were not fetchable from the session"
+      ]
     }
   ]
 }
