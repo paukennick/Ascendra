@@ -26,7 +26,8 @@ const allowedOrigins = allowedOriginsFor(process.env);
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    // REQ-146: X-Ascendra-Client is the app protocol (lib/client-protocol.ts).
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Ascendra-Client",
     Vary: "Origin",
   };
   if (origin && allowedOrigins.includes(origin)) {

@@ -4768,7 +4768,145 @@
         "secondary objectives",
         "first scenarios",
         "pricing) must be answered before Phase 1b",
-        "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer"
+        "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer",
+        "Phase 1a steps 1-2 (branch feature/sim-engine-1a): test scripts reach lib/sim/** and src/sim/** with discovery canaries (lib/test-discovery.test.ts, mobile src/lib/testDiscovery.test.ts); allowImportingTsExtensions in backend/tsconfig.json; engine v1 placeholder, generated app copy (npm run sim:sync-engine) and drift test (lib/sim/engineCopy.test.ts); Hermes spike done (docs/sims-hermes-spike.md): CI builds the Hermes VM from react-native's pinned tag and requires byte-identical fixture output vs Node, plus a Playwright Chromium/Firefox/WebKit job. On-device Hermes run still required before Phase 1c exits. This description still says design only; Nick to decide whether implementation stays under REQ-141 or gets its own requirement."
+      ]
+    },
+    {
+      "id": "REQ-145",
+      "category": "defect",
+      "title": "Fix: a new review entry's first due date follows the database's clock, not the server's local date (FAIL-529)",
+      "description": "Defect fix. recordAttemptTx and POST /api/errors wrote next_review_at as tomorrow by the Node process's local date while every due check compares with SQL current_date; with the server a day behind the database a new entry was due at once and the next correct answer advanced it early. Both now write current_date + 1. Surfaced as a timezone-dependent failure of mastery-integrity.dbtest.ts 'Only due review entries advance'.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/grading-service.ts",
+        "backend/app/api/errors/route.ts",
+        "backend/lib/mastery-integrity.dbtest.ts",
+        "CHANGELOG.md",
+        ".ai/failures"
+      ],
+      "acceptance_criteria": [
+        "A new error_log entry from a graded miss or POST /api/errors has next_review_at = current_date + 1 whatever the Node process's TZ",
+        "mastery-integrity.dbtest.ts passes under TZ=America/Los_Angeles across the UTC date boundary and under UTC and Asia/Tokyo",
+        "The regression test fails on the unfixed code under TZ=UTC"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database under three time zones"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Requirement and failure ids (REQ/FAIL) taken from master at 061f829; a concurrent branch may take the same numbers"
+      ]
+    },
+    {
+      "id": "REQ-146",
+      "category": "defect",
+      "title": "Old app builds: Solo choices in the lesson with the hint recorded",
+      "description": "Store app builds from before the 2026-11-07 release (c3e13ab) default the Solo step to multiple choice and render lesson.soloChoices, which the release made an empty list, so the learner saw no options and a disabled Submit. The app now sends X-Ascendra-Client (protocol 1). A lesson request without it gets the Solo choices in the learner's fixed shuffled order and the hint reveal recorded first, as the hint route does, so a later Solo answer in any format is assisted (capped at Guided). Clients with the header are unchanged.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/client-protocol.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "acceptance_criteria": [
+        "Header present: soloChoices empty and no reveal recorded",
+        "Header absent: soloChoices in the hint route's shuffled order and one reveal recorded",
+        "An old build's Solo MC pick grades against the shown order and is capped at Guided",
+        "A free-response Solo answer after the choices were sent is assisted (Guided)",
+        "The app sends the header on every request"
+      ],
+      "validation_required": [
+        "backend tsc + npm test + build",
+        "backend test:db on a fresh CI-equivalent Postgres",
+        "mobile tsc + npm test"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Old-app learners can no longer earn Independent from lesson Solo items until they update (intended)",
+        "A caller can omit the header to see choices but the reveal is recorded"
+      ]
+    },
+    {
+      "id": "REQ-163",
+      "category": "documentation",
+      "title": "Professional README refresh with real screenshots and an architecture diagram",
+      "description": "Rewrite README.md to describe Ascendra as it is today (catalog, learning loop, honest mastery, labs, AI guardrails, accessibility, plans off, sims in design), with a brand banner, real screenshots of a local web build with a demo account, a Mermaid architecture diagram, verified getting-started steps, testing/CI, deployment and a docs index.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "docs/images/readme/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every number in the README comes from the repo or a command run for it",
+        "Every relative link and image resolves",
+        "Screenshots use only a local demo account with fictional data and no AI output",
+        "Renders cleanly at desktop and phone width",
+        "No product code changes"
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Screenshots go stale as the UI changes; re-capture with the documented local path",
+        "Course and lab counts change as the seed grows"
+      ]
+    },
+    {
+      "id": "REQ-149",
+      "category": "feature",
+      "title": "Authored labs for the remaining fitness courses (ACE, ACSM, NSCA-CPT, NSCA CSCS, NCCPT)",
+      "description": "48 authored build and case labs at the NASM-CPT pilot's depth for ACECPT (9), ACSMCPT (7), NSCACPT (10), NSCACSCS (12) and NCCPTCPT (10), following the adopted hybrid density unit by unit, each in its certifying body's own model and vocabulary (ACE IFT Model and ABC approach; ACSM preparticipation screening algorithm, FITT-VP, HRR and RPE; NSCA periodization, training load chart, technique and spotting; CSCS needs analysis, testing, monitoring and heat illness; NCCPT nutrition review, periodization and kinetic-chain checkpoints). FITNESS_SAFETY on every lab, fictional people only, every quoted value cited to an authoritative source checked 2026-11-07; all needs_expert_review.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/fitness-acecpt.ts",
+        "backend/supabase/seed/labs/fitness-acsmcpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacscs.ts",
+        "backend/supabase/seed/labs/fitness-nccptcpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-fitness.test.ts",
+        "docs/labs.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an exact active objective",
+        "Each course matches unitPlan hybrid unit by unit",
+        "Every lab carries FITNESS_SAFETY and a fictional brief and never asks about a real client",
+        "Each quoted guideline value is cited in the file header with the date checked",
+        "Seed is idempotent (run twice)"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on a migrated database",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a certified fitness reviewer approves each lab",
+        "NCCPT outline could not be re-fetched this session"
       ]
     },
     {

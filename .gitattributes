@@ -9,3 +9,9 @@
 # SQL migrations are pasted into Supabase's SQL editor and read on Linux
 # hosts; no reason to carry CRLF into either.
 *.sql text eol=lf
+
+# REQ-141: the app's engine copy is checked byte for byte against the backend
+# source and names its sha256 (docs/sims.md 5.8); a CRLF checkout would make
+# them disagree on Windows.
+backend/lib/sim/engine/** text eol=lf
+mobile/src/sim/engine/** text eol=lf

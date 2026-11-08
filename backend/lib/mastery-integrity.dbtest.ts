@@ -16,7 +16,7 @@ import { POST as gradePost } from "../app/api/grade/route";
 import { GET as lessonGet } from "../app/api/objectives/[id]/lesson/route";
 import { POST as hintPost } from "../app/api/objectives/[id]/hint/route";
 import { GET as pbqGet, POST as pbqPost } from "../app/api/pbq/route";
-import { GET as errorsGet } from "../app/api/errors/route";
+import { GET as errorsGet, POST as errorsPost } from "../app/api/errors/route";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
@@ -52,10 +52,22 @@ async function grade(u: string, body: Record<string, unknown>) {
   );
   return { status: res.status, body: (await res.json()) as Record<string, any> };
 }
+// The current app: sends the protocol header (REQ-146), so the lesson carries
+// no Solo choices and records nothing.
 async function lesson(u: string, o: string) {
+  const res = await lessonGet(new Request("http://t/x", { headers: { ...auth(u), "x-ascendra-client": "1" } }), ctx(o));
+  return { status: res.status, text: await res.text() };
+}
+// An app build from before REQ-146 (the store build at c3e13ab): no header.
+async function legacyLesson(u: string, o: string) {
   const res = await lessonGet(new Request("http://t/x", { headers: auth(u) }), ctx(o));
   return { status: res.status, text: await res.text() };
 }
+const hintRows = async (u: string, o: string) =>
+  (await queryOne<{ n: number }>(
+    `select count(*)::int as n from lesson_hint_reveals where user_id = $1 and objective_id = $2 and item_key = $3`,
+    [u, o, lessonItemKey("solo", SOLO_Q)]
+  ))!.n;
 async function mastery(u: string, o: string) {
   return (await queryOne<{ status: string; score_0_4: number }>(
     `select status, score_0_4 from mastery where user_id = $1 and objective_id = $2`,
@@ -275,6 +287,46 @@ describe("3. Only due review entries advance", () => {
     );
     assert.equal(row?.review_stage, 0);
   });
+
+  // FAIL-529: a new entry's first review was "tomorrow" by the Node process's
+  // local date, while every due check reads the database's current_date. With
+  // the server a day behind the database (a Pacific evening against UTC) the
+  // entry was due at once, and the test above failed. Run the two writers
+  // under a zone 12 h behind UTC and one 14 h ahead: whatever the wall clock,
+  // at least one of them is on a different date from the database.
+  test("a new review entry is first due tomorrow by the database's date, whatever the server's time zone", async () => {
+    const savedTz = process.env.TZ;
+    const localDay = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+    const dbDay = async () => (await queryOne<{ d: string }>(`select to_char(current_date, 'YYYY-MM-DD') as d`))!.d;
+    const daysOut = async (where: string, params: unknown[]) =>
+      (await queryOne<{ n: number }>(`select (next_review_at - current_date)::int as n from error_log where ${where}`, params))!.n;
+    let skewed = 0;
+    try {
+      for (const tz of ["Etc/GMT+12", "Etc/GMT-14"]) {
+        process.env.TZ = tz;
+        if (localDay() !== (await dbDay())) skewed++;
+        // A missed Solo answer (lib/grading-service.ts).
+        const u = await newUser();
+        nextVerdict = "incorrect";
+        await grade(u, { format: "open", stage: "solo", objectiveId: objs[6], answer: "wrong" });
+        assert.equal(await daysOut(`user_id = $1`, [u]), 1, `graded miss under ${tz}`);
+        // An entry the learner logs by hand (POST /api/errors).
+        const res = await errorsPost(
+          new Request("http://t/api/errors", { method: "POST", headers: auth(u), body: JSON.stringify({ topic: "t", errorText: "e" }) })
+        );
+        assert.equal(res.status, 201);
+        const { error } = (await res.json()) as { error: { id: string } };
+        assert.equal(await daysOut(`id = $1`, [error.id]), 1, `hand-logged entry under ${tz}`);
+      }
+    } finally {
+      if (savedTz === undefined) delete process.env.TZ;
+      else process.env.TZ = savedTz;
+    }
+    assert.ok(skewed >= 1, "at least one zone must disagree with the database's date, or this test proves nothing");
+  });
 });
 
 describe("4. Free-response grading uses only server-held content", () => {
@@ -474,31 +526,25 @@ const countAttempts = async (u: string, o: string) =>
   (await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and objective_id = $2`, [u, o]))!.n;
 
 describe("9. App builds from before REQ-134 degrade instead of crashing (FAIL-039)", () => {
-  test("the lesson still carries soloChoices, as a list an old build can .map()", async () => {
+  test("the current app's lesson carries soloChoices as an empty list and records no hint", async () => {
     const u = await newUser();
     const l = JSON.parse((await lesson(u, objs[12])).text).lesson as Record<string, unknown>;
-    // What the old screen did on "Show choices (hint)": lesson.soloChoices!.map(...).
-    const oldBuildChoices = l.soloChoices as string[];
-    assert.ok(Array.isArray(oldBuildChoices), "soloChoices must be present");
-    assert.deepEqual(oldBuildChoices.map((c) => c), []);
-    // The other fields the old screen dereferenced with `!` are still there.
+    assert.deepEqual(l.soloChoices, []);
     assert.equal(typeof l.fadeProblem, "string");
     assert.ok(Array.isArray(l.fadeChoices));
     assert.equal(typeof l.soloCheck, "string");
+    assert.equal(await hintRows(u, objs[12]), 0, "a hint-aware app records nothing until it asks");
   });
 
-  test("an old build's grade requests: free response and Guided choices grade; a Solo choice index is a clear 400", async () => {
+  test("an old build's Guided choices still grade; a Solo index never shown this learner is a clear 400", async () => {
     const u = await newUser();
     const o = objs[12];
     const fadeShown = JSON.parse((await lesson(u, o)).text).lesson.fadeChoices as string[];
-    // Body shape of the old screen (it also sent question, correctIndex, chosenText, why, taughtText).
     const old = { kind: "lesson", objectiveId: o, unitId: unit, question: "stale", why: undefined, confidence: 3 };
     const fade = await grade(u, { ...old, format: "mc", stage: "fade", chosenIndex: fadeShown.indexOf("f-right"), chosenText: "f-right" });
     assert.equal(fade.status, 200);
     assert.equal(fade.body.verdict, "correct");
-    const open = await grade(u, { ...old, format: "open", stage: "solo", answer: "s-right", taughtText: "client text" });
-    assert.equal(open.status, 200);
-    // A Solo pick restored from an old saved position (old, unshuffled order, no hint recorded).
+    // No lesson sent with choices and no hint asked: the index can't be trusted.
     const before = await countAttempts(u, o);
     const solo = await grade(u, { ...old, format: "mc", stage: "solo", chosenIndex: 0, correctIndex: 0, chosenText: "s-right" });
     assert.equal(solo.status, 400);
@@ -518,6 +564,74 @@ describe("9. App builds from before REQ-134 degrade instead of crashing (FAIL-03
     assert.equal(r.status, 200);
     assert.equal(r.body.verdict, "correct");
     assert.equal(r.body.assistReason, "hint");
+  });
+});
+
+describe("9b. Old app builds get the Solo choices, with the hint recorded (FAIL-530)", () => {
+  // FAIL-530: the store build (c3e13ab) defaults the Solo step to multiple
+  // choice and renders lesson.soloChoices; an empty list left the learner
+  // with no options and a disabled Submit.
+  test("an old build (no X-Ascendra-Client) gets the Solo choices in its shuffled order, with the hint recorded", async () => {
+    const u = await newUser();
+    const o = objs[12];
+    const l = JSON.parse((await legacyLesson(u, o)).text).lesson as Record<string, unknown>;
+    const order = presentationOrder(presentationSeed(u, o, "solo", SOLO_Q), SOLO_CHOICES.length);
+    assert.deepEqual(l.soloChoices, order.map((i) => SOLO_CHOICES[i]), "the same order the hint route returns");
+    assert.equal(await hintRows(u, o), 1, "recorded when the choices are sent");
+    // Same list as the hint route (which records nothing new).
+    const res = await hintPost(
+      new Request("http://t/x", { method: "POST", headers: auth(u), body: JSON.stringify({ stage: "solo" }) }),
+      ctx(o)
+    );
+    assert.deepEqual(((await res.json()) as { choices: string[] }).choices, l.soloChoices);
+    // A reload sends the same list and still one reveal.
+    const again = JSON.parse((await legacyLesson(u, o)).text).lesson as Record<string, unknown>;
+    assert.deepEqual(again.soloChoices, l.soloChoices);
+    assert.equal(await hintRows(u, o), 1);
+  });
+
+  test("an old build's Solo pick grades against the choices it was shown, capped at Guided", async () => {
+    const u = await newUser();
+    const o = objs[15];
+    const shown = JSON.parse((await legacyLesson(u, o)).text).lesson.soloChoices as string[];
+    const picked = shown.indexOf("s-right");
+    // The old screen's body: it also sent question, correctIndex (its own,
+    // undefined now), chosenText, why and unitId.
+    const solo = await grade(u, {
+      kind: "lesson", format: "mc", stage: "solo", objectiveId: o, unitId: unit, question: SOLO_Q,
+      chosenIndex: picked, correctIndex: undefined, chosenText: shown[picked], why: undefined, confidence: 4,
+    });
+    assert.equal(solo.status, 200);
+    assert.equal(solo.body.verdict, "correct");
+    assert.equal(solo.body.assistReason, "hint");
+    assert.equal((await mastery(u, o))?.status, "Guided");
+    // A wrong pick is graded as wrong (the index maps through the same order).
+    const u2 = await newUser();
+    const shown2 = JSON.parse((await legacyLesson(u2, o)).text).lesson.soloChoices as string[];
+    const wrong = shown2.indexOf("s-wrong2");
+    const miss = await grade(u2, { kind: "lesson", format: "mc", stage: "solo", objectiveId: o, chosenIndex: wrong, chosenText: shown2[wrong] });
+    assert.equal(miss.body.verdict, "incorrect");
+  });
+
+  test("after an old build was sent the choices, a correct free-response Solo answer is capped at Guided", async () => {
+    const u = await newUser();
+    const o = objs[15];
+    await legacyLesson(u, o);
+    const open = await grade(u, { kind: "lesson", format: "open", stage: "solo", objectiveId: o, answer: "s-right", taughtText: "client text" });
+    assert.equal(open.status, 200);
+    assert.equal(open.body.verdict, "correct");
+    assert.equal(open.body.assistReason, "hint");
+    assert.equal((await mastery(u, o))?.status, "Guided");
+  });
+
+  test("the current app (header present): the same answer is unassisted and earns Independent", async () => {
+    const u = await newUser();
+    const o = objs[15];
+    await lesson(u, o);
+    assert.equal(await hintRows(u, o), 0);
+    const open = await grade(u, { format: "open", stage: "solo", objectiveId: o, answer: "s-right" });
+    assert.equal(open.body.assistReason ?? null, null);
+    assert.equal((await mastery(u, o))?.status, "Independent");
   });
 });
 

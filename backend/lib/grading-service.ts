@@ -1,7 +1,6 @@
 import { advanceDueSchedule } from "@/lib/review-step";
 import { queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { getLessonFor } from "@/lib/lesson-store";
-import { toDateOnlyString } from "@/lib/mastery";
 import { lessonItemKey } from "@/lib/choice-order";
 import { optionReasonsFor } from "@/lib/lesson-store";
 import { cleanText } from "@/lib/text-input";
@@ -592,13 +591,16 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // repeat is practice.
   const labMiss = input.kind === "labtask" ? labReview : true;
   if (input.verdict !== "correct" && assistReason !== "retry" && input.kind !== "lab" && input.errorLog !== false && labMiss) {
-    const next = new Date();
-    next.setDate(next.getDate() + 1);
+    // FAIL-529: "tomorrow" is the database's current_date + 1, the same clock
+    // every due check (next_review_at <= current_date) reads. A date built
+    // from the Node process's local zone was today's database date whenever
+    // that zone was a day behind (e.g. a Pacific evening against UTC), so a
+    // new miss was due at once and the next correct answer moved it.
     await query(
       `insert into error_log
         (user_id, unit_id, objective_id, pbq_scenario_id, attempt_id, topic, error_text, why, classification,
          review_stage, next_review_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10)`,
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,0,current_date + 1)`,
       [
         userId,
         input.unitId ?? null,
@@ -609,7 +611,6 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
         input.answer,
         clean(input.feedback),
         clean(clampClassification(input.classification)),
-        toDateOnlyString(next),
       ]
     );
   }

@@ -10,5 +10,10 @@ import { LPNVN_LABS } from "./nursing-lpnvn";
 import { CNA_LABS } from "./nursing-cna";
 import { ADNRN_LABS } from "./nursing-adnrn";
 import { BSNRN_LABS } from "./nursing-bsnrn";
+import { ACECPT_LABS } from "./fitness-acecpt";
+import { ACSMCPT_LABS } from "./fitness-acsmcpt";
+import { NSCACPT_LABS } from "./fitness-nscacpt";
+import { NSCACSCS_LABS } from "./fitness-nscacscs";
+import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
 
-export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS, NCLEXPN_LABS, LPNVN_LABS, CNA_LABS, ADNRN_LABS, BSNRN_LABS];
+export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS, ACECPT_LABS, ACSMCPT_LABS, NSCACPT_LABS, NSCACSCS_LABS, NCCPTCPT_LABS, NCLEXPN_LABS, LPNVN_LABS, CNA_LABS, ADNRN_LABS, BSNRN_LABS];
