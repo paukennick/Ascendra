@@ -5,5 +5,10 @@ import { PMP_LABS } from "./pmp";
 import { NCLEXRN_LABS } from "./nclexrn";
 import { NASMCPT_LABS } from "./nasmcpt";
 import { CCRNADULT_LABS, CCRNNEO_LABS, CCRNPEDS_LABS } from "./ccrn";
+import { AWSCLF_LABS } from "./aws-clf";
+import { AWSAIF_LABS } from "./aws-aif";
+import { AWSDVA_LABS } from "./aws-dva";
+import { AWSSOA_LABS } from "./aws-soa";
+import { AWSSAP_LABS } from "./aws-sap";
 
-export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS];
+export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS, AWSCLF_LABS, AWSAIF_LABS, AWSDVA_LABS, AWSSOA_LABS, AWSSAP_LABS];
