@@ -4870,6 +4870,85 @@
       ]
     },
     {
+      "id": "REQ-149",
+      "category": "feature",
+      "title": "Authored labs for the remaining fitness courses (ACE, ACSM, NSCA-CPT, NSCA CSCS, NCCPT)",
+      "description": "48 authored build and case labs at the NASM-CPT pilot's depth for ACECPT (9), ACSMCPT (7), NSCACPT (10), NSCACSCS (12) and NCCPTCPT (10), following the adopted hybrid density unit by unit, each in its certifying body's own model and vocabulary (ACE IFT Model and ABC approach; ACSM preparticipation screening algorithm, FITT-VP, HRR and RPE; NSCA periodization, training load chart, technique and spotting; CSCS needs analysis, testing, monitoring and heat illness; NCCPT nutrition review, periodization and kinetic-chain checkpoints). FITNESS_SAFETY on every lab, fictional people only, every quoted value cited to an authoritative source checked 2026-11-07; all needs_expert_review.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/fitness-acecpt.ts",
+        "backend/supabase/seed/labs/fitness-acsmcpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacscs.ts",
+        "backend/supabase/seed/labs/fitness-nccptcpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-fitness.test.ts",
+        "docs/labs.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an exact active objective",
+        "Each course matches unitPlan hybrid unit by unit",
+        "Every lab carries FITNESS_SAFETY and a fictional brief and never asks about a real client",
+        "Each quoted guideline value is cited in the file header with the date checked",
+        "Seed is idempotent (run twice)"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on a migrated database",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a certified fitness reviewer approves each lab",
+        "NCCPT outline could not be re-fetched this session"
+      ]
+    },
+    {
+      "id": "REQ-147",
+      "category": "feature",
+      "title": "Authored labs: physical therapy entry level (NPTE-PT, NPTE-PTA, DPT)",
+      "description": "53 authored build and case labs (hybrid density, unit by unit) for NPTEPT (20), NPTEPTA (19) and DPT (14), CLINICAL_SAFETY, needs_expert_review. Clinical-judgment cases dominate (examination, evaluation, diagnosis, prognosis, intervention, progression/discharge, red flags and referral, vitals and exercise stopping criteria, CPG-based interventions). PTA labs keep PTA scope in every rubric: the PTA implements and progresses within the PT's plan of care and holds, reports and defers to the PT; no evaluation, plan or goal changes, or discharge (CMS BPM ch.15 sec.230.1). Values cite APTA/JOSPT CPGs, ACSM-derived stopping criteria, PVA autonomic dysreflexia guideline, ADA hypoglycemia guide, CMS, and original MCID papers, verified 2026-11-07. No migration; no runtime code.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pt-nptept.ts",
+        "backend/supabase/seed/labs/pt-nptepta.ts",
+        "backend/supabase/seed/labs/pt-dpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an active objective by exact title",
+        "Hybrid density holds unit by unit for NPTEPT NPTEPTA and DPT",
+        "Clinical framing and fictional people in every brief",
+        "PTA rubrics never credit evaluation plan changes or discharge by the PTA",
+        "Every quoted standard value cites a source verified on 2026-11-07"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "DB tests with npm run seed twice",
+        "omni gate",
+        "CI green"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Clinical content must be reviewed by a licensed PT/PTA educator before approval; served unreviewed with the disclaimer per REQ-125",
+        "Scope change after merging master: the PT density, framing and PTA-scope checks live in backend/lib/labs-pt.test.ts (as REQ-149 did for fitness); backend/lib/labs.test.ts is unchanged."
+      ]
+    },
+    {
       "id": "REQ-150",
       "category": "feature",
       "title": "Verifiable labs for more project-management courses: CAPM, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, CompTIA Project+",
