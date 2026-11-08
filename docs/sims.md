@@ -363,17 +363,27 @@ and "25-49%" is 3.0-4.5.
 
 ### 4.1 Shape
 
-A scenario is one JSON document. TypeScript types (the zod schema in
-`backend/lib/sim/schema.ts` mirrors these exactly; a JSON Schema is
-generated from the zod schema for editors and the generator). Engine
-source uses only erasable TypeScript (no `enum`, no parameter properties,
-no namespaces) with explicit `.ts` import extensions, because the mobile
-copy runs under Node's type stripping (5.8).
+A scenario is one JSON document. The TypeScript types below are the
+source of truth and live **inside the engine folder**
+(`backend/lib/sim/engine/v1/types.ts`), because the engine imports
+nothing outside its folder and the mobile copy must carry them (5.8). The
+zod schema in `backend/lib/sim/schema.ts` sits outside the engine (zod is
+a dependency the engine must not import) and must **conform** to them: a
+conformance test in CI checks, at compile time, that `z.infer<typeof
+scenarioSchema>` and `ScenarioDoc` are mutually assignable (an
+`Equals<A, B>` assertion in a typechecked test file, for the document and
+each building block), and at run time that every corpus and golden
+document parses (16). A JSON Schema is generated from the zod schema for
+editors and the generator. Engine source uses only erasable TypeScript
+(no `enum`, no parameter properties, no namespaces) with explicit `.ts`
+import extensions, because the mobile copy runs under Node's type
+stripping (5.8).
 
 ```ts
 // Durations are strings with a unit ("90s", "8min", "2h", "7d") so authors
 // never confuse seconds and minutes. Every duration must be an exact
-// multiple of the clock tick (validation error otherwise).
+// multiple of the clock tick (validation error otherwise). The tick itself
+// is a whole number of seconds, at least 1, so `dt` is an integer.
 type Duration = string;
 type Expr = string;          // the expression language, section 4.3
 type Template = string;      // plain text with {expr|format} slots, no HTML
@@ -389,11 +399,13 @@ interface Source {            // required on every timing, rate and threshold
                               // cloud prices/limits default to + 6 months (by safety
                               // family / outcome profile). Past due: linter warning and
                               // the "stale sources" report (11.4); the sim keeps serving.
+                              // checkedAt and recheckBy are excluded from the content
+                              // hash (4.5): bumping them never forces re-review.
 }
 
 interface ScenarioDoc {
   schemaVersion: 1;
-  engine: { major: 1 };                 // engine semantics this was written for
+  engine: { major: 1; minor: number };  // the MINIMUM engine: exactly this major, minor >= this (4.5, 5.10)
   slug: string;                         // stable identity within the objective
   title: string;                        // unique within the course (stored as attempts.question)
   // No "family" field: the safety family (clinical / fitness / general) is
@@ -429,7 +441,7 @@ interface ScenarioDoc {
   prompts?: Record<Id, Prompt>;         // decision cards (stop the clock)
   reasoning: Record<Id, ReasoningMoment>; // at least one per scenario
   outcome: OutcomeSpec;                 // class thresholds, section 9.2
-  endings: Record<Id, Ending>;          // must include "time_up"
+  endings: Record<Id, Ending>;          // must include "time_up" (engine-defined, see Ending)
   scoring: Scoring;                     // server-only, section 9
 }
 ```
@@ -469,10 +481,15 @@ type StateVar =
     // every record gets an engine-assigned integer `_id` (monotonic per variable, never reused)
 
 interface History {                     // a ring buffer kept in state, so checkpoints and resume carry it
-  of: Expr;                             // number-valued
+  of: Expr;                             // number-valued; may not read history (no cycles)
   every: Duration;                      // sample interval (multiple of the tick)
   keep: Duration;                       // how far back; at most 1,000 samples
 }
+// Sampling: one sample at tick 0 (taken after state init, before the
+// initial settle, so Post(0) already has it), then one at every tick that
+// is a multiple of `every` (5.3, Advance step 4). The buffer holds the
+// newest keep/every + 1 samples, so it is never empty during a run.
+// Short and empty buffers: see past/delta/trend in 4.3.
 
 interface Derived { expr: Expr; unit?: Unit; precision?: number }   // precision: display only
 
@@ -512,13 +529,38 @@ type ActionParam =
   | { id: Id; kind: "pick"; label: string; from: Expr; show: Template; max?: number }
       // pick one record (by _id) from a records-valued expression evaluated at the
       // command's tick: alerts to triage, hosts to isolate. Validated against that list.
-  | { id: Id; kind: "command"; label: string; patterns: CommandPattern[] }      // terminal (20)
+  | { id: Id; kind: "command"; label: string; maxLength: 200;
+      patterns: CommandPattern[];       // tried in order; the first that matches wins
+      unmatched: Template }             // authored line for input no pattern matches (below)
   | { id: Id; kind: "query"; label: string; fields: Id[]; maxLength: 200 };     // log search (20)
 
 interface CommandPattern {              // matched by the engine's tokenizer, never a regex
   id: Id;
   pattern: string;                      // "ping {host:ipv4}", "show ip route", "ip route add {dst:cidr} via {gw:ipv4}"
-}                                       // capture types: word, int, ipv4, cidr, enum(a|b|c)
+                                        // capture types: word, int, ipv4, cidr, enum(a|b|c)
+  cases: { when: Expr; then: Effect[] }[];  // per-pattern dispatch, first match; the last
+                                        // case must be unconditional (`"when": "true"`, linted)
+}
+// Command dispatch. The input is split on whitespace (at most 200
+// characters, no control characters; anything else is the only way a
+// command param is rejected). Literal tokens compare case-insensitively.
+// For the first pattern that matches, each capture is bound as a name, by
+// its capture id, inside that pattern's `cases` only (each pattern has its
+// own captures, so they are not visible in the action's shared `effects`,
+// which run after the cases), typed and canonicalised:
+//   word -> string, [A-Za-z0-9._:/-]{1,64}
+//   int  -> number, a decimal integer within ±2^31
+//   ipv4 -> string, dotted quad, each octet 0-255, written without leading zeros
+//   cidr -> string, "a.b.c.d/n" with 0 <= n <= 32, canonicalised as ipv4 (host
+//           bits kept as typed; ipInCidr and the route functions mask them)
+//   enum(a|b|c) -> string-enum with exactly those values
+// A capture id may not collide with any declared name (validation). The
+// built-in `<paramId>.matched` is a string-enum of the pattern ids plus
+// "none". Input that matches no pattern is still a valid command: it is
+// stored in the log (so scoring can count it), the `unmatched` template is
+// output ("That command is not available in this lab."), no case runs, the
+// action's effects run with `matched = "none"`, and it is never rejected
+// or answered with a 400.
 
 type Effect =
   | { set: Id; to: Expr }
@@ -526,8 +568,12 @@ type Effect =
   | { push: Id; value: Expr | Record<Id, Expr> }   // set or records
   | { update: Id; where: Expr; set: Record<Id, Expr> }   // fields of existing records
   | { remove: Id; where: Expr }
-  | { schedule: Id; after: Expr | Duration; with?: Record<Id, Expr> }  // creates a timer instance
-  | { cancel: Id; where?: Expr }                   // pending instances of that timer (all, or matching `with` values)
+  | { schedule: Id; after: Expr | Duration; with?: Record<Id, Expr> }  // creates a timer instance;
+      // a Duration is exact ticks; an Expr is SECONDS of sim time, converted
+      // ticks = max(1, ceil(seconds / dt)) (5.3, Timers); `with` supplies exactly
+      // the timer's declared `with` fields
+  | { cancel: Id; where?: Expr }                   // pending instances of that timer: all, or those for which
+                                                   // `where` (reading `timer.with.<field>`, 4.3) is true
   | { log: Template; kind?: "act" | "find" | "sys" | "good" | "bad" | "alarm" }
   | { finding: Template }                          // assessment result card
   | { output: Template | TableView }               // terminal / console output block
@@ -550,8 +596,9 @@ interface TimerSpec {
   wait?: { skipLabel: Template };       // present = the learner may skip (or advance) to it
   instances: "one" | "many";            // one: scheduling while pending replaces the pending instance
   interruptsSkip?: boolean;             // a result: a skip stops when it fires
+  with?: Record<Id, FieldSpec>;         // payload fields, typed; every schedule supplies exactly these
   source: Source;                       // where the delay comes from (linter-enforced)
-  effects: Effect[];
+  effects: Effect[];                    // may read `timer.with.<field>` and `timer.id` (4.3)
 }
 
 interface Trigger {
@@ -585,11 +632,19 @@ interface OutcomeSpec {                 // section 9.2
 
 interface Ending {
   label: string;
-  class?: OutcomeClass;                 // required on every terminal ending
-  when?: Expr;                          // the state conditions that produce it; required on terminal endings
+  class?: OutcomeClass;                 // required on every terminal ending, time_up included
+  when?: Expr;                          // the state conditions that produce it; required on every
+                                        // terminal ending EXCEPT time_up, which must not have one
   narrative: Template;                  // shown in the run
   terminal: boolean;                    // false = a branch point (e.g. go to phase 2)
 }
+// `time_up` is the one engine-defined ending: it is terminal, carries an
+// authored class and narrative, has no `when`, is never named by an
+// `{ end }` effect, and is reached only by tick count (5.3, Advance step
+// 6), after that tick's settle. A scenario whose result at the time limit
+// depends on state writes ordinary terminal endings whose `when` includes
+// `t >= <limit>`; they are evaluated in that settle, before `time_up`,
+// which then only catches what they leave.
 ```
 
 `ScreenSpec` and `Scoring` are in sections 8 and 9.
@@ -678,7 +733,14 @@ template-string execution or access to host objects anywhere.
 - **Names**: only declared `params`, `catalogs`, `state`, `history`,
   `derived`, the built-ins `t` (sim seconds since start), `dt` (tick
   seconds), `tick`, `phase`, and inside an action's effects its params by
-  id. Unknown names fail validation, not at run time.
+  id; inside a command pattern's `cases`, that pattern's captures by
+  capture id, typed per capture (4.1), and `<paramId>.matched`; inside a
+  timer's effects, `timer.id` (the instance id) and `timer.with.<field>`
+  (that instance's payload, typed by the timer's declared `with` fields);
+  inside a `cancel … where` predicate, `timer.with.<field>` and `timer.id`
+  bound to each pending instance in turn (with the surrounding effect's
+  names, such as action params, still in scope). Unknown names fail
+  validation, not at run time.
 - **Access**: `x[k]` indexes a list (integer `k`, clamped to the last item,
   as `seq`) or a map/catalogue (string key; a missing key is a validation
   error when `k` is a literal and yields the field type's zero value at run
@@ -695,9 +757,17 @@ template-string execution or access to host objects anywhere.
     (an enum/option value to a number, validated at check time);
   - time and lists: `isNull`, `since(timeVar)`, `seq(list, i)` (index
     with last-value repeat);
-  - history: `past(h, seconds)` (the sample at or before `t - seconds`,
-    the oldest sample if older), `delta(h, seconds)`, `trend(h, seconds)`
-    (-1, 0, 1 against the tile's threshold);
+  - history (`seconds` is clamped to ≥ 0; the buffer always holds the
+    tick-0 sample onward, 4.1): `past(h, seconds)` = the newest sample
+    taken at or before `t - seconds`, or the oldest sample held if none is
+    that old (so early in a run it is the tick-0 value); `delta(h,
+    seconds)` = newest sample − `past(h, seconds)` (0 with one sample);
+    `trend(h, seconds, threshold)` = 1 if `delta ≥ threshold`, -1 if
+    `delta ≤ -threshold`, else 0 (0 with one sample; `threshold` must be a
+    positive literal or param, checked at validation; a bedside tile's
+    `trend` passes its own `threshold`, 8.2). An empty buffer cannot occur
+    in a run; if one is ever read (a bug), `past` is 0, `delta` 0 and
+    `trend` 0, never an error;
   - collections over sets, record lists and catalogues, with an inline
     predicate in which bare names resolve to the record's fields first:
     `count`, `any`, `all`, `sum`, `product`, `minOf`, `maxOf`, `distinct`,
@@ -710,8 +780,36 @@ template-string execution or access to host objects anywhere.
     (the small search grammar of 20: terms, `field:value`, `AND`/`OR`/`NOT`,
     trailing `*`; no regex);
   - IP: `ipInCidr(ip, cidr)`, `cidrContains(a, b)`, `sameSubnet(a, b,
-    prefix)`, `ipToInt` (implemented with integer arithmetic inside the
-    engine; expressions still have no bitwise operators).
+    prefix)`, `ipToInt`, `cidrPrefix(c)` (the prefix length `n` of
+    `"a.b.c.d/n"`; -1 for an empty or malformed string, so an empty
+    `find` result compares lowest), `cidrNetwork(c)` (the canonical
+    network address with host bits cleared, as a string), and
+    `longestPrefixMatch(coll, ip, field)` (the record or catalogue entry
+    whose cidr-valued `field` contains `ip` with the largest prefix, ties
+    by `_id` or entry order, or an empty record if none). A learner-added
+    route (a `records` row pushed by `ip route add {dst:cidr} via
+    {gw:ipv4}`) and the static table (a catalogue) are looked up with one
+    call each and the longer `cidrPrefix` wins, which is longest-prefix
+    routing without bitwise operators. All are implemented with integer
+    arithmetic (division and remainder by powers of two) inside the
+    engine; expressions still have no bitwise operators. Over a catalogue,
+    `longestPrefixMatch` is a catalogue aggregate (command-time only,
+    below);
+  - randomness (5.6), allowed **only** in expressions inside effects (the
+    `to`, `by`, `value`, `after`, `with`, `set`, `if` and `cases`
+    conditions of action, prompt, timer and trigger effects), never in
+    processes, derived values, `when`/`available` conditions or scoring:
+    `pick(stream, list)` returns one item, uniformly, as `list[floor(u ×
+    len)]`; `chance(stream, p)` returns `u < clamp(p, 0, 1)`. `stream` must
+    be a literal id declared in `random.streams`. Determinism: `u` is the
+    stream's next mulberry32 output divided by 2^32 (an exact double); each
+    call draws exactly one value, even for an empty list (which returns the
+    item type's zero value), so a stream's position never depends on a
+    list's length; calls are evaluated in the fixed evaluation order
+    (left to right, depth first), and `? :`, `and` and `or` short-circuit,
+    so a call in a branch not taken draws nothing, which is itself a pure
+    function of state. Stream counters are state (checkpointed and
+    hashed).
 - **Scoring-only functions** (section 9), unavailable to tick rules so a
   tick stays bounded: `firstAct(id, cond?)`, `countAct(id)`,
   `actedBefore(id, tick)`, `everTrue(triggerId)`, `ending`,
@@ -736,7 +834,21 @@ template-string execution or access to host objects anywhere.
   (processes, history samples, triggers, endings and the derived values
   they read) and rejects a document whose per-tick bound exceeds 20,000
   evaluations or whose per-tick bound times its tick count
-  (`maxDuration / tick`) exceeds 50,000,000. Collection functions over a
+  (`maxDuration / tick`) exceeds 50,000,000. It also bounds the **longest
+  single skip**: a skip runs from a command boundary to its stop tick
+  inside one request (checkpoints are never taken mid-skip, 5.3), so the
+  per-tick bound times the longest possible skip span must be at most
+  15,000,000, leaving 5,000,000 of the 20,000,000 per-request replay
+  budget (7) for the commands stamped at the skip's tick and the settles
+  around it. The span is the largest upper bound of any `wait` timer's
+  `after`, in ticks, found by interval arithmetic over the declared
+  `min`/`max` of state and the values of params; where the linter cannot
+  bound an `after`, it uses `maxDuration / tick`. (Mid-skip resume was the
+  alternative and is rejected: it would need checkpoints strictly inside a
+  skip, breaking the rule that a checkpoint is a Pre state at a command
+  boundary, and the learner never sees those ticks as separate states
+  anyway. A document that fails this lint shortens its waits or splits
+  them into chained waits.) Collection functions over a
   **catalogue** are allowed only in action, prompt and timer effects (they
   run once per command, not per tick), with their own static bound of
   200,000 evaluations per command. The engine enforces both bounds at run
@@ -762,10 +874,15 @@ shape `labContentProblems` already uses. Three layers:
 2. **Semantic**: every expression parses and type-checks; every reference
    (timer, phase, prompt, ending, table, action, reasoning, catalogue,
    history id) exists; at least one terminal ending, one reasoning moment
-   and one `critical` criterion; a `time_up` ending exists; every terminal
-   ending has a `class` and a `when`; every `{ end: id }` effect names an
+   and one `critical` criterion (command or reasoning, 9.1); a `time_up`
+   ending exists, is terminal, has a `class` and has **no** `when`; every
+   other terminal ending has a `class` and a `when`; no `{ end: time_up }`
+   effect; every other `{ end: id }` effect names an
    ending whose `when` the checker cannot prove false at that point (and
-   the engine asserts it, 5.3); every duration is a multiple of the tick;
+   the engine asserts it, 5.3); every `schedule` supplies exactly its
+   timer's `with` fields with matching types; every command pattern's last
+   case is unconditional; `engine.minor` is at least the minor that
+   introduced every feature the document uses; every duration is a multiple of the tick;
    every history `every` is a multiple of the tick and `keep / every`
    ≤ 1,000; the budgets in 4.3 hold; every `wait` timer has a skip label;
    every `interruptsSkip` trigger has a log line; every reasoning part has
@@ -780,7 +897,8 @@ shape `labContentProblems` already uses. Three layers:
    (9.2): every outcome threshold is no looser than the profile default,
    each of `target`, `recovered` and `harm` is the class of some reachable
    terminal ending, and no explored path reaches a `target` ending with a
-   critical criterion missed; golden-path rules: every ending is reached,
+   critical **command-derived** criterion missed (reasoning criteria are
+   out of this check, 9.2); the longest-skip bound (4.3); golden-path rules: every ending is reached,
    every criterion is both met and missed, and there is at least one Good,
    one Mediocre and one Bad path (9.2).
 
@@ -792,15 +910,29 @@ they do for labs (`lib/lab-content.ts`).
 - `schemaVersion` is the document format. A breaking format change bumps it
   and ships an upgrader (`upgradeScenario(doc): doc`) that the seed runs on
   older files; the stored document is always the current format.
-- `engine.major` is the engine semantics the document was written for. The
-  engine refuses a document for another major (5.8).
+- `engine: { major, minor }` is the **minimum** engine the document
+  needs: exactly that major (stepping semantics) and that minor or later
+  (the features it uses; validation checks the declared minor against a
+  table of which minor introduced each function, param kind and effect).
+  The engine refuses a document for another major or a higher minor than
+  its own (5.8); the seed refuses a document whose minor is above the
+  server's engine for that major. Apps are filtered by both (5.10).
 - **Content versions**: each change to a scenario's content creates a new
   **version row** with an incrementing `version`. Runs pin the version they
   started on, so a learner mid-run is never moved onto changed rules, and
   replay of an old run uses the version it ran.
 - **Content hash**: SHA-256 (server-side, Node's `crypto`) of the canonical
   JSON of the **runtime and learner-facing content**: everything in the
-  document. Golden paths are not in the document (4.1), so editing a test
+  document **except every `Source`'s `checkedAt` and `recheckBy`**
+  (decided by the review lead, 2026-11-07; 21). Those two dates are removed before hashing; the source's
+  `cite`, `url`, `note` and every sourced value stay in. So re-checking a
+  source and bumping its dates does not make a new version or reset
+  review, while a changed value or URL does. When the hash is unchanged
+  but the dates differ, the seed updates the dates in place on the
+  existing version row (its `document` and `sources_recheck_by`), keeps
+  its review status, and prints the change; the stale-sources report
+  (11.4) reads `sources_recheck_by`, so it clears as soon as the dates are
+  bumped and reseeded. Golden paths are not in the document (4.1), so editing a test
   fixture changes nothing stored and never resets review. Canonical JSON:
   keys sorted, no insignificant whitespace, numbers in shortest round-trip
   form. Labs hash an ordered array with MD5 (`labContentHash`); sims use
@@ -810,8 +942,9 @@ they do for labs (`lib/lab-content.ts`).
   stays idempotent. A file reverted to an earlier hash points the sim back
   at that existing version row (6) rather than inserting a duplicate.
 - **Client document**: the server derives a **client document** from the
-  full one by dropping `scoring`, reasoning `parts` and ending debrief
-  text. The app receives only that (section 15 explains what that does
+  full one by dropping `scoring`, reasoning `parts`, ending debrief
+  text and every source's `checkedAt` and `recheckBy` (so a date bump
+  leaves the client hash, and the app's cache, unchanged). The app receives only that (section 15 explains what that does
   and does not protect). Its hash is a SHA-256 stored next to the content
   hash; the app keys its cache by it and checks it with `expo-crypto`
   (already a dependency) or Web Crypto before using a cached copy.
@@ -931,10 +1064,15 @@ submitted an answer (`answered: false` is a skip, scored as missed, 10).
 ### 5.3 Tick semantics
 
 This section is the specification the engine is built against. It is
-written, with the worked example below, and a **golden corpus** is
-generated from a reference run and frozen (`backend/lib/sim/engine/v1/
-golden/`, 16) **before** any engine code beyond the parser is written. A
-change that alters any corpus hash is a new engine major (5.8).
+written, with the worked example below, and a **golden corpus** of
+hand-computed cases (`backend/lib/sim/engine/v1/golden/`, 16) is written
+**before** any engine code beyond the parser. Until the freeze in 17
+(Phase 1a step 7) the corpus is a **DRAFT**: its manifest says
+`"status": "draft"`, and a hash may change when a hand computation or the
+spec is corrected, each change reviewed with its reason in the commit.
+The freeze sets `"status": "frozen"`; **only after the freeze** does a
+change that alters any corpus hash fail CI and mean a new engine major
+(5.8).
 
 **Values.** Numbers are IEEE 754 doubles. Every state write is clamped to
 the variable's `min`/`max` at the moment of the write, `-0` is stored as
@@ -950,11 +1088,23 @@ recomputed only when one of them was written since its last evaluation),
 which is an optimisation with no observable effect.
 
 **Timers** are instances. `schedule` creates an instance with a run-unique
-integer id (the next value of a counter in state) and a due tick
-`now + after` (`after` ≥ 1 tick; validation rejects less). For a timer with
+integer id (the next value of a counter in state), its `with` payload
+(evaluated once, at scheduling, and stored with the instance), and a due
+tick `now + ticks`. A `Duration` literal is an exact number of ticks
+(validation rejects less than 1 tick). An `Expr` is a number of **sim
+seconds**, converted as `ticks = max(1, ceil(seconds / dt))`: rounded up
+to the next whole tick, never earlier than asked, and at least 1 tick (a
+zero or negative result also becomes 1). `dt` is an integer (4.1) and the
+division is exactly rounded IEEE, so the conversion is identical on every
+engine; the value is then capped at `maxDuration / tick + 1` (an instance
+due after the end never fires). Example: `num(ml) / 50 * 60` for 250 mL
+is 300 s, 300 ticks at a 1 s tick. For a timer with
 `instances: "one"`, scheduling while an instance is pending cancels that
 instance first; with `"many"`, instances coexist. `cancel` removes pending
-instances of that timer (all, or those whose `with` values match `where`).
+instances of that timer: all, or those for which `where` is true with
+`timer.with.<field>` and `timer.id` bound to each instance in turn (4.3),
+checked in instance-id order. When an instance fires, its effects read
+the same bindings.
 Waits, skips and the debrief name instances, so "skip to the surgeon"
 is never ambiguous.
 
@@ -965,7 +1115,8 @@ is never ambiguous.
    false). Each trigger's effects run immediately, so later triggers see
    their writes; a trigger's own previous value is updated after its
    effects run.
-2. Evaluate `endings` that have a `when`, in document order. The first
+2. Evaluate `endings` that have a `when` (every ending except `time_up`),
+   in document order. The first
    true one is reached: a terminal ending ends the run; a non-terminal
    ending fires once per run and applies its phase change.
 3. If an effect opened a prompt or reasoning moment, the clock is blocked
@@ -980,10 +1131,13 @@ ended):
    (clamped). A later process sees an earlier one's writes.
 3. Fire every pending timer instance whose due tick ≤ *n+1*, ordered by
    (due tick, instance id). Its effects run in order.
-4. Record `history` samples whose interval divides *n+1*.
+4. Record `history` samples whose interval divides *n+1* (the tick-0
+   sample is taken at initialisation, 4.1).
 5. Settle.
 6. If *n+1* = `maxDuration / tick` and the run has not ended, reach the
-   `time_up` ending.
+   `time_up` ending. This is the only way `time_up` is reached; it is the
+   one engine-defined ending and the only terminal ending without a
+   `when` (4.1, 4.4).
 
 **Apply** a command stamped *n* (in `seq` order, all before any advance
 past *n*): validate it against Post-so-far (the action is in the current
@@ -1003,6 +1157,29 @@ stamped at or after it.
 
 **Blocked clock.** While a prompt or reasoning moment is open no advance
 happens; the learner's answer is a command at the same tick.
+
+**Checkpoints.** A checkpoint at tick *k* is exactly **Pre(k)**: the full
+state on reaching *k* (variables, records with their `_id` counters,
+history buffers, pending timer instances with their payloads, the
+instance counter, random stream counters, each trigger's previous value
+and fired-once flags, fired non-terminal endings, the phase, any open
+prompt or reasoning moment), plus the seq of the last command applied
+before it. It is a pure function of the commands with tick < *k*.
+Checkpoints are taken **only at command boundaries**: a tick *k* not
+strictly inside a skip (a skip stamped *n* that stopped at *s* covers
+ticks *n+1* … *s−1*; *s* itself is a boundary, Pre(s) being the state the
+skip stopped in). They are **never taken mid-skip**. The server writes
+one at the latest boundary tick *k* at least 300 ticks after the previous
+checkpoint and not beyond what it knows is final: *k* ≤ the larger of the
+last accepted command's tick and `last_tick`, since every later command
+is stamped at or after both (5.2). In a turns phase, where every tick is
+inside a skip, this lands on skip stop ticks. **A checkpoint at 300 and a
+command stamped 300 that arrives later:** the checkpoint is Pre(300),
+which by definition excludes every command stamped 300, so it stays
+valid; replay restores Pre(300), applies the late command (and any others
+stamped 300, in seq order), settles, and continues. Nothing is
+recomputed before 300. Checkpoint equivalence (restore, then continue,
+equals a straight run) is a property test (16).
 
 **Worked example** (a toy, not a valid scenario). `tick 1s`; state `x`
 (number, init 0, min 0, max 4); param `rate` 1 (/s); process `grow`:
@@ -1231,7 +1408,8 @@ cross-engine golden run (16).
 **Engine majors.** `ENGINE_VERSION` (`major.minor`) is recorded on every
 run. **Any change that alters the output of stepping for any valid
 document, including a bug fix, is a new major**; a minor may only add
-things existing documents cannot use (a new function, a new param kind).
+things existing documents cannot use (a new function, a new param kind),
+and a document that uses one declares that minor as its minimum (4.5).
 Each major lives in its own directory (`engine/v1/`, `engine/v2/`) with its
 own frozen golden corpus and is never edited after release except for
 security fixes that do not change any corpus hash. The server keeps every
@@ -1303,14 +1481,22 @@ Paused or in a turns phase, the phone sleeps normally.
 ### 5.10 Versions the app can run
 
 The app tells the server what it can run, so it is never offered a sim it
-cannot open. Every sims request carries `protocol: 1`, the engine majors
-the build contains (`engines: [1]`) and its renderers (`renderers:
-["bedside"]`). The list route marks a sim the app cannot run as "Update
-the app to open this" (never hides progress the learner already has), and
-the start route refuses it with 409 `app_update_required`. A version's
-`engine_major` must be one the app lists; if not, the server serves the
-latest approved version the app can run, if any. Seeding Phase 2 and 3
-scenarios is therefore safe for older apps.
+cannot open. Every sims request carries `protocol: 1`, every engine the
+build contains with its minor (`engines: [{ major: 1, minor: 0 }]`) and
+each renderer with its feature level (`renderers: [{ type: "bedside",
+level: 1 }]`). A document's `engine` is a minimum (4.5) and its
+`screen.level` (8.2, default 1) is the renderer feature level it needs;
+both are stored on the version (`engine_major`, `engine_minor`,
+`renderer_level`, 6). The server treats a version as **runnable** by an
+app only when the app lists an engine with the same major and a minor ≥
+the version's, **and** the version's screen type with a level ≥ the
+version's `renderer_level`. It filters by both: the list route marks a sim
+the app cannot run as "Update the app to open this" (never hides progress
+the learner already has), and the start route refuses it with 409
+`app_update_required`. When the served version (6) is not runnable, the
+server serves the latest approved version that is, if any. Seeding Phase
+2 and 3 scenarios, or a version that needs a newer minor or renderer
+level, is therefore safe for older apps.
 
 Two of the new dependencies, `react-native-svg` and `expo-keep-awake`,
 are native modules. The app's `runtimeVersion` uses the `fingerprint`
@@ -1321,9 +1507,13 @@ renderers and sees "Update the app".
 
 ## 6. Persistence
 
-Migration `055_sim_engine.sql` (the next free number when it is written).
-Additive only; follows 050's conventions (lock_timeout 5 s, IF NOT EXISTS,
-guarded DO blocks, NOT VALID checks on `attempts`). It follows
+Migration `<NNN>_sim_engine.sql`, numbered **the next free number at
+implementation time (currently 057)**: 055 is taken by PR #44
+(`055_content_review_queue.sql`, REQ-142/143) and 056 by the
+unrestricted-access PR. No number is fixed in this design; below, "the
+sim migration" means that file. Additive only; follows 050's conventions
+(lock_timeout 5 s, IF NOT EXISTS, guarded DO blocks, NOT VALID checks on
+`attempts`), including 050's `kind::text` lesson (see `attempts` below). It follows
 `.ai/playbooks/migration.md`: current state, target state, compatibility,
 rollback (6.1) and validation are written in the migration header and the
 runbook.
@@ -1343,7 +1533,8 @@ the **format family** of the mastery rule (`simulation`, 9.4).
 
 **`sim_versions`**: one row per content version.
 `id uuid pk, sim_id references sims on delete cascade, version int,
-schema_version int, engine_major int, document jsonb (runtime and
+schema_version int, engine_major int, engine_minor int (the document's
+minimum, 4.5), renderer_level int (5.10), document jsonb (runtime and
 learner-facing content only; golden paths stay in the repo), client_document
 jsonb, content_hash char(64), client_hash char(64), sources_recheck_by date
 (the earliest `recheckBy` in the document, for the stale-sources report),
@@ -1360,11 +1551,18 @@ version):
 3. otherwise the head version, if it is not rejected and
    `SIMS_SERVE_UNREVIEWED` is on;
 4. otherwise nothing (the sim is not listed).
-In every case the version's `engine_major` must be one the app can run
-(5.10). Rejecting a version is the rollback for content: it falls back to
-the latest approved one. A seed file reverted to an earlier hash makes that
-existing row the head again (the unique constraint means it is found, not
-re-inserted), and it keeps its review status.
+In every case the version must be runnable by the app: same engine major,
+a minor and renderer level at least the version's (5.10). Rejecting a
+version falls back to the latest approved one. A seed file reverted to an
+earlier hash makes that existing row the head again (the unique
+constraint means it is found, not re-inserted), and it keeps its review
+status. **While nothing is approved** (the normal state today, with
+review at Nick's pace), rejecting a bad head does not fall back to
+anything: rule 2 has no approved version and rule 3 skips a rejected head,
+so the sim is **unlisted** (open runs keep replaying their pinned
+version). That is a stop, not a rollback. The real rollback is **reverting
+the seed file** to the previous content and reseeding: the earlier row
+becomes the head again and is served under rule 3 (6.1).
 
 **`sim_reviews`**: the review trail (every decision, not just the latest):
 `sim_version_id, reviewer, credential, decision, checklist jsonb (section
@@ -1401,7 +1599,11 @@ missed_parts, classification, created_at`.
 (no foreign key, for the reasons in 050 section 5, FAIL-480/481); check
 `attempts_simtask_shape` (NOT VALID): a `simtask` row has
 `assessment_type = 'sim_run'` and `format = 'open'`, and no other kind has
-a `sim_id`. `question` is the sim's title, unique within its course, as
+a `sim_id`. The check compares **`kind::text`** (`kind::text <>
+'simtask'`, `kind::text = 'simtask'`), as 050's `attempts_labtask_shape`
+does (050, lines 190-191): a new enum value cannot be used as a value in
+the transaction that adds it, so the sim migration, which adds `simtask`
+and this check together, must do the same. `question` is the sim's title, unique within its course, as
 labs store their prompt, so 045's repeat ranking (which partitions by
 `type_name || ':' || question`) ranks each sim separately; a null question
 would collapse every sim on an objective into one. Partial index
@@ -1413,11 +1615,13 @@ the migration in production as 050's was.
 **Item kinds**: `sim` added to the `item_flags`, `item_status` and
 `item_holdbacks` checks. 050 does this for `lab` with a loop that drops
 any item-kind check whose definition lacks `'lab'` and then adds
-`<table>_item_kind_050` if that name is absent. 055 uses the same shape
-for `'sim'` (drop any item-kind check lacking `'sim'`, add `_055`). Because
-050's guard looks for its own constraint name, re-running 050 after 055
-would re-add `_050` (without `'sim'`); re-running 055 then drops it again,
-so applying the chain in order converges. A dbtest applies every migration
+`<table>_item_kind_050` if that name is absent. The sim migration uses the
+same shape for `'sim'` (drop any item-kind check lacking `'sim'`, add
+`_<NNN>`). Because 050's guard looks for its own constraint name,
+re-running 050 after it would re-add `_050` (without `'sim'`); re-running
+the sim migration then drops it again, so applying the chain in order
+converges. (`content_review_queue` from #44 needs no change: its
+`item_kind` is a pattern check, not a list.) A dbtest applies every migration
 twice in order and asserts that a `sim` row is accepted and exactly one
 item-kind check exists per table.
 
@@ -1431,6 +1635,19 @@ count, or a Good-rate over the last N finished runs that falls well below
 the version's own earlier rate, flags the sim for review (it keeps serving
 unless flags reach the existing pull threshold). Per version, so a content
 change is judged on its own runs.
+
+**Where per-sim signals plug in: PR #44's review queue.** #44 (REQ-142/143)
+adds `content_review_queue` and a signals job (`/api/cron/content-signals`,
+`lib/content-signals.ts`) that reads one SELECT per content kind from
+`ATTEMPT_SOURCES` in `lib/content-review-queue.ts`. Sims plug in with one
+entry there, `sim`: `attempts a … where a.sim_id is not null`, `item_id` =
+the sim id, label = the sim title, `correct` = verdict `correct` (a Good
+rating). Its common filter already drops voided and `assisted` attempts,
+so repeats do not count, and "Report a problem" flags for kind `sim` are
+counted with no further change. Queue rows land with `item_kind = 'sim'`
+and need no migration (its `item_kind` is a pattern, not a list). The
+queue keys by sim, not version; the per-version view above stays the
+evidence shown in the reviewer packet (11.4). Added in 1b with a dbtest.
 
 **RLS** on every new table (052 requires it everywhere). Account export
 (`lib/account-export.ts`) gains `simRuns`, `simRunCommands` and
@@ -1453,12 +1670,16 @@ than a year into one jsonb column; not in Phase 1.
 - **Schema**: the tables, `attempts.sim_id`, its index, the check, the
   `sim_run` type and the `sim` item kind are additive. The enum value
   `simtask` cannot be dropped in Postgres. The rollback is therefore
-  **switch off and leave the schema**: set `SIMS_ENABLED` off, leave 055 in
-  place. If a full removal is ever required, a forward migration drops the
+  **switch off and leave the schema**: set `SIMS_ENABLED` off, leave the
+  sim migration in place. If a full removal is ever required, a forward migration drops the
   sim tables, the column and the check after confirming no `simtask`
   attempt exists (or voiding them first), and leaves the enum value.
-- **Content**: reject the bad version (6, "Which version is served").
-- **Runbook**: 055 gets a row in the migration table of
+- **Content**: revert the seed file to the previous content and reseed;
+  the earlier version row becomes the head again (6). Rejecting the bad
+  version stops new runs on it at once, but while no version of that sim
+  is approved it unlists the sim rather than rolling it back (6, "Which
+  version is served"); with an approved version it falls back to that.
+- **Runbook**: the sim migration gets a row in the migration table of
   `docs/deploy-runbook-integration.md` (what it adds, lock behaviour,
   build the attempts index CONCURRENTLY first) and a line in its rollback
   table ("sim tables, attempts.sim_id (enum value stays) | sim runs and
@@ -1479,8 +1700,8 @@ capabilities (5.10).
 | `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. Needs the safety-family acknowledgement (403 `lab_disclaimer_required`, reused). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |
 | `GET /api/sims/runs/:runId` | Resume on any device: checkpoint, commands after it, `lastTick`, waits pending, current lease holder. |
 | `POST /api/sims/runs/:runId/lease { deviceId }` | "Continue on this device": take the lease; returns the new epoch and the checkpoint. |
-| `POST /api/sims/runs/:runId/commands { leaseEpoch, fromSeq, commands[], stateHash, tick }` | Sync. 409 `lease_lost` on an old epoch. Idempotent by `seq` (a resent `seq` with the same payload is accepted; with a different one is 409). Locks the run row, replays from the checkpoint, validates, stores, writes a new checkpoint every 300 ticks, returns `{ acceptedThrough, serverHash, rejected?, ended?, stoppedAt? }`. |
-| `POST /api/sims/runs/:runId/reasoning { momentId, openedSeq, answer, clientAttemptId }` | Grade one reasoning moment (section 10). The server's replay must already contain the command at `openedSeq` and show the moment open at that point; otherwise 409 `replay_behind` (the app syncs commands first and retries). Returns parts, feedback and the model answer. Replay of an already graded id returns the stored result. |
+| `POST /api/sims/runs/:runId/commands { leaseEpoch, fromSeq, commands[], stateHash, tick }` | Sync. 409 `lease_lost` on an old epoch. Idempotent by `seq` (a resent `seq` with the same payload is accepted; with a different one is 409). Locks the run row, replays from the checkpoint, validates, stores, writes a new checkpoint (Pre(k) at a command boundary at least 300 ticks after the last, never mid-skip; 5.3), returns `{ acceptedThrough, serverHash, rejected?, ended?, stoppedAt? }`. |
+| `POST /api/sims/runs/:runId/reasoning { momentId, openedSeq, openedTick, answer, clientAttemptId }` | Grade one reasoning moment (section 10). `openedSeq` is the last command seq applied when the moment opened (0 if none) and `openedTick` the tick it opened at, so a moment opened by a trigger during an advance is covered. The server's replay must contain `openedSeq`, must have reached `openedTick` (`openedTick` ≤ the run's `last_tick`), and must show the moment opening at `openedTick` with `openedSeq` as the last applied seq; otherwise 409 `replay_behind` (the app syncs first and retries). Returns parts, feedback and the model answer. Replay of an already graded id returns the stored result. |
 | `POST /api/sims/runs/:runId/finish` | Called when the app reaches a terminal ending (or the learner ends early). The server replays to the end, confirms the ending and its outcome class, computes criteria, process score, rating and KPIs, records the attempt, returns the debrief. Idempotent. |
 | `GET /api/sims/runs/:runId/debrief` | The stored debrief of an ended run. |
 | `POST /api/sims/:id/acknowledgement { version }` | The practice-lab acknowledgement for the sim's safety family; shares `lab_disclaimer_acknowledgements` (decision 5). |
@@ -1497,8 +1718,11 @@ is already locked. `consumeRateLimit` (an advisory lock, a count and an
 Limits: at most 500 commands per request, 5,000 per run, 64 KB per request
 body, and a **replay budget** of 20,000,000 expression evaluations per
 request (about 2 s worst case on the server); a sync that would exceed it
-gets 413 `replay_budget` and the app syncs in smaller pieces. Checkpoints
-every 300 ticks keep a normal sync far below it.
+gets 413 `replay_budget` and the app syncs in smaller pieces. Pieces are
+cut at command boundaries; a single skip cannot be cut, which is why the
+linter bounds the longest skip to 15,000,000 evaluations (4.3).
+Checkpoints at least every 300 ticks (5.3) keep a normal sync far below
+the budget.
 
 "Report a problem" posts `{ kind: "sim", simId }` to the existing route;
 enough independent flags (default 3) pull the sim (`servableSql("sim", ...)`).
@@ -1531,6 +1755,7 @@ The document says what the renderer shows; the renderer decides how.
 ```ts
 interface ScreenSpec {
   type: "bedside" | "board" | "dashboard" | "trainer" | "session" | "security" | "terminal" | "data";
+  level?: number;                                    // renderer feature level needed (default 1; 5.10)
   bedside?: {
     tiles: {
       id: Id; label: string; spokenLabel: string;   // "ABP" / "Arterial blood pressure"
@@ -1619,7 +1844,12 @@ means 15 sim minutes, and paused time never counts for or against.
 
 **Process score** = 100 × sum of (weight × 1 / 0.5 / 0 for met / partial /
 missed) over every criterion and every reasoning criterion, divided by the
-sum of their weights, rounded to an integer. A reasoning moment the
+sum of their weights, rounded to an integer. Both kinds may be
+`critical`. A reasoning criterion marked critical and missed (including
+skipped) blocks Good through the rating rule (9.2) like any other
+critical miss; but the path-search lint against `target` with a critical
+miss covers command-derived criteria only, because reasoning grades come
+from the AI after the run and are not reachable state (9.2). A reasoning moment the
 learner skipped (`reason { answered: false }`, or never answered before
 the run ended) counts as **missed**. Only a demonstrated grader failure
 (`status 'grader_failed'`, after the three attempts in 10) is left out of
@@ -1636,12 +1866,13 @@ at least one critical criterion (validated, 4.4).
 | `recovered` | goal met late, or with avoidable harm or cost (needed rescue) |
 | `harm` | the bad thing happened: arrest or death, data loss beyond RPO or SLA breach, a compliance block or a budget overrun past the threshold, client injury or drop-out |
 
-Every terminal ending declares its class **and** the state conditions
-(`when`) that produce it, written against the scenario's
+Every terminal ending except the engine-defined `time_up` declares its
+class **and** the state conditions (`when`) that produce it, written against the scenario's
 `outcome.thresholds`. The classes are exhaustive by construction: an
 author writes the `harm` conditions first, then `target`, and anything
 else is `recovered`. The built-in `time_up` and any `{ end }` ending carry
-a class like every other terminal ending. A run the learner quits
+a class like every other terminal ending; `time_up` is the one ending
+with no `when`, reached by tick count alone (4.1, 5.3). A run the learner quits
 (`learner_quit`) has no class and records no attempt (9.4).
 
 **Per-profile default thresholds** (Nick-approved defaults, pending his
@@ -1696,13 +1927,19 @@ weighs the same as a lab's verdict in the mastery rule (both are one
 attempt at weight 1.5); the difference is only in how the verdict is
 reached, which the debrief explains.
 
-**Linted** (4.4, 16): every terminal ending has a class and a `when`;
+**Linted** (4.4, 16): every terminal ending has a class and, except
+`time_up`, a `when` (`time_up` must not have one);
 outcome thresholds are no looser than the profile default; every class is
 reachable (by a golden path or the bounded path search, 12); no explored
-path reaches a `target` ending with a critical criterion missed (if one
-does, the author either makes the criterion part of the `target`
-condition or the criterion is not really critical); every scenario has at
-least one critical criterion; the golden paths include at least one Good,
+path reaches a `target` ending with a critical **command-derived**
+criterion (`scoring.criteria`) missed (if one does, the author either
+makes the criterion part of the `target` condition or the criterion is
+not really critical). **Reasoning criteria are outside that check**
+(decided by the review lead, 2026-11-07; 21): they may be critical, a missed critical reasoning
+criterion still blocks Good through the rating rule above, and the lint
+and path search never treat a reasoning grade as reachable state (it is
+an AI verdict after the run and never changes sim state, 10). Every
+scenario has at least one critical criterion of either kind; the golden paths include at least one Good,
 one Mediocre and one Bad run, and each states its expected class, score
 and rating. "Reachable" is checked over the golden paths and the bounded
 path search, not proved over every possible run.
@@ -1806,6 +2043,23 @@ against the current code; each is part of 1b with a test:
   open sim run is an open item, so the tutor will not talk the learner
   through the case mid-run. The guard's own comment requires this: a new
   item kind cannot be added without it.
+- `lib/item-report.ts`: the "Report a problem" body switch has a `case
+  "lab"` (line 114) and a throwing `default` (line 123-124) that lists the
+  accepted kinds. It gains `case "sim"` (`simId` must be a uuid of a sim
+  this learner can open, else 404; the ref is `{ kind: "sim", itemId:
+  sim.id, objectiveId, question: sim.title }`) and the default's message
+  names `sim`, so an unknown kind still throws 400. The route's comment
+  (`app/api/items/report/route.ts`, lines 13-16), which lists the body
+  shapes and today omits even `lab`, gains `{ kind: "lab", labId }` and
+  `{ kind: "sim", simId }`. A dbtest reports a sim (accepted, an
+  `item_flags` row of kind `sim`) and a sim the learner cannot see (404).
+- **The sim migration's check uses `kind::text`** (6): a new enum value
+  cannot be used in the transaction that adds it, which is why 050
+  compares `kind::text` in `attempts_labtask_shape`; the
+  `attempts_simtask_shape` check must do the same, and the dbtest that
+  applies every migration twice proves it.
+- `lib/content-review-queue.ts` (from PR #44): an `ATTEMPT_SOURCES` entry
+  for `sim` (6), with a dbtest.
 - `lib/account-export.ts` (the three sim tables), `lib/schema-status.ts`
   (the probe, 6), and in the app the history screen's `KINDS`
   (`app/(app)/course/[trackId]/history.tsx`, line 12) and the attempt
@@ -1836,11 +2090,18 @@ prompt builder:
   the clock right away and shows the model answer when the grade returns;
   offline, the answer is queued and the model answer appears when it
   syncs. The grade never changes sim state.
-- **Ordering**: the grading request names the `seq` of the command at
-  which the moment opened (`openedSeq`). The server grades only when its
-  replay contains that command and shows the moment opened there;
-  otherwise it answers 409 `replay_behind` and the app syncs its commands
-  first. The app always sends queued reasoning before `finish`.
+- **Ordering**: a moment opens either from a command's effects or from a
+  trigger during an advance (no command at that tick). The grading
+  request therefore names `openedSeq`, the **last command seq applied
+  when the moment opened** (0 if none), and `openedTick`, the tick it
+  opened at; both are stored on `sim_run_reasoning` (`opened_seq`,
+  `opened_tick`). The server grades only when its replay contains
+  `openedSeq`, has reached `openedTick` (`opened_tick` ≤ `last_tick`,
+  raised by any sync, 6), and shows that moment opening at `openedTick`
+  with `openedSeq` as the last applied seq; otherwise it answers 409
+  `replay_behind` and the app syncs first. Because the clock is blocked
+  while the moment is open, the app's next sync always reports a tick ≥
+  `openedTick`. The app always sends queued reasoning before `finish`.
 - **At finish**: each moment contributes its reasoning criterion (met /
   partial / missed from its verdict). A moment the learner skipped, or
   never answered, is **missed** (9.1): skipping the written part cannot
@@ -1931,6 +2192,11 @@ mechanism exists so that review can happen whenever Nick chooses:
   with the parameters due. Stale sims keep serving; the list is the
   reviewer's queue. `recheckBy` defaults to `checkedAt` + 12 months, and
   to + 6 months for clinical guidelines and cloud prices and limits.
+  Re-checking a source that has not changed means bumping its
+  `checkedAt`/`recheckBy` and reseeding: the dates are outside the
+  content hash (4.5), so this updates the existing version in place,
+  keeps its review status, and clears it from the stale list. A changed
+  value or URL is a content change and makes a new version for review.
 - **Learner signals.** The per-version daily metrics (6) feed the
   learner-signal auto-flag being built for labs and items: rising "Report
   a problem" flags or a sudden drop in a version's Good rate flags it for
@@ -1963,7 +2229,9 @@ generator will also produce and the JSON Schema gives editor completion.
 
 **Seeding** upserts `sims` by (objective, slug) and inserts a `sim_versions`
 row only when the content hash is new (a reverted file points the head
-back at its existing row, 6). The safety family is derived from the
+back at its existing row, 6). When the hash is unchanged but source dates
+changed, it updates those dates and `sources_recheck_by` on the existing
+row in place (4.5). The safety family is derived from the
 objective's course, never read from the file. Removing a file retires the sim
 (`retired_at`); runs and attempts stay.
 
@@ -2049,7 +2317,7 @@ Estimates, to be replaced by the benchmarks named in 17:
 |---|---|
 | Engine tick (tamponade, ~25 state vars, ~40 expressions, about 800 evaluations with dependency-tracked derived values) | well under 1 ms on V8; Hermes is an interpreter and several times slower, so the 1a benchmark sets the budget from a Hermes run, not V8 |
 | Longest skip in the tamponade case (back from the OR, 90 min = 5,400 ticks) | must finish within 1 s on a mid-range Android under Hermes, computed in chunks of ≤ 250 ticks per frame (5.4); measured before 1c exits |
-| Server replay | from the last checkpoint (every 300 ticks) plus the new ticks; a typical sync is a few ms. Worst case is bounded by the linted per-run bound (≤ 50,000,000 evaluations) and the per-request replay budget (20,000,000, 7) |
+| Server replay | from the last checkpoint (Pre(k) at a command boundary, at least every 300 ticks, 5.3) plus the new ticks; a typical sync is a few ms. Worst case is bounded by the linted per-run bound (≤ 50,000,000 evaluations), the longest-skip bound (≤ 15,000,000, 4.3) and the per-request replay budget (20,000,000, 7) |
 | Network | about 100 B per command, a sync every 10 s while running: under 50 KB per run |
 | Database | 1 run row, 30-200 command rows, 1-2 reasoning rows, checkpoints in the run row: about 50 KB per run |
 | AI | one fast-model call per reasoning moment: about $0.0005 at the labs' measured size; one moment per sim is about $0.0005 per run, two about $0.001. Optional narrative (off) would add about $0.001. |
@@ -2130,10 +2398,26 @@ worked example in 5.3 and a set of small documents covering each step of
 5.3 (process ordering, simultaneous writes inside a process, clamping at
 the write, timer instance ordering and replacement, edge and once
 triggers, endings in order, blocked clock, skip stopping on each kind of
-interrupt, history sampling, `pow`, saturation and `-0`) are written with
+interrupt, history sampling including the tick-0 sample and `past`/
+`delta`/`trend` on a one-sample buffer, timer `after` conversion and
+rounding, timer `with` payloads read by effects and `cancel … where`,
+`time_up` by tick count, checkpoints including a late command stamped at
+the checkpoint tick, `pick`/`chance` draws, command dispatch with typed
+captures and the unmatched line, `pow`, saturation and `-0`) are written with
 hand-computed expected states. The engine must reproduce them; their state
-hashes are then frozen as the `v1` golden corpus. Any change to a corpus
-hash fails CI and means a new engine major (5.8).
+hashes are recorded as the `v1` corpus, which stays a **DRAFT** through
+Phase 1a steps 3-6: a hash may change while the spec or a hand
+computation is corrected, each change reviewed with its reason. At the
+freeze (17, Phase 1a step 7) the manifest is marked frozen; **from then
+on** any change to a corpus hash fails CI and means a new engine major
+(5.8).
+
+**Schema conformance.** A typechecked test asserts that the zod schema
+in `backend/lib/sim/schema.ts` and the engine's types in
+`backend/lib/sim/engine/v1/types.ts` are mutually assignable (an
+`Equals<z.infer<…>, ScenarioDoc>` assertion, and one per building
+block), and a runtime test parses every corpus, paper and seeded document
+with the zod schema. Both run in CI from Phase 1a step 4 (4.1).
 
 **Engine unit and property tests** (`backend/lib/sim/engine/v1/**/*.test.ts`,
 node:test, pure):
@@ -2148,8 +2432,11 @@ node:test, pure):
 - **Skip equivalence**: for random scripts, inserting a skip in place of
   waiting gives identical Post states from the skip's stop tick on; a skip
   stops at the first interrupt.
-- **Checkpoint equivalence**: snapshot at tick *k*, restore, continue =
-  straight run (history and timer instances included).
+- **Checkpoint equivalence**: checkpoint Pre(k) at a command boundary,
+  restore, continue = straight run (history, timer instances and
+  payloads, stream counters and trigger previous values included); a
+  command stamped *k* arriving after the checkpoint applies on top of it;
+  no checkpoint is ever taken strictly inside a skip.
 - **Bounds**: no state outside declared min/max, every run ends by
   `maxDuration`, random legal command fuzzing never throws, the budgets
   trip on a document crafted to exceed them.
@@ -2164,9 +2451,15 @@ node:test, pure):
 replayed and must reach its stated ending, outcome class, criteria, score,
 rating and KPIs, with state snapshots at listed ticks. For the four
 prototype ports, the expected values come from playing the same path in
-the revised prototype through its `?test=1` hook (which steps in 1 s, like
-the engine; `test-cloud.js` and `test-fitness.js` already script paths for
-two of them). Endings and criteria must match the prototype exactly
+the revised prototype through a **driver**, and the drivers are not
+uniform. Only `critical-care.html` has a `?test=1` hook (it steps in 1 s,
+like the engine). The cloud and fitness prototypes have no hook; their
+existing scripts, `test-cloud.js` and `test-fitness.js`, drive paths
+through them. The project prototype has **neither**, so the PMP port
+needs a **new driver** (a script in the style of `test-cloud.js`, or a
+`?test=1` hook added to the prototype), written in Phase 1a step 5 before
+its golden paths can be compared (17). (The prototypes are outside this
+repository; this was not re-checked from here.) Endings and criteria must match the prototype exactly
 except where 3.1 records a deliberate change; continuous values such as
 vitals must match within ±1 display unit at the listed ticks. This shows
 the port behaves like what Nick tried; it does not prove the two are
@@ -2188,8 +2481,10 @@ developer-only screen runs the corpus on a real iPhone and Android phone
 schema and semantics (4.4); every timing, rate and threshold has a source
 with `checkedAt`, and past-due `recheckBy` dates warn; unit dimensions;
 outcome rules (each class reachable, thresholds no looser than the
-profile default, no `target` with a critical miss, at least one critical
-criterion); golden-path rules (every ending reached, every criterion both
+profile default, no `target` with a critical command-derived criterion
+missed, reasoning criteria excluded from that check, at least one
+critical criterion); `time_up` without a `when` and every other terminal
+ending with one; the longest-skip bound (4.3); golden-path rules (every ending reached, every criterion both
 met and missed, at least one Good, one Mediocre and one Bad path); no
 unreachable action (never `available` in any golden path is a warning); a
 `wait` pending at every tick of a golden path is a warning (3); every tile
@@ -2253,18 +2548,25 @@ In this order:
    result. Add the headless-browser corpus job (Chromium, Firefox,
    WebKit) regardless.
 3. **Semantics spec and corpus**: the 5.3 rules as hand-computed cases,
-   frozen as the v1 corpus before engine code beyond the parser.
+   recorded as the **draft** v1 corpus before engine code beyond the
+   parser (it stays a draft until step 7, 5.3).
 4. Engine, parser, type checker, deterministic maths, history,
-   catalogues, timer instances, the linter and the bounded path search.
+   catalogues, timer instances, the linter and the bounded path search;
+   engine types in the engine folder and the zod conformance test (4.1,
+   16).
 5. **Ports**: all four prototypes as documents with golden paths (engine
    only, no renderer): tamponade, cloud launch day, the PMP project and
    the NASM client, using the revised prototypes' timings (3) and the
-   outcome classes (3.1, 9.2).
+   outcome classes (3.1, 9.2). Expected values come from the prototype
+   drivers (16): `?test=1` for critical care, the existing
+   `test-cloud.js` and `test-fitness.js`, and a **new driver for the
+   project prototype**, which has none.
 6. **Paper scenarios**: one full scenario each for the security console,
    terminal/network and data/code console, written against the schema in
    `docs/sims/paper/` (not seeded), each with its outcome profile, every
    action and output it needs, and a note of any schema feature it used.
-7. Freeze engine major 1.
+7. Freeze engine major 1 **and its corpus** (manifest `"status":
+   "frozen"`). Only from here does a corpus hash change mean a new major.
 
 *Exit*: the v1 corpus and all property tests pass on Node and in the
 browser job, and on a Hermes VM if the spike found one; the four ported
@@ -2276,8 +2578,10 @@ outside the schema (any they needed was added, with tests, before the
 freeze); the tamponade tick and 90-minute skip meet their benchmark
 budgets; `./omni gate` passes.
 
-**Phase 1b: server.** Migration 055 with its rollback notes and runbook
-rows, schema probe, routes (lease, row lock, per-run sync interval, replay
+**Phase 1b: server.** The sim migration (the next free number at
+implementation time, currently 057; 6), with 050's `kind::text` rule for
+its `simtask` check, its rollback notes and runbook rows, schema probe,
+the `sim` entry in #44's `ATTEMPT_SOURCES`, routes (lease, row lock, per-run sync interval, replay
 budget, capability negotiation, reasoning ordering), replay verification,
 grading, outcome classes and ratings, mastery integration and the code in
 9.5, tier gating, switches (off), metrics view and the stale-sources
@@ -2508,9 +2812,15 @@ learner types commands; a `command` param matches them against declared
 patterns with typed captures (`ping {host:ipv4}`, `show ip route`,
 `ip route add {dst:cidr} via {gw:ipv4}`), and each pattern's `cases`
 decide the authored output from the current fault state, using
-`ipInCidr`, `sameSubnet` and record lookup over the topology. Tabular
-`show` output uses `TableView`. Anything not matched gets an authored
-"command not available in this lab" line, never an emulation. Outcome
+`ipInCidr`, `sameSubnet` and record lookup over the topology; captures
+are typed names inside the pattern's cases (4.1). A learner-added route
+is a `routes` record (`dst` cidr, `via` ipv4); forwarding uses
+`longestPrefixMatch` over that record list and over the static route
+catalogue (command-time only), comparing `cidrPrefix` of the two results
+(4.3), with no bitwise operators. Tabular
+`show` output uses `TableView`. Anything not matched gets the action's
+authored `unmatched` line ("command not available in this lab"), recorded
+as a valid command, never a 400 and never an emulation. Outcome
 profile `infrastructure`: `target` = service restored within the stated
 outage window with no new fault introduced; `recovered` = restored late
 or with a second, authored side effect (a route leak, a dropped
@@ -2524,7 +2834,14 @@ whose option names an authored result (a `TableView` over a catalogue,
 filtered by command-time aggregates) and whose effects move the case on:
 stakeholder reactions, a deadline timer, quality flags. The learner's own
 reasoning goes to a written-reasoning moment. Nothing the learner types is
-executed. Outcome profile `data`: `target` = the right root cause found
+executed. **End conditions read counters, never catalogues.** Conditions
+such as "data altered beyond the fix" or "deleted beyond recovery" are
+state counters (for example `rowsAlteredOutsideFix`, `rowsLost`,
+`openQualityFlags`) that each action's effects compute **at command
+time**, with catalogue aggregates, and write into state. Ending and
+trigger `when` conditions read only those counters, because catalogue
+aggregates are banned in anything evaluated per tick (endings, triggers,
+processes, derived values; 4.3). Outcome profile `data`: `target` = the right root cause found
 and fixed before the deadline, with no data altered beyond the fix;
 `recovered` = fixed late, or with a reversible side effect caught by a
 check; `harm` = a wrong result shipped to the stakeholder (a published
@@ -2595,3 +2912,50 @@ dimension heuristic rather than a typed unit system.
 **Added after the review, at Nick's request:** the measured outcome
 classes and rating rubric (9.2, 3.1), and source re-check dates with a
 stale-sources report and learner-signal metrics (4.1, 6, 11.4).
+
+### 21.1 Re-review (2026-11-07)
+
+A re-review found B3, S1, S2, S5 and S6 resolved and B1, B2, S3 and S4
+partial. Each remaining item is closed below as a concrete spec change.
+Items 1-12 had to be fixed before spec step 3 (the draft corpus, 17).
+Items 17-20 were new issues; the review lead decided them and they are
+recorded as decided. Repository facts were checked against the code
+before use: `backend/lib/item-report.ts` (`case "lab"` at line 114, the
+throwing default at 123-124), the route comment in
+`backend/app/api/items/report/route.ts` (lines 13-16, which list neither
+lab nor sim), 050's `kind::text` comment (lines 190-191), and PR #44's
+`055_content_review_queue.sql` and `ATTEMPT_SOURCES` in
+`lib/content-review-queue.ts` (on its branch). The prototype drivers
+(item 20) live outside this repository and were taken from the review
+lead, not re-checked here.
+
+| # | Item (finding) | Resolution | Where |
+|---|---|---|---|
+| 1 | Checkpoints undefined (B2) | A checkpoint at *k* is Pre(k) plus the last applied seq, taken only at command boundaries, never strictly inside a skip, at most up to the larger of the last command's tick and `last_tick`. A later command stamped 300 applies on top of a checkpoint at 300, because Pre(300) excludes it | 5.3 Checkpoints, 7, 16 |
+| 2 | `schedule.after` as an Expr (B2) | An Expr is sim seconds; `ticks = max(1, ceil(seconds / dt))`, capped at `maxDuration / tick + 1`; `dt` is an integer number of seconds | 4.1, 5.3 Timers |
+| 3 | Timer `with` payloads unreadable (B1) | `TimerSpec.with` declares typed fields; `timer.with.<field>` and `timer.id` are names in the timer's effects and in `cancel … where` | 4.1, 4.3 Names, 5.3 |
+| 4 | History start and short buffers (B2) | A sample at tick 0; `past` returns the oldest sample when the buffer is too short, `delta` and `trend` return 0 with one sample, and an empty buffer gives 0, never an error | 4.1, 4.3, 5.3 |
+| 5 | `time_up` against "every terminal ending needs `when`" (B2) | `time_up` is the one engine-defined ending, reached by tick count only. It must have a class and must not have a `when`, and the lint says so | 4.1, 4.4, 5.3, 9.2, 16 |
+| 6 | `openedSeq` for trigger-opened moments (S3) | `openedSeq` is the last applied seq when the moment opened. `openedTick` is sent and stored, and the server requires `openedTick` ≤ `last_tick` before grading | 7, 10 |
+| 7 | Corpus frozen too early (B2) | The corpus is a DRAFT until 17 step 7 freezes it; only after the freeze does a hash change mean a new major | 5.3, 16, 17 |
+| 8 | Command patterns underspecified (B1) | Per-pattern `cases` in the schema; captures are typed names inside their pattern's cases, plus `<paramId>.matched`; unmatched input runs the authored `unmatched` line as a valid command, never a 400 | 4.1, 4.3, 20.1 |
+| 9 | No longest-prefix routing (B1) | Added `cidrPrefix`, `cidrNetwork` and `longestPrefixMatch(coll, ip, field)`; bitwise operators stay banned | 4.3, 20.1 |
+| 10 | `trend` threshold implicit (B1) | `trend(h, seconds, threshold)`, with a positive literal or param as the threshold | 4.3, 8.2 |
+| 11 | `pick`/`chance` missing from the whitelist (B1) | Added to 4.3, only in effect expressions. Each call draws exactly one value; evaluation order is fixed and short-circuiting is defined; stream counters are state | 4.3, 5.6 |
+| 12 | Engine versioning (S4) | The document's `engine: {major, minor}` is a minimum. The app sends `engines: [{major, minor}]` and `renderers: [{type, level}]`, and the server filters by both (`engine_minor`, `renderer_level` stored per version) | 4.1, 4.5, 5.8, 5.10, 6, 8.2 |
+| 13 | Skip span against the 20M request budget | Lint chosen over mid-skip resume: per-tick bound × the longest skip span must be ≤ 15,000,000. Mid-skip resume would need checkpoints inside a skip and would break the Pre(k) boundary rule | 4.3, 4.4, 7, 16 |
+| 14 | Data console end conditions | End conditions read state counters computed at command time; catalogue aggregates are banned in endings, triggers, processes and derived values | 20.1 |
+| 15 | S3 parity list incomplete | Added `item-report.ts` (`case "sim"`, a throwing default naming it), its route comment and a dbtest. The sim migration's check uses `kind::text`, as 050 does | 6, 9.5 |
+| 16 | S6 rollback with nothing approved | While nothing is approved, rejecting the head unlists the sim; reverting the seed file is the real rollback | 6, 6.1 |
+| 17 | Re-checking a source forced re-review (new; decided) | `checkedAt` and `recheckBy` are excluded from the content hash (and dropped from the client document); `cite`, `url`, `note` and the values stay in. The seed updates dates in place, which clears the stale report | 4.1, 4.5, 11.4, 12 |
+| 18 | Critical reasoning criteria against the path search (new; decided) | The critical-miss lint covers command-derived criteria only. Reasoning criteria may be critical and still block Good through the rating rule; the lint never treats a reasoning grade as reachable state | 4.4, 9.1, 9.2, 16 |
+| 19 | Where the engine types live (new; decided) | `engine/v1/types.ts` inside the engine folder; `backend/lib/sim/schema.ts` (zod) must pass a compile-time and runtime conformance test in CI | 4.1, 16, 17 |
+| 20 | Golden-path drivers (new; decided) | Only `critical-care.html` has a `?test=1` hook; cloud and fitness use `test-cloud.js`/`test-fitness.js`; the project port needs a new driver in 1a step 5 | 16, 17 |
+
+**Also updated (coordinator, 2026-11-07).** Migration 055 is now PR #44's
+content review queue (REQ-142/143), and the unrestricted-access PR takes
+056. The sim migration has no fixed number. It takes the next free number
+at implementation time (currently 057), and 050's `kind::text` lesson
+applies to it (6, 6.1, 9.5, 17). Per-sim learner signals plug into #44's
+`content_review_queue` through a `sim` entry in `ATTEMPT_SOURCES` in
+`lib/content-review-queue.ts`, which the signals job reads (6, 9.5, 17).
