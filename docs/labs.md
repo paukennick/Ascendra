@@ -380,6 +380,35 @@ The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
 lab is framed.
 
+### Fitness wave (REQ-149)
+
+The other five fitness courses now have authored labs at the NASM pilot's
+depth, each in its certifying body's own model and vocabulary, following (d)
+unit by unit (`backend/lib/labs-fitness.test.ts` checks it). Files:
+`seed/labs/fitness-<course>.ts`.
+
+| Course | Labs | Per unit (d) | Built around |
+|---|---|---|---|
+| ACE-CPT | 9 (5 build, 4 case) | 2/3/3/1 | ACE IFT Model phases (Functional, Movement, Load/Speed; Base, Fitness, Performance by VT1/VT2 and the talk test), five primary movements, ACE ABC approach |
+| ACSM-CPT | 7 (3 build, 4 case) | 1/3/2/1 | ACSM preparticipation screening algorithm, FITT-VP, heart-rate reserve and RPE, RM-based loads, criteria for stopping exercise, S.M.A.R.T.S. goals |
+| NSCA-CPT | 10 (7 build, 3 case) | 2/3/3/2 | Periodized macro/meso/microcycles, NSCA training load chart, order, rest and tempo, technique and spotting, emergency response |
+| NSCA CSCS | 12 (8 build, 4 case) | 3/1/1/2/2/2/1 | Needs analysis, force-velocity, energy systems, periodization off- to in-season, testing order and monitoring (session RPE, HRV), heat illness |
+| NCCPT-CPT | 10 (6 build, 4 case) | 1/2/2/2/2/1 | Food-log review against the AMDRs, label reading, assessment battery, linear vs undulating periodization and GAS, kinetic-chain checkpoints, over-training |
+
+Every value a lab quotes is cited in its file's header comment with the
+date checked (2026-11-07): ACSM GETP 12th edition's screening model (Riebe
+et al. 2015) and FITT values (Garber et al. 2011), the Physical Activity
+Guidelines for Americans (2nd ed.), the 2025 AHA/ACC blood pressure
+categories, ACC/AHA criteria for stopping an exercise test, the NSCA training
+load chart, NATA's exertional heat illness statement, the 2025 AHA CPR
+guidelines, the IOM AMDRs, CDC BMI categories and FDA %DV guidance. Values
+that could not be verified against an authoritative page that session (for
+example NSCA work-to-rest ratios, rest periods for hypertrophy, test-order
+lists from the textbooks) are not stated as numbers; those rubrics grade the
+reasoning instead. Like every lab, all 48 are `needs_expert_review` and need
+an NCCA-accredited trainer or strength coach (a CSCS for the CSCS set) to read
+them in full.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

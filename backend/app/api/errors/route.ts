@@ -3,7 +3,6 @@ import { ok, badRequest, notFound, unauthorized, tooManyRequests, serverError, r
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { visibleObjective, visibleUnit } from "@/lib/visibility";
-import { toDateOnlyString } from "@/lib/mastery";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
@@ -124,12 +123,11 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    const next = new Date();
-    next.setDate(next.getDate() + 1);
+    // FAIL-529: tomorrow by the database's clock, the one the due filter reads.
     const rows = await query(
       `insert into error_log (user_id, unit_id, objective_id, topic, error_text, why, classification, review_stage, next_review_at)
-       values ($1,$2,$3,$4,$5,$6,$7,0,$8) returning *`,
-      [userId, unit, objective, topic.value, errorText.value, why.value || null, classification.value || null, toDateOnlyString(next)]
+       values ($1,$2,$3,$4,$5,$6,$7,0,current_date + 1) returning *`,
+      [userId, unit, objective, topic.value, errorText.value, why.value || null, classification.value || null]
     );
     return ok({ error: rows[0] }, 201);
   } catch (err) {
