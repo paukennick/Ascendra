@@ -15,18 +15,25 @@ section's order wins.
 
 ## Release 2026-11-07: the ordered deploy, and the way back
 
-Production today: master @ c3e13ab's code on Vercel; a database with
+**Shipped 2026-11-08 (UTC) / 2026-11-07 evening (Pacific).** See "What was
+actually run" at the end of this section for the record; the steps below
+are the plan as written, kept for reference and for any re-run.
+
+Production before the release: master @ c3e13ab's code on Vercel; a database with
 001-024 plus line B's 025/026/027, whose `schema_migrations` lists only
 023-027; 3 accounts and about 25 attempts. Times below are for that size;
 the 1.9-million-attempt fixture timings further down are for scale only.
 Every step was rehearsed end to end on a copy of that state
 (`backend/scripts/rehearse-production-migration.sh`, CI job "Database
-(production-state rehearsal and rollback)"); nothing here has been run
-against production.
+(production-state rehearsal and rollback)") before it ran in production.
 
-`$DATABASE_URL` is the production database over the **direct** connection
-(port 5432, `sslmode=require`), not the transaction pooler; every command
-runs from `backend/`.
+`$DATABASE_URL` is the production database over the Supabase **Session
+pooler** (`postgres.<project-ref>@aws-...pooler.supabase.com:5432`). The
+"direct" host (`db.<project-ref>.supabase.co`) is IPv6-only and GitHub's
+runners cannot reach it; never use the transaction pooler (port 6543) for
+migrations. Every command runs from `backend/`. Since the release, steps 3,
+5 and 6 run from GitHub Actions instead of a laptop -- see
+[Routine deploys](#routine-deploys-after-2026-11-07).
 
 ### 0. Before the window (any time, ~10 min)
 
@@ -116,7 +123,7 @@ sends. The mobile app needs a store build for the new native module
 (section "Forward order" step 5 below); until learners install it the old
 app keeps working against the new backend.
 
-**Total: about 15-20 minutes**, most of it waiting for the Vercel build and
+**Total: about 15-20 minutes planned; 25 minutes in practice (the seed alone took 22 from GitHub)**, most of it waiting for the Vercel build and
 the seed.
 
 ### 7. Rollback, if needed (the way back, in order)
@@ -176,8 +183,46 @@ so leaving it in place is always safe for the old code):
 | 054 | app_users.whats_new_seen_id | which "What's new" note each learner dismissed |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
-production database over the direct connection (port 5432), not the
+production database over the Session pooler (port 5432), not the
 transaction pooler.
+
+### What was actually run (2026-11-07/08)
+
+Times are UTC on 2026-11-08 unless marked; Pacific is 8 hours behind.
+
+1. **Backup (2026-11-07, before the window).** Not a `pg_dump` file: the
+   tables were copied inside the database into schema
+   `backup_release_20261107` (32 tables, 3 accounts, 25 attempts, and a copy
+   of the 5-row ledger), through the Supabase connector. Restore from it with
+   `insert ... select` per table; drop it 30 days after the deploy
+   (see Cleanup).
+2. **Ledger baseline and 027a-028 (2026-11-07).** The baseline recorded
+   001-027 (27 rows), then 027a, 027b, 027c and 028 were applied, through the
+   Supabase connector. All additive; the live c3e13ab code was unaffected.
+3. **029-054 (04:33).** GitHub Actions, "Migrate production database"
+   (run 42445625782, attempt 5), from the release head 04246c7: 31 files
+   applied, `--status` "Schema is current", "every stored level matches
+   mastery_from_attempts()", five rollback backups present, JIT off.
+4. **Backend (04:35).** PR #40 merged to master as 4080462; Vercel built and
+   promoted it. `/api/health` answered `{"status":"ok","schema":"current"}`.
+5. **Seed and recompute.** GitHub Actions, run 42447459047 on
+   `ops/post-deploy-production`, 04:36-04:58: seed complete in 21.6 minutes (all courses updated, the 80 authored labs loaded: AWSSAA 10, PMP 9, NCLEXRN 14, NASMCPT 11, CCRN Adult/Peds/Neo 12 each); `recompute_mastery_batched` checked 8 of 8 pairs, 0 rows changed; `--status` current, every stored level matches.
+6. **Still to do:** the in-app checks in step 6 and the mobile store build.
+
+What went wrong on the way, so the next deploy avoids it:
+
+- **The database password was reset during the window** (Supabase ->
+  Database -> Settings), because Vercel's `DATABASE_URL` is a "Sensitive"
+  variable and its value can never be read back. Resetting it broke the live
+  app (`password authentication failed for user "postgres"`) for about
+  15 minutes, until `DATABASE_URL` in Vercel held the new string and the
+  c3e13ab deployment was redeployed to pick it up. A password with symbols
+  (`@ # / ? % :`) breaks a connection URL unless percent-encoded; use letters
+  and digits only.
+- **The GitHub secret was first saved as `PROD_DATABSE_URL`** (typo); the
+  workflow then saw an empty value and stopped at its first step, before
+  touching the database. GitHub cannot rename a secret: create the right
+  name and delete the wrong one.
 
 ## The migrations, in order
 
@@ -366,11 +411,49 @@ drop table if exists error_log_backup_029;
 drop table if exists mastery_backup_031;   -- probe: 031b_weighted_mastery_backfill.sql (checks the table too)
 drop table if exists mastery_backup_041;   -- probe: 041b_mastery_rule_backfill.sql
 drop table if exists mastery_backup_045;   -- probe: 045b_mastery_honesty_backfill.sql
+drop schema if exists backup_release_20261107 cascade;   -- the pre-release copy (no probe); due 2026-12-08
 ```
 
-Not verified from this repo: production's real row counts (scale the times
-above), whether the Vercel Git integration promotes on merge, and Supabase's
-SQL editor with `CALL` and internal commits (use psql).
+Confirmed by the 2026-11-07 release: production's size (3 accounts, ~25
+attempts, so every step took seconds except the seed), and that the Vercel
+Git integration builds and promotes master on merge. Still not verified:
+Supabase's SQL editor with `CALL` and internal commits (use psql or the
+workflow).
+
+## Routine deploys (after 2026-11-07)
+
+The production ledger is now complete, so an update only applies what is
+new. Three steps, all from GitHub, no laptop and no database password:
+
+1. **Migrations first** (only if the release adds files under
+   `backend/supabase/migrations/`): push the release commit to
+   `ops/migrate-production`:
+   `git push origin <release-commit>:refs/heads/ops/migrate-production --force`.
+   The "Migrate production database" workflow shows `--status`, applies
+   `--all`, and shows `--status` again; it must end "Schema is current".
+   Every migration must keep the live code working (additive), because the
+   old backend runs on the new schema until step 2 finishes.
+2. **Deploy**: merge the release PR into master. Vercel builds and promotes
+   it; check `/api/health` answers `"schema":"current"`.
+3. **After the deploy** (only if the seed or the mastery rule changed): push
+   the same commit to `ops/post-deploy-production`. The workflow repeats
+   step 1 (a no-op), then runs `npm run seed`, `call
+   recompute_mastery_batched()` and `--status`. The seed takes 15+
+   minutes from GitHub (network round trips); it is safe to re-run.
+
+Both branches only trigger the workflow; nothing merges them. The workflow
+reads the repository secret **`PROD_DATABASE_URL`** (Settings -> Secrets and
+variables -> Actions -> Secrets tab -> Repository secrets): the Session
+pooler URI from Supabase -> Connect -> Direct -> Session pooler, with the
+database password in place of `[YOUR-PASSWORD]` (no brackets). Vercel's
+`DATABASE_URL` holds the same string. When the password changes, update
+both, then redeploy the current production deployment in Vercel so it picks
+the new value up -- the live app is down from the reset until that redeploy
+is Ready. Vercel's Sensitive variables cannot be read back, so Supabase is
+the only place to get the string again.
+
+Rollback stays as in step 7 above: Vercel Instant Rollback for code,
+migrations are additive so the database can stay.
 
 ## Migration 050: verifiable labs (REQ-123)
 
