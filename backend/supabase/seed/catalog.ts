@@ -26,6 +26,7 @@ import { FITNESS_TRACKS } from "./tracks/fitness";
 import { CCRN_TRACKS } from "./tracks/ccrn";
 import { CCRN_PEDS_NEO_TRACKS } from "./tracks/ccrn-peds-neo";
 import { MS_HEALTH_INFORMATICS_TRACK } from "./tracks/informatics";
+import { KUBERNETES_TRACKS } from "./tracks/kubernetes";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -53,6 +54,8 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...CCRN_TRACKS,
   ...CCRN_PEDS_NEO_TRACKS,
   MS_HEALTH_INFORMATICS_TRACK,
+  // REQ-164: Linux Foundation / CNCF container and Kubernetes certifications.
+  ...KUBERNETES_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the
