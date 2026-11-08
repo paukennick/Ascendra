@@ -15,7 +15,7 @@ import { KUBERNETES_TRACKS } from "../supabase/seed/tracks/kubernetes";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
-const HANDS_ON = ["CKA"] as const;
+const HANDS_ON = ["CKA", "CKAD"] as const;
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON] as const;
 
@@ -66,6 +66,22 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     assert.match(cka.credential?.questionFormat ?? "", /performance-based/);
   });
 
+  test("CKAD's domains and weights are the official v1.37 curriculum", () => {
+    const ckad = tracks.get("CKAD")!;
+    assert.deepEqual(
+      activeUnits(ckad).map((u) => [u.title, u.weight]),
+      [
+        ["Application Design and Build", 20],
+        ["Application Deployment", 20],
+        ["Application Observability and Maintenance", 15],
+        ["Application Environment, Configuration and Security", 25],
+        ["Services and Networking", 20],
+      ]
+    );
+    assert.equal(ckad.credential?.durationMinutes, 120);
+    assert.match(ckad.credential?.passingScorePolicy ?? "", /66%/);
+  });
+
   test("each course has a lab set citing its curriculum and exam page", () => {
     for (const code of CODES) {
       const set = LAB_SETS.find((s) => s.trackCode === code);
@@ -104,14 +120,17 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const labs = setFor(code).labs;
       for (const lab of labs) {
         const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
-        assert.match(answers, /kubectl|apiVersion:|^\s*(spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
+        assert.match(answers, /kubectl|helm |apiVersion:|^\s*(spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
         if (lab.kind === "case") {
           const shown = lab.steps.map((s) => s.text).join("\n");
           assert.match(shown, /\$ kubectl|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\/ # /, `${code}/${lab.slug}: the case shows authored command output`);
         }
       }
+      // Admin and developer families lean to build labs with real cases
+      // mixed in (docs/labs.md "Kinds"): both kinds, and at least a third
+      // of each course unfolds as a case with authored cluster output.
       const cases = labs.filter((l) => l.kind === "case").length;
-      assert.ok(cases >= labs.length / 2 && labs.some((l) => l.kind === "build"), `${code}: ${cases} case of ${labs.length}, with builds`);
+      assert.ok(cases >= labs.length / 3 && labs.some((l) => l.kind === "build"), `${code}: ${cases} case of ${labs.length}, with builds`);
     }
   });
 

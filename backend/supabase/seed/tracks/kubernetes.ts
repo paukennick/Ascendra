@@ -157,4 +157,113 @@ export const CKA_TRACK: SeedTrack = {
   ],
 };
 
-export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK];
+// ---------------------------------------------------------------------------
+// Certified Kubernetes Application Developer (CKAD)
+// Performance-based, 2 hours, online proctored, Kubernetes v1.37 when
+// checked; pass mark 66%; $445 with one free retake; valid 2 years.
+// Domains (CKAD_Curriculum_v1.37.pdf): Application Design and Build 20%,
+// Application Deployment 20%, Application Observability and Maintenance 15%,
+// Application Environment, Configuration and Security 25%, Services and
+// Networking 20%.
+// ---------------------------------------------------------------------------
+export const CKAD_TRACK: SeedTrack = {
+  code: "CKAD",
+  title: "Certified Kubernetes Application Developer (CKAD) Coach",
+  description:
+    "CKAD: the hands-on developer exam. Design and build container images and multi-container Pods, ship them with Deployments, Helm and Kustomize, make them observable with probes and logs, configure and secure them with ConfigMaps, Secrets, SecurityContexts and quotas, and expose them with Services, Ingress and NetworkPolicies, all at the kubectl prompt.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "ckad",
+    credentialName: "Certified Kubernetes Application Developer",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/",
+    basis: "vendor_exam",
+    examCode: "CKAD",
+    objectivesRevision: "Curriculum v1.37",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CKAD_Curriculum_v1.37.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "No prerequisites. Assumes working knowledge of container runtimes and microservice architecture: comfortable with OCI container images, cloud native application concepts, and writing and validating Kubernetes resource definitions.",
+    durationMinutes: 120,
+    questionFormat:
+      "Online, proctored, performance-based: hands-on problems solved at the command line against live Kubernetes clusters, with kubernetes.io documentation open. The exam environment tracks the latest Kubernetes minor release within about 4-8 weeks; v1.37 when checked.",
+    passingScorePolicy: "66% or above to pass (Linux Foundation candidate FAQ). Certification valid for 2 years; one retake included.",
+  },
+  units: [
+    {
+      title: "Application Design and Build",
+      weight: 20,
+      gate: "Given an application's runtime needs, choose the workload resource that fits, write the Pod spec with the right containers and volumes, and justify each choice against the alternatives.",
+      objectives: [
+        "Define, build and modify container images: a Dockerfile's instructions, image tags and digests, and building and pushing an OCI image for a Pod to pull",
+        "Choose and use the right workload resource: Deployment, StatefulSet, DaemonSet, Job and CronJob, and when a bare Pod is wrong",
+        "Configure Jobs and CronJobs: completions, parallelism, backoffLimit, activeDeadlineSeconds, schedule, concurrencyPolicy and history limits",
+        "Design multi-container Pods with init containers, sidecars (including restartPolicy Always init containers), adapters and ambassadors sharing a network namespace and volumes",
+        "Utilize persistent and ephemeral volumes: emptyDir, configMap, secret, downwardAPI, projected and persistentVolumeClaim volumes, and generic ephemeral volumes",
+        "Write Pod specs with commands, arguments, environment variables, working directories and ports, and the difference between command/args and ENTRYPOINT/CMD",
+        "Generate manifests quickly with kubectl run, create and expose using --dry-run=client -o yaml, then edit them",
+      ],
+    },
+    {
+      title: "Application Deployment",
+      weight: 20,
+      gate: "Given a release requirement (zero downtime, canary, instant rollback), implement it with Deployments and Services or with Helm and Kustomize, and show how to roll back.",
+      objectives: [
+        "Implement common deployment strategies with Kubernetes primitives: blue/green with a Service selector switch and canary with weighted replica counts behind one Service",
+        "Understand Deployments and perform rolling updates and rollbacks: strategy settings, rollout status, history, pause, resume and undo",
+        "Use the Helm package manager to deploy existing packages: repositories, search, values overrides, install, upgrade, rollback, history and uninstall",
+        "Use Kustomize to deploy environment-specific variants with bases, overlays, patches, images, namePrefix and configMapGenerator, via kubectl apply -k",
+        "Scale workloads manually and with a HorizontalPodAutoscaler, and understand how replica count interacts with rollouts",
+        "Manage manifests declaratively with kubectl apply, diff and labels/annotations, and know when kubectl replace or delete is needed",
+      ],
+    },
+    {
+      title: "Application Observability and Maintenance",
+      weight: 15,
+      gate: "Given an application that is unhealthy or will not apply, find the cause with kubectl's own tools, implement the probe or API fix, and explain how the kubelet will behave afterwards.",
+      objectives: [
+        "Understand API deprecations: read apiVersion errors, find the current version with kubectl api-resources and explain, and migrate a manifest to a served API",
+        "Implement probes and health checks: liveness, readiness and startup probes with HTTP, TCP, exec and gRPC checks and sensible timings",
+        "Use built-in CLI tools to monitor Kubernetes applications: kubectl get, describe, events, top and rollout status",
+        "Utilize container logs: kubectl logs with --previous, -c, -l, --since, --tail and -f, and reading logs from multi-container Pods",
+        "Debug applications in Kubernetes: Pod phases and container states, kubectl exec and port-forward, ephemeral debug containers with kubectl debug, and copying a Pod for inspection",
+        "Interpret resource and scheduling events: Pending, CrashLoopBackOff, ImagePullBackOff, OOMKilled and FailedScheduling",
+      ],
+    },
+    {
+      title: "Application Environment, Configuration and Security",
+      weight: 25,
+      gate: "Given an application and a namespace's constraints, configure it from ConfigMaps and Secrets, size it within the quota, harden its SecurityContext to the restricted standard, and give it only the identity it needs.",
+      objectives: [
+        "Discover and use resources that extend Kubernetes: find CustomResourceDefinitions with kubectl api-resources and explain, and create custom resources an operator reconciles",
+        "Understand authentication, authorization and admission control as a developer: how a request is authenticated, checked by RBAC and then admitted, and what kubectl auth can-i tells you",
+        "Understand requests, limits and quotas: how ResourceQuota and LimitRange constrain a namespace and why a Pod is rejected or defaulted",
+        "Define resource requirements for a container: CPU and memory requests and limits, units, and the resulting QoS class",
+        "Understand ConfigMaps: create them from literals, files and env files and consume them as environment variables or mounted files",
+        "Create and consume Secrets: generic, docker-registry and TLS Secrets as env vars, envFrom and volumes, imagePullSecrets, and immutable Secrets",
+        "Understand ServiceAccounts: assign one to a Pod, disable token automount, and understand bound projected tokens",
+        "Apply application security with SecurityContexts: runAsNonRoot, runAsUser, fsGroup, readOnlyRootFilesystem, allowPrivilegeEscalation false, dropped capabilities and seccompProfile",
+        "Meet the Pod Security Standards: the privileged, baseline and restricted profiles and the Pod Security Admission namespace labels",
+      ],
+    },
+    {
+      title: "Services and Networking",
+      weight: 20,
+      gate: "Given an application that must be reachable by some clients and not others, expose it with the right Service and Ingress rules, restrict it with a NetworkPolicy, and troubleshoot the path when a client cannot connect.",
+      objectives: [
+        "Demonstrate a basic understanding of NetworkPolicies: how a policy selects Pods, ingress and egress rules, and why a Pod becomes isolated",
+        "Provide and troubleshoot access to applications via Services: ClusterIP, NodePort and LoadBalancer, selectors, ports and targetPorts, and EndpointSlices",
+        "Use Ingress rules to expose applications: ingressClassName, hosts, paths and pathType, backends and TLS from a Secret",
+        "Use DNS names for Services and Pods inside the cluster and understand the namespace search path",
+        "Test connectivity from inside the cluster with a temporary Pod, kubectl port-forward and kubectl exec",
+      ],
+    },
+  ],
+};
+
+export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK];
