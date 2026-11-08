@@ -77,6 +77,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where table_schema = 'public' and table_name = 'app_users' and column_name = 'whats_new_seen_id') as ok`,
   },
   {
+    // REQ-144: every gated route reads account_access once billing is on, and
+    // the AI budget reads it for anyone over the daily budget.
+    migration: "056_account_access.sql",
+    what: "account_access and account_access_events tables (unrestricted access, Settings > Access, the AI safety ceiling)",
+    sql: `select to_regclass('public.account_access') is not null
+             and to_regclass('public.account_access_events') is not null
+             and to_regclass('public.account_access_live_email_unique') is not null as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

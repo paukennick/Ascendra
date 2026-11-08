@@ -1,6 +1,8 @@
 import { query } from "@/lib/db";
 import { callCostUsd } from "@/lib/ai-pricing";
 import { UserFacingError } from "@/lib/http";
+import { isUnrestricted, noteCeilingReached } from "@/lib/account-access";
+import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-access-config";
 
 // Audit 3 H4 (FAIL-294, and adversary finding 8): a per-learner daily AI spend budget.
 //
@@ -93,9 +95,25 @@ export class AiBudgetError extends UserFacingError {
 // Throws AiBudgetError (a 429 with BUDGET_REACHED_MESSAGE through
 // serverError) when this learner is at or over the budget. A missing
 // ai_calls table (before migration 028) counts as no spend.
+//
+// REQ-144: an owner or unrestricted account (lib/account-access.ts) has the
+// AI safety ceiling instead (AI_UNRESTRICTED_DAILY_CEILING_USD, $20 over
+// the same 24 hours) -- raised, never removed. Its access is only looked up
+// once the everyday budget is reached, so other learners pay no extra read.
+// At the ceiling it is logged, recorded and the owners are emailed.
 export async function requireAiBudget(userId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const budget = dailyBudgetUsd(env);
-  if (budget === null) return;
-  const spent = await spendLast24hUsd(userId).catch(() => 0);
-  if (spent >= budget) throw new AiBudgetError();
+  let spent: number | null = null;
+  const spend = async () => (spent ??= await spendLast24hUsd(userId).catch(() => 0));
+  if (budget !== null && (await spend()) < budget) return;
+  const unrestricted = await isUnrestricted(userId, env).catch(() => false);
+  if (!unrestricted) {
+    if (budget === null) return;
+    throw new AiBudgetError();
+  }
+  const ceiling = unrestrictedCeilingUsd(env);
+  const total = await spend();
+  if (total < ceiling) return;
+  await noteCeilingReached(userId, total, ceiling, env);
+  throw new AiBudgetError(CEILING_REACHED_MESSAGE);
 }
