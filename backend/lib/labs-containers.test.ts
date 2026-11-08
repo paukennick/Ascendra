@@ -12,10 +12,11 @@ import { LAB_SETS } from "../supabase/seed/labs";
 import { GENERAL_SAFETY } from "../supabase/seed/labs/types";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { KUBERNETES_TRACKS } from "../supabase/seed/tracks/kubernetes";
+import { DOCKER_TRACKS } from "../supabase/seed/tracks/docker";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
-const HANDS_ON = ["CKA", "CKAD", "CKS"] as const;
+const HANDS_ON = ["CKA", "CKAD", "CKS", "DCA"] as const;
 // Multiple-choice exams: labs apply the concepts (read output, choose, design).
 const CONCEPTUAL = ["KCNA", "KCSA"] as const;
 // Every container/Kubernetes course with a lab set.
@@ -150,10 +151,40 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     for (const code of CODES) {
       const set = LAB_SETS.find((s) => s.trackCode === code);
       assert.ok(set, `${code} has labs`);
-      assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
-      assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
+      if (code === "DCA") {
+        assert.ok(set!.sources.some((s) => s.includes("docker-study-guide_v1-5")), `${code} cites the v1.5 study guide`);
+        assert.ok(set!.sources.some((s) => s.includes("store.mirantis.com")), `${code} cites Mirantis's listing`);
+      } else {
+        assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
+        assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
+      }
       assert.ok(set!.sources.every((s) => s.startsWith("https://")), code);
     }
+  });
+
+  test("DCA is Mirantis's current blueprint (Study Guide v1.5, January 2025), still on sale when checked", () => {
+    const dca = DOCKER_TRACKS.find((t) => t.code === "DCA")!;
+    assert.ok(tracks.has("DCA"));
+    assert.equal(dca.subcategorySlug, "container-tooling");
+    assert.deepEqual(
+      activeUnits(dca).map((u) => [u.title, u.weight]),
+      [
+        ["Orchestration", 25],
+        ["Image Creation, Management, and Registry", 20],
+        ["Installation and Configuration", 15],
+        ["Networking", 15],
+        ["Security", 15],
+        ["Storage and Volumes", 10],
+      ]
+    );
+    assert.equal(dca.credential?.durationMinutes, 90);
+    assert.match(dca.credential?.questionFormat ?? "", /55 questions/);
+    assert.match(dca.credential?.objectivesRevision ?? "", /v1\.5/);
+    assert.equal(dca.credential?.providerSlug, "mirantis");
+    // The blueprint's own legacy names are explained, not taught as current.
+    const text = JSON.stringify(dca);
+    assert.match(text, /Mirantis Kubernetes Engine/);
+    assert.match(text, /legacy devicemapper/);
   });
 
   test("every lab carries the general safety note, a fictional organisation, and the right shape for its kind", () => {
@@ -184,10 +215,10 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const labs = setFor(code).labs;
       for (const lab of labs) {
         const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
-        assert.match(answers, /kubectl|helm |cosign |trivy |apiVersion:|^\s*(FROM|spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
+        assert.match(answers, /kubectl|helm |cosign |trivy |docker |apiVersion:|^\s*(FROM|spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
         if (lab.kind === "case") {
           const shown = lab.steps.map((s) => s.text).join("\n");
-          assert.match(shown, /\$ kubectl|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\/ # /, `${code}/${lab.slug}: the case shows authored command output`);
+          assert.match(shown, /\$ kubectl|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\$ docker|\$ df |\/ # /, `${code}/${lab.slug}: the case shows authored command output`);
         }
       }
       // Admin and developer families lean to build labs with real cases
@@ -215,7 +246,7 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
   });
 
   test("no removed API or retired tool is taught as current", () => {
-    for (const t of KUBERNETES_TRACKS) {
+    for (const t of [...KUBERNETES_TRACKS, ...DOCKER_TRACKS]) {
       const text = JSON.stringify(t);
       for (const re of REMOVED) assert.doesNotMatch(text, re, `${t.code} track`);
     }
