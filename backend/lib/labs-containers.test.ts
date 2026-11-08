@@ -13,14 +13,20 @@ import { GENERAL_SAFETY } from "../supabase/seed/labs/types";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { KUBERNETES_TRACKS } from "../supabase/seed/tracks/kubernetes";
 import { DOCKER_TRACKS } from "../supabase/seed/tracks/docker";
+import { CNCF_ECOSYSTEM_TRACKS } from "../supabase/seed/tracks/cncf-ecosystem";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
 const HANDS_ON = ["CKA", "CKAD", "CKS", "DCA"] as const;
 // Multiple-choice exams: labs apply the concepts (read output, choose, design).
 const CONCEPTUAL = ["KCNA", "KCSA"] as const;
+// CNCF project exams: labs write that project's configuration and queries.
+const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
+  PCA: { answers: /rate\(|sum by|histogram_quantile|scrape_configs|- alert:|amtool|promtool|Counter\(|Histogram\(|Gauge\(|remote_write/, shown: /\$ curl|\$ kubectl|groups:|expr:|^\s*[a-z_]+:\s/m },
+  OTCA: { answers: /OTEL_|processors:|exporters:|receivers:|tracer|span\.|propagation|sending_queue/, shown: /\$ curl|\$ kubectl|Span from|traceparent|x-b3|attributes:|OTEL_/ },
+};
 // Every container/Kubernetes course with a lab set.
-const CODES = [...HANDS_ON, ...CONCEPTUAL] as const;
+const CODES = [...HANDS_ON, ...CONCEPTUAL, ...Object.keys(TOOLING)] as const;
 
 // APIs and tools removed from Kubernetes (or retired) that must not be
 // taught as current anywhere in these courses or their labs.
@@ -154,11 +160,52 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       if (code === "DCA") {
         assert.ok(set!.sources.some((s) => s.includes("docker-study-guide_v1-5")), `${code} cites the v1.5 study guide`);
         assert.ok(set!.sources.some((s) => s.includes("store.mirantis.com")), `${code} cites Mirantis's listing`);
+      } else if (code in TOOLING) {
+        assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
+        assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
+        assert.ok(set!.sources.length >= 3, `${code} cites the project's documentation`);
       } else {
         assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
         assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
       }
       assert.ok(set!.sources.every((s) => s.startsWith("https://")), code);
+    }
+  });
+
+  test("CNCF project tracks: official domains and weights, multiple-choice facts", () => {
+    for (const t of CNCF_ECOSYSTEM_TRACKS) {
+      assert.ok(tracks.has(t.code), `${t.code} in CATALOG_TRACKS`);
+      assert.equal(t.subcategorySlug, "cncf-certifications", t.code);
+      assert.ok(t.credential?.officialObjectivesUrl.startsWith("https://github.com/cncf/curriculum/blob/"), `${t.code} cites the CNCF curriculum`);
+      assert.equal(t.credential?.examCode, t.code);
+      assert.equal(activeUnits(t).reduce((a, u) => a + (u.weight ?? 0), 0), 100, `${t.code} weights`);
+      for (const u of activeUnits(t)) assert.ok(u.gate && u.gate.length > 40, `${t.code}/${u.title} has a gate`);
+    }
+    assert.deepEqual(
+      activeUnits(tracks.get("PCA")!).map((u) => [u.title, u.weight]),
+      [["PromQL", 28], ["Prometheus Fundamentals", 20], ["Observability Concepts", 18], ["Alerting & Dashboarding", 18], ["Instrumentation and Exporters", 16]]
+    );
+    assert.deepEqual(
+      activeUnits(tracks.get("OTCA")!).map((u) => [u.title, u.weight]),
+      [["Fundamentals of Observability", 18], ["The OpenTelemetry API and SDK", 46], ["The OpenTelemetry Collector", 26], ["Maintaining and Debugging Observability Pipelines", 10]]
+    );
+    for (const code of ["PCA", "OTCA"]) {
+      const c = tracks.get(code)!.credential!;
+      assert.equal(c.durationMinutes, 90, code);
+      assert.match(c.passingScorePolicy ?? "", /75%/, code);
+    }
+  });
+
+  test("project courses: reference answers use the project's own configuration or query language, and cases show its output", () => {
+    for (const [code, sig] of Object.entries(TOOLING)) {
+      const labs = setFor(code).labs;
+      for (const lab of labs) {
+        const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
+        assert.match(answers, sig.answers, `${code}/${lab.slug}: the reference answers are hands-on`);
+        if (lab.kind === "case") assert.match(lab.steps.map((s) => s.text).join("\n"), sig.shown, `${code}/${lab.slug}: the case shows authored output`);
+      }
+      const cases = labs.filter((l) => l.kind === "case").length;
+      assert.ok(cases >= labs.length / 3 && labs.some((l) => l.kind === "build"), `${code}: ${cases} case of ${labs.length}, with builds`);
     }
   });
 
@@ -246,7 +293,7 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
   });
 
   test("no removed API or retired tool is taught as current", () => {
-    for (const t of [...KUBERNETES_TRACKS, ...DOCKER_TRACKS]) {
+    for (const t of [...KUBERNETES_TRACKS, ...DOCKER_TRACKS, ...CNCF_ECOSYSTEM_TRACKS]) {
       const text = JSON.stringify(t);
       for (const re of REMOVED) assert.doesNotMatch(text, re, `${t.code} track`);
     }
