@@ -345,8 +345,11 @@ test checks it).
 | CCRN (Adult) | 12 (6 build, 6 case) | 2 per domain | [AACN CCRN exam handbook](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en) |
 | CCRN (Pediatric) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Pediatric test plan (PDF p.21-24) |
 | CCRN (Neonatal) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Neonatal test plan (PDF p.27-30) |
+| NPTE-PT (REQ-147) | 20 (7 build, 13 case) | 3/3/2/2 then 1 per domain | [FSBPT 2024 PT content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf) |
+| NPTE-PTA (REQ-147) | 19 (6 build, 13 case) | 3/3/2 then 1 per domain | [FSBPT 2024 PTA content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf) |
+| DPT (REQ-147) | 14 (4 build, 10 case) | 2/2/2/2/2/2/1/1 (unweighted units) | [CAPTE 2024 PT standards](https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf) |
 
-That is 80 authored labs. The CCRN Pediatric and Neonatal sets (Nick's
+That is 133 authored labs (80 in the first pilot, 53 for physical therapy). The CCRN Pediatric and Neonatal sets (Nick's
 decision 13) follow (d) unit by unit (the content test checks it) and name
 objectives that paraphrase each test plan's patient-care problems and
 Testable Nursing Actions; the category weights were cross-checked on
@@ -355,6 +358,23 @@ fetched from that session (sources in `seed/labs/ccrn.ts`). Every one is
 fictional, framed as "exam practice, not clinical guidance", and
 `needs_expert_review`; a pediatric or neonatal critical-care nurse educator
 must read each before it is served.
+
+**Physical therapy (REQ-147).** The three entry-level PT courses follow (d)
+unit by unit. Case labs dominate and walk the patient-management model
+(examination, evaluation, diagnosis, prognosis, intervention, progression,
+discharge or referral), with red flags, vital-sign and exercise stopping
+criteria, and guideline-based interventions. NPTE-PTA rubrics keep PTA
+scope: the PTA carries out and progresses care within the PT's plan,
+collects data, holds treatment and reports to the PT, and never evaluates,
+changes goals or the plan, or discharges (Medicare Benefit Policy Manual
+ch. 15 sec. 230.1). Every value quoted as a standard (APTA/JOSPT guidelines,
+ACSM-derived stopping criteria, the PVA autonomic dysreflexia guideline,
+the ADA hypoglycemia guide, CMS rules, MCIDs from the original papers)
+was verified on 2026-11-07 and is cited in each file's header; values that
+could not be verified (a guideline SpO2 target, Wells point scores, resting
+blood-pressure limits outside heart failure) appear only as a fictional
+order or facility parameter. A licensed physical therapist (and, for PTA
+labs, a PT or PTA educator) must read each before it is approved.
 
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
