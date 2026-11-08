@@ -10,7 +10,7 @@
     "build": "bash scripts/build-webapp.sh && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/*.test.ts scripts/eval/*.test.ts scripts/*.test.ts",
+    "test": "tsx --test lib/*.test.ts scripts/eval/*.test.ts scripts/*.test.ts \"lib/sim/**/*.test.ts\"",
     "test:db": "tsx --test --test-concurrency=1 lib/*.dbtest.ts",
     "seed": "tsx supabase/seed/seed.ts",
     "migrate": "tsx supabase/apply-migration.ts",
@@ -22,7 +22,9 @@
     "eval:lessons": "tsx scripts/eval/lessons.ts",
     "eval:grading": "tsx scripts/eval/grading.ts",
     "eval:live": "tsx scripts/eval/live.ts",
-    "labs:generate": "tsx scripts/generate-labs.ts"
+    "labs:generate": "tsx scripts/generate-labs.ts",
+    "sim:sync-engine": "tsx scripts/sim-sync-engine.ts",
+    "sim:cross-runtime": "tsx scripts/sim-cross-runtime.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
