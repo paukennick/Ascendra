@@ -16,8 +16,10 @@ import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
 const HANDS_ON = ["CKA", "CKAD"] as const;
+// Multiple-choice exams: labs apply the concepts (read output, choose, design).
+const CONCEPTUAL = ["KCNA"] as const;
 // Every container/Kubernetes course with a lab set.
-const CODES = [...HANDS_ON] as const;
+const CODES = [...HANDS_ON, ...CONCEPTUAL] as const;
 
 // APIs and tools removed from Kubernetes (or retired) that must not be
 // taught as current anywhere in these courses or their labs.
@@ -80,6 +82,33 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     );
     assert.equal(ckad.credential?.durationMinutes, 120);
     assert.match(ckad.credential?.passingScorePolicy ?? "", /66%/);
+  });
+
+  test("KCNA's domains and weights are the official four-domain curriculum", () => {
+    const kcna = tracks.get("KCNA")!;
+    assert.deepEqual(
+      activeUnits(kcna).map((u) => [u.title, u.weight]),
+      [
+        ["Kubernetes Fundamentals", 44],
+        ["Container Orchestration", 28],
+        ["Cloud Native Application Delivery", 16],
+        ["Cloud Native Architecture", 12],
+      ]
+    );
+    assert.equal(kcna.credential?.durationMinutes, 90);
+    assert.match(kcna.credential?.passingScorePolicy ?? "", /75%/);
+    assert.match(kcna.credential?.questionFormat ?? "", /multiple-choice/);
+  });
+
+  test("conceptual courses: every lab still applies the concept to a concrete scenario", () => {
+    for (const code of CONCEPTUAL) {
+      const labs = setFor(code).labs;
+      for (const lab of labs) {
+        const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
+        assert.match(answers, /kubectl|apiVersion|Deployment|StatefulSet|Service|Prometheus|Argo|Flux|Secret|hostPath|CNCF|nodeSelector|taint|topologySpreadConstraints/, `${code}/${lab.slug}: the reference answers name real Kubernetes or CNCF mechanisms`);
+      }
+      assert.ok(labs.some((l) => l.kind === "case") && labs.some((l) => l.kind === "build"), `${code}: both kinds`);
+    }
   });
 
   test("each course has a lab set citing its curriculum and exam page", () => {

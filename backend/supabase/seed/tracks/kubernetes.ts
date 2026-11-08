@@ -266,4 +266,106 @@ export const CKAD_TRACK: SeedTrack = {
   ],
 };
 
-export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK];
+// ---------------------------------------------------------------------------
+// Kubernetes and Cloud Native Associate (KCNA)
+// Multiple choice, online proctored, 90 minutes; pass mark 75%; $250 with
+// one free retake; valid 2 years; beginner level, no prerequisites.
+// Domains (KCNA_Curriculum.pdf, read 2026-11-07 -- the current four-domain
+// outline): Kubernetes Fundamentals 44%, Container Orchestration 28%, Cloud
+// Native Application Delivery 16%, Cloud Native Architecture 12%. The PDF
+// lists each domain's competencies as short headings (e.g. "Kubernetes
+// Core Concepts", "Scheduling"); each unit below expands those headings
+// into the concepts the heading covers, in order, and names the heading.
+// ---------------------------------------------------------------------------
+export const KCNA_TRACK: SeedTrack = {
+  code: "KCNA",
+  title: "Kubernetes and Cloud Native Associate (KCNA) Coach",
+  description:
+    "KCNA: the entry-level, multiple-choice credential for the Kubernetes and cloud native ecosystem. Kubernetes core objects, administration, scheduling and containers; orchestration across networking, security, troubleshooting and storage; how applications are delivered with CI/CD, GitOps and Helm; and the architecture, observability and community of cloud native computing.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "kcna",
+    credentialName: "Kubernetes and Cloud Native Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+    basis: "vendor_exam",
+    examCode: "KCNA",
+    objectivesRevision: "Curriculum (four-domain outline), cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/KCNA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "No prerequisites. Beginner level: for developers and non-developers alike who work in or around the cloud native ecosystem and want a foundation before CKA, CKAD or CKS. The Linux Foundation pairs it with Kubernetes and Cloud Native Essentials (LFS250).",
+    durationMinutes: 90,
+    questionFormat: "Online, proctored, multiple-choice exam, 90 minutes (Linux Foundation multiple-choice exam FAQ).",
+    passingScorePolicy: "75% or above to pass (Linux Foundation multiple-choice exam FAQ). Certification valid for 2 years; one retake included. Passing CKA or CKAD automatically renews KCNA (CARE program).",
+  },
+  units: [
+    {
+      title: "Kubernetes Fundamentals",
+      weight: 44,
+      gate: "Given a description of an application and how it must run, name the Kubernetes objects that would run it, say which control plane component does what to get it running, and explain what the container image and runtime contribute.",
+      objectives: [
+        "Kubernetes core concepts: the cluster, control plane and nodes, the API server as the single front door, and the declarative model of desired versus observed state reconciled by controllers",
+        "Core concepts: Pods as the unit of scheduling, and the workload objects built on them -- ReplicaSets, Deployments, StatefulSets, DaemonSets, Jobs and CronJobs -- with what each is for",
+        "Core concepts: namespaces, labels, selectors and annotations, and how Services, Deployments and policies select the Pods they act on",
+        "Core concepts: the Kubernetes API, API groups and versions, kubectl, and extending the API with CustomResourceDefinitions and operators",
+        "Administration: the control plane components (kube-apiserver, etcd, kube-scheduler, kube-controller-manager, cloud-controller-manager) and the node components (kubelet, kube-proxy, container runtime) and how they cooperate",
+        "Administration: installing and operating a cluster with kubeadm or a managed service, cluster upgrades, backing up etcd, and choosing a distribution or managed offering",
+        "Administration: authentication, authorization with RBAC and admission control as the three stages every API request passes through",
+        "Scheduling: how kube-scheduler filters and scores nodes using resource requests, node selectors and affinity, taints and tolerations, and topology spread, and what leaves a Pod Pending",
+        "Scheduling: resource requests and limits, QoS classes, and how the scheduler and kubelet treat CPU and memory differently",
+        "Containerization: what a container is -- Linux namespaces and cgroups -- and how it differs from a virtual machine",
+        "Containerization: OCI images and runtimes, image layers, tags and digests, registries, and the container runtime interface (CRI) with containerd and CRI-O",
+        "Containerization: how a Dockerfile builds an image, and how Kubernetes pulls and runs it with imagePullPolicy and pull secrets",
+      ],
+    },
+    {
+      title: "Container Orchestration",
+      weight: 28,
+      gate: "Given a running application's networking, security, storage or failure symptom, name the Kubernetes mechanism involved and the first thing you would check.",
+      objectives: [
+        "Networking: the Kubernetes network model (every Pod gets an IP, flat connectivity), CNI plugins, and Service types ClusterIP, NodePort, LoadBalancer and ExternalName",
+        "Networking: cluster DNS with CoreDNS, Ingress and the Gateway API for HTTP routing, service meshes, and NetworkPolicy for restricting traffic",
+        "Security: the 4Cs of cloud native security (cloud, cluster, container, code), the Pod Security Standards and Pod Security Admission, SecurityContexts and least privilege",
+        "Security: RBAC roles and bindings, ServiceAccounts, Secrets and how to protect them, and securing the supply chain with image scanning and signing",
+        "Troubleshooting: Pod phases and container states, reading kubectl get, describe, logs, events and exec, and recognising CrashLoopBackOff, ImagePullBackOff, Pending and OOMKilled",
+        "Troubleshooting: where to look when a node, a Service or the control plane misbehaves, and the role of metrics-server and probes in detecting failure",
+        "Storage: ephemeral volumes (emptyDir, ConfigMap, Secret) versus PersistentVolumes and PersistentVolumeClaims, StorageClasses and dynamic provisioning, and the Container Storage Interface (CSI)",
+        "Storage: access modes, reclaim policies and why stateful applications use StatefulSets with volumeClaimTemplates",
+      ],
+    },
+    {
+      title: "Cloud Native Application Delivery",
+      weight: 16,
+      gate: "Given a team's release process, design how code becomes a running, versioned Kubernetes workload, choose the packaging and GitOps tooling that fits, and say how you would debug a delivery that failed.",
+      objectives: [
+        "Application delivery: the path from source to running workload -- CI building and testing an image, pushing to a registry, and CD applying manifests to a cluster",
+        "Application delivery: GitOps principles (declarative, versioned, pulled and continuously reconciled) and the tools that implement them, Argo CD and Flux",
+        "Application delivery: packaging and templating with Helm charts and Kustomize overlays, and choosing between them and plain manifests",
+        "Application delivery: rollout strategies -- rolling update, recreate, blue/green and canary -- and how Deployments, Services and progressive delivery tools implement them",
+        "Debugging a delivery: tracing a failed release through pipeline logs, image tags, kubectl rollout status and history, Pod events and application logs to the step that broke",
+        "Debugging a delivery: rolling back safely and recognising configuration drift between Git and the cluster",
+      ],
+    },
+    {
+      title: "Cloud Native Architecture",
+      weight: 12,
+      gate: "Given an organisation's system and goals, evaluate how cloud native principles, observability and the CNCF ecosystem apply, and recommend what to adopt and in what order.",
+      objectives: [
+        "Observability: the three pillars (metrics, logs, traces), what each answers, and the CNCF tools behind them -- Prometheus, Fluentd and Fluent Bit, Jaeger and OpenTelemetry",
+        "Observability: designing SLIs, SLOs and alerts, and the difference between monitoring and observability, cost and telemetry volume included",
+        "Cloud native ecosystem and principles: the CNCF definition of cloud native, microservices, containers, immutable infrastructure, declarative APIs, autoscaling (HPA, VPA, cluster autoscaler) and serverless (Knative) as design choices",
+        "Cloud native ecosystem and principles: evaluating a design against resilience, scalability, loose coupling and manageability, and the role of service meshes and the CNCF landscape in it",
+        "Cloud native community and collaboration: the CNCF's role under the Linux Foundation, project maturity levels (sandbox, incubating, graduated), the Technical Oversight Committee, SIGs and working groups, and how to contribute",
+        "Cloud native community and collaboration: open source governance and licences, the Kubernetes release cadence and support policy, and conformance programs",
+      ],
+    },
+  ],
+};
+
+export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK, KCNA_TRACK];
