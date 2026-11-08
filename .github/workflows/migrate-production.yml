@@ -1,8 +1,11 @@
 # Applies pending database migrations to PRODUCTION. Runs only when someone
-# pushes to the ops/migrate-production branch (never on PRs or master), and
-# only with the PROD_DATABASE_URL repository secret (Supabase direct
-# connection). It shows --status before and after, applies with --all, and
-# prints the mastery drift check. See docs/deploy-runbook-integration.md.
+# pushes to ops/migrate-production (before a deploy) or
+# ops/post-deploy-production (after it: also seeds the catalog and
+# recomputes mastery) -- never on PRs or master -- and only with the
+# PROD_DATABASE_URL repository secret (Supabase Session pooler URI; the
+# direct host is IPv6-only and unreachable from GitHub's runners). It shows
+# --status before and after, applies with --all, and prints the mastery
+# drift check. See docs/deploy-runbook-integration.md, "Routine deploys".
 name: Migrate production database
 on:
   push:
