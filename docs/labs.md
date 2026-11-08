@@ -345,6 +345,11 @@ test checks it).
 | CCRN (Adult) | 12 (6 build, 6 case) | 2 per domain | [AACN CCRN exam handbook](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en) |
 | CCRN (Pediatric) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Pediatric test plan (PDF p.21-24) |
 | CCRN (Neonatal) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Neonatal test plan (PDF p.27-30) |
+| NCLEX-PN (2026 test plan) | 14 (6 build, 8 case) | 2/2/1/2/2/2/2/1 (REQ-148) | [NCSBN 2026 PN Test Plan](https://nclex.com/files/2026_PN_Test%20Plan-F.pdf) |
+| Practical Nursing (LPN/LVN) | 12 (5 build, 7 case) | 2 per unit (REQ-148) | same PN test plan (the program's licensure outcome) |
+| Certified Nursing Assistant | 12 (5 build, 7 case) | 2/2/2/2/1/2/1 (REQ-148) | [42 CFR 483.152](https://www.ecfr.gov/current/title-42/section-483.152) |
+| Associate Degree Nursing (RN) | 12 (4 build, 8 case) | 2 per unit (REQ-148) | [NCSBN 2026 RN Test Plan](https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf) |
+| BSN Nursing | 15 (6 build, 9 case) | 2/2/2/2/2/1/1/1/1/1 (REQ-148) | [AACN Essentials (2021)](https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf) |
 
 That is 80 authored labs. The CCRN Pediatric and Neonatal sets (Nick's
 decision 13) follow (d) unit by unit (the content test checks it) and name
@@ -355,6 +360,26 @@ fetched from that session (sources in `seed/labs/ccrn.ts`). Every one is
 fictional, framed as "exam practice, not clinical guidance", and
 `needs_expert_review`; a pediatric or neonatal critical-care nurse educator
 must read each before it is served.
+
+REQ-148 added the five remaining nursing courses (65 labs, 145 in all),
+at the NCLEX-RN and CCRN depth: unfolding clinical-judgment cases that walk
+the NCSBN model (recognise and analyse cues, prioritise hypotheses, generate
+solutions, act, evaluate), prioritisation and delegation, infection control
+and medication calculations, each scoped to its licence. The LPN/VN and
+NCLEX-PN labs collect data, give care within the RN's plan, reinforce
+teaching and report to the RN; the CNA labs observe, measure, give personal
+care and tell the nurse, and never assess or give medications; the ADN and
+BSN labs carry RN assessment and judgment, and the BSN set adds population
+health, evidence appraisal, quality improvement and root cause analysis,
+speaking up, transitions, AI tools and ethics. Every guideline value quoted
+(ADA hypoglycemia, the 2024 DKA consensus, Surviving Sepsis 2021, ACOG
+Practice Bulletin 222, NICHD fetal heart rate definitions, the 2025 AHA
+choking sequence, CDC precautions and PPE order, ISMP abbreviations, 42 CFR
+483.12 reporting times, START triage) was read at its source on 2026-11-07;
+`seed/labs/nursing-sources.ts` says which value each URL backs. The ADN,
+BSN, LPN/VN and CNA weights are Ascendra's study-emphasis judgment, not a
+vendor blueprint, so their per-unit counts follow the hybrid plan from
+those weights. A nurse educator must read each before approval.
 
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that

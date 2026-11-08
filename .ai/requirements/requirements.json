@@ -4770,6 +4770,48 @@
         "pricing) must be answered before Phase 1b",
         "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer"
       ]
+    },
+    {
+      "id": "REQ-148",
+      "category": "content",
+      "title": "Labs for the remaining nursing courses (NCLEX-PN, LPN/VN, CNA, ADN-RN, BSN-RN)",
+      "description": "Author verifiable build and case labs for NCLEXPN, LPNVN, CNA, ADNRN and BSNRN at the NCLEX-RN/CCRN pilot depth: NCSBN clinical judgment cases, prioritisation and delegation, safety and infection control, medication calculations, scoped strictly per role (PN/LPN data collection and care within the RN plan; CNA ADLs, vital signs and reporting, no assessment or medication administration). Hybrid density per unit. Every quoted guideline value verified at its source on 2026-11-07. All needs_expert_review; no migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/nursing-sources.ts",
+        "backend/supabase/seed/labs/nursing-nclexpn.ts",
+        "backend/supabase/seed/labs/nursing-lpnvn.ts",
+        "backend/supabase/seed/labs/nursing-cna.ts",
+        "backend/supabase/seed/labs/nursing-adnrn.ts",
+        "backend/supabase/seed/labs/nursing-bsnrn.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an exact active objective title",
+        "Per-unit counts match the hybrid plan for all five courses",
+        "Clinical framing and no your-patient asks for all five courses",
+        "Guideline values cite a source read on 2026-11-07",
+        "Seed is idempotent"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on a fresh database after all migrations",
+        "npm run seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Clinical content is unreviewed until a nurse educator approves each lab",
+        "Scope of practice varies by state; rubrics say where your state and facility allow"
+      ]
     }
   ]
 }
