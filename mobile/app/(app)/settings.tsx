@@ -90,6 +90,9 @@ export default function Settings() {
 
       <SectionHeader label="About" />
       <Card>
+        {/* REQ-140: every release note, newest first. */}
+        <ListRow icon="gift" label="What's new" onPress={() => router.push("/whats-new")} />
+        <Divider />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Muted>Version</Muted>
           <Muted>{Constants.expoConfig?.version ?? "1.0.0"}</Muted>

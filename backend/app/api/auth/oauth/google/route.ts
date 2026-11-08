@@ -7,6 +7,7 @@ import { completeLogin } from "@/lib/auth/session";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
+import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
 
@@ -94,11 +95,12 @@ export async function POST(req: Request) {
           });
         }
       } else {
+        // REQ-140: a new account has seen every release note so far.
         const created = await queryOne<UserRow>(
-          `insert into app_users (email, display_name, email_verified_at)
-           values ($1, $2, now())
+          `insert into app_users (email, display_name, email_verified_at, whats_new_seen_id)
+           values ($1, $2, now(), $3)
            returning id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled`,
-          [normalizedEmail, identity.name]
+          [normalizedEmail, identity.name, LATEST_RELEASE_NOTE_ID]
         );
         if (!created) throw new Error("Failed to create account.");
         user = created;
