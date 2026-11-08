@@ -350,8 +350,11 @@ test checks it).
 | Certified Nursing Assistant | 12 (5 build, 7 case) | 2/2/2/2/1/2/1 (REQ-148) | [42 CFR 483.152](https://www.ecfr.gov/current/title-42/section-483.152) |
 | Associate Degree Nursing (RN) | 12 (4 build, 8 case) | 2 per unit (REQ-148) | [NCSBN 2026 RN Test Plan](https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf) |
 | BSN Nursing | 15 (6 build, 9 case) | 2/2/2/2/2/1/1/1/1/1 (REQ-148) | [AACN Essentials (2021)](https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf) |
+| NPTE-PT (REQ-147) | 20 (7 build, 13 case) | 3/3/2/2 then 1 per domain | [FSBPT 2024 PT content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf) |
+| NPTE-PTA (REQ-147) | 19 (6 build, 13 case) | 3/3/2 then 1 per domain | [FSBPT 2024 PTA content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf) |
+| DPT (REQ-147) | 14 (4 build, 10 case) | 2/2/2/2/2/2/1/1 (unweighted units) | [CAPTE 2024 PT standards](https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf) |
 
-That is 80 authored labs. The CCRN Pediatric and Neonatal sets (Nick's
+That is 133 authored labs (80 in the first pilot, 53 for physical therapy). The CCRN Pediatric and Neonatal sets (Nick's
 decision 13) follow (d) unit by unit (the content test checks it) and name
 objectives that paraphrase each test plan's patient-care problems and
 Testable Nursing Actions; the category weights were cross-checked on
@@ -361,8 +364,8 @@ fictional, framed as "exam practice, not clinical guidance", and
 `needs_expert_review`; a pediatric or neonatal critical-care nurse educator
 must read each before it is served.
 
-REQ-148 added the five remaining nursing courses (65 labs, 145 in all),
-at the NCLEX-RN and CCRN depth: unfolding clinical-judgment cases that walk
+REQ-148 added the five remaining nursing courses (65 labs), at the
+NCLEX-RN and CCRN depth (`backend/lib/labs-nursing.test.ts` checks them): unfolding clinical-judgment cases that walk
 the NCSBN model (recognise and analyse cues, prioritise hypotheses, generate
 solutions, act, evaluate), prioritisation and delegation, infection control
 and medication calculations, each scoped to its licence. The LPN/VN and
@@ -380,6 +383,23 @@ choking sequence, CDC precautions and PPE order, ISMP abbreviations, 42 CFR
 BSN, LPN/VN and CNA weights are Ascendra's study-emphasis judgment, not a
 vendor blueprint, so their per-unit counts follow the hybrid plan from
 those weights. A nurse educator must read each before approval.
+
+**Physical therapy (REQ-147).** The three entry-level PT courses follow (d)
+unit by unit. Case labs dominate and walk the patient-management model
+(examination, evaluation, diagnosis, prognosis, intervention, progression,
+discharge or referral), with red flags, vital-sign and exercise stopping
+criteria, and guideline-based interventions. NPTE-PTA rubrics keep PTA
+scope: the PTA carries out and progresses care within the PT's plan,
+collects data, holds treatment and reports to the PT, and never evaluates,
+changes goals or the plan, or discharges (Medicare Benefit Policy Manual
+ch. 15 sec. 230.1). Every value quoted as a standard (APTA/JOSPT guidelines,
+ACSM-derived stopping criteria, the PVA autonomic dysreflexia guideline,
+the ADA hypoglycemia guide, CMS rules, MCIDs from the original papers)
+was verified on 2026-11-07 and is cited in each file's header; values that
+could not be verified (a guideline SpO2 target, Wells point scores, resting
+blood-pressure limits outside heart failure) appear only as a fictional
+order or facility parameter. A licensed physical therapist (and, for PTA
+labs, a PT or PTA educator) must read each before it is approved.
 
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
