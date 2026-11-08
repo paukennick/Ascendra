@@ -6,7 +6,7 @@
 name: Migrate production database
 on:
   push:
-    branches: [ops/migrate-production]
+    branches: [ops/migrate-production, ops/post-deploy-production]
 concurrency:
   group: migrate-production
   cancel-in-progress: false
@@ -33,4 +33,15 @@ jobs:
       - name: Apply pending migrations
         run: npm run migrate -- --all
       - name: Status after
+        run: npm run migrate -- --status
+      # Post-deploy (docs/deploy-runbook-integration.md steps 5-6). Only on
+      # pushes to ops/post-deploy-production, after the backend is live.
+      - name: Seed the catalog
+        if: github.ref == 'refs/heads/ops/post-deploy-production'
+        run: npm run seed
+      - name: Recompute mastery
+        if: github.ref == 'refs/heads/ops/post-deploy-production'
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "call recompute_mastery_batched();"
+      - name: Status after post-deploy
+        if: github.ref == 'refs/heads/ops/post-deploy-production'
         run: npm run migrate -- --status
