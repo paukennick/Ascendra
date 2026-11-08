@@ -132,8 +132,8 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "First priority",
-              "Writes a problem-focused diagnosis about fluid/gas exchange as the top priority, in a correct format (label related to/as evidenced by), for example Excess fluid volume (or Impaired gas exchange) related to compromised regulatory mechanisms as evidenced by edema, weight gain, crackles and dyspnea, with a measurable time-bound outcome.",
-              "Excess fluid volume related to compromised regulatory mechanisms (heart failure) as evidenced by 2+ ankle edema, 3 kg weight gain, bilateral crackles and dyspnea on exertion. Outcome: within 48 hours, weight down at least 1.5 kg and she walks 30 metres without stopping to rest."
+              "Writes a problem-focused diagnosis about fluid/gas exchange as the top priority, in a correct format (label related to/as evidenced by), for example Excessive fluid volume (the current NANDA-I label; older texts say Excess fluid volume) or Impaired gas exchange, related to compromised regulatory mechanisms as evidenced by edema, weight gain, crackles and dyspnea, with a measurable time-bound outcome.",
+              "Excessive fluid volume related to compromised regulatory mechanisms (heart failure) as evidenced by 2+ ankle edema, 3 kg weight gain, bilateral crackles and dyspnea on exertion. Outcome: within 48 hours, weight down at least 1.5 kg and she walks 30 metres without stopping to rest."
             ),
             part(
               "Second priority",
