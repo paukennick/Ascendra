@@ -16,7 +16,17 @@ export function ownedOrCatalog(userParam: string, alias = "st"): string {
   return `(${alias}.user_id is null or ${alias}.user_id = ${userParam})`;
 }
 
-// Mirrors view_track_progress (migration 001 + 022) with m.user_id bound.
+// REQ-102 (migration 033): a unit or objective whose retired_at has passed
+// is no longer taught -- an exam version moved on -- but its row and the
+// learner's history on it are kept. Every listing and rollup filters with
+// these so retired content neither shows in the course nor counts toward
+// (or against) progress. A future retired_at means "still taught until
+// then", so an outgoing exam version stays listed through its last day.
+export function isActive(alias: string): string {
+  return `(${alias}.retired_at is null or ${alias}.retired_at > now())`;
+}
+
+// Mirrors view_track_progress (migration 001 + 022 + 033) with m.user_id bound.
 export function trackProgressLateral(userParam: string, trackAlias = "st"): string {
   return `left join lateral (
     select count(distinct cu.id) as total_units,
@@ -29,13 +39,13 @@ export function trackProgressLateral(userParam: string, trackAlias = "st"): stri
            count(m.id) as started_objectives,
            round((count(m.id)::numeric / greatest(count(distinct o.id), 1)) * 100, 1) as percent_progress
       from course_units cu
-      left join objectives o on o.unit_id = cu.id
+      left join objectives o on o.unit_id = cu.id and ${isActive("o")}
       left join mastery m on m.objective_id = o.id and m.user_id = ${userParam}
-     where cu.track_id = ${trackAlias}.id
+     where cu.track_id = ${trackAlias}.id and ${isActive("cu")}
   ) vp on true`;
 }
 
-// Mirrors view_unit_mastery (migration 001) with m.user_id bound.
+// Mirrors view_unit_mastery (migration 001 + 033) with m.user_id bound.
 export function unitMasteryLateral(userParam: string, unitAlias = "cu"): string {
   return `left join lateral (
     select count(o.id) as total_objectives,
@@ -44,7 +54,7 @@ export function unitMasteryLateral(userParam: string, unitAlias = "cu"): string 
            round(avg(coalesce(m.score_0_4, 0))::numeric, 2) as avg_score_0_4
       from objectives o
       left join mastery m on m.objective_id = o.id and m.user_id = ${userParam}
-     where o.unit_id = ${unitAlias}.id
+     where o.unit_id = ${unitAlias}.id and ${isActive("o")}
   ) vm on true`;
 }
 

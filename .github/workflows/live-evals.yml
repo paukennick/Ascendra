@@ -1,0 +1,117 @@
+name: Live evals
+
+# Audit 3 (REQ-115, M5): the live-model evals from the Audit 3 AI report's
+# "Live-eval plan". Manual only: it spends real money (expected ~$2) and
+# never runs on push, pull request or a schedule.
+#
+# Before the first run: add the repository secret ANTHROPIC_API_KEY
+# (Settings -> Secrets and variables -> Actions -> New repository secret).
+# The key is read from the secret at run time; it is never in the code, the
+# logs or the results. As a backstop, set a $10 monthly spend limit on the
+# workspace the key belongs to in the Claude Console.
+#
+# What it does: fresh Postgres, every migration, the catalog seed, then
+# `npm run eval:live` (backend/scripts/eval/live.ts), which runs the steps
+# you pick with a running cost tally from each response's usage and a hard
+# stop at the budget (default $5), 4 cases in flight at a time. Results
+# (results.json, summary.md) are uploaded as the "live-eval-results"
+# artifact even when the run stops early.
+
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Steps (comma list or all): grading,parts,guard,title,generation,cache"
+        required: true
+        default: all
+        type: string
+      budget:
+        description: "Hard stop in USD for the whole run"
+        required: true
+        default: "5"
+        type: string
+      judge:
+        description: "Independent judge model for the guard and title steps"
+        required: true
+        default: claude-opus-5-5
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-evals
+  cancel-in-progress: false
+
+jobs:
+  live-evals:
+    name: Live evals (real model, costs money)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ascendra
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
+      PGSSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Check the API key secret is set
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Add the repository secret ANTHROPIC_API_KEY first (Settings -> Secrets and variables -> Actions)."
+            exit 1
+          fi
+      - name: Supabase's API roles (026 and 052 revoke from them)
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/supabase-roles.sql
+        working-directory: backend
+      - name: Apply every migration
+        run: npm run migrate -- --all
+        working-directory: backend
+      - name: Schema has everything the code needs
+        run: npm run migrate -- --status
+        working-directory: backend
+      - name: Seed the catalog
+        run: npm run seed
+        working-directory: backend
+      - name: Dry run with the fake model (catches plumbing errors before spending)
+        run: npm run eval:live -- --mock --steps parts,guard,title --out eval-results/mock-check
+        working-directory: backend
+      - name: Run the live evals
+        working-directory: backend
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_STEPS: ${{ inputs.steps }}
+          EVAL_BUDGET: ${{ inputs.budget }}
+          EVAL_JUDGE: ${{ inputs.judge }}
+        run: |
+          npm run eval:live -- --steps "$EVAL_STEPS" --budget "$EVAL_BUDGET" --judge "$EVAL_JUDGE" --concurrency 4 --out eval-results/live
+      - name: Write the summary to the job page
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f eval-results/live/summary.md ]; then cat eval-results/live/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-eval-results
+          path: backend/eval-results/live/
+          if-no-files-found: warn
+          retention-days: 30

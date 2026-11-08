@@ -1,4 +1,4 @@
-import { query, queryOne } from "../db";
+import { query, queryOne, withTransaction } from "../db";
 
 export class RateLimitError extends Error {}
 
@@ -35,4 +35,61 @@ export async function checkRateLimit(
   if (count >= opts.max) {
     throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
   }
+}
+
+// REQ-135: turning MFA off (either method) checks the password and, for the
+// last method, a 6-digit emailed code, and each first call sends an email.
+// None of that was limited, so a stolen 15-minute access token allowed
+// unlimited password and code guesses. One budget per user covers both
+// disable routes; the normal flow uses two calls per method.
+export const MFA_DISABLE_EVENT = "mfa_disable_attempt";
+export const MFA_DISABLE_LIMIT = { max: 10, windowMinutes: 15 };
+
+// REQ-116 (audit 3, finding 4): MFA code checks at login, per account across
+// every challenge (app/api/auth/mfa/verify). Cleared by a correct code.
+export const MFA_USER_EVENT = "mfa_verify_user";
+export const MFA_USER_LIMIT = { max: 10, windowMinutes: 15 };
+export const MFA_USER_LOCKED_MESSAGE =
+  "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
+  "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
+
+// REQ-135: check-and-record as one atomic step. checkRateLimit followed by
+// recordAuthEvent is two statements, so N requests sent at once all read
+// "under the limit" before any of them records, and all N get through --
+// N model calls on grade/chat/pbq, N guesses past the 8-guess cap on an MFA
+// challenge. Here a transaction-scoped advisory lock on (event, identifier)
+// makes concurrent callers take turns: each counts, then records, before
+// the next one counts. A rejected call records nothing, same as before.
+// Works on Supabase's transaction-mode pooler (one backend per transaction).
+// Routes use this; checkRateLimit/recordAuthEvent stay for logging-only
+// events (login_fail, login_success) and existing callers.
+export async function consumeRateLimit(
+  eventType: string,
+  identifier: string,
+  limit: { max: number; windowMinutes: number },
+  opts: { userId?: string | null; ip?: string | null } = {}
+): Promise<void> {
+  const id = identifier.toLowerCase();
+  // REQ-118 (Audit 3 MEDIUM-8): count and record are one statement (the
+  // insert only happens when the count is under the limit), so a call is
+  // four round trips (begin, lock, count-and-record, commit) instead of six.
+  // Still atomic: the lock is its own, earlier statement, so the counting
+  // statement's snapshot is taken after the previous holder committed.
+  const recorded = await withTransaction(async (tx) => {
+    await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`rate:${eventType}:${id}`]);
+    const row = await tx.queryOne<{ recorded: boolean }>(
+      `with c as (
+         select count(*)::int as n from auth_events
+          where event_type = $1 and identifier = $2 and created_at > now() - make_interval(mins => $3)
+       ), ins as (
+         insert into auth_events (event_type, identifier, user_id, ip)
+         select $1, $2, $5::uuid, $6::varchar from c where c.n < $4::int
+         returning 1
+       )
+       select exists (select 1 from ins) as recorded`,
+      [eventType, id, limit.windowMinutes, limit.max, opts.userId ?? null, opts.ip ?? null]
+    );
+    return row?.recorded === true;
+  });
+  if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
 }

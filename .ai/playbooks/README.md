@@ -18,3 +18,4 @@ playbook by default.
 | `migration.md` | Handle schema, data, dependency, or platform migrations. |
 | `release.md` | Prepare a change for publish, merge, or handoff. |
 | `handoff.md` | Transfer context between models, tools, or human maintainers. |
+| `audit.md` | Read-only, multi-reviewer sweep for bugs task-scoped work misses; verified, ranked fix plan. |

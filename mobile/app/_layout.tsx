@@ -1,20 +1,27 @@
 import { useEffect } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import { Fraunces_500Medium, Fraunces_600SemiBold, Fraunces_700Bold } from "@expo-google-fonts/fraunces";
-import {
-  SourceSans3_400Regular,
-  SourceSans3_500Medium,
-  SourceSans3_600SemiBold,
-  SourceSans3_700Bold,
-} from "@expo-google-fonts/source-sans-3";
-import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono";
+// REQ-113 (Audit 3 mobile M2): one import per weight. The packages' index
+// files require every weight and italic (54 font files, ~11 MB of the
+// Android export) even though only these ten are used.
+import { Fraunces_500Medium } from "@expo-google-fonts/fraunces/500Medium";
+import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
+import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
+import { SourceSans3_400Regular } from "@expo-google-fonts/source-sans-3/400Regular";
+import { SourceSans3_500Medium } from "@expo-google-fonts/source-sans-3/500Medium";
+import { SourceSans3_600SemiBold } from "@expo-google-fonts/source-sans-3/600SemiBold";
+import { SourceSans3_700Bold } from "@expo-google-fonts/source-sans-3/700Bold";
+import { IBMPlexMono_400Regular } from "@expo-google-fonts/ibm-plex-mono/400Regular";
+import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
+import { IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono/600SemiBold";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
+import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
@@ -67,6 +74,7 @@ function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
 
 function RootNavigator() {
   const { status, webIdleWarningSecondsLeft } = useAuth();
+  const { gate } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
   const { updateReady, applyUpdate, dismiss } = useAppUpdates();
@@ -87,8 +95,12 @@ function RootNavigator() {
       router.replace("/lock");
     } else if (status === "signedIn" && (inAuthGroup || onLockScreen)) {
       router.replace("/");
+    } else if (status === "signedIn") {
+      // REQ-119: the one-tap Terms prompt, then first run (src/lib/legal.ts).
+      const to = gateRedirect(gate, segments);
+      if (to) router.replace(to);
     }
-  }, [status, segments, router]);
+  }, [status, segments, router, gate]);
 
   return (
     <>
@@ -131,7 +143,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <AuthProvider>
-        <RootNavigator />
+        <OnboardingProvider>
+          <RootNavigator />
+        </OnboardingProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

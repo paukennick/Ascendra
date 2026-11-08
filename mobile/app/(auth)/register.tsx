@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
+import { TERMS_VERSION } from "@/lib/legal";
 import { ApiError } from "@/api/client";
 import { colors, fonts } from "@/lib/theme";
 
@@ -38,7 +39,8 @@ export default function Register() {
     }
     setSubmitting(true);
     try {
-      await register(email.trim(), password, displayName.trim() || undefined);
+      // REQ-119: the version agreed to is recorded with the account.
+      await register(email.trim(), password, displayName.trim() || undefined, TERMS_VERSION);
       router.replace({ pathname: "/verify-email-pending", params: { email: email.trim() } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
@@ -111,14 +113,14 @@ export default function Register() {
           <Text style={{ color: colors.mutedDim, fontFamily: fonts.body, flex: 1, fontSize: 13, lineHeight: 18 }}>
             I agree to the{" "}
             <Text
-              style={{ color: colors.accent, fontFamily: fonts.bodySemiBold }}
+              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
               onPress={() => router.push("/terms")}
             >
               Terms & Disclaimer
             </Text>{" "}
             and{" "}
             <Text
-              style={{ color: colors.accent, fontFamily: fonts.bodySemiBold }}
+              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
               onPress={() => router.push("/privacy")}
             >
               Privacy Policy

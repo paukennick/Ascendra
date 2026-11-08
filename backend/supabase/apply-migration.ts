@@ -7,6 +7,7 @@
 // Usage (from backend/):
 //   npm run migrate -- 023_shared_catalog.sql
 //   npm run migrate -- --all        # every file not yet recorded, in order
+//   npm run migrate -- --status     # what this database is missing (REQ-128)
 //
 // Every migration in this repo is additive and written with IF NOT EXISTS /
 // ON CONFLICT guards, so re-running one by hand remains safe; the ledger is
@@ -16,6 +17,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 import "./seed/env-local";
+import { checkSchema, formatMasteryDrift, masteryDrift, migrationsToApply } from "../lib/schema-status";
+import { BACKUPS_SQL, formatBackups, formatJit, type BackupRow } from "../lib/maintenance";
 
 const MIGRATIONS_DIR = join(__dirname, "migrations");
 
@@ -23,19 +26,61 @@ async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is not set (backend/.env.local).");
   const arg = process.argv[2];
-  if (!arg) throw new Error("Pass a migration filename, or --all.");
+  if (!arg) throw new Error("Pass a migration filename, --all, or --status.");
 
-  const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
   try {
-    await pool.query(
-      `create table if not exists schema_migrations (
-         filename text primary key,
-         applied_at timestamptz not null default now()
-       )`
-    );
+    // --status must not write anything, so it only reads the ledger if one
+    // already exists; applying creates it.
+    if (arg !== "--status") {
+      await pool.query(
+        `create table if not exists schema_migrations (
+           filename text primary key,
+           applied_at timestamptz not null default now()
+         )`
+      );
+    }
+    const hasLedger = (await pool.query<{ ok: boolean }>(
+      `select to_regclass('public.schema_migrations') is not null as ok`
+    )).rows[0]?.ok;
     const applied = new Set(
-      (await pool.query<{ filename: string }>(`select filename from schema_migrations`)).rows.map((r) => r.filename)
+      hasLedger
+        ? (await pool.query<{ filename: string }>(`select filename from schema_migrations`)).rows.map((r) => r.filename)
+        : []
     );
+
+    // REQ-128: read-only report. Probes the objects the code needs (see
+    // lib/schema-status.ts) -- those are reliable even for migrations that
+    // were pasted into the SQL editor and never recorded in the ledger --
+    // and lists repo migrations the ledger hasn't seen, for context.
+    if (arg === "--status") {
+      const status = await checkSchema(async (sql) => (await pool.query<{ ok: boolean }>(sql)).rows);
+      const unrecorded = readdirSync(MIGRATIONS_DIR)
+        .filter((f) => f.endsWith(".sql") && !applied.has(f))
+        .sort();
+      if (status.current) {
+        console.log("Schema is current: every object the code needs is present.");
+      } else {
+        console.log("Schema is MISSING objects the code needs:");
+        for (const m of status.missing) console.log(`  - ${m.what}  (${m.migration})`);
+        console.log(`Apply: ${migrationsToApply(status).map((f) => `npm run migrate -- ${f}`).join(" && ")}`);
+      }
+      // FAIL-119: informational -- levels the rule would change.
+      console.log(formatMasteryDrift(await masteryDrift(async (sql) => (await pool.query(sql)).rows)));
+      // REQ-118: upkeep reminders (informational).
+      const backups = await pool.query<BackupRow>(BACKUPS_SQL).then((r) => r.rows, () => null);
+      if (backups) for (const line of formatBackups(backups)) console.log(line);
+      const jit = await pool.query<{ on: boolean }>(`select current_setting('jit') = 'on' as on`).then((r) => r.rows[0]?.on ?? null, () => null);
+      console.log(formatJit(jit));
+      if (unrecorded.length) {
+        console.log(
+          `\nNot in the schema_migrations ledger (${unrecorded.length}). Normal for migrations applied ` +
+            `through the SQL editor; the probes above are what decide.\n  ${unrecorded.join("\n  ")}`
+        );
+      }
+      process.exitCode = status.current ? 0 : 2;
+      return;
+    }
 
     const files =
       arg === "--all"

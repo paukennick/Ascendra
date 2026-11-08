@@ -1,9 +1,39 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AppState, Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { secureStorage } from "@/lib/secureStorage";
 import { isBiometricAvailable, confirmBiometric, getBiometricLabel } from "@/lib/biometric";
+import { backgroundHold } from "@/lib/backgroundHold";
+import { localDataGuard, userLocalDataKeys } from "@/lib/localData";
 import { api, ApiError, registerAuthHooks } from "@/api/client";
+import { cancelStudyReminders } from "@/lib/reminderScheduler";
+import { TERMS_VERSION } from "@/lib/legal";
 import type { AuthUser } from "@/types";
+
+// Removes one user's drafts, PBQ progress and lesson positions from the
+// device (see src/lib/localData.ts). Draft writes for that user are blocked
+// first, so a screen flushing on unmount can't put one back. The lesson
+// screen writes its position straight to AsyncStorage, outside that guard,
+// so a second sweep runs once the signed-in screens have unmounted. Best
+// effort: storage errors never block the logout itself.
+const LOCAL_DATA_RESWEEP_MS = 2000;
+async function clearUserLocalData(userId: string): Promise<void> {
+  localDataGuard.loggedOut(userId);
+  // REQ-119: this user's study reminders stop on this phone with them.
+  await cancelStudyReminders();
+  const sweep = async () => {
+    try {
+      const mine = userLocalDataKeys(await AsyncStorage.getAllKeys(), userId);
+      if (mine.length) await AsyncStorage.multiRemove(mine);
+    } catch {
+      // Leave it; the next logout sweeps again.
+    }
+  };
+  await sweep();
+  setTimeout(() => {
+    if (localDataGuard.isLoggedOut(userId)) void sweep();
+  }, LOCAL_DATA_RESWEEP_MS);
+}
 
 const REFRESH_TOKEN_KEY = "ascendra_refresh_token";
 // A distinct key, not just a flag on the same one -- when biometric unlock is
@@ -28,7 +58,8 @@ interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<LoginResult>;
-  register: (email: string, password: string, displayName?: string) => Promise<void>;
+  // REQ-119: acceptedTermsVersion is sent only by a form whose "I agree" was ticked.
+  register: (email: string, password: string, displayName?: string, acceptedTermsVersion?: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
   completeMfaLogin: (challengeToken: string, code: string) => Promise<void>;
@@ -76,6 +107,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const biometricEnabledRef = useRef(false);
   const inFlightRefresh = useRef<Promise<boolean> | null>(null);
   const backgroundTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Read by logout, which must know whose local data to remove.
+  const userRef = useRef<AuthUser | null>(null);
+  userRef.current = user;
+  useEffect(() => {
+    if (user) localDataGuard.signedIn(user.id);
+  }, [user]);
 
   useEffect(() => {
     // No .catch() here previously meant a thrown hasHardwareAsync/
@@ -156,6 +193,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refresh,
       onAuthExpired: () => {
         clearAuth();
+      },
+      // REQ-116: a fresh access token handed back after the server ended
+      // every other session (password change, two-factor turned on).
+      setAccessToken: (token) => {
+        accessTokenRef.current = token;
       },
     });
   }, [refresh, clearAuth]);
@@ -245,7 +287,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [applySession]);
 
   const loginWithGoogle = useCallback(async (idToken: string): Promise<LoginResult> => {
-    const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken });
+    // REQ-119: the Google button sits above "By continuing you agree to the
+    // Terms and Privacy Policy"; the server records it only for a new account.
+    const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken, acceptedTermsVersion: TERMS_VERSION });
     if (res.mfaRequired) {
       return { mfaRequired: true, challengeToken: res.challengeToken, mfaMethods: res.mfaMethods };
     }
@@ -258,8 +302,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   }, []);
 
-  const register = useCallback(async (email: string, password: string, displayName?: string) => {
-    await api.post("/api/auth/register", { email, password, displayName });
+  const register = useCallback(async (email: string, password: string, displayName?: string, acceptedTermsVersion?: string) => {
+    await api.post("/api/auth/register", { email, password, displayName, acceptedTermsVersion });
   }, []);
 
   // A plain "Log out" ends this session but leaves the device's own
@@ -275,7 +319,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // this device's other sessions too. So leave it live: it is already
   // sealed behind the OS keystore and only opens to the user's own face.
   // logoutAll is still the way to revoke for real.
-  const logout = useCallback(async () => {
+  //
+  // endSession is that sign-out on its own. The native background sign-out
+  // uses it directly: on a personal phone, closing the app is not a request
+  // to throw away a half-written ticket or a PBQ in progress.
+  const endSession = useCallback(async () => {
     if (biometricEnabledRef.current) {
       await clearAuth();
       return;
@@ -287,8 +335,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await clearAuth();
   }, [clearAuth]);
 
+  // An explicit "Log out" (and the web idle sign-out, meant for a browser
+  // left unattended) also removes this user's drafts, PBQ progress and
+  // lesson positions from the device. They are keyed per user, so another
+  // account never saw them, but they sat in plain AsyncStorage/localStorage
+  // after the owner had signed out (FAIL-070). Done before the session ends
+  // so a screen still mounted can't be reading them as they go.
+  const logout = useCallback(async () => {
+    const userId = userRef.current?.id;
+    if (userId) await clearUserLocalData(userId);
+    await endSession();
+  }, [endSession]);
+
   const logoutAll = useCallback(async () => {
+    const userId = userRef.current?.id;
     await api.post("/api/auth/logout-all").catch(() => undefined);
+    if (userId) await clearUserLocalData(userId);
     await clearBiometricEnrollment();
     await clearAuth();
   }, [clearAuth, clearBiometricEnrollment]);
@@ -315,23 +377,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // without weakening the real case: a genuine close/lock lasts far longer
   // than this window, and a hard OS kill mid-window still ends up caught by
   // the cold-start branch above rather than sneaking through.
+  //
+  // The grace period was too short for flows that open another app on
+  // purpose -- sharing backup codes to a notes app, picking a photo -- so
+  // those screens open a bounded hold (src/lib/backgroundHold.ts) and the
+  // sign-out waits for it (FAIL-062). Returning to the app ends the hold.
+  // This is a session end, not an explicit logout, so the device's drafts
+  // are kept (see endSession).
   useEffect(() => {
     if (Platform.OS === "web") return; // web has its own idle-timeout sign-out, below
     const BACKGROUND_GRACE_MS = 1500;
     const sub = AppState.addEventListener("change", (next) => {
       if (next === "background" && status === "signedIn") {
+        backgroundHold.noteBackground();
         if (backgroundTimerRef.current) clearTimeout(backgroundTimerRef.current);
         backgroundTimerRef.current = setTimeout(() => {
           backgroundTimerRef.current = null;
           if (biometricEnabledRef.current) {
             setStatus("locked");
           } else {
-            logout();
+            endSession();
           }
-        }, BACKGROUND_GRACE_MS);
-      } else if (next === "active" && backgroundTimerRef.current) {
-        clearTimeout(backgroundTimerRef.current);
-        backgroundTimerRef.current = null;
+        }, backgroundHold.signOutDelay(Date.now(), BACKGROUND_GRACE_MS));
+      } else if (next === "active") {
+        backgroundHold.clear();
+        if (backgroundTimerRef.current) {
+          clearTimeout(backgroundTimerRef.current);
+          backgroundTimerRef.current = null;
+        }
       }
     });
     return () => {
@@ -341,7 +414,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         backgroundTimerRef.current = null;
       }
     };
-  }, [status, logout]);
+  }, [status, endSession]);
 
   // Web's counterpart to the native background lock/logout above: there's no
   // "app closed" or "screen lock" event in a browser tab, so idle time is

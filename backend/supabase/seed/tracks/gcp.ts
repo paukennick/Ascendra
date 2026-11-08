@@ -1423,6 +1423,12 @@ export const GCP_MLE_TRACK: SeedTrack = {
     durationMinutes: 120,
     questionFormat: "50-60 questions; multiple choice and multiple select",
     passingScorePolicy: "No minimum passing score is published by Google for this exam.",
+    // REQ-102: re-read 2026-11-07 -- the guide linked from
+    // https://cloud.google.com/learn/certification/machine-learning-engineer
+    // (https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf)
+    // is still "as of June 1, 2026" with sections ~13/~16/~21/~20/~18/~13.
+    publishedWeightsNote:
+      "Google's June 1, 2026 guide prints approximate section weights (~13/~16/~21/~20/~18/~13) that total 101; kept as printed.",
   },
   units: [
     {

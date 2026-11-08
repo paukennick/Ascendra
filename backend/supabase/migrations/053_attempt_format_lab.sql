@@ -1,0 +1,14 @@
+-- REQ-096 (PR #12, labs/step-zero; was 028_attempt_format_lab.sql on that
+-- branch, renumbered 053 in the 2026-11-07 release because line A owns 028
+-- and production never ran it): a hands-on lab is not a multiple-choice, free-response or PBQ
+-- answer, so it gets its own attempt format instead of borrowing one of
+-- those. A lab attempt is a self-report ("I did it") with no verdict, and
+-- carries attempt kind 'lab' (that kind already exists since 001_init.sql).
+--
+-- Apply this BEFORE deploying the backend that serves
+-- POST /api/objectives/:id/lab: until the value exists, that endpoint fails
+-- (the lesson screen shows the error and the learner can still skip).
+--
+-- Additive and re-runnable. ADD VALUE inside a transaction is allowed on
+-- Postgres 12+ (Supabase runs 15+); the new value is not used in this file.
+alter type attempt_format add value if not exists 'lab';

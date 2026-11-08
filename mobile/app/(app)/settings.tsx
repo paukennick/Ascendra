@@ -6,11 +6,14 @@ import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/componen
 import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
+import { useBilling } from "@/billing/BillingContext";
+import { planSummary } from "@/lib/billing";
 
 export default function Settings() {
   const router = useRouter();
   const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
   const [biometricBusy, setBiometricBusy] = useState(false);
+  const { config, me } = useBilling();
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -31,6 +34,28 @@ export default function Settings() {
       <SectionHeader label="Account" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="user" label="Profile & sign-in" value={user?.displayName ?? user?.email} onPress={() => router.push("/account")} />
+      </Card>
+
+      {/* REQ-122: only while paid plans are on. */}
+      {config.enabled ? (
+        <>
+          <SectionHeader label="Plan" />
+          <Card style={{ gap: 0 }}>
+            <ListRow icon="star" label="Current plan" value={planSummary(me) || "Free"} onPress={() => router.push("/plans")} />
+            {me?.tier === "free" ? (
+              <>
+                <Divider />
+                <ListRow icon="book" label="Free course" value={me.freeCourse?.title ?? "Not picked yet"} onPress={() => router.push("/settings/free-course")} />
+              </>
+            ) : null}
+          </Card>
+        </>
+      ) : null}
+
+      {/* REQ-119 (M7): opt-in, kind study reminders. */}
+      <SectionHeader label="Study" />
+      <Card style={{ gap: 0 }}>
+        <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
       </Card>
 
       <SectionHeader label="Security" />
@@ -65,6 +90,9 @@ export default function Settings() {
 
       <SectionHeader label="About" />
       <Card>
+        {/* REQ-140: every release note, newest first. */}
+        <ListRow icon="gift" label="What's new" onPress={() => router.push("/whats-new")} />
+        <Divider />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Muted>Version</Muted>
           <Muted>{Constants.expoConfig?.version ?? "1.0.0"}</Muted>
@@ -74,6 +102,17 @@ export default function Settings() {
           Ascendra tracks your course progress, generates lessons and practice questions, and
           keeps everything in sync across devices.
         </Muted>
+        <Divider />
+        {/* REQ-119 (M6): every exam body, not only CompTIA. */}
+        <Muted>
+          Ascendra is an independent study aid. It is not affiliated with or endorsed by CompTIA, AWS,
+          Microsoft, Google, PMI or any other certification or exam body. Exam and certification names
+          and trademarks belong to their owners.
+        </Muted>
+        <Divider />
+        <ListRow icon="info" label="Disclaimer and trademarks" onPress={() => router.push("/disclaimer")} />
+        <ListRow icon="shield" label="Privacy Policy" onPress={() => router.push("/privacy")} />
+        <ListRow icon="file-text" label="Terms of Service" onPress={() => router.push("/terms")} />
       </Card>
     </Screen>
   );

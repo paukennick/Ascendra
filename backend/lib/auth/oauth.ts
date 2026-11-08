@@ -20,12 +20,23 @@ export interface GoogleIdentity {
   email: string;
   emailVerified: boolean;
   name: string | null;
+  // REQ-116: seconds since the epoch when Google issued the token. A
+  // re-authentication (email change, MFA off on a Google-only account)
+  // accepts only a token issued in the last few minutes.
+  issuedAt: number | null;
+}
+
+// Tests replace the network call to Google with a stub.
+let verifierOverride: ((idToken: string) => Promise<GoogleIdentity>) | null = null;
+export function __setGoogleVerifierForTest(fn: ((idToken: string) => Promise<GoogleIdentity>) | null): void {
+  verifierOverride = fn;
 }
 
 // Verifies a Google-issued ID token's signature, expiry, issuer, and
 // audience against our registered client ID(s) -- never trust an ID token's
 // claims without this, since anyone can construct a JWT-shaped string.
 export async function verifyGoogleIdToken(idToken: string): Promise<GoogleIdentity> {
+  if (verifierOverride) return verifierOverride(idToken);
   const allowedClientIds = getAllowedClientIds();
   const client = new OAuth2Client();
   const ticket = await client.verifyIdToken({ idToken, audience: allowedClientIds });
@@ -38,5 +49,6 @@ export async function verifyGoogleIdToken(idToken: string): Promise<GoogleIdenti
     email: payload.email,
     emailVerified: payload.email_verified ?? false,
     name: payload.name ?? null,
+    issuedAt: typeof payload.iat === "number" ? payload.iat : null,
   };
 }

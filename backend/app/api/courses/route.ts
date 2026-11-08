@@ -1,9 +1,13 @@
 import { query } from "@/lib/db";
-import { ok, serverError, badRequest, unauthorized } from "@/lib/http";
+import { ok, serverError, badRequest, unauthorized, tooManyRequests, readJson } from "@/lib/http";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+import { textField } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
+
+const COURSE_CREATE_LIMIT = { max: 10, windowMinutes: 60 };
 
 const TRACK_TYPES = new Set([
   "graduate",
@@ -63,10 +67,12 @@ export async function GET(req: Request) {
   }
 }
 
+const COURSE_TEXT_LIMITS = { code: 50, title: 120, description: 4_000 } as const;
+
 // POST /api/courses — create a taxonomy-aligned course.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const {
       code,
       title,
@@ -89,6 +95,18 @@ export async function POST(req: Request) {
         "code, title, trackType, and subcategoryId are required",
       );
     }
+    // Audit 3 M3 (FAIL-298): a 300-character title was a 500 from the
+    // varchar(255) column, and the title reaches the coach's prompts (quoted
+    // as data by lib/prompts.ts quoteTitle). Validated as text, 400 on failure.
+    for (const [value, name, max, required] of [
+      [code, "code", COURSE_TEXT_LIMITS.code, true],
+      [title, "title", COURSE_TEXT_LIMITS.title, true],
+      [description, "description", COURSE_TEXT_LIMITS.description, false],
+    ] as const) {
+      const t = textField(value, name, max, { required });
+      if (!t.ok) return badRequest(t.error);
+      if (required && !t.value.trim()) return badRequest(`${name} is required`);
+    }
     if (!TRACK_TYPES.has(trackType)) return badRequest("invalid trackType");
     if (freshnessModel && !FRESHNESS_MODELS.has(freshnessModel)) {
       return badRequest("invalid freshnessModel");
@@ -97,7 +115,31 @@ export async function POST(req: Request) {
       return badRequest("invalid contentFormat");
     }
 
+    // REQ-116 (audit 3, finding 7): bounded text and a creation limit. A
+    // 100 KB description was stored as sent, and 30 courses could be made
+    // back to back.
+    const caps: Array<[unknown, string, number]> = [
+      [code, "code", 50],
+      [title, "title", 200],
+      [description, "description", 4_000],
+      [credentialExamId, "credentialExamId", 200],
+      [technologyName, "technologyName", 200],
+      [technologyVersion, "technologyVersion", 100],
+      [curriculumStandard, "curriculumStandard", 200],
+      [sourceUrl, "sourceUrl", 2_000],
+    ];
+    for (const [value, name, max] of caps) {
+      const checked = textField(value, name, max);
+      if (!checked.ok) return badRequest(checked.error);
+    }
+
     const user = await requireUser(req);
+    try {
+      await consumeRateLimit("course_create", user.id, COURSE_CREATE_LIMIT, { userId: user.id });
+    } catch (err) {
+      if (err instanceof RateLimitError) return tooManyRequests("You've made a lot of courses just now. Try again in an hour.");
+      throw err;
+    }
     const rows = await query(
       `insert into subject_tracks (
          user_id, code, title, description, track_type, subcategory_id,
@@ -114,8 +156,8 @@ export async function POST(req: Request) {
        returning *`,
       [
         user.id,
-        code,
-        title,
+        code.trim(),
+        title.replace(/\s+/g, " ").trim(),
         description ?? null,
         trackType,
         subcategoryId,

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "@/auth/AuthContext";
 import { BrandMark, Button, H1, Muted } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";

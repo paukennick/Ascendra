@@ -1,7 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import {
   Badge,
   Body,
@@ -18,7 +20,21 @@ import {
   TextField,
 } from "@/components/ui";
 import { Alert } from "@/lib/alert";
+import {
+  emptySupportFields,
+  encodeDraft,
+  parseSupportFields,
+  supportDraftKey,
+  type SupportDraftKind,
+  supportDraftPayload,
+  supportFieldsAfterFailedSend,
+  supportKindFromParam,
+  type SupportFields,
+} from "@/lib/drafts";
+import { courseRequestPrefill } from "@/lib/emptyStates";
+import { localDataGuard } from "@/lib/localData";
 import { colors, spacing } from "@/lib/theme";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { SupportRequest, SupportRequestKind, SupportRequestStatus } from "@/types";
 
 const STATUS_COLOR: Record<SupportRequestStatus, string> = {
@@ -35,19 +51,96 @@ const STATUS_LABEL: Record<SupportRequestStatus, string> = {
   declined: "Declined",
 };
 
+// A send that fails after the learner left (or switched form) can't put the
+// text back on screen, so it goes back into that form's stored draft. An
+// entry already there (typed since) is left alone. Best effort.
+async function restoreDraftInStorage(userId: string | undefined, kind: SupportDraftKind, fields: SupportFields) {
+  const payload = supportDraftPayload(fields);
+  if (!userId || !payload) return;
+  const key = supportDraftKey(userId, kind);
+  if (!localDataGuard.mayWrite(key)) return;
+  try {
+    if ((await AsyncStorage.getItem(key)) != null) return;
+    await AsyncStorage.setItem(key, encodeDraft(payload, Date.now()));
+  } catch {
+    // Nothing more to do; the error was already a failed send.
+  }
+}
+
 export default function Support() {
   // Opened from the sidebar as /support?kind=course_request to land straight
   // on the course-request form instead of the ticket one.
-  const { kind: kindParam } = useLocalSearchParams<{ kind?: string }>();
-  const [kind, setKind] = useState<SupportRequestKind>(
-    kindParam === "course_request" ? "course_request" : "ticket"
-  );
+  const { kind: kindParam, courseName: courseNameParam } = useLocalSearchParams<{ kind?: string; courseName?: string }>();
+  const router = useRouter();
+  const [kind, setKind] = useState<SupportDraftKind>(supportKindFromParam(kindParam) ?? "ticket");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [courseName, setCourseName] = useState("");
   const [courseSourceUrl, setCourseSourceUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // REQ-131: what's typed here survives leaving the screen. One draft per
+  // user and per kind (a half-written ticket and a half-written course
+  // request are separate), so the fields are swapped when the kind changes.
+  // A successful send empties the fields, which clears the stored draft.
+  const { user } = useAuth();
+  function applyFields(f: { subject: string; body: string; courseName: string; courseSourceUrl: string }) {
+    setSubject(f.subject);
+    setBody(f.body);
+    setCourseName(f.courseName);
+    setCourseSourceUrl(f.courseSourceUrl);
+  }
+  useStoredDraft(
+    user ? supportDraftKey(user.id, kind) : null,
+    supportDraftPayload({ subject, body, courseName, courseSourceUrl }),
+    (stored) => {
+      const f = stored ? parseSupportFields(stored) : null;
+      if (f) applyFields(f);
+    }
+  );
+  function switchKind(next: SupportDraftKind) {
+    if (next === kind) return;
+    applyFields(emptySupportFields());
+    setKind(next);
+    setError(null);
+  }
+
+  // `kind` used to be read from the URL only on first load, so a later
+  // param change -- the sidebar popping back here with another kind, a deep
+  // link, web back/forward -- left the other form on screen (FAIL-064). The
+  // chips write the param too, so the URL always names the form showing and
+  // a repeat of the same link still counts as a change.
+  const switchKindRef = useRef(switchKind);
+  switchKindRef.current = switchKind;
+  useEffect(() => {
+    const next = supportKindFromParam(kindParam);
+    if (next) switchKindRef.current(next);
+  }, [kindParam]);
+  // REQ-119: Explore's "Request a course" passes what was searched for. It
+  // fills an empty course name only, so a draft already typed wins.
+  useEffect(() => {
+    const name = courseRequestPrefill(typeof courseNameParam === "string" ? courseNameParam : null);
+    if (!name || kind !== "course_request") return;
+    setCourseName((prev) => prev || name);
+    setSubject((prev) => prev || (courseRequestPrefill(`Please add ${name}`) ?? ""));
+  }, [courseNameParam, kind]);
+  function chooseKind(next: SupportDraftKind) {
+    switchKind(next);
+    router.setParams({ kind: next });
+  }
+
+  // Read when a send finishes, which can be after the learner has switched
+  // form or left (see submit).
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const latest = useRef({ kind, fields: { subject, body, courseName, courseSourceUrl } });
+  latest.current = { kind, fields: { subject, body, courseName, courseSourceUrl } };
 
   const [requests, setRequests] = useState<SupportRequest[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -76,32 +169,43 @@ export default function Support() {
     if (!body.trim()) return setError(isCourseRequest ? "Tell us a bit about the course." : "Describe the issue.");
     if (isCourseRequest && !courseName.trim()) return setError("Add the course name.");
 
+    // FAIL-066: the form (and so its stored draft) is emptied BEFORE the
+    // send, as chat does. Clearing only on success missed the case where the
+    // learner left mid-request: the screen was gone when the success came
+    // back, the draft stayed, and the next visit offered an already-sent
+    // ticket to send again. On failure the sent text comes back.
+    const sentKind = kind;
+    const sent = { subject, body, courseName, courseSourceUrl };
+    applyFields(emptySupportFields());
     setSubmitting(true);
     try {
       await api.post("/api/support", {
-        kind,
-        subject: subject.trim(),
-        body: body.trim(),
-        ...(isCourseRequest
+        kind: sentKind,
+        subject: sent.subject.trim(),
+        body: sent.body.trim(),
+        ...(sentKind === "course_request"
           ? {
-              courseName: courseName.trim(),
-              courseSourceUrl: courseSourceUrl.trim() || undefined,
+              courseName: sent.courseName.trim(),
+              courseSourceUrl: sent.courseSourceUrl.trim() || undefined,
             }
           : {}),
       });
-      setSubject("");
-      setBody("");
-      setCourseName("");
-      setCourseSourceUrl("");
       Alert.alert(
-        isCourseRequest ? "Course request sent" : "Ticket submitted",
+        sentKind === "course_request" ? "Course request sent" : "Ticket submitted",
         "Thanks — you can track its status on this screen."
       );
       await load();
     } catch (err) {
-      setError((err as Error).message);
+      if (mounted.current && latest.current.kind === sentKind) {
+        applyFields(supportFieldsAfterFailedSend(latest.current.fields, sent));
+        setError((err as Error).message);
+      } else {
+        // Left the screen or switched form while it was sending: put the
+        // text back where the next visit to that form will find it.
+        restoreDraftInStorage(user?.id, sentKind, sent);
+      }
     } finally {
-      setSubmitting(false);
+      if (mounted.current) setSubmitting(false);
     }
   }
 
@@ -113,18 +217,12 @@ export default function Support() {
         <Chip
           label="Submit a ticket"
           active={!isCourseRequest}
-          onPress={() => {
-            setKind("ticket");
-            setError(null);
-          }}
+          onPress={() => chooseKind("ticket")}
         />
         <Chip
           label="Request a course"
           active={isCourseRequest}
-          onPress={() => {
-            setKind("course_request");
-            setError(null);
-          }}
+          onPress={() => chooseKind("course_request")}
         />
       </View>
 
@@ -210,7 +308,7 @@ export default function Support() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <Badge label={STATUS_LABEL[r.status]} color={STATUS_COLOR[r.status]} />
               <Muted style={{ fontSize: 12 }}>
-                {r.kind === "course_request" ? "Course request" : "Ticket"} ·{" "}
+                {r.kind === "course_request" ? "Course request" : r.kind === "content_report" ? "Lesson report" : "Ticket"} ·{" "}
                 {new Date(r.created_at).toLocaleDateString()}
               </Muted>
             </View>

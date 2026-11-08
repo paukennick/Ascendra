@@ -56,7 +56,7 @@ const VERIFIED_AT_20260926 = "2026-09-26T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const APLUS_CORE1_TRACK: SeedTrack = {
   code: "APLUS_CORE1",
-  title: "A+ Core 1 Coach",
+  title: "Prep for CompTIA A+ (Core 1)",
   description:
     "CompTIA A+ Core 1 (220-1201) exam prep across 5 weighted domains -- mobile devices, networking, hardware, virtualization/cloud, and hardware/network troubleshooting.",
   trackType: "certification",
@@ -165,7 +165,7 @@ export const APLUS_CORE1_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const APLUS_CORE2_TRACK: SeedTrack = {
   code: "APLUS_CORE2",
-  title: "A+ Core 2 Coach",
+  title: "Prep for CompTIA A+ (Core 2)",
   description:
     "CompTIA A+ Core 2 (220-1202) exam prep across 4 weighted domains -- operating systems, security, software troubleshooting, and operational procedures.",
   trackType: "certification",
@@ -262,7 +262,7 @@ export const APLUS_CORE2_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NETWORKPLUS_TRACK: SeedTrack = {
   code: "NETWORKPLUS",
-  title: "Network+ Coach",
+  title: "Prep for CompTIA Network+",
   description:
     "CompTIA Network+ (N10-009) exam prep across 5 weighted domains -- networking concepts, implementation, operations, security, and troubleshooting.",
   trackType: "certification",
@@ -371,7 +371,7 @@ export const NETWORKPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CLOUDPLUS_TRACK: SeedTrack = {
   code: "CLOUDPLUS",
-  title: "Cloud+ Coach",
+  title: "Prep for CompTIA Cloud+",
   description:
     "CompTIA Cloud+ (CV0-004) exam prep across 6 weighted domains -- cloud architecture, deployment, security, operations, troubleshooting, and DevOps fundamentals.",
   trackType: "certification",
@@ -487,7 +487,7 @@ export const CLOUDPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const DATAPLUS_TRACK: SeedTrack = {
   code: "DATAPLUS",
-  title: "Data+ Coach",
+  title: "Prep for CompTIA Data+",
   description:
     "CompTIA Data+ (DA0-002) exam prep across 5 weighted domains -- data concepts and environments, acquisition and preparation, analysis, visualization and reporting, and governance.",
   trackType: "certification",
@@ -584,7 +584,7 @@ export const DATAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SERVERPLUS_TRACK: SeedTrack = {
   code: "SERVERPLUS",
-  title: "Server+ Coach",
+  title: "Prep for CompTIA Server+",
   description:
     "CompTIA Server+ (SK0-005) exam prep across 4 weighted domains -- server hardware installation and management, server administration, security and disaster recovery, and troubleshooting.",
   trackType: "certification",
@@ -673,7 +673,7 @@ export const SERVERPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PROJECTPLUS_TRACK: SeedTrack = {
   code: "PROJECTPLUS",
-  title: "Project+ Coach",
+  title: "Prep for CompTIA Project+",
   description:
     "CompTIA Project+ (PK0-005) exam prep across 4 weighted domains -- project management concepts, project life cycle phases, tools and documentation, and the basics of IT governance.",
   trackType: "certification",
@@ -771,7 +771,7 @@ export const PROJECTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const TECHPLUS_TRACK: SeedTrack = {
   code: "TECHPLUS",
-  title: "Tech+ Coach",
+  title: "Prep for CompTIA Tech+",
   description:
     "CompTIA Tech+ (FC0-U71) exam prep across 6 weighted domains -- tech concepts and terminology, infrastructure, applications software, software development concepts, data and database fundamentals, and security. Tech+ is CompTIA's 2024 relaunch of ITF+ (IT Fundamentals+).",
   trackType: "certification",
@@ -878,7 +878,7 @@ export const TECHPLUS_TRACK: SeedTrack = {
 // was found live for this exam yet, unlike the tracks below.
 export const AUTOOPSPLUS_TRACK: SeedTrack = {
   code: "AUTOOPSPLUS",
-  title: "AutoOps+ Coach",
+  title: "Prep for CompTIA AutoOps+",
   description:
     "CompTIA AutoOps+ (AT0-001) exam prep across 4 weighted domains -- automation coding concepts, system configuration, continuous integration, and continuous delivery.",
   trackType: "certification",
@@ -957,7 +957,7 @@ export const AUTOOPSPLUS_TRACK: SeedTrack = {
 // pymupdf), not a third-party paraphrase.
 export const CLOUDNETX_TRACK: SeedTrack = {
   code: "CLOUDNETX",
-  title: "CloudNetX Coach",
+  title: "Prep for CompTIA CloudNetX",
   description:
     "CompTIA CloudNetX (CNX-001) exam prep across 4 weighted domains -- hybrid network architecture design, network security, operations/monitoring/performance, and troubleshooting.",
   trackType: "certification",
@@ -1049,7 +1049,7 @@ export const CLOUDNETX_TRACK: SeedTrack = {
 // PDF, since the PDF still listed those fields as "TBD".
 export const SECAIPLUS_TRACK: SeedTrack = {
   code: "SECAIPLUS",
-  title: "SecAI+ Coach",
+  title: "Prep for CompTIA SecAI+",
   description:
     "CompTIA SecAI+ (CY0-001) exam prep across 4 weighted domains -- basic AI concepts for cybersecurity, securing AI systems, AI-assisted security, and AI governance/risk/compliance.",
   trackType: "certification",
@@ -1131,7 +1131,7 @@ export const SECAIPLUS_TRACK: SeedTrack = {
 // (DY0-001), domains, and weights match comptia.org's current DataAI page.
 export const DATAAI_TRACK: SeedTrack = {
   code: "DATAAI",
-  title: "DataAI Coach",
+  title: "Prep for CompTIA DataAI",
   description:
     "CompTIA DataAI (DY0-001, formerly DataX) exam prep across 5 weighted domains -- mathematics and statistics, modeling/analysis/outcomes, machine learning, operations and processes, and specialized data-science applications.",
   trackType: "certification",

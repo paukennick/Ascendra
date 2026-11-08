@@ -1,15 +1,20 @@
-import { query, queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
-import { verifyPassword } from "@/lib/auth/passwords";
-import { recordAuthEvent } from "@/lib/auth/rateLimit";
+import { queryOne } from "@/lib/db";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
+import { verifyPassword, verifyDummyPassword } from "@/lib/auth/passwords";
+import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
+import {
+  reserveLoginAttempt,
+  clearLoginFailures,
+  clearLoginPairs,
+  loginPairKey,
+  LOGIN_PAIR_EVENT,
+  LOGIN_PAIR_LIMIT,
+} from "@/lib/auth/lockout";
 
 export const dynamic = "force-dynamic";
-
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MINUTES = 15;
 
 interface UserRow {
   id: string;
@@ -17,58 +22,69 @@ interface UserRow {
   display_name: string | null;
   password_hash: string | null;
   email_verified_at: string | null;
-  failed_login_count: number;
-  locked_until: string | null;
   mfa_enabled: boolean;
   totp_secret_enc: string | null;
   email_mfa_enabled: boolean;
 }
 
+// REQ-116 (audit 3, low): one answer for every failed sign-in -- unknown
+// address, Google-only account, wrong password, or a paused (address, IP)
+// pair -- with the same status (401), message and bcrypt cost, so neither
+// the response nor its timing says whether an account exists. (Unknown
+// addresses used to answer in 1-6 ms against ~300 ms, and a lock with 423.)
+const LOGIN_FAILED = "Incorrect email or password. After 5 wrong tries, sign-in from this device pauses for 15 minutes.";
+
 // POST /api/auth/login — { email, password, deviceLabel? }
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { email, password, deviceLabel } = body ?? {};
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
     }
     const normalizedEmail = email.toLowerCase().trim();
+    if (normalizedEmail.length > 254 || password.length > 1024) return unauthorized(LOGIN_FAILED);
     const ip = getClientIp(req);
     const userAgent = getUserAgent(req);
 
+    // At most LOGIN_PAIR_LIMIT checks per (address, IP), counted atomically
+    // before anything else, for known and unknown addresses alike.
+    try {
+      await consumeRateLimit(LOGIN_PAIR_EVENT, loginPairKey(normalizedEmail, ip), LOGIN_PAIR_LIMIT, { ip });
+    } catch (err) {
+      if (!(err instanceof RateLimitError)) throw err;
+      await verifyDummyPassword(password);
+      return unauthorized(LOGIN_FAILED);
+    }
+
     const user = await queryOne<UserRow>(
-      `select id, email, display_name, password_hash, email_verified_at, failed_login_count, locked_until,
+      `select id, email, display_name, password_hash, email_verified_at,
               mfa_enabled, totp_secret_enc, email_mfa_enabled
        from app_users where email = $1`,
       [normalizedEmail]
     );
 
     if (!user || !user.password_hash) {
+      await verifyDummyPassword(password);
       await recordAuthEvent("login_fail", normalizedEmail, { ip });
-      return unauthorized("Invalid email or password.");
+      return unauthorized(LOGIN_FAILED);
     }
 
-    if (user.locked_until && new Date(user.locked_until).getTime() > Date.now()) {
-      return new Response(
-        JSON.stringify({
-          error: "Account temporarily locked due to repeated failed login attempts. Try again later.",
-        }),
-        { status: 423, headers: { "Content-Type": "application/json" } }
-      );
+    // REQ-135: reserve this password check before running it (one guarded
+    // UPDATE, see lib/auth/lockout.ts). Since REQ-116 this per-account count
+    // is the backstop against guessing spread over many IPs.
+    if (!(await reserveLoginAttempt(user.id))) {
+      await verifyDummyPassword(password);
+      return unauthorized(LOGIN_FAILED);
     }
 
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) {
-      const newCount = user.failed_login_count + 1;
-      const lockedUntil = newCount >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000) : null;
-      await query(`update app_users set failed_login_count = $1, locked_until = $2 where id = $3`, [
-        newCount,
-        lockedUntil,
-        user.id,
-      ]);
       await recordAuthEvent("login_fail", normalizedEmail, { ip, userId: user.id });
-      return unauthorized("Invalid email or password.");
+      return unauthorized(LOGIN_FAILED);
     }
+    await clearLoginFailures(user.id);
+    await clearLoginPairs(normalizedEmail);
 
     if (!user.email_verified_at) {
       return new Response(

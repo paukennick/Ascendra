@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
+import { friendlyError } from "@/lib/errorMessage";
+import * as Crypto from "expo-crypto";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
-import { Body, EmptyState, H1, Loading, Muted } from "@/components/ui";
+import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
+import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -17,15 +22,40 @@ export default function ChatScreen() {
     prefill?: string;
     unitId?: string;
   }>();
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // REQ-113 (Audit 3 mobile M7): a failed reply used to be added to the
+  // thread as if the coach had said "(error getting reply: ...)".
+  const [sendError, setSendError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  // The id of the message last sent, kept until it gets a reply. Sending the
+  // same text again after a failure reuses it, so if the first request did
+  // reach the server the stored reply comes back instead of a duplicate.
+  const pendingRef = useRef<{ id: string; text: string } | null>(null);
+
+  // REQ-131: an unsent message survives leaving the screen. Per user and
+  // course; a prefill from the lesson shortcut wins over an older draft, and
+  // emptying the box (what a send does) clears it.
+  const { user } = useAuth();
+  useStoredDraft(
+    user && trackId ? chatDraftKey(user.id, trackId) : null,
+    chatDraftPayload(input, prefill),
+    (stored) => {
+      if (!stored || prefill) return;
+      const text = chatDraftText(stored);
+      if (text) setInput((current) => current || text);
+    }
+  );
 
   const load = useCallback(() => {
+    setLoadError(null);
     api
       .get<{ messages: ChatMessage[] }>(`/api/chat?trackId=${trackId}`)
-      .then((res) => setMessages(res.messages));
+      .then((res) => setMessages(res.messages))
+      .catch((err) => setLoadError(friendlyError(err)));
   }, [trackId]);
 
   useEffect(() => {
@@ -34,19 +64,28 @@ export default function ChatScreen() {
 
   async function send() {
     if (!input.trim()) return;
+    setSendError(null);
     const userMsg: ChatMessage = { role: "user", content: input };
     setMessages((prev) => [...(prev ?? []), userMsg]);
     const text = input;
     setInput("");
     setBusy(true);
+    const clientMessageId =
+      pendingRef.current?.text === text ? pendingRef.current.id : Crypto.randomUUID();
+    pendingRef.current = { id: clientMessageId, text };
     try {
-      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text });
+      const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text, clientMessageId });
+      pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
     } catch (err) {
-      setMessages((prev) => [
-        ...(prev ?? []),
-        { role: "assistant", content: `(error getting reply: ${(err as Error).message})` },
-      ]);
+      // Take the unanswered message back out of the thread; its text goes
+      // back in the box below, ready to send again.
+      setMessages((prev) => (prev && prev[prev.length - 1] === userMsg ? prev.slice(0, -1) : prev));
+      setSendError(friendlyError(err, { kept: true }));
+      // The draft is only meant to be cleared by a *successful* send: put the
+      // text back (unless they've started something new) so it isn't lost and
+      // sending it again reuses its clientMessageId.
+      setInput((current) => current || text);
     } finally {
       setBusy(false);
     }
@@ -68,8 +107,22 @@ export default function ChatScreen() {
             <Muted>{trackTitle ? `${trackTitle} · ` : ""}Open Q&A — not graded, doesn't touch mastery</Muted>
           </View>
         </View>
+        {/* REQ-110: the coach quizzes the learner on their weakest objectives. */}
+        <Button
+          label="Quiz me on my weak spots"
+          icon="help-circle"
+          size="sm"
+          variant="ghost"
+          fullWidth={false}
+          onPress={() => router.push({ pathname: `/course/${trackId}/quiz`, params: { trackTitle } })}
+        />
 
-        {!messages ? (
+        {!messages && loadError ? (
+          <View style={{ gap: spacing.sm, paddingVertical: spacing.md }}>
+            <ErrorBanner message={loadError} />
+            <Button label="Try again" icon="refresh-cw" fullWidth={false} onPress={load} />
+          </View>
+        ) : !messages ? (
           <Loading />
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
@@ -106,11 +159,14 @@ export default function ChatScreen() {
           />
         )}
 
+        {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
+            accessibilityLabel="Message to the coach"
             multiline
             placeholder="Ask anything about this track..."
+            maxLength={CHAT_DRAFT_MAX}
             placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}
@@ -126,9 +182,15 @@ export default function ChatScreen() {
               }
             }}
           />
+          {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
+              a 48 dp touch target around the 36 dp circle. */}
           <Pressable
             onPress={send}
             disabled={busy || !input.trim()}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+            accessibilityState={{ disabled: busy || !input.trim(), busy }}
+            hitSlop={6}
             style={[styles.sendButton, (busy || !input.trim()) && { opacity: 0.4 }]}
           >
             <Feather name="send" size={17} color={colors.accentText} />
@@ -172,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     backgroundColor: colors.cardAlt,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     borderRadius: radius.xl,
     padding: 6,
     paddingLeft: 14,

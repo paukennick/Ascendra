@@ -13,7 +13,18 @@
 //     CloudOps Engineer - Associate".
 //   - AWS Certified Advanced Networking - Specialty retires 2026-12-31, and
 //     AWS Certified Developer - Associate moves from DVA-C02 to DVA-C03
-//     (registration opens 2026-10-27, last day for DVA-C02 is 2026-12-01).
+//     (registration opens 2026-10-27, last day for DVA-C02 is 2026-11-30 --
+//     corrected from 2026-12-01 on 2026-11-07, see the DVA block).
+//
+// REQ-102 pass, 2026-11-07: every exam code below was re-checked against
+// AWS's exam-guide index,
+// https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
+// (CLF-C02, AIF-C01, SAA-C03, SOA-C03, DEA-C01, DVA-C02/C03, MLA-C02,
+// SAP-C02/C03, DOP-C02, SCS-C03, ANS-C01 all listed). Changes made in that
+// pass: AWSSAP moved to SAP-C03 (see its block), DVA-C02's last day
+// corrected, MLA-C02's GA date recorded. Tracks not touched were confirmed
+// by exam code only; their domain weights were not re-read this pass.
+// REQ-104 (2026-11-07): AWSDVA moved to DVA-C03 the same way (see its block).
 //
 // Re-verify each track's `credential.lastVendorVerifiedAt` against the live
 // exam guide before a release; migration 007 refuses to store any exam record
@@ -501,54 +512,105 @@ export const AWS_AIF_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// Associate: AWS Certified Developer - Associate (DVA-C02)
-// 130 minutes, 65 questions (50 scored, 15 unscored), scaled 100-1000, pass 720.
-// Domains: 32% / 26% / 24% / 18%.
+// Associate: AWS Certified Developer - Associate (DVA-C03)
 //
-// Marked 'transitioning', not 'active': AWS opens registration for DVA-C03 on
-// 2026-10-27, and 2026-12-01 is the last day to sit DVA-C02. Revisit this
-// track the week of 2026-10-27, when the DVA-C03 guide publishes.
+// REQ-104 (2026-11-07): moved from DVA-C02 to DVA-C03. Sources, all read
+// 2026-11-07:
+//   - DVA-C03 exam guide (HTML, and the PDF it links, which was used as the
+//     verbatim text for every task and skill below):
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html
+//     https://docs.aws.amazon.com/pdfs/aws-certification/latest/developer-associate-03/developer-associate-03.pdf
+//     "Registration for the updated version of the exam (DVA-C03) opened on
+//     October 27, 2026. The last day to take the current version of the
+//     exam (DVA-C02) is November 30, 2026."
+//     50 scored + 15 unscored questions; two response types only, multiple
+//     choice and multiple response (no ordering, matching or case-study
+//     items, unlike some other 2026 AWS exams); scaled 100-1000, minimum
+//     passing score 720, compensatory scoring. Domains 30/26/22/22.
+//   - DVA-C02 -> DVA-C03 comparison: C02 "in use until November 30, 2026",
+//     C03 "in use beginning December 1, 2026"; added, moved and merged skills:
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/dva-03-comparison.html
+//   - Per-domain skills: .../developer-associate-03/developer-associate-03-domain1.html
+//     through -domain4.html under the same docs path (same text as the PDF).
+//   - In-scope services list (used only where an objective names a service
+//     the skill itself does not -- each such objective is marked
+//     "in-scope list" in a comment):
+//     https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/dva-03-in-scope-services.html
+//   - Duration 130 minutes -- NOT in the exam guide, which states no time
+//     limit. Taken from the AWS certification page
+//     (https://aws.amazon.com/de/certification/certification-levels/certified-developer-associate,
+//     "130 minutes", "65 questions"; its links point at the DVA-C03 guide).
+//     That page does not name the version in its text, so treat the 130 as
+//     unverified for C03 specifically until the English page or a C03
+//     announcement states it.
 //
-// The DVA-C02 guide also carries an "emerging topics" section -- AI-assisted
-// code generation and review, AI-generated tests, AI in CI/CD, AI-assisted
-// error analysis. Those appear only as unscored pretest questions, so they are
-// deliberately not a weighted unit here; the scored Amazon Q Developer skills
-// (1.1.11 and 3.3.6) are objectives in their own domains.
+// HOW THE SWITCH IS MODELLED -- exactly as AWSSAP's SAP-C02 -> SAP-C03:
+//   - The four DVA-C02 units stay at sort_order 0-3 with retiredAt set; their
+//     objective rows and every learner's mastery, attempts, error log and
+//     cached lessons on them are kept. retiredAt is 2026-12-01T12:00Z: the
+//     moment 2026-11-30 (DVA-C02's last day) has ended in UTC-12, the last
+//     time zone to finish it.
+//   - One deviation from SAP: three C03 domains keep C02's exact names
+//     ("Development with AWS Services", "Security", "Troubleshooting and
+//     Optimization"), and both sets are listed until retirement. So the
+//     retired C02 unit titles carry a " (DVA-C02)" suffix -- otherwise the
+//     course page and attempt/error history (which show unit titles) would
+//     show two indistinguishable "Security" units. Row ids are unchanged
+//     (units are matched by sort_order, not title), so no history moves.
+//   - The four DVA-C03 domains are new units at sort_order 4-7. Mastery is
+//     NOT copied across: C03 merged and moved skills (comparison page), so a
+//     C02 objective has no one-to-one C03 counterpart, and carried-over
+//     mastery would claim evidence the learner never produced.
+//   - credential_exams gets a new DVA-C03 row; the DVA-C02 row is kept,
+//     marked superseded_by DVA-C03 with retirement_date 2026-11-30.
+//
+// AI content is now scored: C02's unscored "emerging topics" became scored
+// skills (1.1.9, 1.1.10, 3.2.5, 3.3.9, 4.1.5, 4.3.6) and a whole new task,
+// 2.3 (AI security). The guide puts FM selection, prompt engineering, RAG
+// design and guardrail/AI-governance design out of scope, so those
+// objectives stay at the developer's level: call, secure, filter, log.
+// Amazon Q Developer, named in C02, is not in C03's in-scope list (Kiro and
+// Amazon Bedrock / AgentCore are), so no C03 objective names it.
 // ---------------------------------------------------------------------------
+const DVA_C02_RETIRED_AT = "2026-12-01T12:00:00Z";
+const DVA_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
 export const AWS_DVA_TRACK: SeedTrack = {
   code: "AWSDVA",
   title: "AWS Developer Associate Coach",
   description:
-    "AWS Certified Developer - Associate (DVA-C02): writing, securing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB access patterns, encryption and secrets, CI/CD deployment strategies, and observability when it breaks.",
+    "AWS Certified Developer - Associate (DVA-C03): writing, securing, testing, deploying, and debugging applications on AWS -- Lambda and event-driven code, DynamoDB and caching, IAM, encryption and secrets, securing calls to AI services, containers and CI/CD with rollback, and observability and optimization, with AI-assisted development throughout.",
   trackType: "certification",
   subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
-    "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
-  sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-10-27T00:00:00Z",
+    "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+  sourceVerifiedAt: DVA_VERIFIED_AT,
+  contentReviewDueAt: "2027-06-01T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-developer-associate",
     credentialName: "AWS Certified Developer - Associate",
     credentialUrl: "https://aws.amazon.com/certification/certified-developer-associate/",
-    examCode: "DVA-C02",
-    status: "transitioning",
-    retirementDate: "2026-12-01",
+    examCode: "DVA-C03",
+    status: "active",
+    effectiveDate: "2026-12-01", // first C03 exam day; dva-03-comparison.html
     officialObjectivesUrl:
-      "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/developer-associate-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+      "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
+    lastVendorVerifiedAt: DVA_VERIFIED_AT,
     recommendedExperience:
-      "1 or more years developing and maintaining applications with AWS services, and proficiency in at least one high-level programming language. Designing architectures, building CI/CD pipelines, administering IAM users and groups, server administration, and network design are out of scope.",
-    durationMinutes: 130,
+      "1 or more years of hands-on experience developing and maintaining applications with AWS services; proficiency in at least one high-level programming language; experience with application development tools, including AI tools. Out of scope: designing architectures, designing and creating CI/CD pipelines, administering IAM users and groups, administering servers and operating systems, selecting foundation models, prompt engineering and RAG design, designing AI safety frameworks, guardrails and AI governance, designing ETL pipelines, and designing AWS networking.",
+    durationMinutes: 130, // certification page; the exam guide states no time limit -- see block comment
     questionFormat:
-      "65 questions (50 scored, 15 unscored); multiple choice and multiple response",
+      "65 questions (50 scored, 15 unscored); multiple choice and multiple response only -- no ordering, matching, or case-study items",
     passingScorePolicy:
       "Scaled score 100-1000; minimum passing score 720; compensatory scoring, so no per-domain minimum",
+    supersedes: { examCode: "DVA-C02", lastExamDate: "2026-11-30" },
   },
   units: [
     {
-      title: "Development with AWS Services",
+      title: "Development with AWS Services (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 32,
       gate: "Write a Lambda function that talks to DynamoDB and a queue, and explain every configuration choice you made -- memory, timeout, concurrency, partition key, retry behavior -- in terms of what would break without it.",
       objectives: [
@@ -584,7 +646,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Security",
+      title: "Security (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 26,
       gate: "Given application code holding a secret, a token, and customer PII, say where each one should actually live, which AWS service holds it, and who can decrypt it.",
       objectives: [
@@ -611,7 +674,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Deployment",
+      title: "Deployment (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 24,
       gate: "Take a working application from a laptop to production through a pipeline: package it, template it, stage it, release it with a strategy you can name, and roll it back.",
       objectives: [
@@ -644,7 +708,8 @@ export const AWS_DVA_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Troubleshooting and Optimization",
+      title: "Troubleshooting and Optimization (DVA-C02)",
+      retiredAt: DVA_C02_RETIRED_AT, // DVA-C02 domain; see block comment
       weight: 18,
       gate: "Given a slow or failing application, find the cause from metrics, logs, and traces -- then name the specific optimization and the number you expect it to move.",
       objectives: [
@@ -671,6 +736,155 @@ export const AWS_DVA_TRACK: SeedTrack = {
         "Application-level caching for performance",
         "Optimizing application resource usage",
         "Analyzing performance issues and finding bottlenecks in application logs",
+      ],
+    },
+    // ----- DVA-C03 domains (sort_order 4-7). Objectives paraphrase the
+    // skills in each task of the DVA-C03 guide, one idea apiece; the skill
+    // number each one comes from is in the trailing comment.
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain1.html
+      title: "Development with AWS Services",
+      weight: 30,
+      gate: "Build a small event-driven feature end to end -- an API that accepts work, a queue or event bus that carries it, a Lambda function that processes it into DynamoDB -- and explain each coupling, retry, key, and configuration choice in terms of what would break without it.",
+      objectives: [
+        "Tightly coupled versus loosely coupled systems", // 1.1.1
+        "Decoupling system components with AWS services", // 1.1.1
+        "Synchronous versus asynchronous patterns, and when each fits", // 1.1.2
+        "Synchronous request-response through Amazon API Gateway", // 1.1.2
+        "Asynchronous processing with Amazon SQS", // 1.1.2
+        "Event-driven workflows with Amazon EventBridge", // 1.1.2, 1.1.8
+        "Fault-tolerant, resilient application code", // 1.1.3
+        "Retry with backoff when a call fails", // 1.1.3
+        "Graceful degradation when a dependency is unavailable", // 1.1.3
+        "Creating, extending, and maintaining APIs", // 1.1.4
+        "Request and response transformations in an API", // 1.1.4
+        "Enforcing validation rules on API requests", // 1.1.4
+        "Calling AWS services from code with the service APIs and the AWS SDKs", // 1.1.5
+        "Managing streaming data with AWS services such as Amazon Kinesis and Amazon Data Firehose", // 1.1.6; services from the in-scope list
+        "Serializing and deserializing data to integrate application code with AWS services", // 1.1.7 (moved from C02 1.3)
+        "Amazon S3 Event Notifications as an event source", // 1.1.8
+        "Event-driven patterns with Amazon SQS and Amazon SNS", // 1.1.8
+        "Spec-driven code generation with AI-assisted development tools such as Kiro", // 1.1.9; Kiro from the in-scope list
+        "Automated code review and security scanning with AI-assisted tools", // 1.1.9
+        "Intelligent code completion and AI refactoring suggestions -- and checking what they produce", // 1.1.9
+        "Integrating managed AWS AI services into an application", // 1.1.10
+        "Calling Amazon Bedrock models from application code", // 1.1.10; Bedrock from the in-scope list
+        "Giving a Lambda function access to private resources in a VPC", // 1.2.1
+        "Configuring a Lambda function: memory, concurrency, timeout, runtime, handler", // 1.2.2
+        "Lambda layers and extensions", // 1.2.2
+        "Environment variables and parameters in a Lambda function", // 1.2.2
+        "Handling Lambda event lifecycles and errors with destinations and dead-letter queues", // 1.2.3
+        "Integrating Lambda with AWS services through code, event source mappings, and destinations", // 1.2.4
+        "Lambda integrations with API Gateway and Amazon DynamoDB", // 1.2.4
+        "Managing data lifecycles: S3 Lifecycle policies, TTL, and retention periods", // 1.3.1
+        "Choosing a data store by access pattern: Amazon ElastiCache, DynamoDB, Amazon S3, Amazon RDS", // 1.3.2
+        "Choosing the caching solution that fits the data store you picked", // 1.3.3
+        "DynamoDB keys, attributes, and indexes", // 1.3.4
+        "High-cardinality partition keys, and why they keep partition access balanced", // 1.3.4
+        "DynamoDB read consistency: strongly consistent versus eventually consistent reads", // 1.3.4
+        "DynamoDB query versus scan, and the cost of reaching for scan", // 1.3.4
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain2.html
+      title: "Security",
+      weight: 26,
+      gate: "Given an application that signs users in, stores customer PII, holds a database secret, and sends user text to a foundation model, say where each credential and piece of data lives, who can decrypt or read it, and what stops it leaking into the model, its training data, or the logs.",
+      objectives: [
+        "Implementing identity federation", // 2.1.1
+        "Amazon Cognito user pools and identity pools for application sign-in and AWS credentials", // 2.1.1; Cognito from the in-scope list
+        "Fine-grained access control in an application", // 2.1.2
+        "Security tokens, including bearer tokens, for securing applications", // 2.1.2
+        "Multi-factor authentication (MFA) as an access control", // 2.1.2
+        "Configuring programmatic access to AWS", // 2.1.3
+        "Presigned URLs for secure, time-limited access with Amazon S3 and Amazon CloudFront", // 2.1.4 (new in C03)
+        "Making authenticated calls to AWS services", // 2.1.5
+        "Defining permissions for IAM principals: users, roles, and services", // 2.1.6
+        "Resource-based permissions, and how they combine with identity-based ones", // 2.1.6
+        "Assuming an IAM role through AWS STS", // 2.1.7; STS from the in-scope list
+        "Encryption at rest and encryption in transit, defined precisely", // 2.2.1
+        "Certificate management with AWS Certificate Manager and AWS Private CA", // 2.2.2
+        "Client-side versus server-side encryption, and choosing between them", // 2.2.3
+        "Using encryption keys to encrypt and decrypt data with AWS KMS", // 2.2.4; KMS from the in-scope list
+        "Generating certificates and SSH keys for development purposes", // 2.2.5
+        "Identifying sensitive data: personally identifiable information (PII) and protected health information (PHI)", // 2.2.6
+        "Masking sensitive data and limiting who can access it", // 2.2.6
+        "Using secret management services such as AWS Secrets Manager instead of secrets in code", // 2.2.7
+        "Requesting and managing access to AI services, such as Amazon Bedrock model access", // 2.3.1
+        "Private connectivity to AI services through VPC endpoints (AWS PrivateLink)", // 2.3.2
+        "Making sure AI service inputs and outputs are not used to train models", // 2.3.2
+        "Content filtering on AI model inputs and outputs", // 2.3.3
+        "Sensitive information detection and PII/PHI redaction in AI inputs and outputs", // 2.3.3
+        "Denied topic policies for AI applications", // 2.3.3
+        "Protecting AI applications from prompt injection and manipulation", // 2.3.3
+        "Tool-use authorization for AI agents", // 2.3.4
+        "Session isolation between AI agent sessions", // 2.3.4
+        "Human-in-the-loop approval for sensitive AI agent actions", // 2.3.4
+        "Keeping sensitive content out of monitoring logs when calling AI services", // 2.3.5
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain3.html
+      title: "Testing and Deployment",
+      weight: 22,
+      gate: "Take a working service from a laptop to production: package it (zip or container image), test it with real test events and mocked dependencies, template it, push it through a pipeline across environments with a release strategy you can name, and roll it back.",
+      objectives: [
+        "Managing a code module's dependencies inside the package: environment variables, configuration files, container images", // 3.1.1
+        "Building container images for deployment with Dockerfiles", // 3.1.2 (new in C03)
+        "Managing container images in Amazon ECR: image tagging and lifecycle policies", // 3.1.2 (new in C03)
+        "Using code repositories in deployment environments", // 3.1.3
+        "Environment-specific configuration with AWS AppConfig", // 3.1.4
+        "Environment-specific configuration and secrets with Systems Manager Parameter Store and Secrets Manager", // 3.1.4
+        "Environment-specific configuration through API Gateway and Lambda settings", // 3.1.4
+        "API Gateway stages, stage-specific URLs, and endpoints", // 3.1.5 (moved from C02 3.4)
+        "Developing and validating tests with AWS SAM, including local unit tests", // 3.2.1 (SAM unit testing moved from C02 1.1)
+        "Validating infrastructure code with AWS CDK and AWS CloudFormation tests", // 3.2.1
+        "Mocking external dependencies with API Gateway", // 3.2.2
+        "Creating application test events: JSON payloads for Lambda functions and API Gateway APIs", // 3.2.3
+        "Lambda aliases as application environments", // 3.2.4
+        "Container image tags as application environments", // 3.2.4
+        "AWS Amplify branches and AWS Copilot environments", // 3.2.4
+        "Separate API Gateway APIs per environment", // 3.2.4
+        "Generating tests with AWS AI tools", // 3.2.5 (new in C03)
+        "Automating test execution, result analysis, regression testing, and coverage tracking with AI tools", // 3.2.5 (new in C03)
+        "Lambda deployment packaging: .zip files, container images, and layers", // 3.3.1
+        "Deploying containers on Amazon ECS: task definitions and the AWS Fargate launch type", // 3.3.2 (new in C03)
+        "Deploying containers on Amazon EKS: manifests and rolling updates", // 3.3.2 (new in C03)
+        "Using infrastructure as code templates: AWS CloudFormation and AWS SAM", // 3.3.3
+        "Deploying application revisions to target environments with AWS CodeDeploy", // 3.3.4
+        "Orchestrating CI/CD with AWS CodePipeline: starting from a linked repository and promoting through environments", // 3.3.5
+        "Deployment strategies: blue/green, canary, and rolling", // 3.3.6
+        "Automatic and manual rollback with AWS CloudFormation and AWS CodeDeploy", // 3.3.7
+        "Source control labels and branches for versions and releases", // 3.3.8
+        "AWS AI tools in CI/CD: deployment approvals, environment provisioning, and post-deployment validation", // 3.3.9 (new in C03)
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03-domain4.html
+      title: "Troubleshooting and Optimization",
+      weight: 22,
+      gate: "Given a slow or failing application, find the cause from its metrics, logs, and traces (and say what an AI troubleshooting suggestion got right or wrong), then name the specific optimization -- concurrency, memory, messaging, or caching -- and the number you expect it to move.",
+      objectives: [
+        "Debugging application code to identify defects", // 4.1.1
+        "Debugging service integration issues", // 4.1.1
+        "Interpreting application metrics, logs, and traces together", // 4.1.2
+        "Querying logs in Amazon CloudWatch Logs to find the relevant data", // 4.1.3; CloudWatch Logs from the in-scope list
+        "Troubleshooting deployment failures from output logs", // 4.1.4
+        "Using AWS AI tools to analyze errors and suggest fixes -- and verifying the suggestion", // 4.1.5 (new in C03)
+        "A logging strategy that records application behavior and state", // 4.2.1
+        "Structured logging for application events and user actions", // 4.2.1
+        "Emitting custom metrics from application code", // 4.2.2
+        "Notification alerts for specific actions, such as quota limits and deployment completions", // 4.2.3
+        "Implementing tracing with AWS services and tools such as AWS X-Ray", // 4.2.4; X-Ray from the in-scope list
+        "Monitoring workload health: application health checks, liveness probes, and readiness probes", // 4.2.5
+        "Lambda provisioned concurrency", // 4.3.1
+        "Amazon EC2 Auto Scaling as a concurrency lever", // 4.3.1
+        "Thread pool and connection pool management", // 4.3.1
+        "Optimizing memory and compute for an application, including Lambda performance tuning", // 4.3.2 (Lambda tuning moved from C02 1.2)
+        "Optimizing messaging with SQS queues and SNS fan-out", // 4.3.3
+        "Caching with Amazon ElastiCache, DynamoDB Accelerator (DAX), and Amazon CloudFront", // 4.3.4
+        "Detecting performance bottlenecks with Amazon CloudWatch", // 4.3.5
+        "Using AWS AI tools to find optimization opportunities: bottlenecks, resource usage, and code efficiency", // 4.3.6 (new in C03)
       ],
     },
   ],
@@ -1011,7 +1225,21 @@ export const AWS_DEA_TRACK: SeedTrack = {
 //
 // This track deliberately teaches MLA-C02, not the outgoing MLA-C01:
 //   - 2026-09-28 is the last day to sit MLA-C01 in English.
-//   - 2026-09-29 beta delivery of MLA-C02 begins; GA dates are still TBD.
+//   - 2026-09-29 beta delivery of MLA-C02 begins.
+//   - GA: AWS's September 2026 certification-updates post says "GA delivery
+//     of MLA-C02 begins January 14, 2027" in all languages, and MLA-C01
+//     retires everywhere that day
+//     (https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/,
+//     read 2026-11-07). UNCONFIRMED ON THE EXAM PAGE: the certification page
+//     (https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/,
+//     read 2026-11-07) still says GA registration and delivery dates are
+//     "TBD" and still shows "ME1-C02" in its code row, and the MLA-C02
+//     announcement post only says "early 2027". So status stays 'beta', the
+//     GA question count/duration are not recorded (only the beta form's
+//     are), and the review date is set to that announced GA day.
+//   - The exam guide itself (same docs URL as below, read 2026-11-07) is
+//     unchanged from the version this track was written from: 50 scored +
+//     15 unscored, pass 720, weights 28/24/24/24.
 //   - MLA-C01 remains available in Japanese, Korean, and Simplified Chinese
 //     until MLA-C02 reaches general availability.
 // Anyone starting this course now in English will sit MLA-C02.
@@ -1037,7 +1265,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
   sourceUrl:
     "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
   sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-12-01T00:00:00Z",
+  contentReviewDueAt: "2027-01-14T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-machine-learning-engineer-associate",
@@ -1049,7 +1277,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
     effectiveDate: "2026-09-29",
     officialObjectivesUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: "2026-11-07T00:00:00Z",
     recommendedExperience:
       "At least 1 year using Amazon SageMaker AI, Amazon Bedrock, and other AWS services for ML engineering, plus at least 1 year in a related role such as backend developer, DevOps developer, data engineer, or data scientist, with experience in both traditional ML and generative AI.",
     durationMinutes: 170,
@@ -1183,7 +1411,7 @@ export const AWS_MLA_TRACK: SeedTrack = {
         "Monitoring agent resource consumption patterns",
         "Managing foundation-model inference cost through usage optimization",
         "AI-specific cost patterns: token usage optimization, embedding computation cost, vector database storage",
-        "Securing CI/CD pipelines against code and image vulnerabilities with Amazon CodeGuru and Amazon Inspector",
+        "Securing CI/CD pipelines against code and image vulnerabilities with Amazon Inspector (code, container image and Lambda scanning); Amazon CodeGuru Security reached end of support on 2025-11-20",
         "Configuring least-privilege access to ML and AI artifacts",
         "Configuring IAM policies and roles for users and applications in ML and AI systems",
         "Monitoring, auditing, compliance, and logging with AWS CloudTrail and AWS Config",
@@ -1198,54 +1426,93 @@ export const AWS_MLA_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// Professional: AWS Certified Solutions Architect - Professional (SAP-C02)
-// 180 minutes, 75 questions (65 scored, 10 unscored), scaled 100-1000,
-// pass 750 -- the highest passing bar of the AWS exams covered here.
-// Domains: 26% / 29% / 25% / 20%.
+// Professional: AWS Certified Solutions Architect - Professional (SAP-C03)
 //
-// Marked 'transitioning': registration for SAP-C03 opens 2026-10-27 and
-// 2026-11-17 is the last day to sit SAP-C02.
+// REQ-102 (2026-11-07): moved from SAP-C02 to SAP-C03. Sources, all read
+// 2026-11-07:
+//   - Exam-guide index, "Being retired. Registration for SAP-C03 opens
+//     October 27, 2026. Last day to take SAP-C02 is November 16, 2026":
+//     https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
+//   - SAP-C02 -> SAP-C03 comparison, "SAP-C02 ... in use until November 16,
+//     2026. The SAP-C03 exam begins November 17, 2026", plus the full list
+//     of added, merged and removed skills used to plan the units below:
+//     https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/sap-03-comparison.html
+//   - SAP-C03 exam guide: 65 scored + 10 unscored questions, multiple choice
+//     and multiple response, scaled 100-1000, minimum passing score 720
+//     (SAP-C02 was 750), compensatory scoring; five domains 25/25/15/15/20:
+//     https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html
+//     (pass mark cross-checked in the PDF,
+//     https://docs.aws.amazon.com/pdfs/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.pdf)
+//   - Duration 180 minutes and 75 questions -- the exam guide does not state
+//     a time limit; taken from the certification page
+//     (https://aws.amazon.com/certification/certified-solutions-architect-professional/?trk=public_profile_certification-title)
+//     and the AWS T&C September 2026 post
+//     (https://aws.amazon.com/blogs/training-and-certification/september-2026-new-offerings/).
+//   - Per-domain skills: .../solutions-architect-professional-03-domain1.html
+//     through -domain5.html under the same docs path.
 //
-// The guide carries an unscored "emerging topics" section on generative and
-// agentic AI controls -- Amazon Bedrock Guardrails, AgentCore Identity, and
-// human approval workflows via AWS Step Functions. Pretest only, so not a
-// weighted unit here.
+// HOW THE SWITCH IS MODELLED (learner history preserved, nothing deleted):
+//   - The four SAP-C02 units stay at sort_order 0-3 with retiredAt set.
+//     Their objective rows -- and every learner's mastery, attempts, error
+//     log and cached lessons on them -- are kept; the app stops listing
+//     them once retiredAt passes. retiredAt is 2026-11-17T12:00Z, i.e.
+//     after 2026-11-16 (SAP-C02's last day) has ended in every time zone,
+//     so a learner sitting SAP-C02 before then keeps the C02 units.
+//   - The five SAP-C03 domains are new units at sort_order 4-8 with new
+//     objective rows. Mastery is NOT copied from C02 objectives onto C03
+//     ones: the domains were restructured (no one-to-one map exists, per
+//     the comparison page) and carried-over mastery would claim evidence
+//     the learner never produced on that objective.
+//   - credential_exams gets a new SAP-C03 row; the SAP-C02 row is kept,
+//     marked superseded_by SAP-C03 with retirement_date 2026-11-16.
+//   - Until 2026-11-17T12:00Z both sets are listed (registration for C03 is
+//     already open, so a learner starting now should study C03). Exam
+//     domains / readiness use the C03 units only.
+//
+// Removed in C03 (comparison page section 4): C02 Task 2.1's "application
+// upgrade path" and "delegating to AWS", and C02 Task 4.2's "migration-tool
+// security". AWS notes these may still be implicit in other skills.
 // ---------------------------------------------------------------------------
+const SAP_C02_RETIRED_AT = "2026-11-17T12:00:00Z";
+const SAP_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
 export const AWS_SAP_TRACK: SeedTrack = {
   code: "AWSSAP",
   title: "AWS Solutions Architect Professional Coach",
   description:
-    "AWS Certified Solutions Architect - Professional (SAP-C02): architecture at organizational scale -- multi-account governance and hybrid networking, designing new solutions across all five pillars, continuously improving what already runs, and migrating and modernizing existing workloads.",
+    "AWS Certified Solutions Architect - Professional (SAP-C03): architecture at organizational scale -- cloud-native and AI-integrated designs, hybrid and multi-account networks, security, compliance and governance, cost-optimized design, resilience, migration and disaster recovery, and operational excellence through automation.",
   trackType: "certification",
   subcategorySlug: "aws-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl:
-    "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
-  sourceVerifiedAt: VERIFIED_AT,
-  contentReviewDueAt: "2026-10-27T00:00:00Z",
+    "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
+  sourceVerifiedAt: SAP_VERIFIED_AT,
+  contentReviewDueAt: "2027-05-17T00:00:00Z",
   credential: {
     ...AWS_PROVIDER,
     credentialSlug: "certified-solutions-architect-professional",
     credentialName: "AWS Certified Solutions Architect - Professional",
     credentialUrl:
       "https://aws.amazon.com/certification/certified-solutions-architect-professional/",
-    examCode: "SAP-C02",
-    status: "transitioning",
-    retirementDate: "2026-11-17",
+    examCode: "SAP-C03",
+    status: "active",
+    effectiveDate: "2026-11-17", // GA delivery; sap-03-comparison.html
     officialObjectivesUrl:
-      "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+      "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
+    lastVendorVerifiedAt: SAP_VERIFIED_AT,
     recommendedExperience:
-      "2 or more years using AWS services to design and implement cloud solutions, with the ability to give architectural guidance spanning multiple applications and projects in a complex organization. Mobile frontend development, 12-factor app methodology, and deep operating system knowledge are out of scope.",
-    durationMinutes: 180,
+      "2 or more years of experience using AWS services to design and implement cloud solutions. Out of scope: in-depth operating system knowledge; AI/ML model training, fine-tuning, and data science workflows; security incident forensics and detailed threat investigation; application code development and debugging.",
+    durationMinutes: 180, // certification page + T&C blog; the exam guide states no time limit
     questionFormat:
       "75 questions (65 scored, 10 unscored); multiple choice and multiple response",
     passingScorePolicy:
-      "Scaled score 100-1000; minimum passing score 750; compensatory scoring, so no per-domain minimum",
+      "Scaled score 100-1000; minimum passing score 720; compensatory scoring, so no per-domain minimum",
+    supersedes: { examCode: "SAP-C02", lastExamDate: "2026-11-16" },
   },
   units: [
     {
       title: "Design Solutions for Organizational Complexity",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 26,
       gate: "Given an enterprise with many accounts, an on-premises data center, and a compliance auditor, design the network, the identity model, the account structure, and the cost visibility -- and say which requirement each piece answers.",
       objectives: [
@@ -1280,6 +1547,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Design for New Solutions",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 29,
       gate: "Take a green-field requirement with a deployment need, a continuity need, a security need, a reliability target, a performance objective, and a budget -- and design one architecture that satisfies all six without pretending they do not conflict. Heaviest domain on the exam.",
       objectives: [
@@ -1322,6 +1590,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Continuous Improvement for Existing Solutions",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 25,
       gate: "Given an architecture already in production, find what is weakest across operations, security, performance, reliability, and cost -- and order the fixes by what the business would feel first.",
       objectives: [
@@ -1360,6 +1629,7 @@ export const AWS_SAP_TRACK: SeedTrack = {
     },
     {
       title: "Accelerate Workload Migration and Modernization",
+      retiredAt: SAP_C02_RETIRED_AT, // SAP-C02 domain; see block comment
       weight: 20,
       gate: "Given a portfolio of legacy applications, classify each against the 7Rs, pick the transfer mechanism and target platform for the ones that move, and name the two worth modernizing rather than lifting.",
       objectives: [
@@ -1383,6 +1653,163 @@ export const AWS_SAP_TRACK: SeedTrack = {
         "Identifying opportunities for serverless solutions with AWS Lambda",
         "Identifying opportunities for purpose-built databases: DynamoDB, Amazon Aurora Serverless, Amazon ElastiCache",
         "Selecting the appropriate application integration service: Amazon SQS, Amazon SNS, Amazon EventBridge, AWS Step Functions",
+      ],
+    },
+    // ----- SAP-C03 domains (sort_order 4-8). Objectives paraphrase the
+    // skills in each domain page of the SAP-C03 guide, one idea apiece.
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain1.html
+      title: "Architecture Design and Implementation Built for the Cloud",
+      weight: 25,
+      gate: "Given a product requirement, design the cloud-native shape end to end -- event flow, compute and scaling model, network, data layer, and where an AI service or agent fits -- and defend each choice against the requirement it answers.",
+      objectives: [
+        "Event-driven architectures and their messaging guarantees: idempotency, ordering, and delivery with EventBridge, SQS FIFO and standard queues, SNS, and Kinesis partition keys",
+        "Stateless application design with state externalized to DynamoDB, Amazon S3, or ElastiCache",
+        "Serverless data processing pipelines: Kinesis Data Streams, AWS Glue, Amazon Athena, AWS Lambda",
+        "Durable multi-step workflows with AWS Step Functions and durable Lambda functions",
+        "Cross-account and cross-Region event routing with event buses and event forwarding",
+        "Container orchestration for microservices on Amazon EKS, Amazon ECS, and AWS Fargate",
+        "Service mesh communication and observability with Amazon VPC Lattice and ECS Service Connect",
+        "Container image management in Amazon ECR: security scanning and lifecycle policies",
+        "Auto scaling for serverless and container workloads: Lambda concurrency, Horizontal Pod Autoscaler, Cluster Autoscaler, ECS service scaling, Application Auto Scaling",
+        "Ingress patterns: Application Load Balancer, Network Load Balancer, AWS Load Balancer Controller, Amazon API Gateway",
+        "Edge architectures for latency: CloudFront Functions and Lambda@Edge",
+        "Real-time designs with WebSocket and publish-subscribe patterns, including API Gateway WebSocket APIs",
+        "Multi-tenant architectures and tenant isolation: siloed versus pooled resources, Cognito tenant context, row-level security, per-tenant encryption",
+        "Generative AI integration with Amazon Bedrock, including multi-account deployment patterns",
+        "AI agent architectures that call tools: Amazon Bedrock AgentCore and Bedrock Knowledge Bases",
+        "ML inference architectures on Amazon SageMaker AI endpoints",
+        "Retrieval Augmented Generation architectures: ingestion and retrieval strategies over vector stores",
+        "Redundant hybrid connectivity with failover: AWS Direct Connect, AWS VPN, AWS Transit Gateway",
+        "Data synchronization for hybrid workloads: AWS DataSync, AWS Storage Gateway, AWS Transfer Family",
+        "Modernizing legacy systems through integration and data transformation: API Gateway, Lambda, Amazon MQ",
+        "Hybrid DNS: Route 53 Resolver endpoints, private hosted zones, split-horizon DNS, conditional forwarding",
+        "Hybrid compute: EKS Anywhere, ECS Anywhere, AWS Outposts, AWS Local Zones",
+        "Multi-VPC and multi-account connectivity: VPC peering and AWS PrivateLink",
+        "VPC design: subnet strategy, IP address management with VPC IPAM, network segmentation",
+        "Network security architecture: AWS Network Firewall, AWS WAF, Gateway Load Balancer, security groups, network ACLs, VPC Flow Logs",
+        "IPv6 adoption and dual-stack migration strategy",
+        "Global traffic routing for multi-Region applications: Route 53 routing policies and AWS Global Accelerator",
+        "Data lake and lakehouse design: Amazon S3, AWS Lake Formation, Redshift Spectrum, Apache Iceberg",
+        "Real-time and batch analytics pipelines: Amazon EMR, Amazon Redshift, Amazon MSK, Amazon AppFlow",
+        "Choosing a database by access pattern, consistency, and scale: RDS, Aurora, DynamoDB, Redshift",
+        "Database scaling for high availability: read replicas, Aurora Global Database, DynamoDB global tables, RDS Multi-AZ",
+        "Storage architecture by access pattern and performance: Amazon S3, EBS, EFS, FSx",
+        "Caching to meet performance targets: ElastiCache and DynamoDB Accelerator (DAX)",
+        "Data cataloging and cross-account data sharing: Glue Data Catalog, Lake Formation, AWS Clean Rooms",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain2.html
+      title: "Security, Compliance, and Governance",
+      weight: 25,
+      gate: "Given a regulated, multi-account organization that is adding generative AI, design the identity model, encryption, guardrails, logging, and compliance evidence -- and say which control stops which failure.",
+      objectives: [
+        "Identity federation with standard protocols: IAM Identity Center, SAML 2.0, OpenID Connect, SCIM",
+        "Application authentication and authorization: Cognito user pools and identity pools, OAuth 2.0, EKS Pod Identity",
+        "Least-privilege access: cross-account roles, temporary credentials, permissions boundaries, external IDs, session policies, ABAC",
+        "Data perimeter controls and external-access validation: IAM Access Analyzer, VPC endpoint policies, AWS Verified Access",
+        "Workload identity for hybrid and multi-cloud environments with IAM Roles Anywhere",
+        "Encryption at rest with customer managed KMS keys and automatic key rotation",
+        "Encryption in transit and certificate management: TLS 1.3, AWS Certificate Manager, AWS Private CA",
+        "Dedicated hardware security modules with AWS CloudHSM for regulatory requirements",
+        "Post-quantum cryptography strategy: AWS KMS with ML-DSA and ML-KEM",
+        "Organization structure, guardrails, landing zones, and automated account provisioning: AWS Organizations, OUs, Control Tower, Account Factory",
+        "Centralized logging and configuration management, including AI model invocation logs: CloudTrail organization trails, Config aggregation, GuardDuty, Security Lake, Security Hub, CloudWatch Logs",
+        "Cross-account resource sharing with AWS RAM and Transit Gateway",
+        "Policy enforcement with service control policies (SCPs) and resource control policies (RCPs)",
+        "Automated compliance monitoring with AWS Config rules and Security Hub CSPM",
+        "Automated vulnerability scanning and patching: Amazon Inspector and Systems Manager Patch Manager",
+        "Meeting data protection requirements through encryption, access control, and audit logging",
+        "Regulatory requirements such as data sovereignty controls",
+        "Audit trail management for regulated workloads, including AI services",
+        "Data residency controls: Region-specific deployments and transfer restrictions",
+        "Compliance evidence collection and reporting with AWS Artifact",
+        "Risk assessment for cloud architectures: threat modeling and mitigation strategies",
+        "Content filtering and compliance controls for generative AI with Amazon Bedrock Guardrails",
+        "Access control for generative and agentic AI applications with Bedrock AgentCore Identity",
+        "Human oversight of AI operations: approval workflows built with AWS Step Functions",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain3.html
+      title: "Cost-Optimized Architecture Design",
+      weight: 15,
+      gate: "Given a running architecture and its bill, find where the money goes -- compute, data transfer, storage, observability, AI tokens -- and redesign it cheaper without breaking a stated performance or resilience requirement.",
+      objectives: [
+        "Choosing purchase options by usage pattern: On-Demand, Reserved Instances, Savings Plans, Spot, and provisioned capacity",
+        "Cost-optimized compute choices: Graviton instances, Step Functions Standard versus Express, Lambda",
+        "Rightsizing and scaling from performance metrics: Compute Optimizer, scheduled scaling, target tracking, Fargate Spot",
+        "Cost optimization for AI/ML workloads: service tier selection, batching, and caching in Bedrock and SageMaker AI",
+        "Content delivery design for cost: CloudFront origins, caching, Origin Shield, and failover",
+        "Reducing data transfer cost: private connectivity, VPC endpoints versus NAT gateways, AZ-aware and Region-aware traffic",
+        "Cost-aware multi-Region replication: S3 Cross-Region Replication and DynamoDB global tables",
+        "Cost-effective network design: Transit Gateway data processing charges versus PrivateLink pricing",
+        "Data transfer cost for AI/ML, including cross-Region inference routing",
+        "Tagging strategy for cost allocation by business unit, project, and environment",
+        "Cost reporting and analytics from detailed billing data: Cost Explorer and Cost and Usage Reports",
+        "Policy-based tag enforcement: SCPs, Config rules, and tag policies",
+        "Chargeback and showback: cost categories, split cost allocation, Bedrock token usage monitoring",
+        "Cost monitoring and alerting: AWS Budgets thresholds and Cost Anomaly Detection",
+        "Storage tiering and lifecycle policies: S3 Intelligent-Tiering, S3 Lifecycle, Glacier storage classes, EFS lifecycle",
+        "Block storage cost: EBS gp3 versus gp2 versus Provisioned IOPS, and provisioning the IOPS actually needed",
+        "Database cost: DynamoDB capacity modes, RDS reserved instances, Aurora Serverless and I/O-Optimized, Database Savings Plans",
+        "Cost-optimized backup and disaster recovery retention with AWS Backup and Data Lifecycle Manager",
+        "Cost-effective observability: log filtering, metric aggregation, and retention tuning",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain4.html
+      title: "Resilience, Migration, and Business Continuity",
+      weight: 15,
+      gate: "Given a legacy portfolio and a stated RTO/RPO, plan the migration waves and strategy per workload, then design and prove the disaster recovery and ransomware protection -- with a test, not an assumption.",
+      objectives: [
+        "Discovery and portfolio assessment: mapping dependencies and planning migration waves",
+        "Rehosting with AWS Transform MGN (formerly AWS Application Migration Service) and AWS Transform",
+        "Database and data migration strategy: AWS Database Migration Service and AWS DataSync",
+        "Replatforming onto managed services to cut operational overhead: RDS, Aurora, ECS, Lambda",
+        "Refactoring: microservices decomposition, serverless adoption, and the strangler fig pattern",
+        "Modernizing legacy workloads: mainframes, applications, and databases",
+        "Designing disaster recovery to business requirements: RTO, RPO, and cost",
+        "Continuous replication for fast recovery with AWS Elastic Disaster Recovery",
+        "Disaster recovery assessment and recovery procedures: AWS Resilience Hub and Systems Manager runbooks",
+        "Multi-Region disaster recovery with replication and failover: Route 53 health checks, Global Accelerator, Application Recovery Controller",
+        "Disaster recovery testing and validation with AWS Resilience Hub",
+        "Multi-cluster container strategies for high availability and DR on EKS and ECS",
+        "Centralized backup governance and cross-account backup policies with AWS Backup",
+        "Failover testing and measuring recovery time: AWS Fault Injection Service and Route 53 health checks",
+        "Resilient architecture: redundancy, fault tolerance, and self-healing",
+        "Protecting data from ransomware and accidental deletion: S3 Object Lock, EBS snapshot lock, Backup Vault Lock",
+        "Chaos engineering with controlled failure: Fault Injection Service experiment templates and steady-state hypotheses",
+      ],
+    },
+    {
+      // https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03-domain5.html
+      title: "Operational Excellence and Automation",
+      weight: 20,
+      gate: "Given a multi-account estate deployed by hand, design the IaC, pipelines, observability, and automated remediation that let it be changed, watched, and repaired safely -- including how an AI workload is evaluated and monitored.",
+      objectives: [
+        "Infrastructure as code, declarative and imperative: AWS CloudFormation and AWS CDK",
+        "Policy as code for proactive validation, enforcement, and drift remediation: CloudFormation Hooks, CDK aspects, Config rules, SCPs",
+        "Secrets in infrastructure code: AWS Secrets Manager and Systems Manager Parameter Store",
+        "Multi-account and multi-Region infrastructure deployment with CloudFormation StackSets",
+        "CI/CD orchestration: CodePipeline, CodeBuild, CodeDeploy, CodeCommit",
+        "Pipeline security: vulnerability scanning and artifact signing with Amazon Inspector and ECR image scanning",
+        "Multi-account and multi-Region pipelines: role delegation and artifact promotion",
+        "Evaluating AI/ML applications and validating their outputs with Amazon Bedrock Evaluations",
+        "Deployment strategies with rollback: blue/green, canary, rolling",
+        "Observability through metrics, logs, and distributed tracing: CloudWatch, X-Ray, AWS Distro for OpenTelemetry",
+        "Monitoring containerized applications with Container Insights on ECS and EKS",
+        "Multi-account log aggregation: CloudWatch Logs subscriptions and archival S3 storage tiers",
+        "Alerting: CloudWatch alarms, Amazon SNS, Systems Manager",
+        "Monitoring AI/ML workloads: model performance, agent performance, inference latency, and drift",
+        "User experience monitoring: CloudWatch Synthetics and CloudWatch RUM",
+        "Service-level objectives with measurable indicators and alerts: CloudWatch Application Signals",
+        "Health monitoring, capacity planning, and operational response: CloudWatch alarms, EventBridge, Systems Manager, Service Quotas",
+        "Controlled remediation with safety limits: circuit breakers, rate limits, bulkheads, retries with exponential backoff",
+        "Auto scaling policies: target tracking, scheduled, and predictive scaling",
+        "Automated failure recovery: health checks and replacement for Auto Scaling, ECS tasks, and Lambda retries",
+        "Automated runbooks and incident response for patching, remediation, and scaling",
       ],
     },
   ],
@@ -1468,7 +1895,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
         "Composing and deploying IaC templates: AWS SAM, AWS CloudFormation, the AWS CDK",
         "Applying CloudFormation StackSets across multiple accounts and Regions",
         "Change management processes for IaC-based platforms",
-        "Determining the right configuration management service: AWS OpsWorks, AWS Systems Manager, AWS Config, AWS AppConfig",
+        "Determining the right configuration management service: AWS Systems Manager (including AppConfig and State Manager) and AWS Config -- AWS OpsWorks reached end of life on 2024-05-26",
         "Building infrastructure patterns, governance controls, and security standards into reusable templates with AWS Service Catalog, CloudFormation modules, and the CDK",
         "AWS account structures and the practices around them",
         "Standardizing and automating account provisioning and configuration",
@@ -1477,7 +1904,7 @@ export const AWS_DOP_TRACK: SeedTrack = {
         "Governance and security controls at scale: AWS Config, Control Tower, Security Hub, Amazon Detective, Amazon GuardDuty, Service Catalog",
         "Automating system inventory, configuration, and patch management with Systems Manager and AWS Config",
         "Developing Lambda automations for complex scenarios with the AWS SDKs and AWS Step Functions",
-        "Driving application configuration to a desired state with OpsWorks and Systems Manager State Manager",
+        "Driving instance and application configuration to a desired state with Systems Manager State Manager and AppConfig",
         "Maintaining software compliance with Systems Manager",
       ],
     },
@@ -1679,7 +2106,7 @@ export const AWS_SCS_TRACK: SeedTrack = {
         "Scanning compute for known vulnerabilities: Amazon Inspector for container images and Lambda, GuardDuty runtime monitoring",
         "Deploying patches across compute with Systems Manager Patch Manager and continuous validation",
         "Configuring secure administrative access: Systems Manager Session Manager and EC2 Instance Connect",
-        "Finding and remediating vulnerabilities inside the pipeline with Amazon Q Developer and Amazon CodeGuru Security",
+        "Finding and remediating vulnerabilities inside the pipeline with Amazon Q Developer and Amazon Inspector code scanning (Amazon CodeGuru Security, named in older material, reached end of support on 2025-11-20)",
         "Protections and guardrails for generative AI applications, including the OWASP Top 10 for LLM Applications",
         "Designing and troubleshooting network controls that permit or prevent traffic: security groups, network ACLs, AWS Network Firewall",
         "Secure connectivity between hybrid and multi-cloud networks: AWS Site-to-Site VPN, AWS Direct Connect, MACsec",
@@ -1755,7 +2182,14 @@ export const AWS_SCS_TRACK: SeedTrack = {
 // retirement date so it can be surfaced in the UI and archived afterwards.
 //
 // Unusual among AWS exams: the guide lists only multiple response and matching
-// question types -- no plain multiple choice.
+// question types -- no plain multiple choice. (REQ-114, re-checked
+// 2026-11-07: the certification page says "65 questions, either multiple
+// choice or multiple response", but the exam guide's "Response types" still
+// names only multiple response and matching. The guide is the detailed
+// source, so the formats stay as it states them.)
+// REQ-114 (Audit 3 M1): passing score corrected 700 -> 750, per the guide:
+// "The minimum passing score is 750." (fetched 2026-11-07).
+const ANS_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // ---------------------------------------------------------------------------
 export const AWS_ANS_TRACK: SeedTrack = {
   code: "AWSANS",
@@ -1779,14 +2213,14 @@ export const AWS_ANS_TRACK: SeedTrack = {
     retirementDate: "2026-12-31",
     officialObjectivesUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.html",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: ANS_VERIFIED_AT,
     recommendedExperience:
       "5 or more years of networking experience, including 2 or more years of cloud and hybrid networking.",
     durationMinutes: 170,
     questionFormat:
       "65 questions (50 scored, 15 unscored); multiple response and matching",
     passingScorePolicy:
-      "Scaled score 100-1000; minimum passing score 700; compensatory scoring, so no per-domain minimum",
+      "Scaled score 100-1000; minimum passing score 750; compensatory scoring, so no per-domain minimum",
   },
   units: [
     {

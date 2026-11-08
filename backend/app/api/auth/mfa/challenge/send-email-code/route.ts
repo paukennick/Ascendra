@@ -1,10 +1,10 @@
 import crypto from "node:crypto";
 import { queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { getLoginChallenge, setChallengeEmailCode, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ const EMAIL_CODE_TTL_MINUTES = 10;
 // way it accepts a TOTP or backup code.
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await readJson(req);
     const { challengeToken } = body ?? {};
     if (!challengeToken || typeof challengeToken !== "string") {
       return badRequest("challengeToken is required");
@@ -28,12 +28,11 @@ export async function POST(req: Request) {
     // single login attempt can trigger, same reasoning as mfa_verify_attempt.
     const challengeKey = crypto.createHash("sha256").update(challengeToken).digest("hex");
     try {
-      await checkRateLimit("mfa_email_code_send", challengeKey, { max: 3, windowMinutes: 10 });
+      await consumeRateLimit("mfa_email_code_send", challengeKey, { max: 3, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return new Response(JSON.stringify({ error: err.message }), { status: 429 });
       throw err;
     }
-    await recordAuthEvent("mfa_email_code_send", challengeKey);
 
     let challenge;
     try {

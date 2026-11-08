@@ -1,7 +1,7 @@
 import { query } from "@/lib/db";
-import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { checkRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { processAvatarUpload, AvatarError } from "@/lib/auth/avatar";
 
 export const dynamic = "force-dynamic";
@@ -16,14 +16,13 @@ export async function POST(req: Request) {
     const authUser = await requireUser(req);
 
     try {
-      await checkRateLimit("avatar_upload", authUser.id, { max: 20, windowMinutes: 10 });
+      await consumeRateLimit("avatar_upload", authUser.id, { max: 20, windowMinutes: 10 });
     } catch (err) {
       if (err instanceof RateLimitError) return tooManyRequests(err.message);
       throw err;
     }
-    await recordAuthEvent("avatar_upload", authUser.id);
 
-    const body = await req.json();
+    const body = await readJson(req);
     const imageBase64 = body?.imageBase64;
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return badRequest("imageBase64 is required");

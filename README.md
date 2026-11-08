@@ -2,7 +2,7 @@
 
 **Adaptive AI-tutored exam prep · Real certification catalog · Mastery tracking, spaced review, PBQ practice**
 
-A cross-platform (iOS · Android · Web) study coach. Every course runs the same adaptive **guess → teach → fade → solo** lesson loop, a 0–4 mastery rubric with 1/7/21-day spaced review, a performance-based-question simulator, and an ask-the-coach chat — over a real, continuously-verified certification and academic catalog, not a static course library.
+A cross-platform (iOS · Android · Web) study coach. Every course runs the same adaptive **guess → teach → fade → solo** lesson loop, a 0–4 mastery rubric with spaced review of everything learned (1/3/7/21/60 days, a fresh question each time), a performance-based-question simulator, and an ask-the-coach chat — over a real, continuously-verified certification and academic catalog, not a static course library.
 
 ---
 
@@ -26,11 +26,11 @@ A cross-platform (iOS · Android · Web) study coach. Every course runs the same
 | Capability | Description |
 |---|---|
 | **Adaptive lessons** | Guess → teach → fade → solo, one Claude-generated lesson per objective, cached after first generation so cost doesn't scale with users; the coach is framed per course (credential, exam code, provider, domain weight) |
-| **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/7/21-day spaced review scheduler |
+| **Mastery tracking** | 0–4 rubric, proficiency at ≥2 attempts / ≥85% accuracy, 1/3/7/21/60-day spaced review scheduler |
 | **PBQ simulator** | Multi-part performance-based-question scenarios, graded per sub-part |
 | **Ask the coach** | Multi-turn chat, persisted per course |
 | **Catalog navigation** | Home is a personal launch point (continue, review due, favorites); Explore browses the full catalog grouped by category with search and Verified / Review due / Unverified filters |
-| **Spaced review** | Missed questions come back on a 1 / 7 / 21-day schedule; a Review screen lists what's due, with a Home card showing the count |
+| **Spaced review** | Every objective reached at Guided or above comes back on a 1 / 3 / 7 / 21 / 60-day ladder, and missed questions come back too. Today's review serves up to 12 ("N for today") mixed across units, each with a new question graded on the server; unit gate checks and term coverage live on the same screen |
 | **Exam readiness** | Certification courses show mastery weighted by each domain's published exam weight, alongside the plain objective count |
 | **Full account system** | Email/password, TOTP + email-code MFA with per-method backup codes, Google OAuth linking, active-session management, account export/delete |
 | **Per-course disclaimers** | Tracks where acting on wrong content has real consequences (nursing) require an explicit, per-account acknowledgement before the first lesson |
@@ -57,7 +57,7 @@ ascendra/
 │   │   ├── prompts.ts            Lesson/grading/PBQ/chat prompt builders
 │   │   └── mastery.ts            0–4 rubric, proficiency check, spaced-review scheduler
 │   └── supabase/
-│       ├── migrations/           18 migrations, additive-only — see below
+│       ├── migrations/           45 migrations (including the `b` data files), additive-only — see below
 │       └── seed/                 Catalog content: data.ts (core tracks) + tracks/{aws,azure,gcp,nursing}.ts
 ├── mobile/                      Expo Router app — iOS, Android (EAS), and web export
 │   └── app/(app)/, (auth)/, (legal)/   Screens, grouped by auth state; legal = FAQ/disclaimer/privacy/cookies/terms
@@ -71,7 +71,27 @@ ascendra/
 
 Additive-only — nothing has ever been dropped or destructively rewritten.
 
-`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes).
+`001` init schema (tracks, units, objectives, lesson cache, PBQ, mastery, attempts, error log, chat, sessions) · `002` password auth, sessions/refresh tokens, email verification/reset · `003` MFA (TOTP) + OAuth account linking · `004` profile pictures (stored in Postgres, no Storage integration) · `005` course favorites · `006` email-change flow · `007` education taxonomy — 13 categories/subcategories, versioned credential/exam records, freshness models · `008` email-code MFA · `009` backup codes per MFA method · `010` confirmation required to disable your last MFA method · `011` support tickets + course-request submissions · `012` per-track disclaimer acknowledgements · `013` Healthcare & Nursing category (14th) · `014` credential basis widened for accreditation/licensure (non-exam) qualifications · `015` `content_format` axis, decoupled from `track_type` · `016`–`017` `vendor_exam_unpublished_code` basis, for vendors (Google Cloud) that publish no exam code · `018` `content_review_findings` — the catalog-review agent's write target · `019`–`021` vendor categories, physical therapy subcategory, wider classification columns · `022` progress vs. mastery · `023` shared catalog (`course_favorites`, partial unique index on catalog codes) · `029` assisted attempts, hint reveals, `mastery_from_attempts()` and a recompute of every learner's mastery (current mastery and review state backed up to tables first; restore SQL in the file header) (REQ-134) · `030` indexes for chat history and study sessions (REQ-135) · `031`/`031b` weighted cross-format mastery (REQ-100) · `032` lesson-position tombstones (REQ-101) · `033` exam blueprints, `retired_at` (REQ-102) · `034` option reasons, model answers, revisions (REQ-105) · `035` teach cards, lab reports (REQ-106) · `036` `pbq_generation_claims`, a per-learner lease so one learner's simultaneous scenario requests generate once (REQ-107) · `037`/`037b` review loop and unit checks (REQ-108) · `038` exam practice (REQ-109) · `039` study plan, placement, Quiz me (REQ-110) · `040` comparison cards, explain-back, misconceptions (REQ-111) · `041`/`041b` the mastery rule for every assessment type, PBQ part scores (REQ-112).
+
+#### Supabase Data API and row-level security (check by hand)
+
+No migration enables row-level security (RLS). The backend never uses Supabase's Data API (PostgREST): it talks to Postgres directly through `DATABASE_URL`, and every query is scoped by `user_id` in code. That is only safe while the Data API cannot read these tables. If it can, anyone holding the project's public `anon` key could read `app_users.password_hash`, refresh-token hashes and every learner's data straight over HTTPS.
+
+This can't be checked from the repo, so check it in the Supabase dashboard (REQ-135):
+
+1. **Project Settings → API (Data API)**: if the Data API is off, or `public` is not in its exposed schemas, nothing below matters. Turning it off is the simplest fix, since the app does not use it.
+2. If it is on, run this in the SQL editor. Every row should show `rls_enabled = true`; any `false` row is readable by the `anon` and `authenticated` roles:
+
+   ```sql
+   select c.relname as table_name, c.relrowsecurity as rls_enabled, pg_get_userbyid(c.relowner) as owner
+     from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+    order by c.relrowsecurity, c.relname;
+   ```
+
+3. Before enabling RLS, confirm the backend's own connection bypasses it, or the app will see empty tables. Run `select current_user, rolbypassrls from pg_roles where rolname = current_user;` **through the same connection string as `DATABASE_URL`** (the pooler user `postgres.<project-ref>` maps to `postgres`). RLS does not apply to a table's owner or to a role with `rolbypassrls`; the `owner` column above should be that same role. If both hold, `alter table public.<name> enable row level security;` with no policies blocks the Data API roles and leaves the backend unchanged. Don't use `force row level security`, which applies RLS to the owner too.
+
+No enable-RLS migration ships in this repo, because whether it would lock out the backend depends on production role settings that can only be confirmed by running step 3.
 
 ---
 
@@ -81,7 +101,7 @@ Additive-only — nothing has ever been dropped or destructively rewritten.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. **Project Settings → Database → Connection string → URI**, using the **Transaction pooler** (port `6543`) — put it in `backend/.env.local` as `DATABASE_URL`.
-3. Apply the migrations: `cd backend && npm install && npm run migrate -- --all`. Each file runs in its own transaction and is recorded in `schema_migrations`, so re-running is a no-op. (Pasting the files into the SQL Editor in numeric order still works too.)
+3. Apply the migrations: `cd backend && npm install && npm run migrate -- --all`. Each file runs in its own transaction and is recorded in `schema_migrations`, so re-running is a no-op. (Pasting the files into the SQL Editor in numeric order still works too.) To see what a database is missing, run `npm run migrate -- --status` (read-only); a deployed backend reports the same thing at `/api/health`, which answers 503 and names the migrations to apply when the schema is behind the code.
 
 ### 2. Seed the catalog
 
@@ -107,6 +127,8 @@ Set these in Vercel (**Project Settings → Environment Variables**, all three e
 | `CATALOG_REVIEW_AGENT_TOKEN` | The quarterly catalog-review agent's machine credential |
 
 Import the repo in Vercel with **Root Directory** set to `backend`. Sanity check after deploy: `GET /api/health` → `{"status":"ok"}`.
+
+**Deploying migrations 029 through 041b (mastery integrity and every learning feature since):** follow [docs/deploy-runbook-integration.md](docs/deploy-runbook-integration.md), which extends [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) step by step — migrations before the backend deploy, then the batched recompute, then the app update, and the reverse order to roll back. Production also needs `CHOICE_ORDER_SECRET` set (see `backend/.env.example`).
 
 ### 4. Mobile app
 
@@ -135,6 +157,8 @@ Staying current is the harder, ongoing half. A **Claude API Managed Agent** runs
 | [CHANGELOG.md](CHANGELOG.md) | Every requirement (`REQ-###`), newest first, with the reasoning behind it |
 | [docs/education-taxonomy.md](docs/education-taxonomy.md) | Category/subcategory model, freshness models, publication rules |
 | [docs/catalog-review-agent.md](docs/catalog-review-agent.md) | The quarterly agent's resources, credential rotation, manual testing, troubleshooting |
+| [docs/deploy-runbook-mastery.md](docs/deploy-runbook-mastery.md) | Deploy and rollback order for migrations 029/029b (mastery integrity), backup cleanup |
+| [docs/deploy-runbook-integration.md](docs/deploy-runbook-integration.md) | Every migration from 029 to 041b in order: quiet windows, timings, the post-deploy recompute, app update, rollback |
 | [`.ai/`](.ai/context-brief.md) | AI-assistant working rules — requirement tracking, playbooks, project map |
 | `backend/AGENTS.md`, `backend/CLAUDE.md` | Backend-specific notes for AI coding assistants (this Next.js version has its own quirks) |
 

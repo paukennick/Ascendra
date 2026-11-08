@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { useNavigation, usePathname, useRouter } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
+import { t } from "@/lib/i18n";
+import { isReducedMotion } from "@/lib/useReducedMotion";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { ChoiceSheet } from "@/components/ui";
+import { planNavigation, routePath } from "@/lib/navPlan";
 import { colors, fonts, getCourseIcon, radius, spacing } from "@/lib/theme";
 import type { Track, Unit } from "@/types";
 
@@ -37,6 +40,8 @@ function byLastStudied(a: Track, b: Track): number {
 
 export function Sidebar({ visible, onClose, tracks, trackId, track, units }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const navigation = useNavigation();
   const { logout } = useAuth();
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const [rendered, setRendered] = useState(visible);
@@ -47,17 +52,34 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
     if (visible) setRendered(true);
     Animated.timing(translateX, {
       toValue: visible ? 0 : -PANEL_WIDTH,
-      duration: 180,
+      // REQ-113 (L1): no slide under the system's reduced-motion setting.
+      duration: isReducedMotion() ? 0 : 180,
       useNativeDriver: true,
     }).start(() => {
       if (!visible) setRendered(false);
     });
   }, [visible, translateX]);
 
+  // REQ-131: this used to push every time, so choosing the screen you were
+  // already on stacked a copy of it, and Home/Account/Settings/Support/a
+  // course dashboard piled up on each visit. See src/lib/navPlan.ts:
+  // the current screen is skipped, a top-level destination already in the
+  // stack is popped back to, anything else pushes. Both support entries
+  // carry an explicit kind, so going from one support form to the other is
+  // never "the same screen, nothing to do" (FAIL-064).
   function go(path: string, params?: Record<string, string>) {
     onClose();
-    if (params) router.push({ pathname: path, params });
-    else router.push(path);
+    // Routes from the bottom of this stack up to the one showing the sidebar.
+    const state = navigation.getState();
+    const stackPaths = (state?.routes ?? [])
+      .slice(0, (state?.index ?? 0) + 1)
+      .map((r) => routePath(r.name, r.params as Record<string, unknown> | undefined))
+      .filter((p): p is string => p !== null);
+    const mode = planNavigation(pathname, path, !!params, stackPaths);
+    if (mode === "skip") return;
+    const href = params ? { pathname: path, params } : path;
+    if (mode === "dismissTo") router.dismissTo(href);
+    else router.push(href);
   }
 
   // A course row from Favorites/Recent doesn't jump straight to the
@@ -109,10 +131,15 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
   return (
     <>
     <Modal transparent visible statusBarTranslucent animationType="none" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close menu" />
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close menu" />
       <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Pressable style={styles.brandRow} onPress={() => go("/")}>
+          <Pressable
+            style={styles.brandRow}
+            onPress={() => go("/")}
+            accessibilityRole="button"
+            accessibilityLabel={track ? `${track.title}. Go to Home` : "Ascendra. Go to Home"}
+          >
             <Text style={styles.brandIcon}>{emoji ?? "📚"}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.kicker}>{track ? "COURSE" : "PLATFORM"}</Text>
@@ -121,6 +148,9 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           </Pressable>
 
           <NavRow icon="compass" label="Explore all courses" onPress={() => go("/explore")} />
+          {/* REQ-113 (Audit 3 mobile H5): the daily spaced review was reachable
+              only from the study plan and the course panel. */}
+          <NavRow icon="rotate-ccw" label={t("menu.review")} onPress={() => go("/review")} />
 
           {tracks ? (
             <>
@@ -184,6 +214,8 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
                     return (
                       <Pressable
                         key={u.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${u.title}${complete ? ", complete" : ""}`}
                         style={({ pressed }) => [styles.unitRow, pressed && { opacity: 0.7 }]}
                         onPress={() => next && go(`/course/${trackId}/lesson/${next.id}`, { unitId: u.id, objectiveTitle: next.title })}
                       >
@@ -209,12 +241,13 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <NavRow icon="user" label="Account" onPress={() => go("/account")} />
           <NavRow icon="settings" label="Settings" onPress={() => go("/settings")} />
           <View style={styles.divider} />
-          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support")} />
+          <NavRow icon="life-buoy" label="Submit a ticket" onPress={() => go("/support", { kind: "ticket" })} />
           <NavRow
             icon="plus-circle"
             label="Request a course"
             onPress={() => go("/support", { kind: "course_request" })}
           />
+          <NavRow icon="info" label="About" onPress={() => go("/about")} />
           <NavRow icon="help-circle" label="FAQ" onPress={() => go("/faq")} />
           <NavRow icon="alert-circle" label="Disclaimer" onPress={() => go("/disclaimer")} />
           <View style={styles.divider} />
@@ -250,7 +283,12 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 
 function NavRow({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
   return (
-    <Pressable style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
       <Feather name={icon} size={16} color={colors.text} />
       <Text style={styles.navLabel}>{label}</Text>
     </Pressable>
@@ -258,15 +296,22 @@ function NavRow({ icon, label, onPress }: { icon: IconName; label: string; onPre
 }
 
 function CourseRow({ track, busy, onPress }: { track: Track; busy: boolean; onPress: () => void }) {
-  const { emoji, icon, accent } = getCourseIcon(track);
+  const { emoji, icon, iconColor } = getCourseIcon(track);
   return (
-    <Pressable style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]} onPress={onPress} disabled={busy}>
+    <Pressable
+      style={({ pressed }) => [styles.navRow, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+      disabled={busy}
+      accessibilityRole="button"
+      accessibilityLabel={track.title}
+      accessibilityState={{ disabled: busy, busy }}
+    >
       {busy ? (
         <ActivityIndicator size="small" color={colors.accent} />
       ) : emoji ? (
         <Text style={{ fontSize: 16 }}>{emoji}</Text>
       ) : (
-        <Feather name={icon as IconName} size={16} color={accent} />
+        <Feather name={icon as IconName} size={16} color={iconColor} />
       )}
       <Text style={styles.navLabel} numberOfLines={1}>{track.title}</Text>
     </Pressable>
@@ -312,6 +357,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
+    minHeight: 48,
     borderRadius: radius.sm,
   },
   navLabel: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: colors.text, flex: 1 },
@@ -322,6 +368,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 9,
     paddingHorizontal: 10,
+    minHeight: 48,
     borderRadius: radius.sm,
   },
   unitLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.text, flex: 1 },

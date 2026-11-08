@@ -10,6 +10,15 @@ export interface SeedUnit {
   gate?: string;
   objectives: string[];
   labs?: (string | null)[]; // parallel to objectives, Security+ only
+  // REQ-102 (migration 033): when an exam version changes, the outgoing
+  // version's units are not deleted or rewritten in place -- rewriting an
+  // objective's title would silently re-point every learner's mastery and
+  // attempts at different content, and deleting would cascade their mastery
+  // away. Instead the unit stays at its array position (its sort_order, and
+  // so its row identity) with retiredAt set; the seed stamps retired_at on
+  // the unit and every objective in it, and the app stops listing it once
+  // that moment has passed. Successor units are appended after it.
+  retiredAt?: string; // ISO timestamp
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*
@@ -55,6 +64,16 @@ export interface SeedCredential {
   durationMinutes?: number;
   questionFormat?: string;
   passingScorePolicy?: string;
+  // REQ-102: the exam version this one replaces on the same credential.
+  // The seed marks that older credential_exams row superseded_by this one
+  // and records its last test date, rather than leaving it looking current.
+  supersedes?: { examCode: string; lastExamDate: string };
+  // REQ-102: domain weights must total 100. A few vendors print weights
+  // that do not (AACN's "may not equal 100 due to rounding", PMI's CSPP at
+  // 101, ABPTS's CCS rows at 85). Those are kept exactly as printed, and
+  // this field says why -- the blueprint test accepts a non-100 total only
+  // when it is explained here.
+  publishedWeightsNote?: string;
 }
 
 export interface SeedTrack {
@@ -315,12 +334,70 @@ export const MSCS_TRACK: SeedTrack = {
   ],
 };
 
+// REQ-102: the five CompTIA tracks in this file predate the `credential`
+// block, so the app had no exam code, format, or passing score for them --
+// the flagship Security+ track included. Every fact in the blocks below was
+// read on 2026-11-07 from the comptia.org exam page cited beside it.
+const COMPTIA = {
+  providerSlug: "comptia",
+  providerName: "CompTIA",
+  providerUrl: "https://www.comptia.org/certifications",
+  subcategorySlug: "comptia-certifications",
+  credentialType: "certification",
+  basis: "vendor_exam",
+} as const;
+const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
+// Security+ V7 (SY0-701). Source:
+// https://www.comptia.org/en-us/certifications/security/v7/ -- launched
+// 2023-11-07; max 90 questions, multiple choice and performance-based; 90
+// minutes; pass 750 on 100-900; domains 12/22/18/28/20. The page states
+// English retires 2027-06-11 (Japanese, Portuguese, Spanish, Thai on
+// 2027-08-13), so 'transitioning' like AWSANS (AWSDVA has since moved to DVA-C03).
+//
+// Successor: Security+ V8 (SY0-801), launching 2026-11-17 per
+// https://www.comptia.org/en-us/certifications/security/v8/ -- same 90
+// questions / 90 minutes / 750 pass, but renamed Domain 2 ("Threats,
+// Vulnerabilities, and Attacks") and new weights 16/24/19/27/14.
+//
+// REQ-103 (Nick's decision, 2026-11-07): SY0-801 gets its own parallel
+// course, SECPLUSV8 below, rather than a rebase of this one. This track keeps
+// teaching SY0-701 unchanged -- learners booked on V7 keep their course and
+// history -- until English SY0-701 closes on 2027-06-11, which is now this
+// track's review date (retire it then). SECPLUSV8's credential block marks
+// the SY0-701 exam row superseded_by SY0-801 with that last day.
+//
+// REQ-100 course readiness rolls objective evidence up with these domain
+// weights (12 / 22 / 18 / 28 / 20).
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
-  title: "Security+ Coach",
-  description: "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling.",
+  title: "Prep for CompTIA Security+",
+  description:
+    "CompTIA Security+ SY0-701 exam prep across 5 weighted domains, with PBQ scenario drilling. SY0-701 can be booked in English until 2027-06-11 (Japanese, Portuguese, Spanish and Thai until 2027-08-13); for SY0-801 (from 2026-11-17) take Prep for CompTIA Security+ (V8).",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/security/v7/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  contentReviewDueAt: "2027-06-11T00:00:00Z",
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "security-plus",
+    credentialName: "CompTIA Security+",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/security/",
+    examCode: "SY0-701",
+    examRevision: "V7",
+    status: "transitioning",
+    effectiveDate: "2023-11-07",
+    retirementDate: "2027-06-11", // English; comptia.org/en-us/certifications/security/v7/
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/security/v7/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "CompTIA Network+ and two years of experience in a security or systems administrator role.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
   units: [
     {
       title: "General Security Concepts",
@@ -359,7 +436,7 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Indicators of compromise and threat-hunting fundamentals",
         "Mitigation techniques and secure coding concepts: hardening, segmentation, input validation, patch management",
       ],
-      labs: [null, null, null, null, null, "Run a permission-scoped Nmap scan of your own home network and record any unexpected open ports.", null, null],
+      labs: [null, null, null, null, null, "Run a permission-scoped Nmap scan of a home network you administer yourself, with the agreement of everyone who uses it (not shared housing, campus or work Wi-Fi), and record any unexpected open ports.", null, null],
     },
     {
       title: "Security Architecture",
@@ -422,6 +499,358 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Security metrics, KPIs, and reporting to leadership",
       ],
       labs: [null, null, null, null, null, null],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// CompTIA Security+ V8 (SY0-801) -- REQ-103. A parallel course beside
+// SECPLUS (SY0-701), per Nick's decision: V7 stays bookable in English until
+// 2027-06-11, so its learners keep their course; new learners sitting the
+// exam from 2026-11-17 study this one.
+//
+// Sources, read 2026-11-07:
+//   - Exam page: https://www.comptia.org/en-us/certifications/security/v8/
+//     -- SY0-801, launch 2026-11-17, max 90 questions, multiple choice and
+//     performance-based, 90 minutes, pass 750 on 100-900, "Security
+//     administrator with two years of hands-on experience", five domains
+//     16/24/19/27/14, retirement "Estimated 3 years after launch" (no date).
+//   - Full objectives PDF, linked from that page ("Preview the full Security+
+//     V8 exam objectives"): "CompTIA Security+ Certification Exam Objectives,
+//     EXAM NUMBER: SY0-801 V8", Exam Objectives Document Version 2.0:
+//     https://lecbyo.files.cmp.optimizely.com/download/77f3bd3223ac11f180820e495f189928
+//     Test details and the domain table in the PDF match the page. Every
+//     unit below is one domain; every objective groups one sub-heading (or a
+//     few small ones) of an official objective (1.1 ... 5.6) and names every
+//     bulleted term under it -- lib/comptia-v8-coverage.test.ts checks that
+//     term by term. Where the exam page's one-line objective summaries word
+//     an objective differently from the PDF, the PDF (the full document) is
+//     followed.
+//   - SY0-701 last day (English 2027-06-11):
+//     https://www.comptia.org/en-us/certifications/security/v7/
+//
+// The objectives name CompTIA's terms; the wording around them is ours.
+// "Given a scenario" objectives in the PDF (1.2, 2.5, 3.2, 4.1, 4.3, 4.5,
+// 4.6, 4.8, 5.6) are written as scenario tasks, since those are where the
+// performance-based questions come from.
+// ---------------------------------------------------------------------------
+const SECPLUS_V8_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
+export const SECPLUSV8_TRACK: SeedTrack = {
+  code: "SECPLUSV8",
+  title: "Prep for CompTIA Security+ (V8)",
+  description:
+    "CompTIA Security+ SY0-801 (V8) exam prep across 5 weighted domains -- including the new AI threats and AI-assisted operations objectives -- with PBQ scenario drilling. For SY0-701 (bookable in English until 2027-06-11) take Prep for CompTIA Security+.",
+  trackType: "certification",
+  subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/security/v8/",
+  sourceVerifiedAt: SECPLUS_V8_VERIFIED_AT,
+  contentReviewDueAt: "2027-05-17T00:00:00Z",
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "security-plus",
+    credentialName: "CompTIA Security+",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/security/",
+    examCode: "SY0-801",
+    examRevision: "V8",
+    objectivesRevision: "Exam Objectives Document Version 2.0",
+    status: "active",
+    effectiveDate: "2026-11-17", // launch; comptia.org/en-us/certifications/security/v8/
+    officialObjectivesUrl: "https://lecbyo.files.cmp.optimizely.com/download/77f3bd3223ac11f180820e495f189928",
+    lastVendorVerifiedAt: SECPLUS_V8_VERIFIED_AT,
+    recommendedExperience: "Security administrator with two years of hands-on experience.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+    // SY0-701's English last day; the V7 track (SECPLUS) is seeded first, so
+    // its exam row exists when this marks it superseded.
+    supersedes: { examCode: "SY0-701", lastExamDate: "2027-06-11" },
+  },
+  units: [
+    {
+      title: "General Security Concepts",
+      weight: 16,
+      gate: "Given a short scenario, name the security principle at stake and the control category and control type that answer it; walk a change request from CAB approval to backout plan; and choose a certificate, encryption level, or hashing approach and say what it protects against.",
+      objectives: [
+        // 1.1
+        "Defense in depth and its core principles: confidentiality, integrity, and availability (CIA); authentication, authorization, accounting (AAA); non-repudiation; Zero Trust principles; least privilege",
+        "Control categories (technical/logical, managerial/administrative, physical/environmental, operational) and control types (preventive, deterring, corrective, detective, compensating, directive), classifying a real control by both",
+        // 1.2
+        "Given a change request, run the business process: change advisory board (CAB) approval process, ownership, stakeholders, impact analysis, test results, backout planning, fail forward, maintenance window, standard operating procedures (SOPs)",
+        "Technical implications of a change: allow lists/deny lists, restricted activities, downtime, service restart, application restart, legacy applications, dependencies",
+        "Documenting a change: updating diagrams, updating policies/procedures, and version control",
+        // 1.3
+        "Public key infrastructure (PKI): public key, private key, key escrow",
+        "Certificates: certificate authorities, certificate revocation lists (CRLs), Online Certificate Status Protocol (OCSP), self-signed versus third-party, root of trust, certificate signing request (CSR) generation, wildcard",
+        "Encryption choices: protocols, symmetric versus asymmetric, transport/communication encryption, key exchange, algorithms, key length",
+        "Encryption level: full disk, partition, file, volume, database, record -- and what each protects when a device or table is stolen",
+        "Digital signatures, salting, obfuscation, hashing algorithms, and the cryptographic tools that implement them",
+      ],
+      labs: [
+        null,
+        "Pick three controls at your workplace or school (a badge reader, a password policy, a backup job) and classify each by control category and control type.",
+        "Write a one-page change request for patching a web server: CAB approver, stakeholders, impact analysis, test results, backout plan, and maintenance window.",
+        null,
+        null,
+        null,
+        "Generate a private key and a certificate signing request with OpenSSL, then self-sign it and inspect the result with openssl x509 -text -noout.",
+        "Run openssl s_client -connect <site>:443 against a public site and record the protocol version, key exchange, cipher, and key length it negotiated.",
+        null,
+        "Hash the same practice password (never a real one) with and without a salt (python -c with hashlib) and explain why the salted hashes differ -- then explain why real systems store passwords with a slow, salted algorithm such as bcrypt, scrypt or Argon2 rather than plain SHA-256.",
+      ],
+    },
+    {
+      title: "Threats, Vulnerabilities, and Attacks",
+      weight: 24,
+      gate: "Given a log excerpt, alert, message, or short scenario, name the threat actor and motivation, the vector, the vulnerability or attack surface, and the specific indicator that gives the attack away -- including attacks on and through AI systems.",
+      objectives: [
+        // 2.1
+        "Threat characteristics: threat feeds, likelihood, impact, intelligence sources, and the threat life cycle",
+        "Vulnerability characteristics: scoring with the Common Vulnerability Scoring System (CVSS), prioritization, vulnerability types, and Common Vulnerabilities and Exposures (CVE) identifiers",
+        // 2.2
+        "Threat actors -- crime syndicate/organized crime, terrorist, unskilled attacker, hacktivist, insider, accidental/unintentional, competitor, state-sponsored -- and their attributes: internal/external, resources/funding, level of sophistication/capability",
+        "Threat actor motivations: financial, influence, intellectual property, notoriety, espionage, fear/chaos, extortion, general curiosity, revenge, ideological, political, ethical",
+        // 2.3
+        "Advanced persistent threat (APT) and message-based vectors: email, Short Message Service (SMS), Rich Communication Services (RCS), instant messaging, collaboration tools",
+        "Image-, attachment-, and browser-based vectors: quick response (QR) codes, embedded content, CAPTCHA; embedded macros, Rich Text Format (RTF) documents, Portable Document Formats (PDFs); browser extensions, JavaScript, password managers, cookies, session tokens",
+        "Network, remote access, and endpoint vectors: infrastructure devices, virtualized devices, session keys; remote desktop, Virtual Network Computing (VNC), virtual private network (VPN); mobile devices, workstations, servers, tablets, trusted devices, built-in tools, living-off-the-land tools",
+        "Supply chain-based vectors: third-party providers, managed service providers, logistic providers, software as a service (SaaS) providers",
+        "External media-, human-, IoT-, OT-, physical-, and signal-based vectors: malicious Universal Serial Bus (USB); impersonation, contractor, visitor, biometric, watering hole; Internet of Things (IoT) cameras, sensors, printers; operational technology (OT); lock and key, access vestibule, access passes; Bluetooth, radio frequency (RF), near-field communications (NFC)",
+        // 2.4
+        "Lifecycle and inventory weaknesses: unsupported products, unpatched systems, obsolete systems, unmanaged systems, ports and services, rogue devices, shadow IT, unmanaged/stale credentials",
+        "Application and code vulnerabilities: race conditions -- time-of-check (TOC) and time-of-use (TOU) -- malicious update, hardcoded secrets, unsafe exception handling, and zero-day",
+        "Platform and exposure attack surfaces: operating system (OS)-based, virtualization, cryptographic vulnerabilities, misconfiguration, public repositories, public object storage",
+        "Newer attack surfaces: wireless and low-powered communications, large language models (LLMs), identity providers, mobile devices",
+        // 2.5
+        "Given indicators, identify malware attacks: ransomware, trojan, worm, spyware, adware, virus, rootkit, keylogger, logic bomb, fileless malware",
+        "Given a scenario, identify physical attacks: tailgating, shoulder surfing, skimming, forced entry",
+        "Given traffic or logs, identify network attacks: distributed denial of service (DDoS), protocol downgrade, rogue devices and access points, sniffing, spoofing, on-path, Domain Name System (DNS) attacks, cache poisoning",
+        "Given a message or call, identify social engineering attacks: smishing, vishing, phishing, whaling, spear phishing, quishing, impersonation, deepfake",
+        "Given application logs, identify application attacks: injection, buffer overflow, replay, privilege escalation, forgery, directory traversal",
+        "Given authentication logs, identify credential attacks: password spraying, brute force, user enumeration, replay, multifactor authentication (MFA) bypass",
+        "Indicators of compromise: hash, Internet Protocol (IP) address, domain, malicious processes, file system artifacts, timestamp, log manipulation, excessive resource consumption, plaintext strings, account lockout, impossible travel, concurrent sessions",
+        // 2.6
+        "AI model and data threats: model manipulation, poisoning, evasion, data loss, privacy",
+        "AI prompt and runtime threats: prompt injection, jailbreaking, hallucinations, session hijacking, code execution",
+        "AI governance concerns: bias, explainability, ethical considerations",
+      ],
+      labs: [
+        null,
+        "Look up a recent CVE on nvd.nist.gov, read its CVSS vector string, and explain each metric in it.",
+        null,
+        null,
+        "Collect three phishing or smishing messages from your own inbox or spam folder (do not click) and name the vector and the lure in each.",
+        "Review the extensions installed in your own browser and note which can read and change data on every site.",
+        "Run a permission-scoped Nmap scan of a home network you administer yourself, with the agreement of everyone who uses it (not shared housing, campus or work Wi-Fi), and record any unexpected open ports or remote-access services.",
+        null,
+        null,
+        "Inventory the devices on your home network from your router's client list and flag any unsupported, unpatched, or unknown ones.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Open a sample packet capture (for example, from the Wireshark sample captures page) and find one spoofing, sniffing, or DNS indicator.",
+        null,
+        null,
+        "Given a sample authentication log, write the filter that separates password spraying (many accounts, few passwords) from brute force (one account, many passwords).",
+        "Compute the SHA-256 hash of a file you own and search for that hash on VirusTotal -- search the hash only and never upload a private file, because uploads are shared with security researchers; explain what a hash match does and does not prove.",
+        null,
+        "In an AI chat tool you are allowed to use, try a benign prompt-injection test (for example, a document that tells the model to ignore its instructions) and write up what happened and which control would stop it.",
+        null,
+      ],
+    },
+    {
+      title: "Security Architecture",
+      weight: 19,
+      gate: "Given a system design -- cloud, on-premises, OT, or hybrid -- name the architecture's security implications, the missing control and the failure it prevents, the right data protection method for each data state, and the resilience target (RTO/RPO) it can actually meet.",
+      objectives: [
+        // 3.1
+        "Cloud architecture security: serverless, multicloud, deployment models (hybrid, private, public, community), Infrastructure as Code (IaC)",
+        "Other infrastructure models and their security implications: OT, on-premises infrastructure, air-gapped network, microservices, logical segmentation, physical segmentation",
+        "Technical considerations when choosing an architecture: availability, resilience, proprietary vs. open source, usability, responsibility, compute, power requirements, ease of recovery",
+        "Business considerations when choosing an architecture: data sovereignty, data classification, cost, ownership, environmental requirements, scalability, risk",
+        // 3.2
+        "Given a network diagram, apply infrastructure considerations: device placement, security zones, attack surface, diversity, and failure modes (fail-open versus fail-closed)",
+        "Zero Trust architecture: user authentication, device management (health, inventory), application access control",
+        "Secure communication/access: virtual private network (VPN), remote access, tunneling, user management, user access with least privilege, end-to-end encrypted messaging, out-of-band management, file transfer, Security Service Edge (SSE)",
+        "Identity management in the architecture: Group Managed Service Accounts (gMSAs), least privilege access accounts, privilege creep",
+        // 3.3
+        "Data types (structured, unstructured), data states (data at rest, data in use, data in transit), and data classifications (sensitive, secret, critical, confidential, public, top secret, restricted)",
+        "Methods used to secure data: masking, hashing, filtering, tokenization, encryption, data transpose, deidentification, obfuscation",
+        "Data protection roles: data owner, data custodian, data steward, data operator, data controller, data subprocessor",
+        "Data handling (endpoints, marking and labeling, geofencing, data location, data placement) and the data management life cycle: creation, management, distribution, retention, disposal",
+        "Data compliance categories: standards, health data, personal information, financial, child/minor data, intellectual property, legal data",
+        // 3.4
+        "Site considerations (hot, cold, warm, environmental) and platform diversity (vendor platform, hardware, virtualization)",
+        "Redundancy strategies and solutions: load balancing, clustering, autoscaling, high availability, multicloud systems, storage, and power -- uninterruptible power supply (UPS), redundant power supply (RPS), power generator, surge protector",
+        "Backups: retention, immutability, scope, restoration testing",
+        "Resilience testing (failover, simulation, parallel processing), disaster recovery, business continuity, and capacity planning",
+        "Recovery metrics: recovery time objective (RTO), recovery point objective (RPO), mean time to repair (MTTR), mean time between failures (MTBF)",
+      ],
+      labs: [
+        "Read a small Terraform or CloudFormation template and list which security settings (encryption, public access, logging) are declared in code and which are left to defaults.",
+        null,
+        null,
+        null,
+        "Sketch a segmentation diagram separating IoT, guest, and trusted devices into different zones, and mark where a firewall that fails open would hurt you.",
+        null,
+        "Compare a full-tunnel and a split-tunnel VPN configuration and note which traffic each sends through the tunnel.",
+        null,
+        null,
+        "Take a sample table of customer records and show it masked, tokenized, and hashed; note which form can be reversed and by whom.",
+        null,
+        null,
+        null,
+        null,
+        "Sketch a redundant web architecture and name the single point of failure each component removes.",
+        "Restore one file from your own backup and time it; compare that against the RTO you would have guessed.",
+        null,
+        "Given a server with MTBF 10,000 hours and MTTR 4 hours, compute its expected availability, explain what the MTTR means for the RTO (recovery time objective) it can meet, and explain why MTBF and MTTR say nothing about RPO (recovery point objective) -- what extra information, such as backup or replication frequency, you would need to state one.",
+      ],
+    },
+    {
+      title: "Security Operations",
+      weight: 27,
+      gate: "Given an operations scenario, apply the right mitigating control, sequence an incident response, prioritize and verify a vulnerability fix, configure identity and access correctly, decide what to automate (and where AI fits), and pull the right log or artifact to prove what happened. Heaviest domain on the exam.",
+      objectives: [
+        // 4.1
+        "Given a scenario, apply core mitigations: segmentation, access controls, hardening, sandboxing, monitoring/alerting, mobile device management (MDM), and application control with allow lists and block lists",
+        "Deception and disruption technology: honeypot, honeynet, honeyfile, honeytoken, canary account",
+        "Intrusion detection/prevention systems: network-based (NIDS/NIPS), host-based (HIDS/HIPS), and wireless intrusion prevention system (WIPS)",
+        "Firewalls: rate-limiting requests, web application firewall (WAF), rule-based, unified threat management (UTM), Layer 4/Layer 7",
+        "Content filter -- data loss prevention (DLP), agent-based, centralized proxy -- and endpoint security: endpoint detection and response (EDR), extended detection and response (XDR), antivirus",
+        "Network access control: captive portals, 802.1X, endpoint posture/compliance",
+        "Repositories (secrets scanning) and application security: input validation, secure cookies, static code analysis, code signing",
+        "Email security: Domain-based Message Authentication, Reporting, and Conformance (DMARC), Sender Policy Framework (SPF), DomainKeys Identified Mail (DKIM), Brand Indicators for Message Identification (BIMI)",
+        "Operating systems security: Group Policy and Security-enhanced Linux (SELinux)",
+        // 4.2
+        "Hardware, software, and data asset management life cycle: planning/scoping, acquisition/procurement process, assignment/accounting, monitoring/asset tracking, disposal/decommissioning",
+        // 4.3
+        "Given a scenario, identify vulnerabilities: scanning, Internet Protocol Address Management (IPAM), cloud security posture management (CSPM), source code review",
+        "Prioritization (severity assessment, penetration test report review), remediation, and verification that the fix worked",
+        "Vulnerability reporting: internal and external, bounty program, responsible disclosure policies",
+        // 4.4
+        "Monitoring computing resources (systems, application, infrastructure) and monitoring activities: log aggregation, alerting, scanning, archiving, reporting, alert tuning",
+        "Monitoring tools: benchmarks, agents/agentless, security information and event management (SIEM), antivirus, DLP, vulnerability scanners, orchestration, packet analyzer",
+        "Monitoring protocols and plumbing: NetFlow, Simple Network Management Protocol (SNMP), syslog, Security Content Automation Protocol (SCAP), automated alerts, port mirroring, dashboards, network management systems",
+        // 4.5
+        "Given a scenario, manage the account life cycle: provisioning/deprovisioning user accounts, permissions assignments and implications, identity proofing, access review",
+        "Federation and single sign-on (SSO): Security Assertions Markup Language (SAML), Lightweight Directory Access Protocol (LDAP), Open authorization (OAuth)",
+        "Account types: user, privileged (global, local), service, third-party, emergency access",
+        "MFA factors: hard token, soft token, biometrics, one-time password (OTP), backup code",
+        "Access control models (rule-based, role-based, time-based, mandatory, discretionary, just-in-time) and access management: authentication and policies, logical/technical and administrative/business",
+        "Password concepts: passkey, password managers, passwordless, and password best practices -- length, complexity, reuse, expiration, age, compromised credential monitoring, account auditing, policy report",
+        // 4.6
+        "Given a scenario, choose use cases of automation and scripting: user provisioning, resource provisioning, desired state management, anomaly detection, ticket management",
+        "AI capabilities in security operations: agentic, chatbot, predictive analysis, AI-augmented baselines",
+        "Automation considerations: guardrails, automation logic, process engineering, complexity, financial, process risks, deployment",
+        "Intended outcomes (efficiency/time saving, enforcing baselines, continuous improvements, productivity improvements, reduced downtime, increased proactivity), SecOps through continuous integration and continuous deployment (CI/CD), and workflows: automation and integrations",
+        // 4.7
+        "Incident response preparation: training, testing, tabletop exercises, playbooks, simulation, roles",
+        "Identification (detection, internal advisory, external advisory, threat hunting) and investigation (digital forensics, chain of custody, e-discovery, preservation)",
+        "Containment (quarantine/isolation), negotiation, and eradication/recovery",
+        "Notification/external reporting (stakeholders, customers, law enforcement, mandatory) and post-incident work: lessons learned, root cause analysis, post-incident reporting (PIR)",
+        // 4.8
+        "Given an investigation, pick the log and trace data types: access and accounting (logical, physical), device, server, application, authentication, communication, audit, endpoint, network, metadata",
+        "Data sources: vulnerability scans, automated reports, NetFlow/Internet Protocol Flow Information Export (IPFIX), surveillance footage, security tools, dashboards, packet captures",
+        "Preserving evidence: file/log integrity and the system image -- memory dump, bit-level copy, snapshot",
+        "Investigation stakeholders -- Human Resources (HR), accounts, legal -- and log-parsing techniques",
+      ],
+      labs: [
+        "Turn on the built-in application allow-listing or Smart App Control on a test machine you own and record what it blocks.",
+        "Create a honeytoken (a fake credential or canary file) in a lab folder and set up an alert for when it is opened.",
+        null,
+        "Write three firewall rules for a small web server -- allow 443 from anywhere, allow 22 from one admin IP, deny everything else -- and say which are Layer 4 and what a Layer 7 rule would add.",
+        null,
+        null,
+        "Run a secrets scanner (for example, gitleaks) against one of your own repositories. For anything real it finds, revoke or rotate the secret first, then remove it from the code and from the git history -- deleting it from the latest commit alone leaves it readable in history. Explain why the order matters.",
+        "Look up the SPF, DKIM, and DMARC records for a domain with dig or nslookup and explain what the DMARC policy does with failing mail.",
+        "On a Linux lab VM, run getenforce and sestatus, then read one SELinux denial in the audit log.",
+        null,
+        null,
+        "Given three findings with CVSS scores and asset context, rank them and write the verification step for the top one.",
+        null,
+        "Try a free SIEM sandbox and run one search and one alert rule against sample log data; tune the rule to cut a false positive.",
+        null,
+        "Set up port mirroring on a managed switch or capture on your own interface with tcpdump, and view the flow in a NetFlow or packet analyzer.",
+        "Write the deprovisioning checklist for a departing employee and list which systems an access review would catch if a step were missed.",
+        "Decode a SAML assertion or OAuth token from a sample (for example, jwt.io's sample token) and identify the issuer, audience, and expiry.",
+        null,
+        "Enroll an authenticator app and a passkey on an account you own; compare what each defends against.",
+        null,
+        null,
+        "Write a short script that disables accounts inactive for 90 days in a sample CSV, and list the guardrails you would add before running it for real.",
+        null,
+        null,
+        null,
+        "Draft a one-page tabletop exercise for a ransomware outbreak: roles, injects, and the decision points.",
+        "Write a chain-of-custody log template for a hypothetical laptop seized in an investigation.",
+        null,
+        null,
+        "From a sample Windows Security log, find a failed-then-successful logon sequence and name the event IDs.",
+        null,
+        "Hash a disk image or file before and after copying it and explain how that proves file integrity in court.",
+        "Use grep, awk, or a SIEM query to extract every source IP that failed authentication more than five times in a sample log.",
+      ],
+    },
+    {
+      title: "Security Program Management and Oversight",
+      weight: 14,
+      gate: "Given a governance, vendor, or compliance scenario, name the right artifact or agreement, do the risk math (SLE, ARO, ALE) and pick a treatment, scope an audit or penetration test correctly, and design awareness training that measurably changes behavior.",
+      objectives: [
+        // 5.1
+        "Guidelines (benchmarks, advisories, implementation guides, reference architecture) and standards (baselines, passwords, physical security, request for comments (RFC), encryption)",
+        "Procedures -- standard operating procedure (SOP), runbooks -- and plans: business continuity, disaster recovery",
+        "Policies: bring your own device (BYOD), acceptable use policy (AUP), clean desk, information security, incident response, data classification and retention, access control, data disposal, vulnerability disclosure, privacy",
+        // 5.2
+        "Risk identification (asset identification, stakeholder ownership) and risk assessment (scoring, categorization)",
+        "Risk analysis: impact, likelihood/probability, owner, current mitigations, qualitative vs. quantitative -- with single loss expectancy (SLE), annualized rate of occurrence (ARO), and annualized loss expectancy (ALE)",
+        "Risk register (communication, reviews) and risk treatment: transferring, accepting, avoiding, mitigating",
+        "Business-level considerations: business impact analysis, risk appetite, residual risk, stakeholder involvement, management oversight, regulatory, legal",
+        // 5.3
+        "Vendor selection: request for proposal (RFP), request for information (RFI), request for quote (RFQ), expression of interest (EOI), due diligence, conflict of interest",
+        "Agreement types: service-level agreement (SLA), service-level objective (SLO), memorandum of understanding (MOU), memorandum of agreement (MOA), non-disclosure agreement (NDA), master services agreement (MSA), statement of work (SOW)",
+        "Vendor monitoring (right to audit, service-level monitoring, vendor registry, vendor assessment, compliance attestation, penetration testing) and rules of engagement",
+        "Third-party limitations/constraints: staffing limitations, resource availability, environment, legal and regulatory factors, geography/jurisdiction, financial/return on investment (ROI), vendor lock-in, assurance mechanisms",
+        // 5.4
+        "Compliance training (data handling, anti-money laundering/counter-terrorism financing (AML/CTF), anti-bribery) and compliance monitoring (attestations, acknowledgements)",
+        "Consequences of non-compliance: reputational damage, financial, legal, contractual, sanctions, loss of license",
+        "Privacy (right to be forgotten, opt-in or opt-out, data correction, processing restrictions, processing prevention, controller vs. processor, ownership) and legal compliance (legal hold, legal orders, data retention requirements)",
+        // 5.5
+        "Audit data gathering: sampling, questionnaires/surveys, interviews, assertion, and reference sources -- MITRE ATT&CK, Cyber Kill Chain, Diamond Model of Intrusion Analysis",
+        "Audit scoping (audit charter, frequency) and engagement types: gap analysis; internal (compliance, audit committee, self-assessments); external (examinations, assessments, regulatory, independent third-party audits); benchmarking",
+        "Penetration testing: known environment, unknown environment, partially known environment; physical, offensive, defensive, integrated; passive and active reconnaissance",
+        "Frameworks and standards (industry-based standards, international standards, region-specific standards), functional testing, behavioral testing",
+        // 5.6
+        "Given a scenario, choose types of training (initial/onboarding, ongoing, targeted, corrective) and delivery mechanisms (learning management system (LMS), self-service portals, one-to-one, one-to-many)",
+        "Reporting and monitoring of effectiveness: metrics, managerial reports, personnel behavior risk scoring",
+        "Common training topics: social engineering, emerging security topics, password and credential management, remote work/teleworking/hybrid, BYOD, business email compromise (BEC), removable media and cables, situational awareness, operational security",
+      ],
+      labs: [
+        null,
+        null,
+        "Read your employer's or school's acceptable use policy and list which policy types from this objective it covers and which it leaves out.",
+        null,
+        "A laptop worth $2,000 holding data that costs $48,000 to breach-notify is lost about twice a year: compute SLE, ARO, and ALE, and say how much full-disk encryption is worth spending per year.",
+        "Start a five-row risk register for a small business: risk, owner, likelihood, impact, current mitigations, and chosen treatment.",
+        null,
+        null,
+        "Read a public cloud provider's SLA and note what it promises, what it excludes, and what you get when it is missed.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Map the steps of a known breach write-up onto the Cyber Kill Chain and the MITRE ATT&CK tactics.",
+        null,
+        "Write rules of engagement for a partially known environment penetration test of a small office: scope, exclusions, timing, and contacts.",
+        null,
+        null,
+        "Pick three metrics that would show a phishing-awareness program is working and how you would collect each.",
+        null,
+      ],
     },
   ],
 };
@@ -680,10 +1109,37 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const LINUXPLUS_TRACK: SeedTrack = {
   code: "LINUXPLUS",
-  title: "Linux+ Coach",
+  title: "Prep for CompTIA Linux+",
   description: "CompTIA Linux+ XK0-006 exam prep across 5 weighted domains, with hands-on shell labs.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/linux/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en-us/certifications/linux/ -- Linux+ V8
+  // (XK0-006), launched 2025-07-15, retirement "estimated 2028", no newer
+  // version announced; max 90 questions, multiple choice and
+  // performance-based; 90 minutes; pass 720 on 100-900. Domain weights
+  // 23/20/22/18/17 match the units below (the page lists Security and
+  // Automation before Troubleshooting; unit order is kept so row identity
+  // does not move).
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "linux-plus",
+    credentialName: "CompTIA Linux+",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/linux/",
+    examCode: "XK0-006",
+    examRevision: "V8",
+    status: "active",
+    effectiveDate: "2025-07-15",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/linux/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "About 12 months of hands-on Linux server experience; CompTIA A+, Network+, or Server+ (or comparable knowledge) recommended.",
+    durationMinutes: 90,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "720 on a scale of 100-900.",
+  },
   units: [
     {
       title: "System Management",
@@ -767,7 +1223,7 @@ export const LINUXPLUS_TRACK: SeedTrack = {
         "Configure a basic firewalld or nftables rule to allow only SSH and HTTP on a test host.",
         null,
         null,
-        "Harden a test SSH server by disabling password authentication and root login.",
+        "Harden a test SSH server by disabling password authentication and root login. Before you restart sshd, confirm key-based login works in a second session and keep your current session open, so a mistake cannot lock you out of a remote machine.",
         null,
       ],
     },
@@ -796,19 +1252,92 @@ export const LINUXPLUS_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// CompTIA CySA+ (CS0-003). Domain weights from training knowledge, not
-// re-verified live -- sanity-check against the official exam objectives PDF
-// before treating this as exam-accurate.
+// CompTIA CySA+ -- CS0-004 (V4), rebased from CS0-003 (V3) by REQ-103.
+//
+// Sources, read 2026-11-07:
+//   - V4 exam page: https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/
+//     -- CS0-004, launched 2026-06-23, max 85 questions, 165 minutes, pass
+//     750 on 100-900, "About 4 years in a SOC analyst or vulnerability
+//     analyst role", four domains 34/26/24/16. The page does not state
+//     question types or link the objectives PDF.
+//   - Full V4 objectives PDF: "CompTIA Cybersecurity Analyst (CySA+)
+//     Certification Exam Objectives, EXAM NUMBER: CS0-004 V4", Exam
+//     Objectives Document Version 2.0, on CompTIA's own document host (the
+//     same host the comptia.org Security+ V8 page links its PDF from):
+//     https://lecbyo.files.cmp.optimizely.com/download/68b1eae88e5011f08868a275d699e612
+//     Found through a web search, not through a link on comptia.org; its
+//     test details and domain table match the V4 page exactly, and it gives
+//     the question types ("Multiple-choice and performance-based") and the
+//     experience line ("4 years of hands-on experience in a SOC analyst
+//     (level 2) or vulnerability analyst role") used below.
+//   - V3 retirement: https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v3/
+//     -- "CySA+ V3 will retire in English on December 22, 2026" (Japanese,
+//     Portuguese, Spanish on 2027-03-23; this course is English).
+//
+// HOW THE SWITCH IS MODELLED -- retire-and-append, as AWSSAP did for
+// SAP-C03 (tracks/aws.ts):
+//   - The four CS0-003 units stay at sort_order 0-3 with retiredAt set. Their
+//     objective rows keep their text and ids, so every learner's mastery,
+//     attempts, error log and cached lessons on them survive; the app stops
+//     listing them once retiredAt passes. retiredAt is 2026-12-23T12:00Z,
+//     after 2026-12-22 (English CS0-003's last day) has ended in every time
+//     zone, so a learner sitting CS0-003 before then keeps the V3 units.
+//   - The four CS0-003 unit *titles* gain " (CS0-003)": V3 and V4 use the
+//     same four domain names, and until 2026-12-23 both sets are listed side
+//     by side. Only unit titles change; no objective text does (rewriting an
+//     objective would re-point learner mastery at different content).
+//   - The four CS0-004 domains are new units at sort_order 4-7 with new
+//     objective rows. Mastery is not copied across: V4 regroups the content
+//     (AI in security operations, tool-by-tool output analysis, EPSS, BAS
+//     tools are new) and carried-over mastery would claim evidence the
+//     learner never produced on that objective.
+//   - credential_exams gets a new CS0-004 row; the CS0-003 row is kept,
+//     marked superseded_by CS0-004 with retirement_date 2026-12-22.
+//
+// Every CS0-004 objective groups one sub-heading (or a few small ones) of an
+// official objective (1.1 ... 4.2) and names every bulleted term under it;
+// lib/comptia-v8-coverage.test.ts checks that term by term. The wording
+// around CompTIA's terms is ours.
 // ---------------------------------------------------------------------------
+const CYSA_CS0003_RETIRED_AT = "2026-12-23T12:00:00Z";
+const CYSA_V4_VERIFIED_AT = "2026-11-07T00:00:00Z";
+
 export const CYSAPLUS_TRACK: SeedTrack = {
   code: "CYSAPLUS",
-  title: "CySA+ Coach",
-  description: "CompTIA CySA+ CS0-003 exam prep across 4 weighted domains, with SOC-analyst drilling.",
+  title: "Prep for CompTIA CySA+",
+  description:
+    "CompTIA CySA+ CS0-004 (V4) exam prep across 4 weighted domains -- SOC analysis with real tools, vulnerability prioritization, incident response, and reporting -- with SOC-analyst drilling. CS0-003 units stay listed until English CS0-003 retires on 2026-12-22. Sitting a translated CS0-003 exam (available until 2027-03-23)? Its units leave this course on 2026-12-23, so finish them before then.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
+  sourceVerifiedAt: CYSA_V4_VERIFIED_AT,
+  contentReviewDueAt: "2027-05-07T00:00:00Z",
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "cysa-plus",
+    credentialName: "CompTIA Cybersecurity Analyst (CySA+)",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/",
+    examCode: "CS0-004",
+    examRevision: "V4",
+    objectivesRevision: "Exam Objectives Document Version 2.0",
+    status: "active",
+    effectiveDate: "2026-06-23", // launch; comptia.org/en-us/certifications/cybersecurity-analyst/v4/
+    officialObjectivesUrl: "https://lecbyo.files.cmp.optimizely.com/download/68b1eae88e5011f08868a275d699e612",
+    lastVendorVerifiedAt: CYSA_V4_VERIFIED_AT,
+    recommendedExperience:
+      "4 years of hands-on experience in a SOC analyst (level 2) or vulnerability analyst role.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 85 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+    supersedes: { examCode: "CS0-003", lastExamDate: "2026-12-22" },
+  },
   units: [
+    // ----- CS0-003 domains (sort_order 0-3), retired after 2026-12-22.
+    // Objective text is frozen; see the block comment.
     {
-      title: "Security Operations",
+      title: "Security Operations (CS0-003)",
+      retiredAt: CYSA_CS0003_RETIRED_AT,
       weight: 33,
       gate: "Given a stream of SIEM alerts, triage them by priority, identify which are true positives, and explain the indicator that justifies each verdict.",
       objectives: [
@@ -831,7 +1360,8 @@ export const CYSAPLUS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Vulnerability Management",
+      title: "Vulnerability Management (CS0-003)",
+      retiredAt: CYSA_CS0003_RETIRED_AT,
       weight: 30,
       gate: "Given a vulnerability scan report, correctly prioritize remediation using CVSS and business context, and justify why the highest CVSS score isn't always fixed first.",
       objectives: [
@@ -852,7 +1382,8 @@ export const CYSAPLUS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Incident Response and Management",
+      title: "Incident Response and Management (CS0-003)",
+      retiredAt: CYSA_CS0003_RETIRED_AT,
       weight: 20,
       gate: "Given an active incident scenario, correctly sequence containment, eradication, and recovery steps, and explain what evidence must be preserved and why.",
       objectives: [
@@ -871,7 +1402,8 @@ export const CYSAPLUS_TRACK: SeedTrack = {
       ],
     },
     {
-      title: "Reporting and Communication",
+      title: "Reporting and Communication (CS0-003)",
+      retiredAt: CYSA_CS0003_RETIRED_AT,
       weight: 17,
       gate: "Translate a technical vulnerability finding into a one-paragraph summary appropriate for a non-technical executive, without losing the actual risk.",
       objectives: [
@@ -879,6 +1411,170 @@ export const CYSAPLUS_TRACK: SeedTrack = {
         "Metrics and KPIs for a security operations program",
         "Stakeholder management during incidents",
         "Compliance and regulatory reporting considerations",
+      ],
+    },
+    // ----- CS0-004 domains (sort_order 4-7), from the V4 objectives PDF.
+    {
+      title: "Security Operations",
+      weight: 34,
+      gate: "Given SIEM alerts, packet captures, endpoint telemetry, and a suspicious script, decide which are malicious, name the indicator and the tool output that proves it, map it to ATT&CK, and say which step you would automate -- and where an AI assistant helps or misleads. Heaviest domain on the exam.",
+      objectives: [
+        // 1.1
+        "Logging concepts: ingestion, configuration, integrity and security, time synchronization, retention",
+        "Operating system concepts: system hardening, file structure and critical files, system processes",
+        "Infrastructure/system architecture (cloud native, virtualization, containerization, application programming interfaces (APIs)) and device management concepts for mobile and endpoint",
+        "Network architecture concepts: Zero Trust Network Architecture (ZTNA), secure access service edge (SASE), hybrid cloud",
+        "Identity and access management (IAM): privileged access management (PAM), authentication and authorization methods, secrets management",
+        "Encryption techniques, data protection concepts, and critical infrastructure concepts: operational technology (OT), industrial control system (ICS), supervisory control and data acquisition (SCADA)",
+        // 1.2
+        "Given a scenario, analyze network-related indicators: rogue devices, enumeration, anomalous activity, activity on unexpected ports",
+        "Given a scenario, analyze host-related indicators: resource consumption, unauthorized software, unauthorized configuration, and anomalous activity -- suspicious or rogue processes, Living Off the Land Binaries (LOLBins) and Scripts, file system changes, data exfiltration",
+        "Given a scenario, analyze application-related indicators (service disruption, anomalous activity) and cloud-related indicators (anomalous activity, resource compromise)",
+        "Given a scenario, analyze identity-based indicators (IAM account compromise, unauthorized access, impossible travel), social engineering attacks (typosquatting, URL shorteners), and email-related attacks such as business email compromise (BEC)",
+        // 1.3
+        "Decoding/parsing with CyberChef and pattern recognition: regular expressions, interpreting suspicious commands",
+        "Packet analysis tools: Wireshark, tcpdump, Snort, Suricata, Zeek",
+        "Log analysis with security information and event management (SIEM), and user and entity behavior analysis (UEBA) with Open User and Entity Behavior Analytics (OpenUBA)",
+        "Threat-intelligence platforms: Open Threat Exchange (OTX), Malware Information Sharing Platform (MISP), Open Cyber Threat Intelligence (OpenCTI)",
+        "Endpoint security tools: endpoint detection and response (EDR) and extended detection and response (XDR), mobile device management (MDM)",
+        "Domain and IP reputation (WHOIS, AbuseIPDB, Geolocation by IP Address (GEO-IP)) and email analysis with MXToolbox",
+        "File analysis (Strings, VirusTotal, Yet another recursive acronym (YARA)) and sandboxing (Joe Sandbox, Cuckoo Sandbox)",
+        "Reading evidence formats (JSON, XML, YAML, EVTX) and programming/scripting languages (Python, PowerShell, shell script)",
+        // 1.4
+        "Threat actors -- advanced persistent threat (APT), insider threat -- and tactics, techniques, and procedures (TTPs): heat maps, Pyramid of Pain, MITRE ATT&CK, attribution",
+        "Collection methods and sources (open-source intelligence (OSINT), closed-source intelligence, threat intelligence sharing) and confidence-level impacts: timeliness, relevance, accuracy",
+        "Indicator of compromise (IoC) handling: collection, analysis, application/usage, and types -- atomic, behavioral",
+        "Threat modeling with STRIDE (spoofing, tampering, repudiation, information disclosure, denial of service, elevation of privilege), threat mapping, and cyber deception",
+        // 1.5
+        "Standardize processes: manage and facilitate team coordination, playbook/runbook creation",
+        "Streamline operations: automation and orchestration with security orchestration, automation, and response (SOAR) and infrastructure as code (IaC); data enrichment through rule/alert tuning and dashboard creation",
+        "Technology and tool integration: APIs, webhooks, plug-ins",
+        // 1.6
+        "AI risks in security operations (hallucinations, data exposure, model poisoning, malicious prompts) and AI governance (legal or regulatory compliance, AI usage policies)",
+        "AI use cases in the SOC: comparing artifacts, analyzing log files, document creation, incident investigation, event correlation, automation and orchestration",
+      ],
+      labs: [
+        "Check that two of your own machines agree on time (timedatectl or w32tm /query /status) and explain what skewed clocks do to a SIEM timeline.",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "On a lab Windows VM, list running processes with their parent processes (Get-CimInstance Win32_Process) and flag any LOLBin -- certutil, mshta, rundll32 -- launched by an Office application.",
+        null,
+        "Given a sample sign-in log, find an impossible-travel pair and decide whether it is account compromise or a VPN egress.",
+        "Paste an obfuscated PowerShell one-liner from a public malware write-up into CyberChef, decode it (Base64, then UTF-16LE), and explain what it would do. Decode only: never run the decoded command, on any machine.",
+        "Open a sample packet capture in Wireshark and in tcpdump -r, and write one display filter and one BPF filter that isolate the suspicious conversation.",
+        "Write one SIEM query that alerts on five failed logons followed by a success for the same account within ten minutes.",
+        "Look up an IoC from a public report in AlienVault OTX and record its related pulses and confidence.",
+        null,
+        "Run whois and an AbuseIPDB lookup on an IP from your own firewall or web server logs; decide whether to block it.",
+        "Write a three-string YARA rule for a benign sample file you create, and test it with the yara command line.",
+        "Parse an exported EVTX file or JSON log with a short Python script and count events by ID.",
+        "Map one public intrusion report onto MITRE ATT&CK tactics and techniques, and mark which of its indicators sit low and high on the Pyramid of Pain.",
+        null,
+        null,
+        "Run a STRIDE pass over a simple login service diagram and list one threat per letter.",
+        "Write a five-step playbook for a suspected phishing report, from intake to closure.",
+        null,
+        null,
+        "Ask an AI assistant you are allowed to use to summarize a sample log; check every claim it makes against the raw log and note any hallucination.",
+        null,
+      ],
+    },
+    {
+      title: "Vulnerability Management",
+      weight: 26,
+      gate: "Given an environment and a stack of scanner output, choose the scan method, separate true from false positives, prioritize with CVSS, EPSS, active exploitation and asset context, pick a mitigation (or a justified exception with compensating controls), and say how you will validate the fix.",
+      objectives: [
+        // 2.1
+        "Given a scenario, plan a scan: asset inventory and planning considerations -- scheduling, operations, performance, sensitivity levels, segmentation, regulatory requirements",
+        "Scan types: internal vs. external, agent vs. agentless, credentialed vs. non-credentialed, passive vs. active, and discovery -- mapping scans, device fingerprinting",
+        "Security baseline scanning: Payment Card Industry Data Security Standard (PCI DSS), Center for Internet Security (CIS) benchmarks, International Organization for Standardization (ISO) 27000 series",
+        // 2.2
+        "Given tool output, analyze network scanning and mapping (Angry IP Scanner, Masscan) and multipurpose tools (Nmap, Metasploit Framework (MSF), Maltego, Recon-ng)",
+        "Given tool output, analyze web application scanners (Burp Suite, Zed Attack Proxy (ZAP), Nikto) and vulnerability scanners (Nessus, Nuclei, Open Vulnerability Assessment Scanner (OpenVAS))",
+        "Given tool output, analyze cloud infrastructure assessment tools (ScoutSuite, Prowler, Trivy, Checkov) and breach attack simulation (BAS) tools (Atomic Red Team, Caldera)",
+        // 2.3
+        "Prioritization criteria: exploitability, active exploitation/threat intelligence, asset value, impact, patch/remediation availability, true/false positives, true/false negatives",
+        "Scoring methods -- Common Vulnerability Scoring System (CVSS) metrics and FIRST's Exploit Prediction Scoring System (EPSS) -- and context awareness: internal, external, isolated",
+        "Mitigation strategies (attack surface management, secure coding best practices, patching and configuration management, exceptions, compensating controls) and validation of remediation",
+        // 2.4
+        "Control types (administrative, technical, physical) and control functions (preventative, detective, responsive, corrective)",
+        "Risk concepts (risk appetite, residual risk, inherent risk) and risk management strategies: accept, transfer, avoid, mitigate",
+        "Policies, governance, and service-level objectives (SLOs) that set remediation timelines",
+        "Application security: static application security testing (SAST), dynamic application security testing (DAST), Software Assurance Maturity Model (SAMM)",
+        "Third-party risk: supply chain, software composition analysis (SCA), software bill of materials (SBOM)",
+      ],
+      labs: [
+        "Write a scan plan for a small office: what you will scan, when, credentialed or not, and which fragile systems you will exclude or throttle.",
+        "Scan one lab VM twice with Nmap -- once unauthenticated, once with -sV -O -- and list what the second scan reveals that the first did not.",
+        "Run a CIS benchmark check (for example, CIS-CAT Lite or Lynis) on a lab machine and fix the top two failures.",
+        "Read the output of nmap -sV -sC against a lab VM you own and name the riskiest open service.",
+        "Run OWASP ZAP's baseline scan against a deliberately vulnerable lab app (for example, OWASP Juice Shop) and triage three alerts as true or false positives.",
+        "Scan a container image you build with Trivy and an IaC folder with Checkov; pick one finding from each to fix.",
+        null,
+        "For three CVEs, record the CVSS base score, the EPSS score from first.org, and whether each is in CISA's Known Exploited Vulnerabilities catalog; rank them and justify the order.",
+        "Write an exception request for a vulnerability that cannot be patched for 90 days, naming the compensating controls and how remediation will be validated.",
+        null,
+        null,
+        null,
+        "Run a free SAST tool (for example, Semgrep) on one of your own repositories and triage its top finding.",
+        "Generate an SBOM for a project you own (for example, with Syft) and check it for components with known vulnerabilities.",
+      ],
+    },
+    {
+      title: "Incident Response and Management",
+      weight: 24,
+      gate: "Given an active incident, map it onto the Cyber Kill Chain, the Diamond Model, and ATT&CK; sequence the response from detection to post-incident; build the timeline; and say what evidence you preserve, when you escalate, and when an isolated host may be released.",
+      objectives: [
+        // 3.1
+        "Attack methodology frameworks: Cyber Kill Chain, Diamond Model of Intrusion Analysis, MITRE ATT&CK -- and mapping one incident onto each",
+        // 3.2
+        "The incident response process: preparation, detection, analysis, containment, eradication, recovery, post-incident",
+        // 3.3
+        "Given a scenario, prepare: developing plans (incident response plan, communication plan), creating playbooks, defining roles, performing training (tabletop, simulation)",
+        "Given a scenario, detect and correlate: log collection, log correlation, log augmentation and enrichment, alerts and notifications",
+        "Given a scenario, assess: triage, establishment of a timeline, determining severity and impact, prioritization, escalation",
+        "Evidence gathering: chain of custody, data integrity validation, preservation, legal hold",
+        "Given a scenario, contain and recover: isolating affected targets, remediation and verification, release from isolation, performing restoration",
+        "Root cause analysis (RCA) and corrective action development",
+      ],
+      labs: [
+        "Take one public breach write-up and place each attacker step on the Cyber Kill Chain, the Diamond Model's four vertices, and an ATT&CK tactic.",
+        null,
+        "Draft a short incident response playbook for a phishing-triggered credential compromise, with roles and a communication plan.",
+        null,
+        "From a set of sample logs, build a timeline of a lab intrusion (first access, persistence, exfiltration) with UTC timestamps.",
+        "Write a chain-of-custody form and hash a disk image before and after transfer to show data integrity validation.",
+        "Write the release-from-isolation criteria for a reimaged workstation: what must be verified before it rejoins the network.",
+        "Run a five-whys root cause analysis on a past incident or outage you know of and write two corrective actions.",
+      ],
+    },
+    {
+      title: "Reporting and Communication",
+      weight: 16,
+      gate: "Turn a scan, a compliance finding, or an incident into the right report for the right audience -- an executive summary, a risk scorecard, or an after action report -- with metrics that show whether things are getting better, and name what is blocking remediation.",
+      objectives: [
+        // 4.1
+        "Vulnerability scan reports, compliance findings, and risk scorecards -- and who each one is written for",
+        "Action plans (escalation, dependencies) and inhibitors to remediation: contractual agreements, organizational governance, business process interruption, degrading functionality, legacy systems, proprietary systems, patch availability",
+        "Stakeholder identification and communication, and vulnerability metrics and key performance indicators (KPIs): trends, top risks, service-level agreement (SLA)",
+        // 4.2
+        "Incident declaration and escalation, executive summary, and shift/incident handover",
+        "Communication plan (stakeholder identification, legal team, public relations, regulatory reporting agencies, law enforcement, customers) and operational security awareness of communication channels",
+        "Post-incident reporting (after action report, lessons learned, root cause analysis) and an internal threat intelligence report tailored to organization/environment",
+        "SOC metrics and KPIs: alert volume, false-positive rate, true-positive rate, mean time to close, mean time to detect, mean time to respond, mean time to remediate, phishing campaign click rate",
+      ],
+      labs: [
+        "Turn a raw vulnerability scan export into a one-page risk scorecard for a non-technical manager.",
+        null,
+        null,
+        "Write a one-paragraph executive summary of a sample incident that states impact, status, and the decision needed, with no jargon.",
+        null,
+        "Write a shift handover note for an open incident: what is known, what is contained, what is pending, and who owns each item.",
+        "From a sample month of alert data, compute false-positive rate, mean time to detect, and mean time to respond, and say which one you would work on first.",
       ],
     },
   ],
@@ -889,10 +1585,37 @@ export const CYSAPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const PENTESTPLUS_TRACK: SeedTrack = {
   code: "PENTESTPLUS",
-  title: "PenTest+ Coach",
+  title: "Prep for CompTIA PenTest+",
   description: "CompTIA PenTest+ PT0-003 exam prep across 5 weighted domains, with authorized lab-environment drilling.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en/certifications/pentest/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en/certifications/pentest/ -- PenTest+ V3
+  // (PT0-003), launched 2024-12-17, retirement "estimated 2027"; max 90
+  // questions, multiple choice and performance-based; 165 minutes; pass 750
+  // on 100-900; weights 13/21/17/35/14 (match the units below). A V4 draft
+  // is listed on CompTIA's "exam objectives under development" page
+  // (https://www.comptia.org/en-em/resources/comptia-exam-objectives-under-development/)
+  // with no launch date, so nothing to transition yet.
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "pentest-plus",
+    credentialName: "CompTIA PenTest+",
+    credentialUrl: "https://www.comptia.org/en/certifications/pentest/",
+    examCode: "PT0-003",
+    examRevision: "V3",
+    status: "active",
+    effectiveDate: "2024-12-17",
+    officialObjectivesUrl: "https://www.comptia.org/en/certifications/pentest/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "3-4 years in a penetration tester job role, with Network+ and Security+ or equivalent knowledge.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "750 on a scale of 100-900.",
+  },
   units: [
     {
       title: "Engagement Management",
@@ -916,7 +1639,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
         "Identifying attack surface from reconnaissance findings",
       ],
       labs: [
-        "Run a permission-scoped Nmap scan against your own home network and interpret the service/version output.",
+        "Run a permission-scoped Nmap scan against a home network you administer yourself, with the agreement of everyone who uses it (not shared housing, campus or work Wi-Fi), and interpret the service/version output.",
         null,
         null,
         null,
@@ -946,7 +1669,7 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
         "Exploitation frameworks conceptually (e.g. Metasploit workflow)",
       ],
       labs: [
-        "Complete a beginner exploitation walkthrough on an intentionally vulnerable lab VM (e.g. a local capture-the-flag box) and document each step.",
+        "Complete a beginner exploitation walkthrough on an intentionally vulnerable lab VM (e.g. a local capture-the-flag box) and document each step. Give the VM host-only or NAT networking, never bridged, so it is not exposed to the rest of your network.",
         null,
         null,
         null,
@@ -974,10 +1697,36 @@ export const PENTESTPLUS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const SECURITYX_TRACK: SeedTrack = {
   code: "SECURITYX",
-  title: "SecurityX Coach",
+  title: "Prep for CompTIA SecurityX",
   description: "CompTIA SecurityX CAS-005 exam prep across 4 weighted domains for enterprise security architecture and engineering.",
   trackType: "certification",
   subcategorySlug: "comptia-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+  sourceVerifiedAt: COMPTIA_VERIFIED_AT,
+  // Source: https://www.comptia.org/en-us/certifications/securityx/ --
+  // SecurityX V5 (CAS-005), launched 2024-12-17, retirement "estimated
+  // 2027"; max 90 questions, multiple choice and performance-based; up to
+  // 165 minutes; pass/fail only, no scaled score; weights 20/27/31/22 (match
+  // the units below). A V6 draft is listed on the "exam objectives under
+  // development" page with no launch date.
+  credential: {
+    ...COMPTIA,
+    credentialSlug: "securityx",
+    credentialName: "CompTIA SecurityX",
+    credentialUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+    examCode: "CAS-005",
+    examRevision: "V5",
+    status: "active",
+    effectiveDate: "2024-12-17",
+    officialObjectivesUrl: "https://www.comptia.org/en-us/certifications/securityx/",
+    lastVendorVerifiedAt: COMPTIA_VERIFIED_AT,
+    recommendedExperience:
+      "At least 10 years of general hands-on IT experience, including 5 years of hands-on security, with Network+, Security+, CySA+, Cloud+, and PenTest+ or equivalent knowledge.",
+    durationMinutes: 165,
+    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    passingScorePolicy: "Pass/fail only; CompTIA reports no scaled score.",
+  },
   units: [
     {
       title: "Governance, Risk, Compliance",

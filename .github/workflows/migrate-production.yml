@@ -1,0 +1,36 @@
+# Applies pending database migrations to PRODUCTION. Runs only when someone
+# pushes to the ops/migrate-production branch (never on PRs or master), and
+# only with the PROD_DATABASE_URL repository secret (Supabase direct
+# connection). It shows --status before and after, applies with --all, and
+# prints the mastery drift check. See docs/deploy-runbook-integration.md.
+name: Migrate production database
+on:
+  push:
+    branches: [ops/migrate-production]
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production-database
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: test -n "$DATABASE_URL" || { echo "PROD_DATABASE_URL secret is not set"; exit 1; }
+      - run: npm ci
+      - name: Status before
+        run: npm run migrate -- --status || true
+      - name: Apply pending migrations
+        run: npm run migrate -- --all
+      - name: Status after
+        run: npm run migrate -- --status
