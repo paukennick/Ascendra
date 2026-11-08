@@ -252,7 +252,8 @@ describe("authored pilot content (supabase/seed/labs)", () => {
   });
   test("the full pilot courses follow the recommended density (hybrid) unit by unit", () => {
     // REQ-124: CCRN Pediatric and Neonatal are full pilot courses now too.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO"]) {
+    // REQ-156: Microsoft AZ-120, AZ-140, DP-900 and DP-300 follow the same plan.
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AZ120", "AZ140", "DP900", "DP300"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {
