@@ -1404,7 +1404,15 @@ against this design.
 - **Dependency additions** (`react-native-svg`, `expo-keep-awake`) need
   approval (project safety flags).
 
-## 19. Open questions for Nick
+## 19. Decisions (were open questions; Nick, 2026-11-07: "Approve all")
+
+Every recommendation below is adopted as written: the clock pauses when
+the learner leaves; pausing costs nothing; weight 1.5 in a new
+`simulation` family; `react-native-svg` and `expo-keep-awake` approved; one
+acknowledgement for labs and sims; secondary objectives recorded only; the
+four clinical scenarios listed in 7; sims inside Pro behind their own
+`sims` feature key. Nick also asked for sims in every subject family; see
+section 20.
 
 1. **Should the clock keep running while the learner is away?**
    Recommendation: **no**. Leaving the app pauses it, and coming back says
@@ -1439,3 +1447,35 @@ against this design.
    is made". Recommendation: **inside Pro for launch** with the
    per-course sample as the hook, behind their own feature key (`sims`) so
    a later price change needs only configuration. Revisit with usage data.
+
+## 20. Sims for every subject family (Nick, 2026-11-07)
+
+Nick: sims are "where the money is made", quality over speed, and every
+category gets them. The engine does not change per family; each family
+gets one renderer (screen type) and its own scenarios. Eight renderers
+cover the whole catalog (95 courses):
+
+| Renderer | Families and courses | What the learner does |
+|---|---|---|
+| **Bedside monitor** (Phase 1) | Nursing and critical care: CCRN Adult/Peds/Neo, NCLEX-RN, NCLEX-PN, ADN, BSN, LPN/VN, CNA | Read a live monitor, assess, place orders, escalate (SBAR), titrate drips; the patient responds at physiologic rates |
+| **Architecture board** | Cloud: AWS (12), Azure (9), Google Cloud (11), Cloud+, CloudNetX | Place services across zones and regions under a cost meter, then survive spikes, outages, failovers and budget cuts |
+| **Project dashboard** | Project management: PMP, CAPM, PgMP, PfMP, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, PMO-CP, PMI-CP, CPMAI, Project+ | Run a project week by week: change requests, risks, team and stakeholder events, earned value; delayed consequences |
+| **Client trainer** | Fitness: NASM, ACE, ACSM, NCCPT, NSCA-CPT, NSCA-CSCS | Screen, assess movement, program by phase, coach through weeks; adherence, pain and progress respond |
+| **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
+| **Security operations console** | Security: Security+, CySA+, PenTest+, SecurityX, SecAI+ | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
+| **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell and topology; outages spread while you work |
+| **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Query, clean and reason about a dataset or a failing program under a deadline; results and stakeholders react |
+
+Order (each renderer ships behind `SIMS_ENABLED` with its first 3-5
+scenarios; no external review gate):
+
+1. **Phase 1**: engine + bedside monitor (sections 17.1a-1d).
+2. **Phase 2**: architecture board, project dashboard, client trainer --
+   the three prototypes that already exist.
+3. **Phase 3**: treatment session, security operations console, terminal
+   and network, data and code console; the scenario generator (section 12)
+   so every course reaches two to three flagship sims.
+
+The rule from section 17 stands: if a renderer needs an engine change,
+that is a finding against this design, recorded and fixed in the engine
+for every family, never worked around in one renderer.
