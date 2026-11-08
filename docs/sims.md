@@ -1661,10 +1661,18 @@ Two readings are written down so they are not re-decided per scenario.
 The cloud "missed by ≤ 10%" is read as the example Nick gave: 99.85%
 against a 99.9% SLA (half again the allowed downtime) and 110% of budget;
 a stricter reading (10% of the error budget) is a one-line threshold
-change. And because the classes are exhaustive, an outcome that is safe
-but reaches less than the `recovered` floor (the fitness plateau path,
-about 6% pain reduction, 3.1) is `recovered`; its process score decides
-whether it rates Mediocre or Bad. Both are flagged for Nick (19).
+change. **Safe but little or no progress is classified per case, never by a
+family default (Nick, 2026-11-07: "whether that kind of situation is good,
+mediocre or bad should depend on the case/injury").** Every scenario must
+declare an explicit `noProgress` rule: the end-state condition that means
+"safe, but the goal was not meaningfully reached" (for example knee pain
+reduced < 25%), the outcome class it maps to (`target`, `recovered` or
+`harm`), and a one-line clinical or domain rationale with its source (for
+example a self-limiting complaint where waiting is reasonable, versus a
+progressive condition where eight lost weeks cause harm). The linter fails
+a scenario with no `noProgress` rule, and the reviewer packet shows it.
+The fitness plateau path (about 6% pain reduction, 3.1) gets its rule when
+the client-trainer scenario is ported. The cloud reading is recorded in 19.
 
 **The rating** (shown in the debrief; it is the attempt's verdict):
 
@@ -2432,11 +2440,8 @@ rules below followed. Nick approved all of them.
 - **Cloud "missed by ≤ 10%".** This design reads it as Nick's example,
   99.85% against 99.9% and cost ≤ 110% (9.2). The stricter reading (10%
   of the error budget, about 99.89%) is a one-line threshold change.
-- **Safe but no progress.** The fitness plateau path improves knee pain by
-  about 6%, below the `recovered` floor of 25%, with no harm. The classes
-  are exhaustive, so it is `recovered` and its process score decides
-  Mediocre or Bad. If Nick wants "no meaningful progress" to be Bad on
-  outcome alone, the fitness profile gains a `harm` condition for it.
+- **Safe but no progress: decided.** Classified per case/injury through
+  each scenario's required `noProgress` rule (9.2), not a family default.
 - **Prototype thresholds that differ from the defaults** (3.1): the
   project prototype's SPI 0.93, CPI 0.88 and morale < 40, and the
   tamponade early path that can reach the OR after 45 minutes. The ports
