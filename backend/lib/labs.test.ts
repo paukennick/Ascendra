@@ -230,7 +230,7 @@ describe("authored pilot content (supabase/seed/labs)", () => {
       assert.ok(track, set.trackCode);
       const titles = new Set(activeUnits(track!).flatMap((u) => u.objectives));
       const slugs = new Set<string>();
-      assert.ok(set.sources.length > 0 && set.sources.every((s) => s.startsWith("https://")), `${set.trackCode} cites its outline`);
+      assert.ok(set.sources.length > 0 && set.sources.every((s) => s.url.startsWith("https://")), `${set.trackCode} cites its outline`);
       for (const lab of set.labs) {
         assert.deepEqual(labContentProblems(seedLabContent(lab)), [], `${set.trackCode}/${lab.slug}`);
         assert.ok(titles.has(lab.objective), `${set.trackCode}/${lab.slug}: objective "${lab.objective}"`);

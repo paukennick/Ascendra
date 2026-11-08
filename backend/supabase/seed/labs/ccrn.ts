@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-123 pilot: AACN CCRN (Adult); REQ-124 completed the CCRN (Pediatric)
 // and CCRN (Neonatal) pilots (12 labs each, below).
@@ -21,8 +22,8 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 // educator approves it (docs/labs.md).
 
 const CCRN_SOURCES = [
-  "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
-  "https://www.aacn.org/-/media/aacn-website/education/online-courses/adult-ccrn-certification-review/adult-ccrn-review-course-syllabus.pdf",
+  source("https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en", "exam_outline", "2026-11-07"),
+  source("https://www.aacn.org/-/media/aacn-website/education/online-courses/adult-ccrn-certification-review/adult-ccrn-review-course-syllabus.pdf", "reference", "2026-11-07"),
 ];
 
 export const CCRNADULT_LABS: SeedLabSet = {
@@ -457,8 +458,8 @@ export const CCRNADULT_LABS: SeedLabSet = {
 // ---------------------------------------------------------------------------
 
 const CCRNPEDS_SOURCES = [
-  "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
-  "https://www.aacn.org/certification/get-certified/ccrn-peds",
+  source("https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en", "exam_outline", "2026-11-07"),
+  source("https://www.aacn.org/certification/get-certified/ccrn-peds", "exam_outline", "2026-11-07"),
 ];
 
 export const CCRNPEDS_LABS: SeedLabSet = {
@@ -941,8 +942,8 @@ export const CCRNPEDS_LABS: SeedLabSet = {
 // ---------------------------------------------------------------------------
 
 const CCRNNEO_SOURCES = [
-  "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
-  "https://www.aacn.org/certification/get-certified/ccrn-neo",
+  source("https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en", "exam_outline", "2026-11-07"),
+  source("https://www.aacn.org/certification/get-certified/ccrn-neo", "exam_outline", "2026-11-07"),
 ];
 
 export const CCRNNEO_LABS: SeedLabSet = {

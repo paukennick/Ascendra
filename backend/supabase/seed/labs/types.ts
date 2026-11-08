@@ -1,4 +1,5 @@
 // REQ-123: authored lab content for the seed (migration 050 `labs`).
+import type { SourceRef } from "../sources";
 //
 // A lab names its objective by the objective's exact title in the track, so
 // re-ordering objectives cannot silently move a lab; the seed test fails if a
@@ -32,8 +33,9 @@ export interface SeedLab {
 
 export interface SeedLabSet {
   trackCode: string;
-  // Exam outline(s) the labs are aligned to.
-  sources: string[];
+  // Exam outline(s) the labs are aligned to, with checked / re-check dates
+  // (REQ-142, seed/sources.ts). The database keeps the URLs only.
+  sources: SourceRef[];
   labs: SeedLab[];
 }
 

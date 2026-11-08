@@ -132,6 +132,14 @@ once after every deploy (the daily cron only runs at 09:00 UTC).
   "Cleanup", in the same change that removes their probes from
   `backend/lib/schema-status.ts`.
 - **Restore drill**: quarterly, [restore-drill.md](restore-drill.md).
+- **Content review queue** (REQ-143): `npm run review-queue -- list`
+  shows what learners' reports or a correct-rate drop put in front of a
+  person; resolve each entry there or through `npm run items`
+  ([content-review.md](content-review.md)). The daily cron
+  `/api/cron/content-signals` (10:40 UTC, `CRON_SECRET`) fills it.
+- **Source currency** (REQ-142): `npm run currency:report` lists exam
+  outlines and lab sources overdue or due within 60 days
+  ([source-reliability-standard.md](source-reliability-standard.md)).
 - **`auth_events` retention**: owned by the security branch (daily purge
   cron).
 

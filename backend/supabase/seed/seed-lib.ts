@@ -393,7 +393,8 @@ export async function seedLabs(pool: Pool, set: SeedLabSet): Promise<number> {
         JSON.stringify(content.steps),
         JSON.stringify(content.rubric),
         content.safetyNote ?? null,
-        JSON.stringify(set.sources),
+        // REQ-142: the dates stay in the seed (npm run currency:report reads them).
+        JSON.stringify(set.sources.map((s) => s.url)),
         hash,
       ]
     );

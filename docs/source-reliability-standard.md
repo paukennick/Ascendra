@@ -63,3 +63,18 @@ Each course file's header lists every source with title, publisher,
 edition or year, URL, licence and access date, and records which tier it
 falls in. Disagreements and how they were resolved are listed in the same
 header.
+
+## Re-checking (REQ-142)
+
+Sources go stale: outlines are revised, guidelines updated, cloud limits
+and prices changed. Each course's exam outline is dated in its seed track
+(the credential block's `lastVendorVerifiedAt`, and `sourceVerifiedAt` /
+`contentReviewDueAt`), and each authored lab's sources carry a checked date
+and a re-check date (`backend/supabase/seed/sources.ts`). Default re-check:
+12 months after the check for exam outlines and references, 6 months for
+clinical guidelines and cloud prices or service limits; set `recheckBy`
+earlier when the publisher has announced a change. `npm run currency:report`
+(from `backend/`, no network) lists everything overdue or due within 60 days
+by course, plus the courses that record no outline or no outline version.
+It is a to-do list, not a gate: stale content keeps being served until a
+person re-checks it and updates the date.

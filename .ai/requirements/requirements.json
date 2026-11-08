@@ -4720,6 +4720,92 @@
         "Notes hidden by a gate are not re-offered to a learner whose marker is already past them when the gate opens",
         "If GET /api/onboarding fails the sheet is not offered that launch"
       ]
+    },
+    {
+      "id": "REQ-142",
+      "category": "feature",
+      "title": "Source expiry dates: dated outlines and lab sources and an offline currency report",
+      "description": "Every course already records its exam outline in the seed (credential block plus sourceUrl / sourceVerifiedAt / contentReviewDueAt; migration 007); lib/content-currency.ts courseOutline() reads it as { name, version, url, checkedAt, recheckBy } with recheckBy defaulting to checkedAt + 12 months. Every authored lab source becomes { url, kind, checkedAt, recheckBy? } (seed/sources.ts): exam_outline and reference re-check after 12 months, clinical_guideline and cloud_pricing_limits after 6. Existing lab sources are backfilled with checkedAt 2026-11-07, the day git history shows each line last edited. The database keeps labs.sources as URLs only because no app or server code reads the dates. npm run currency:report lists without network access everything overdue or due within 60 days grouped by course, plus courses with no outline and outlines with no version. Visibility only: stale content keeps being served.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sources.ts",
+        "backend/supabase/seed/labs",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/lib/content-currency.ts",
+        "backend/lib/content-currency.test.ts",
+        "backend/lib/labs.test.ts",
+        "backend/lib/labs.dbtest.ts",
+        "backend/scripts/currency-report.ts",
+        "backend/package.json",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Seed tests fail on a lab source without kind or checked date or with a future or backwards date",
+        "Seed tests fail on a course whose outline or source has no checked date and on a certification course without an outline",
+        "currency:report runs offline and lists overdue and due-soon sources by course plus courses with no outline or no version",
+        "labs.sources in the database stays a URL array and lab content hashes are unchanged"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Course checked dates are the seed's existing human-recorded verification dates and were not re-verified",
+        "Courses whose credential carries no revision (Azure / GCP / some PMI and ABPTS) are listed as having no outline version until someone records one",
+        "The report reads the seed; a newer check recorded in production by the catalog review agent is not seen",
+        "Docs: no README change was needed; the docs touched are docs/source-reliability-standard.md, docs/labs.md and docs/operations-runbook.md"
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "category": "feature",
+      "title": "Learner signals that put content in a review queue",
+      "description": "Daily job (GET /api/cron/content-signals with CRON_SECRET; npm run review-queue -- run) that detects per item and per lab (lesson checks review exam quiz comparison lab and lesson steps) rising learner reports (3+ distinct learners in 30 days or 2+ reporters who are 10%+ of 10+ recent learners) and a sharp drop in correct rate (last 14 days vs the previous 180; first answer per learner per window; min 30 baseline and 20 recent learners; drop of 20+ points and one-sided two-proportion z >= 3.09). Detections go to content_review_queue (migration 055) with reason and evidence; nothing is unpublished. One open entry per item and signal (unique partial index plus an advisory try-lock per run); resolved entries stay as history and only evidence after a resolution re-opens. npm run items confirm/clear resolve the item's open entries. Thresholds are item_quality_params rows. Attempt sources are one SELECT per kind so sims (REQ-141) plug in without a migration. No admin role exists so the queue is read with npm run review-queue.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/055_content_review_queue.sql",
+        "backend/lib/content-signals.ts",
+        "backend/lib/content-signals.test.ts",
+        "backend/lib/content-review-queue.ts",
+        "backend/lib/content-review-queue.dbtest.ts",
+        "backend/lib/cron-auth.ts",
+        "backend/app/api/cron",
+        "backend/vercel.json",
+        "backend/scripts/review-queue.ts",
+        "backend/scripts/item-quality.ts",
+        "backend/lib/schema-status.ts",
+        "backend/package.json",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Unit tests cover the report rules and the drop test including no flag at low volume and few chance flags on simulated stable items",
+        "DB tests cover opening with evidence and refresh on re-run and no entry at low volume and window expiry and re-trigger only after resolution and skip of confirmed-wrong items and two concurrent runs and the cron route auth",
+        "Schema probe for 055 passes on a fresh database",
+        "No content is pulled or hidden by the job"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation",
+        "security_review"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "The job scans attempts in the last 194 days without a created_at index; fine at today's size and worth an index later",
+        "A cohort change (many beginners) can lower an item's correct rate without the item being wrong; the 20-point floor and strict z limit this",
+        "Migration 055 must be applied before the backend deploy"
+      ]
     }
   ]
 }

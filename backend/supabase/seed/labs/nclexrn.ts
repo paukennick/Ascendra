@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-123 pilot: NCLEX-RN (NCSBN 2026 RN Test Plan, effective April 2026).
 //
@@ -24,7 +25,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const NCLEXRN_LABS: SeedLabSet = {
   trackCode: "NCLEXRN",
-  sources: ["https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf"],
+  sources: [source("https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "who-first-post-op-bleeding",

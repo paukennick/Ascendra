@@ -181,6 +181,7 @@ so leaving it in place is always safe for the old code):
 | 050-051, 053 | labs, lab_runs, lab_run_steps, attempts.lab_id, lab_disclaimer_acknowledgements (enum values stay) | lab runs and acknowledgements |
 | 052 | legal_acceptances.source; B's *_choice_feedback columns come back, filled from option reasons | how each acceptance was given |
 | 054 | app_users.whats_new_seen_id | which "What's new" note each learner dismissed |
+| 055 | content_review_queue, eleven `signal_*` rows in item_quality_params | the learner-signal review queue and its history |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -270,6 +271,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 052 | Release 2026-11-07 reconcile (REQ-138): `legal_acceptances.source`, `terms_acceptances` folded in and dropped, `*_choice_feedback` folded into `*_option_reasons` and dropped, RLS on and anon/authenticated stripped for every table | instant at production's size | no | catalog changes and a few rows |
 | 053 | REQ-096 (#12, was 028 on its branch): attempt format `lab` for the Try it self-report | instant | no | enum value |
 | 054 | REQ-140: `app_users.whats_new_seen_id` (nullable, no default, no rewrite) -- the newest "What's new" note each learner dismissed. Apply BEFORE the backend deploy: sign-up writes it. Existing accounts start NULL and see the newest note once | instant | no | instant ACCESS EXCLUSIVE on app_users (5 s lock_timeout) |
+| 055 | REQ-143: `content_review_queue` (new table, RLS on) with a one-open-entry-per-item-and-signal unique index, and the detection thresholds as `signal_*` rows in `item_quality_params`. Apply BEFORE the backend deploy: the daily `/api/cron/content-signals` writes it and `/api/health` probes it. Nothing is backfilled and nothing scans attempts | instant (empty table, 11 small inserts) | no | none |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
