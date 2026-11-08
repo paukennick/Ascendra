@@ -241,7 +241,7 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     }
   });
   test("clinical and fitness labs carry the exam-practice framing and never ask about a real person", () => {
-    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {
+    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM|NPTE|DPT$)/.test(s.trackCode))) {
       for (const lab of set.labs) {
         assert.match(lab.safetyNote!, /not (clinical guidance|exercise, nutrition or medical advice)/, lab.slug);
         assert.match(lab.brief, /fictional/i, `${lab.slug}: the brief says the person is fictional`);
@@ -252,12 +252,12 @@ describe("authored pilot content (supabase/seed/labs)", () => {
   });
   test("the full pilot courses follow the recommended density (hybrid) unit by unit", () => {
     // REQ-124: CCRN Pediatric and Neonatal are full pilot courses now too.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO"]) {
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "NPTEPT", "NPTEPTA", "DPT"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {
         code,
-        family: /^(NCLEX|CCRN)/.test(code) ? "clinical" : code === "NASMCPT" ? "fitness" : "general",
+        family: /^(NCLEX|CCRN|NPTE|DPT$)/.test(code) ? "clinical" : code === "NASMCPT" ? "fitness" : "general",
         units: units.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })),
       };
       const want = unitPlan(plan, "hybrid");
