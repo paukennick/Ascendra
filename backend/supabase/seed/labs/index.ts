@@ -10,6 +10,9 @@ import { ACSMCPT_LABS } from "./fitness-acsmcpt";
 import { NSCACPT_LABS } from "./fitness-nscacpt";
 import { NSCACSCS_LABS } from "./fitness-nscacscs";
 import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
+import { NPTEPT_LABS } from "./pt-nptept";
+import { NPTEPTA_LABS } from "./pt-nptepta";
+import { DPT_LABS } from "./pt-dpt";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -27,4 +30,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NSCACPT_LABS,
   NSCACSCS_LABS,
   NCCPTCPT_LABS,
+  NPTEPT_LABS,
+  NPTEPTA_LABS,
+  DPT_LABS,
 ].map(withValueSources);
