@@ -145,7 +145,7 @@ the seed.
    release's data).** After a fresh `pg_dump` (step 1 again, new file name):
    `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rollback-release-2026-11-07.sql`.
    One transaction: restores levels, puts B's 025 columns and master's two
-   rollup views back, drops the release's triggers, functions, 55 tables and
+   rollup views back, drops the release's triggers, functions, 56 tables (055's review queue included) and
    the columns it added to pre-release tables, and removes 027a-054 from the
    ledger. Rehearsed: afterwards the schema equals the pre-release one apart
    from three enum values Postgres cannot drop (`attempt_kind` review and
@@ -181,6 +181,7 @@ so leaving it in place is always safe for the old code):
 | 050-051, 053 | labs, lab_runs, lab_run_steps, attempts.lab_id, lab_disclaimer_acknowledgements (enum values stay) | lab runs and acknowledgements |
 | 052 | legal_acceptances.source; B's *_choice_feedback columns come back, filled from option reasons | how each acceptance was given |
 | 054 | app_users.whats_new_seen_id | which "What's new" note each learner dismissed |
+| 055 | content_review_queue (its `signal_*` threshold rows go with item_quality_params) | open and resolved review-queue entries |
 | 055 | content_review_queue, eleven `signal_*` rows in item_quality_params | the learner-signal review queue and its history |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
