@@ -80,6 +80,36 @@ the box): attempts_user_unit_created 3.1 s, attempts_unit 2.0 s,
 review_session_items_answered 1.1 s, the five attempt_id indexes 0.1-0.3 s
 each. The migration afterwards: under a second.
 
+## 055 attempts index
+
+`055_content_review_queue.sql` (REQ-143) also adds `attempts_answered_created`,
+the date index the daily content-signals job needs: it reads every graded
+answer of the last 194 days, and without the index the lesson, Quiz me and
+comparison branches each scanned all of `attempts`. As for 046, build it
+first on production over the **direct** connection (port 5432), so the
+migration does not hold inserts into `attempts` while it builds:
+
+```sql
+create index concurrently if not exists attempts_answered_created on attempts (created_at)
+  where user_id is not null and verdict is not null and voided_at is null and not assisted;
+```
+
+Then `npm run migrate -- 055_content_review_queue.sql` finds it and creates
+only the queue table. A failed concurrent build leaves an INVALID index:
+`drop index concurrently attempts_answered_created;` and run it again. The
+`/api/health` probe for 055 requires the index to be valid
+(`pg_index.indisvalid`), so an invalid one shows up there. Rollback:
+`scripts/rollback-release-2026-11-07.sql` drops it.
+
+Fixture (3M attempts over three years, 17% of them inside the 194-day
+window, heap in insertion (date) order; local Postgres 16): the concurrent
+build took 2.7 s and the index is 64 MB next to a 384 MB table. The job's
+correct-rate query read about 30k pages instead of 147k (three seq scans of
+49k pages each); its run time went from about 2.0-2.6 s to 1.9 s because
+most of it is the sort that keeps each learner's first answer, which the
+index does not change. The page saving grows with history: the scans stay
+the size of the window while the table grows.
+
 ## Error tracker (Audit 3 MEDIUM-10)
 
 `lib/error-tracker.ts` receives every 500 that `serverError()` answers

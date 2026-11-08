@@ -27,7 +27,8 @@ import {
   needsAcknowledgement,
 } from "./lab-disclaimer";
 import { LAB_SETS } from "../supabase/seed/labs";
-import { seedLabContent } from "../supabase/seed/seed-lib";
+import { labSourceUrls, seedLabContent } from "../supabase/seed/seed-lib";
+import { VALUE_SOURCES, withValueSources } from "../supabase/seed/labs/value-sources";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
@@ -239,6 +240,38 @@ describe("authored pilot content (supabase/seed/labs)", () => {
         assert.ok(lab.safetyNote, `${set.trackCode}/${lab.slug} has safety framing`);
       }
     }
+  });
+  test("every clinical and fitness lab names what its values rest on, or why it names nothing (REQ-142)", () => {
+    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {
+      for (const lab of set.labs) {
+        const own = lab.sources ?? [];
+        assert.ok(own.length > 0 || (lab.noValueSource ?? "").length > 20, `${set.trackCode}/${lab.slug}: cite a source or say why not`);
+        assert.ok(!(own.length > 0 && lab.noValueSource), `${set.trackCode}/${lab.slug}: not both`);
+        if (/^(NCLEX|CCRN)/.test(set.trackCode) && own.length) {
+          assert.ok(own.every((s) => s.kind === "clinical_guideline"), `${set.trackCode}/${lab.slug}: clinical values rest on clinical guidelines (6-month re-check)`);
+        }
+      }
+    }
+  });
+  test("value sources name only labs that exist, and the stored URLs are the set's then the lab's, once each", () => {
+    for (const code of Object.keys(VALUE_SOURCES)) {
+      const set = LAB_SETS.find((s) => s.trackCode === code);
+      assert.ok(set, code);
+      for (const slug of Object.keys(VALUE_SOURCES[code])) assert.ok(set!.labs.some((l) => l.slug === slug), `${code}/${slug}`);
+    }
+    assert.throws(() => withValueSources({ trackCode: "CCRNADULT", sources: [], labs: [] }), /no lab/);
+    const set = LAB_SETS.find((s) => s.trackCode === "CCRNADULT")!;
+    const lab = set.labs.find((l) => l.slug === "acute-ischemic-stroke-case")!;
+    const urls = labSourceUrls(set, lab);
+    assert.deepEqual(urls.slice(0, set.sources.length), set.sources.map((s) => s.url));
+    assert.equal(urls.length, new Set(urls).size);
+    assert.ok(urls.some((u) => u.includes("acute-ischemic-stroke")));
+  });
+  test("attaching a source does not change a lab's content hash (an approved lab stays approved)", () => {
+    const set = LAB_SETS.find((s) => s.trackCode === "CCRNADULT")!;
+    const lab = set.labs.find((l) => l.slug === "dka-case")!;
+    assert.ok((lab.sources ?? []).length > 0);
+    assert.equal(labContentHash(seedLabContent(lab)), labContentHash(seedLabContent({ ...lab, sources: undefined })));
   });
   test("clinical and fitness labs carry the exam-practice framing and never ask about a real person", () => {
     for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {

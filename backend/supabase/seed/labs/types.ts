@@ -29,6 +29,16 @@ export interface SeedLab {
   brief: string;
   safetyNote?: string;
   steps: SeedLabStep[];
+  // REQ-142: what the lab's own clinical or fitness values rest on (a
+  // guideline, a consensus statement, the certifying body's own material),
+  // on top of the set's exam outline. Stored with the set's URLs in
+  // labs.sources; the dates stay here for npm run currency:report.
+  sources?: SourceRef[];
+  // REQ-142: for a clinical or fitness lab that cites no such source, why
+  // (it quotes no threshold or dose, or the source could not be verified).
+  // lib/labs.test.ts requires one or the other on every NCLEX, CCRN and NASM
+  // lab, so a new lab cannot quote a value without deciding where it comes from.
+  noValueSource?: string;
 }
 
 export interface SeedLabSet {

@@ -75,6 +75,10 @@ with the command above.
 with `Authorization: Bearer $CRON_SECRET` like the retention purge; 503
 without `CRON_SECRET`, 401 with a wrong one. Migration 055 must be applied
 before the backend that calls it.
+The job reads 194 days of answers through 055's partial date index on
+`attempts` (`attempts_answered_created`); on production build that index
+CONCURRENTLY before applying 055 (operations-runbook.md, "055 attempts
+index").
 
 ## Adding a content kind
 

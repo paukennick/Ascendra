@@ -23,8 +23,17 @@
 -- plugs in by adding its attempt source in lib/content-review-queue.ts, with
 -- no migration here.
 --
--- LOCKING. One new table and its indexes; inserts into a small table.
--- Nothing scans attempts. Safe to run while serving; safe to run twice.
+--   attempts_answered_created
+--                         the job's date index on attempts (below).
+--
+-- LOCKING. One new table and its indexes; inserts into a small table; and one
+-- index on attempts. That index is the only part that is not instant: inside
+-- the runner's transaction a plain CREATE INDEX blocks inserts into attempts
+-- (every graded answer) while it builds. PRODUCTION: build it first with
+-- CONCURRENTLY over the direct connection, as for 046
+-- (docs/operations-runbook.md, "055 attempts index"); this file then finds it
+-- and only records itself. Everything here is IF NOT EXISTS / ON CONFLICT DO
+-- NOTHING: safe to run twice.
 
 set local lock_timeout = '5s';
 
@@ -78,3 +87,15 @@ insert into item_quality_params (name, value, note) values
   ('signal_drop_min_points', 0.20, 'REQ-143: smallest drop in correct rate (0.20 = 20 points) that counts.'),
   ('signal_drop_z', 3.09, 'REQ-143: one-sided two-proportion z the drop must reach (3.09 ~ p < 0.001).')
 on conflict (name) do nothing;
+
+-- The job reads every answer of the last 194 days (14-day recent window +
+-- 180-day baseline; 30 days for the report rate) through ATTEMPT_SOURCES in
+-- lib/content-review-queue.ts. Without a date index the lesson, Quiz me and
+-- comparison branches each scanned the whole attempts table. The predicate
+-- is the job's own (COMMON: a learner's graded answer, not voided, not
+-- assisted), so the planner can use it and the index skips rows the job never
+-- counts. On a 3M-attempt fixture with 17% of rows in the window the three
+-- scans read about 30k pages instead of 147k (docs/operations-runbook.md).
+create index if not exists attempts_answered_created
+    on attempts (created_at)
+ where user_id is not null and verdict is not null and voided_at is null and not assisted;

@@ -7,7 +7,8 @@
 //
 // Lists, grouped by course, every exam outline and lab source whose re-check
 // date has passed or falls within the window, then the courses that record
-// no outline at all and those whose outline has no version.
+// no outline at all, those whose outline has no version, those whose
+// publisher prints none (with the reason), and the courses with no exam.
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { LAB_SETS } from "../supabase/seed/labs";
 import { DUE_WINDOW_DAYS, currencyReport, dayOf } from "../lib/content-currency";
@@ -43,4 +44,8 @@ if (process.argv.includes("--json")) {
   for (const c of r.noOutline) console.log(`  ${c.code.padEnd(12)} ${c.trackType.padEnd(13)} ${c.title}`);
   console.log(`\nCourses whose outline has no recorded version (${r.noVersion.length}):`);
   for (const c of r.noVersion) console.log(`  ${c.code.padEnd(12)} ${c.outline}`);
+  console.log(`\nOutlines whose publisher prints no version (${r.unversioned.length}), with the reason recorded:`);
+  for (const c of r.unversioned) console.log(`  ${c.code.padEnd(12)} ${c.outline}\n${" ".repeat(15)}${c.why}`);
+  console.log(`\nCourses with no exam, dated through their curriculum source (${r.nonExam.length}):`);
+  for (const c of r.nonExam) console.log(`  ${c.code.padEnd(12)} ${c.kind.padEnd(19)} ${c.name} (${c.version})`);
 }

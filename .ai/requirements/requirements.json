@@ -4759,7 +4759,9 @@
         "Course checked dates are the seed's existing human-recorded verification dates and were not re-verified",
         "Courses whose credential carries no revision (Azure / GCP / some PMI and ABPTS) are listed as having no outline version until someone records one",
         "The report reads the seed; a newer check recorded in production by the catalog review agent is not seen",
-        "Docs: no README change was needed; the docs touched are docs/source-reliability-standard.md, docs/labs.md and docs/operations-runbook.md"
+        "Docs: no README change was needed; the docs touched are docs/source-reliability-standard.md, docs/labs.md and docs/operations-runbook.md",
+        "2026-11-08: clinical and fitness labs name the guideline their values rest on (seed/labs/value-sources.ts, clinical_guideline, 6-month re-check) or say why not; lab wording that disagrees with a current guideline is reported for clinical review, never edited silently",
+        "2026-11-08: outline versions go in objectivesRevision (examRevision is part of credential_exams identity and would add a second exam row on the production seed); publishers that print none carry versionNote; non-exam courses carry curriculum"
       ]
     },
     {
@@ -4804,7 +4806,8 @@
       "risk_notes": [
         "The job scans attempts in the last 194 days without a created_at index; fine at today's size and worth an index later",
         "A cohort change (many beginners) can lower an item's correct rate without the item being wrong; the 20-point floor and strict z limit this",
-        "Migration 055 must be applied before the backend deploy"
+        "Migration 055 must be applied before the backend deploy",
+        "Resolved 2026-11-08: 055 now adds attempts_answered_created, a partial created_at index matching the job's filter; build it CONCURRENTLY before applying 055 on production (operations-runbook.md, '055 attempts index'); the 055 probe requires it valid; the release rollback drops it"
       ]
     },
     {

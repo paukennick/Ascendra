@@ -179,6 +179,7 @@ alter table attempts drop constraint if exists attempts_lab_not_mastery_evidence
 alter table attempts drop constraint if exists attempts_labtask_shape;
 drop index if exists attempts_unit;
 drop index if exists attempts_user_unit_created;
+drop index if exists attempts_answered_created;  -- 055 (REQ-143)
 drop index if exists idx_attempts_user_objective;
 drop index if exists idx_attempts_user_pbq_scenario;
 drop index if exists error_log_attempt;

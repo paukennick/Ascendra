@@ -19,7 +19,10 @@ import { source } from "../sources";
 // potassium check before an insulin infusion in DKA, the blood-pressure
 // limit before IV thrombolysis, MAP 65 in septic shock); local protocols
 // differ, and every lab is needs_expert_review until a critical-care nurse
-// educator approves it (docs/labs.md).
+// educator approves it (docs/labs.md). The guideline each lab's values rest on
+// is in value-sources.ts (REQ-142, checked 2026-11-08); two dka-case points
+// disagree with the 2024 hyperglycemic-crises consensus (potassium threshold,
+// anion gap as the resolution marker) and are listed in PR #44 for review.
 
 const CCRN_SOURCES = [
   source("https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en", "exam_outline", "2026-11-07"),

@@ -256,7 +256,11 @@ listed in `seed/labs/index.ts`. Each source is dated (REQ-142,
 re-check (`exam_outline` and `reference` 12 months, `clinical_guideline`
 and `cloud_pricing_limits` 6 months). `npm test` fails on a source without
 dates; `npm run currency:report` lists what is due. The database keeps the
-URLs only (`labs.sources`).
+URLs only (`labs.sources`). A clinical or fitness lab also names the
+guideline its own values rest on, or why it names none, in
+`seed/labs/value-sources.ts` (`labs.test.ts` requires one or the other);
+those URLs are stored after the set's, and adding one does not change the
+lab's content hash or review status.
 
 1. **Pick the skill, not the topic.** Choose the 1-3 objectives per unit
    that the exam tests by doing (see "Density" below). An objective that is

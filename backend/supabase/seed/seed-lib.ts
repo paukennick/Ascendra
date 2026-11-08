@@ -357,6 +357,11 @@ export function seedLabContent(lab: SeedLabSet["labs"][number]): LabContent {
   };
 }
 
+// The set's outline URLs, then the lab's own sources, each once.
+export function labSourceUrls(set: SeedLabSet, lab: SeedLabSet["labs"][number]): string[] {
+  return [...new Set([...set.sources, ...(lab.sources ?? [])].map((s) => s.url))];
+}
+
 export async function seedLabs(pool: Pool, set: SeedLabSet): Promise<number> {
   const objs = await pool.query<{ id: string; title: string }>(
     `select o.id, o.title from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
@@ -394,7 +399,7 @@ export async function seedLabs(pool: Pool, set: SeedLabSet): Promise<number> {
         JSON.stringify(content.rubric),
         content.safetyNote ?? null,
         // REQ-142: the dates stay in the seed (npm run currency:report reads them).
-        JSON.stringify(set.sources.map((s) => s.url)),
+        JSON.stringify(labSourceUrls(set, lab)),
         hash,
       ]
     );

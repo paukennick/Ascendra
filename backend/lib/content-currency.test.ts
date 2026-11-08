@@ -13,6 +13,7 @@ import {
   currencyReport,
   dayOf,
   dueStatus,
+  labSetSources,
   sourceDateProblems,
   sourceRecheckBy,
 } from "./content-currency";
@@ -60,7 +61,17 @@ describe("the seed (new content cannot skip its dates)", () => {
     for (const set of LAB_SETS) {
       assert.ok(set.sources.length > 0, `${set.trackCode} cites a source`);
       for (const s of set.sources) assert.deepEqual(sourceDateProblems(s, TODAY), [], `${set.trackCode}: ${s.url}`);
+      // REQ-142: and each lab's own guideline or reference sources.
+      for (const lab of set.labs) {
+        for (const s of lab.sources ?? []) assert.deepEqual(sourceDateProblems(s, TODAY), [], `${set.trackCode}/${lab.slug}: ${s.url}`);
+      }
     }
+  });
+  test("the real report: every course has an outline or a curriculum, and every outline a version or a reason", () => {
+    const real = currencyReport(CATALOG_TRACKS, LAB_SETS, TODAY);
+    assert.deepEqual(real.noOutline, []);
+    assert.deepEqual(real.noVersion, []);
+    for (const u of real.unversioned) assert.ok(u.why.length > 20, u.code);
   });
   test("every course that records an outline or source dates it, and every certification course has one", () => {
     for (const t of CATALOG_TRACKS) assert.deepEqual(courseOutlineProblems(t, TODAY), [], t.code);
@@ -124,6 +135,46 @@ describe("currencyReport", () => {
   test("names courses with no outline and outlines with no version", () => {
     assert.deepEqual(r.noOutline.map((c) => c.code), ["SELF"]);
     assert.deepEqual(r.noVersion.map((c) => c.code), ["OLD", "NEW", "SOON"]);
+  });
+  test("a lab's own sources count only the labs that cite them; a set source covers every lab", () => {
+    const g = source("https://x.test/g", "clinical_guideline", "2026-11-08");
+    const set: SeedLabSet = {
+      trackCode: "NEW",
+      sources: [source("https://x.test/fine", "exam_outline", "2026-05-01")],
+      labs: [
+        { slug: "a", objective: "o", kind: "case", title: "A", brief: "", steps: [], sources: [g] },
+        { slug: "b", objective: "o", kind: "case", title: "B", brief: "", steps: [], sources: [g, source("https://x.test/fine", "exam_outline", "2025-01-01")] },
+        { slug: "c", objective: "o", kind: "case", title: "C", brief: "", steps: [] },
+      ],
+    };
+    const got = new Map(labSetSources(set).map((x) => [x.source.url, x]));
+    assert.equal(got.get("https://x.test/g")?.labs, 2);
+    // Cited by the set and again by a lab: still the set's (3 labs), and the older date wins.
+    assert.equal(got.get("https://x.test/fine")?.labs, 3);
+    assert.equal(got.get("https://x.test/fine")?.source.checkedAt, "2025-01-01");
+    const due = currencyReport(tracks, [set], "2027-05-01").courses.find((c) => c.code === "NEW")!;
+    assert.deepEqual(due.due.filter((d) => d.what === "lab_source").map((d) => [d.url, d.labs]).sort(), [["https://x.test/fine", 3], ["https://x.test/g", 2]]);
+  });
+  test("a course with no exam is dated through its curriculum source; a publisher with no version needs a reason", () => {
+    const k: SeedTrack = {
+      ...tracks[3],
+      curriculum: { kind: "language_reference", name: "Docs", version: "3.15", url: "https://x.test/docs", checkedAt: "2026-11-08" },
+    };
+    assert.deepEqual(courseOutline(k), { name: "Docs", version: "3.15", url: "https://x.test/docs", checkedAt: "2026-11-08", recheckBy: "2027-11-08" });
+    const cred = {
+      providerSlug: "p", providerName: "P", subcategorySlug: "s", credentialSlug: "c", credentialName: "Guide",
+      credentialType: "certification", status: "active" as const,
+      officialObjectivesUrl: "https://x.test/g", lastVendorVerifiedAt: "2026-11-08T00:00:00Z",
+    };
+    const noted: SeedTrack = { ...tracks[1], code: "NOTED", credential: { ...cred, versionNote: "The publisher prints no version." } };
+    const bare: SeedTrack = { ...tracks[1], code: "BARE", credential: cred };
+    const rr = currencyReport([k, noted, bare], [], "2026-11-08");
+    assert.deepEqual(rr.noOutline, []);
+    assert.deepEqual(rr.nonExam.map((c) => [c.code, c.version]), [["SELF", "3.15"]]);
+    assert.deepEqual(rr.unversioned.map((c) => c.code), ["NOTED"]);
+    assert.deepEqual(rr.noVersion.map((c) => c.code), ["BARE"]);
+    assert.match(courseOutlineProblems({ ...k, curriculum: { ...k.curriculum!, url: "http://x.test" } }, TODAY).join(), /https/);
+    assert.match(courseOutlineProblems({ ...k, curriculum: { ...k.curriculum!, version: "" } }, TODAY).join(), /version/);
   });
   test("runs over the real catalog", () => {
     const real = currencyReport(CATALOG_TRACKS, LAB_SETS, TODAY);

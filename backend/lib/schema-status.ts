@@ -86,6 +86,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and (select count(*) from item_quality_params where name like 'signal\\_%') = 11 as ok`,
   },
   {
+    // REQ-143: the daily job's date index on attempts. Production builds it
+    // with CREATE INDEX CONCURRENTLY first (runbook), and a failed concurrent
+    // build leaves an INVALID index that to_regclass still finds, so this
+    // probe asks for a valid one.
+    migration: "055_content_review_queue.sql",
+    what: "attempts_answered_created, a valid date index for the content-signals job's 194-day scan",
+    sql: `select coalesce((select i.indisvalid from pg_index i
+                          where i.indexrelid = to_regclass('public.attempts_answered_created')), false) as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
