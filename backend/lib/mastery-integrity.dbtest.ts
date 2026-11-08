@@ -16,7 +16,7 @@ import { POST as gradePost } from "../app/api/grade/route";
 import { GET as lessonGet } from "../app/api/objectives/[id]/lesson/route";
 import { POST as hintPost } from "../app/api/objectives/[id]/hint/route";
 import { GET as pbqGet, POST as pbqPost } from "../app/api/pbq/route";
-import { GET as errorsGet } from "../app/api/errors/route";
+import { GET as errorsGet, POST as errorsPost } from "../app/api/errors/route";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
@@ -274,6 +274,46 @@ describe("3. Only due review entries advance", () => {
       [u, o]
     );
     assert.equal(row?.review_stage, 0);
+  });
+
+  // FAIL-529: a new entry's first review was "tomorrow" by the Node process's
+  // local date, while every due check reads the database's current_date. With
+  // the server a day behind the database (a Pacific evening against UTC) the
+  // entry was due at once, and the test above failed. Run the two writers
+  // under a zone 12 h behind UTC and one 14 h ahead: whatever the wall clock,
+  // at least one of them is on a different date from the database.
+  test("a new review entry is first due tomorrow by the database's date, whatever the server's time zone", async () => {
+    const savedTz = process.env.TZ;
+    const localDay = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+    const dbDay = async () => (await queryOne<{ d: string }>(`select to_char(current_date, 'YYYY-MM-DD') as d`))!.d;
+    const daysOut = async (where: string, params: unknown[]) =>
+      (await queryOne<{ n: number }>(`select (next_review_at - current_date)::int as n from error_log where ${where}`, params))!.n;
+    let skewed = 0;
+    try {
+      for (const tz of ["Etc/GMT+12", "Etc/GMT-14"]) {
+        process.env.TZ = tz;
+        if (localDay() !== (await dbDay())) skewed++;
+        // A missed Solo answer (lib/grading-service.ts).
+        const u = await newUser();
+        nextVerdict = "incorrect";
+        await grade(u, { format: "open", stage: "solo", objectiveId: objs[6], answer: "wrong" });
+        assert.equal(await daysOut(`user_id = $1`, [u]), 1, `graded miss under ${tz}`);
+        // An entry the learner logs by hand (POST /api/errors).
+        const res = await errorsPost(
+          new Request("http://t/api/errors", { method: "POST", headers: auth(u), body: JSON.stringify({ topic: "t", errorText: "e" }) })
+        );
+        assert.equal(res.status, 201);
+        const { error } = (await res.json()) as { error: { id: string } };
+        assert.equal(await daysOut(`id = $1`, [error.id]), 1, `hand-logged entry under ${tz}`);
+      }
+    } finally {
+      if (savedTz === undefined) delete process.env.TZ;
+      else process.env.TZ = savedTz;
+    }
+    assert.ok(skewed >= 1, "at least one zone must disagree with the database's date, or this test proves nothing");
   });
 });
 

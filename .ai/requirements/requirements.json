@@ -4771,6 +4771,37 @@
         "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer",
         "Phase 1a steps 1-2 (branch feature/sim-engine-1a): test scripts reach lib/sim/** and src/sim/** with discovery canaries (lib/test-discovery.test.ts, mobile src/lib/testDiscovery.test.ts); allowImportingTsExtensions in backend/tsconfig.json; engine v1 placeholder, generated app copy (npm run sim:sync-engine) and drift test (lib/sim/engineCopy.test.ts); Hermes spike done (docs/sims-hermes-spike.md): CI builds the Hermes VM from react-native's pinned tag and requires byte-identical fixture output vs Node, plus a Playwright Chromium/Firefox/WebKit job. On-device Hermes run still required before Phase 1c exits. This description still says design only; Nick to decide whether implementation stays under REQ-141 or gets its own requirement."
       ]
+    },
+    {
+      "id": "REQ-145",
+      "category": "defect",
+      "title": "Fix: a new review entry's first due date follows the database's clock, not the server's local date (FAIL-529)",
+      "description": "Defect fix. recordAttemptTx and POST /api/errors wrote next_review_at as tomorrow by the Node process's local date while every due check compares with SQL current_date; with the server a day behind the database a new entry was due at once and the next correct answer advanced it early. Both now write current_date + 1. Surfaced as a timezone-dependent failure of mastery-integrity.dbtest.ts 'Only due review entries advance'.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/grading-service.ts",
+        "backend/app/api/errors/route.ts",
+        "backend/lib/mastery-integrity.dbtest.ts",
+        "CHANGELOG.md",
+        ".ai/failures"
+      ],
+      "acceptance_criteria": [
+        "A new error_log entry from a graded miss or POST /api/errors has next_review_at = current_date + 1 whatever the Node process's TZ",
+        "mastery-integrity.dbtest.ts passes under TZ=America/Los_Angeles across the UTC date boundary and under UTC and Asia/Tokyo",
+        "The regression test fails on the unfixed code under TZ=UTC"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database under three time zones"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Requirement and failure ids (REQ/FAIL) taken from master at 061f829; a concurrent branch may take the same numbers"
+      ]
     }
   ]
 }
