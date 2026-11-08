@@ -17,7 +17,7 @@ import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 // Hands-on exams: every lab works at the kubectl prompt.
 const HANDS_ON = ["CKA", "CKAD", "CKS"] as const;
 // Multiple-choice exams: labs apply the concepts (read output, choose, design).
-const CONCEPTUAL = ["KCNA"] as const;
+const CONCEPTUAL = ["KCNA", "KCSA"] as const;
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON, ...CONCEPTUAL] as const;
 
@@ -102,6 +102,23 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     assert.match(cks.credential?.recommendedExperience ?? "", /passed the Certified Kubernetes Administrator/);
   });
 
+  test("KCSA's domains and weights are the official curriculum", () => {
+    const kcsa = tracks.get("KCSA")!;
+    assert.deepEqual(
+      activeUnits(kcsa).map((u) => [u.title, u.weight]),
+      [
+        ["Overview of Cloud Native Security", 14],
+        ["Kubernetes Cluster Component Security", 22],
+        ["Kubernetes Security Fundamentals", 22],
+        ["Kubernetes Threat Model", 16],
+        ["Platform Security", 16],
+        ["Compliance and Security Frameworks", 10],
+      ]
+    );
+    assert.equal(kcsa.credential?.durationMinutes, 90);
+    assert.match(kcsa.credential?.passingScorePolicy ?? "", /75%/);
+  });
+
   test("KCNA's domains and weights are the official four-domain curriculum", () => {
     const kcna = tracks.get("KCNA")!;
     assert.deepEqual(
@@ -123,7 +140,7 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const labs = setFor(code).labs;
       for (const lab of labs) {
         const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
-        assert.match(answers, /kubectl|apiVersion|Deployment|StatefulSet|Service|Prometheus|Argo|Flux|Secret|hostPath|CNCF|nodeSelector|taint|topologySpreadConstraints/, `${code}/${lab.slug}: the reference answers name real Kubernetes or CNCF mechanisms`);
+        assert.match(answers, /kubectl|apiVersion|Deployment|StatefulSet|Service|Prometheus|Argo|Flux|Secret|hostPath|CNCF|nodeSelector|taint|topologySpreadConstraints|NetworkPolicy|RBAC|etcd|cosign|Falco|kube-bench/, `${code}/${lab.slug}: the reference answers name real Kubernetes or CNCF mechanisms`);
       }
       assert.ok(labs.some((l) => l.kind === "case") && labs.some((l) => l.kind === "build"), `${code}: both kinds`);
     }

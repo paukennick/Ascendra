@@ -480,4 +480,129 @@ export const CKS_TRACK: SeedTrack = {
   ],
 };
 
-export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK, KCNA_TRACK, CKS_TRACK];
+// ---------------------------------------------------------------------------
+// Kubernetes and Cloud Native Security Associate (KCSA)
+// Multiple choice, online proctored, 90 minutes; pass mark 75%; $250 with
+// one free retake; valid 2 years; beginner level, no prerequisites.
+// Domains (KCSA Curriculum.pdf): Overview of Cloud Native Security 14%,
+// Kubernetes Cluster Component Security 22%, Kubernetes Security
+// Fundamentals 22%, Kubernetes Threat Model 16%, Platform Security 16%,
+// Compliance and Security Frameworks 10%. The PDF's competencies are short
+// headings (e.g. "API Server", "Persistence"); each unit expands them in
+// order and names the heading.
+// ---------------------------------------------------------------------------
+export const KCSA_TRACK: SeedTrack = {
+  code: "KCSA",
+  title: "Kubernetes and Cloud Native Security Associate (KCSA) Coach",
+  description:
+    "KCSA: the entry-level, multiple-choice security credential. The 4Cs of cloud native security, what each Kubernetes component exposes and how to lock it down, Pod Security Standards, authentication and authorization, Secrets, NetworkPolicy and audit logging, the Kubernetes threat model, platform security from supply chain to service mesh, and the compliance and threat-modelling frameworks teams work to.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/kubernetes-and-cloud-native-security-associate-kcsa/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "kcsa",
+    credentialName: "Kubernetes and Cloud Native Security Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/kubernetes-and-cloud-native-security-associate-kcsa/",
+    basis: "vendor_exam",
+    examCode: "KCSA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/KCSA%20Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience:
+      "No prerequisites. Beginner level: a foundation in Kubernetes and cloud native security concepts for people heading toward the CKS or working alongside security teams.",
+    durationMinutes: 90,
+    questionFormat: "Online, proctored, multiple-choice exam, 90 minutes (Linux Foundation multiple-choice exam FAQ).",
+    passingScorePolicy: "75% or above to pass (Linux Foundation multiple-choice exam FAQ). Certification valid for 2 years; one retake included. Passing CKS automatically renews KCSA (CARE program).",
+  },
+  units: [
+    {
+      title: "Overview of Cloud Native Security",
+      weight: 14,
+      gate: "Given an application running on a cloud Kubernetes cluster, place each proposed control in the right layer of the 4Cs, say what isolates what, and spot the gap an attacker would use.",
+      objectives: [
+        "The 4Cs of cloud native security -- cloud, cluster, container, code -- and why each layer depends on the ones outside it",
+        "Cloud provider and infrastructure security: the shared responsibility model, identity for nodes and workloads, network perimeters, and managed control planes",
+        "Controls and frameworks: preventive, detective and corrective controls, defence in depth, and where CIS benchmarks, NIST and the Kubernetes hardening guidance fit",
+        "Isolation techniques across the stack: namespaces and cgroups, virtual machines, sandboxed runtimes, network segmentation and multi-tenancy boundaries",
+        "Artifact repository and image security: trusted registries, image scanning, signing and provenance, tags versus digests, and admission control on images",
+        "Workload and application code security: secure defaults in Pod specs, dependency scanning, secrets handling in code, and the OWASP risks that survive containerisation",
+      ],
+    },
+    {
+      title: "Kubernetes Cluster Component Security",
+      weight: 22,
+      gate: "Given a diagram or port scan of a cluster, name what each component exposes, who should be able to reach it, and the setting that closes an unexpected exposure.",
+      objectives: [
+        "API server security: TLS, authentication modes, authorization modes (Node, RBAC), admission control, anonymous access and keeping the endpoint off the public internet",
+        "Controller manager and scheduler security: binding to localhost, their own ServiceAccount credentials and certificates, and profiling endpoints",
+        "Kubelet security: the 10250 API, anonymous authentication and Webhook authorization, the read-only port, and certificate rotation",
+        "Container runtime security: CRI runtimes (containerd, CRI-O), rootless and sandboxed options, and the runtime's role in enforcing seccomp and AppArmor",
+        "kube-proxy and container networking security: the data plane's privileges, CNI plugin trust, and the flat Pod network's implications",
+        "Pod security: the Pod as the unit of trust -- shared network and IPC, host namespaces, hostPath, privileged containers and SecurityContexts",
+        "etcd security: client and peer TLS, certificate authentication, encryption at rest, backups as sensitive data and network access limited to the API server",
+        "Client security: kubeconfig files and credentials, kubectl plugins, exec credential helpers, short-lived tokens and the risk of shared admin credentials",
+        "Storage security: PersistentVolume access, hostPath risks, CSI drivers' privileges, encryption of volumes and snapshots",
+      ],
+    },
+    {
+      title: "Kubernetes Security Fundamentals",
+      weight: 22,
+      gate: "Given a namespace and the workloads in it, choose the Pod Security Standard to enforce, trace how a request is authenticated and authorized, protect its Secrets, segment its network and decide what the audit log should record.",
+      objectives: [
+        "Pod Security Standards: the privileged, baseline and restricted profiles and which controls each one forbids",
+        "Pod Security Admission: enforce, audit and warn modes, namespace labels, versions and exemptions, and rolling a stricter profile out safely",
+        "Authentication: client certificates, bearer and ServiceAccount tokens, OIDC, authenticating proxies and webhooks, and what the API server knows about a user",
+        "Authorization: RBAC Roles, ClusterRoles and bindings, verbs and resources, the Node authorizer, and reading kubectl auth can-i results",
+        "Secrets: how they are stored, encoded and encrypted, who can read them, mounting versus environment variables, and external secret managers",
+        "Isolation and segmentation: namespaces, ResourceQuotas and LimitRanges, node pools and taints, and when stronger isolation is needed",
+        "Audit logging: audit stages and levels, writing a policy, what to log for Secrets and RBAC, and shipping logs off the control plane",
+        "NetworkPolicy: default deny, selectors for Pods and namespaces, ingress and egress rules, DNS allowances and CNI support",
+      ],
+    },
+    {
+      title: "Kubernetes Threat Model",
+      weight: 16,
+      gate: "Given a described incident or design, name the trust boundary crossed and the threat category it belongs to, and the control that addresses it.",
+      objectives: [
+        "Kubernetes trust boundaries and data flow: control plane, node, Pod, container and network boundaries, and how requests and credentials move between them",
+        "Persistence: how attackers stay -- backdoored images, CronJobs, mutating webhooks, ServiceAccount tokens, static Pods and node-level implants",
+        "Denial of service: resource exhaustion by Pods without limits, API server flooding, etcd pressure and network amplification, and the quotas and rate limits that defend",
+        "Malicious code execution and compromised applications in containers: what an attacker inside a container can reach, and how SecurityContexts, read-only filesystems and sandboxing contain it",
+        "Attacker on the network: sniffing and spoofing on a flat Pod network, exposed Services and dashboards, and mTLS and NetworkPolicy as defences",
+        "Access to sensitive data: Secrets, mounted tokens, etcd, logs and backups as targets, and encryption and least privilege as controls",
+        "Privilege escalation paths: privileged containers, hostPath, host namespaces, over-broad RBAC, token theft and kubelet access, and the chain from Pod to node to cluster",
+      ],
+    },
+    {
+      title: "Platform Security",
+      weight: 16,
+      gate: "Given a platform team's build and run pipeline, identify where supply chain, PKI, connectivity, admission and observability controls belong and what each proves.",
+      objectives: [
+        "Supply chain security: SBOMs, provenance and attestations (SLSA), signing with Sigstore and cosign, and verifying at admission",
+        "Image repository security: private registries, access control, scanning on push, immutable tags and pull-through caches",
+        "Observability for security: audit logs, runtime detection with Falco, metrics and traces as evidence, and alerting that distinguishes attacks from noise",
+        "Service mesh security: mTLS between workloads, identity per service, authorization policies and the trade-offs of sidecar and sidecarless meshes",
+        "PKI in Kubernetes: the cluster CA, component and kubelet certificates, certificate rotation and expiry, and cert-manager for workload certificates",
+        "Connectivity security: Ingress and Gateway TLS, NetworkPolicy and CNI-level encryption (WireGuard, IPsec), and egress control",
+        "Admission control: validating and mutating webhooks, ValidatingAdmissionPolicy with CEL, Pod Security Admission and policy engines (Kyverno, OPA Gatekeeper)",
+      ],
+    },
+    {
+      title: "Compliance and Security Frameworks",
+      weight: 10,
+      gate: "Given a regulatory or organisational requirement, map it to Kubernetes controls and evidence, choose a threat-modelling approach, and say what can be automated.",
+      objectives: [
+        "Compliance frameworks applied to Kubernetes: CIS Benchmarks, NIST SP 800-53 and 800-190, PCI DSS, SOC 2, ISO 27001 and the Kubernetes hardening guidance, and what evidence each asks for",
+        "Threat modelling frameworks: STRIDE, the MITRE ATT&CK matrix for containers and the Kubernetes threat matrix, and running a threat model on a cluster feature",
+        "Supply chain compliance: SLSA levels, SBOM requirements, signed and attested artifacts, and policy that enforces them",
+        "Automation and tooling for compliance: kube-bench, policy-as-code (Kyverno, OPA Gatekeeper), continuous scanning and audit evidence collection, and reporting",
+      ],
+    },
+  ],
+};
+
+export const KUBERNETES_TRACKS: readonly SeedTrack[] = [CKA_TRACK, CKAD_TRACK, KCNA_TRACK, CKS_TRACK, KCSA_TRACK];
