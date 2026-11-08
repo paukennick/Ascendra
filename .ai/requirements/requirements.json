@@ -4770,6 +4770,41 @@
         "pricing) must be answered before Phase 1b",
         "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer"
       ]
+    },
+    {
+      "id": "REQ-146",
+      "category": "defect",
+      "title": "Old app builds: Solo choices in the lesson with the hint recorded",
+      "description": "Store app builds from before the 2026-11-07 release (c3e13ab) default the Solo step to multiple choice and render lesson.soloChoices, which the release made an empty list, so the learner saw no options and a disabled Submit. The app now sends X-Ascendra-Client (protocol 1). A lesson request without it gets the Solo choices in the learner's fixed shuffled order and the hint reveal recorded first, as the hint route does, so a later Solo answer in any format is assisted (capped at Guided). Clients with the header are unchanged.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/client-protocol.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "acceptance_criteria": [
+        "Header present: soloChoices empty and no reveal recorded",
+        "Header absent: soloChoices in the hint route's shuffled order and one reveal recorded",
+        "An old build's Solo MC pick grades against the shown order and is capped at Guided",
+        "A free-response Solo answer after the choices were sent is assisted (Guided)",
+        "The app sends the header on every request"
+      ],
+      "validation_required": [
+        "backend tsc + npm test + build",
+        "backend test:db on a fresh CI-equivalent Postgres",
+        "mobile tsc + npm test"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Old-app learners can no longer earn Independent from lesson Solo items until they update (intended)",
+        "A caller can omit the header to see choices but the reveal is recorded"
+      ]
     }
   ]
 }

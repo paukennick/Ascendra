@@ -7546,6 +7546,34 @@
       ],
       "prevention_notes": "Checklist: a retention window applies to every reader of the rows it deletes, mailed links included; retention.test.ts pins the policy text.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-530",
+      "date": "2026-11-07",
+      "title": "Old store builds show an empty Solo multiple-choice list",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "On the installed store app (built from c3e13ab) the lesson's Solo step showed Multiple choice / Free response with Multiple choice selected by default and no answer options: only a disabled Submit and the confidence picker. The learner was stuck unless they tapped Free response.",
+      "how_detected": "Owner report from production (phone, store build)",
+      "root_cause": "REQ-134 moved the Solo choices behind POST /api/objectives/:id/hint and sent soloChoices: [] in the lesson. FAIL-039 checked the old screen only for crashes (the .map on the hint button of an intermediate build); the store build has no hint flow and renders soloChoices directly as its default answer mode, so an empty list left it with nothing to pick. The server had no way to tell an old build from a new one, since the app sent no version.",
+      "requirement": "REQ-146",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "fix_summary": "The app sends X-Ascendra-Client: 1 on every request (native and web; CORS allows it). The lesson GET/POST, for a request without it, records the Solo hint reveal (lesson_hint_reveals, same item key as the hint route) and then sends the Solo choices in the learner's fixed shuffled order (lessonForClient). /api/grade then accepts the old build's chosenIndex through the same order, and every Solo answer to the item is assisted, capped at Guided.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-integrity.dbtest.ts::9b. Old app builds get the Solo choices",
+        "with the hint recorded (FAIL-530)",
+        "backend/lib/client-protocol.test.ts",
+        "mobile/src/lib/apiClient.test.ts::client protocol header (FAIL-530)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Before changing what a response carries, read the STORE build's screen (the last release that shipped to the stores, not the last merge), for how it renders the field, not only whether it dereferences it. The app now declares its protocol, so the server can keep serving old builds what they understand; raise CLIENT_PROTOCOL when a payload change needs it.",
+      "recurrence_of": ""
     }
   ]
 }
