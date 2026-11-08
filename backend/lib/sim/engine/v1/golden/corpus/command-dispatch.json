@@ -1,0 +1,276 @@
+{
+  "id": "command-dispatch",
+  "spec": "4.1 Command dispatch: whitespace split, literals case-insensitive, typed captures bound only inside the matched pattern's cases, cmd.matched is the pattern id or none, unmatched input is a valid command that outputs the authored line",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "lastHost": {
+        "type": "enum",
+        "values": [
+          "",
+          "10.0.0.5",
+          "10.0.1.9"
+        ],
+        "init": ""
+      },
+      "n": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 1000
+      },
+      "matched": {
+        "type": "enum",
+        "values": [
+          "none",
+          "ping",
+          "route"
+        ],
+        "init": "none"
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "sh"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "sh": {
+        "label": "shell",
+        "group": "g",
+        "params": [
+          {
+            "id": "cmd",
+            "kind": "command",
+            "label": "Command",
+            "maxLength": 200,
+            "unmatched": "That command is not available in this lab.",
+            "patterns": [
+              {
+                "id": "ping",
+                "pattern": "ping {host:ipv4}",
+                "cases": [
+                  {
+                    "when": "host == '10.0.0.5'",
+                    "then": [
+                      {
+                        "set": "lastHost",
+                        "to": "host"
+                      },
+                      {
+                        "output": "Reply from {host}"
+                      }
+                    ]
+                  },
+                  {
+                    "when": "true",
+                    "then": [
+                      {
+                        "output": "Request timed out."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "route",
+                "pattern": "ip route add {dst:cidr} via {gw:ipv4} metric {m:int}",
+                "cases": [
+                  {
+                    "when": "true",
+                    "then": [
+                      {
+                        "set": "n",
+                        "to": "m"
+                      },
+                      {
+                        "output": "{dst} via {gw}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "set": "matched",
+            "to": "cmd.matched"
+          }
+        ]
+      }
+    },
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "sh",
+        "params": {
+          "cmd": "PING 10.0.0.5"
+        }
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "sh",
+        "params": {
+          "cmd": "ping 10.0.1.9"
+        }
+      }
+    },
+    {
+      "command": {
+        "seq": 3,
+        "tick": 0,
+        "type": "act",
+        "action": "sh",
+        "params": {
+          "cmd": "ip route add 10.1.0.0/16 via 10.0.0.1 metric 20"
+        }
+      }
+    },
+    {
+      "command": {
+        "seq": 4,
+        "tick": 0,
+        "type": "act",
+        "action": "sh",
+        "params": {
+          "cmd": "show ip route"
+        }
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 5,
+        "tick": 0,
+        "type": "act",
+        "action": "sh",
+        "params": {
+          "cmd": "ping 300.1.1.1\u0007"
+        }
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 4,
+        "values": {
+          "lastHost": "10.0.0.5",
+          "n": 20,
+          "matched": "none"
+        },
+        "outputs": [
+          "Reply from 10.0.0.5",
+          "Request timed out.",
+          "10.1.0.0/16 via 10.0.0.1",
+          "That command is not available in this lab."
+        ]
+      }
+    ]
+  }
+}

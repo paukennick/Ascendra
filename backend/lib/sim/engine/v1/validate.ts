@@ -1,0 +1,1877 @@
+// REQ-162 (docs/sims.md 4.4, 9.2, 16): semantic validation and the content
+// linter. Layer 1 (the zod schema) lives outside the engine; this file is
+// layers 2 and 3: every expression parses and type-checks in its scope,
+// every reference exists, the tick contract's structural rules hold, the
+// budgets hold, the rubric rules hold, and the golden paths plus a bounded
+// path search show every outcome class reachable with no `target` ending
+// behind a missed critical command-derived criterion.
+
+import type {
+  Action,
+  ActionParam,
+  Command,
+  CriterionScore,
+  Effect,
+  Id,
+  OutcomeClass,
+  OutcomeProfile,
+  Problem,
+  Rating,
+  ScenarioDoc,
+  Source,
+  StateVar,
+  TableView,
+  Value,
+} from "./types.ts";
+import type { Ast } from "./parser.ts";
+import { parseCached, parseTemplate, ParseError } from "./parser.ts";
+import type { CheckOptions, Scope, Ty, Where } from "./check.ts";
+import {
+  assignable,
+  CheckError,
+  checkExpr,
+  fieldSpecTy,
+  literalTy,
+  scopeWith,
+  T_BOOL,
+  T_NUM,
+  T_STR,
+  T_TIME,
+  tyName,
+  WHERE_COMMAND_EFFECT,
+  WHERE_HISTORY_OF,
+  WHERE_SCORING,
+  WHERE_TICK,
+  WHERE_TICK_EFFECT,
+} from "./check.ts";
+import { FORMATS, parseClockStart } from "./format.ts";
+import { parsePattern } from "./text.ts";
+import type { Run } from "./engine.ts";
+import { advance, applyCommand, checkpoint, clockBlocked, clockMode, createRun, ENGINE_MINOR, isDurationLiteral, parseDuration, restoreRun, waits } from "./engine.ts";
+import { scoreRun } from "./scoring.ts";
+import { evaluate } from "./eval.ts";
+import type { CaptureType } from "./text.ts";
+
+export const LIMITS = {
+  actions: 60,
+  timers: 40,
+  triggers: 80,
+  endings: 12,
+  criteria: 30,
+  recordsMax: 500,
+  catalogRows: 5000,
+  title: 200,
+  brief: 6000,
+  template: 3000,
+  perTick: 20000,
+  perRun: 50000000,
+  perSkip: 15000000,
+  perCommand: 200000,
+  historySamples: 1000,
+};
+
+// Which engine minor introduced each feature (4.5). Everything in major 1
+// minor 0 is 0; a later minor adds rows here and the check below bites.
+export const FEATURE_MINOR: Record<string, number> = {};
+
+// Per-profile default outcome thresholds and the direction that tightens
+// them (9.2). A document may use any key; a key listed here may not be
+// looser than its default. Security, infrastructure and data are drafts
+// (20.1) and get their defaults with their first scenario.
+export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: number; tighter: "lower" | "higher"; note: string }>> = {
+  clinical: {
+    callWindow: { value: 1200, tighter: "lower", note: "surgeon paged to the bedside <= 20 min after the drainage stops" },
+    definitiveWindow: { value: 2700, tighter: "lower", note: "re-exploration <= 45 min after the drainage stops" },
+    rescueUnits: { value: 2, tighter: "lower", note: ">= 2 units of blood is rescue" },
+  },
+  cloud: {
+    availabilityTarget: { value: 99.9, tighter: "higher", note: "stated SLA over the day, error-budget method" },
+    availabilityRecovered: { value: 99.85, tighter: "higher", note: "small miss" },
+    rpoMinutes: { value: 5, tighter: "lower", note: "RPO" },
+    rtoMinutes: { value: 15, tighter: "lower", note: "RTO" },
+    costRecoveredPct: { value: 110, tighter: "lower", note: "cost <= 110% of budget is a small miss" },
+  },
+  project: {
+    cpiTarget: { value: 0.95, tighter: "higher", note: "CPI at close" },
+    spiTarget: { value: 0.95, tighter: "higher", note: "SPI at close" },
+    cpiHarm: { value: 0.85, tighter: "higher", note: "CPI below this is harm" },
+    spiHarm: { value: 0.85, tighter: "higher", note: "SPI below this is harm" },
+    stakeholderTarget: { value: 60, tighter: "higher", note: "every stakeholder >= 60/100" },
+    stakeholderRecovered: { value: 40, tighter: "higher", note: "one stakeholder 40-59" },
+    attritionHarm: { value: 2, tighter: "lower", note: "team attrition >= 2 is harm" },
+  },
+  fitness: {
+    painReductionTarget: { value: 50, tighter: "higher", note: "primary goal: pain reduced >= 50%" },
+    painReductionRecovered: { value: 25, tighter: "higher", note: "pain reduced 25-49%" },
+    adherenceTarget: { value: 80, tighter: "higher", note: "adherence >= 80%" },
+    adherenceRecovered: { value: 60, tighter: "higher", note: "adherence 60-79%" },
+  },
+  security: {},
+  infrastructure: {},
+  data: {},
+};
+
+export type SafetyFamily = "clinical" | "fitness" | "general";
+
+export interface GoldenPath {
+  id: string;
+  title?: string;
+  seed: number;
+  commands: Command[];
+  expect: {
+    ending: Id | null;
+    class: OutcomeClass | null;
+    rating: Rating | null;
+    score?: number;
+    criteria?: Record<Id, CriterionScore>;
+    kpis?: Record<Id, number | string | null>;
+    snapshots?: { tick: number; values: Record<string, Value> }[];
+    stateHash?: string;
+  };
+  reasoning?: Record<Id, CriterionScore>; // grades to assume for the reasoning criteria
+  notes?: string;
+}
+
+export interface GoldenFile {
+  slug: string;
+  status: "draft" | "frozen";
+  paths: GoldenPath[];
+}
+
+export interface LintOptions {
+  now?: string; // ISO date for recheckBy checks; omitted = skip the staleness check
+  safetyFamily?: SafetyFamily;
+  golden?: GoldenFile | null;
+  searchNodes?: number; // bounded path search budget (0 disables)
+  goldenResults?: GoldenResult[]; // already-computed replays, to avoid replaying twice
+}
+
+const ID_MAX = 48;
+
+function isId(s: string): boolean {
+  if (typeof s !== "string" || !s.length || s.length > ID_MAX) return false;
+  if (!(s[0] >= "a" && s[0] <= "z")) return false;
+  for (let i = 1; i < s.length; i++) {
+    const c = s[i];
+    if (!((c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c === "_")) return false;
+  }
+  return true;
+}
+
+const BUILTIN_NAMES = ["t", "dt", "tick", "phase", "timer", "item"];
+
+class Collector {
+  problems: Problem[] = [];
+  error(path: string, message: string): void {
+    this.problems.push({ level: "error", path, message });
+  }
+  warn(path: string, message: string): void {
+    this.problems.push({ level: "warning", path, message });
+  }
+}
+
+function stateTy(v: StateVar): Ty {
+  switch (v.type) {
+    case "number":
+      return T_NUM;
+    case "bool":
+      return T_BOOL;
+    case "enum":
+      return { k: "enum", values: v.values };
+    case "set":
+      return { k: "set", of: v.of };
+    case "time":
+      return T_TIME;
+    case "records": {
+      const fields: Record<string, Ty> = {};
+      for (const f of Object.keys(v.fields)) fields[f] = fieldSpecTy(v.fields[f]);
+      return { k: "records", fields, max: v.max };
+    }
+  }
+}
+
+interface DocInfo {
+  root: Scope;
+  derivedTy: Record<string, Ty>;
+  derivedCost: Record<string, number>;
+  derivedDeps: Record<string, Set<string>>;
+  paramNames: string[];
+  streams: string[];
+  actionIds: string[];
+  triggerIds: string[];
+  promptChoices: Record<string, string[]>;
+  endingIds: string[];
+  dt: number;
+  maxTick: number;
+  actionScopes: Record<string, Record<string, Ty>>;
+  perTick: number;
+  skipSpan: number;
+}
+
+// ---- entry points ----
+
+export function validateScenario(doc: ScenarioDoc): string[] {
+  return lintScenario(doc, { searchNodes: 0 })
+    .filter((p) => p.level === "error")
+    .map((p) => `${p.path}: ${p.message}`);
+}
+
+export function lintScenario(doc: ScenarioDoc, opts: LintOptions = {}): Problem[] {
+  const col = new Collector();
+  const info = structural(doc, col);
+  if (!info) return col.problems;
+  semantic(doc, info, col);
+  content(doc, info, col, opts);
+  return col.problems;
+}
+
+// ---- layer 2a: structure, ids, counts, durations ----
+
+function structural(doc: ScenarioDoc, col: Collector): DocInfo | null {
+  let fatal = false;
+  const err = (path: string, msg: string): void => {
+    col.error(path, msg);
+    fatal = true;
+  };
+  if (doc.schemaVersion !== 1) err("schemaVersion", "must be 1");
+  if (!doc.engine || doc.engine.major !== 1) err("engine.major", "must be 1");
+  if (!doc.engine || typeof doc.engine.minor !== "number" || doc.engine.minor < 0) err("engine.minor", "must be a non-negative number");
+  else if (doc.engine.minor > ENGINE_MINOR) err("engine.minor", `declares minor ${doc.engine.minor}; this engine is ${ENGINE_MINOR}`);
+  if (!isId(doc.slug) && !(typeof doc.slug === "string" && doc.slug.length <= 80 && doc.slug.length > 0)) err("slug", "must be a short id");
+  if (typeof doc.title !== "string" || doc.title.length < 4 || doc.title.length > LIMITS.title) err("title", `must be 4-${LIMITS.title} characters`);
+  if (!doc.brief || typeof doc.brief.situation !== "string" || doc.brief.situation.length < 20 || doc.brief.situation.length > LIMITS.brief) err("brief.situation", `must be 20-${LIMITS.brief} characters`);
+  const dt = parseDuration(doc.clock?.tick ?? "");
+  if (dt === null || dt < 1 || dt !== Math.floor(dt)) err("clock.tick", "must be a whole number of seconds, at least 1 (for example 1s, 10s, 1h)");
+  const maxSec = parseDuration(doc.clock?.maxDuration ?? "");
+  if (maxSec === null) err("clock.maxDuration", "must be a duration (90s, 8min, 2h, 7d)");
+  else if (dt !== null && (maxSec % dt !== 0 || maxSec < dt)) err("clock.maxDuration", "must be a positive multiple of the tick");
+  if (!parseClockStart(doc.clock?.start ?? "")) err("clock.start", 'must be "HH:MM" or "YYYY-MM-DDTHH:MM"');
+  if (fatal) return null;
+  const maxTick = (maxSec as number) / (dt as number);
+
+  const counts: [string, number, number][] = [
+    ["actions", Object.keys(doc.actions).length, LIMITS.actions],
+    ["timers", Object.keys(doc.timers).length, LIMITS.timers],
+    ["triggers", doc.triggers.length, LIMITS.triggers],
+    ["endings", Object.keys(doc.endings).length, LIMITS.endings],
+    ["scoring.criteria", doc.scoring.criteria.length, LIMITS.criteria],
+  ];
+  for (const [path, n, max] of counts) if (n > max) col.error(path, `at most ${max} allowed, found ${n}`);
+
+  // ids and name collisions
+  const names = new Map<string, string>();
+  const claim = (name: string, what: string): void => {
+    if (!isId(name)) col.error(`${what}.${name}`, "id must match ^[a-z][a-zA-Z0-9_]{0,47}$");
+    if (BUILTIN_NAMES.indexOf(name) >= 0) col.error(`${what}.${name}`, `"${name}" is a built-in name`);
+    const prev = names.get(name);
+    if (prev) col.error(`${what}.${name}`, `name already used by ${prev}`);
+    else names.set(name, what);
+  };
+  for (const k of Object.keys(doc.params)) claim(k, "params");
+  for (const k of Object.keys(doc.catalogs ?? {})) claim(k, "catalogs");
+  for (const k of Object.keys(doc.state)) claim(k, "state");
+  for (const k of Object.keys(doc.history ?? {})) claim(k, "history");
+  for (const k of Object.keys(doc.derived)) claim(k, "derived");
+  for (const k of Object.keys(doc.outcome.thresholds)) claim(k, "outcome.thresholds");
+  for (const k of Object.keys(doc.phases)) if (!isId(k)) col.error(`phases.${k}`, "bad id");
+  for (const k of Object.keys(doc.actions)) if (!isId(k)) col.error(`actions.${k}`, "bad id");
+  for (const k of Object.keys(doc.timers)) if (!isId(k)) col.error(`timers.${k}`, "bad id");
+  for (const k of Object.keys(doc.endings)) if (!isId(k)) col.error(`endings.${k}`, "bad id");
+  for (const k of Object.keys(doc.prompts ?? {})) if (!isId(k)) col.error(`prompts.${k}`, "bad id");
+  for (const k of Object.keys(doc.reasoning)) if (!isId(k)) col.error(`reasoning.${k}`, "bad id");
+  for (const k of Object.keys(doc.tables ?? {})) if (!isId(k)) col.error(`tables.${k}`, "bad id");
+  for (const s of doc.random?.streams ?? []) if (!isId(s)) col.error(`random.streams.${s}`, "bad id");
+  const trigIds = new Set<string>();
+  doc.triggers.forEach((t, i) => {
+    if (!isId(t.id)) col.error(`triggers[${i}]`, "bad id");
+    if (trigIds.has(t.id)) col.error(`triggers[${i}]`, `duplicate trigger id ${t.id}`);
+    trigIds.add(t.id);
+  });
+  const procIds = new Set<string>();
+  doc.processes.forEach((p, i) => {
+    if (!isId(p.id)) col.error(`processes[${i}]`, "bad id");
+    if (procIds.has(p.id)) col.error(`processes[${i}]`, `duplicate process id ${p.id}`);
+    procIds.add(p.id);
+  });
+
+  // state variable declarations
+  for (const k of Object.keys(doc.state)) {
+    const v = doc.state[k];
+    const path = `state.${k}`;
+    if (v.type === "number") {
+      if (!(v.min <= v.max)) col.error(path, "min must be <= max");
+      if (typeof v.init === "number" && (v.init < v.min || v.init > v.max)) col.error(path, "init is outside min..max");
+    } else if (v.type === "enum") {
+      if (!v.values.length) col.error(path, "enum needs values");
+      if (v.values.indexOf(v.init) < 0) col.error(path, `init "${v.init}" is not one of its values`);
+      if (new Set(v.values).size !== v.values.length) col.error(path, "duplicate enum values");
+    } else if (v.type === "set") {
+      for (const x of v.init) if (v.of.indexOf(x) < 0) col.error(path, `init member "${x}" is not one of the set's values`);
+    } else if (v.type === "records") {
+      if (v.max < 1 || v.max > LIMITS.recordsMax) col.error(path, `max must be 1-${LIMITS.recordsMax}`);
+      if (v.init.length > v.max) col.error(path, "init has more records than max");
+      for (const f of Object.keys(v.fields)) if (!isId(f) || f === "_id") col.error(`${path}.fields.${f}`, "bad field id");
+      v.init.forEach((r, i) => {
+        for (const f of Object.keys(r)) if (!v.fields[f]) col.error(`${path}.init[${i}]`, `unknown field "${f}"`);
+        for (const f of Object.keys(v.fields)) {
+          const fs = v.fields[f];
+          const val = (r as Record<string, unknown>)[f];
+          if (val === undefined) continue;
+          if (fs.type === "enum" && (typeof val !== "string" || fs.values.indexOf(val) < 0)) col.error(`${path}.init[${i}].${f}`, "not one of the enum values");
+          if (fs.type === "number" && typeof val !== "number") col.error(`${path}.init[${i}].${f}`, "must be a number");
+        }
+      });
+    }
+  }
+  // catalogs
+  for (const k of Object.keys(doc.catalogs ?? {})) {
+    const c = (doc.catalogs ?? {})[k];
+    if (c.entries.length > LIMITS.catalogRows) col.error(`catalogs.${k}`, `at most ${LIMITS.catalogRows} rows`);
+    const ids = new Set<string>();
+    c.entries.forEach((e, i) => {
+      if (typeof e.id !== "string" || !e.id.length) col.error(`catalogs.${k}.entries[${i}]`, "needs a string id");
+      if (ids.has(e.id)) col.error(`catalogs.${k}.entries[${i}]`, `duplicate id ${e.id}`);
+      ids.add(e.id);
+      for (const f of Object.keys(c.fields)) {
+        const fs = c.fields[f];
+        const val = (e as Record<string, unknown>)[f];
+        if (val === undefined) {
+          col.error(`catalogs.${k}.entries[${i}]`, `missing field "${f}"`);
+          continue;
+        }
+        if (fs.type === "number" && typeof val !== "number") col.error(`catalogs.${k}.entries[${i}].${f}`, "must be a number");
+        if (fs.type === "bool" && typeof val !== "boolean") col.error(`catalogs.${k}.entries[${i}].${f}`, "must be a bool");
+        if ((fs.type === "string" || fs.type === "enum") && typeof val !== "string") col.error(`catalogs.${k}.entries[${i}].${f}`, "must be a string");
+        if (fs.type === "enum" && typeof val === "string" && fs.values.indexOf(val) < 0) col.error(`catalogs.${k}.entries[${i}].${f}`, `"${val}" is not one of the enum values`);
+        if (fs.type === "list" && !Array.isArray(val)) col.error(`catalogs.${k}.entries[${i}].${f}`, "must be a list");
+      }
+      for (const f of Object.keys(e)) if (f !== "id" && !c.fields[f]) col.error(`catalogs.${k}.entries[${i}]`, `unknown field "${f}"`);
+    });
+    if (c.fields.id) col.error(`catalogs.${k}.fields`, '"id" is implicit; do not declare it');
+  }
+  // history durations
+  for (const k of Object.keys(doc.history ?? {})) {
+    const h = (doc.history ?? {})[k];
+    const every = parseDuration(h.every);
+    const keep = parseDuration(h.keep);
+    if (every === null || every % (dt as number) !== 0 || every < (dt as number)) col.error(`history.${k}.every`, "must be a positive multiple of the tick");
+    if (keep === null) col.error(`history.${k}.keep`, "must be a duration");
+    else if (every !== null && every > 0) {
+      if (keep % every !== 0) col.error(`history.${k}.keep`, "must be a multiple of every");
+      if (keep / every > LIMITS.historySamples) col.error(`history.${k}.keep`, `keep / every must be <= ${LIMITS.historySamples}`);
+    }
+  }
+  // phases
+  if (!doc.phases[doc.initialPhase]) col.error("initialPhase", `phase "${doc.initialPhase}" does not exist`);
+  for (const k of Object.keys(doc.phases)) {
+    for (const a of doc.phases[k].actions) if (!doc.actions[a]) col.error(`phases.${k}.actions`, `action "${a}" does not exist`);
+  }
+  const offered = new Set<string>();
+  for (const k of Object.keys(doc.phases)) for (const a of doc.phases[k].actions) offered.add(a);
+  for (const a of Object.keys(doc.actions)) if (!offered.has(a)) col.warn(`actions.${a}`, "offered in no phase");
+
+  // endings
+  const tu = doc.endings.time_up;
+  if (!tu) col.error("endings.time_up", "every scenario needs the engine-defined time_up ending");
+  else {
+    if (!tu.terminal) col.error("endings.time_up", "must be terminal");
+    if (!tu.class) col.error("endings.time_up", "must declare an outcome class");
+    if (tu.when !== undefined) col.error("endings.time_up", "must not have a `when`: it is reached by tick count alone (5.3)");
+  }
+  let terminals = 0;
+  for (const k of Object.keys(doc.endings)) {
+    const e = doc.endings[k];
+    if (k === "time_up") {
+      terminals++;
+      continue;
+    }
+    if (e.terminal) {
+      terminals++;
+      if (!e.class) col.error(`endings.${k}`, "a terminal ending needs an outcome class");
+      if (!e.when) col.error(`endings.${k}`, "a terminal ending needs a `when`");
+    } else {
+      if (!e.when) col.error(`endings.${k}`, "a non-terminal ending needs a `when`");
+      if (!e.phase) col.error(`endings.${k}`, "a non-terminal ending is a branch point and needs the `phase` it moves to");
+      else if (!doc.phases[e.phase]) col.error(`endings.${k}`, `phase "${e.phase}" does not exist`);
+    }
+    if (!doc.scoring.debrief[k] && e.terminal) col.warn(`scoring.debrief.${k}`, "no debrief headline and body for this ending");
+  }
+  if (terminals < 1) col.error("endings", "at least one terminal ending");
+  for (const k of Object.keys(doc.scoring.debrief)) if (!doc.endings[k]) col.error(`scoring.debrief.${k}`, "no such ending");
+
+  // reasoning
+  if (!Object.keys(doc.reasoning).length) col.error("reasoning", "at least one written-reasoning moment");
+  for (const k of Object.keys(doc.reasoning)) {
+    const m = doc.reasoning[k];
+    if (!m.parts.length) col.error(`reasoning.${k}.parts`, "needs at least one part");
+    m.parts.forEach((p, i) => {
+      if (!p.criteria || p.criteria.trim().length < 10) col.error(`reasoning.${k}.parts[${i}]`, "criteria must be written");
+      if (!p.modelAnswer || p.modelAnswer.trim().length < 10) col.error(`reasoning.${k}.parts[${i}]`, "model answer must be written");
+    });
+    if (m.pausesClock !== true) col.error(`reasoning.${k}`, "pausesClock must be true");
+  }
+  for (const rc of doc.scoring.reasoningCriteria) if (!doc.reasoning[rc.moment]) col.error("scoring.reasoningCriteria", `moment "${rc.moment}" does not exist`);
+  // criteria
+  const critIds = new Set<string>();
+  doc.scoring.criteria.forEach((c, i) => {
+    if (!isId(c.id)) col.error(`scoring.criteria[${i}]`, "bad id");
+    if (critIds.has(c.id)) col.error(`scoring.criteria[${i}]`, `duplicate id ${c.id}`);
+    critIds.add(c.id);
+    if (!(c.weight > 0)) col.error(`scoring.criteria[${i}]`, "weight must be positive");
+    if (!c.rows.length) col.error(`scoring.criteria[${i}]`, "needs at least one row");
+    const scores = new Set(c.rows.map((r) => r.score));
+    if (!scores.has("met")) col.warn(`scoring.criteria[${i}]`, "no row scores met");
+  });
+  if (!doc.scoring.criteria.some((c) => c.critical) && !doc.scoring.reasoningCriteria.some((c) => c.critical)) col.error("scoring", "at least one critical criterion (command or reasoning) is required (9.1)");
+  // prompts
+  for (const k of Object.keys(doc.prompts ?? {})) {
+    const p = (doc.prompts ?? {})[k];
+    if (!p.choices.length) col.error(`prompts.${k}`, "needs choices");
+    const ids = new Set<string>();
+    p.choices.forEach((c, i) => {
+      if (!isId(c.id)) col.error(`prompts.${k}.choices[${i}]`, "bad id");
+      if (ids.has(c.id)) col.error(`prompts.${k}.choices[${i}]`, `duplicate choice id ${c.id}`);
+      ids.add(c.id);
+    });
+  }
+  // timers
+  for (const k of Object.keys(doc.timers)) {
+    const t = doc.timers[k];
+    if (t.wait && !t.wait.skipLabel) col.error(`timers.${k}.wait`, "a wait needs a skipLabel");
+    for (const f of Object.keys(t.with ?? {})) if (!isId(f)) col.error(`timers.${k}.with.${f}`, "bad field id");
+  }
+  // actions: param ids and command patterns
+  for (const k of Object.keys(doc.actions)) {
+    const a = doc.actions[k];
+    const seen = new Set<string>();
+    for (const p of a.params ?? []) {
+      const pnames = p.kind === "form" ? p.fields.map((f) => f.id) : [p.id];
+      if (p.kind === "form" && !isId(p.id)) col.error(`actions.${k}.params.${p.id}`, "bad id");
+      for (const n of pnames) {
+        if (!isId(n)) col.error(`actions.${k}.params.${n}`, "bad id");
+        if (seen.has(n) || names.has(n) || BUILTIN_NAMES.indexOf(n) >= 0) col.error(`actions.${k}.params.${n}`, `"${n}" collides with another name`);
+        seen.add(n);
+      }
+      if (p.kind === "choice" && !p.options.length) col.error(`actions.${k}.params.${p.id}`, "needs options");
+      if (p.kind === "form") for (const f of p.fields) if (!f.options.length) col.error(`actions.${k}.params.${p.id}.${f.id}`, "needs options");
+      if (p.kind === "slot") {
+        if (!(doc.catalogs ?? {})[p.catalog]) col.error(`actions.${k}.params.${p.id}`, `catalogue "${p.catalog}" does not exist`);
+        if (!p.slots.length) col.error(`actions.${k}.params.${p.id}`, "needs slots");
+      }
+      if (p.kind === "command") {
+        if (p.maxLength !== 200) col.error(`actions.${k}.params.${p.id}`, "maxLength must be 200");
+        if (!p.patterns.length) col.error(`actions.${k}.params.${p.id}`, "needs patterns");
+        const pids = new Set<string>();
+        for (const pat of p.patterns) {
+          if (pids.has(pat.id)) col.error(`actions.${k}.params.${p.id}.${pat.id}`, "duplicate pattern id");
+          pids.add(pat.id);
+          const toks = parsePattern(pat.pattern);
+          if (typeof toks === "string") col.error(`actions.${k}.params.${p.id}.${pat.id}`, toks);
+          else {
+            for (const tok of toks) {
+              if ("capture" in tok && (names.has(tok.capture) || seen.has(tok.capture) || BUILTIN_NAMES.indexOf(tok.capture) >= 0)) {
+                col.error(`actions.${k}.params.${p.id}.${pat.id}`, `capture "${tok.capture}" collides with a declared name`);
+              }
+            }
+          }
+          if (!pat.cases.length) col.error(`actions.${k}.params.${p.id}.${pat.id}`, "needs at least one case");
+          else if (pat.cases[pat.cases.length - 1].when.trim() !== "true") col.error(`actions.${k}.params.${p.id}.${pat.id}`, 'the last case must be unconditional (`"when": "true"`)');
+        }
+      }
+      if (p.kind === "query") {
+        if (p.maxLength !== 200) col.error(`actions.${k}.params.${p.id}`, "maxLength must be 200");
+        if (!p.fields.length) col.error(`actions.${k}.params.${p.id}`, "needs fields");
+      }
+    }
+  }
+  // sources: every Source has checkedAt
+  const checkSource = (path: string, s: Source | undefined): void => {
+    if (!s) return;
+    if (!s.cite || !s.cite.trim()) col.error(path, "source needs a cite");
+    if (!isIsoDate(s.checkedAt)) col.error(path, "source needs an ISO checkedAt date");
+    if (s.recheckBy !== undefined && !isIsoDate(s.recheckBy)) col.error(path, "recheckBy must be an ISO date");
+  };
+  doc.sources.forEach((s, i) => checkSource(`sources[${i}]`, s));
+  for (const k of Object.keys(doc.params)) checkSource(`params.${k}.source`, doc.params[k].source);
+  for (const k of Object.keys(doc.catalogs ?? {})) checkSource(`catalogs.${k}.source`, (doc.catalogs ?? {})[k].source);
+  for (const k of Object.keys(doc.timers)) {
+    if (!doc.timers[k].source) col.error(`timers.${k}`, "a timer needs a source for its delay");
+    checkSource(`timers.${k}.source`, doc.timers[k].source);
+  }
+  for (const k of Object.keys(doc.outcome.thresholds)) checkSource(`outcome.thresholds.${k}.source`, doc.outcome.thresholds[k].source);
+  if (!doc.outcome.noProgress) col.error("outcome.noProgress", "every scenario declares how safe-but-no-progress is classified, with a rationale and source (9.2)");
+  else {
+    checkSource("outcome.noProgress.source", doc.outcome.noProgress.source);
+    if (!doc.outcome.noProgress.rationale || doc.outcome.noProgress.rationale.trim().length < 20) col.error("outcome.noProgress.rationale", "write the one-line clinical or domain rationale");
+    if (["target", "recovered", "harm"].indexOf(doc.outcome.noProgress.class) < 0) col.error("outcome.noProgress.class", "must be target, recovered or harm");
+  }
+
+  // the root scope
+  const root: Record<string, Ty> = { t: T_NUM, dt: T_NUM, tick: T_NUM, phase: { k: "enum", values: Object.keys(doc.phases) } };
+  for (const k of Object.keys(doc.params)) {
+    try {
+      root[k] = literalTy(doc.params[k].value);
+    } catch (e) {
+      col.error(`params.${k}`, (e as Error).message);
+      root[k] = T_NUM;
+    }
+  }
+  for (const k of Object.keys(doc.catalogs ?? {})) {
+    const c = (doc.catalogs ?? {})[k];
+    const fields: Record<string, Ty> = { id: T_STR };
+    for (const f of Object.keys(c.fields)) fields[f] = fieldSpecTy(c.fields[f]);
+    root[k] = { k: "records", fields, max: Math.max(1, c.entries.length), catalog: true, name: k };
+  }
+  for (const k of Object.keys(doc.state)) root[k] = stateTy(doc.state[k]);
+  for (const k of Object.keys(doc.history ?? {})) root[k] = { k: "history" };
+  for (const k of Object.keys(doc.outcome.thresholds)) root[k] = T_NUM;
+  const rootScope = scopeWith(null, root);
+  const info: DocInfo = {
+    root: rootScope,
+    derivedTy: {},
+    derivedCost: {},
+    derivedDeps: {},
+    paramNames: Object.keys(doc.params),
+    streams: doc.random?.streams ?? [],
+    actionIds: Object.keys(doc.actions),
+    triggerIds: doc.triggers.map((t) => t.id),
+    promptChoices: Object.fromEntries(Object.keys(doc.prompts ?? {}).map((k) => [k, (doc.prompts ?? {})[k].choices.map((c) => c.id)])),
+    endingIds: Object.keys(doc.endings),
+    dt: dt as number,
+    maxTick,
+    actionScopes: {},
+    perTick: 0,
+    skipSpan: 0,
+  };
+  // derived types, in dependency order with cycle detection
+  const visiting = new Set<string>();
+  const resolve = (k: string): void => {
+    if (info.derivedTy[k]) return;
+    if (visiting.has(k)) {
+      col.error(`derived.${k}`, "derived values depend on each other in a cycle");
+      info.derivedTy[k] = T_NUM;
+      return;
+    }
+    visiting.add(k);
+    const ast = parseOr(doc.derived[k].expr, `derived.${k}`, col);
+    if (!ast) {
+      info.derivedTy[k] = T_NUM;
+      visiting.delete(k);
+      return;
+    }
+    const scope = scopeWith(rootScope, {});
+    // resolve derived dependencies first by scanning names
+    for (const n of namesIn(ast)) if (doc.derived[n] && n !== k) resolve(n);
+    try {
+      const r = checkExpr(ast, scopeWithDerived(rootScope, info), { where: WHERE_TICK, paramNames: info.paramNames });
+      info.derivedTy[k] = r.ty;
+      info.derivedCost[k] = r.cost;
+      info.derivedDeps[k] = r.deps;
+      for (const w of r.warnings) col.warn(`derived.${k}`, w);
+    } catch (e) {
+      col.error(`derived.${k}`, (e as Error).message);
+      info.derivedTy[k] = T_NUM;
+      info.derivedCost[k] = 1;
+      info.derivedDeps[k] = new Set();
+    }
+    void scope;
+    visiting.delete(k);
+  };
+  for (const k of Object.keys(doc.derived)) resolve(k);
+  return info;
+}
+
+function scopeWithDerived(root: Scope, info: DocInfo): Scope {
+  return scopeWith(root, info.derivedTy);
+}
+
+function isIsoDate(s: unknown): boolean {
+  if (typeof s !== "string" || s.length !== 10) return false;
+  const parts = s.split("-");
+  if (parts.length !== 3) return false;
+  const [y, m, d] = parts.map(Number);
+  return y >= 2000 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31 && parts.every((p) => p.length === (p === parts[0] ? 4 : 2));
+}
+
+function namesIn(ast: Ast): string[] {
+  const out: string[] = [];
+  const walk = (a: Ast): void => {
+    switch (a.k) {
+      case "name":
+        out.push(a.name);
+        break;
+      case "list":
+        a.items.forEach(walk);
+        break;
+      case "field":
+        walk(a.obj);
+        break;
+      case "index":
+        walk(a.obj);
+        walk(a.idx);
+        break;
+      case "unary":
+        walk(a.e);
+        break;
+      case "binary":
+        walk(a.l);
+        walk(a.r);
+        break;
+      case "cond":
+        walk(a.c);
+        walk(a.a);
+        walk(a.b);
+        break;
+      case "call":
+        a.args.forEach(walk);
+        break;
+    }
+  };
+  walk(ast);
+  return out;
+}
+
+function parseOr(src: string, path: string, col: Collector): Ast | null {
+  if (typeof src !== "string") {
+    col.error(path, "expression must be a string");
+    return null;
+  }
+  try {
+    return parseCached(src);
+  } catch (e) {
+    col.error(path, `${(e as Error).message} in "${src}"`);
+    return null;
+  }
+}
+
+// ---- layer 2b: expressions, effects, references ----
+
+interface ExprCheck {
+  ty: Ty | null;
+  cost: number;
+  usesRandom: boolean;
+  usesCatalog: boolean;
+  deps: Set<string>;
+}
+
+function checkOne(src: string, scope: Scope, where: Where, path: string, info: DocInfo, col: Collector, expect?: Ty | "scalar" | "bool"): ExprCheck {
+  const ast = parseOr(src, path, col);
+  if (!ast) return { ty: null, cost: 1, usesRandom: false, usesCatalog: false, deps: new Set() };
+  try {
+    const r = checkExpr(ast, scope, checkOpts(where, info));
+    for (const w of r.warnings) col.warn(path, w);
+    if (expect === "bool" && r.ty.k !== "bool") col.error(path, `must be a bool, got ${tyName(r.ty)} in "${src}"`);
+    else if (expect === "scalar" && ["number", "bool", "string", "enum", "time", "null"].indexOf(r.ty.k) < 0) col.error(path, `template slots take scalar values, got ${tyName(r.ty)} in "${src}"`);
+    else if (expect && expect !== "bool" && expect !== "scalar") {
+      const bad = assignable(r.ty, expect);
+      if (bad) col.error(path, `${bad} in "${src}"`);
+    }
+    return { ty: r.ty, cost: r.cost + derivedCostOf(r.deps, info), usesRandom: r.usesRandom, usesCatalog: r.usesCatalog, deps: r.deps };
+  } catch (e) {
+    col.error(path, `${(e as Error).message} in "${src}"`);
+    return { ty: null, cost: 1, usesRandom: false, usesCatalog: false, deps: new Set() };
+  }
+}
+
+function derivedCostOf(deps: Set<string>, info: DocInfo): number {
+  let c = 0;
+  const seen = new Set<string>();
+  const visit = (n: string): void => {
+    if (seen.has(n) || !info.derivedCost[n]) return;
+    seen.add(n);
+    c += info.derivedCost[n];
+    for (const d of info.derivedDeps[n] ?? []) visit(d);
+  };
+  for (const d of deps) visit(d);
+  return c;
+}
+
+function checkOpts(where: Where, info: DocInfo): CheckOptions {
+  return {
+    where,
+    streams: info.streams,
+    actionIds: info.actionIds,
+    triggerIds: info.triggerIds,
+    promptChoices: info.promptChoices,
+    endingIds: info.endingIds,
+    paramNames: info.paramNames,
+    actionParamScope: (id) => info.actionScopes[id] ?? null,
+  };
+}
+
+function checkTemplate(tpl: string, scope: Scope, where: Where, path: string, info: DocInfo, col: Collector): number {
+  if (typeof tpl !== "string") {
+    col.error(path, "template must be a string");
+    return 1;
+  }
+  if (tpl.length > LIMITS.template) col.error(path, `template longer than ${LIMITS.template}`);
+  let parts;
+  try {
+    parts = parseTemplate(tpl);
+  } catch (e) {
+    col.error(path, (e as Error).message);
+    return 1;
+  }
+  let cost = 1;
+  for (const p of parts) {
+    if ("text" in p) continue;
+    if (p.format !== null && FORMATS.indexOf(p.format) < 0) col.error(path, `unknown format "${p.format}" (one of ${FORMATS.join(", ")})`);
+    cost += checkOne(p.src, scope, where, path, info, col, "scalar").cost;
+  }
+  return cost;
+}
+
+function paramScope(doc: ScenarioDoc, action: Action, info: DocInfo, col: Collector, path: string): Record<string, Ty> {
+  const vars: Record<string, Ty> = {};
+  for (const p of action.params ?? []) {
+    switch (p.kind) {
+      case "choice":
+        vars[p.id] = { k: "enum", values: p.options.map((o) => o.value) };
+        break;
+      case "form":
+        for (const f of p.fields) vars[f.id] = { k: "enum", values: f.options.map((o) => o.value) };
+        break;
+      case "slot": {
+        const entries = (doc.catalogs ?? {})[p.catalog]?.entries ?? [];
+        vars[p.id] = { k: "record", fields: { id: { k: "enum", values: entries.map((e) => e.id) }, slot: { k: "enum", values: p.slots } } };
+        break;
+      }
+      case "pick": {
+        const r = checkOne(p.from, scopeWith(scopeWithDerived(info.root, info), vars), WHERE_COMMAND_EFFECT, `${path}.params.${p.id}.from`, info, col);
+        if (r.ty && r.ty.k === "records") {
+          const elem: Ty = { k: "record", fields: { ...r.ty.fields, _id: T_NUM } };
+          vars[p.id] = (p.max ?? 1) > 1 ? { ...r.ty, catalog: false } : elem;
+          checkTemplate(p.show, scopeWith(scopeWithDerived(info.root, info), { ...vars, ...r.ty.fields, _id: T_NUM }), WHERE_COMMAND_EFFECT, `${path}.params.${p.id}.show`, info, col);
+        } else if (r.ty) col.error(`${path}.params.${p.id}.from`, `pick needs a records-valued expression, got ${tyName(r.ty)}`);
+        break;
+      }
+      case "command":
+        vars[p.id] = { k: "record", fields: { text: T_STR, matched: { k: "enum", values: [...p.patterns.map((x) => x.id), "none"] } } };
+        break;
+      case "query":
+        vars[p.id] = T_STR;
+        break;
+    }
+  }
+  return vars;
+}
+
+function captureScope(pattern: string): Record<string, Ty> {
+  const toks = parsePattern(pattern);
+  const out: Record<string, Ty> = {};
+  if (typeof toks === "string") return out;
+  for (const t of toks) {
+    if (!("capture" in t)) continue;
+    out[t.capture] = t.type === "int" ? T_NUM : typeof t.type === "string" ? T_STR : { k: "enum", values: t.type.enum };
+  }
+  return out;
+}
+
+// Returns the static cost of the effects. perTick: effects that may run every
+// tick (trigger effects) may not use catalogue aggregates.
+function checkEffects(doc: ScenarioDoc, effects: Effect[], scope: Scope, where: Where, path: string, info: DocInfo, col: Collector, acc: EffectAcc): number {
+  if (!Array.isArray(effects)) {
+    col.error(path, "effects must be a list");
+    return 1;
+  }
+  let cost = 0;
+  effects.forEach((e, i) => {
+    cost += checkEffect(doc, e, scope, where, `${path}[${i}]`, info, col, acc);
+  });
+  return cost;
+}
+
+interface EffectAcc {
+  schedules: Set<string>; // timers scheduled anywhere
+  prompts: Set<string>;
+  reasons: Set<string>;
+  ends: Set<string>;
+  phases: Set<string>;
+  tables: Set<string>;
+  logKinds: string[];
+  afterExprs: { timer: string; after: string; scope: Scope }[];
+}
+
+function checkEffect(doc: ScenarioDoc, e: Effect, scope: Scope, where: Where, path: string, info: DocInfo, col: Collector, acc: EffectAcc): number {
+  if (!e || typeof e !== "object") {
+    col.error(path, "effect must be an object");
+    return 1;
+  }
+  const stateVar = (id: string): StateVar | null => {
+    const v = doc.state[id];
+    if (!v) col.error(path, `"${id}" is not a state variable`);
+    return v ?? null;
+  };
+  if ("update" in e) {
+    const v = stateVar(e.update);
+    if (!v) return 1;
+    if (v.type !== "records") {
+      col.error(path, `update needs a records variable, ${e.update} is ${v.type}`);
+      return 1;
+    }
+    const rt = stateTy(v) as Extract<Ty, { k: "records" }>;
+    const inner = scopeWith(scope, { ...rt.fields, _id: T_NUM });
+    let cost = checkOne(e.where, inner, where, `${path}.where`, info, col, "bool").cost;
+    for (const f of Object.keys(e.set)) {
+      if (!v.fields[f]) {
+        col.error(`${path}.set.${f}`, `"${f}" is not a field of ${e.update}`);
+        continue;
+      }
+      cost += checkOne(e.set[f], inner, where, `${path}.set.${f}`, info, col, fieldSpecTy(v.fields[f])).cost;
+    }
+    return cost * v.max;
+  }
+  if ("set" in e) {
+    const v = stateVar(e.set);
+    if (!v) return 1;
+    return checkOne(e.to, scope, where, `${path}.to`, info, col, stateTy(v)).cost;
+  }
+  if ("add" in e) {
+    const v = stateVar(e.add);
+    if (!v) return 1;
+    if (v.type !== "number") col.error(path, `add needs a number variable, ${e.add} is ${v.type}`);
+    return checkOne(e.by, scope, where, `${path}.by`, info, col, T_NUM).cost;
+  }
+  if ("push" in e) {
+    const v = stateVar(e.push);
+    if (!v) return 1;
+    if (v.type === "set") {
+      if (typeof e.value !== "string") {
+        col.error(path, "push onto a set takes one expression");
+        return 1;
+      }
+      return checkOne(e.value, scope, where, `${path}.value`, info, col, { k: "enum", values: v.of }).cost;
+    }
+    if (v.type !== "records") {
+      col.error(path, `push needs a set or records variable, ${e.push} is ${v.type}`);
+      return 1;
+    }
+    if (typeof e.value === "string") {
+      const r = checkOne(e.value, scope, where, `${path}.value`, info, col);
+      if (r.ty && r.ty.k !== "record") col.error(`${path}.value`, `push onto records needs a record or a field map, got ${tyName(r.ty)}`);
+      return r.cost;
+    }
+    let cost = 0;
+    for (const f of Object.keys(e.value)) {
+      if (!v.fields[f]) {
+        col.error(`${path}.value.${f}`, `"${f}" is not a field of ${e.push}`);
+        continue;
+      }
+      cost += checkOne(e.value[f], scope, where, `${path}.value.${f}`, info, col, fieldSpecTy(v.fields[f])).cost;
+    }
+    for (const f of Object.keys(v.fields)) if (!(f in e.value)) col.warn(`${path}.value`, `field "${f}" not given; it gets its zero value`);
+    return cost;
+  }
+  if ("remove" in e) {
+    const v = stateVar(e.remove);
+    if (!v) return 1;
+    if (v.type !== "records" && v.type !== "set") {
+      col.error(path, `remove needs a records or set variable`);
+      return 1;
+    }
+    const inner = v.type === "records" ? scopeWith(scope, { ...(stateTy(v) as Extract<Ty, { k: "records" }>).fields, _id: T_NUM }) : scopeWith(scope, { item: { k: "enum", values: v.of } });
+    return checkOne(e.where, inner, where, `${path}.where`, info, col, "bool").cost * (v.type === "records" ? v.max : v.of.length);
+  }
+  if ("schedule" in e) {
+    const t = doc.timers[e.schedule];
+    if (!t) {
+      col.error(path, `timer "${e.schedule}" does not exist`);
+      return 1;
+    }
+    acc.schedules.add(e.schedule);
+    let cost = 1;
+    if (isDurationLiteral(e.after)) {
+      const sec = parseDuration(e.after) as number;
+      if (sec % info.dt !== 0 || sec < info.dt) col.error(`${path}.after`, `"${e.after}" is not a positive multiple of the tick`);
+    } else cost += checkOne(e.after, scope, where, `${path}.after`, info, col, T_NUM).cost;
+    acc.afterExprs.push({ timer: e.schedule, after: e.after, scope });
+    const withFields = t.with ?? {};
+    for (const f of Object.keys(e.with ?? {})) {
+      if (!withFields[f]) {
+        col.error(`${path}.with.${f}`, `timer ${e.schedule} has no payload field "${f}"`);
+        continue;
+      }
+      cost += checkOne((e.with ?? {})[f], scope, where, `${path}.with.${f}`, info, col, fieldSpecTy(withFields[f])).cost;
+    }
+    for (const f of Object.keys(withFields)) if (!(e.with ?? {})[f]) col.error(`${path}.with`, `timer ${e.schedule} needs payload field "${f}"`);
+    return cost;
+  }
+  if ("cancel" in e) {
+    const t = doc.timers[e.cancel];
+    if (!t) {
+      col.error(path, `timer "${e.cancel}" does not exist`);
+      return 1;
+    }
+    if (e.where) return checkOne(e.where, scopeWith(scope, { timer: timerTy(t) }), where, `${path}.where`, info, col, "bool").cost * 8;
+    return 1;
+  }
+  if ("log" in e) {
+    acc.logKinds.push(e.kind ?? "act");
+    return checkTemplate(e.log, scope, where, `${path}.log`, info, col);
+  }
+  if ("finding" in e) return checkTemplate(e.finding, scope, where, `${path}.finding`, info, col);
+  if ("output" in e) {
+    if (typeof e.output === "string") return checkTemplate(e.output, scope, where, `${path}.output`, info, col);
+    return checkTableView(e.output, scope, where, `${path}.output`, info, col);
+  }
+  if ("phase" in e) {
+    if (!doc.phases[e.phase]) col.error(path, `phase "${e.phase}" does not exist`);
+    acc.phases.add(e.phase);
+    return 1;
+  }
+  if ("prompt" in e) {
+    if (!(doc.prompts ?? {})[e.prompt]) col.error(path, `prompt "${e.prompt}" does not exist`);
+    acc.prompts.add(e.prompt);
+    return 1;
+  }
+  if ("reason" in e) {
+    if (!doc.reasoning[e.reason]) col.error(path, `reasoning moment "${e.reason}" does not exist`);
+    acc.reasons.add(e.reason);
+    return 1;
+  }
+  if ("end" in e) {
+    const en = doc.endings[e.end];
+    if (!en) col.error(path, `ending "${e.end}" does not exist`);
+    else if (e.end === "time_up") col.error(path, "{ end: time_up } is not allowed: time_up is reached by tick count alone");
+    else if (!en.when) col.error(path, `{ end: ${e.end} }: the ending has no \`when\` to assert`);
+    acc.ends.add(e.end);
+    return 2;
+  }
+  if ("table" in e) {
+    const tb = (doc.tables ?? {})[e.table];
+    if (!tb) {
+      col.error(path, `table "${e.table}" does not exist`);
+      return 1;
+    }
+    acc.tables.add(e.table);
+    if (e.into) {
+      const v = doc.state[e.into];
+      if (!v || v.type !== "number") col.error(`${path}.into`, "into needs a number state variable");
+    }
+    return 1 + tableCost(doc, e.table, info, col, where);
+  }
+  if ("if" in e) {
+    let cost = checkOne(e.if, scope, where, `${path}.if`, info, col, "bool").cost;
+    cost += checkEffects(doc, e.then, scope, where, `${path}.then`, info, col, acc);
+    if (e.else) cost += checkEffects(doc, e.else, scope, where, `${path}.else`, info, col, acc);
+    return cost;
+  }
+  if ("cases" in e) {
+    let cost = 0;
+    e.cases.forEach((c, i) => {
+      cost += checkOne(c.when, scope, where, `${path}.cases[${i}].when`, info, col, "bool").cost;
+      cost += checkEffects(doc, c.then, scope, where, `${path}.cases[${i}].then`, info, col, acc);
+    });
+    return cost;
+  }
+  if ("each" in e) {
+    if (!isId(e.each)) col.error(path, "each needs an id to bind");
+    const r = checkOne(e.in, scope, where, `${path}.in`, info, col);
+    let elem: Ty = T_NUM;
+    let n = 1;
+    if (r.ty) {
+      if (r.ty.k === "records") {
+        elem = { k: "record", fields: { ...r.ty.fields, _id: T_NUM } };
+        n = Math.min(r.ty.max, 500);
+      } else if (r.ty.k === "list") {
+        elem = r.ty.of;
+        n = Math.min(r.ty.len ?? 64, 500);
+      } else if (r.ty.k === "set") {
+        elem = { k: "enum", values: r.ty.of };
+        n = r.ty.of.length;
+      } else col.error(`${path}.in`, `each needs records, a list or a set, got ${tyName(r.ty)}`);
+    }
+    return r.cost + checkEffects(doc, e.do, scopeWith(scope, { [e.each]: elem }), where, `${path}.do`, info, col, acc) * n;
+  }
+  col.error(path, `unknown effect ${Object.keys(e).join(",")}`);
+  return 1;
+}
+
+function timerTy(t: { with?: Record<string, { type: string; values?: string[]; of?: string }> }): Ty {
+  const w: Record<string, Ty> = {};
+  for (const f of Object.keys(t.with ?? {})) w[f] = fieldSpecTy((t.with ?? {})[f]);
+  return { k: "record", fields: { id: T_NUM, with: { k: "map", fields: w } } };
+}
+
+const tableCostCache = new WeakMap<ScenarioDoc, Record<string, number>>();
+
+function tableCost(doc: ScenarioDoc, id: string, info: DocInfo, col: Collector, where: Where): number {
+  const cache = tableCostCache.get(doc) ?? {};
+  tableCostCache.set(doc, cache);
+  if (cache[id] !== undefined) return cache[id];
+  cache[id] = 1; // cycle guard
+  const tb = (doc.tables ?? {})[id];
+  let cost = 0;
+  const scope = scopeWithDerived(info.root, info);
+  tb.rows.forEach((row, i) => {
+    cost += checkOne(row.when, scope, WHERE_TICK, `tables.${id}.rows[${i}].when`, info, col, "bool").cost;
+    for (const k of Object.keys(row.then)) {
+      const v = doc.state[k];
+      if (!v) {
+        col.error(`tables.${id}.rows[${i}].then.${k}`, `"${k}" is not a state variable`);
+        continue;
+      }
+      cost += checkOne(row.then[k], scope, WHERE_TICK, `tables.${id}.rows[${i}].then.${k}`, info, col, stateTy(v)).cost;
+    }
+    if (row.text) cost += checkTemplate(row.text, scope, WHERE_TICK, `tables.${id}.rows[${i}].text`, info, col);
+  });
+  void where;
+  cache[id] = cost;
+  return cost;
+}
+
+function checkTableView(view: TableView, scope: Scope, where: Where, path: string, info: DocInfo, col: Collector): number {
+  const r = checkOne(view.rows, scope, where, `${path}.rows`, info, col);
+  if (!r.ty) return 1;
+  if (r.ty.k !== "records") {
+    col.error(`${path}.rows`, `TableView rows must be records, got ${tyName(r.ty)}`);
+    return r.cost;
+  }
+  const inner = scopeWith(scope, { ...r.ty.fields, _id: T_NUM });
+  let cost = r.cost;
+  view.columns.forEach((c, i) => {
+    if (c.format !== undefined && FORMATS.indexOf(c.format) < 0) col.error(`${path}.columns[${i}]`, `unknown format "${c.format}"`);
+    cost += checkOne(c.value, inner, where, `${path}.columns[${i}].value`, info, col, "scalar").cost * Math.min(r.ty!.k === "records" ? r.ty!.max : 1, 500);
+  });
+  return cost;
+}
+
+function newAcc(): EffectAcc {
+  return { schedules: new Set(), prompts: new Set(), reasons: new Set(), ends: new Set(), phases: new Set(), tables: new Set(), logKinds: [], afterExprs: [] };
+}
+
+function semantic(doc: ScenarioDoc, info: DocInfo, col: Collector): void {
+  const root = scopeWithDerived(info.root, info);
+  const acc = newAcc();
+  const actionScopes = info.actionScopes;
+
+  // state init expressions
+  for (const k of Object.keys(doc.state)) {
+    const v = doc.state[k];
+    if (v.type === "number" && typeof v.init === "string") checkOne(v.init, scopeWith(info.root, {}), WHERE_TICK, `state.${k}.init`, info, col, T_NUM);
+  }
+  // history
+  for (const k of Object.keys(doc.history ?? {})) {
+    const h = (doc.history ?? {})[k];
+    checkOne(h.of, root, WHERE_HISTORY_OF, `history.${k}.of`, info, col, T_NUM);
+  }
+  // derived: unit / precision sanity only (types done in structural)
+  for (const k of Object.keys(doc.derived)) {
+    const d = doc.derived[k];
+    if (d.precision !== undefined && (d.precision < 0 || d.precision > 6 || d.precision !== Math.floor(d.precision))) col.error(`derived.${k}.precision`, "precision must be an integer 0-6");
+  }
+  // processes
+  let perTick = 0;
+  for (const k of Object.keys(doc.derived)) perTick += info.derivedCost[k] ?? 0;
+  doc.processes.forEach((p, i) => {
+    const path = `processes[${i}]`;
+    if (p.when) perTick += checkOne(p.when, root, WHERE_TICK, `${path}.when`, info, col, "bool").cost;
+    for (const k of Object.keys(p.update)) {
+      const v = doc.state[k];
+      if (!v) {
+        col.error(`${path}.update.${k}`, `"${k}" is not a state variable`);
+        continue;
+      }
+      const r = checkOne(p.update[k], root, WHERE_TICK, `${path}.update.${k}`, info, col, stateTy(v));
+      perTick += r.cost;
+      unitsLint(doc, p.update[k], k, `${path}.update.${k}`, col);
+      accumulatorLint(p.update[k], k, `${path}.update.${k}`, col);
+    }
+  });
+  for (const k of Object.keys(doc.history ?? {})) perTick += 2;
+  // triggers
+  let alarmNoInterrupt: string[] = [];
+  doc.triggers.forEach((t, i) => {
+    const path = `triggers[${i}]`;
+    perTick += checkOne(t.when, root, WHERE_TICK, `${path}.when`, info, col, "bool").cost;
+    const a2 = newAcc();
+    perTick += checkEffects(doc, t.effects, root, WHERE_TICK_EFFECT, `${path}.effects`, info, col, a2);
+    merge(acc, a2);
+    if (t.interruptsSkip && !a2.logKinds.length) col.error(path, "an interruptsSkip trigger must log a line that says why the skip stopped");
+    if (!t.interruptsSkip && a2.logKinds.indexOf("alarm") >= 0) alarmNoInterrupt.push(t.id);
+    if (t.mode !== "once" && t.mode !== "edge") col.error(path, "mode must be once or edge");
+  });
+  for (const id of alarmNoInterrupt) col.warn(`triggers.${id}`, "logs an alarm but does not interrupt skips (set interruptsSkip)");
+  // endings
+  for (const k of Object.keys(doc.endings)) {
+    const e = doc.endings[k];
+    if (e.when) perTick += checkOne(e.when, root, WHERE_TICK, `endings.${k}.when`, info, col, "bool").cost;
+    checkTemplate(e.narrative, root, WHERE_TICK, `endings.${k}.narrative`, info, col);
+  }
+  // reasoning triggers
+  for (const k of Object.keys(doc.reasoning)) {
+    const m = doc.reasoning[k];
+    if (m.trigger) {
+      perTick += checkOne(m.trigger, root, WHERE_TICK, `reasoning.${k}.trigger`, info, col, "bool").cost;
+      acc.reasons.add(k);
+    }
+  }
+  // noProgress
+  if (doc.outcome.noProgress) checkOne(doc.outcome.noProgress.when, root, WHERE_TICK, "outcome.noProgress.when", info, col, "bool");
+  // tables (checked through effects, but also stand-alone so unused ones are checked too)
+  for (const k of Object.keys(doc.tables ?? {})) tableCost(doc, k, info, col, WHERE_TICK);
+  // actions
+  const commandCosts: { path: string; cost: number }[] = [];
+  const settleCost = perTick; // an upper bound on one settle
+  for (const k of Object.keys(doc.actions)) {
+    const a = doc.actions[k];
+    const path = `actions.${k}`;
+    if (typeof a.label !== "string" || !a.label.trim()) col.error(path, "needs a label");
+    if (typeof a.group !== "string" || !a.group.trim()) col.error(path, "needs a group");
+    const pscope = paramScope(doc, a, info, col, path);
+    actionScopes[k] = pscope;
+    const scope = scopeWith(root, pscope);
+    let cost = 0;
+    if (a.available) cost += checkOne(a.available, root, WHERE_TICK, `${path}.available`, info, col, "bool").cost;
+    if (a.why) checkTemplate(a.why, root, WHERE_TICK, `${path}.why`, info, col);
+    if (a.available && !a.why) col.warn(path, "an action that can be unavailable should say why (shown and spoken)");
+    for (const p of a.params ?? []) {
+      if (p.kind === "command") {
+        checkTemplate(p.unmatched, scope, WHERE_COMMAND_EFFECT, `${path}.params.${p.id}.unmatched`, info, col);
+        for (const pat of p.patterns) {
+          const cs = scopeWith(scope, captureScope(pat.pattern));
+          pat.cases.forEach((c, i) => {
+            cost += checkOne(c.when, cs, WHERE_COMMAND_EFFECT, `${path}.params.${p.id}.${pat.id}.cases[${i}].when`, info, col, "bool").cost;
+            cost += checkEffects(doc, c.then, cs, WHERE_COMMAND_EFFECT, `${path}.params.${p.id}.${pat.id}.cases[${i}].then`, info, col, acc);
+          });
+        }
+      }
+    }
+    cost += checkEffects(doc, a.effects, scope, WHERE_COMMAND_EFFECT, `${path}.effects`, info, col, acc);
+    commandCosts.push({ path, cost: cost + settleCost });
+  }
+  // prompts
+  for (const k of Object.keys(doc.prompts ?? {})) {
+    const p = (doc.prompts ?? {})[k];
+    checkTemplate(p.context, root, WHERE_TICK, `prompts.${k}.context`, info, col);
+    p.choices.forEach((c, i) => {
+      const cost = checkEffects(doc, c.effects, root, WHERE_COMMAND_EFFECT, `prompts.${k}.choices[${i}].effects`, info, col, acc);
+      if (c.feedback) checkTemplate(c.feedback, root, WHERE_TICK, `prompts.${k}.choices[${i}].feedback`, info, col);
+      commandCosts.push({ path: `prompts.${k}.choices[${i}]`, cost: cost + settleCost });
+    });
+  }
+  // timers
+  let timerPerTick = 0;
+  for (const k of Object.keys(doc.timers)) {
+    const t = doc.timers[k];
+    const tscope = scopeWith(root, { timer: timerTy(t) });
+    checkTemplate(t.label, tscope, WHERE_TICK, `timers.${k}.label`, info, col);
+    if (t.wait) checkTemplate(t.wait.skipLabel, tscope, WHERE_TICK, `timers.${k}.wait.skipLabel`, info, col);
+    if (t.instances !== "one" && t.instances !== "many") col.error(`timers.${k}`, "instances must be one or many");
+    const cost = checkEffects(doc, t.effects, tscope, WHERE_COMMAND_EFFECT, `timers.${k}.effects`, info, col, acc);
+    commandCosts.push({ path: `timers.${k}`, cost: cost + settleCost });
+    timerPerTick = Math.max(timerPerTick, cost);
+  }
+  for (const k of Object.keys(doc.timers)) if (!acc.schedules.has(k)) col.warn(`timers.${k}`, "never scheduled by any effect");
+  for (const k of Object.keys(doc.prompts ?? {})) if (!acc.prompts.has(k)) col.warn(`prompts.${k}`, "never opened by any effect");
+  for (const k of Object.keys(doc.reasoning)) if (!acc.reasons.has(k)) col.error(`reasoning.${k}`, "never opened: give it a trigger or a { reason } effect");
+  for (const k of Object.keys(doc.tables ?? {})) if (!acc.tables.has(k)) col.warn(`tables.${k}`, "never applied by any effect");
+  // every turns phase needs a scheduled wait timer
+  const waitScheduled = [...acc.schedules].some((id) => doc.timers[id]?.wait);
+  for (const k of Object.keys(doc.phases)) {
+    const p = doc.phases[k];
+    if (["running", "turns", "stopped"].indexOf(p.clock) < 0) col.error(`phases.${k}.clock`, "must be running, turns or stopped");
+    if (p.clock === "turns" && !waitScheduled) col.error(`phases.${k}`, "a turns phase needs a wait timer that some effect schedules, or it would be stuck");
+  }
+  // scoring
+  const sscope = root;
+  doc.scoring.criteria.forEach((c, i) => {
+    c.rows.forEach((r, j) => {
+      checkOne(r.when, sscope, WHERE_SCORING, `scoring.criteria[${i}].rows[${j}].when`, info, col, "bool");
+      checkTemplate(r.why, sscope, WHERE_SCORING, `scoring.criteria[${i}].rows[${j}].why`, info, col);
+      if (["met", "partial", "missed"].indexOf(r.score) < 0) col.error(`scoring.criteria[${i}].rows[${j}]`, "score must be met, partial or missed");
+    });
+  });
+  doc.scoring.kpis.forEach((k, i) => {
+    const r = checkOne(k.value, sscope, WHERE_SCORING, `scoring.kpis[${i}].value`, info, col);
+    if (r.ty && r.ty.k !== "number" && r.ty.k !== "time" && r.ty.k !== "null") col.error(`scoring.kpis[${i}].value`, `a KPI is a number or time, got ${tyName(r.ty)}`);
+  });
+  for (const k of Object.keys(doc.scoring.debrief)) checkTemplate(doc.scoring.debrief[k].body, sscope, WHERE_SCORING, `scoring.debrief.${k}.body`, info, col);
+  // screen
+  screenCheck(doc, root, info, col);
+  // budgets
+  const perTickBound = perTick + timerPerTick;
+  info.perTick = perTickBound;
+  if (perTickBound > LIMITS.perTick) col.error("budget", `per-tick bound ${perTickBound} exceeds ${LIMITS.perTick} evaluations`);
+  if (perTickBound * info.maxTick > LIMITS.perRun) col.error("budget", `per-tick bound ${perTickBound} x ${info.maxTick} ticks exceeds ${LIMITS.perRun}`);
+  for (const c of commandCosts) if (c.cost > LIMITS.perCommand) col.error(c.path, `command-time bound ${c.cost} exceeds ${LIMITS.perCommand}`);
+  // longest skip
+  const span = longestSkipSpan(doc, info, acc, col);
+  info.skipSpan = span;
+  if (perTickBound * span > LIMITS.perSkip) col.error("budget", `longest skip (${span} ticks) x per-tick bound ${perTickBound} exceeds ${LIMITS.perSkip}; shorten or chain the wait`);
+  // feature minors
+  for (const [feature, minor] of Object.entries(FEATURE_MINOR)) if (minor > doc.engine.minor && usesFeature(doc, feature)) col.error("engine.minor", `uses ${feature}, which needs minor ${minor}`);
+}
+
+function usesFeature(doc: ScenarioDoc, feature: string): boolean {
+  return JSON.stringify(doc).indexOf(feature) >= 0;
+}
+
+function merge(a: EffectAcc, b: EffectAcc): void {
+  b.schedules.forEach((x) => a.schedules.add(x));
+  b.prompts.forEach((x) => a.prompts.add(x));
+  b.reasons.forEach((x) => a.reasons.add(x));
+  b.ends.forEach((x) => a.ends.add(x));
+  b.phases.forEach((x) => a.phases.add(x));
+  b.tables.forEach((x) => a.tables.add(x));
+  a.logKinds.push(...b.logKinds);
+  a.afterExprs.push(...b.afterExprs);
+}
+
+function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const s = doc.screen;
+  if (!s || typeof s.type !== "string") {
+    col.error("screen", "needs a type");
+    return;
+  }
+  if (s.level !== undefined && (s.level < 1 || s.level !== Math.floor(s.level))) col.error("screen.level", "must be a positive integer");
+  if (s.type === "bedside") {
+    if (!s.bedside) {
+      col.error("screen.bedside", "a bedside screen needs tiles");
+      return;
+    }
+    const ids = new Set<string>();
+    s.bedside.tiles.forEach((tile, i) => {
+      const path = `screen.bedside.tiles[${i}]`;
+      if (ids.has(tile.id)) col.error(path, `duplicate tile id ${tile.id}`);
+      ids.add(tile.id);
+      if (!tile.spokenLabel) col.error(path, "needs a spokenLabel");
+      if (typeof tile.unit !== "string") col.error(path, "needs a unit");
+      if (!tile.announce || !Array.isArray(tile.announce.bands)) col.error(path, "needs announce bands");
+      const values = Array.isArray(tile.value) ? tile.value : [tile.value];
+      for (const v of values) checkOne(v, root, WHERE_TICK, `${path}.value`, info, col, "scalar");
+      if (tile.sub) checkTemplate(tile.sub, root, WHERE_TICK, `${path}.sub`, info, col);
+      if (tile.hiddenUntil) checkOne(tile.hiddenUntil, root, WHERE_TICK, `${path}.hiddenUntil`, info, col, "bool");
+      if (tile.trend) {
+        if (!(doc.history ?? {})[tile.trend.history]) col.error(`${path}.trend`, `history "${tile.trend.history}" does not exist`);
+        const w = parseDuration(tile.trend.window);
+        if (w === null || w % info.dt !== 0) col.error(`${path}.trend.window`, "must be a multiple of the tick");
+        if (!(tile.trend.threshold > 0)) col.error(`${path}.trend.threshold`, "must be positive");
+      }
+    });
+    for (const w of s.bedside.waveforms ?? []) {
+      for (const n of [w.from.hr, w.from.sys, w.from.dia]) if (n && !doc.derived[n] && !doc.state[n]) col.error("screen.bedside.waveforms", `"${n}" is not a state or derived value`);
+      if (w.from.flat) checkOne(w.from.flat, root, WHERE_TICK, "screen.bedside.waveforms.flat", info, col, "bool");
+    }
+    if (s.bedside.infusions) checkTemplate(s.bedside.infusions, root, WHERE_TICK, "screen.bedside.infusions", info, col);
+    (s.bedside.banner ?? []).forEach((b, i) => {
+      checkOne(b.when, root, WHERE_TICK, `screen.bedside.banner[${i}].when`, info, col, "bool");
+      checkTemplate(b.text, root, WHERE_TICK, `screen.bedside.banner[${i}].text`, info, col);
+    });
+  }
+}
+
+// ---- interval arithmetic for the longest-skip bound (4.3) ----
+
+type Interval = [number, number];
+const UNBOUNDED: Interval = [-Infinity, Infinity];
+
+function intervalOf(ast: Ast, doc: ScenarioDoc, info: DocInfo, extra: Record<string, Interval>, depth: number): Interval {
+  if (depth > 12) return UNBOUNDED;
+  switch (ast.k) {
+    case "num":
+      return [ast.v, ast.v];
+    case "name": {
+      if (extra[ast.name]) return extra[ast.name];
+      const p = doc.params[ast.name];
+      if (p && typeof p.value === "number") return [p.value, p.value];
+      const th = doc.outcome.thresholds[ast.name];
+      if (th) return [th.value, th.value];
+      const v = doc.state[ast.name];
+      if (v && v.type === "number") return [v.min, v.max];
+      const d = doc.derived[ast.name];
+      if (d) return intervalOf(parseCached(d.expr), doc, info, extra, depth + 1);
+      if (ast.name === "t") return [0, info.maxTick * info.dt];
+      if (ast.name === "dt") return [info.dt, info.dt];
+      if (ast.name === "tick") return [0, info.maxTick];
+      return UNBOUNDED;
+    }
+    case "unary": {
+      if (ast.op !== "-") return UNBOUNDED;
+      const [a, b] = intervalOf(ast.e, doc, info, extra, depth + 1);
+      return [-b, -a];
+    }
+    case "binary": {
+      const l = intervalOf(ast.l, doc, info, extra, depth + 1);
+      const r = intervalOf(ast.r, doc, info, extra, depth + 1);
+      switch (ast.op) {
+        case "+":
+          return [l[0] + r[0], l[1] + r[1]];
+        case "-":
+          return [l[0] - r[1], l[1] - r[0]];
+        case "*": {
+          const c = [l[0] * r[0], l[0] * r[1], l[1] * r[0], l[1] * r[1]].map((x) => (x !== x ? 0 : x));
+          return [Math.min(...c), Math.max(...c)];
+        }
+        case "/": {
+          if (r[0] <= 0 && r[1] >= 0) {
+            if (r[0] === r[1]) return [0, 0];
+            return UNBOUNDED;
+          }
+          const c = [l[0] / r[0], l[0] / r[1], l[1] / r[0], l[1] / r[1]];
+          return [Math.min(...c), Math.max(...c)];
+        }
+        default:
+          return UNBOUNDED;
+      }
+    }
+    case "cond": {
+      const a = intervalOf(ast.a, doc, info, extra, depth + 1);
+      const b = intervalOf(ast.b, doc, info, extra, depth + 1);
+      return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
+    }
+    case "call": {
+      const args = ast.args.map((x) => intervalOf(x, doc, info, extra, depth + 1));
+      switch (ast.fn) {
+        case "min":
+          return [Math.min(...args.map((a) => a[0])), Math.min(...args.map((a) => a[1]))];
+        case "max":
+          return [Math.max(...args.map((a) => a[0])), Math.max(...args.map((a) => a[1]))];
+        case "clamp":
+          return [Math.max(args[0][0], args[1][0]), Math.min(args[0][1], args[2][1])];
+        case "abs": {
+          const [a, b] = args[0];
+          return a >= 0 ? [a, b] : b <= 0 ? [-b, -a] : [0, Math.max(-a, b)];
+        }
+        case "floor":
+        case "ceil":
+        case "round":
+          return [Math.floor(args[0][0]), Math.ceil(args[0][1])];
+        case "num":
+          return extra.__num ?? UNBOUNDED;
+        default:
+          return UNBOUNDED;
+      }
+    }
+    default:
+      return UNBOUNDED;
+  }
+}
+
+function longestSkipSpan(doc: ScenarioDoc, info: DocInfo, acc: EffectAcc, col: Collector): number {
+  let span = 0;
+  for (const s of acc.afterExprs) {
+    if (!doc.timers[s.timer]?.wait) continue;
+    let ticks: number;
+    const lit = parseDuration(s.after);
+    if (lit !== null) ticks = lit / info.dt;
+    else {
+      let ast: Ast | null = null;
+      try {
+        ast = parseCached(s.after);
+      } catch {
+        ast = null;
+      }
+      // choice params: num(x) over every option value
+      const extra: Record<string, Interval> = {};
+      const numRange = numericOptionRange(s.scope);
+      if (numRange) extra.__num = numRange;
+      const iv = ast ? intervalOf(ast, doc, info, extra, 0) : UNBOUNDED;
+      if (iv[1] === Infinity || iv[1] !== iv[1]) {
+        col.warn("budget", `cannot bound schedule after "${s.after}" for wait ${s.timer}; assuming the whole run`);
+        ticks = info.maxTick;
+      } else ticks = Math.max(1, Math.ceil(iv[1] / info.dt));
+    }
+    span = Math.max(span, Math.min(ticks, info.maxTick + 1));
+  }
+  return span;
+}
+
+function numericOptionRange(scope: Scope): Interval | null {
+  let lo = Infinity;
+  let hi = -Infinity;
+  let any = false;
+  for (let s: Scope | null = scope; s; s = s.parent) {
+    for (const k of Object.keys(s.names)) {
+      const t = s.names[k];
+      if (t.k === "enum") {
+        for (const v of t.values) {
+          const n = Number(v);
+          if (n === n && v.trim().length) {
+            any = true;
+            lo = Math.min(lo, n);
+            hi = Math.max(hi, n);
+          }
+        }
+      }
+    }
+  }
+  return any ? [lo, hi] : null;
+}
+
+// ---- heuristics: units and accumulators ----
+
+function hasDivisionBy(ast: Ast, n: number): boolean {
+  switch (ast.k) {
+    case "binary":
+      if (ast.op === "/" && ast.r.k === "num" && ast.r.v === n) return true;
+      if (ast.op === "*" && ((ast.r.k === "num" && ast.r.v === 1 / n) || (ast.l.k === "num" && ast.l.v === 1 / n))) return true;
+      return hasDivisionBy(ast.l, n) || hasDivisionBy(ast.r, n);
+    case "unary":
+      return hasDivisionBy(ast.e, n);
+    case "cond":
+      return hasDivisionBy(ast.c, n) || hasDivisionBy(ast.a, n) || hasDivisionBy(ast.b, n);
+    case "call":
+      return ast.args.some((a) => hasDivisionBy(a, n));
+    case "list":
+      return ast.items.some((a) => hasDivisionBy(a, n));
+    case "index":
+      return hasDivisionBy(ast.obj, n) || hasDivisionBy(ast.idx, n);
+    case "field":
+      return hasDivisionBy(ast.obj, n);
+    default:
+      return false;
+  }
+}
+
+// A per-minute or per-hour rate multiplied by dt (seconds) must be divided by
+// 60 or 3,600 somewhere in the same expression (4.4; a heuristic, warning).
+function unitsLint(doc: ScenarioDoc, expr: string, target: string, path: string, col: Collector): void {
+  let ast: Ast;
+  try {
+    ast = parseCached(expr);
+  } catch {
+    return;
+  }
+  const names = namesIn(ast);
+  if (names.indexOf("dt") < 0) return;
+  for (const n of names) {
+    const unit = doc.params[n]?.unit ?? (doc.state[n] as { unit?: string } | undefined)?.unit ?? doc.derived[n]?.unit;
+    if (!unit) continue;
+    const u = unit.split(" ").join("");
+    if (u.endsWith("/min") && !hasDivisionBy(ast, 60)) col.warn(path, `"${n}" is a per-minute rate multiplied by dt (seconds): divide by 60`);
+    if (u.endsWith("/h") && !hasDivisionBy(ast, 3600) && !hasDivisionBy(ast, 60)) col.warn(path, `"${n}" is a per-hour rate multiplied by dt (seconds): divide by 3600`);
+  }
+  void target;
+}
+
+// A process that rounds the accumulator it updates eats slow accumulation:
+// `T = round(T + rate*dt)` never moves when rate*dt < 0.5 (5.3).
+function accumulatorLint(expr: string, target: string, path: string, col: Collector): void {
+  let ast: Ast;
+  try {
+    ast = parseCached(expr);
+  } catch {
+    return;
+  }
+  if (ast.k === "call" && (ast.fn === "round" || ast.fn === "floor" || ast.fn === "ceil") && namesIn(ast.args[0] ?? ast).indexOf(target) >= 0) {
+    col.warn(path, `${ast.fn} around an update of ${target} itself rounds the accumulator every tick; state is never rounded, precision is display-only (5.3)`);
+  }
+}
+
+// ---- layer 3: content rules, sources, rubric, golden paths, path search ----
+
+const TIME_UNITS = ["s", "sec", "min", "h", "d", "ms"];
+
+function isTimeOrRateUnit(unit: string | undefined): boolean {
+  if (!unit) return false;
+  const u = unit.trim();
+  return TIME_UNITS.indexOf(u) >= 0 || u.indexOf("/") >= 0 || u.startsWith("per ");
+}
+
+function addMonths(iso: string, months: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  const pad = (n: number): string => (n < 10 ? `0${n}` : String(n));
+  return `${ny}-${pad(nm)}-${pad(d)}`;
+}
+
+function sourceStaleness(doc: ScenarioDoc, col: Collector, now: string | undefined): void {
+  if (!now) return;
+  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "cloud" ? 6 : 12;
+  const check = (path: string, s: Source | undefined): void => {
+    if (!s || !isIsoDate(s.checkedAt)) return;
+    const due = s.recheckBy && isIsoDate(s.recheckBy) ? s.recheckBy : addMonths(s.checkedAt, defaultMonths);
+    if (due < now) col.warn(path, `source is past its re-check date (${due}); the sim keeps serving (R6)`);
+  };
+  doc.sources.forEach((s, i) => check(`sources[${i}]`, s));
+  for (const k of Object.keys(doc.params)) check(`params.${k}.source`, doc.params[k].source);
+  for (const k of Object.keys(doc.timers)) check(`timers.${k}.source`, doc.timers[k].source);
+  for (const k of Object.keys(doc.outcome.thresholds)) check(`outcome.thresholds.${k}.source`, doc.outcome.thresholds[k].source);
+  for (const k of Object.keys(doc.catalogs ?? {})) check(`catalogs.${k}.source`, (doc.catalogs ?? {})[k].source);
+  if (doc.outcome.noProgress) check("outcome.noProgress.source", doc.outcome.noProgress.source);
+}
+
+const SECOND_PERSON = ["your patient", "your client", "your own patient", "your own client", "your real patient"];
+
+function textRules(doc: ScenarioDoc, col: Collector, family: SafetyFamily | undefined): void {
+  const texts: [string, string][] = [["brief.situation", doc.brief.situation]];
+  (doc.brief.handover ?? []).forEach((h, i) => texts.push([`brief.handover[${i}]`, h]));
+  for (const k of Object.keys(doc.endings)) texts.push([`endings.${k}.narrative`, doc.endings[k].narrative]);
+  for (const k of Object.keys(doc.scoring.debrief)) texts.push([`scoring.debrief.${k}.body`, doc.scoring.debrief[k].body]);
+  for (const [path, text] of texts) {
+    const lower = (text ?? "").toLowerCase();
+    for (const phrase of SECOND_PERSON) if (lower.indexOf(phrase) >= 0) col.error(path, `"${phrase}": the people in a sim are fictional; never address the learner's own patients or clients`);
+  }
+  const fam = family ?? (doc.outcome.profile === "clinical" ? "clinical" : doc.outcome.profile === "fitness" ? "fitness" : "general");
+  if ((fam === "clinical" || fam === "fitness") && (!doc.safetyNote || doc.safetyNote.trim().length < 20)) col.error("safetyNote", `a ${fam} scenario needs a safety note (the lab rules)`);
+  if (!doc.sources.length) col.error("sources", "list the exam outline and references the scenario is built from");
+}
+
+function content(doc: ScenarioDoc, info: DocInfo, col: Collector, opts: LintOptions): void {
+  // sources on time, rate and threshold params
+  for (const k of Object.keys(doc.params)) {
+    const p = doc.params[k];
+    if (isTimeOrRateUnit(p.unit) && !p.source) col.error(`params.${k}`, `a timing or rate param needs a source (unit "${p.unit}")`);
+    const lk = k.toLowerCase();
+    if (["threshold", "window", "limit", "target", "cutoff"].some((w) => lk.indexOf(w) >= 0) && typeof p.value === "number" && !p.source) col.warn(`params.${k}`, "looks like a threshold; give it a source");
+  }
+  sourceStaleness(doc, col, opts.now);
+  textRules(doc, col, opts.safetyFamily);
+  // outcome thresholds vs profile defaults
+  const defaults = PROFILE_THRESHOLDS[doc.outcome.profile];
+  if (!defaults) col.error("outcome.profile", "unknown profile");
+  else {
+    for (const k of Object.keys(doc.outcome.thresholds)) {
+      const d = defaults[k];
+      if (!d) continue;
+      const v = doc.outcome.thresholds[k].value;
+      const looser = d.tighter === "lower" ? v > d.value : v < d.value;
+      if (looser) col.error(`outcome.thresholds.${k}`, `${v} is looser than the ${doc.outcome.profile} default ${d.value} (${d.note}); authors may tighten, never loosen (9.2)`);
+    }
+  }
+  // every class has a terminal ending
+  const classes = new Set<string>();
+  for (const k of Object.keys(doc.endings)) if (doc.endings[k].terminal && doc.endings[k].class) classes.add(doc.endings[k].class as string);
+  for (const c of ["target", "recovered", "harm"]) if (!classes.has(c)) col.error("endings", `no terminal ending has outcome class "${c}" (9.2: every class must be reachable)`);
+
+  // golden paths and the path search
+  if (col.problems.some((p) => p.level === "error")) return; // replays need a valid document
+  const results = opts.goldenResults ?? (opts.golden ? replayGolden(doc, opts.golden) : []);
+  const reached = new Map<string, Set<string>>(); // class -> ending ids
+  const endingsReached = new Set<string>();
+  const criteriaSeen: Record<string, Set<CriterionScore>> = {};
+  const ratings = new Set<string>();
+  const availableEver = new Set<string>();
+  let targetWithCriticalMiss: string[] = [];
+  for (const r of results) {
+    if (r.error) {
+      col.error(`golden.${r.path.id}`, r.error);
+      continue;
+    }
+    if (r.debrief.outcomeClass) {
+      if (!reached.has(r.debrief.outcomeClass)) reached.set(r.debrief.outcomeClass, new Set());
+      reached.get(r.debrief.outcomeClass)!.add(r.debrief.ending ?? "");
+    }
+    if (r.debrief.ending) endingsReached.add(r.debrief.ending);
+    for (const c of r.debrief.criteria) {
+      if (!criteriaSeen[c.id]) criteriaSeen[c.id] = new Set();
+      criteriaSeen[c.id].add(c.score);
+    }
+    if (r.debrief.rating) ratings.add(r.debrief.rating);
+    for (const a of r.availableActions) availableEver.add(a);
+    if (r.debrief.outcomeClass === "target" && r.debrief.criteria.some((c) => c.critical && c.score === "missed")) targetWithCriticalMiss.push(`golden ${r.path.id}`);
+    for (const m of r.mismatches) col.error(`golden.${r.path.id}`, m);
+    if (r.waitAlways) col.warn(`golden.${r.path.id}`, "some wait was pending at every command boundary of a running phase: the learner could skip at almost every moment (3)");
+  }
+  const searched = (opts.searchNodes ?? 0) > 0 ? pathSearch(doc, opts.searchNodes ?? 0) : null;
+  if (searched) {
+    for (const leaf of searched.leaves) {
+      if (leaf.class) {
+        if (!reached.has(leaf.class)) reached.set(leaf.class, new Set());
+        reached.get(leaf.class)!.add(leaf.ending ?? "");
+      }
+      if (leaf.ending) endingsReached.add(leaf.ending);
+      if (leaf.class === "target" && leaf.criticalMissed.length) targetWithCriticalMiss.push(`search path [${leaf.trail.join(" > ")}] (missed: ${leaf.criticalMissed.join(", ")})`);
+    }
+  }
+  if (opts.golden || searched) {
+    for (const c of ["target", "recovered", "harm"]) if (!reached.has(c)) col.error("endings", `outcome class "${c}" is reached by no golden path${searched ? " and no searched path" : ""} (9.2)`);
+    for (const t of targetWithCriticalMiss.slice(0, 5)) col.error("scoring", `a target ending was reached with a critical command-derived criterion missed: ${t}. Make the criterion part of the target condition or drop its critical flag (9.2)`);
+  }
+  if (opts.golden) {
+    for (const k of Object.keys(doc.endings)) if (doc.endings[k].terminal && !endingsReached.has(k)) col.error(`endings.${k}`, "reached by no golden path");
+    for (const c of doc.scoring.criteria) {
+      const seen = criteriaSeen[c.id] ?? new Set();
+      if (!seen.has("met")) col.error(`scoring.criteria.${c.id}`, "met by no golden path");
+      if (!seen.has("missed")) col.error(`scoring.criteria.${c.id}`, "missed by no golden path");
+    }
+    for (const r of ["good", "mediocre", "bad"]) if (!ratings.has(r)) col.error("golden", `no golden path is rated ${r} (9.2)`);
+    for (const a of Object.keys(doc.actions)) if (!availableEver.has(a)) col.warn(`actions.${a}`, "never available in any golden path");
+  }
+}
+
+// ---- golden replay ----
+
+export interface GoldenResult {
+  path: GoldenPath;
+  error: string | null;
+  debrief: ReturnType<typeof scoreRun>;
+  mismatches: string[];
+  availableActions: Set<string>;
+  waitAlways: boolean;
+  stateHash: string;
+  finalTick: number;
+}
+
+function near(a: unknown, b: unknown): boolean {
+  if (typeof a === "number" && typeof b === "number") return Math.abs(a - b) < 1e-9;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export function replayGolden(doc: ScenarioDoc, golden: GoldenFile, stateHashFn?: (run: Run) => string): GoldenResult[] {
+  return golden.paths.map((path) => replayGoldenPath(doc, path, stateHashFn));
+}
+
+export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn?: (run: Run) => string): GoldenResult {
+  const mismatches: string[] = [];
+  const availableActions = new Set<string>();
+  let waitAlways = true;
+  let boundaries = 0;
+  const run = createRun(doc, path.seed);
+  const snapshots = path.expect.snapshots ?? [];
+  const takeSnapshot = (): void => {
+    for (const s of snapshots) {
+      if (s.tick !== run.state.tick || (s as { taken?: boolean }).taken) continue;
+      (s as { taken?: boolean }).taken = true;
+      for (const k of Object.keys(s.values)) {
+        const got = readRunValue(run, k);
+        if (!near(got, s.values[k])) mismatches.push(`snapshot at tick ${s.tick}: ${k} = ${JSON.stringify(got)}, expected ${JSON.stringify(s.values[k])}`);
+      }
+    }
+  };
+  const noteBoundary = (): void => {
+    boundaries++;
+    if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).length) waitAlways = false;
+    for (const a of run.c.doc.phases[run.state.phase].actions) {
+      const act = run.c.doc.actions[a];
+      try {
+        if (!act.available || (readRunValue(run, `__avail__${a}`) as boolean)) availableActions.add(a);
+      } catch {
+        availableActions.add(a);
+      }
+    }
+  };
+  takeSnapshot();
+  noteBoundary();
+  let error: string | null = null;
+  for (const cmd of path.commands) {
+    while (run.state.tick < cmd.tick && !run.state.ended) {
+      if (!advance(run)) {
+        error = `command seq ${cmd.seq} at tick ${cmd.tick} is unreachable (clock ${clockMode(run)}${clockBlocked(run) ? ", blocked" : ""}) at tick ${run.state.tick}`;
+        break;
+      }
+      takeSnapshot();
+    }
+    if (error) break;
+    const r = applyCommand(run, cmd);
+    if (!r.ok) {
+      error = `command seq ${cmd.seq} rejected: ${r.reason}`;
+      break;
+    }
+    takeSnapshot();
+    noteBoundary();
+  }
+  // run out the clock when the path ends in a running phase without an ending
+  let guard = 0;
+  while (!error && !run.state.ended && clockMode(run) === "running" && !clockBlocked(run) && guard++ < run.c.maxTick + 2) {
+    advance(run);
+    takeSnapshot();
+  }
+  for (const s of snapshots) if (!(s as { taken?: boolean }).taken) mismatches.push(`snapshot at tick ${s.tick} was never reached`);
+  for (const s of snapshots) delete (s as { taken?: boolean }).taken;
+  const grades = Object.keys(path.reasoning ?? {}).map((m) => ({ moment: m, score: (path.reasoning ?? {})[m] }));
+  const debrief = scoreRun(run, { reasoningGrades: grades, pausedSeconds: 0 });
+  if (!error) {
+    const e = path.expect;
+    if (debrief.ending !== e.ending) mismatches.push(`ending ${debrief.ending}, expected ${e.ending}`);
+    if (debrief.outcomeClass !== e.class) mismatches.push(`class ${debrief.outcomeClass}, expected ${e.class}`);
+    if (debrief.rating !== e.rating) mismatches.push(`rating ${debrief.rating}, expected ${e.rating}`);
+    if (e.score !== undefined && debrief.processScore !== e.score) mismatches.push(`process score ${debrief.processScore}, expected ${e.score}`);
+    for (const k of Object.keys(e.criteria ?? {})) {
+      const c = debrief.criteria.find((x) => x.id === k);
+      if (!c) mismatches.push(`criterion ${k} does not exist`);
+      else if (c.score !== (e.criteria ?? {})[k]) mismatches.push(`criterion ${k} ${c.score}, expected ${(e.criteria ?? {})[k]} (${c.why})`);
+    }
+    for (const k of Object.keys(e.kpis ?? {})) {
+      const kpi = debrief.kpis.find((x) => x.id === k);
+      if (!kpi) mismatches.push(`kpi ${k} does not exist`);
+      else if (!near(kpi.raw, (e.kpis ?? {})[k])) mismatches.push(`kpi ${k} = ${JSON.stringify(kpi.raw)}, expected ${JSON.stringify((e.kpis ?? {})[k])}`);
+    }
+    if (run.state.ended?.reason === "engine_error") mismatches.push(`engine error: ${run.state.ended.detail}`);
+  }
+  const hash = stateHashFn ? stateHashFn(run) : "";
+  if (!error && path.expect.stateHash && hash && hash !== path.expect.stateHash) mismatches.push(`state hash ${hash}, expected ${path.expect.stateHash}`);
+  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick };
+}
+
+// Read a state or derived value by name (and, for the lint, an action's availability).
+export function readRunValue(run: Run, name: string): Value | undefined {
+  if (name.startsWith("__avail__")) {
+    const a = run.c.doc.actions[name.slice(9)];
+    if (!a || !a.available) return true;
+    return evalInRun(run, a.available);
+  }
+  return runRoot(run, name);
+}
+
+function runRoot(run: Run, name: string): Value | undefined {
+  return run.ctx.root(name);
+}
+
+// Evaluate through the engine's own context so budgets and the derived memo apply.
+function evalInRun(run: Run, expr: string): Value {
+  return evaluate(parseCached(expr), null, run.ctx);
+}
+
+// ---- bounded path search (12, 9.2) ----
+
+export interface SearchLeaf {
+  ending: Id | null;
+  class: OutcomeClass | null;
+  criticalMissed: string[];
+  trail: string[];
+}
+
+export interface SearchResult {
+  nodes: number;
+  leaves: SearchLeaf[];
+  exhausted: boolean;
+}
+
+interface SearchNode {
+  cp: ReturnType<typeof checkpoint>;
+  trail: string[];
+  depth: number;
+}
+
+function paramCombos(doc: ScenarioDoc, a: Action, run: Run): Record<string, string | number>[] {
+  let combos: Record<string, string | number>[] = [{}];
+  const cap = 6;
+  for (const p of a.params ?? []) {
+    const next: Record<string, string | number>[] = [];
+    const extend = (key: string, values: (string | number)[]): void => {
+      for (const c of combos) for (const v of values.slice(0, cap)) next.push({ ...c, [key]: v });
+    };
+    switch (p.kind) {
+      case "choice":
+        extend(p.id, p.options.map((o) => o.value));
+        break;
+      case "form": {
+        // first option of each field plus one "all-first" variant: forms explode otherwise
+        for (const f of p.fields) {
+          const n2: Record<string, string | number>[] = [];
+          for (const c of combos) for (const o of f.options.slice(0, 2)) n2.push({ ...c, [f.id]: o.value });
+          combos = n2.slice(0, 16);
+        }
+        next.push(...combos);
+        break;
+      }
+      case "slot": {
+        const entries = ((doc.catalogs ?? {})[p.catalog]?.entries ?? []).slice(0, 3);
+        for (const c of combos) for (const e of entries) for (const s of p.slots.slice(0, 2)) next.push({ ...c, [p.id]: e.id, [`${p.id}.slot`]: s });
+        break;
+      }
+      case "pick": {
+        const list = evalInRun(run, p.from);
+        const ids = Array.isArray(list) ? (list as { _id: number }[]).map((r) => r._id).slice(0, 3) : [];
+        extend(p.id, ids);
+        break;
+      }
+      case "command":
+        extend(p.id, p.patterns.slice(0, 3).map((x) => examplePatternInput(x.pattern)));
+        break;
+      case "query":
+        extend(p.id, ["*"]);
+        break;
+    }
+    if (p.kind !== "form") combos = next;
+  }
+  return combos.slice(0, 24);
+}
+
+function exampleCapture(t: CaptureType): string {
+  if (typeof t !== "string") return t.enum[0];
+  switch (t) {
+    case "int":
+      return "1";
+    case "ipv4":
+      return "10.0.0.1";
+    case "cidr":
+      return "10.0.0.0/24";
+    default:
+      return "x";
+  }
+}
+
+function examplePatternInput(pattern: string): string {
+  const toks = parsePattern(pattern);
+  if (typeof toks === "string") return pattern;
+  return toks.map((t) => ("lit" in t ? t.lit : exampleCapture(t.type))).join(" ");
+}
+
+function runLeafScore(run: Run): SearchLeaf {
+  const d = scoreRun(run, { reasoningGrades: [], pausedSeconds: 0 });
+  return { ending: d.ending, class: d.outcomeClass, criticalMissed: d.criteria.filter((c) => c.critical && c.score === "missed").map((c) => c.id), trail: [] };
+}
+
+// Breadth-first over decision points: at each node the learner may take any
+// offered action (with each parameter combination), answer an open prompt or
+// reasoning moment, or skip to the earliest wait. Running phases are also
+// advanced to the next wait or event so the search does not loop at one tick.
+export function pathSearch(doc: ScenarioDoc, maxNodes: number): SearchResult {
+  const start = createRun(doc, 7);
+  const queue: SearchNode[] = [{ cp: checkpoint(start), trail: [], depth: 0 }];
+  const leaves: SearchLeaf[] = [];
+  const seen = new Set<string>();
+  let nodes = 0;
+  const maxDepth = 40;
+  const seq = (cp: ReturnType<typeof checkpoint>): number => cp.lastSeq + 1;
+  while (queue.length && nodes < maxNodes) {
+    const node = queue.shift()!;
+    const run = restoreRun(doc, 7, node.cp);
+    nodes++;
+    if (run.state.ended) {
+      const leaf = runLeafScore(run);
+      leaf.trail = node.trail;
+      leaves.push(leaf);
+      continue;
+    }
+    if (node.depth >= maxDepth) continue;
+    const key = `${run.state.tick}:${run.state.phase}:${stateKey(run)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const children: { cmd: Command; label: string }[] = [];
+    const s = run.state;
+    if (s.openPrompt) {
+      const p = (doc.prompts ?? {})[s.openPrompt];
+      for (const c of p.choices) children.push({ cmd: { seq: seq(node.cp), tick: s.tick, type: "choose", prompt: s.openPrompt, choice: c.id }, label: `${s.openPrompt}=${c.id}` });
+    } else if (s.openReasoning) {
+      children.push({ cmd: { seq: seq(node.cp), tick: s.tick, type: "reason", moment: s.openReasoning, answered: true }, label: `reason ${s.openReasoning}` });
+    } else {
+      for (const aid of doc.phases[s.phase].actions) {
+        const a = doc.actions[aid];
+        if (a.available && !(evalInRun(run, a.available) as boolean)) continue;
+        for (const params of paramCombos(doc, a, run)) {
+          children.push({ cmd: { seq: seq(node.cp), tick: s.tick, type: "act", action: aid, params: Object.keys(params).length ? params : undefined }, label: `${aid}${Object.keys(params).length ? JSON.stringify(params) : ""}` });
+        }
+      }
+      const w = waits(run);
+      if (w.length) children.push({ cmd: { seq: seq(node.cp), tick: s.tick, type: "skip", timer: w[0].timer, instance: w[0].instance, to: w[0].due }, label: `skip ${w[0].timer}` });
+      else if (clockMode(run) === "running") {
+        // no wait pending: let real time run to the next event (bounded) as one child
+        const child = restoreRun(doc, 7, node.cp);
+        let steps = 0;
+        const beforeLog = child.log.length;
+        while (!child.state.ended && !clockBlocked(child) && child.log.length === beforeLog && steps++ < 600 && advance(child)) {
+          /* advance until something is logged */
+        }
+        if (child.state.tick > s.tick) queue.push({ cp: checkpoint(child), trail: [...node.trail, `wait ${child.state.tick - s.tick} ticks`], depth: node.depth + 1 });
+      }
+    }
+    for (const ch of children) {
+      if (nodes + queue.length >= maxNodes * 4) break;
+      const child = restoreRun(doc, 7, node.cp);
+      const r = applyCommand(child, ch.cmd);
+      if (!r.ok) continue;
+      queue.push({ cp: checkpoint(child), trail: [...node.trail, ch.label], depth: node.depth + 1 });
+    }
+  }
+  return { nodes, leaves, exhausted: queue.length === 0 };
+}
+
+function stateKey(run: Run): string {
+  return JSON.stringify([run.state.vars, run.state.timers.map((t) => [t.timer, t.due]), run.state.openPrompt, run.state.openReasoning, run.state.firedEndings]);
+}

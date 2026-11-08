@@ -4802,6 +4802,44 @@
       "risk_notes": [
         "Requirement and failure ids (REQ/FAIL) taken from master at 061f829; a concurrent branch may take the same numbers"
       ]
+    },
+    {
+      "id": "REQ-162",
+      "category": "feature",
+      "title": "Sim engine v1 implementation (Phase 1a)",
+      "description": "Implements docs/sims.md Phase 1a steps 3-7 (REQ-141 is the design). Engine major 1 in backend/lib/sim/engine/v1/ (pure TypeScript, own deterministic maths, no imports outside the folder, generated copy in mobile/src/sim/engine/v1/): expression parser and type checker, safe evaluator, the tick contract of 5.3 (Pre/Post, processes, timer instances, history, settle, time_up, skips stopping on interrupts, checkpoints), scoring and the Good/Mediocre/Bad rating, the validator and content linter with the bounded path search, the zod schema with a compile-time and run-time conformance test, the content hash and client document, and the draft v1 semantics corpus (22 hand-computed cases) with property tests. Steps 5 (four prototype ports with golden paths), 6 (paper scenarios) and 7 (freeze) are still open.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/scripts/sim-corpus.ts",
+        "backend/scripts/sim-cross-runtime.ts",
+        "mobile/src/sim/**",
+        "backend/supabase/seed/sims/**",
+        "docs/sims/paper/**",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "v1 corpus and property tests pass on Node and under the mobile copy",
+        "zod schema mutually assignable with engine types",
+        "four prototypes ported with Good/Mediocre/Bad golden paths matching the prototype drivers",
+        "three paper scenarios written",
+        "cross-runtime jobs run the corpus",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Corpus is a draft: hashes may change until the step-7 freeze",
+        "golden ports and paper scenarios not yet written",
+        "cross-runtime jobs still run the step-2 fixture not the corpus"
+      ]
     }
   ]
 }

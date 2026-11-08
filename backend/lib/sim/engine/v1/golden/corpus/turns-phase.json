@@ -1,0 +1,226 @@
+{
+  "id": "turns-phase",
+  "spec": "5.4: in a stopped phase nothing ticks; in a turns phase time moves only by a skip to a pending wait and real-time advance is refused",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1h",
+      "maxDuration": "48h"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "week": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "derived": {},
+    "processes": [
+      {
+        "id": "grow",
+        "update": {
+          "x": "x + 1"
+        }
+      }
+    ],
+    "phases": {
+      "build": {
+        "label": "Build",
+        "actions": [
+          "start"
+        ],
+        "clock": "stopped"
+      },
+      "run": {
+        "label": "Run",
+        "actions": [],
+        "clock": "turns"
+      }
+    },
+    "initialPhase": "build",
+    "actions": {
+      "start": {
+        "label": "start",
+        "group": "g",
+        "effects": [
+          {
+            "phase": "run"
+          },
+          {
+            "schedule": "next",
+            "after": "24h"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "next": {
+        "label": "next day",
+        "wait": {
+          "skipLabel": "tomorrow"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "add": "week",
+            "by": "1"
+          },
+          {
+            "if": "week < 2",
+            "then": [
+              {
+                "schedule": "next",
+                "after": "24h"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "advanceExpect": false
+    },
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "start"
+      }
+    },
+    {
+      "advanceExpect": false
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "skip",
+        "timer": "next",
+        "instance": 1,
+        "to": 24
+      }
+    },
+    {
+      "command": {
+        "seq": 3,
+        "tick": 24,
+        "type": "skip",
+        "timer": "next",
+        "instance": 2,
+        "to": 48
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 24,
+        "values": {
+          "x": 24,
+          "week": 1
+        }
+      }
+    ],
+    "final": {
+      "tick": 48,
+      "ended": "time_up"
+    }
+  }
+}

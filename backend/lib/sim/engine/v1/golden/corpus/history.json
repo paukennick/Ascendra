@@ -1,0 +1,255 @@
+{
+  "id": "history",
+  "spec": "4.1, 4.3 history: a sample at tick 0 then every `every`; past() returns the oldest sample when the buffer is too short; delta and trend are 0 with one sample; the buffer keeps keep/every + 1 samples",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "12s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 1000
+      }
+    },
+    "derived": {
+      "p4": {
+        "expr": "past(h, 4)"
+      },
+      "d4": {
+        "expr": "delta(h, 4)"
+      },
+      "tr": {
+        "expr": "trend(h, 4, 3)"
+      },
+      "pOld": {
+        "expr": "past(h, 100)"
+      }
+    },
+    "processes": [
+      {
+        "id": "grow",
+        "update": {
+          "x": "x + 10"
+        }
+      }
+    ],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {},
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    },
+    "history": {
+      "h": {
+        "of": "x",
+        "every": "2s",
+        "keep": "6s"
+      }
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "advance": 1
+    },
+    {
+      "advance": 1
+    },
+    {
+      "advance": 2
+    },
+    {
+      "advance": 4
+    },
+    {
+      "advance": 4
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "values": {
+          "p4": 0,
+          "d4": 0,
+          "tr": 0,
+          "pOld": 0
+        },
+        "history": {
+          "h": [
+            0
+          ]
+        }
+      },
+      {
+        "tick": 1,
+        "values": {
+          "x": 10,
+          "p4": 0,
+          "d4": 0,
+          "tr": 0
+        },
+        "history": {
+          "h": [
+            0
+          ]
+        }
+      },
+      {
+        "tick": 2,
+        "values": {
+          "x": 20,
+          "p4": 0,
+          "d4": 20,
+          "tr": 1,
+          "pOld": 0
+        },
+        "history": {
+          "h": [
+            0,
+            20
+          ]
+        }
+      },
+      {
+        "tick": 4,
+        "values": {
+          "x": 40,
+          "p4": 0,
+          "d4": 40
+        },
+        "history": {
+          "h": [
+            0,
+            20,
+            40
+          ]
+        }
+      },
+      {
+        "tick": 8,
+        "values": {
+          "x": 80,
+          "p4": 40,
+          "d4": 40,
+          "pOld": 20
+        },
+        "history": {
+          "h": [
+            20,
+            40,
+            60,
+            80
+          ]
+        }
+      },
+      {
+        "tick": 12,
+        "values": {
+          "x": 120,
+          "p4": 80,
+          "d4": 40,
+          "pOld": 60
+        },
+        "history": {
+          "h": [
+            60,
+            80,
+            100,
+            120
+          ]
+        }
+      }
+    ]
+  }
+}

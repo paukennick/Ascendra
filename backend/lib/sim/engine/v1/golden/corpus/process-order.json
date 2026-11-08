@@ -1,0 +1,191 @@
+{
+  "id": "process-order",
+  "spec": "5.3 Advance step 2: processes run in document order (b sees a's write); inside one process every right-hand side reads the same state (a swap swaps)",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "3s"
+    },
+    "params": {},
+    "state": {
+      "a": {
+        "type": "number",
+        "init": 1,
+        "min": -100,
+        "max": 100
+      },
+      "b": {
+        "type": "number",
+        "init": 10,
+        "min": -100,
+        "max": 100
+      },
+      "p": {
+        "type": "number",
+        "init": 1,
+        "min": -100,
+        "max": 100
+      },
+      "q": {
+        "type": "number",
+        "init": 2,
+        "min": -100,
+        "max": 100
+      }
+    },
+    "derived": {},
+    "processes": [
+      {
+        "id": "first",
+        "update": {
+          "a": "a + 1"
+        }
+      },
+      {
+        "id": "second",
+        "update": {
+          "b": "a * 10"
+        }
+      },
+      {
+        "id": "swap",
+        "update": {
+          "p": "q",
+          "q": "p"
+        }
+      }
+    ],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {},
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "advance": 1
+    },
+    {
+      "advance": 1
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "values": {
+          "a": 1,
+          "b": 10,
+          "p": 1,
+          "q": 2
+        }
+      },
+      {
+        "tick": 1,
+        "values": {
+          "a": 2,
+          "b": 20,
+          "p": 2,
+          "q": 1
+        }
+      },
+      {
+        "tick": 2,
+        "values": {
+          "a": 3,
+          "b": 30,
+          "p": 1,
+          "q": 2
+        }
+      }
+    ]
+  }
+}

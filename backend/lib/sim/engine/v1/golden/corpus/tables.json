@@ -1,0 +1,219 @@
+{
+  "id": "tables",
+  "spec": "4.1 Table: the first row whose when is true wins; its then writes happen together; text is logged; into receives the matched row index (-1 when none)",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 7,
+        "min": 0,
+        "max": 100
+      },
+      "status": {
+        "type": "enum",
+        "values": [
+          "none",
+          "low",
+          "mid",
+          "high"
+        ],
+        "init": "none"
+      },
+      "row": {
+        "type": "number",
+        "init": 0,
+        "min": -1,
+        "max": 10
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "apply",
+          "zero"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "apply": {
+        "label": "apply",
+        "group": "g",
+        "effects": [
+          {
+            "table": "band",
+            "into": "row"
+          }
+        ]
+      },
+      "zero": {
+        "label": "zero",
+        "group": "g",
+        "effects": [
+          {
+            "set": "x",
+            "to": "0"
+          },
+          {
+            "table": "band",
+            "into": "row"
+          }
+        ]
+      }
+    },
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    },
+    "tables": {
+      "band": {
+        "rows": [
+          {
+            "when": "x >= 10",
+            "then": {
+              "status": "'high'"
+            },
+            "text": "high at {x}"
+          },
+          {
+            "when": "x >= 5",
+            "then": {
+              "status": "'mid'"
+            },
+            "text": "mid at {x}"
+          },
+          {
+            "when": "x >= 1",
+            "then": {
+              "status": "'low'"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "apply"
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "zero"
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 2,
+        "values": {
+          "status": "mid",
+          "row": -1
+        },
+        "log": [
+          "0:apply",
+          "0:mid at 7",
+          "0:zero"
+        ]
+      }
+    ]
+  }
+}

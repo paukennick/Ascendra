@@ -1,0 +1,270 @@
+{
+  "id": "skip-interrupts",
+  "spec": "5.3 Skip: stepping stops early at an interruptsSkip trigger, an interruptsSkip timer, a prompt opening, a reasoning moment opening, or an ending; otherwise it reaches the target; the next command is stamped at the stop tick",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "40s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "derived": {},
+    "processes": [
+      {
+        "id": "grow",
+        "update": {
+          "x": "x + 1"
+        }
+      }
+    ],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "wait",
+          "quiet"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "wait": {
+        "label": "wait",
+        "group": "g",
+        "effects": [
+          {
+            "schedule": "far",
+            "after": "20s"
+          }
+        ]
+      },
+      "quiet": {
+        "label": "quiet",
+        "group": "g",
+        "effects": [
+          {
+            "schedule": "result",
+            "after": "4s"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "far": {
+        "label": "far",
+        "wait": {
+          "skipLabel": "far"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "log": "far"
+          }
+        ]
+      },
+      "result": {
+        "label": "result",
+        "instances": "one",
+        "interruptsSkip": true,
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "log": "result back"
+          }
+        ]
+      }
+    },
+    "triggers": [
+      {
+        "id": "alarm",
+        "when": "x >= 8",
+        "mode": "once",
+        "interruptsSkip": true,
+        "effects": [
+          {
+            "log": "Alarm: x high",
+            "kind": "alarm"
+          }
+        ]
+      }
+    ],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "wait"
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "quiet"
+      }
+    },
+    {
+      "command": {
+        "seq": 3,
+        "tick": 0,
+        "type": "skip",
+        "timer": "far",
+        "instance": 1,
+        "to": 20
+      },
+      "expectStop": 4
+    },
+    {
+      "command": {
+        "seq": 4,
+        "tick": 4,
+        "type": "skip",
+        "timer": "far",
+        "instance": 1,
+        "to": 20
+      },
+      "expectStop": 8
+    },
+    {
+      "command": {
+        "seq": 5,
+        "tick": 8,
+        "type": "skip",
+        "timer": "far",
+        "instance": 1,
+        "to": 20
+      },
+      "expectStop": 20
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 20,
+        "values": {
+          "x": 20
+        }
+      }
+    ],
+    "final": {
+      "tick": 20
+    },
+    "skips": [
+      {
+        "from": 0,
+        "to": 4,
+        "stoppedBy": "result"
+      },
+      {
+        "from": 4,
+        "to": 8,
+        "stoppedBy": "alarm"
+      },
+      {
+        "from": 8,
+        "to": 20,
+        "stoppedBy": null
+      }
+    ]
+  }
+}
