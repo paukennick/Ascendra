@@ -17,7 +17,8 @@ import { source } from "../sources";
 //   - Foundry deployment types: Global Standard (any region, pay per token),
 //     Data Zone Standard (within the US/EU/APAC data zone), Standard (within
 //     the geography), Global / Data Zone / Regional Provisioned (reserved
-//     PTUs), Global Batch (lower price, 24-hour target turnaround), Developer
+//     PTUs), Global Batch and Data Zone Batch (50% lower price, 24-hour
+//     target turnaround; Data Zone Batch stays within the data zone), Developer
 //     (24-hour lifetime, no SLA or data-residency guarantee).
 //   - Content Understanding: analyzers (prebuilt and custom), a field schema
 //     naming each field's name, description, type and generation method
@@ -102,8 +103,8 @@ export const AI901_LABS: SeedLabSet = {
             ),
             part(
               "Nightly summaries and evaluation",
-              "Chooses Global Batch for the nightly job (lower cost, 24-hour turnaround fits, noting batch processing may happen in any region so the data must be allowed to) and a Developer deployment for the one-day fine-tuned model evaluation (24-hour lifetime, no SLA).",
-              "Nightly job: Global Batch -- cheaper and completes within 24 hours, acceptable if the notes are allowed outside the EU (if not, use a Data Zone deployment instead). Fine-tune test: Developer deployment, which lasts 24 hours and has no SLA, fine for evaluation."
+              "Chooses Global Batch for the nightly job (lower cost, 24-hour turnaround fits, noting Global Batch may process in any region; Data Zone Batch (EU) keeps the same discount and processing inside the EU data zone, which suits notes that must stay in the EU) and a Developer deployment for the one-day fine-tuned model evaluation (24-hour lifetime, no SLA).",
+              "Nightly job: batch -- 50% cheaper and completes within 24 hours. Global Batch may process in any region, so it is acceptable only if the notes are allowed outside the EU; if they must stay in the EU, Data Zone Batch (EU data zone) gives the same discount with processing kept inside the EU. Fine-tune test: Developer deployment, which lasts 24 hours and has no SLA, fine for evaluation."
             ),
             part(
               "Generation settings",

@@ -348,8 +348,8 @@ export const GCPPDE_LABS: SeedLabSet = {
             ),
             part(
               "Masking for finance",
-              "Attaches a data-masking rule to the email column (email mask shows only the domain) and grants finance the Masked Reader role so they see the masked value rather than an error; fraud keeps the unmasked view.",
-              "Add a data policy with the email masking rule to the policy tag on email and grant the finance group BigQuery Masked Reader on it: finance sees j***@example.com-style values (domain only), fraud (Fine-Grained Reader) sees the full address, regional analysts see neither."
+              "Attaches a data-masking rule to the email column (the email mask replaces the username with XXXXX and keeps the domain) and grants finance the Masked Reader role so they see the masked value rather than an error; fraud keeps the unmasked view.",
+              "Add a data policy with the email masking rule to the policy tag on email and grant the finance group BigQuery Masked Reader on it: finance sees XXXXX@example.com (the username replaced, the domain kept), fraud (Fine-Grained Reader) sees the full address, regional analysts see neither."
             ),
             part(
               "Card numbers in free text",

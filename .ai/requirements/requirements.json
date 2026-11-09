@@ -5843,6 +5843,68 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-183",
+      "category": "content",
+      "title": "Content audit fixes: AWS, Azure and Google Cloud courses, and the GCP DevOps re-author to the guide live on 2026-11-23",
+      "description": "Nick 2026-11-09 'do the fixes' on the content accuracy audit (findings-aws.md, findings-azure-gcp.md). AWS: C1 the CLF-C02 support objective now lists customer service and communities, Basic Support, AWS Business Support+, AWS Enterprise Support and AWS Unified Operations (guide revision 1.3, 2026-10-29, re-read live; all four domains re-compared, weights 24/30/34/12 unchanged); M1 the SAP DR lab uses ARC Region switch plan evaluation and service quota checks instead of readiness checks (closed to new customers); M3 the DEA throttling numbers are consistent (about 1,500 writes/s, 80% to one key, 1,300 of 2,000 WCU consumed); m1 Large Bandwidth Tunnels (5 Gbps), m3 regional NAT gateways need no public subnet, m4 air-gapped vault customer managed key option, m5 visibility timeout at least 6x the function timeout, m6 2,557 days, m7 'Amazon Quick' in CLF and SAA (DEA and DOP guides still say QuickSight, so unchanged). M2, m2 and m8 are generated lessons, left to another agent. Azure: M1 AZ-104 'Configuring Azure Disk Encryption for virtual machines'; M2 DP-300 'secure enclaves' and its outline marked current (Skills measured as of October 27, 2026); minor Hyperscale replicas, Azure SQL log backups about every 10 minutes, AI-901 Data Zone Batch. GCP: C1 the GKE Pod range key now requires max Pods per node 32 or fewer with a /18 (or a /16 at the default 110) and rejects /19; the private services access range moved out of a regional block; M4 impersonation logging needs IAM Data Access audit logs; M3 GCPDEVOPS re-authored to the new guide (18/30/18/22/12 with the new agent, MCP, NCC, short-lived credential, feedback-loop and token-cost topics) as new units at sort_order 5-9, the old five units retired at 2026-11-23T12:00Z, effectiveDate 2026-11-23, all 11 labs re-checked and pointed at the new units (two re-pointed); minor Cloud Run concurrency 80 x vCPU (gcloud/Terraform), BigQuery email mask XXXXX@domain, seven dead GCP guide URLs replaced with the live PDFs, PCA 'Gemini Enterprise Agent Platform (formerly Vertex AI)'. The AZ-104 extra blob soft-delete objective is left in place: removing it would shift the sort order learners' mastery is matched on.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/aws-ans.ts",
+        "backend/supabase/seed/labs/aws-dea.ts",
+        "backend/supabase/seed/labs/aws-dva.ts",
+        "backend/supabase/seed/labs/aws-sap.ts",
+        "backend/supabase/seed/labs/aws-soa.ts",
+        "backend/supabase/seed/labs/awssaa.ts",
+        "backend/supabase/seed/labs/gcp-ace.ts",
+        "backend/supabase/seed/labs/gcp-dev.ts",
+        "backend/supabase/seed/labs/gcp-devops.ts",
+        "backend/supabase/seed/labs/gcp-net.ts",
+        "backend/supabase/seed/labs/gcp-pca.ts",
+        "backend/supabase/seed/labs/gcp-pde.ts",
+        "backend/supabase/seed/labs/microsoft-ai901.ts",
+        "backend/supabase/seed/labs/microsoft-az104.ts",
+        "backend/supabase/seed/labs/microsoft-az305.ts",
+        "backend/supabase/seed/labs/microsoft-dp300.ts",
+        "backend/lib/labs-audit-cloud.test.ts",
+        ".ai/requirements/requirements.json",
+        ".ai/failures/failure-ledger.json",
+        ".ai/project-map.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "CLF support objective matches the current CLF-C02 guide",
+        "SAP DR lab recommends ARC Region switch plan evaluation, not readiness checks",
+        "DEA throttling numbers are internally consistent",
+        "GKE Pod range key matches GKE's per-node CIDR rule and rejects a /19",
+        "AZ-104 and DP-300 objectives match the live study guides at the same sort order",
+        "GCPDEVOPS active units are the guide live on 2026-11-23 at 18/30/18/22/12; the old units stay, retired from 2026-11-23T12:00Z; all 11 labs sit on active objectives at the hybrid density 2/3/2/2/2",
+        "No GCP track links a guide URL that returns 404"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (includes lib/labs-audit-cloud.test.ts, catalog blueprints and the lab density/source tests)",
+        "npm run test:db on a fresh Postgres 16 with all migrations, seed run twice",
+        "seed from origin/master then this branch: GCPDEVOPS old labs retired, new labs active",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Must merge before 2026-11-23 for the DevOps switch to land on time",
+        "Until 2026-11-23T12:00Z GCPDEVOPS lists both unit sets (as AWSSAP did for SAP-C03); exam domains and readiness use the new units now",
+        "The 11 DevOps labs move to new objective rows: earlier lab runs stay on the retired copies, so a learner who started one sees a fresh lab",
+        "The retired DevOps units' titles gain '(guide before November 23, 2026)' because unit titles must be unique and three section names are unchanged",
+        "Changed labs reset to needs_expert_review on the next seed",
+        "AZ-104 keeps one objective (blob soft delete) that the guide does not list"
+      ]
     }
   ]
 }

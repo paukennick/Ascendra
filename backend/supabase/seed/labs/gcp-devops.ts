@@ -3,14 +3,22 @@ import { source } from "../sources";
 
 // REQ-157: Google Cloud Professional Cloud DevOps Engineer.
 //
-// Aligned to the Professional Cloud DevOps Engineer exam guide (PDF, read
-// 2026-11-07): five sections at 20/25/18/25/12. The current PDF says a new
-// guide applies to exams taken "on or after November 23" (no year, no link
-// found); the repo's outline matches the PDF that is live today, and that
-// note is reported to the lead rather than acted on here. SRE practice is
-// the heart of this exam, so the SLO and error-budget labs show the
-// arithmetic and every number is checked.
-// Density (docs/labs.md, policy "hybrid"): 2 / 3 / 2 / 2 / 2.
+// Aligned to the Professional Cloud DevOps Engineer exam guide live on
+// 2026-11-23 (112326_..._exam_guide_english.pdf, read 2026-11-09): five
+// sections at 18/30/18/22/12. The labs were first written (2026-11-07) to the
+// guide before it (20/25/18/25/12); on 2026-11-09 all 11 were re-checked
+// against the new outline. Nine map to an objective worded the same in the
+// new guide. Two were re-pointed: troubleshoot-failed-rollout, whose old
+// objective ("Troubleshooting and mitigating deployment issues") the new
+// section 2 drops, now sits on 2.3 configuration and secret management -- its
+// root cause, fix and prevention are all a missing Secret Manager secret and
+// its Workload Identity access; and error-budget-policy-case moves to the
+// reworded 3.1 error-budget objective (Cloud Service Mesh, Cloud Run and
+// Cloud Monitoring definitions). SRE practice is the heart of this exam, so
+// the SLO and error-budget labs show the arithmetic and every number is
+// checked.
+// Density (docs/labs.md, policy "hybrid"): 2 / 3 / 2 / 2 / 2, unchanged
+// under the new weights.
 //
 // Figures, verified 2026-11-07:
 //   - Burn-rate alerting for a 30-day SLO: 14.4x over 1 h (2% of budget),
@@ -33,7 +41,8 @@ import { source } from "../sources";
 //     (docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview).
 //   - Spot VMs up to 91% off, preemption at any time, no SLA
 //     (docs.cloud.google.com/compute/docs/instances/spot).
-//   - Cloud Run concurrency default 80, up to 1,000
+//   - Cloud Run concurrency default 80 in the console, 80 x vCPUs for a new
+//     service created with gcloud or Terraform; up to 1,000
 //     (docs.cloud.google.com/run/docs/about-concurrency).
 // Commands were checked against the installed Google Cloud SDK (570.0.0).
 
@@ -53,7 +62,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
   ],
   labs: [
     // ----------------------------------------------------------------------
-    // Bootstrapping and Maintaining a Google Cloud Organization (20%)
+    // Establishing and Bootstrapping Foundational Infrastructure and Organizational Governance (18%)
     // ----------------------------------------------------------------------
     {
       slug: "iam-and-org-policy-baseline",
@@ -130,7 +139,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       ],
     },
     // ----------------------------------------------------------------------
-    // Building and Implementing CI/CD Pipelines (25%)
+    // Building, Implementing, and Maintaining CI/CD Pipelines (30%)
     // ----------------------------------------------------------------------
     {
       slug: "deployment-strategy-per-service",
@@ -214,7 +223,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
     },
     {
       slug: "troubleshoot-failed-rollout",
-      objective: "Troubleshooting and mitigating deployment issues",
+      objective: "Managing configuration and secrets: Secret Manager, Certificate Manager, Parameter Manager, Workload Identity Federation",
       kind: "case",
       title: "Troubleshoot and mitigate a failing production rollout",
       brief:
@@ -308,7 +317,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
     },
     {
       slug: "error-budget-policy-case",
-      objective: "Defining error budgets, including Cloud Service Mesh's own definitions",
+      objective: "Defining error budgets: Cloud Service Mesh, Cloud Run and Cloud Monitoring definitions",
       kind: "case",
       title: "Manage an error budget through a bad month",
       brief:
@@ -366,7 +375,7 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
       ],
     },
     // ----------------------------------------------------------------------
-    // Implementing Observability Practices and Troubleshooting Issues (25%)
+    // Implementing Observability Practices and Troubleshooting Issues (22%)
     // ----------------------------------------------------------------------
     {
       slug: "cut-logging-cost-without-losing-evidence",
@@ -502,8 +511,8 @@ export const GCPDEVOPS_LABS: SeedLabSet = {
             ),
             part(
               "Cloud Run internal tool",
-              "Raises concurrency from 1 toward the default of 80 (the tool is light), removes or reduces minimum instances (200 requests an hour do not justify five warm instances) and switches to request-based CPU allocation (--cpu-throttling) unless background work needs the CPU, checking cold-start latency against what the tool's users tolerate.",
-              "Concurrency 1 forces one instance per request; set it to the default of 80 (or 20 if the tool is heavy) so a handful of instances cover everything. Drop min-instances from 5 to 0 or 1; 200 requests an hour do not need five idle instances. Use request-based CPU allocation (--cpu-throttling) so CPU is billed only while serving, unless the tool does background work after responding. Check: cold-start latency on the first request after idle is acceptable to office users; if not, keep min-instances=1."
+              "Raises concurrency from 1 toward the default (80 per vCPU for a service created with gcloud or Terraform, 80 in the console; the tool is light), removes or reduces minimum instances (200 requests an hour do not justify five warm instances) and switches to request-based CPU allocation (--cpu-throttling) unless background work needs the CPU, checking cold-start latency against what the tool's users tolerate.",
+              "Concurrency 1 forces one instance per request; set it to the default -- 80 for a 1-vCPU service (gcloud and Terraform default to 80 x vCPUs, the console to 80) -- or 20 if the tool is heavy, so a handful of instances cover everything. Drop min-instances from 5 to 0 or 1; 200 requests an hour do not need five idle instances. Use request-based CPU allocation (--cpu-throttling) so CPU is billed only while serving, unless the tool does background work after responding. Check: cold-start latency on the first request after idle is acceptable to office users; if not, keep min-instances=1."
             ),
             part(
               "Compute Engine dev fleet",

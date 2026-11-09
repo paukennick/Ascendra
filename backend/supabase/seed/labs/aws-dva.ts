@@ -190,8 +190,8 @@ export const AWSDVA_LABS: SeedLabSet = {
             ),
             part(
               "Visibility timeout and retention",
-              "Sets the visibility timeout longer than the worst-case processing time (noting the 30-second default and 12-hour maximum, and that for a Lambda consumer it should exceed the function timeout) and a retention period that covers an outage (default 4 days, up to 14).",
-              "Visibility timeout well above the longest provider call, for example 2 minutes when the function timeout is 30 seconds (default is 30 seconds, maximum 12 hours; with a Lambda consumer it must be longer than the function's timeout). Message retention raised from the 4-day default toward the 14-day maximum so a long provider outage loses nothing."
+              "Sets the visibility timeout longer than the worst-case processing time (noting the 30-second default and 12-hour maximum, and that for a Lambda consumer AWS recommends at least six times the function timeout, plus any batching window) and a retention period that covers an outage (default 4 days, up to 14).",
+              "Visibility timeout well above the longest provider call: with a 30-second function timeout, set at least 3 minutes, because AWS recommends at least six times the function timeout (plus the batching window, if one is set) so retries after throttling do not make a message visible again while it is still being processed (default is 30 seconds, maximum 12 hours). Message retention raised from the 4-day default toward the 14-day maximum so a long provider outage loses nothing."
             ),
           ],
         },
