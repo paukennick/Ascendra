@@ -30,6 +30,10 @@ const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
   ICA: { answers: /istioctl|istio\.io|PeerAuthentication|AuthorizationPolicy|VirtualService|DestinationRule|Gateway/, shown: /\$ istioctl|\$ kubectl/ },
   KCA: { answers: /kyverno|ClusterPolicy|PolicyException|CleanupPolicy|validate:|mutate:|generate:/, shown: /\$ kubectl|\$ kyverno|\$ helm|kind: ClusterPolicy|validationFailureAction/ },
   CBA: { answers: /yarn |backstage|app-config|catalog-info|createPlugin|EntityLayout|Dockerfile|FROM /, shown: /\$ yarn|\$ kubectl|\$ git|catalog-info|apiVersion: backstage|Pull request|\/\/ plugins\// },
+  // CNPA is multiple-choice about platform engineering as a practice; its labs apply the practice to a fictional platform.
+  CNPA: { answers: /Argo CD|Flux|Kyverno|Crossplane|Backstage|OpenTelemetry|Prometheus|ResourceQuota|NetworkPolicy|CustomResourceDefinition|CRD|PolicyReport|DORA|SLO|golden path/, shown: /\$ |Timeline from|Inventory gathered|Proposals:|Catalog audit:|^#!\/bin\/bash/m },
+  // CNPE is performance-based: labs write real manifests and read real cluster output.
+  CNPE: { answers: /kubectl|apiVersion:|kind: (Application|AppProject|Pipeline|Task|PipelineRun|Rollout|AnalysisTemplate|CustomResourceDefinition|Composition|CompositeResourceDefinition|ServiceMonitor|PrometheusRule|AlertmanagerConfig|PeerAuthentication|AuthorizationPolicy|NetworkPolicy|ClusterPolicy|ResourceQuota|LimitRange|PriorityClass|HorizontalPodAutoscaler)/, shown: /\$ kubectl|\$ curl|\$ tkn|\$ crossplane|\$ istioctl|ALERT  / },
 };
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON, ...CONCEPTUAL, ...Object.keys(TOOLING)] as const;
@@ -211,6 +215,34 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       activeUnits(tracks.get("CBA")!).map((u) => [u.title, u.weight]),
       [["Backstage Development Workflow", 24], ["Backstage Infrastructure", 22], ["Backstage Catalog", 22], ["Customizing Backstage", 32]]
     );
+    assert.deepEqual(
+      activeUnits(tracks.get("CNPA")!).map((u) => [u.title, u.weight]),
+      [
+        ["Platform Engineering Core Fundamentals", 36],
+        ["Platform Observability, Security, and Conformance", 20],
+        ["Continuous Delivery & Platform Engineering", 16],
+        ["Platform APIs and Provisioning Infrastructure", 12],
+        ["IDPs and Developer Experience", 8],
+        ["Measuring your Platform", 8],
+      ]
+    );
+    const cnpa = tracks.get("CNPA")!.credential!;
+    assert.equal(cnpa.durationMinutes, 120);
+    assert.match(cnpa.passingScorePolicy ?? "", /75%/);
+    assert.deepEqual(
+      activeUnits(tracks.get("CNPE")!).map((u) => [u.title, u.weight]),
+      [
+        ["Platform Architecture and Infrastructure", 15],
+        ["GitOps and Continuous Delivery", 25],
+        ["Platform APIs and Self-Service Capabilities", 25],
+        ["Observability and Operations", 20],
+        ["Security and Policy Enforcement", 15],
+      ]
+    );
+    const cnpe = tracks.get("CNPE")!.credential!;
+    assert.equal(cnpe.durationMinutes, 120);
+    assert.match(cnpe.passingScorePolicy ?? "", /64%/);
+    assert.match(cnpe.questionFormat ?? "", /performance-based/);
     for (const code of ["PCA", "OTCA", "CGOA", "CAPA", "CCA", "KCA", "CBA"]) {
       const c = tracks.get(code)!.credential!;
       assert.equal(c.durationMinutes, 90, code);

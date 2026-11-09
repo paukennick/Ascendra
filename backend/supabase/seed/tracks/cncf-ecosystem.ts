@@ -790,4 +790,205 @@ export const CBA_TRACK: SeedTrack = {
   ],
 };
 
-export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK, CCA_TRACK, ICA_TRACK, KCA_TRACK, CBA_TRACK];
+// ---------------------------------------------------------------------------
+// Certified Cloud Native Platform Engineering Associate (CNPA)
+// Multiple choice, 120 minutes (the one multiple-choice exam with a longer
+// sitting, per the LF FAQ), $250, beginner. Platform Engineering Core
+// Fundamentals 36%, Platform Observability, Security, and Conformance 20%,
+// Continuous Delivery & Platform Engineering 16%, Platform APIs and
+// Provisioning Infrastructure 12%, IDPs and Developer Experience 8%,
+// Measuring your Platform 8% (CNPA_Curriculum.pdf).
+// ---------------------------------------------------------------------------
+export const CNPA_TRACK: SeedTrack = {
+  code: "CNPA",
+  title: "Certified Cloud Native Platform Engineering Associate (CNPA) Coach",
+  description:
+    "CNPA: what a cloud native platform is and how it is built. Declarative resource management, DevOps and CI/CD foundations, platform architecture and goals, observability, secure service communication and policy, GitOps and delivery, Kubernetes APIs and operators as the platform's interface, developer portals and self-service, and how to measure a platform with DORA and productivity metrics.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineering-associate-cnpa/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cnpa",
+    credentialName: "Certified Cloud Native Platform Engineering Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineering-associate-cnpa/",
+    basis: "vendor_exam",
+    examCode: "CNPA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CNPA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Beginner level: for engineers moving into platform teams and for developers and managers who work with an internal platform.",
+    durationMinutes: 120,
+    questionFormat: "Online, proctored, multiple-choice exam, 120 minutes (the Linux Foundation multiple-choice FAQ gives CNPA 120 minutes rather than the usual 90).",
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "Platform Engineering Core Fundamentals",
+      weight: 36,
+      gate: "Given an organisation's delivery problems, explain what a platform is for, how declarative management, DevOps practice, environments and CI/CD fit together, and sketch the platform's architecture and capabilities.",
+      objectives: [
+        "Declarative resource management: describing desired state, reconciliation, idempotency, and why platforms are built from declarative APIs",
+        "DevOps practices in platform engineering: shared ownership, automation, feedback loops, and how a platform team serves product teams",
+        "Application environments and infrastructure concepts: dev, staging and production, ephemeral environments, environment parity and infrastructure as code",
+        "Design a platform architecture and its capabilities: compute, networking, storage, identity, delivery, observability and governance as platform capabilities, and the layering from infrastructure to developer interface",
+        "Platform engineering goals, objectives and approaches: reducing cognitive load, paved roads, golden paths, platform as a product, and the CNCF Platforms white paper's capabilities",
+        "Continuous integration fundamentals: build, test and artifact publication, trunk-based development and pipeline design",
+        "Choose continuous delivery and GitOps approaches: deployment pipelines, environments promoted through Git, and the role of reconcilers",
+      ],
+    },
+    {
+      title: "Platform Observability, Security, and Conformance",
+      weight: 20,
+      gate: "Given a platform, design how it observes itself and its tenants, secures service-to-service traffic and the pipeline, and enforces policy as a built-in capability.",
+      objectives: [
+        "Observability fundamentals for platforms: traces, metrics, logs and events, OpenTelemetry and Prometheus as platform capabilities, and dashboards per tenant",
+        "Secure service communication: mTLS, service identity, service meshes and network policy as platform-provided security",
+        "Apply policy engines for platform governance: Kyverno, OPA Gatekeeper and ValidatingAdmissionPolicy, policy as code and conformance reporting",
+        "Kubernetes security essentials for a platform: RBAC, Pod Security Standards, Secrets management, namespaces as tenancy boundaries",
+        "Secure CI/CD pipelines: supply chain controls, signed artifacts, SBOMs, least-privilege pipeline identities and secret handling",
+      ],
+    },
+    {
+      title: "Continuous Delivery & Platform Engineering",
+      weight: 16,
+      gate: "Given a team's pipeline and incidents, explain how CI, CD and GitOps relate, design the GitOps workflow for application environments, and describe the platform's role in incident response.",
+      objectives: [
+        "Continuous integration pipelines overview: stages, runners, caching, test strategy and artifact promotion",
+        "Plan incident response in platform engineering: on-call for the platform, runbooks, blameless reviews and error budgets shared with tenants",
+        "CI/CD relationship fundamentals: where integration ends and delivery begins, and how platforms expose both",
+        "GitOps basics and workflows: desired state in Git, reconcilers (Argo CD, Flux), pull-based delivery and drift correction",
+        "Design GitOps for application environments: repository structure, promotion between environments, and progressive delivery",
+      ],
+    },
+    {
+      title: "Platform APIs and Provisioning Infrastructure",
+      weight: 12,
+      gate: "Given a self-service need, explain the Kubernetes reconciliation model, design the custom API (CRD) a platform would offer, and describe how an operator or Crossplane provisions the infrastructure behind it.",
+      objectives: [
+        "The Kubernetes reconciliation loop: controllers, desired versus observed state, and why it is the platform's engine",
+        "Design APIs for self-service platforms with CustomResourceDefinitions: schema, validation, status, and versioning",
+        "Provision infrastructure with Kubernetes: Crossplane compositions, Cluster API and provider operators as declarative infrastructure",
+        "Apply the Kubernetes operator pattern for integration: operators that reconcile custom resources into applications, databases and external systems",
+      ],
+    },
+    {
+      title: "IDPs and Developer Experience",
+      weight: 8,
+      gate: "Given developers who struggle to find and use platform capabilities, design the developer-facing layer: simplified access, a service catalog and a portal, and say where AI assistance fits.",
+      objectives: [
+        "Simplified access to platform capabilities: golden paths, templates, CLIs and abstractions that hide complexity without removing control",
+        "Design API-driven service catalogs: cataloguing services, ownership and dependencies, and exposing platform services as catalog entries",
+        "Developer portals for platform adoption: Backstage and alternatives, templates (scaffolder), documentation and self-service actions",
+        "AI/ML in platform automation: assistants for troubleshooting, generation of configuration, and the guardrails such automation needs",
+      ],
+    },
+    {
+      title: "Measuring your Platform",
+      weight: 8,
+      gate: "Given a platform initiative, choose the metrics that show whether it works -- efficiency, productivity and DORA -- and explain how to collect and present them honestly.",
+      objectives: [
+        "Platform efficiency and team productivity: adoption, time to first deploy, support load, cost per workload and developer satisfaction surveys",
+        "Measure platform initiatives with DORA metrics: deployment frequency, lead time for changes, change failure rate and time to restore, and how a platform moves them",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Certified Cloud Native Platform Engineer (CNPE)
+// Performance-based, 2 hours, $445, intermediate; pass mark 64% (LF CNPE
+// FAQ). Platform Architecture and Infrastructure 15%, GitOps and Continuous
+// Delivery 25%, Platform APIs and Self-Service Capabilities 25%,
+// Observability and Operations 20%, Security and Policy Enforcement 15%
+// (CNPE_Curriculum.pdf). The curriculum lists example tools: Argo,
+// Crossplane, Flagger, Flux, Gatekeeper, Grafana, Istio, Jaeger, Kyverno,
+// Linkerd, OPA, OpenCost, OpenTelemetry, Prometheus, Tekton.
+// ---------------------------------------------------------------------------
+export const CNPE_TRACK: SeedTrack = {
+  code: "CNPE",
+  title: "Certified Cloud Native Platform Engineer (CNPE) Coach",
+  description:
+    "CNPE: the hands-on platform engineering exam. Build the platform's foundations and cost controls, implement GitOps and CI/CD with progressive delivery, design CRDs, operators and self-service workflows, run observability and incident diagnosis, and enforce security and policy -- using the CNCF tools the exam names (Argo, Flux, Crossplane, Kyverno, OPA Gatekeeper, Istio, Linkerd, Prometheus, Grafana, OpenTelemetry, Jaeger, Tekton, Flagger, OpenCost) with their documentation open.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineer-cnpe/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cnpe",
+    credentialName: "Certified Cloud Native Platform Engineer",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineer-cnpe/",
+    basis: "vendor_exam",
+    examCode: "CNPE",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CNPE_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites, but intermediate level: comfortable operating Kubernetes and completing tasks with unfamiliar CNCF tools from their documentation. The curriculum lists the example tools candidates may meet.",
+    durationMinutes: 120,
+    questionFormat: "Online, proctored, performance-based: multiple tasks solved in a Linux-based remote desktop using the terminal and web interfaces, with the tools' documentation available; 2 hours.",
+    passingScorePolicy: "64% or above to pass (Linux Foundation CNPE FAQ). Certification valid for 2 years; one retake included.",
+  },
+  units: [
+    {
+      title: "Platform Architecture and Infrastructure",
+      weight: 15,
+      gate: "Given a platform's workloads and bills, apply architecture best practices for networking, storage and compute, size and scale with cost data, and tune multi-tenant resource usage.",
+      objectives: [
+        "Apply platform architecture best practices for networking, storage and compute: node pools, storage classes, ingress and network policy as platform defaults",
+        "Use cost management solutions for right-sizing and scaling: OpenCost allocation by namespace and label, requests versus usage, and autoscaling decisions",
+        "Optimize multi-tenancy resource usage: namespaces, ResourceQuotas, LimitRanges, priority classes and fair sharing across tenants",
+      ],
+    },
+    {
+      title: "GitOps and Continuous Delivery",
+      weight: 25,
+      gate: "Given application and infrastructure repositories, implement GitOps delivery with Argo CD or Flux, build a CI pipeline integrated with the cluster, and deploy with a progressive strategy that can roll back on metrics.",
+      objectives: [
+        "Implement GitOps workflows for application and infrastructure deployment: Argo CD Applications or Flux Kustomizations and HelmReleases, sync and health, and drift correction",
+        "Build and configure CI/CD pipelines integrated with Kubernetes: Tekton Pipelines and Tasks (or Argo Workflows), image build and push, and updating desired state in Git",
+        "Implement progressive delivery strategies for applications, such as blue/green or canary with Argo Rollouts or Flagger, gated by metrics",
+      ],
+    },
+    {
+      title: "Platform APIs and Self-Service Capabilities",
+      weight: 25,
+      gate: "Given a self-service requirement, design and create the CRD, implement the workflow that provisions it through platform APIs, and wire operators or automation frameworks to fulfil it.",
+      objectives: [
+        "Design and create CustomResourceDefinitions for platform services: OpenAPI schemas, validation rules, defaults, status subresources and versions",
+        "Implement workflows for self-service provisioning using platform APIs: claims and compositions in Crossplane, or custom resources reconciled by operators",
+        "Use Kubernetes operators for platform automation and integration: installing operators, configuring their custom resources and reading their status",
+        "Use automation frameworks for self-service provisioning: Crossplane providers and compositions, Argo Workflows or Tekton as provisioning engines, and templates in a developer portal",
+      ],
+    },
+    {
+      title: "Observability and Operations",
+      weight: 20,
+      gate: "Given a platform to run, implement monitoring, alerting, logging and tracing, measure platform efficiency, and diagnose and remediate an incident scenario from the telemetry.",
+      objectives: [
+        "Implement monitoring, alerting, logging and tracing solutions: Prometheus and Alertmanager rules, Grafana dashboards, log collection, and OpenTelemetry with Jaeger",
+        "Measure and improve platform efficiency using deployment metrics and performance indicators: DORA metrics from pipeline and GitOps data, SLOs and cost",
+        "Diagnose and remediate platform issues and incident scenarios: from alert to cause across cluster, delivery and tenant layers, and the fix with verification",
+      ],
+    },
+    {
+      title: "Security and Policy Enforcement",
+      weight: 15,
+      gate: "Given security requirements, configure secure service-to-service communication, apply RBAC and controls across platform resources, generate audit evidence, and enforce policy at admission and in pipelines.",
+      objectives: [
+        "Configure secure service-to-service communication: mesh mTLS (Istio, Linkerd) and NetworkPolicy",
+        "Apply RBAC and security controls across platform resources: roles for platform and tenant personas, Pod Security Admission and Secrets handling",
+        "Generate audit trails and enforce policy compliance: SBOMs, compliance reports, audit logging and policy reports",
+        "Use policy engines and admission controllers for governance: Kyverno and OPA Gatekeeper policies, ValidatingAdmissionPolicy, and exceptions",
+        "Integrate security scanning and compliance checks into deployment pipelines: image and manifest scanning, signature verification, and gates in Tekton or Argo",
+      ],
+    },
+  ],
+};
+
+export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK, CCA_TRACK, ICA_TRACK, KCA_TRACK, CBA_TRACK, CNPA_TRACK, CNPE_TRACK];
