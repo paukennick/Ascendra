@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+// REQ-175: first, so the API client knows this build before any request.
+import "@/updates/appIdentity";
+import { useEffect, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -23,6 +25,9 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
 import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { UpdateRequired } from "@/components/UpdateRequired";
+import { registerUpdateRequiredHook } from "@/api/client";
+import type { UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
@@ -78,6 +83,12 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const { updateReady, applyUpdate, dismiss } = useAppUpdates();
+  const [updateRequired, setUpdateRequired] = useState<UpdateRequiredInfo | null>(null);
+
+  useEffect(() => {
+    registerUpdateRequiredHook(setUpdateRequired);
+    return () => registerUpdateRequiredHook(null);
+  }, []);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -119,6 +130,7 @@ function RootNavigator() {
       {updateReady && webIdleWarningSecondsLeft === null ? (
         <UpdateBanner onApply={applyUpdate} onDismiss={dismiss} />
       ) : null}
+      {updateRequired ? <UpdateRequired info={updateRequired} /> : null}
     </>
   );
 }
