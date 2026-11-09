@@ -21,6 +21,13 @@
 
 import { source, type SourceRef } from "../sources";
 import type { SeedLabSet } from "./types";
+import {
+  ACS_FIELD_TRIAGE_2021,
+  AHA_2025_ADULT_BLS,
+  AHA_2025_PEDIATRIC_BLS,
+  NASEMSO_MODEL_GUIDELINES_V3,
+  SCOPE_OF_PRACTICE_2019,
+} from "./ems-sources";
 import { ADA_HYPOGLYCEMIA, CDC_EBP, CDC_HAND_HYGIENE, CDC_TBP, ISMP_ABBREVIATIONS, NCSBN_ANA_DELEGATION } from "./nursing-sources";
 
 const CHECKED = "2026-11-08";
@@ -208,6 +215,35 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pn-hypoglycemia-case": [ADA_HYPOGLYCEMIA],
     "pn-trends-against-baseline": { none: CASE_DATA },
     "pn-anaphylaxis-first-dose": { none: "Names intramuscular epinephrine as the first drug without a dose; the other numbers are the client's own readings." },
+  },
+  // REQ-174: NREMT EMT. Sources in ems-sources.ts (read 2026-11-09). The
+  // Scope of Practice Model is a "reference" (12-month re-check) and backs
+  // what the EMT may do; the clinical values rest on clinical guidelines.
+  NREMTEMT: {
+    "emt-mci-minibus-rollover": [NASEMSO_MODEL_GUIDELINES_V3],
+    "emt-field-triage-destinations": [ACS_FIELD_TRIAGE_2021],
+    "emt-arrest-in-a-restroom": [AHA_2025_ADULT_BLS, NASEMSO_MODEL_GUIDELINES_V3],
+    "emt-chest-pain-own-nitro": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "emt-stroke-woke-with-symptoms": [NASEMSO_MODEL_GUIDELINES_V3],
+    "emt-hypoglycemia-reassessment": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "emt-chainsaw-thigh-bleed": [NASEMSO_MODEL_GUIDELINES_V3, ACS_FIELD_TRIAGE_2021],
+    "emt-peanut-anaphylaxis-child": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "emt-pcr-narrative": { none: CASE_DATA },
+    "emt-refusal-after-crash": [NASEMSO_MODEL_GUIDELINES_V3],
+  },
+  // REQ-174: NREMT EMR, sources as for NREMTEMT.
+  NREMTEMR: {
+    "emr-mci-grandstand-collapse": [NASEMSO_MODEL_GUIDELINES_V3],
+    "emr-wires-down-crash": { none: "Quotes no clinical threshold or dose; electrical-hazard practice not sourced this pass (listed for the EMS reviewer)." },
+    "emr-arrest-at-the-gym": [AHA_2025_ADULT_BLS],
+    "emr-choking-infant": [AHA_2025_PEDIATRIC_BLS],
+    "emr-opioid-naloxone-intranasal": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "emr-older-fall-anticoagulant": [ACS_FIELD_TRIAGE_2021],
+    "emr-heat-stroke-runner": [NASEMSO_MODEL_GUIDELINES_V3],
+    "emr-glass-door-forearm": [NASEMSO_MODEL_GUIDELINES_V3],
+    "emr-precipitous-delivery": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "emr-handoff-to-crew": { none: CASE_DATA },
+    "emr-injured-child-no-parent": [NASEMSO_MODEL_GUIDELINES_V3],
   },
   NASMCPT: {
     "energy-systems-by-activity": { none: "Energy-system durations follow the NASM CPT 7 textbook; no official NASM page states them (not verified)." },

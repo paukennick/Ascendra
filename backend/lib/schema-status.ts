@@ -328,6 +328,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
   },
   {
+    // REQ-174: the NREMT (EMR, EMT, AEMT, Paramedic) tracks hang off this
+    // row; the seed resolves it by slug and fails without it.
+    migration: "061_ems_taxonomy.sql",
+    what: "Emergency Medical Services subcategory under Healthcare & Nursing (seed)",
+    sql: `select exists(select 1 from education_subcategories s join education_categories c on c.id = s.category_id
+                     where c.slug = 'healthcare-nursing' and s.slug = 'emergency-medical-services') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

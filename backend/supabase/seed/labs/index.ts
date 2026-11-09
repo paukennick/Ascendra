@@ -104,6 +104,9 @@ import { EX280_LABS } from "./k8s-ex280";
 import { GCPNET_LABS } from "./gcp-net";
 import { AI901_LABS } from "./microsoft-ai901";
 import { TECHPLUS_LABS } from "./comptia-techplus";
+// REQ-174: NREMT EMS courses.
+import { NREMTEMT_LABS } from "./ems-emt";
+import { NREMTEMR_LABS } from "./ems-emr";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -213,4 +216,6 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   GCPNET_LABS,
   AI901_LABS,
   TECHPLUS_LABS,
+  NREMTEMT_LABS,
+  NREMTEMR_LABS,
 ].map(withValueSources);

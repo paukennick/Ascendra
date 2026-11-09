@@ -186,6 +186,7 @@ so leaving it in place is always safe for the old code):
 | 057 | education_categories row cloud-native-certifications and its three education_subcategories rows (cncf-certifications, container-tooling, red-hat-openshift) | nothing learner-owned: the taxonomy rows the containers and Kubernetes tracks hang off |
 | 058 | verified_discounts, discount_offer_codes | verified-discount results and the App Store offer-code pool (codes already handed out stay valid in the App Store; re-import the unissued ones after rolling forward) |
 | 059 | `study_notice` rows in legal_acceptances; the document check returns to 027's `terms`/`privacy` | which learners accepted the study notice (they accept it again after rolling forward) |
+| 061 | education_subcategories row emergency-medical-services (delete the four NREMT tracks first: their subject_tracks rows point at it) | nothing learner-owned beyond the EMS courses' own progress: the taxonomy row the NREMT tracks hang off |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -280,6 +281,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 057 | REQ-164: the Cloud Native & Kubernetes category and its `cncf-certifications`, `container-tooling` and `red-hat-openshift` subcategories (upserts into education_categories and education_subcategories, same shape as 019). Apply BEFORE `npm run seed`: the containers and Kubernetes tracks resolve `container-tooling` / `cncf-certifications` / `red-hat-openshift` by slug and the seed fails without them. Nothing is backfilled | instant | no | taxonomy rows only |
 | 058 | REQ-166: `verified_discounts` (only the result of a group verification: account, group, provider, verified, expires, the provider's opaque subject id) and `discount_offer_codes` (the App Store one-time offer-code pool), RLS on. Additive; apply BEFORE the backend deploy: the account export reads both and `/api/health` probes them, even while `VERIFIED_DISCOUNTS_ENABLED` is off. 057 is the Kubernetes taxonomy migration (#66); either order applies cleanly | instant (empty tables) | no | none |
 | 059 | REQ-165: widens the `legal_acceptances` document check to add `study_notice` (named `legal_acceptances_document_059`, added NOT VALID then validated). Apply BEFORE the backend deploy: the launch flow records the notice and `/api/health` probes the constraint. Nothing is backfilled | instant | no | ACCESS EXCLUSIVE on legal_acceptances for the constraint swap only (5 s lock_timeout) |
+| 061 | REQ-174: the `emergency-medical-services` subcategory under Healthcare & Nursing (one upsert into education_subcategories, same shape as 020). Apply BEFORE `npm run seed`: the NREMT tracks (EMR, EMT, AEMT, Paramedic) resolve it by slug and the seed fails without it; `/api/health` probes it. 060 (#73, pricing) and 062 (#64, sim engine) are other branches' numbers; any order applies cleanly. Nothing is backfilled | instant | no | taxonomy row only |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.
