@@ -561,11 +561,65 @@ their values) and which groups are on offer.
    redemption link (without a code) into `APP_STORE_OFFER_REDEEM_URL`. The
    app must be *Ready for Sale* for codes to redeem, and new codes can take
    up to an hour to work.
-5. **The provider**: see REQ-167 (ID.me). Until a provider is configured
-   nothing is shown.
+5. **The provider**: ID.me (below). Until it is configured nothing is shown.
 6. Apply migration 058 (routine deploy), then set
    `VERIFIED_DISCOUNTS_ENABLED=true` and redeploy. Check with
    `npm run discounts:codes -- --config`.
+
+### ID.me (REQ-167)
+
+`backend/lib/discount-provider-idme.ts` verifies the groups through ID.me's
+community verification. It uses OAuth 2.0 authorization code with PKCE,
+asking for one ID.me community scope per request (our group ids are ID.me's
+scope names: `military`, `responder`, `nurse`, `student`, `teacher`). The
+callback, `GET /api/discounts/verify/idme/callback`, exchanges the code at
+`/oauth/token` and reads `/api/public/v3/attributes.json`. The group counts
+only if that answer's `status` lists it with `verified: true`. We keep the
+`uuid` attribute as the opaque subject and nothing else; names, emails and
+subgroups are read past and never stored or logged. ID.me gives no expiry
+here, so a verification lasts `VERIFIED_DISCOUNT_VALID_DAYS` (a year).
+
+| Variable | What |
+|---|---|
+| `IDME_CLIENT_ID` | The application's client id from ID.me. |
+| `IDME_CLIENT_SECRET` | Its client secret. Server only. |
+| `IDME_REDIRECT_URI` | Exactly `https://<backend>/api/discounts/verify/idme/callback`, registered with ID.me (http only for `localhost`). Anything else leaves ID.me unconfigured. |
+| `IDME_ENVIRONMENT` | `sandbox` (`api.idmelabs.com`) or `production` (`api.id.me`, the default). |
+| `IDME_GROUPS` | Optional comma list limiting the groups sent to ID.me. |
+
+Without the first three, ID.me is unconfigured and verified discounts stay off.
+
+Owner setup:
+
+1. **Become an ID.me partner.** Ascendra needs an ID.me partner account
+   with community (group) verification for the groups it offers. ID.me
+   approves the account and sets its terms and any fees (not checked here;
+   ask ID.me). Nothing goes live until it is approved.
+2. In ID.me's developer portal, create the application (OAuth / OpenID
+   Connect, confidential client, PKCE allowed) and ask for the community
+   policies `military`, `responder`, `nurse`, `student` and, only if you
+   switch teachers on, `teacher`.
+3. Register the redirect URI
+   `https://<backend>/api/discounts/verify/idme/callback` for sandbox and
+   production. For a preview deployment, register its URL as well.
+4. Put the client id and secret in Vercel (Production; Preview with the
+   sandbox keys and `IDME_ENVIRONMENT=sandbox`). Never put them in the app.
+5. Test in the sandbox with ID.me's test accounts: verify, decline, and a
+   second Ascendra account with the same ID.me account ("already linked").
+   Then run `npm run discounts:codes -- --config` and check that `providers`
+   lists `idme`.
+6. Follow ID.me's brand guidelines for the "Verify with ID.me" wording if
+   they ask for their button; the app's button text names ID.me.
+
+Sources (checked 2026-11-09): ID.me,
+[OAuth 2.0 integration](https://docs.id.me/guides/o-auth-2-0/integration)
+(endpoints, parameters, attributes and status),
+[Standard scope values](https://docs.id.me/integrations/configurations/configuration-standards)
+(community scopes),
+[Community group payloads](https://docs.id.me/guides/o-auth-2-0/community-group-payloads)
+(groups and subgroups),
+[OpenID Connect integration](https://docs.id.me/guides/open-id-connect/integration)
+(sandbox host `api.idmelabs.com`, PKCE).
 
 Sources (checked 2026-11-09): Apple, [Set up offer codes](https://developer.apple.com/help/app-store-connect/manage-subscriptions/set-up-subscription-offer-codes/);
 Google, [Promo codes](https://developer.android.com/google/play/billing/promo)
