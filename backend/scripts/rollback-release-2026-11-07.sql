@@ -217,6 +217,12 @@ alter table email_verification_tokens drop column if exists set_password;
 alter table error_log drop column if exists pbq_scenario_id;
 alter table legal_acceptances drop constraint if exists legal_acceptances_source_052;
 alter table legal_acceptances drop column if exists source;
+-- 059 (REQ-165): the study notice rows go (the pre-release code has no
+-- notice), and the document check returns to 027's unnamed one.
+delete from legal_acceptances where document not in ('terms', 'privacy');
+alter table legal_acceptances drop constraint if exists legal_acceptances_document_059;
+alter table legal_acceptances drop constraint if exists legal_acceptances_document_check;
+alter table legal_acceptances add constraint legal_acceptances_document_check check (document in ('terms', 'privacy'));
 alter table lesson_content
   drop column if exists fade_option_reasons,
   drop column if exists solo_option_reasons,
