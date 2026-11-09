@@ -25,9 +25,9 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `course_favorites` | favourite courses | study | while account open | deleted (cascade) | yes |
 | `mastery`, `attempts`, `error_log`, `study_sessions` | answers, scores, review schedule, session times | teaching and progress | while account open | deleted (cascade) | yes |
 | `chat_messages` | AI coach messages and replies | coach history | while account open | deleted (cascade) | yes |
-| `support_requests` | tickets, course requests, lesson reports (may name an objective and lesson step) | support and content fixes | while account open | deleted (cascade) | yes |
-| `track_acknowledgements` | which course disclaimer version was accepted, when | clinical-course gate | while account open | deleted (cascade) | yes |
-| `legal_acceptances` | which Terms and Privacy versions were accepted, when | record of consent | while account open | deleted (cascade) | yes |
+| `support_requests` | tickets, course requests, lesson reports (may name an objective and lesson step), coach-reply reports (quote the reply) | support and content fixes | while account open | deleted (cascade) | yes |
+| `track_acknowledgements` | which course disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate now) | while account open | deleted (cascade) | yes |
+| `legal_acceptances` | which Terms, Privacy and study-notice (REQ-165) versions were accepted, how and when | record of consent | while account open | deleted (cascade) | yes |
 
 Shared, not personal: `lesson_content`, `pbq_scenarios`, catalog and taxonomy
 tables, `content_review_findings`, `schema_migrations`.

@@ -5,7 +5,7 @@
 // sends it when someone signs up, and the server records it only if it is
 // the current one. Change both, together with the pages, when the text
 // changes in a way people should agree to again.
-export const TERMS_VERSION = "2026-11-07";
+export const TERMS_VERSION = "2026-11-09";
 
 export interface TermsState {
   currentVersion: string;
@@ -27,16 +27,21 @@ export interface FirstRunState {
 export interface OnboardingState {
   terms: TermsState;
   firstRun: FirstRunState;
+  // REQ-165: the study notice (src/lib/studyNotice.ts); absent from a server
+  // older than this release.
+  notice?: { currentVersion: string; acceptedAt: string | null; needed: boolean };
 }
 
-export type LaunchGate = "agree" | "welcome" | null;
+export type LaunchGate = "agree" | "notice" | "welcome" | null;
 
-// What a signed-in launch should show first. Terms come before first run.
+// What a signed-in launch should show first. Terms, then the study notice
+// (REQ-165), then first run.
 // Unknown state (still loading, or the request failed) asks for nothing:
 // a network problem must never lock anyone out of studying.
 export function launchGate(state: OnboardingState | null): LaunchGate {
   if (!state) return null;
   if (state.terms.needsAcceptance) return "agree";
+  if (state.notice?.needed === true) return "notice";
   if (state.firstRun.needed) return "welcome";
   return null;
 }
@@ -53,9 +58,10 @@ export function gateRedirect(gate: LaunchGate, segments: readonly string[]): str
   const [group, first] = segments;
   if (group !== "(app)") return null;
   if (first === gate) return null;
-  if (gate === "agree") {
+  // REQ-165: the study notice keeps the same escape hatches as the Terms.
+  if (gate === "agree" || gate === "notice") {
     if (first === "account" || first === "support") return null;
-    return "/agree";
+    return gate === "agree" ? "/agree" : "/notice";
   }
   return first === undefined || first === "index" ? "/welcome" : null;
 }

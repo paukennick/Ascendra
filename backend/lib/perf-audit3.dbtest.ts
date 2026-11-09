@@ -18,6 +18,7 @@ import { utcDay } from "./review-scheduler";
 import { buildAccountExport, exportSectionPage, EXPORT_PAGE_ROWS } from "./account-export";
 import { checkSchema, SCHEMA_PROBES } from "./schema-status";
 import { clearCourseViewCaches } from "./readiness-cache";
+import { STUDY_NOTICE_VERSION } from "./study-notice";
 import { POST as sessionsPost } from "../app/api/review/sessions/route";
 import { GET as coursesGet } from "../app/api/courses/[id]/route";
 import { GET as exportGet } from "../app/api/account/export/route";
@@ -222,6 +223,8 @@ describe("course view (FAIL-376, FAIL-377)", () => {
     assert.equal(after1.readiness.practiced, 1, "readiness was served stale after a grade");
   });
 
+  // REQ-165: a gated course now needs the one study notice; an old per-course
+  // acknowledgement (track_acknowledgements) no longer counts.
   test("a required disclaimer is reported from the same first query", async () => {
     clearCourseViewCaches();
     const u = await newUser("ack");
@@ -229,9 +232,9 @@ describe("course view (FAIL-376, FAIL-377)", () => {
     await query(`update subject_tracks set requires_acknowledgement = true, disclaimer_version = 2 where id = $1`, [track]);
     const view = async () => (await coursesGet(get(u, "http://t/x"), { params: Promise.resolve({ id: track }) })).json();
     assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false });
-    await query(`insert into track_acknowledgements (user_id, track_id, disclaimer_version, disclaimer_key) values ($1, $2, 1, 'k')`, [u, track]);
-    assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false }, "an old version counts");
     await query(`insert into track_acknowledgements (user_id, track_id, disclaimer_version, disclaimer_key) values ($1, $2, 2, 'k')`, [u, track]);
+    assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false }, "a per-course acknowledgement no longer counts");
+    await query(`insert into legal_acceptances (user_id, document, version, source) values ($1, 'study_notice', $2, 'prompt')`, [u, STUDY_NOTICE_VERSION]);
     assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: true });
   });
 });

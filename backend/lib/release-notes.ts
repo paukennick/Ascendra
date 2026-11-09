@@ -1,6 +1,6 @@
 import { billingEnabled } from "@/lib/billing-config";
 
-// REQ-140: the ONE place "What's new" text lives, like lib/lab-disclaimer.ts
+// REQ-140: the ONE place "What's new" text lives, like lib/study-notice.ts
 // for the lab disclaimer. The app renders what GET /api/whats-new sends and
 // keeps no copy, so a note is added or corrected with a backend deploy and no
 // app-store update.

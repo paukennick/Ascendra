@@ -73,7 +73,6 @@ export default function LabsScreen() {
                     <Muted style={{ fontSize: 13 }}>{l.objectiveTitle}</Muted>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, alignItems: "center" }}>
                       <Badge label={KIND_LABEL[l.kind]} color={colors.accent} />
-                      {l.reviewStatus !== "approved" ? <Badge label="Awaiting expert review" color={colors.warn} icon="alert-circle" /> : null}
                       {labAccessBadge(l.access) ? (
                         <Badge label={labAccessBadge(l.access)!} color={l.access === "sample" ? colors.good : colors.muted} icon={l.access === "sample" ? "gift" : "lock"} />
                       ) : null}

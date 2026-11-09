@@ -226,7 +226,7 @@ const HANDBOOK_URL =
 const VERIFIED_AT = "2026-10-31T00:00:00Z";
 const REVIEW_DUE_AT = "2027-10-31T00:00:00Z";
 
-// Same wording key as every other nursing track (mobile/src/content/disclaimers.ts).
+// Same key as every other nursing track (gated: needs the study notice, REQ-165).
 const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 
 const AACN_CERT_PROVIDER = {

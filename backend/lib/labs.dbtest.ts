@@ -28,15 +28,8 @@ import { GET as progressGet } from "../app/api/labs/progress/route";
 import { GET as labGet } from "../app/api/labs/[id]/route";
 import { POST as runsPost } from "../app/api/labs/[id]/runs/route";
 import { POST as submitPost } from "../app/api/labs/[id]/submit/route";
-import { POST as ackPost } from "../app/api/labs/[id]/acknowledgement/route";
-import { buildAccountExport } from "./account-export";
-import {
-  LAB_ACK_REQUIRED_MESSAGE,
-  LAB_DISCLAIMER_GENERAL,
-  LAB_DISCLAIMER_SAFETY,
-  LAB_DISCLAIMER_UNREVIEWED,
-  LAB_DISCLAIMER_VERSION,
-} from "./lab-disclaimer";
+import { POST as noticePost } from "../app/api/onboarding/notice/route";
+import { STUDY_NOTICE_REQUIRED_MESSAGE, STUDY_NOTICE_VERSION } from "./study-notice";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
@@ -696,70 +689,46 @@ describe("REQ-125 (reverses REQ-124 decision 11): serving and the lab disclaimer
     await query(`delete from subject_tracks where id = any($1::uuid[])`, [[clinicalTrack, fitnessTrack]]);
   });
 
-  // REQ-125 (Nick, 2026-11-07): "For now we can make the labs available but
-  // all labs should have a disclaimer to protect us." This REVERSES decision
-  // 11 (REQ-124), under which unreviewed clinical and fitness labs were never
-  // served: they are served now, with the badge, the stronger disclaimer and
-  // a one-time acknowledgement the server enforces.
-  test("REQ-125: unreviewed clinical and fitness labs are served by default, badged, with the stronger disclaimer", async () => {
+  // REQ-125 (Nick, 2026-11-07) reversed REQ-124 decision 11: unreviewed
+  // clinical and fitness labs are served. REQ-165 (Nick, 2026-11-09): with no
+  // per-lab disclaimer, no "Awaiting expert review" badge and no per-family
+  // acknowledgement -- the one study notice covers labs, and the server
+  // requires it before a clinical or fitness lab starts or is graded.
+  test("REQ-165: unreviewed clinical and fitness labs are served by default, with no lab disclaimer", async () => {
     const u = await newUser();
-    for (const [t, lab, family] of [[clinicalTrack, cLab, "clinical"], [fitnessTrack, fLab, "fitness"]]) {
+    for (const [t, lab] of [[clinicalTrack, cLab], [fitnessTrack, fLab]]) {
       const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${t}`)))).body.labs;
-      assert.deepEqual(list.map((l: any) => [l.id, l.reviewStatus]), [[lab, "needs_expert_review"]]);
+      assert.deepEqual(list.map((l: any) => l.id), [lab]);
       const view = await json(await labGet(req(u), ctx(lab)));
       assert.equal(view.status, 200);
-      const d = view.body.disclaimer;
-      assert.equal(d.family, family);
-      assert.equal(d.version, LAB_DISCLAIMER_VERSION);
-      assert.deepEqual(d.lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
-      assert.deepEqual(
-        { required: d.acknowledgement.required, acknowledged: d.acknowledgement.acknowledged },
-        { required: true, acknowledged: false }
-      );
+      assert.equal("disclaimer" in view.body, false);
     }
   });
 
-  test("REQ-125: a clinical or fitness lab can't be started or graded until its family's disclaimer is acknowledged (403)", async () => {
+  test("REQ-165: a clinical or fitness lab can't be started or graded until the study notice is accepted (403)", async () => {
     const u = await newUser();
-    const refused = await startRun(u, cLab);
-    assert.equal(refused.status, 403);
-    assert.equal(refused.body.error, LAB_ACK_REQUIRED_MESSAGE);
-    assert.equal(refused.body.code, "lab_disclaimer_required");
+    // An acknowledgement under the old per-family gate (051) no longer counts.
+    await query(`insert into lab_disclaimer_acknowledgements (user_id, family, version) values ($1, 'clinical', 1), ($1, 'fitness', 1)`, [u]);
+    for (const lab of [cLab, fLab]) {
+      const refused = await startRun(u, lab);
+      assert.equal(refused.status, 403);
+      assert.equal(refused.body.error, STUDY_NOTICE_REQUIRED_MESSAGE);
+      assert.equal(refused.body.code, "study_notice_required");
+    }
     const sub = await submit(u, cLab, { runId: randomUUID(), step: 0, answers: ["a b", "c d"] });
     assert.equal(sub.status, 403);
     assert.equal(await queryOne(`select 1 from lab_runs where user_id = $1`, [u]), null);
 
-    const ack = (lab: string, body: unknown) => ackPost(req(u, "http://t/x", "POST", body), ctx(lab)).then(json);
-    assert.equal((await ack(cLab, {})).status, 400);
-    assert.equal((await ack(cLab, { version: LAB_DISCLAIMER_VERSION + 1 })).status, 400, "a version the app never showed is refused");
-    assert.equal((await ack(BUILD, { version: LAB_DISCLAIMER_VERSION })).status, 400, "a general lab needs no acknowledgement");
-    const first = await ack(cLab, { version: LAB_DISCLAIMER_VERSION });
-    assert.equal(first.status, 201);
-    assert.equal(first.body.family, "clinical");
-    const again = await ack(cLab, { version: LAB_DISCLAIMER_VERSION });
-    assert.equal(again.body.acknowledgedAt, first.body.acknowledgedAt, "accepting again keeps the first time as the record");
-
+    const accepted = await noticePost(req(u, "http://t/api/onboarding/notice", "POST", { version: STUDY_NOTICE_VERSION }));
+    assert.equal(accepted.status, 200);
+    // One acceptance covers every family.
     assert.equal((await startRun(u, cLab)).status, 200);
-    const view = await json(await labGet(req(u), ctx(cLab)));
-    assert.equal(view.body.disclaimer.acknowledgement.acknowledged, true);
-    // Per subject family: the clinical acknowledgement does not cover fitness.
-    assert.equal((await startRun(u, fLab)).status, 403);
-
-    // In the account export, and deleted with the account.
-    const out = (await buildAccountExport(u, (sql, params) => query(sql, params))) as Record<string, any>;
-    assert.deepEqual(
-      out.labDisclaimerAcknowledgements.map((r: any) => [r.family, r.version]),
-      [["clinical", LAB_DISCLAIMER_VERSION]]
-    );
-    await query(`delete from app_users where id = $1`, [u]);
-    assert.equal(await queryOne(`select 1 from lab_disclaimer_acknowledgements where user_id = $1`, [u]), null);
+    assert.equal((await startRun(u, fLab)).status, 200);
   });
 
-  test("REQ-125: an acknowledgement of another disclaimer version doesn't count (a wording change asks again)", async () => {
+  test("REQ-165: general labs need no study notice", async () => {
     const u = await newUser();
-    await query(`insert into lab_disclaimer_acknowledgements (user_id, family, version) values ($1, 'fitness', $2)`, [u, LAB_DISCLAIMER_VERSION + 1]);
-    assert.equal((await startRun(u, fLab)).status, 403);
-    assert.equal((await json(await labGet(req(u), ctx(fLab)))).body.disclaimer.acknowledgement.acknowledged, false);
+    assert.equal((await startRun(u, BUILD)).status, 200);
   });
 
   test("REQ-125: LABS_SERVE_UNREVIEWED=off still hides unreviewed labs in every subject family", async () => {
@@ -770,27 +739,24 @@ describe("REQ-125 (reverses REQ-124 decision 11): serving and the lab disclaimer
       assert.equal((await json(await labGet(req(u), ctx(lab)))).status, 404);
       assert.equal((await startRun(u, lab)).status, 404);
     }
-    // Approved by an expert: served either way, without the "not reviewed" line.
+    // Approved by an expert: served either way.
     await query(`update labs set review_status = 'approved' where id = $1`, [cLab]);
     try {
       const list = (await json(await listGet(req(u, `http://t/api/labs?trackId=${clinicalTrack}`)))).body.labs;
       assert.deepEqual(list.map((l: any) => [l.id, l.reviewStatus]), [[cLab, "approved"]]);
-      const d = (await json(await labGet(req(u), ctx(cLab)))).body.disclaimer;
-      assert.deepEqual(d.lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_GENERAL]);
     } finally {
       await query(`update labs set review_status = 'needs_expert_review' where id = $1`, [cLab]);
+      delete process.env.LABS_SERVE_UNREVIEWED;
     }
   });
 
-  test("other subjects: served unreviewed by default with the badge and the general disclaimer, no acknowledgement", async () => {
+  test("other subjects: served unreviewed by default; review status stays internal data", async () => {
     const u = await newUser();
     const on = (await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs;
     assert.ok(on.length >= 2 && on.every((l: any) => l.reviewStatus === "needs_expert_review"));
     const view = (await json(await labGet(req(u), ctx(BUILD)))).body;
     assert.equal(view.lab.reviewStatus, "needs_expert_review");
-    assert.equal(view.disclaimer.family, "general");
-    assert.deepEqual(view.disclaimer.lines, [LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
-    assert.deepEqual(view.disclaimer.acknowledgement, { required: false, acknowledged: true, acknowledgedAt: null, label: view.disclaimer.acknowledgement.label });
+    assert.equal("disclaimer" in view, false);
     assert.equal((await startRun(u, BUILD)).status, 200);
     process.env.LABS_SERVE_UNREVIEWED = "off";
     assert.deepEqual((await json(await listGet(req(u, `http://t/api/labs?trackId=${track}`)))).body.labs, []);
