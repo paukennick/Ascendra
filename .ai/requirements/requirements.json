@@ -5674,10 +5674,46 @@
       ]
     },
     {
+      "id": "REQ-172",
+      "category": "content",
+      "title": "Labs for Google Cloud Network Engineer, AI-901 and Tech+",
+      "description": "Author the hybrid-density lab sets for the three IT and cloud courses that had none (GCPNET, AI901, TECHPLUS), aligned to each exam outline re-read on the day, with dated sources and a density test.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/gcp-net.ts",
+        "backend/supabase/seed/labs/microsoft-ai901.ts",
+        "backend/supabase/seed/labs/comptia-techplus.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-it-cloud.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every source carries kind and checkedAt"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until a qualified reviewer reads them",
+        "Cloud figures change: sources carry 12-month recheck dates"
+      ]
+    },
+    {
       "id": "REQ-168",
       "category": "operations",
-      "title": "Rolling housekeeping for release backup tables: kept 30 days, then dropped monthly",
-      "description": "Nick 2026-11-09: release backups are kept 30 days and then dropped automatically. A monthly GitHub Actions workflow (8th of each month 09:17 UTC; workflow_dispatch with dry_run defaulting to true) using the PROD_DATABASE_URL secret and production-database environment like migrate-production.yml runs backend/scripts/backup-housekeeping.ts. It drops only tables in schema public whose name is exactly backup_release_ plus 8 digits that form a real UTC date more than 30 days before the run date; exactly 30 days and future dates are kept; anything else is never touched. Each table dropped or that would be dropped is logged with date, age and row count; connection strings are never printed. First scheduled run 2026-12-08.",
+      "title": "Rolling housekeeping for release backups (tables and schemas): kept 30 days, dropped weekly after",
+      "description": "Nick 2026-11-09: release backups are kept 30 days and then dropped automatically within 7 days after. A weekly GitHub Actions workflow (Tuesdays 09:17 UTC; workflow_dispatch with dry_run defaulting to true) using the PROD_DATABASE_URL secret and production-database environment like migrate-production.yml runs backend/scripts/backup-housekeeping.ts. It drops tables in schema public and schemas (pg_namespace) whose name is exactly backup_release_ plus 8 digits that form a real UTC date more than 30 days before the run date; exactly 30 days and future dates are kept; anything else is never touched. Tables are dropped without CASCADE. A matching schema is dropped with DROP SCHEMA CASCADE after every table in it is logged with its row count, and is refused (run fails) if any object outside it depends on it. Each backup dropped or that would be dropped is logged with date, age and row counts; connection strings are never printed.",
       "priority": "medium",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -5692,18 +5728,19 @@
         "CHANGELOG.md"
       ],
       "acceptance_criteria": [
-        "Only public tables named exactly backup_release_YYYYMMDD with a real date are candidates",
-        "A backup is dropped only when its date is more than 30 days before the UTC run date (exactly 30 days is kept and future dates are kept)",
-        "Bad names and malformed dates and other schemas are never touched",
+        "Only public tables and schemas named exactly backup_release_YYYYMMDD with a real date are candidates",
+        "A backup is dropped only when its date is more than 30 days before the UTC run date (exactly 30 days and future dates are kept)",
+        "Bad names and malformed dates and backup-named tables in other schemas are never touched",
+        "Tables are dropped without CASCADE; only an exact-named schema is dropped with CASCADE and only after each of its tables is logged with its row count",
+        "An expired schema that anything outside it depends on is refused and the run fails",
         "Manual runs default to a dry run that drops nothing",
-        "Every table dropped or that would be dropped is logged with date and age and row count",
         "No secret or connection string is printed",
-        "The first scheduled run after merge is 2026-12-08"
+        "backup_release_20261107 is kept by the weekly runs through 2026-12-01 and first dropped by the run on 2026-12-08"
       ],
       "validation_required": [
         "backend typecheck",
-        "npm test (unit tests for the name and date filter)",
-        "npm run test:db (integration test against local Postgres)",
+        "npm test (unit tests for the name and date filter and the schema path)",
+        "npm run test:db (integration test against local Postgres including schemas)",
         "omni gate",
         "CI"
       ],
@@ -5712,8 +5749,8 @@
         "docs/legal/data-inventory.md retention"
       ],
       "risk_notes": [
-        "The 2026-11-07 backup is a schema (backup_release_20261107 with 32 tables) not a public table so this job does not drop it; dropped by hand per the runbook Cleanup unless Nick extends the job to schemas",
-        "Monthly cadence means a backup lives 30 to about 60 days"
+        "Weekly cadence: a backup lives 30 to 37 days",
+        "The Supabase advisor's RLS-disabled flag on backup_release_20261107 is a false positive: checked on production 2026-11-09 that anon and authenticated and authenticator and service_role have no USAGE on the schema and no table grants"
       ]
     }
   ]

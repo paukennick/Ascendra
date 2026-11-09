@@ -1,7 +1,7 @@
 // REQ-168: the name/date filter for release backup housekeeping.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { backupDate, classifyBackup, parseHousekeepingArgs, runHousekeeping, RETENTION_DAYS, type Query } from "./backup-housekeeping-lib";
+import { backupDate, classifyBackup, parseHousekeepingArgs, quoteIdent, runHousekeeping, RETENTION_DAYS, type Query } from "./backup-housekeeping-lib";
 
 const at = (iso: string) => new Date(iso);
 
@@ -83,7 +83,7 @@ describe("classifyBackup", () => {
     assert.equal(classifyBackup("backup_release_20261107", at("2026-12-07T15:59:00-08:00")).action, "keep");
   });
 
-  test("the first scheduled run (Dec 8 2026, 09:17 UTC) drops the Nov 7 backup; Dec 1 would not", () => {
+  test("the first weekly run that drops the Nov 7 backup is Tuesday Dec 8 2026; Dec 1 does not", () => {
     assert.equal(classifyBackup("backup_release_20261107", at("2026-12-08T09:17:00Z")).action, "drop");
     assert.equal(classifyBackup("backup_release_20261107", at("2026-12-01T09:17:00Z")).action, "keep");
   });
@@ -98,22 +98,41 @@ describe("classifyBackup", () => {
   });
 });
 
+describe("quoteIdent", () => {
+  test("doubles embedded quotes", () => {
+    assert.equal(quoteIdent("app_users"), '"app_users"');
+    assert.equal(quoteIdent('we"ird'), '"we""ird"');
+  });
+});
+
 describe("runHousekeeping (fake database)", () => {
-  function fakeDb(tables: Record<string, number>) {
+  // tables: public tables -> rows. schemas: schema -> (table -> rows).
+  // dependents: schema -> outside objects that depend on it.
+  function fakeDb(tables: Record<string, number>, schemas: Record<string, Record<string, number>> = {}, dependents: Record<string, string[]> = {}) {
     const calls: string[] = [];
-    const q: Query = async (text) => {
+    const q: Query = async (text, params = []) => {
       calls.push(text);
-      if (text.includes("from pg_tables")) return Object.keys(tables).sort().map((tablename) => ({ tablename }));
-      const count = /^select count\(\*\)::bigint as n from public\."([a-z0-9_]+)"$/.exec(text);
-      if (count) return [{ n: String(tables[count[1]]) }];
-      const drop = /^drop table public\."([a-z0-9_]+)"$/.exec(text);
-      if (drop) {
-        delete tables[drop[1]];
+      if (text.includes("from pg_tables where schemaname = 'public'")) return Object.keys(tables).sort().map((tablename) => ({ tablename }));
+      if (text.includes("from pg_namespace")) return Object.keys(schemas).sort().map((nspname) => ({ nspname }));
+      if (text.includes("from pg_depend")) return (dependents[String(params[0])] ?? []).map((dependent) => ({ dependent }));
+      if (text.includes("from pg_tables where schemaname = $1")) return Object.keys(schemas[String(params[0])] ?? {}).sort().map((tablename) => ({ tablename }));
+      let m = /^select count\(\*\)::bigint as n from public\."([a-z0-9_]+)"$/.exec(text);
+      if (m) return [{ n: String(tables[m[1]]) }];
+      m = /^select count\(\*\)::bigint as n from "([a-z0-9_]+)"\."([a-z0-9_]+)"$/.exec(text);
+      if (m) return [{ n: String(schemas[m[1]][m[2]]) }];
+      m = /^drop table public\."([a-z0-9_]+)"$/.exec(text);
+      if (m) {
+        delete tables[m[1]];
+        return [];
+      }
+      m = /^drop schema "([a-z0-9_]+)" cascade$/.exec(text);
+      if (m) {
+        delete schemas[m[1]];
         return [];
       }
       throw new Error(`unexpected SQL: ${text}`);
     };
-    return { q, calls, tables };
+    return { q, calls, tables, schemas };
   }
 
   const fixture = () => ({
@@ -123,31 +142,74 @@ describe("runHousekeeping (fake database)", () => {
     backup_release_20261107_old: 2,
     backup_release_20270101: 5,
   });
+  const schemaFixture = () => ({
+    backup_release_20261107: { app_users: 3, attempts: 25 },
+    backup_release_20261201: { app_users: 4 },
+    backup_release_20261107_old: { app_users: 1 },
+    backup_release_20261131: { app_users: 1 },
+  });
 
   test("dry run counts and logs but drops nothing", async () => {
-    const db = fakeDb(fixture());
+    const db = fakeDb(fixture(), schemaFixture());
     const lines: string[] = [];
     const r = await runHousekeeping({ query: db.q, now: at("2026-12-08T09:17:00Z"), dryRun: true, log: (l) => lines.push(l) });
     assert.equal(db.calls.filter((c) => c.startsWith("drop")).length, 0);
-    assert.deepEqual(Object.keys(db.tables).length, 5);
-    assert.deepEqual(r.dropped.map((d) => [d.name, d.rows, d.date]), [
-      ["backup_release_20261001", 12, "2026-10-01"],
-      ["backup_release_20261107", 3456, "2026-11-07"],
+    assert.equal(Object.keys(db.tables).length, 5);
+    assert.equal(Object.keys(db.schemas).length, 4);
+    assert.deepEqual(r.dropped.map((d) => [d.kind, d.name, d.rows, d.date]), [
+      ["table", "backup_release_20261001", 12, "2026-10-01"],
+      ["table", "backup_release_20261107", 3456, "2026-11-07"],
+      ["schema", "backup_release_20261107", 28, "2026-11-07"],
     ]);
-    assert.ok(lines.some((l) => l === "would drop backup_release_20261107: dated 2026-11-07, 31 day(s) old, 3456 row(s)"));
+    assert.ok(lines.includes("would drop table public.backup_release_20261107: dated 2026-11-07, 31 day(s) old, 3456 row(s)"));
+    assert.ok(lines.includes("  backup_release_20261107.attempts: 25 row(s)"));
+    assert.ok(lines.includes("would drop schema backup_release_20261107: dated 2026-11-07, 31 day(s) old, 2 table(s), 28 row(s) in all"));
     assert.ok(lines[0].includes("DRY RUN"));
   });
 
-  test("apply drops only expired, well-formed backups", async () => {
-    const db = fakeDb(fixture());
+  test("apply drops only expired, well-formed backup tables and schemas", async () => {
+    const db = fakeDb(fixture(), schemaFixture());
     const lines: string[] = [];
     const r = await runHousekeeping({ query: db.q, now: at("2026-12-08T09:17:00Z"), dryRun: false, log: (l) => lines.push(l) });
     assert.deepEqual(Object.keys(db.tables).sort(), ["backup_release_20261107_old", "backup_release_20261332", "backup_release_20270101"]);
-    assert.deepEqual(r.kept.map((k) => k.name), ["backup_release_20270101"]);
-    assert.deepEqual(r.ignored.map((k) => k.name), ["backup_release_20261107_old", "backup_release_20261332"]);
-    assert.ok(lines.includes("dropped backup_release_20261001: dated 2026-10-01, 68 day(s) old, 12 row(s)"));
-    // Nothing but table names, dates and counts reach the log.
+    assert.deepEqual(Object.keys(db.schemas).sort(), ["backup_release_20261107_old", "backup_release_20261131", "backup_release_20261201"]);
+    assert.deepEqual(r.kept.map((k) => `${k.kind}:${k.name}`), ["table:backup_release_20270101", "schema:backup_release_20261201"]);
+    assert.deepEqual(r.ignored.map((k) => `${k.kind}:${k.name}`), [
+      "table:backup_release_20261107_old",
+      "table:backup_release_20261332",
+      "schema:backup_release_20261107_old",
+      "schema:backup_release_20261131",
+    ]);
+    assert.ok(lines.includes("dropped table public.backup_release_20261001: dated 2026-10-01, 68 day(s) old, 12 row(s)"));
+    // Tables never CASCADE; only the exact-named schema does.
+    assert.ok(db.calls.filter((c) => c.startsWith("drop table")).every((c) => !/cascade/i.test(c)));
+    assert.deepEqual(db.calls.filter((c) => /cascade/i.test(c)), ['drop schema "backup_release_20261107" cascade']);
+    // Nothing but names, dates and counts reach the log.
     assert.ok(lines.every((l) => !/postgres(ql)?:\/\//i.test(l)));
+  });
+
+  test("the Nov 7 schema is kept by the weekly runs before Dec 8 and dropped on Dec 8", async () => {
+    for (const [day, dropped] of [
+      ["2026-11-10", false],
+      ["2026-11-17", false],
+      ["2026-11-24", false],
+      ["2026-12-01", false],
+      ["2026-12-08", true],
+    ] as const) {
+      const db = fakeDb({}, { backup_release_20261107: { app_users: 3 } });
+      await runHousekeeping({ query: db.q, now: at(`${day}T09:17:00Z`), dryRun: false, log: () => {} });
+      assert.equal(!("backup_release_20261107" in db.schemas), dropped, day);
+    }
+  });
+
+  test("an expired schema with outside dependents is refused, not dropped", async () => {
+    const db = fakeDb({}, { backup_release_20261001: { app_users: 3 } }, { backup_release_20261001: ["public.report_view"] });
+    const lines: string[] = [];
+    const r = await runHousekeeping({ query: db.q, now: at("2026-12-08T09:17:00Z"), dryRun: false, log: (l) => lines.push(l) });
+    assert.ok("backup_release_20261001" in db.schemas);
+    assert.deepEqual(r.refused, [{ name: "backup_release_20261001", dependents: ["public.report_view"] }]);
+    assert.equal(db.calls.filter((c) => c.startsWith("drop")).length, 0);
+    assert.ok(lines.some((l) => l.startsWith("REFUSED schema backup_release_20261001")));
   });
 });
 

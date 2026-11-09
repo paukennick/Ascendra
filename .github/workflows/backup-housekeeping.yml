@@ -1,26 +1,30 @@
-# REQ-168: rolling clean-up of release backup tables in PRODUCTION.
+# REQ-168: rolling clean-up of release backups in PRODUCTION.
 #
-# Drops public.backup_release_YYYYMMDD tables whose date is more than 30 days
-# before the run date (UTC). Nothing else is touched: not another schema, not
-# mastery_backup_* or error_log_backup_*, not a name with anything before or
-# after the 8 digits, not a malformed or future date. The filter lives in
+# A release backup is a table public.backup_release_YYYYMMDD or a schema
+# backup_release_YYYYMMDD (the 2026-11-07 backup is a schema of 32 tables).
+# It is dropped once its date is more than 30 days before the run date (UTC).
+# Nothing else is touched: not mastery_backup_* or error_log_backup_*, not a
+# name with anything before or after the 8 digits, not a malformed or future
+# date, not a backup-named table in another schema. Tables are dropped
+# without CASCADE; a matching schema is dropped with CASCADE after each of its
+# tables is logged with its row count, and is refused (the run fails) if
+# anything outside it depends on it. The filter lives in
 # backend/scripts/backup-housekeeping-lib.ts (unit and integration tested).
 #
-# Monthly on the 8th at 09:17 UTC. The first run after this merged is
-# 2026-12-08, the first day backup_release_20261107 is more than 30 days old
-# (2026-11-07 + 30 days = 2026-12-07, which is still kept). Because it runs
-# monthly, a backup is kept at least 30 days and is dropped by the first run
-# after that (at most about two months).
+# Weekly, Tuesdays at 09:17 UTC, so a backup is kept 30 days and dropped
+# within 7 days after that. backup_release_20261107 is kept by the runs on
+# 2026-11-10, -17, -24 and 2026-12-01 (2026-11-07 + 30 days = 2026-12-07)
+# and dropped by the run on Tuesday 2026-12-08.
 #
 # Run by hand from the Actions tab: dry_run defaults to true, which logs what
-# would be dropped (name, date, age, row count) and drops nothing. Untick it to
-# drop. Connects exactly like migrate-production.yml: the PROD_DATABASE_URL
+# would be dropped (name, date, age, row counts) and drops nothing. Untick it
+# to drop. Connects exactly like migrate-production.yml: the PROD_DATABASE_URL
 # secret (Supabase Session pooler) in the production-database environment.
-# The script only logs table names, dates and counts, never the URL.
+# The script only logs names, dates and counts, never the URL.
 name: Release backup housekeeping
 on:
   schedule:
-    - cron: "17 9 8 * *"
+    - cron: "17 9 * * 2"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -52,7 +56,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: test -n "$DATABASE_URL" || { echo "PROD_DATABASE_URL secret is not set"; exit 1; }
       - run: npm ci
-      - name: Drop release backups older than 30 days
+      - name: Drop release backups (tables and schemas) older than 30 days
         run: |
           if [ "$DRY_RUN" = "true" ]; then
             npm run backups:housekeeping -- --dry-run

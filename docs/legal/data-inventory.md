@@ -62,11 +62,11 @@ without it the route refuses every call, so nothing is purged.
 `lib/retention.test.ts` fails if the periods drift from the Privacy Policy.
 
 Release backups (REQ-168): a pre-release copy of production data taken
-inside the database as `public.backup_release_YYYYMMDD` is kept 30 days,
-then dropped by the monthly "Release backup housekeeping" GitHub workflow
-(the 8th of each month, 09:17 UTC; so 30 days at least and about two months
-at most). It is a copy of the tables above, so it holds the same personal
-data, and an account deleted in the meantime stays in the copy until it is
-dropped. The 2026-11-07 copy is a schema, `backup_release_20261107`, which
-this job does not touch; it is dropped by hand on or after 2026-12-08
-(deploy-runbook-integration.md, "Cleanup").
+inside the database -- a table `public.backup_release_YYYYMMDD` or a schema
+`backup_release_YYYYMMDD` -- is kept 30 days, then dropped within 7 days
+after that by the weekly "Release backup housekeeping" GitHub workflow
+(Tuesdays, 09:17 UTC). It is a copy of the tables above, so it holds the
+same personal data, and an account deleted in the meantime stays in the
+copy until it is dropped. The 2026-11-07 copy (schema
+`backup_release_20261107`) is dropped by the run on 2026-12-08. The API
+roles have no access to it.
