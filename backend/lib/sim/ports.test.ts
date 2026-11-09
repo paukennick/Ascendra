@@ -174,3 +174,41 @@ describe("tamponade performance budget (docs/sims.md 14, 16)", () => {
     }
   });
 });
+
+// ---- TicketBurst launch day (cloud.html) ----
+// The prototype is a pure function of the design and the finance picks, so
+// the recording holds its simulate/score results; the engine must reproduce
+// each criterion, the day's availability, the worst RTO and RPO, the cost
+// and the finance savings. The prototype has no outcome classes; the class
+// follows from those numbers by the cloud profile (docs/sims.md 3.1).
+describe("TicketBurst port matches the revised prototype (cloud.html)", () => {
+  const entry = ALL_DOCUMENTS.find((d) => d.slug === "ticketburst-launch-day");
+  if (!entry?.golden) throw new Error("cloud port is not registered");
+  const cdoc = JSON.parse(readFileSync(entry.file, "utf8")) as ScenarioDoc;
+  const cgold = JSON.parse(readFileSync(entry.golden, "utf8")) as GoldenFile;
+  const cproto = JSON.parse(readFileSync(entry.golden.replace(/\.golden\.json$/, ".prototype.json"), "utf8")) as {
+    paths: { id: string; cost: number; avail: number; rto: number; rpo: number; criteria: string[]; finTotal: number }[];
+  };
+
+  test("every golden path has a prototype recording and the reverse", () => {
+    assert.deepEqual(cgold.paths.map((p) => p.id), cproto.paths.map((p) => p.id));
+  });
+
+  for (const gp of cgold.paths) {
+    test(gp.id, () => {
+      const pp = cproto.paths.find((p) => p.id === gp.id)!;
+      const r = replayGoldenPath(cdoc, gp);
+      assert.equal(r.error, null);
+      const d = r.debrief;
+      assert.deepEqual(d.criteria.map((c) => c.score), pp.criteria);
+      const kpi = (id: string): number => d.kpis.find((k) => k.id === id)?.raw as number;
+      assert.equal(kpi("cost"), pp.cost);
+      assert.ok(Math.abs(kpi("availability") - pp.avail) < 1e-9, `availability ${kpi("availability")} vs ${pp.avail}`);
+      assert.equal(kpi("rto"), pp.rto);
+      assert.equal(kpi("rpo"), pp.rpo);
+      assert.equal(kpi("savings"), pp.finTotal);
+      const cls = pp.rpo > 5 || pp.rto > 15 || pp.avail < 99.85 || pp.cost > 2750 ? "harm" : pp.avail >= 99.9 && pp.cost <= 2500 ? "target" : "recovered";
+      assert.equal(d.outcomeClass, cls);
+    });
+  }
+});

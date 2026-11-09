@@ -409,6 +409,40 @@ Deliberate differences, beyond the 3.1 reclassification:
   OR first. An unreached `time_up` is a lint warning, not an error (Nick,
   2026-11-09).
 
+### 3.3 The TicketBurst port (Phase 1a step 5, REQ-162)
+
+`backend/supabase/seed/sims/AWSSAA/ticketburst-launch-day.sim.json` is the
+second port. The prototype is a pure function of the design and the finance
+picks (`simulate`, `financeSavings`, `score` in `cloud.html`), so its driver
+calls those directly for each golden design rather than clicking through
+the board. Six golden designs (the reference, a single box, an overbuilt
+design, serverless, a fleet and its only NAT in AZ b, an ASG maximum below
+the spike) give the same four domain scores, cost, day availability
+(error-budget method), worst RTO and RPO and finance savings as the
+prototype, exactly. Deliberate differences:
+
+- **Outcome classes** follow 3.1 from those numbers: `harm` when RPO > 5,
+  RTO > 15, availability < 99.85% or cost > 110% of budget; `target` when
+  availability >= 99.9% and cost <= budget; otherwise `recovered`. Storing
+  card data is not an option, so `harm` is reached through RPO/RTO and
+  availability, as 3.1 allows.
+- **One compute model and one orders database** per design: placing one
+  replaces the other. The prototype replaces compute with compute and a
+  relational database with a relational one, but lets DynamoDB sit beside
+  RDS (its rules then read the relational one).
+- **Facts, not records.** The design is held as flags and enums (CloudFront,
+  NAT per AZ, compute kind and AZs, database kind and AZ, ...), set by the
+  placement effects; the prototype derives the same facts from its item
+  list. A misplaced component (not allowed in that slot) is logged and
+  ignored instead of being refused by the UI.
+- **Events** are timers on a 5-minute turn clock (09:00, 10:00, 10:50,
+  14:10, 16:30), each evaluating the same first-match rule tables per area;
+  the second-by-second sub-timelines are not modelled (they never change a
+  status or a minute count).
+- **Finance** is one form with a yes/no per option; an option that does not
+  apply to the design is ignored. Written reasoning about the design is
+  asked when launch day starts and is scored (weight 1).
+
 ## 4. The scenario document
 
 ### 4.1 Shape

@@ -16,9 +16,9 @@ function entry(course: string, slug: string): DocumentEntry {
   return { course, slug, file: join(ROOT, course, `${slug}.sim.json`), golden: join(ROOT, course, `${slug}.golden.json`) };
 }
 
-// Phase 1a step 5: the prototype ports. Tamponade after CABG is ported; the
-// TicketBurst launch day (AWSSAA), the Lakeshore clinic app (PMP) and Dana's
+// Phase 1a step 5: the prototype ports. Tamponade after CABG and the TicketBurst
+// launch day (AWSSAA) are ported; the Lakeshore clinic app (PMP) and Dana's
 // knee valgus (NASMCPT) are still to come (PR #64's remaining work).
-export const ALL_DOCUMENTS: readonly DocumentEntry[] = [entry("CCRNADULT", "tamponade-after-cabg")];
+export const ALL_DOCUMENTS: readonly DocumentEntry[] = [entry("CCRNADULT", "tamponade-after-cabg"), entry("AWSSAA", "ticketburst-launch-day")];
 
 export { entry as documentEntry };

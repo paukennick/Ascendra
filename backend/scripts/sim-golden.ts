@@ -21,15 +21,17 @@ import { replayGoldenPath } from "../lib/sim/engine/v1/validate.ts";
 import type { GoldenFile, GoldenPath } from "../lib/sim/engine/v1/validate.ts";
 import { ALL_DOCUMENTS } from "../lib/sim/documents.ts";
 import * as tamponade from "./sim-golden/tamponade.ts";
+import * as cloud from "./sim-golden/cloud.ts";
 
 const PORTS = {
   tamponade: { slug: "tamponade-after-cabg", spec: tamponade, prototype: "critical-care.html", vitals: ["hr", "sbp", "dbp", "map", "cvp", "paop", "ci", "svo2", "spo2", "uo", "ct15", "lactate"] },
+  cloud: { slug: "ticketburst-launch-day", spec: cloud, prototype: "cloud.html", vitals: [] },
 } as const;
 
-type PortName = keyof typeof PORTS;
+type Port = { slug: string; spec: { PATHS: readonly { id: string; title: string; reasoning: string; notes?: string }[]; SNAPSHOT_TICKS?: number[] }; prototype: string; vitals: readonly string[] };
 
-function portOf(name: string): (typeof PORTS)[PortName] {
-  const p = (PORTS as Record<string, (typeof PORTS)[PortName]>)[name];
+function portOf(name: string): Port {
+  const p = (PORTS as unknown as Record<string, Port>)[name];
   if (!p) throw new Error(`unknown port ${name}; one of ${Object.keys(PORTS).join(", ")}`);
   return p;
 }
@@ -91,6 +93,31 @@ function commandsFor(doc: ScenarioDoc, path: tamponade.PathSpec): Command[] {
   return out;
 }
 
+function cloudCommands(doc: ScenarioDoc, path: cloud.CloudPath): Command[] {
+  const run = createRun(doc, 1);
+  const out: Command[] = [];
+  const send = (c: Record<string, unknown>): void => {
+    const cmd = { ...c, seq: out.length + 1, tick: run.state.tick } as Command;
+    const r = applyCommand(run, cmd);
+    if (!r.ok) throw new Error(`${path.id}: ${JSON.stringify(cmd)} rejected: ${r.reason}`);
+    out.push(cmd);
+  };
+  for (const [id, slot] of path.items) {
+    send({ type: "act", action: "place", params: { place: id, "place.slot": slot } });
+    if (id === "asg" && path.asg) send({ type: "act", action: "configure", params: { azs: path.asg.azs, mn: String(path.asg.min), mx: String(path.asg.max), size: path.asg.size } });
+  }
+  if (path.backup) send({ type: "act", action: "toggleBackup" });
+  send({ type: "act", action: "start" });
+  if (run.state.openReasoning) send({ type: "reason", moment: run.state.openReasoning, answered: true });
+  for (const timer of ["normalT", "spikeT", "azT", "dbT", "financeT"]) {
+    const inst = run.state.timers.find((t) => t.timer === timer);
+    if (!inst) throw new Error(`${path.id}: no pending ${timer}`);
+    send({ type: "skip", timer, instance: inst.id, to: inst.due });
+  }
+  send({ type: "act", action: "review", params: Object.fromEntries(cloud.FINANCE_IDS.map((f) => [f, path.finance.includes(f) ? "cut" : "keep"])) });
+  return out;
+}
+
 function snapshotsFor(doc: ScenarioDoc, cmds: Command[], ticks: number[], vitals: readonly string[], seed: number): { tick: number; values: Record<string, number> }[] {
   const run: Run = createRun(doc, seed);
   const snaps: { tick: number; values: Record<string, number> }[] = [];
@@ -116,8 +143,9 @@ function build(name: string): void {
   const doc = JSON.parse(readFileSync(file, "utf8")) as ScenarioDoc;
   const paths: GoldenPath[] = [];
   for (const p of port.spec.PATHS) {
-    const commands = commandsFor(doc, p);
-    const draft: GoldenPath = { id: p.id, title: p.title, seed: 1, commands, expect: { ending: null, class: null, rating: null }, reasoning: { whatIsHappening: p.reasoning } };
+    const commands = name === "cloud" ? cloudCommands(doc, p as unknown as cloud.CloudPath) : commandsFor(doc, p as unknown as tamponade.PathSpec);
+    const moment = Object.keys(doc.reasoning)[0];
+    const draft: GoldenPath = { id: p.id, title: p.title, seed: 1, commands, expect: { ending: null, class: null, rating: null }, reasoning: { [moment]: p.reasoning as "met" | "partial" | "missed" } };
     const r = replayGoldenPath(doc, draft, (run) => stateHash(run.state));
     if (r.error) throw new Error(`${p.id}: ${r.error}`);
     const d = r.debrief;
@@ -128,7 +156,7 @@ function build(name: string): void {
       score: d.processScore ?? undefined,
       criteria: Object.fromEntries(d.criteria.map((c) => [c.id, c.score])),
       kpis: Object.fromEntries(d.kpis.map((k) => [k.id, k.raw as number])),
-      snapshots: snapshotsFor(doc, commands, port.spec.SNAPSHOT_TICKS, port.vitals, 1),
+      ...(port.vitals.length ? { snapshots: snapshotsFor(doc, commands, port.spec.SNAPSHOT_TICKS ?? [], port.vitals, 1) } : {}),
       stateHash: r.stateHash,
     };
     if (p.notes) draft.notes = p.notes;
@@ -157,7 +185,23 @@ async function prototype(name: string, dir: string): Promise<void> {
       // tsx compiles the in-page function with esbuild's keepNames helper
       await page.addInitScript("window.__name = function (f) { return f; };");
       await page.goto(`${pathToFileURL(join(dir, port.prototype)).href}?test=1`);
-      const r = await page.evaluate(
+      const r = name === "cloud" ? await page.evaluate(
+        ({ path }: { path: cloud.CloudPath }) => {
+          const w = window as unknown as Record<string, any>;
+          const items = path.items.map(([type, slot], i) => {
+            const it: Record<string, unknown> = { uid: "g" + i, type, slot };
+            if (type === "asg") it.cfg = path.asg ? { min: path.asg.min, max: path.asg.max, size: path.asg.size, azs: path.asg.azs === "ab" ? ["a", "b"] : [path.asg.azs] } : { min: 2, max: 4, size: "m6i.large", azs: [slot.slice(-1)] };
+            return it;
+          });
+          const design = { backup: path.backup, items };
+          const sim = w.eval("simulate")(design);
+          const fin = w.eval("financeSavings")(sim.d, new Set(path.finance));
+          const sc = w.eval("score")(sim, fin);
+          return { id: path.id, cost: sim.d.cost.total, events: sim.events.map((e: { id: string; status: string; down: number; degraded: number }) => ({ id: e.id, status: e.status, down: e.down, degraded: e.degraded })),
+            impact: sc.impact, avail: sc.avail, rto: sc.rto, rpo: sc.rpo, criteria: sc.crit.map((c: { s: string }) => c.s), finTotal: fin.total, finRisks: fin.risks.length };
+        },
+        { path: p as unknown as cloud.CloudPath },
+      ) : await page.evaluate(
         ({ path, ticks }: { path: tamponade.PathSpec; ticks: number[] }) => {
           const w = window as unknown as Record<string, any>;
           const S = () => w.eval("S");
@@ -215,11 +259,11 @@ async function prototype(name: string, dir: string): Promise<void> {
             snapshots: snaps,
           };
         },
-        { path: p, ticks: port.spec.SNAPSHOT_TICKS },
+        { path: p as unknown as tamponade.PathSpec, ticks: port.spec.SNAPSHOT_TICKS ?? [] },
       );
       if (errors.length) throw new Error(`${p.id}: page errors ${errors.join("; ")}`);
       results.push(r);
-      console.log(`${p.id}: prototype path ${(r as { path: string }).path}`);
+      console.log(`${p.id}: prototype ${JSON.stringify(r).slice(0, 160)}`);
       await page.close();
     }
   } finally {
