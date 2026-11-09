@@ -181,10 +181,11 @@ export async function POST(req: Request) {
 
     if (format === "mc") {
       // FAIL-039: Solo choices are only ever shown by the hint route, which
-      // records the reveal. A Solo multiple-choice answer without one came
-      // from an app build older than REQ-134 (its saved position can still
-      // hold a pick from the old, unshuffled order), so its index can't be
-      // trusted. Refuse it plainly; old builds show `error` in a banner.
+      // records the reveal, or (REQ-146, FAIL-530) by the lesson payload sent
+      // to an app build without the hint flow, which records the same reveal
+      // before sending them in the same shuffled order. A Solo multiple-choice
+      // answer without one was never shown this learner's order, so its index
+      // can't be trusted. Refuse it plainly; old builds show `error` in a banner.
       if (stage === "solo" && !(await hasHintReveal(authUser.id, objectiveId, stage, check.question))) {
         return badRequest(
           "Answer this check in your own words, or use \"Show choices\" first. If no choices appear, please update the app."
