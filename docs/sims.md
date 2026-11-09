@@ -2857,6 +2857,28 @@ rules below followed. Nick approved all of them.
   names either as contraindicated in this setting (searched 2026-11-09), so
   neither is a `harm` ending; a reviewer may supply a source.
 
+### 19.4 Nick's decisions, 2026-11-09 (recorded in REQ-162, PR #64)
+
+1. **First flagship sims:** AWS SAA and SAP as one scenario with two
+   difficulty bands (the TicketBurst launch day, 3.3, is the base), then
+   CCRN (the tamponade case, 3.2). Bands are planned as overlays on one
+   base document, each validated and golden-tested as its own document
+   (not built yet).
+2. **The app screen (Phase 1b/1c) ships together with the code/ACLS
+   module**, not before it.
+3. **Tap-to-the-beat compressions are in the code module's first
+   release.** The learner taps the compression rhythm. The scored measures
+   are a rate of 100-120 per minute and no pause over 10 s, computed from
+   tap timestamps. For determinism the taps reach the engine as a command
+   carrying the measured rate and the longest pause (integers, from the
+   app's monotonic clock), never as live timing the engine reads itself, so
+   a replay on any device scores the same.
+4. **Lint:** an unreached `time_up` is a warning; every other unreached
+   terminal ending is an error (the rule as implemented).
+5. **Content is served to learners as built and deployed**, under the
+   one-time study notice (REQ-165). There is no reviewer gate; review
+   status stays internal (11.4).
+
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
 Nick: sims are "where the money is made", quality over speed, and every
