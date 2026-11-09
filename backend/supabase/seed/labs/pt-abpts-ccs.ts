@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-151: ABPTS Cardiovascular & Pulmonary Clinical Specialist labs.
 //
@@ -64,8 +65,8 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const ABPTSCCS_LABS: SeedLabSet = {
   trackCode: "ABPTSCCS",
   sources: [
-    "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
-    "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary",
+    source("https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline", "exam_outline", "2026-11-07"),
+    source("https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary", "exam_outline", "2026-11-07"),
   ],
   labs: [
     // ------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-151: ABPTS Geriatric Clinical Specialist labs.
 //
@@ -66,8 +67,8 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const ABPTSGCS_LABS: SeedLabSet = {
   trackCode: "ABPTSGCS",
   sources: [
-    "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
-    "https://specialization.apta.org/become-a-specialist/geriatrics",
+    source("https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics", "exam_outline", "2026-11-07"),
+    source("https://specialization.apta.org/become-a-specialist/geriatrics", "exam_outline", "2026-11-07"),
   ],
   labs: [
     // ------------------------------------------------------------------

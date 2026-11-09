@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-151: ABPTS Orthopaedic Clinical Specialist (OCS) labs.
 //
@@ -57,8 +58,8 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const ABPTSOCS_LABS: SeedLabSet = {
   trackCode: "ABPTSOCS",
   sources: [
-    "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
-    "https://specialization.apta.org/become-a-specialist/orthopaedics",
+    source("https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics", "exam_outline", "2026-11-07"),
+    source("https://specialization.apta.org/become-a-specialist/orthopaedics", "exam_outline", "2026-11-07"),
   ],
   labs: [
     // ------------------------------------------------------------------

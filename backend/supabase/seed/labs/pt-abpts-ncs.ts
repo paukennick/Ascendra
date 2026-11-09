@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-151: ABPTS Neurologic Clinical Specialist labs.
 //
@@ -56,8 +57,8 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const ABPTSNCS_LABS: SeedLabSet = {
   trackCode: "ABPTSNCS",
   sources: [
-    "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
-    "https://specialization.apta.org/become-a-specialist/neurology",
+    source("https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology", "exam_outline", "2026-11-07"),
+    source("https://specialization.apta.org/become-a-specialist/neurology", "exam_outline", "2026-11-07"),
   ],
   labs: [
     // ------------------------------------------------------------------
