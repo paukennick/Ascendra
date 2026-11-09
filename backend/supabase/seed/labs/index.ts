@@ -35,6 +35,11 @@ import { AWSDEA_LABS } from "./aws-dea";
 import { AWSDOP_LABS } from "./aws-dop";
 import { AWSMLA_LABS } from "./aws-mla";
 import { AWSSCS_LABS } from "./aws-scs";
+import { AZ900_LABS } from "./microsoft-az900";
+import { AZ104_LABS } from "./microsoft-az104";
+import { AZ305_LABS } from "./microsoft-az305";
+import { AZ400_LABS } from "./microsoft-az400";
+import { AZ700_LABS } from "./microsoft-az700";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -76,4 +81,9 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   AWSDOP_LABS,
   AWSMLA_LABS,
   AWSSCS_LABS,
+  AZ900_LABS,
+  AZ104_LABS,
+  AZ305_LABS,
+  AZ400_LABS,
+  AZ700_LABS,
 ].map(withValueSources);
