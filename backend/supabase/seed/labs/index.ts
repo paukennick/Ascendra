@@ -20,6 +20,11 @@ import { PMIRMP_LABS } from "./pm-rmp";
 import { PMISP_LABS } from "./pm-sp";
 import { PMIPBA_LABS } from "./pm-pba";
 import { PROJECTPLUS_LABS } from "./pm-projectplus";
+import { NCLEXPN_LABS } from "./nursing-nclexpn";
+import { LPNVN_LABS } from "./nursing-lpnvn";
+import { CNA_LABS } from "./nursing-cna";
+import { ADNRN_LABS } from "./nursing-adnrn";
+import { BSNRN_LABS } from "./nursing-bsnrn";
 import { AWSCLF_LABS } from "./aws-clf";
 import { AWSAIF_LABS } from "./aws-aif";
 import { AWSDVA_LABS } from "./aws-dva";
@@ -51,6 +56,11 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PMISP_LABS,
   PMIPBA_LABS,
   PROJECTPLUS_LABS,
+  NCLEXPN_LABS,
+  LPNVN_LABS,
+  CNA_LABS,
+  ADNRN_LABS,
+  BSNRN_LABS,
   AWSCLF_LABS,
   AWSAIF_LABS,
   AWSDVA_LABS,
