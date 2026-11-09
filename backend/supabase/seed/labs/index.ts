@@ -68,6 +68,10 @@ import { SERVERPLUS_LABS } from "./comptia-serverplus";
 import { AUTOOPSPLUS_LABS } from "./comptia-autoopsplus";
 import { DATAPLUS_LABS } from "./comptia-dataplus";
 import { DATAAI_LABS } from "./comptia-dataai";
+import { ABPTSOCS_LABS } from "./pt-abpts-ocs";
+import { ABPTSGCS_LABS } from "./pt-abpts-gcs";
+import { ABPTSNCS_LABS } from "./pt-abpts-ncs";
+import { ABPTSCCS_LABS } from "./pt-abpts-ccs";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -142,4 +146,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   AUTOOPSPLUS_LABS,
   DATAPLUS_LABS,
   DATAAI_LABS,
+  ABPTSOCS_LABS,
+  ABPTSGCS_LABS,
+  ABPTSNCS_LABS,
+  ABPTSCCS_LABS,
 ].map(withValueSources);
