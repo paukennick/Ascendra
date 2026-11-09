@@ -5227,6 +5227,34 @@
       "risk_notes": [
         "Unreviewed clinical content until a nurse educator approves each lab"
       ]
+    },
+    {
+      "id": "REQ-153",
+      "category": "content",
+      "title": "Authored labs for AWSCLF, AWSAIF, AWSDVA, AWSSOA and AWSSAP",
+      "description": "53 authored build and case labs for the five AWS courses CLF-C02, AIF-C01, DVA-C03, SOA-C03 and SAP-C03 in new seed files backend/supabase/seed/labs/aws-{clf,aif,dva,soa,sap}.ts, matching the AWSSAA pilot's depth at each exam's level, following the hybrid density policy unit by unit, naming performance objectives by exact title, GENERAL_SAFETY framing, and citing the exam guides and AWS documentation pages verified on 2026-11-07 for every limit or figure. All labs are needs_expert_review.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts density and objective checks pass for the five courses",
+        "npm run seed twice is idempotent",
+        "every quoted limit or price has a cited AWS page"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "migrations plus seed twice plus test:db on local Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

@@ -25,6 +25,11 @@ import { LPNVN_LABS } from "./nursing-lpnvn";
 import { CNA_LABS } from "./nursing-cna";
 import { ADNRN_LABS } from "./nursing-adnrn";
 import { BSNRN_LABS } from "./nursing-bsnrn";
+import { AWSCLF_LABS } from "./aws-clf";
+import { AWSAIF_LABS } from "./aws-aif";
+import { AWSDVA_LABS } from "./aws-dva";
+import { AWSSOA_LABS } from "./aws-soa";
+import { AWSSAP_LABS } from "./aws-sap";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -56,4 +61,9 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CNA_LABS,
   ADNRN_LABS,
   BSNRN_LABS,
+  AWSCLF_LABS,
+  AWSAIF_LABS,
+  AWSDVA_LABS,
+  AWSSOA_LABS,
+  AWSSAP_LABS,
 ].map(withValueSources);
