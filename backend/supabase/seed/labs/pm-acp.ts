@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: PMI-ACP (PMI Agile Certified Practitioner; ECO dated November
 // 2024 on its cover, "March 2026" in its running headers -- the current
@@ -20,7 +21,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const PMIACP_LABS: SeedLabSet = {
   trackCode: "PMIACP",
-  sources: ["https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf"],
+  sources: [source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "acp-cynefin-practice-fit",

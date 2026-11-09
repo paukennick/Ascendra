@@ -68,6 +68,8 @@ export interface BillingMe {
   freeCourse?: FreeCourse | null;
   allowances?: AllowanceStatus[];
   aiPaused?: { paused: boolean; resetsAt: string | null };
+  // REQ-144: set for owner and unrestricted accounts instead of a plan.
+  unrestricted?: { level: "owner" | "unrestricted"; grantedBy: string | null; expiresAt: string | null } | null;
 }
 
 export const DISABLED_CONFIG: BillingConfig = {

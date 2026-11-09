@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: CompTIA Project+ (PK0-005, V5). Still the live exam when checked
 // on 2026-11-07: comptia.org lists PK0-005 (launched 8 November 2022) with
@@ -24,8 +25,8 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const PROJECTPLUS_LABS: SeedLabSet = {
   trackCode: "PROJECTPLUS",
   sources: [
-    "https://www.comptia.org/en-us/certifications/project/",
-    "https://partners.comptia.org/docs/default-source/resources/projectplus-exam-comparison-guide-004-005",
+    source("https://www.comptia.org/en-us/certifications/project/", "exam_outline", "2026-11-07"),
+    source("https://partners.comptia.org/docs/default-source/resources/projectplus-exam-comparison-guide-004-005", "exam_outline", "2026-11-07"),
   ],
   labs: [
     {

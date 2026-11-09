@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: PMI-SP (PMI Scheduling Professional; current ECO when checked on
 // 2026-11-07, domain weights confirmed on pmi.org's PMI-SP page).
@@ -23,8 +24,8 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const PMISP_LABS: SeedLabSet = {
   trackCode: "PMISP",
   sources: [
-    "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf",
-    "https://www.pmi.org/certifications/scheduling-sp",
+    source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.pmi.org/certifications/scheduling-sp", "exam_outline", "2026-11-07"),
   ],
   labs: [
     {

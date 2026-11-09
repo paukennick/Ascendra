@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-123 pilot: AWS Certified Solutions Architect - Associate (SAA-C03).
 //
@@ -17,7 +18,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const AWSSAA_LABS: SeedLabSet = {
   trackCode: "AWSSAA",
-  sources: ["https://docs.aws.amazon.com/aws-certification/latest/examguides/solutions-architect-associate-03.html"],
+  sources: [source("https://docs.aws.amazon.com/aws-certification/latest/examguides/solutions-architect-associate-03.html", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "least-privilege-lambda-policy",

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: PMI-RMP (PMI Risk Management Professional; ECO "updated January
 // 2023", served by PMI as risk-management-exam-outline_updated-2024.pdf --
@@ -21,7 +22,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const PMIRMP_LABS: SeedLabSet = {
   trackCode: "PMIRMP",
-  sources: ["https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf"],
+  sources: [source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "rmp-risk-strategy-scales-thresholds",

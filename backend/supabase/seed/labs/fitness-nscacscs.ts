@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-149: NSCA Certified Strength and Conditioning Specialist (NSCACSCS),
 // authored to the depth of the NASM-CPT pilot (REQ-123) for the CSCS's
@@ -44,15 +45,18 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 
 export const NSCACSCS_LABS: SeedLabSet = {
   trackCode: "NSCACSCS",
+  // REQ-142: dated by the backfill rule (the day git history shows the line
+  // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
+  // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
-    "https://www.nsca.com/globalassets/certification/certification-pdfs/certified-strength-and-conditioning-specialist-job-task-analysis-summary-2025",
-    "https://dxpprod.nsca.com/contentassets/61d813865e264c6e852cadfe247eae52/nsca_training_load_chart.pdf",
-    "https://www.hprc-online.org/articles/one-rep-max-for-strength",
-    "https://www.nsca.com/uploadedFiles/NSCA/Resources/PDF/Publications/basics_of_strength_and_conditioning_manual.pdf",
-    "https://www.frontiersin.org/articles/10.3389/fnins.2017.00612/full",
-    "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
-    "https://pubmed.ncbi.nlm.nih.gov/37752011/",
+    source("https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.nsca.com/globalassets/certification/certification-pdfs/certified-strength-and-conditioning-specialist-job-task-analysis-summary-2025", "exam_outline", "2026-11-07"),
+    source("https://dxpprod.nsca.com/contentassets/61d813865e264c6e852cadfe247eae52/nsca_training_load_chart.pdf", "reference", "2026-11-07"),
+    source("https://www.hprc-online.org/articles/one-rep-max-for-strength", "reference", "2026-11-07"),
+    source("https://www.nsca.com/uploadedFiles/NSCA/Resources/PDF/Publications/basics_of_strength_and_conditioning_manual.pdf", "reference", "2026-11-07"),
+    source("https://www.frontiersin.org/articles/10.3389/fnins.2017.00612/full", "reference", "2026-11-07"),
+    source("https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf", "clinical_guideline", "2026-11-07"),
+    source("https://pubmed.ncbi.nlm.nih.gov/37752011/", "reference", "2026-11-07"),
   ],
   labs: [
     // -----------------------------------------------------------------------

@@ -8,12 +8,14 @@ import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
 import { useBilling } from "@/billing/BillingContext";
 import { planSummary } from "@/lib/billing";
+import { accessPlanLine, parseAccess, showAccessSettings } from "@/lib/access";
 
 export default function Settings() {
   const router = useRouter();
   const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
   const [biometricBusy, setBiometricBusy] = useState(false);
   const { config, me } = useBilling();
+  const access = parseAccess(user?.access);
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -36,8 +38,28 @@ export default function Settings() {
         <ListRow icon="user" label="Profile & sign-in" value={user?.displayName ?? user?.email} onPress={() => router.push("/account")} />
       </Card>
 
+      {/* REQ-144: unrestricted access is shown as the plan, with plans on or off. */}
+      {access ? (
+        <>
+          <SectionHeader label="Plan" />
+          <Card style={{ gap: 0 }}>
+            <ListRow icon="star" label="Current plan" value={accessPlanLine(access)} onPress={config.enabled ? () => router.push("/plans") : undefined} />
+          </Card>
+        </>
+      ) : null}
+
+      {/* REQ-144: owners only; the server refuses everyone else too. */}
+      {showAccessSettings(user) ? (
+        <>
+          <SectionHeader label="Access" />
+          <Card style={{ gap: 0 }}>
+            <ListRow icon="key" label="Unrestricted access" value="Give or remove" onPress={() => router.push("/settings/access")} />
+          </Card>
+        </>
+      ) : null}
+
       {/* REQ-122: only while paid plans are on. */}
-      {config.enabled ? (
+      {config.enabled && !access ? (
         <>
           <SectionHeader label="Plan" />
           <Card style={{ gap: 0 }}>

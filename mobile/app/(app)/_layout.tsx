@@ -47,6 +47,7 @@ export default function AppLayout() {
       <Stack.Screen name="course/[trackId]/outcome" options={{ title: "I took the exam" }} />
       <Stack.Screen name="plans" options={{ title: "Plans" }} />
       <Stack.Screen name="settings/free-course" options={{ title: "Your free course" }} />
+      <Stack.Screen name="settings/access" options={{ title: "Access" }} />
     </Stack>
     </BillingProvider>
   );

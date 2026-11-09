@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: PMI-PBA (PMI Professional in Business Analysis; current ECO when
 // checked on 2026-11-07, domain weights confirmed on pmi.org's PMI-PBA
@@ -21,8 +22,8 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const PMIPBA_LABS: SeedLabSet = {
   trackCode: "PMIPBA",
   sources: [
-    "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf",
-    "https://www.pmi.org/certifications/business-analysis-pba",
+    source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.pmi.org/certifications/business-analysis-pba", "exam_outline", "2026-11-07"),
   ],
   labs: [
     {

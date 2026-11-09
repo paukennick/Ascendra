@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-150: CAPM (PMI Certified Associate in Project Management, 2023 Exam
 // Update -- still the current ECO when checked on 2026-11-07).
@@ -20,7 +21,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const CAPM_LABS: SeedLabSet = {
   trackCode: "CAPM",
-  sources: ["https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf"],
+  sources: [source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "capm-issue-risk-assumption-scope",
