@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-161: MS Health Informatics Coach (MSHI), the ten AMIA foundational
 // domains F1-F10 as CAHIIM requires them (seed/tracks/informatics.ts).
@@ -48,13 +49,13 @@ const MSHI_SAFETY = `${GENERAL_SAFETY} Any patient data in these labs is fiction
 export const MSHI_LABS: SeedLabSet = {
   trackCode: "MSHI",
   sources: [
-    "https://www.cahiim.org/wp-content/uploads/sites/2/2024/08/hi-ms-curriculum.pdf",
-    "https://www.ecfr.gov/current/title-45/part-164",
-    "https://www.ecfr.gov/current/title-45/part-171",
-    "https://hl7.org/fhir/",
-    "https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185",
-    "https://www.healthit.gov/topic/safety/safer-guides",
-    "https://digital.ahrq.gov/health-it-tools-and-resources/evaluation-resources/workflow-assessment-health-it-toolkit",
+    source("https://www.cahiim.org/wp-content/uploads/sites/2/2024/08/hi-ms-curriculum.pdf", "reference", "2026-11-07"),
+    source("https://www.ecfr.gov/current/title-45/part-164", "reference", "2026-11-07"),
+    source("https://www.ecfr.gov/current/title-45/part-171", "reference", "2026-11-07"),
+    source("https://hl7.org/fhir/", "reference", "2026-11-07"),
+    source("https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185", "reference", "2026-11-07"),
+    source("https://www.healthit.gov/topic/safety/safer-guides", "reference", "2026-11-07"),
+    source("https://digital.ahrq.gov/health-it-tools-and-resources/evaluation-resources/workflow-assessment-health-it-toolkit", "reference", "2026-11-07"),
   ],
   labs: [
     // F1 Health -----------------------------------------------------------

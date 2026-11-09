@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-161: MSCS Foundations Coach (MSCS), the 15-week graduate-CS bridge
 // (seed/data.ts), no exam blueprint.
@@ -29,14 +30,14 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const MSCS_LABS: SeedLabSet = {
   trackCode: "MSCS",
   sources: [
-    "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/",
-    "https://pages.cs.wisc.edu/~remzi/OSTEP/",
-    "https://docs.python.org/3/library/hashlib.html",
-    "https://www.nngroup.com/articles/ten-usability-heuristics/",
-    "https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats",
-    "https://www.nist.gov/cyberframework",
-    "https://www.w3.org/WAI/standards-guidelines/wcag/",
-    "https://research.google/pubs/mapreduce-simplified-data-processing-on-large-clusters/",
+    source("https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/", "reference", "2026-11-07"),
+    source("https://pages.cs.wisc.edu/~remzi/OSTEP/", "reference", "2026-11-07"),
+    source("https://docs.python.org/3/library/hashlib.html", "reference", "2026-11-07"),
+    source("https://www.nngroup.com/articles/ten-usability-heuristics/", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats", "reference", "2026-11-07"),
+    source("https://www.nist.gov/cyberframework", "reference", "2026-11-07"),
+    source("https://www.w3.org/WAI/standards-guidelines/wcag/", "reference", "2026-11-07"),
+    source("https://research.google/pubs/mapreduce-simplified-data-processing-on-large-clusters/", "reference", "2026-11-07"),
   ],
   labs: [
     // Complexity & computational thinking --------------------------------

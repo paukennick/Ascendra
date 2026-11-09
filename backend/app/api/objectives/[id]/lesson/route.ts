@@ -10,7 +10,7 @@ import {
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import {
   loadObjective,
-  rowToLesson,
+  lessonForClient,
   ensureGeneration,
   startRegeneration,
   readLessonForUser,
@@ -25,6 +25,7 @@ import {
 import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { tryItFields, tryItLab } from "@/lib/lab-attempts";
 import { SHARED } from "@/lib/lesson-store";
+import { isHintAwareClient } from "@/lib/client-protocol";
 import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
@@ -51,11 +52,15 @@ export async function GET(
     // Was previously unauthenticated: any objective id would return its
     // lesson, and a cache miss would spend an Anthropic call doing it.
     const user = await requireUser(req);
-    const viewer = { userId: user.id, objectiveId: id };
     // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    const objective = await visibleObjective(id, user.id);
+    if (!objective) return notFound("Objective not found");
+    // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
+    // build without the hint flow uses the same key as the hint route.
+    const viewer = { userId: user.id, objectiveId: objective.id };
+    const hintAware = isHintAwareClient(req);
     await requireAcknowledgementForObjective(id, user.id);
     // REQ-122: a Free learner studies one course (the first one opened).
     await requireCourseAccessForObjective(user.id, id);
@@ -78,20 +83,20 @@ export async function GET(
     const ownRegen = pendingGeneration.get(pendingKey(id, { kind: "user", userId: user.id }));
     if (ownRegen) {
       const generated = await ownRegen.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
+      return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
 
     // Their own regenerated lesson if they have one, else the shared one.
     // (Waits first if their regenerate is running on another instance.)
     const existing = await readLessonForUser(user.id, id);
-    if (existing) return ok({ lesson: rowToLesson(existing.row, viewer), cached: true, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
+    if (existing) return ok({ lesson: await lessonForClient(existing.row, viewer, hintAware), cached: true, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
 
     // Shared first generation already running in this process (a prefetch,
     // or another learner's first visit): wait for that same one.
     const inFlight = pendingGeneration.get(pendingKey(id, SHARED));
     if (inFlight) {
       const generated = await inFlight.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
+      return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
 
     const objRow = await loadObjective(id);
@@ -114,7 +119,7 @@ export async function GET(
     // learner sees comes from one generation.
     if (!intro) {
       const generated = await handle.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
+      return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false, learnerHistory: await historyRead, ...tryItFields(await tryIt) });
     }
     after(() => handle.fullPromise.catch(() => {}));
 
@@ -152,11 +157,15 @@ export async function POST(
     // Regeneration always spends Anthropic calls, so this needs auth at
     // least as much as the GET does.
     const user = await requireUser(req);
-    const viewer = { userId: user.id, objectiveId: id };
     // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    const objective = await visibleObjective(id, user.id);
+    if (!objective) return notFound("Objective not found");
+    // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
+    // build without the hint flow uses the same key as the hint route.
+    const viewer = { userId: user.id, objectiveId: objective.id };
+    const hintAware = isHintAwareClient(req);
     await requireAcknowledgementForObjective(id, user.id);
 
     // Double tap, or a retry while the first regenerate is still running:
@@ -164,7 +173,7 @@ export async function POST(
     const inFlight = pendingGeneration.get(pendingKey(id, { kind: "user", userId: user.id }));
     if (inFlight) {
       const generated = await inFlight.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false });
+      return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false });
     }
 
     const objRow = await loadObjective(id);
@@ -202,7 +211,7 @@ export async function POST(
     // instance; hand back its finished result.
     if (!intro) {
       const generated = await handle.fullPromise;
-      return ok({ lesson: rowToLesson(generated, viewer), cached: false });
+      return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false });
     }
     after(() => handle.fullPromise.catch(() => {}));
 

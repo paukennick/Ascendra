@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-161: JavaScript Programming Coach (JAVASCRIPT), nine units, no exam
 // blueprint.
@@ -23,11 +24,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const JAVASCRIPT_LABS: SeedLabSet = {
   trackCode: "JAVASCRIPT",
   sources: [
-    "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model",
-    "https://tc39.es/ecma262/",
-    "https://nodejs.org/api/",
-    "https://jestjs.io/docs/getting-started",
+    source("https://developer.mozilla.org/en-US/docs/Web/JavaScript", "reference", "2026-11-07"),
+    source("https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model", "reference", "2026-11-07"),
+    source("https://tc39.es/ecma262/", "reference", "2026-11-07"),
+    source("https://nodejs.org/api/", "reference", "2026-11-07"),
+    source("https://jestjs.io/docs/getting-started", "reference", "2026-11-07"),
   ],
   labs: [
     {

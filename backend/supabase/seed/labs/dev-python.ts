@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-161: Python Programming Coach (PYTHON), nine units, no exam blueprint.
 //
@@ -21,10 +22,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const PYTHON_LABS: SeedLabSet = {
   trackCode: "PYTHON",
   sources: [
-    "https://docs.python.org/3/tutorial/index.html",
-    "https://docs.python.org/3/reference/index.html",
-    "https://docs.python.org/3/library/index.html",
-    "https://docs.pytest.org/en/stable/",
+    source("https://docs.python.org/3/tutorial/index.html", "reference", "2026-11-07"),
+    source("https://docs.python.org/3/reference/index.html", "reference", "2026-11-07"),
+    source("https://docs.python.org/3/library/index.html", "reference", "2026-11-07"),
+    source("https://docs.pytest.org/en/stable/", "reference", "2026-11-07"),
   ],
   labs: [
     {

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-161: Computational Math: CS Degree Coach (CMPCBS) -- Liberty
 // University's BS in Computational Mathematics: Computer Science degree
@@ -36,11 +37,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CMPCBS_LABS: SeedLabSet = {
   trackCode: "CMPCBS",
   sources: [
-    "https://catalog.liberty.edu/",
-    "https://en.cppreference.com/w/cpp/language",
-    "https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/",
-    "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
-    "https://www.nist.gov/cyberframework",
+    source("https://catalog.liberty.edu/", "reference", "2026-11-07"),
+    source("https://en.cppreference.com/w/cpp/language", "reference", "2026-11-07"),
+    source("https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/", "reference", "2026-11-07"),
+    source("https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "reference", "2026-11-07"),
+    source("https://www.nist.gov/cyberframework", "reference", "2026-11-07"),
   ],
   labs: [
     // CSIS 110 -------------------------------------------------------------
