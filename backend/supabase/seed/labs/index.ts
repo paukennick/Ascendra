@@ -100,6 +100,10 @@ import { CNPA_LABS } from "./k8s-cnpa";
 import { CNPE_LABS } from "./k8s-cnpe";
 import { EX188_LABS } from "./k8s-ex188";
 import { EX280_LABS } from "./k8s-ex280";
+// REQ-172: Google Cloud network engineer, Azure AI Fundamentals, CompTIA Tech+.
+import { GCPNET_LABS } from "./gcp-net";
+import { AI901_LABS } from "./microsoft-ai901";
+import { TECHPLUS_LABS } from "./comptia-techplus";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -206,4 +210,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CNPE_LABS,
   EX188_LABS,
   EX280_LABS,
+  GCPNET_LABS,
+  AI901_LABS,
+  TECHPLUS_LABS,
 ].map(withValueSources);
