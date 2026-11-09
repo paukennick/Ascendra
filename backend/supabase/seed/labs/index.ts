@@ -62,6 +62,12 @@ import { CYSAPLUS_LABS } from "./security-cysaplus";
 import { PENTESTPLUS_LABS } from "./security-pentestplus";
 import { SECURITYX_LABS } from "./security-securityx";
 import { SECAIPLUS_LABS } from "./security-secaiplus";
+import { NETWORKPLUS_LABS } from "./comptia-networkplus";
+import { LINUXPLUS_LABS } from "./comptia-linuxplus";
+import { SERVERPLUS_LABS } from "./comptia-serverplus";
+import { AUTOOPSPLUS_LABS } from "./comptia-autoopsplus";
+import { DATAPLUS_LABS } from "./comptia-dataplus";
+import { DATAAI_LABS } from "./comptia-dataai";
 import { ABPTSOCS_LABS } from "./pt-abpts-ocs";
 import { ABPTSGCS_LABS } from "./pt-abpts-gcs";
 import { ABPTSNCS_LABS } from "./pt-abpts-ncs";
@@ -134,6 +140,12 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PENTESTPLUS_LABS,
   SECURITYX_LABS,
   SECAIPLUS_LABS,
+  NETWORKPLUS_LABS,
+  LINUXPLUS_LABS,
+  SERVERPLUS_LABS,
+  AUTOOPSPLUS_LABS,
+  DATAPLUS_LABS,
+  DATAAI_LABS,
   ABPTSOCS_LABS,
   ABPTSGCS_LABS,
   ABPTSNCS_LABS,
