@@ -18,14 +18,9 @@ import {
   type LabStepModel,
 } from "./lab-grading";
 import { judgeLabCheck, toLabContent } from "./lab-generation";
-import {
-  LAB_DISCLAIMER_GENERAL,
-  LAB_DISCLAIMER_SAFETY,
-  LAB_DISCLAIMER_UNREVIEWED,
-  LAB_DISCLAIMER_VERSION,
-  labDisclaimer,
-  needsAcknowledgement,
-} from "./lab-disclaimer";
+import { STUDY_NOTICE_VERSION, studyNoticeAcceptedSql } from "./study-notice";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { LAB_SETS } from "../supabase/seed/labs";
 import { labSourceUrls, seedLabContent } from "../supabase/seed/seed-lib";
 import { VALUE_SOURCES, withValueSources } from "../supabase/seed/labs/value-sources";
@@ -326,37 +321,26 @@ describe("authored pilot content (supabase/seed/labs)", () => {
   });
 });
 
-// REQ-125: the lab disclaimer's wording lives in one server constant and is
-// built per subject family and review status.
-describe("lab disclaimer (REQ-125)", () => {
-  test("every lab gets the general line; unreviewed adds the review line; clinical and fitness lead with the safety text", () => {
-    assert.deepEqual(labDisclaimer("general", "approved").lines, [LAB_DISCLAIMER_GENERAL]);
-    assert.deepEqual(labDisclaimer("general", "needs_expert_review").lines, [LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
-    assert.deepEqual(labDisclaimer("clinical", "needs_expert_review").lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_UNREVIEWED, LAB_DISCLAIMER_GENERAL]);
-    assert.deepEqual(labDisclaimer("fitness", "approved").lines, [LAB_DISCLAIMER_SAFETY, LAB_DISCLAIMER_GENERAL]);
-    // Self-reported labs have no review state: no review line.
-    assert.deepEqual(labDisclaimer("general", null).lines, [LAB_DISCLAIMER_GENERAL]);
-  });
-  test("the wording says what Nick asked for", () => {
-    for (const s of ["practice exercise for exam preparation", "may contain errors", "not professional advice", "not affiliated", "Report a problem"]) {
-      assert.ok(LAB_DISCLAIMER_GENERAL.includes(s), s);
-    }
-    assert.match(LAB_DISCLAIMER_UNREVIEWED, /hasn't been reviewed by a subject-matter expert yet/);
-    for (const s of ["fictional", "exam practice only", "not medical, nursing, physical-therapy or fitness advice", "real patients or clients", "facility policy", "licensed supervisors", "current guidelines", "emergency services"]) {
-      assert.ok(LAB_DISCLAIMER_SAFETY.includes(s), s);
+// REQ-165 (Nick, 2026-11-09): the per-lab disclaimer, the "Awaiting expert
+// review" badge and the per-family lab acknowledgement are replaced by the
+// one study notice (lib/study-notice.ts), which clinical and fitness labs
+// require on the server.
+describe("labs under the study notice (REQ-165)", () => {
+  test("the lab view, the lab card and the Try it fields carry no disclaimer", () => {
+    const here = join(__dirname);
+    for (const f of ["labs.ts", "lab-attempts.ts", "../app/api/objectives/[id]/lab/route.ts"]) {
+      const src = readFileSync(join(here, f), "utf8");
+      assert.doesNotMatch(src, /lab-disclaimer|labDisclaimer\(|disclaimer:/, f);
     }
   });
-  test("only clinical and fitness need the acknowledgement; it is acknowledged once a time is given", () => {
-    assert.deepEqual(labDisclaimer("general", "approved").acknowledgement.required, false);
-    assert.equal(labDisclaimer("general", "approved").acknowledgement.acknowledged, true);
-    const owed = labDisclaimer("clinical", "approved");
-    assert.deepEqual([owed.acknowledgement.required, owed.acknowledgement.acknowledged], [true, false]);
-    const done = labDisclaimer("fitness", "approved", "2026-11-07T00:00:00Z");
-    assert.deepEqual([done.acknowledgement.acknowledged, done.acknowledgement.acknowledgedAt], [true, "2026-11-07T00:00:00Z"]);
-    assert.equal(owed.version, LAB_DISCLAIMER_VERSION);
-    assert.ok(needsAcknowledgement("clinical") && needsAcknowledgement("fitness") && !needsAcknowledgement("general"));
+  test("clinical and fitness lab starts and grading require the study notice", () => {
+    const here = join(__dirname);
+    for (const f of ["lab-routes.ts", "../app/api/labs/[id]/runs/route.ts"]) {
+      assert.match(readFileSync(join(here, f), "utf8"), /safety_family !== "general"\) await requireStudyNotice\(/, f);
+    }
   });
-  test("every family has a short results note", () => {
-    for (const f of ["general", "clinical", "fitness"] as const) assert.ok(labDisclaimer(f, "approved").resultsNote.length > 20, f);
+  test("the inline SQL check names the current version", () => {
+    assert.ok(studyNoticeAcceptedSql("$1").includes(`'${STUDY_NOTICE_VERSION}'`));
+    assert.match(studyNoticeAcceptedSql("$2"), /sn\.user_id = \$2 and sn\.document = 'study_notice'/);
   });
 });

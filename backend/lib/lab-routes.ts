@@ -26,7 +26,7 @@ import {
   type SubmitInput,
 } from "@/lib/labs";
 import { consumeAllowance, requireCourseAccess, requireFeature } from "@/lib/entitlements";
-import { requireLabAcknowledgement } from "@/lib/lab-disclaimer";
+import { requireStudyNotice } from "@/lib/study-notice";
 
 // REQ-123: the lab routes' shared error mapping and the submit flow, kept
 // out of the route files so lib/labs.dbtest.ts drives exactly what runs.
@@ -85,10 +85,9 @@ export async function submitLab(
   const lab = await visibleLab(labId, userId);
   if (!lab) throw new LabError(404, "Lab not found");
   await requireAcknowledgementForObjective(lab.objective_id, userId);
-  // REQ-125: a clinical or fitness lab needs the one-time lab disclaimer
-  // acknowledgement for its family (403 until then), checked here and not
-  // only in the app.
-  await requireLabAcknowledgement(userId, lab.safety_family);
+  // REQ-165: a clinical or fitness lab needs the study notice (403 until
+  // then), checked here and not only in the app.
+  if (lab.safety_family !== "general") await requireStudyNotice(userId);
   const step = b.step as number;
   if (step >= lab.steps.length) throw new LabError(400, `This lab has ${lab.steps.length} step${lab.steps.length === 1 ? "" : "s"}`);
   const parts = lab.rubric[step]?.parts ?? [];

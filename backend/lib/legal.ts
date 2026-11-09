@@ -11,8 +11,8 @@ import { query, queryOne } from "@/lib/db";
 // the meaning changes, not for a typo: every account that accepted an older
 // version is asked once, on its next launch, with one tap.
 export const LEGAL_VERSIONS = {
-  terms: "2026-11-07",
-  privacy: "2026-11-07",
+  terms: "2026-11-09",
+  privacy: "2026-11-09",
 } as const;
 
 export type LegalDocument = keyof typeof LEGAL_VERSIONS;

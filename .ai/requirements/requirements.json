@@ -5136,6 +5136,59 @@
       ]
     },
     {
+      "id": "REQ-165",
+      "category": "compliance",
+      "title": "Google Play compliance: study notice (one disclaimer + AI data disclosure), Terms/Privacy 2026-11-09, coach reporting, target API 36 check, listing draft",
+      "description": "Google Play compliance for the Android app (Nick, 2026-11-09). Target API: Expo SDK 57 / RN 0.86.3 already target and compile against API 36 (RN libs.versions.toml read by ExpoRootProjectPlugin; no gradle.properties override), so no native change. One versioned study notice, accepted once per learner at launch after Terms and before first run, on two pages (content disclaimer; then the AI data disclosure alone, per Play's Prominent Disclosure rule): AI-assisted practice material, may contain errors, not professional/medical/clinical advice, not affiliated with any exam body; what is sent to Anthropic, why, retention, privacy link. Recorded in legal_acceptances as document study_notice (migration 059). Replaces the per-course DisclaimerGate (track_acknowledgements kept as history), the per-lab disclaimer (lib/lab-disclaimer.ts removed), the Awaiting expert review badge and the per-family lab acknowledgement (route removed; table kept as history). Server enforcement kept: gated tracks (requires_acknowledgement) and clinical/fitness labs require the study notice (403). review_status stays internal. API-client backstop shows the same two pages before AI requests when the launch state is unknown. Terms section 4 and Privacy sections 1 and 5 updated, both versions 2026-11-09, re-accepted in the same launch flow. Coach replies get an in-app Report (support ticket quoting the reply); chat input keeps above the nav bar (edge-to-edge). docs/play-store/listing-draft.md, docs/labs.md, docs/sims.md, data inventory updated.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/lib/studyNotice.ts",
+        "mobile/app/(app)/notice.tsx",
+        "mobile/src/components/StudyNotice.tsx",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/content/legal.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/src/components/ReportCoachReply.tsx",
+        "backend/lib/study-notice.ts",
+        "backend/app/api/onboarding/notice/route.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-attempts.ts",
+        "backend/supabase/migrations/059_study_notice.sql",
+        "docs/play-store/listing-draft.md",
+        "docs/labs.md"
+      ],
+      "acceptance_criteria": [
+        "Study notice shown once per account and version before first AI use with AI disclosure on its own page",
+        "Server refuses gated courses and clinical/fitness labs until accepted",
+        "No per-lab disclaimer or Awaiting expert review badge shown to learners",
+        "Coach replies can be reported in-app",
+        "Terms and Privacy 2026-11-09 accepted in the same launch flow",
+        "Build targets API 36"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "test:db",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog",
+        "listing draft",
+        "labs doc",
+        "data inventory"
+      ],
+      "risk_notes": [
+        "Apply migration 059 before deploying backend",
+        "App builds older than this release cannot accept the notice and get 403 on gated content until updated",
+        "Everyone re-accepts Terms/Privacy and the notice once"
+      ]
+    },
+    {
       "id": "REQ-148",
       "category": "content",
       "title": "Labs for the remaining nursing courses (NCLEX-PN, LPN/VN, CNA, ADN-RN, BSN-RN)",

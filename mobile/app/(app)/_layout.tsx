@@ -31,6 +31,8 @@ export default function AppLayout() {
       <Stack.Screen name="whats-new" options={{ title: "What's new" }} />
       {/* REQ-119: one-tap Terms prompt and the first-run flow (no back: each finishes by moving on). */}
       <Stack.Screen name="agree" options={{ title: "Before you continue", headerBackVisible: false, gestureEnabled: false }} />
+      {/* REQ-165: the one study notice (content disclaimer + AI data disclosure). */}
+      <Stack.Screen name="notice" options={{ title: "Before you start", headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="welcome" options={{ title: "Welcome", headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="course/[trackId]/index" options={{ title: "Course" }} />
       <Stack.Screen name="course/[trackId]/lesson/[objectiveId]" options={{ title: "Lesson" }} />
