@@ -1,4 +1,5 @@
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
+import { isLegacyClient } from "@/lib/client-version";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleTrack } from "@/lib/visibility";
 import { completeFirstRun, onboardingState } from "@/lib/onboarding";
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       trackId = track.id;
     }
     await completeFirstRun(user.id, { trackId, justExploring: trackId === null });
-    return ok(await onboardingState(user.id));
+    return ok(await onboardingState(user.id, { legacy: isLegacyClient(req) }));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

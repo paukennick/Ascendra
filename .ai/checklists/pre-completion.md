@@ -84,6 +84,11 @@
   (FAIL-480). No deferrable constraint on `attempts` -- it queues an event
   per insert and breaks later DDL in the same transaction (FAIL-481).
   Hot paths keep their query budgets (REQ-118, `lib/perf-audit3.dbtest.ts`).
+- Bumping a legal, notice or protocol version (REQ-175, FAIL-560): installed
+  builds keep sending the old one until they update, and no OTA may be
+  possible. Move the old value to `PREVIOUS_LEGAL_VERSIONS` (lib/legal.ts) so
+  legacy clients (no `X-Ascendra-App`) can still accept what they show, and
+  never answer a version gate with a raw validation string.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

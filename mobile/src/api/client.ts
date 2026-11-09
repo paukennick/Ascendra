@@ -3,6 +3,7 @@
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
+import { APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -85,6 +86,25 @@ export function reissuedAccessToken(data: unknown): string | null {
 export const CLIENT_PROTOCOL_HEADER = "X-Ascendra-Client";
 export const CLIENT_PROTOCOL = 1;
 
+// REQ-175: the app build, sent on every request (src/lib/appVersion.ts).
+// src/updates/appIdentity.ts fills in the build and platform when the app
+// loads; until then (and in tests) the version alone is sent, so a request
+// is never mistaken for a pre-header build.
+let identityHeaders: Record<string, string> = { [APP_VERSION_HEADER]: `${APP_VERSION}+unknown` };
+
+export function setAppIdentity(identity: AppIdentity): void {
+  identityHeaders = appHeaders(identity);
+}
+
+// REQ-175: the server answers 426 { code: "update_required" } when this
+// build is below MIN_APP_VERSION. The root layout registers this to show the
+// "Update required" screen; the request still throws its ApiError.
+let onUpdateRequired: ((info: UpdateRequired) => void) | null = null;
+
+export function registerUpdateRequiredHook(hook: ((info: UpdateRequired) => void) | null): void {
+  onUpdateRequired = hook;
+}
+
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
 
@@ -158,6 +178,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
       headers: {
         "Content-Type": "application/json",
         [CLIENT_PROTOCOL_HEADER]: String(CLIENT_PROTOCOL),
+        ...identityHeaders,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },
@@ -183,6 +204,14 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     const status = res.ok ? 502 : res.status;
     const err = new ApiError(httpErrorMessage(status, data, body.ok), status, data);
     if (!body.ok) (err as ApiError & { unreadable?: boolean }).unreadable = true;
+    const update = readUpdateRequired(status, data);
+    if (update && onUpdateRequired) {
+      try {
+        onUpdateRequired(update);
+      } catch {
+        /* the screen must never break the request's own error handling */
+      }
+    }
     if ((status === 402 || status === 429) && data && onBillingRefusal) {
       try {
         onBillingRefusal(status, data);

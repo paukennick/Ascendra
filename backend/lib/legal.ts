@@ -15,6 +15,16 @@ export const LEGAL_VERSIONS = {
   privacy: "2026-11-09",
 } as const;
 
+// REQ-175: the versions immediately before LEGAL_VERSIONS. App builds that
+// predate the X-Ascendra-App header (lib/client-version.ts, "legacy
+// clients") carry this text and send this version, so for them it can be
+// accepted and is recorded exactly as sent -- never as the current version.
+// When LEGAL_VERSIONS is bumped, move its old values here.
+export const PREVIOUS_LEGAL_VERSIONS = {
+  terms: "2026-11-07",
+  privacy: "2026-11-07",
+} as const;
+
 export type LegalDocument = keyof typeof LEGAL_VERSIONS;
 export const LEGAL_DOCUMENTS = Object.keys(LEGAL_VERSIONS) as LegalDocument[];
 
@@ -23,6 +33,32 @@ export const LEGAL_DOCUMENTS = Object.keys(LEGAL_VERSIONS) as LegalDocument[];
 // accepts both documents at their current versions. The app carries the
 // same string in mobile/src/lib/legal.ts (a mobile test checks they match).
 export const CURRENT_TERMS_VERSION: string = [...Object.values(LEGAL_VERSIONS)].sort().at(-1)!;
+export const PREVIOUS_TERMS_VERSION: string = [...Object.values(PREVIOUS_LEGAL_VERSIONS)].sort().at(-1)!;
+
+// REQ-175: who is agreeing. `legacy` is true only for a request without the
+// app-version header (lib/client-version.ts isLegacyClient).
+export interface ClientContext {
+  legacy: boolean;
+}
+const HEADERED: ClientContext = { legacy: false };
+
+// The single-string versions this client may accept.
+export function acceptableTermsVersions(ctx: ClientContext = HEADERED): string[] {
+  return ctx.legacy ? [CURRENT_TERMS_VERSION, PREVIOUS_TERMS_VERSION] : [CURRENT_TERMS_VERSION];
+}
+
+export function isAcceptableTermsVersion(v: unknown, ctx: ClientContext = HEADERED): v is string {
+  return typeof v === "string" && acceptableTermsVersions(ctx).includes(v);
+}
+
+// The per-document versions a single-string version stands for.
+function versionsFor(version: string): Record<LegalDocument, string> {
+  return version === CURRENT_TERMS_VERSION ? { ...LEGAL_VERSIONS } : { ...PREVIOUS_LEGAL_VERSIONS };
+}
+
+function acceptableDocVersions(doc: LegalDocument, ctx: ClientContext): string[] {
+  return ctx.legacy ? [LEGAL_VERSIONS[doc], PREVIOUS_LEGAL_VERSIONS[doc]] : [LEGAL_VERSIONS[doc]];
+}
 
 export type TermsSource = "register" | "google_signup" | "prompt";
 
@@ -37,34 +73,65 @@ export function acceptsCurrentVersions(body: unknown): boolean {
   return b?.termsVersion === LEGAL_VERSIONS.terms && b?.privacyVersion === LEGAL_VERSIONS.privacy;
 }
 
+// REQ-175: REQ-093's per-document form for a given client. Returns the
+// versions to record, one per document, exactly as the client sent them, or
+// null when either is missing or not acceptable for this client.
+export function acceptedDocumentVersions(
+  body: unknown,
+  ctx: ClientContext = HEADERED
+): Record<LegalDocument, string> | null {
+  const b = body as { termsVersion?: unknown; privacyVersion?: unknown } | null;
+  const sent = { terms: b?.termsVersion, privacy: b?.privacyVersion };
+  for (const doc of LEGAL_DOCUMENTS) {
+    const v = sent[doc];
+    if (typeof v !== "string" || !acceptableDocVersions(doc, ctx).includes(v)) return null;
+  }
+  return sent as Record<LegalDocument, string>;
+}
+
 // The version a sign-up request agreed to, in either client form:
 // `acceptedTermsVersion` (REQ-119) or `termsVersion` + `privacyVersion`
 // (REQ-093). Undefined when neither was sent or either is out of date.
-export function signupAcceptedVersion(body: unknown): string | undefined {
+// REQ-175: a legacy client's matching previous pair stands for the
+// previous single-string version.
+export function signupAcceptedVersion(body: unknown, ctx: ClientContext = HEADERED): string | undefined {
   const b = body as { acceptedTermsVersion?: unknown } | null;
   if (typeof b?.acceptedTermsVersion === "string") return b.acceptedTermsVersion;
-  return acceptsCurrentVersions(body) ? CURRENT_TERMS_VERSION : undefined;
+  if (acceptsCurrentVersions(body)) return CURRENT_TERMS_VERSION;
+  const docs = acceptedDocumentVersions(body, ctx);
+  if (docs && LEGAL_DOCUMENTS.every((d) => docs[d] === PREVIOUS_LEGAL_VERSIONS[d])) return PREVIOUS_TERMS_VERSION;
+  return undefined;
 }
 
-// Records acceptance of the given documents at their current versions.
+// Records acceptance of the given documents, at their current versions
+// unless `versions` names the exact versions the person saw (REQ-175).
 // Idempotent: accepting the same version twice keeps the first row.
 export async function recordAcceptance(
   userId: string,
   documents: LegalDocument[] = LEGAL_DOCUMENTS,
-  source: TermsSource = "prompt"
+  source: TermsSource = "prompt",
+  versions: Record<LegalDocument, string> = LEGAL_VERSIONS
 ): Promise<void> {
   for (const doc of documents) {
     await query(
       `insert into legal_acceptances (user_id, document, version, source) values ($1, $2, $3, $4)
        on conflict (user_id, document, version) do nothing`,
-      [userId, doc, LEGAL_VERSIONS[doc], source]
+      [userId, doc, versions[doc], source]
     );
   }
 }
 
-export async function recordTermsAcceptance(userId: string, version: string, source: TermsSource): Promise<void> {
-  if (!isCurrentTermsVersion(version)) throw new Error(`not the current terms version: ${version}`);
-  await recordAcceptance(userId, LEGAL_DOCUMENTS, source);
+// Records both documents at the versions `version` stands for. Throws when
+// this client may not accept that version (REQ-175: only a legacy client
+// may accept the previous one).
+export async function recordTermsAcceptance(
+  userId: string,
+  version: string,
+  source: TermsSource,
+  ctx: ClientContext = HEADERED
+): Promise<void> {
+  if (!isAcceptableTermsVersion(version, ctx)) throw new Error(`not an acceptable terms version: ${version}`);
+  await recordAcceptance(userId, LEGAL_DOCUMENTS, source, versionsFor(version));
 }
 
 // Sign-up paths: the person ticked "I agree" (email) or saw the agreement
@@ -75,11 +142,12 @@ export async function recordTermsAcceptance(userId: string, version: string, sou
 export async function recordSignupTermsAcceptance(
   userId: string,
   acceptedVersion: unknown,
-  source: Exclude<TermsSource, "prompt">
+  source: Exclude<TermsSource, "prompt">,
+  ctx: ClientContext = HEADERED
 ): Promise<boolean> {
-  if (!isCurrentTermsVersion(acceptedVersion)) return false;
+  if (!isAcceptableTermsVersion(acceptedVersion, ctx)) return false;
   try {
-    await recordTermsAcceptance(userId, CURRENT_TERMS_VERSION, source);
+    await recordTermsAcceptance(userId, acceptedVersion, source, ctx);
     return true;
   } catch (err) {
     console.warn("terms acceptance not recorded at sign-up:", (err as Error).message);
@@ -88,12 +156,17 @@ export async function recordSignupTermsAcceptance(
 }
 
 // Documents whose current version this user has not accepted yet.
-export async function pendingAcceptance(userId: string): Promise<LegalDocument[]> {
+// REQ-175: for a legacy client the previous version also counts, so an old
+// build that can only show the previous text stops asking once it is
+// accepted; the same account on an updated app is asked for the current one.
+export async function pendingAcceptance(userId: string, ctx: ClientContext = HEADERED): Promise<LegalDocument[]> {
   const rows = await query<{ document: LegalDocument; version: string }>(
     `select document, version from legal_acceptances where user_id = $1`,
     [userId]
   );
-  return LEGAL_DOCUMENTS.filter((d) => !rows.some((r) => r.document === d && r.version === LEGAL_VERSIONS[d]));
+  return LEGAL_DOCUMENTS.filter(
+    (d) => !rows.some((r) => r.document === d && acceptableDocVersions(d, ctx).includes(r.version))
+  );
 }
 
 export interface TermsState {
@@ -105,13 +178,13 @@ export interface TermsState {
   pending: LegalDocument[];
 }
 
-export async function termsState(userId: string): Promise<TermsState> {
+export async function termsState(userId: string, ctx: ClientContext = HEADERED): Promise<TermsState> {
   const latest = await queryOne<{ version: string; accepted_at: Date }>(
     `select version, accepted_at from legal_acceptances
       where user_id = $1 and document = 'terms' order by accepted_at desc, version desc limit 1`,
     [userId]
   );
-  const pending = await pendingAcceptance(userId);
+  const pending = await pendingAcceptance(userId, ctx);
   return {
     currentVersion: CURRENT_TERMS_VERSION,
     acceptedVersion: latest?.version ?? null,
