@@ -29,9 +29,9 @@ import { source } from "../sources";
 //   - Galloway et al., AANEM, "Needle EMG in certain uncommon clinical
 //     contexts", Muscle Nerve 2005;31:398 (doi 10.1002/mus.20238): no
 //     contraindication to needle EMG in lymphedema or with prosthetic
-//     joints; judge each case. NOTE: the seed track's objective says not to
-//     do needle EMG in a lymphedematous limb; the lab follows AANEM and the
-//     disagreement is listed for the clinical reviewer.
+//     joints; judge each case. The seed track's screening objective used to
+//     say never to do needle EMG in a lymphedematous limb; Nick approved
+//     following AANEM, and the objective was reworded to match (REQ-173).
 //   - AAEM/AAN/AAPM&R practice parameter for EDX studies in carpal tunnel
 //     syndrome (Muscle Nerve 2002; 1993 recommendations reaffirmed): median
 //     sensory NCS across the wrist first, compared with an adjacent nerve if
@@ -175,7 +175,7 @@ export const ABPTSECS_LABS: SeedLabSet = {
     {
       slug: "ecs-pretest-screening-case",
       objective:
-        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts, don't do needle EMG in a lymphedematous limb or with platelets below 50,000, and avoid testing with external temporary pacemakers",
+        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; treat lymphedema as no contraindication to needle EMG, weighing the risk against what the study adds; and avoid testing with external temporary pacemakers",
       kind: "case",
       title: "Screen three referrals before the clinic starts",
       brief:

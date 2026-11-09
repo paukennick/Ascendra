@@ -1272,7 +1272,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
         "Critical inquiry: reference values, sensitivity and specificity of electrodiagnostic tests",
         "Professional roles and responsibilities: scope, safety, infection control and reporting standards in electrodiagnosis",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
-        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts, don't do needle EMG in a lymphedematous limb or with platelets below 50,000, and avoid testing with external temporary pacemakers", // SP-NCS
+        "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; treat lymphedema as no contraindication to needle EMG, weighing the risk against what the study adds; and avoid testing with external temporary pacemakers", // SP-NCS; AANEM-EMG-2005 (REQ-173: Galloway et al., AANEM position statement, "Needle EMG in certain uncommon clinical contexts", Muscle Nerve 2005;31:398, doi 10.1002/mus.20238, read 2026-11-09 -- no contraindication in lymphedema, judge each case; AANEM 2021 bleeding-risk guidance -- caution below 50,000 platelets)
         "Lower bleeding risk in needle EMG for patients on anticoagulants or with bleeding tendencies: use the smallest-gauge needle, limit needle insertions, and skip deep muscles that can't be compressed or that lie near large vessels", // SP-NCS
       ],
     },

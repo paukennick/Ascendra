@@ -132,8 +132,9 @@ type ValueSources = Record<string, SourceRef[] | { none: string }>;
 // read 2026-11-09. AANEM bleeding-risk guidance: caution below 50,000
 // platelets (INR above about 1.5-2.0); don't routinely stop anticoagulants
 // or defer EMG. AANEM 2005 position: no contraindication in lymphedema or
-// prosthetic joints, judge each case (disagrees with the seed track's
-// objective wording -- listed for the clinical reviewer). AAEM/AAN/AAPM&R
+// prosthetic joints, judge each case. The ECS screening objective now says
+// the same (reworded with Nick's approval; it used to forbid needle EMG in
+// a lymphedematous limb). AAEM/AAN/AAPM&R
 // 2002 CTS practice parameter. AAEM 1999 ulnar-at-elbow parameter is not
 // used. Practical Neurology 2024 LEMS review (secondary; cites the 100% and
 // 60% increment criteria). Goncalves 2025 on cervical radiculopathy EDX.
