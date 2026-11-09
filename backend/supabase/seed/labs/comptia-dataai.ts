@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA DataAI (DY0-001, V1; the exam formerly branded DataX).
 //
@@ -23,7 +24,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const DATAAI_LABS: SeedLabSet = {
   trackCode: "DATAAI",
-  sources: ["https://www.comptia.org/en-us/certifications/dataai/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/dataai/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // Mathematics and Statistics (17%) -- 1 lab

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA Server+ (SK0-005, V5).
 //
@@ -20,7 +21,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const SERVERPLUS_LABS: SeedLabSet = {
   trackCode: "SERVERPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/server/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/server/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // Server Hardware Installation and Management (18%) -- 2 labs

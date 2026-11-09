@@ -122,3 +122,23 @@ describe("request timeout (FAIL-061)", () => {
     assert.equal(requestTimeoutMs("/api/tracks", Number.NaN), DEFAULT_TIMEOUT_MS);
   });
 });
+
+// REQ-146 (FAIL-530): without this header the server treats the app as a
+// build from before the Solo hint flow and puts the Solo choices in the
+// lesson, recording a hint for the item. This app must always send it.
+describe("client protocol header (FAIL-530)", () => {
+  test("every request carries X-Ascendra-Client with the protocol number", async () => {
+    const { CLIENT_PROTOCOL, CLIENT_PROTOCOL_HEADER } = await import("../api/client.ts");
+    const seen: Array<Record<string, string>> = [];
+    globalThis.fetch = ((_url: string, init?: RequestInit) => {
+      seen.push(init?.headers as Record<string, string>);
+      return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("{}") });
+    }) as unknown as typeof fetch;
+    await api.get("/api/objectives/x/lesson");
+    await api.post("/api/objectives/x/hint", { stage: "solo" });
+    assert.equal(CLIENT_PROTOCOL_HEADER, "X-Ascendra-Client");
+    assert.ok(CLIENT_PROTOCOL >= 1);
+    assert.equal(seen.length, 2);
+    for (const h of seen) assert.equal(h["X-Ascendra-Client"], String(CLIENT_PROTOCOL));
+  });
+});

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA AutoOps+ (AT0-001, V1).
 //
@@ -32,7 +33,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const AUTOOPSPLUS_LABS: SeedLabSet = {
   trackCode: "AUTOOPSPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/autoops/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/autoops/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // Automation Coding Concepts (31%) -- 2 labs

@@ -3,6 +3,7 @@ import { isActive } from "@/lib/progress-sql";
 import { servableSql } from "@/lib/item-quality";
 import type { Feature } from "@/lib/billing-config";
 import { hasFeature } from "@/lib/entitlements";
+import { featureEnabledFor } from "@/lib/account-access";
 import { labDisclaimerFor, type LabDisclaimer } from "@/lib/lab-disclaimer";
 import type { LabSafetyFamily } from "@/lib/lab-grading";
 import { recordAttemptTx, findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
@@ -88,6 +89,16 @@ export function servedReviewStatuses(env: Record<string, string | undefined> = p
   const v = (env.LABS_SERVE_UNREVIEWED ?? "").trim().toLowerCase();
   const off = v === "off" || v === "0" || v === "false" || v === "no";
   return off ? ["approved"] : ["approved", "needs_expert_review"];
+}
+
+// REQ-144: the same for one learner. With LABS_SERVE_UNREVIEWED off, owner
+// and unrestricted accounts still get unreviewed labs (early access,
+// lib/account-access-config.ts EARLY_ACCESS), with the same disclaimer and
+// acknowledgement as everyone. No database read while the switch is on.
+export async function servedReviewStatusesFor(userId: string, env: Record<string, string | undefined> = process.env): Promise<ReviewStatus[]> {
+  const everyone = servedReviewStatuses(env);
+  if (everyone.includes("needs_expert_review")) return everyone;
+  return (await featureEnabledFor(userId, "labs_unreviewed", env as NodeJS.ProcessEnv)) ? ["approved", "needs_expert_review"] : everyone;
 }
 
 // The subject family of a course for the lab disclaimer: the course
@@ -220,7 +231,7 @@ export async function visibleLab(labId: string, userId: string, env = process.en
        join subject_tracks st on st.id = cu.track_id
       where l.id = $1 and (st.user_id is null or st.user_id = $2)
         and ${isActive("o")} and ${isActive("cu")} and ${servable("l", 3)}`,
-    [labId, userId, servedReviewStatuses(env)]
+    [labId, userId, await servedReviewStatusesFor(userId, env)]
   );
 }
 
@@ -277,7 +288,7 @@ export async function listLabs(userId: string, scope: LabScope, env = process.en
       where ${col} = $1 and (st.user_id is null or st.user_id = $2)
         and ${isActive("o")} and ${isActive("cu")} and ${servable("l", 3)}
       order by cu.sort_order, o.sort_order, l.kind, l.title, l.id`,
-    [id, userId, servedReviewStatuses(env)]
+    [id, userId, await servedReviewStatusesFor(userId, env)]
   );
   const full = await hasFeature(userId, LABS_FEATURE);
   const samples = new Map<string, string | null>();

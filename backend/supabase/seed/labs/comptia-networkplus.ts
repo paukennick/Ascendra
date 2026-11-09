@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA Network+ (N10-009, V9).
 //
@@ -20,7 +21,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const NETWORKPLUS_LABS: SeedLabSet = {
   trackCode: "NETWORKPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/network/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/network/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // Networking Concepts (23%) -- 2 labs

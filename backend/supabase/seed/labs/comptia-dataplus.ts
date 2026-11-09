@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA Data+ (DA0-002, V2).
 //
@@ -21,7 +22,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const DATAPLUS_LABS: SeedLabSet = {
   trackCode: "DATAPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/data/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/data/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // Data Concepts and Environments (20%) -- 1 lab

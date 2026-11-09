@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-160: CompTIA Linux+ (XK0-006, V8).
 //
@@ -22,7 +23,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const LINUXPLUS_LABS: SeedLabSet = {
   trackCode: "LINUXPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/linux/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/linux/", "exam_outline", "2026-11-07")],
   labs: [
     // -----------------------------------------------------------------------
     // System Management (23%) -- 3 labs

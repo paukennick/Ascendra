@@ -21,6 +21,7 @@ import {
   type BillingPlan,
 } from "@/lib/billing";
 import { colors, spacing } from "@/lib/theme";
+import { accessPlanLine, parseAccess, UNRESTRICTED_NOTE } from "@/lib/access";
 
 // REQ-122: the plans screen. Reachable only while paid plans are on (the
 // Settings row and the upgrade sheet are the only ways in); if the switch is
@@ -116,6 +117,19 @@ export default function Plans() {
     }
   }, [me]);
 
+  // REQ-144: owner and unrestricted accounts see that instead of plans.
+  const unrestricted = parseAccess(user?.access) ?? parseAccess(me?.unrestricted);
+  if (unrestricted) {
+    return (
+      <Screen>
+        <Card>
+          <Muted>Your plan</Muted>
+          <H2>{accessPlanLine(unrestricted)}</H2>
+          <Muted>{UNRESTRICTED_NOTE}</Muted>
+        </Card>
+      </Screen>
+    );
+  }
   if (!config.enabled) {
     return (
       <Screen>
