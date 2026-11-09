@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-154: AWS Certified DevOps Engineer - Professional (DOP-C02).
 //
@@ -35,12 +36,12 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSDOP_LABS: SeedLabSet = {
   trackCode: "AWSDOP",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02.html",
-    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
-    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html",
-    "https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-disablepublicaccessforsecuritygroup.html",
-    "https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-block-public-s3-bucket.html",
-    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-disablepublicaccessforsecuritygroup.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-block-public-s3-bucket.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

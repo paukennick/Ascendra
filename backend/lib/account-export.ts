@@ -134,6 +134,17 @@ export const EXPORT_SECTIONS = {
                     from billing_events where user_id = $1 order by received_at asc, id asc`,
   freeCourse: "select * from free_course_choice where user_id = $1 order by user_id asc",
   allowanceUses: "select kind, used_at from allowance_uses where user_id = $1 order by used_at asc, id asc",
+  // REQ-144: unrestricted access given to this account, and its audit trail
+  // (who gave, changed or ended it, and when). The giver is named, not their
+  // email address.
+  accessGrants: `select a.id, a.email, a.level, a.granted_at, a.expires_at, a.note, a.claimed_at, a.revoked_at,
+                        coalesce(nullif(trim(gb.display_name), ''), case when a.granted_by is null then 'command line' else 'the account owner' end) as granted_by
+                   from account_access a left join app_users gb on gb.id = a.granted_by
+                  where a.user_id = $1 order by a.granted_at asc, a.id asc`,
+  accessEvents: `select e.action, e.email, e.via, e.detail, e.created_at,
+                        case when e.actor_id is not null then coalesce(nullif(trim(ac.display_name), ''), 'the account owner') end as by
+                   from account_access_events e left join app_users ac on ac.id = e.actor_id
+                  where e.user_id = $1 order by e.created_at asc, e.id asc`,
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

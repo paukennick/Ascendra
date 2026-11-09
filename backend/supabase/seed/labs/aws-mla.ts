@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-154: AWS Certified Machine Learning Engineer - Associate (MLA-C02).
 //
@@ -43,13 +44,13 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSMLA_LABS: SeedLabSet = {
   trackCode: "AWSMLA",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking-parsing.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/s3-data-source-connector.html",
-    "https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-how-it-works.html",
-    "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model-options.html",
-    "https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking-parsing.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/s3-data-source-connector.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-how-it-works.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model-options.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

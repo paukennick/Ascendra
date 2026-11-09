@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-154: AWS Certified Data Engineer - Associate (DEA-C01).
 //
@@ -42,14 +43,14 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSDEA_LABS: SeedLabSet = {
   trackCode: "AWSDEA",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.html",
-    "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html",
-    "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html",
-    "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
-    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html",
-    "https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-s3-throttling-optimizing-your-tables.html",
-    "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html",
-    "https://docs.aws.amazon.com/glue/latest/dg/dqdl.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-s3-throttling-optimizing-your-tables.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg-data-optimization.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/glue/latest/dg/dqdl.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

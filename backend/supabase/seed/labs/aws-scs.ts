@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-154: AWS Certified Security - Specialty (SCS-C03).
 //
@@ -45,15 +46,15 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSSCS_LABS: SeedLabSet = {
   trackCode: "AWSSCS",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/security-specialty-03.html",
-    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html",
-    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging-legacy-s3.html",
-    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html",
-    "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html",
-    "https://docs.aws.amazon.com/kms/latest/developerguide/data-protection.html",
-    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html",
-    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_syntax.html",
-    "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user-privileged-task.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/security-specialty-03.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging-legacy-s3.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logging.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/kms/latest/developerguide/data-protection.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_syntax.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user-privileged-task.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

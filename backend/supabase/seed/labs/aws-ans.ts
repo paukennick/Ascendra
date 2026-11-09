@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-154: AWS Certified Advanced Networking - Specialty (ANS-C01).
 //
@@ -44,13 +45,13 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSANS_LABS: SeedLabSet = {
   trackCode: "AWSANS",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.html",
-    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html",
-    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html",
-    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/create-vif.html",
-    "https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-quotas.html",
-    "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html",
-    "https://docs.aws.amazon.com/vpc/latest/userguide/flow-log-records.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/directconnect/latest/UserGuide/create-vif.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-quotas.html", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpc/latest/userguide/flow-log-records.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------
