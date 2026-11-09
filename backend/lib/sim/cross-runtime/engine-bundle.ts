@@ -78,7 +78,7 @@ function simCrossRuntimeEngine() {
     for (var p = 0; p < entry.golden.paths.length; p++) {
       var path = entry.golden.paths[p];
       try {
-        var g = validate.replayGoldenPath(entry.doc, path);
+        var g = validate.replayGoldenPath(entry.doc, path, function (run) { return engine.stateHash(run.state); });
         var db = g.debrief;
         lines.push("golden " + entry.slug + "/" + path.id + " hash=" + g.stateHash + " final=" + g.finalTick + " ending=" + db.ending + " class=" + db.outcomeClass + " rating=" + db.rating + " score=" + db.processScore + " mismatches=" + g.mismatches.length + (g.error ? " error=" + JSON.stringify(g.error) : ""));
       } catch (e) { lines.push("golden " + entry.slug + "/" + path.id + " threw " + String(e && e.message)); }

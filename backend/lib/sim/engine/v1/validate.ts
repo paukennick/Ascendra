@@ -1505,8 +1505,11 @@ function textRules(doc: ScenarioDoc, col: Collector, family: SafetyFamily | unde
     const lower = (text ?? "").toLowerCase();
     for (const phrase of SECOND_PERSON) if (lower.indexOf(phrase) >= 0) col.error(path, `"${phrase}": the people in a sim are fictional; never address the learner's own patients or clients`);
   }
-  const fam = family ?? (doc.outcome.profile === "clinical" ? "clinical" : doc.outcome.profile === "fitness" ? "fitness" : "general");
-  if ((fam === "clinical" || fam === "fitness") && (!doc.safetyNote || doc.safetyNote.trim().length < 20)) col.error("safetyNote", `a ${fam} scenario needs a safety note (the lab rules)`);
+  // REQ-165 (Nick, 2026-11-09): one study notice, accepted once, covers every
+  // sim; there is no per-sim disclaimer, so a clinical or fitness document no
+  // longer needs a safety note. One that has a note keeps it as author-facing
+  // context, never shown as a disclaimer.
+  void family;
   if (!doc.sources.length) col.error("sources", "list the exam outline and references the scenario is built from");
 }
 
@@ -1582,7 +1585,14 @@ function content(doc: ScenarioDoc, info: DocInfo, col: Collector, opts: LintOpti
     for (const t of targetWithCriticalMiss.slice(0, 5)) col.error("scoring", `a target ending was reached with a critical command-derived criterion missed: ${t}. Make the criterion part of the target condition or drop its critical flag (9.2)`);
   }
   if (opts.golden) {
-    for (const k of Object.keys(doc.endings)) if (doc.endings[k].terminal && !endingsReached.has(k)) col.error(`endings.${k}`, "reached by no golden path");
+    // time_up is the hard stop (maxDuration), a safety net a well-built case
+    // may never reach (the tamponade port arrests or reaches the OR long
+    // before four hours), so missing it is a warning, not an error.
+    for (const k of Object.keys(doc.endings)) {
+      if (!doc.endings[k].terminal || endingsReached.has(k)) continue;
+      if (k === "time_up") col.warn("endings.time_up", "reached by no golden path (the hard stop; check maxDuration is long enough for the slowest legal path)");
+      else col.error(`endings.${k}`, "reached by no golden path");
+    }
     for (const c of doc.scoring.criteria) {
       const seen = criteriaSeen[c.id] ?? new Set();
       if (!seen.has("met")) col.error(`scoring.criteria.${c.id}`, "met by no golden path");

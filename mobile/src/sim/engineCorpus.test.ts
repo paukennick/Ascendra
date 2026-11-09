@@ -23,3 +23,27 @@ test("the engine copy reproduces the v1 corpus and its manifest hashes", () => {
     assert.equal(r.hash, manifest.cases[c.id].hash, c.id);
   }
 });
+
+// REQ-162: every seeded scenario's golden paths replay under the app's copy
+// to the same ending, rating, criteria and final state hash the backend
+// recorded (backend/supabase/seed/sims/<course>/<slug>.golden.json).
+test("the engine copy replays every seeded golden path to the recorded state hash", async () => {
+  const { replayGoldenPath } = await import("./engine/v1/validate.ts");
+  const { stateHash } = await import("./engine/v1/engine.ts");
+  const seeds = join(here, "..", "..", "..", "backend", "supabase", "seed", "sims");
+  let paths = 0;
+  for (const course of readdirSync(seeds)) {
+    for (const f of readdirSync(join(seeds, course)).filter((x) => x.endsWith(".golden.json"))) {
+      const doc = JSON.parse(readFileSync(join(seeds, course, f.replace(/\.golden\.json$/, ".sim.json")), "utf8"));
+      const golden = JSON.parse(readFileSync(join(seeds, course, f), "utf8"));
+      for (const p of golden.paths) {
+        const r = replayGoldenPath(doc, p, (run) => stateHash(run.state));
+        assert.equal(r.error, null, `${f} ${p.id}`);
+        assert.deepEqual(r.mismatches, [], `${f} ${p.id}`);
+        assert.ok(p.expect.stateHash && r.stateHash === p.expect.stateHash, `${f} ${p.id}: state hash`);
+        paths++;
+      }
+    }
+  }
+  assert.ok(paths > 0);
+});

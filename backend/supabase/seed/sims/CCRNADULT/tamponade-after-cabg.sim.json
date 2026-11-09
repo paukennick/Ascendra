@@ -1,0 +1,3713 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 0
+  },
+  "slug": "tamponade-after-cabg",
+  "title": "Tamponade after CABG",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50,
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              130
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "abp",
+          "label": "ABP",
+          "spokenLabel": "Arterial blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 100
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "trend": {
+            "history": "mapH",
+            "window": "5min",
+            "threshold": 3
+          },
+          "announce": {
+            "bands": [
+              65,
+              55
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "cvp",
+          "label": "CVP",
+          "spokenLabel": "Central venous pressure",
+          "value": "cvp",
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              12,
+              16
+            ]
+          },
+          "colour": "cvp"
+        },
+        {
+          "id": "paop",
+          "label": "PAOP",
+          "spokenLabel": "Pulmonary artery occlusion pressure",
+          "value": "paop",
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              16,
+              18
+            ]
+          },
+          "colour": "pa",
+          "hiddenUntil": "wedged"
+        },
+        {
+          "id": "ci",
+          "label": "CI",
+          "spokenLabel": "Cardiac index",
+          "value": "ci",
+          "unit": "L/min/m2",
+          "alarm": {
+            "low": 2.0
+          },
+          "announce": {
+            "bands": [
+              2.2,
+              2.0,
+              1.8
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "svo2",
+          "label": "SvO2",
+          "spokenLabel": "Mixed venous oxygen saturation",
+          "value": "svo2",
+          "unit": "%",
+          "announce": {
+            "bands": [
+              60,
+              55
+            ]
+          },
+          "colour": "pa"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output",
+          "value": "uo",
+          "unit": "mL/h",
+          "announce": {
+            "bands": [
+              40,
+              20
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "ct",
+          "label": "Chest tube",
+          "spokenLabel": "Chest tube output in the last 15 minutes",
+          "value": "ct15",
+          "unit": "mL/15min",
+          "announce": {
+            "bands": [
+              10,
+              5
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        }
+      ],
+      "infusions": "Norepinephrine {neDose} mcg/kg/min, epinephrine {epiDose} mcg/min, dobutamine {dobDose} mcg/kg/min",
+      "banner": [
+        {
+          "when": "phase == \"p2\"",
+          "text": "Back in the ICU after re-exploration."
+        }
+      ]
+    }
+  },
+  "objective": "Cardiac tamponade: recognising it in the post-operative patient and escalating to the surgeon",
+  "secondaryObjectives": [
+    "Low cardiac output after cardiac surgery: inotrope versus fluid versus vasopressor"
+  ],
+  "sources": [
+    {
+      "cite": "AACN CCRN (Adult) exam blueprint: Cardiovascular, cardiac surgery and tamponade",
+      "checkedAt": "2026-11-09"
+    },
+    {
+      "cite": "STS/EACTS expert consensus: Cardiac Surgery Advanced Life Support (CALS); EACTS 2017 resuscitation after cardiac surgery",
+      "checkedAt": "2026-11-09",
+      "note": "Emergency resternotomy within about 5 minutes of arrest; reopening at the bedside is a rescue."
+    },
+    {
+      "cite": "Prototype critical-care.html (revised 2026-11-07), the rules table this port reproduces",
+      "checkedAt": "2026-11-09",
+      "note": "Every number below is the prototype's own, with its stated basis."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 14:00. Bed 6, 64-year-old, CABG x3 (LIMA-LAD, SVG-OM, SVG-RCA) finished at 10:00. Sedated and on the ventilator, FiO2 0.40. Two mediastinal chest tubes to -20 cmH2O suction. Pulmonary artery catheter. Epicardial pacing wires with the pacer box at the bedside, off (sinus rhythm).",
+    "handover": [
+      "Chest tube drainage 80-120 mL/h for the last 3 hours, dark red.",
+      "HR 88, ABP 118/70, CVP 8, PAOP 12 mmHg, CI 2.6 L/min/m2, SvO2 68%.",
+      "Post-op Hgb 9.6 g/dL. ACT back to baseline after protamine in the OR. No vasoactive drips running."
+    ],
+    "howItWorks": [
+      "The clock runs in real time: one minute on the monitor is one minute for you. Pause any time.",
+      "Assessments examine the patient; orders act. Some ask for a dose or volume.",
+      "Everything takes as long as it would on a real unit: a bolus runs in over minutes, drips take minutes to work, the surgeon calls back and walks over, labs and echo take time.",
+      "While you wait on something, Skip jumps ahead, says how much time it skips and logs it. The patient keeps changing at the same rate.",
+      "Partway through you are asked to write what you think is happening. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "14:00",
+    "tick": "1s",
+    "maxDuration": "4h",
+    "calendar": "clock"
+  },
+  "params": {
+    "onset": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-09",
+        "note": "Drainage stops at 14:02, two minutes after handover."
+      }
+    },
+    "tampRate": {
+      "value": 0.016666666666666666,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-09",
+        "note": "Untreated, compression reaches the arrest threshold about 60 min after the drainage stops: a bleeding graft side branch at 200-300 mL/h into a closed mediastinum; post-op tamponade develops over tens of minutes to hours."
+      }
+    },
+    "arrestE": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "lateE": {
+      "value": 0.85,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "goodE": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonE": {
+      "value": 0.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reasonAt": {
+      "value": 1020,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-09",
+        "note": "Written-reasoning pause 15 min after onset at the latest."
+      }
+    },
+    "q15": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Chest tube output charted every 15 min in the first post-op hours."
+      }
+    },
+    "fluidPeak": {
+      "value": {
+        "250": 0.05,
+        "500": 0.1
+      },
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fluidRate": {
+      "value": 50,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Volume kinetics of crystalloid (plasma half-life roughly 20-40 min); pressure-bag flow through an introducer",
+        "checkedAt": "2026-11-09",
+        "note": "About 50 mL/min wide open on a 300 mmHg pressure bag."
+      }
+    },
+    "fluidDecay": {
+      "value": 20,
+      "unit": "min",
+      "source": {
+        "cite": "Volume kinetics of crystalloid (plasma half-life roughly 20-40 min); pressure-bag flow through an introducer",
+        "checkedAt": "2026-11-09",
+        "note": "About 50 mL/min wide open on a 300 mmHg pressure bag."
+      }
+    },
+    "fluidDiminish": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "cvpPer500": {
+      "value": 0.6,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gushMl": {
+      "value": 120,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "repeatGushMl": {
+      "value": 20,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "tReduce": {
+      "value": 0.08,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "clearMin": {
+      "value": 2,
+      "unit": "min",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Milking or clearing clot from the tubing per protocol takes 1-2 min."
+      }
+    },
+    "tubeEffect": {
+      "value": 360,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rateMult": {
+      "value": 0.6,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "neTau": {
+      "value": 3.5,
+      "unit": "min",
+      "source": {
+        "cite": "Norepinephrine, epinephrine, dobutamine prescribing information (half-lives 2-3 min)",
+        "checkedAt": "2026-11-09",
+        "note": "Time constant about t1/2 / ln 2; ICU titration every 5 minutes."
+      }
+    },
+    "epiTau": {
+      "value": 3.5,
+      "unit": "min",
+      "source": {
+        "cite": "Norepinephrine, epinephrine, dobutamine prescribing information (half-lives 2-3 min)",
+        "checkedAt": "2026-11-09",
+        "note": "Time constant about t1/2 / ln 2; ICU titration every 5 minutes."
+      }
+    },
+    "dobTau": {
+      "value": 3,
+      "unit": "min",
+      "source": {
+        "cite": "Norepinephrine, epinephrine, dobutamine prescribing information (half-lives 2-3 min)",
+        "checkedAt": "2026-11-09",
+        "note": "Time constant about t1/2 / ln 2; ICU titration every 5 minutes."
+      }
+    },
+    "titrate": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Norepinephrine, epinephrine, dobutamine prescribing information (half-lives 2-3 min)",
+        "checkedAt": "2026-11-09",
+        "note": "Time constant about t1/2 / ln 2; ICU titration every 5 minutes."
+      }
+    },
+    "protDrop": {
+      "value": 8,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Protamine sulfate prescribing information",
+        "checkedAt": "2026-11-09",
+        "note": "Slow IV over about 10 minutes, no more than 50 mg in any 10 minutes; hypotension during infusion."
+      }
+    },
+    "protInfuse": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Protamine sulfate prescribing information",
+        "checkedAt": "2026-11-09",
+        "note": "Slow IV over about 10 minutes, no more than 50 mg in any 10 minutes; hypotension during infusion."
+      }
+    },
+    "protTail": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Protamine sulfate prescribing information",
+        "checkedAt": "2026-11-09",
+        "note": "Slow IV over about 10 minutes, no more than 50 mg in any 10 minutes; hypotension during infusion."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "14:00 on a weekday the surgeon is in the OR: page to callback about 2 min."
+      }
+    },
+    "surgeonWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Scrub out and walk to the ICU about 10 min."
+      }
+    },
+    "phoneRecheck": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Phone orders: call back in 15 min if not better."
+      }
+    },
+    "orPrepped": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "OR transfer of a ventilated patient on drips about 15 min when the OR and perfusion were notified."
+      }
+    },
+    "orNotPrepped": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "About 30 min when the team is mobilised after the surgeon decides."
+      }
+    },
+    "noEchoExtra": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Without an echo the surgeon images first."
+      }
+    },
+    "bedsideTray": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "STS/EACTS expert consensus: Cardiac Surgery Advanced Life Support (CALS); EACTS 2017 resuscitation after cardiac surgery",
+        "checkedAt": "2026-11-09",
+        "note": "Emergency resternotomy within about 5 minutes of arrest; reopening at the bedside is a rescue."
+      }
+    },
+    "bedsideNoTray": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "STS/EACTS expert consensus: Cardiac Surgery Advanced Life Support (CALS); EACTS 2017 resuscitation after cardiac surgery",
+        "checkedAt": "2026-11-09",
+        "note": "Emergency resternotomy within about 5 minutes of arrest; reopening at the bedside is a rescue."
+      }
+    },
+    "echoTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "STAT bedside echo by the intensivist about 10 min."
+      }
+    },
+    "pocTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "CAP STAT turnaround benchmarks; point-of-care blood gas and ACT",
+        "checkedAt": "2026-11-09",
+        "note": "Point-of-care gas and ACT ~5 min; central-lab STAT coagulation within 60 min (45 used)."
+      }
+    },
+    "coagTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "CAP STAT turnaround benchmarks; point-of-care blood gas and ACT",
+        "checkedAt": "2026-11-09",
+        "note": "Point-of-care gas and ACT ~5 min; central-lab STAT coagulation within 60 min (45 used)."
+      }
+    },
+    "backAfter": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Re-exploration 60-75 min plus transport both ways: back in the ICU about 90 min after it starts."
+      }
+    },
+    "reassess": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Reassess the low-output state about 30 min after a change."
+      }
+    },
+    "recognizeWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Expert path (prototype EXPERT)",
+        "checkedAt": "2026-11-09",
+        "note": "Notice by the next q15 drainage check."
+      }
+    },
+    "callPartialWindow": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Prototype criteria",
+        "checkedAt": "2026-11-09",
+        "note": "Surgeon paged within 35 min of onset scores partial."
+      }
+    },
+    "recognizePartialWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Prototype criteria",
+        "checkedAt": "2026-11-09",
+        "note": "Tubes looked at within 30 min of onset scores partial."
+      }
+    }
+  },
+  "state": {
+    "tamp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1.5
+    },
+    "tubeRelief": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "tubeUntil": {
+      "type": "number",
+      "init": -1,
+      "unit": "s",
+      "min": -1,
+      "max": 20000
+    },
+    "tubeCleared": {
+      "type": "bool",
+      "init": false
+    },
+    "cum": {
+      "type": "number",
+      "init": 25,
+      "unit": "mL",
+      "min": 0,
+      "max": 100000
+    },
+    "boosts": {
+      "type": "records",
+      "max": 3,
+      "init": [],
+      "fields": {
+        "n": {
+          "type": "number"
+        },
+        "v": {
+          "type": "number"
+        },
+        "at": {
+          "type": "number",
+          "unit": "s"
+        },
+        "dur": {
+          "type": "number",
+          "unit": "s"
+        },
+        "ml": {
+          "type": "number",
+          "unit": "mL"
+        }
+      }
+    },
+    "boostDone": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "infusedDone": {
+      "type": "number",
+      "init": 0,
+      "unit": "mL",
+      "min": 0,
+      "max": 20000
+    },
+    "nBolus": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "fluidTotal": {
+      "type": "number",
+      "init": 0,
+      "unit": "mL",
+      "min": 0,
+      "max": 20000
+    },
+    "neDose": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "epiDose": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "dobDose": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "neEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1
+    },
+    "epiEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "dobEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "protAt": {
+      "type": "time",
+      "init": null
+    },
+    "wedged": {
+      "type": "bool",
+      "init": false
+    },
+    "wedgedAfterOnset": {
+      "type": "bool",
+      "init": false
+    },
+    "tubesAt": {
+      "type": "time",
+      "init": null
+    },
+    "recognizedAt": {
+      "type": "time",
+      "init": null
+    },
+    "echoAt": {
+      "type": "time",
+      "init": null
+    },
+    "echoResult": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tamp",
+        "small"
+      ],
+      "init": "none"
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsDone": {
+      "type": "bool",
+      "init": false
+    },
+    "prepAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstPressorAt": {
+      "type": "time",
+      "init": null
+    },
+    "hasCall": {
+      "type": "bool",
+      "init": false
+    },
+    "bestEffective": {
+      "type": "bool",
+      "init": false
+    },
+    "bestFull": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "surgeonEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivalSet": {
+      "type": "bool",
+      "init": false
+    },
+    "surgeonArrived": {
+      "type": "bool",
+      "init": false
+    },
+    "bedside": {
+      "type": "bool",
+      "init": false
+    },
+    "reexpAt": {
+      "type": "time",
+      "init": null
+    },
+    "reexpStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "path": {
+      "type": "enum",
+      "values": [
+        "none",
+        "early",
+        "bridge",
+        "late"
+      ],
+      "init": "none"
+    },
+    "p2first": {
+      "type": "enum",
+      "values": [
+        "none",
+        "inotrope",
+        "fluid",
+        "pressor",
+        "afterload"
+      ],
+      "init": "none"
+    },
+    "p2last": {
+      "type": "enum",
+      "values": [
+        "none",
+        "inotrope",
+        "fluid",
+        "pressor",
+        "afterload"
+      ],
+      "init": "none"
+    },
+    "p2count": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "p2done": {
+      "type": "bool",
+      "init": false
+    },
+    "p2hr": {
+      "type": "number",
+      "init": 0,
+      "unit": "/min",
+      "min": 0,
+      "max": 200
+    },
+    "p2sbp": {
+      "type": "number",
+      "init": 0,
+      "unit": "mmHg",
+      "min": 0,
+      "max": 250
+    },
+    "p2dbp": {
+      "type": "number",
+      "init": 0,
+      "unit": "mmHg",
+      "min": 0,
+      "max": 200
+    },
+    "p2cvp": {
+      "type": "number",
+      "init": 0,
+      "unit": "mmHg",
+      "min": 0,
+      "max": 40
+    },
+    "p2paop": {
+      "type": "number",
+      "init": 0,
+      "unit": "mmHg",
+      "min": 0,
+      "max": 50
+    },
+    "p2ci": {
+      "type": "number",
+      "init": 0,
+      "unit": "L/min/m2",
+      "min": 0,
+      "max": 6
+    },
+    "p2spo2": {
+      "type": "number",
+      "init": 0,
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    "p2svo2": {
+      "type": "number",
+      "init": 0,
+      "unit": "%",
+      "min": 0,
+      "max": 100
+    },
+    "p2uo": {
+      "type": "number",
+      "init": 0,
+      "unit": "mL/h",
+      "min": 0,
+      "max": 300
+    },
+    "p2ct": {
+      "type": "number",
+      "init": 0,
+      "unit": "mL",
+      "min": 0,
+      "max": 500
+    },
+    "p2lactate": {
+      "type": "number",
+      "init": 0,
+      "unit": "mmol/L",
+      "min": 0,
+      "max": 20
+    }
+  },
+  "history": {
+    "cumH": {
+      "of": "cum",
+      "every": "5s",
+      "keep": "20min"
+    },
+    "mapH": {
+      "of": "map",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "inP2": {
+      "expr": "phase == \"p2\""
+    },
+    "fluidBoost": {
+      "expr": "boostDone + sum(boosts, v * clamp((t - at) / dur, 0, 1))"
+    },
+    "fluidInfused": {
+      "expr": "infusedDone + sum(boosts, ml * clamp((t - at) / dur, 0, 1))",
+      "unit": "mL"
+    },
+    "eff": {
+      "expr": "clamp(tamp - fluidBoost, 0, 1.3)",
+      "precision": 2
+    },
+    "dx": {
+      "expr": "clamp((eff - 0.8) / 0.2, 0, 1) * clamp((eff - 0.8) / 0.2, 0, 1)"
+    },
+    "protEl": {
+      "expr": "isNull(protAt) ? -1 : t - timeAt(protAt)",
+      "unit": "s"
+    },
+    "pd": {
+      "expr": "protEl < 0 or protEl > protInfuse + protTail ? 0 : protDrop * clamp(protEl / 120, 0, 1) * clamp((protInfuse + protTail - protEl) / protTail, 0, 1)",
+      "unit": "mmHg"
+    },
+    "sbpRaw": {
+      "expr": "118 - 40 * eff - 25 * dx + 1.5 * sin(t / 23) + 90 * neEff * (1 - 0.4 * eff) + 2 * epiEff * (1 - 0.4 * eff) - 3 * (dobEff / 2.5) - pd",
+      "unit": "mmHg"
+    },
+    "dbpRaw": {
+      "expr": "min(70 - 10 * eff - 15 * dx + 45 * neEff * (1 - 0.4 * eff) + 0.6 * epiEff - pd / 2, sbpRaw - 12)",
+      "unit": "mmHg"
+    },
+    "hr": {
+      "expr": "inP2 ? p2hr : round(clamp(88 + 40 * eff + 1.5 * sin(t / 37) + 1.5 * epiEff + 4 * (dobEff / 2.5), 60, 150))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "inP2 ? p2sbp : round(sbpRaw)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "inP2 ? p2dbp : round(dbpRaw)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "cvp": {
+      "expr": "inP2 ? p2cvp : round(8 + 12 * eff + cvpPer500 * fluidInfused / 500)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "paop": {
+      "expr": "inP2 ? p2paop : round(12 + 8 * eff)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "ci": {
+      "expr": "inP2 ? p2ci : round(clamp(2.6 - 1.2 * eff - 0.4 * dx - 0.5 * neEff + 0.04 * epiEff * (1 - 0.6 * eff) + 0.1 * (dobEff / 2.5) * (1 - 0.6 * eff), 1.1, 4) * 10) / 10",
+      "unit": "L/min/m2",
+      "precision": 1
+    },
+    "svo2": {
+      "expr": "inP2 ? p2svo2 : round(68 - 20 * eff - 6 * dx)",
+      "unit": "%",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "inP2 ? p2spo2 : round(98 - 2 * eff)",
+      "unit": "%",
+      "precision": 0
+    },
+    "uo": {
+      "expr": "inP2 ? p2uo : round(clamp(80 * (1 - 0.85 * eff), 5, 120))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "ct15": {
+      "expr": "inP2 ? p2ct : round(cum - (t < q15 ? 25 * t / q15 : past(cumH, q15)))",
+      "unit": "mL",
+      "precision": 0
+    },
+    "lactate": {
+      "expr": "inP2 ? p2lactate : round((1.6 + 4 * eff) * 10) / 10",
+      "unit": "mmol/L",
+      "precision": 1
+    },
+    "arrestThr": {
+      "expr": "arrestE + (neEff > 0.02 ? 0.04 : 0) + (epiEff > 1 ? 0.03 : 0)"
+    },
+    "live": {
+      "expr": "phase == \"live\""
+    }
+  },
+  "processes": [
+    {
+      "id": "tamponade",
+      "when": "live and t >= onset",
+      "update": {
+        "tamp": "tamp + tampRate * (t < tubeUntil ? rateMult : 1) * dt / 60"
+      }
+    },
+    {
+      "id": "clearing",
+      "when": "live and tubeRelief > 0",
+      "update": {
+        "tamp": "max(0, tamp - min(tubeRelief, tReduce * dt / (clearMin * 60)))",
+        "tubeRelief": "tubeRelief - min(tubeRelief, tReduce * dt / (clearMin * 60))"
+      }
+    },
+    {
+      "id": "drips",
+      "when": "live",
+      "update": {
+        "neEff": "neEff + (neDose - neEff) * (1 - exp(-dt / (neTau * 60)))",
+        "epiEff": "epiEff + (epiDose - epiEff) * (1 - exp(-dt / (epiTau * 60)))",
+        "dobEff": "dobEff + (dobDose - dobEff) * (1 - exp(-dt / (dobTau * 60)))"
+      }
+    },
+    {
+      "id": "fluidWash",
+      "when": "live and boostDone > 0",
+      "update": {
+        "boostDone": "boostDone * exp(-dt / (fluidDecay * 60))"
+      }
+    },
+    {
+      "id": "drainage",
+      "when": "live",
+      "update": {
+        "cum": "cum + (t < onset ? 100 + 12 * sin(t / 90) : t < tubeUntil ? 40 : 4) * dt / 3600"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "look",
+        "ausc",
+        "inspect",
+        "tubes",
+        "wedge",
+        "echo",
+        "labs",
+        "prep",
+        "fluid",
+        "norepi",
+        "epi",
+        "dobut",
+        "protamine",
+        "surgeon"
+      ]
+    },
+    "reexp": {
+      "label": "Re-exploration",
+      "clock": "turns",
+      "actions": []
+    },
+    "p2": {
+      "label": "Back in the ICU",
+      "clock": "turns",
+      "actions": []
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look at the patient",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "eff < 0.2",
+              "then": [
+                {
+                  "log": "Sedated on the ventilator. Warm and pink, cap refill under 2 s.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "eff < 0.5",
+              "then": [
+                {
+                  "log": "Paler than before. Hands cooling, cap refill 3 s. Neck veins look fuller.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Pale and clammy, mottled knees, cap refill over 4 s. Distended neck veins with the head of bed at 30 degrees. The arterial trace swings with each ventilator breath.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ausc": {
+      "label": "Auscultate the heart",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "eff < 0.25",
+              "then": [
+                {
+                  "log": "S1 and S2 clearly heard. No rub, no new murmur.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "eff < 0.55",
+              "then": [
+                {
+                  "log": "Heart sounds are quieter than at handover.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Heart sounds muffled and distant.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "eff >= 0.25",
+          "then": [
+            {
+              "if": "isNull(recognizedAt) and t >= onset",
+              "then": [
+                {
+                  "set": "recognizedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "inspect": {
+      "label": "Inspect the chest tubes",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "t < onset",
+              "then": [
+                {
+                  "log": "Dark red drainage, steady. Fluctuation (tidaling) in the water seal. No clots seen.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "t < tubeUntil",
+              "then": [
+                {
+                  "log": "Draining again in small amounts since the clots were cleared.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "tubeCleared",
+              "then": [
+                {
+                  "log": "Drainage has slowed to almost nothing again. No tidaling.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Drainage has stopped. Dark clot in the tubing near the chest wall. No tidaling.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "t >= onset and isNull(tubesAt)",
+          "then": [
+            {
+              "set": "tubesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(recognizedAt) and t >= onset",
+          "then": [
+            {
+              "set": "recognizedAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "tubes": {
+      "label": "Check chest tube patency",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "t < onset",
+              "then": [
+                {
+                  "log": "Tubes patent, tidaling in the water seal, no clots. Drainage steady.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "not tubeCleared",
+              "then": [
+                {
+                  "set": "tubeCleared",
+                  "to": "true"
+                },
+                {
+                  "add": "cum",
+                  "by": "gushMl"
+                },
+                {
+                  "add": "tubeRelief",
+                  "by": "tReduce"
+                },
+                {
+                  "set": "tubeUntil",
+                  "to": "t + tubeEffect"
+                },
+                {
+                  "log": "Clots in the mediastinal tubing. Clearing them per protocol over the next couple of minutes: 120 mL dark blood and clot out. Drainage resumes, but more clot is likely still around the heart.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "cum",
+                  "by": "repeatGushMl"
+                },
+                {
+                  "log": "Small clots again, 20 mL out. Little drainage. The problem is inside the chest, not in the tubing.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "t >= onset and isNull(tubesAt)",
+          "then": [
+            {
+              "set": "tubesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(recognizedAt) and t >= onset",
+          "then": [
+            {
+              "set": "recognizedAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "wedge": {
+      "label": "Wedge the PA catheter",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "wedged",
+          "to": "true"
+        },
+        {
+          "if": "t >= onset",
+          "then": [
+            {
+              "set": "wedgedAfterOnset",
+              "to": "true"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "paop - cvp <= 3 and eff > 0.25",
+              "then": [
+                {
+                  "log": "PAOP {paop} mmHg with CVP {cvp}. Right and left filling pressures are nearly equal.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "paop - cvp <= 5 and eff > 0.15",
+              "then": [
+                {
+                  "log": "PAOP {paop} mmHg with CVP {cvp}. The gap between CVP and PAOP is narrowing.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "PAOP {paop} mmHg with CVP {cvp}.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "t >= onset + 120",
+          "then": [
+            {
+              "if": "isNull(recognizedAt) and t >= onset",
+              "then": [
+                {
+                  "set": "recognizedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "echo": {
+      "label": "STAT bedside echo",
+      "group": "Orders",
+      "available": "isNull(echoAt)",
+      "why": "Echo already requested.",
+      "effects": [
+        {
+          "set": "echoAt",
+          "to": "t"
+        },
+        {
+          "schedule": "echoResultT",
+          "after": "echoTime"
+        },
+        {
+          "log": "STAT bedside echo requested. The intensivist is bringing the machine (about 10 min to image)."
+        },
+        {
+          "if": "isNull(recognizedAt) and t >= onset",
+          "then": [
+            {
+              "set": "recognizedAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw labs (ABG, Hgb, ACT, coags)",
+      "group": "Orders",
+      "available": "isNull(labsAt)",
+      "why": "Labs already sent.",
+      "effects": [
+        {
+          "set": "labsAt",
+          "to": "t"
+        },
+        {
+          "schedule": "pocResult",
+          "after": "pocTime"
+        },
+        {
+          "schedule": "coagResult",
+          "after": "coagTime"
+        },
+        {
+          "log": "ABG, Hgb, ACT and coags drawn from the arterial line. Blood gas and ACT run at the point of care (about 5 min); INR, platelets and fibrinogen go to the central lab (about 45 min)."
+        }
+      ]
+    },
+    "prep": {
+      "label": "Prepare for resternotomy, notify the OR",
+      "group": "Orders",
+      "available": "isNull(prepAt)",
+      "why": "Already prepared.",
+      "effects": [
+        {
+          "set": "prepAt",
+          "to": "t"
+        },
+        {
+          "log": "Resternotomy tray and sterile setup at the bedside. OR and perfusion notified. Charge nurse aware."
+        },
+        {
+          "if": "surgeonArrived and not isNull(reexpAt) and isNull(reexpStartAt)",
+          "then": [
+            {
+              "schedule": "reexpStart",
+              "after": "bedside ? max(60, min(bedsideNoTray, timeAt(reexpAt) - t) - (bedsideNoTray - bedsideTray)) : max(600, min(orNotPrepped + noEchoExtra, timeAt(reexpAt) - t) - (orNotPrepped - orPrepped))"
+            },
+            {
+              "set": "reexpAt",
+              "to": "bedside ? t + max(60, min(bedsideNoTray, timeAt(reexpAt) - t) - (bedsideNoTray - bedsideTray)) : t + max(600, min(orNotPrepped + noEchoExtra, timeAt(reexpAt) - t) - (orNotPrepped - orPrepped))"
+            }
+          ]
+        }
+      ]
+    },
+    "fluid": {
+      "label": "Fluid bolus",
+      "group": "Orders",
+      "available": "count(boosts) < 3",
+      "why": "Three boluses are already running.",
+      "params": [
+        {
+          "id": "ml",
+          "kind": "choice",
+          "label": "Volume",
+          "options": [
+            {
+              "value": "250",
+              "label": "250 mL"
+            },
+            {
+              "value": "500",
+              "label": "500 mL"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "push": "boosts",
+          "value": {
+            "n": "nBolus",
+            "v": "fluidPeak[ml] * pow(fluidDiminish, nBolus)",
+            "at": "t",
+            "dur": "num(ml) / fluidRate * 60",
+            "ml": "num(ml)"
+          }
+        },
+        {
+          "schedule": "bolusDone",
+          "after": "num(ml) / fluidRate * 60",
+          "with": {
+            "ml": "num(ml)",
+            "n": "nBolus",
+            "v": "fluidPeak[ml] * pow(fluidDiminish, nBolus)"
+          }
+        },
+        {
+          "add": "nBolus",
+          "by": "1"
+        },
+        {
+          "add": "fluidTotal",
+          "by": "num(ml)"
+        },
+        {
+          "log": "{num(ml)} mL crystalloid bolus running in on a pressure bag (about {round(num(ml) / fluidRate)} min)."
+        },
+        {
+          "if": "nBolus > 2",
+          "then": [
+            {
+              "log": "The response is getting smaller each time.",
+              "kind": "sys"
+            }
+          ]
+        },
+        {
+          "if": "fluidTotal > 1000",
+          "then": [
+            {
+              "log": "Total {fluidTotal} mL; CVP keeps climbing.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "norepi": {
+      "label": "Norepinephrine",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "0.05",
+              "label": "0.05 mcg/kg/min"
+            },
+            {
+              "value": "0.1",
+              "label": "0.1 mcg/kg/min"
+            },
+            {
+              "value": "0.2",
+              "label": "0.2 mcg/kg/min"
+            },
+            {
+              "value": "0",
+              "label": "Turn off"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "neDose",
+          "to": "num(dose)"
+        },
+        {
+          "schedule": "dripCheck",
+          "after": "titrate"
+        },
+        {
+          "if": "num(dose) == 0",
+          "then": [
+            {
+              "log": "Norepinephrine stopped. The effect wears off over several minutes."
+            }
+          ],
+          "else": [
+            {
+              "log": "Norepinephrine set to {num(dose)} mcg/kg/min via central line. Effect builds over the next few minutes; reassess in 5 min."
+            }
+          ]
+        },
+        {
+          "if": "num(dose) > 0 and isNull(firstPressorAt)",
+          "then": [
+            {
+              "set": "firstPressorAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "epi": {
+      "label": "Epinephrine",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "2",
+              "label": "2 mcg/min"
+            },
+            {
+              "value": "5",
+              "label": "5 mcg/min"
+            },
+            {
+              "value": "10",
+              "label": "10 mcg/min"
+            },
+            {
+              "value": "0",
+              "label": "Turn off"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "epiDose",
+          "to": "num(dose)"
+        },
+        {
+          "schedule": "dripCheck",
+          "after": "titrate"
+        },
+        {
+          "if": "num(dose) == 0",
+          "then": [
+            {
+              "log": "Epinephrine stopped. The effect wears off over several minutes."
+            }
+          ],
+          "else": [
+            {
+              "log": "Epinephrine set to {num(dose)} mcg/min via central line. Effect builds over the next few minutes; reassess in 5 min."
+            }
+          ]
+        },
+        {
+          "if": "num(dose) > 0 and isNull(firstPressorAt)",
+          "then": [
+            {
+              "set": "firstPressorAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    "dobut": {
+      "label": "Dobutamine",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "2.5",
+              "label": "2.5 mcg/kg/min"
+            },
+            {
+              "value": "5",
+              "label": "5 mcg/kg/min"
+            },
+            {
+              "value": "0",
+              "label": "Turn off"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "dobDose",
+          "to": "num(dose)"
+        },
+        {
+          "schedule": "dripCheck",
+          "after": "titrate"
+        },
+        {
+          "if": "num(dose) == 0",
+          "then": [
+            {
+              "log": "Dobutamine stopped. The effect wears off over several minutes."
+            }
+          ],
+          "else": [
+            {
+              "log": "Dobutamine set to {num(dose)} mcg/kg/min via central line. Effect builds over the next few minutes; reassess in 5 min."
+            }
+          ]
+        },
+        {
+          "if": "num(dose) > 0 and eff > 0.3",
+          "then": [
+            {
+              "log": "Dobutamine vasodilates; in tamponade the pressure may fall further.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "protamine": {
+      "label": "Protamine 25 mg IV over 10 min",
+      "group": "Orders",
+      "available": "isNull(protAt)",
+      "why": "Protamine already given.",
+      "params": [
+        {
+          "id": "give",
+          "kind": "choice",
+          "label": "Protamine",
+          "options": [
+            {
+              "value": "give",
+              "label": "Give it"
+            },
+            {
+              "value": "hold",
+              "label": "Hold"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "give == \"give\"",
+          "then": [
+            {
+              "set": "protAt",
+              "to": "t"
+            },
+            {
+              "schedule": "protDone",
+              "after": "protInfuse"
+            },
+            {
+              "if": "labsDone",
+              "then": [
+                {
+                  "log": "Protamine 25 mg IV over 10 min. BP dips as it goes in. ACT is near baseline, so leftover heparin is not the cause; little benefit expected.",
+                  "kind": "sys"
+                }
+              ],
+              "else": [
+                {
+                  "log": "Protamine 25 mg IV over 10 min. BP dips as it goes in. Given without an ACT result to guide it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ],
+          "else": [
+            {
+              "log": "Protamine held."
+            }
+          ]
+        }
+      ]
+    },
+    "surgeon": {
+      "label": "Call the cardiac surgeon (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Surgeon already paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "stop",
+                  "label": "Chest tube drainage stopped suddenly; now hypotensive and tachycardic"
+                },
+                {
+                  "value": "soft",
+                  "label": "BP is a bit soft"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine update, patient comfortable"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "64 y, CABG x3 at 10:00; drainage 80-120 mL/h until now; PA catheter and pacing wires"
+                },
+                {
+                  "value": "min",
+                  "label": "Post-op CABG patient"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "tamp",
+                  "label": "I think this is tamponade: CVP and PAOP rising together, narrow pulse pressure, muffled heart sounds"
+                },
+                {
+                  "value": "hypo",
+                  "label": "Probably hypovolemic"
+                },
+                {
+                  "value": "unsure",
+                  "label": "Not sure what is going on"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come to the bedside now; I think it needs re-exploration"
+                },
+                {
+                  "value": "fluid",
+                  "label": "Can I give more fluid?"
+                },
+                {
+                  "value": "pressor",
+                  "label": "Can I increase the vasopressor?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "not hasCall or ((rec == \"come\" or asmt == \"tamp\" or sit == \"stop\") and not bestEffective)",
+          "then": [
+            {
+              "set": "hasCall",
+              "to": "true"
+            },
+            {
+              "set": "bestEffective",
+              "to": "rec == \"come\" or asmt == \"tamp\" or sit == \"stop\""
+            },
+            {
+              "set": "bestFull",
+              "to": "sit == \"stop\" and bg == \"full\" and asmt == \"tamp\" and rec == \"come\""
+            }
+          ]
+        },
+        {
+          "if": "(rec == \"come\" or asmt == \"tamp\" or sit == \"stop\") and isNull(surgeonEffAt)",
+          "then": [
+            {
+              "set": "surgeonEffAt",
+              "to": "t"
+            },
+            {
+              "if": "isNull(recognizedAt) and t >= onset",
+              "then": [
+                {
+                  "set": "recognizedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "rec == \"come\" or asmt == \"tamp\" or sit == \"stop\""
+          }
+        },
+        {
+          "log": "Paged the cardiac surgeon (in the OR). Callback expected in about 2 min."
+        }
+      ]
+    }
+  },
+  "prompts": {
+    "p2a": {
+      "title": "Phase 2: back from the OR",
+      "context": "The tamponade is fixed, but the heart is stunned. Post-op echo: moderately reduced LV function, no collection. Extremities cool, cap refill 4 s. CI {ci}, PAOP {paop}, CVP {cvp}, ABP {sbp}/{dbp} (MAP {map}), SvO2 {svo2}%, lactate {lactate|1dp}. Low cardiac index, high PAOP, cool extremities. What do you do?",
+      "choices": [
+        {
+          "id": "inotrope",
+          "label": "Start an inotrope: dobutamine 5 mcg/kg/min (keep norepinephrine to hold MAP >= 65)",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"inotrope\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"inotrope\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"inotrope\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "fluid",
+          "label": "Give another 500 mL crystalloid bolus",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"fluid\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"fluid\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "add": "fluidTotal",
+              "by": "500"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"fluid\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "pressor",
+          "label": "Increase norepinephrine to 0.15 mcg/kg/min",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"pressor\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"pressor\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"pressor\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "afterload",
+          "label": "Start afterload reduction alone: nicardipine 5 mg/h",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"afterload\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"afterload\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"afterload\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "finish",
+          "label": "End here and see the debrief",
+          "effects": [
+            {
+              "set": "p2done",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "p2b_fluid": {
+      "title": "Phase 2: one more adjustment",
+      "context": "30 minutes later: CI {ci}, PAOP {paop}, CVP {cvp}, ABP {sbp}/{dbp} (MAP {map}), SvO2 {svo2}%, lactate {lactate|1dp}. One more adjustment. What now?",
+      "choices": [
+        {
+          "id": "inotrope",
+          "label": "Start an inotrope: dobutamine 5 mcg/kg/min (keep norepinephrine to hold MAP >= 65)",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"inotrope\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"inotrope\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"inotrope\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "pressor",
+          "label": "Increase norepinephrine to 0.15 mcg/kg/min",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"pressor\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"pressor\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"pressor\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "afterload",
+          "label": "Start afterload reduction alone: nicardipine 5 mg/h",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"afterload\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"afterload\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"afterload\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "finish",
+          "label": "End here and see the debrief",
+          "effects": [
+            {
+              "set": "p2done",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "p2b_pressor": {
+      "title": "Phase 2: one more adjustment",
+      "context": "30 minutes later: CI {ci}, PAOP {paop}, CVP {cvp}, ABP {sbp}/{dbp} (MAP {map}), SvO2 {svo2}%, lactate {lactate|1dp}. One more adjustment. What now?",
+      "choices": [
+        {
+          "id": "inotrope",
+          "label": "Start an inotrope: dobutamine 5 mcg/kg/min (keep norepinephrine to hold MAP >= 65)",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"inotrope\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"inotrope\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"inotrope\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "fluid",
+          "label": "Give another 500 mL crystalloid bolus",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"fluid\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"fluid\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "add": "fluidTotal",
+              "by": "500"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"fluid\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "afterload",
+          "label": "Start afterload reduction alone: nicardipine 5 mg/h",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"afterload\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"afterload\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"afterload\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "finish",
+          "label": "End here and see the debrief",
+          "effects": [
+            {
+              "set": "p2done",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "p2b_afterload": {
+      "title": "Phase 2: one more adjustment",
+      "context": "30 minutes later: CI {ci}, PAOP {paop}, CVP {cvp}, ABP {sbp}/{dbp} (MAP {map}), SvO2 {svo2}%, lactate {lactate|1dp}. One more adjustment. What now?",
+      "choices": [
+        {
+          "id": "inotrope",
+          "label": "Start an inotrope: dobutamine 5 mcg/kg/min (keep norepinephrine to hold MAP >= 65)",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"inotrope\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"inotrope\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"inotrope\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "fluid",
+          "label": "Give another 500 mL crystalloid bolus",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"fluid\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"fluid\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "add": "fluidTotal",
+              "by": "500"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"fluid\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "pressor",
+          "label": "Increase norepinephrine to 0.15 mcg/kg/min",
+          "effects": [
+            {
+              "if": "p2count == 0",
+              "then": [
+                {
+                  "set": "p2first",
+                  "to": "\"pressor\""
+                }
+              ]
+            },
+            {
+              "set": "p2last",
+              "to": "\"pressor\""
+            },
+            {
+              "add": "p2count",
+              "by": "1"
+            },
+            {
+              "schedule": "reassessT",
+              "after": "reassess",
+              "with": {
+                "choice": "\"pressor\""
+              }
+            }
+          ]
+        },
+        {
+          "id": "finish",
+          "label": "End here and see the debrief",
+          "effects": [
+            {
+              "set": "p2done",
+              "to": "true"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "timers": {
+    "q15check": {
+      "label": "the next drainage check",
+      "wait": {
+        "skipLabel": "the next drainage check"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Chest tube output charted every 15 min."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "log": "q15-min drainage check: {round(cum - past(cumH, q15))} mL in the last 15 min.",
+              "kind": "sys"
+            },
+            {
+              "schedule": "q15check",
+              "after": "q15"
+            }
+          ]
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the surgeon's callback",
+      "wait": {
+        "skipLabel": "the surgeon's callback (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Page to callback about 2 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "not live",
+          "then": [],
+          "else": [
+            {
+              "if": "timer.with.effective",
+              "then": [
+                {
+                  "if": "not arrivalSet",
+                  "then": [
+                    {
+                      "set": "arrivalSet",
+                      "to": "true"
+                    },
+                    {
+                      "schedule": "arriveT",
+                      "after": "surgeonWalk"
+                    },
+                    {
+                      "log": "Surgeon: \"Scrubbing out, I'll be there in about 10 minutes. Keep the pressure up, get the resternotomy tray to the bedside and get an echo if you can.\"",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Surgeon: \"I'm already on my way.\"",
+                      "kind": "good"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "schedule": "recheckT",
+                  "after": "phoneRecheck"
+                },
+                {
+                  "log": "Surgeon (phone orders): \"Give 500 mL crystalloid and recheck. Call me back in 15 minutes if it's not better.\"",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "recheckT": {
+      "label": "the surgeon's 15-min recheck",
+      "wait": {
+        "skipLabel": "the surgeon's 15-minute recheck"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Phone orders: call back in 15 min."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "log": "15 minutes since the surgeon's phone orders. Not better.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "echoResultT": {
+      "label": "echo result",
+      "wait": {
+        "skipLabel": "the echo result (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "STAT bedside echo about 10 min."
+      },
+      "effects": [
+        {
+          "if": "eff > 0.2",
+          "then": [
+            {
+              "set": "echoResult",
+              "to": "\"tamp\""
+            },
+            {
+              "log": "Echo: clot behind the right atrium compressing the RA and RV, RA collapse in diastole, underfilled LV. Consistent with tamponade.",
+              "kind": "find"
+            }
+          ],
+          "else": [
+            {
+              "set": "echoResult",
+              "to": "\"small\""
+            },
+            {
+              "log": "Echo: small pericardial collection, no chamber collapse yet. Worth repeating if things change.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "pocResult": {
+      "label": "blood gas and ACT",
+      "wait": {
+        "skipLabel": "the blood gas and ACT (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "CAP STAT turnaround benchmarks; point-of-care blood gas and ACT",
+        "checkedAt": "2026-11-09",
+        "note": "Point-of-care gas and ACT ~5 min; central-lab STAT coagulation within 60 min (45 used)."
+      },
+      "effects": [
+        {
+          "set": "labsDone",
+          "to": "true"
+        },
+        {
+          "log": "Point-of-care results: pH {(7.38 - 0.12 * eff)|2dp}, PaCO2 38, PaO2 142, lactate {lactate|1dp} mmol/L, Hgb {(9.6 - 0.3 * fluidTotal / 500 - 0.4)|1dp} g/dL, ACT 128 s (near baseline). Coags still pending from the central lab.",
+          "kind": "find"
+        }
+      ]
+    },
+    "coagResult": {
+      "label": "coag results",
+      "wait": {
+        "skipLabel": "the coag results (about 45 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "CAP STAT turnaround benchmarks; point-of-care blood gas and ACT",
+        "checkedAt": "2026-11-09",
+        "note": "Point-of-care gas and ACT ~5 min; central-lab STAT coagulation within 60 min (45 used)."
+      },
+      "effects": [
+        {
+          "log": "Central lab: INR 1.3, platelets 118 K/uL, fibrinogen 210 mg/dL. No major coagulopathy.",
+          "kind": "find"
+        }
+      ]
+    },
+    "bolusDone": {
+      "label": "bolus finished",
+      "wait": {
+        "skipLabel": "the bolus to finish"
+      },
+      "instances": "many",
+      "with": {
+        "ml": {
+          "type": "number",
+          "unit": "mL"
+        },
+        "n": {
+          "type": "number"
+        },
+        "v": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "Volume kinetics of crystalloid (plasma half-life roughly 20-40 min); pressure-bag flow through an introducer",
+        "checkedAt": "2026-11-09",
+        "note": "About 50 mL/min wide open on a 300 mmHg pressure bag."
+      },
+      "effects": [
+        {
+          "add": "boostDone",
+          "by": "timer.with.v"
+        },
+        {
+          "add": "infusedDone",
+          "by": "timer.with.ml"
+        },
+        {
+          "remove": "boosts",
+          "where": "n == timer.with.n"
+        },
+        {
+          "log": "{timer.with.ml} mL bolus finished.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "dripCheck": {
+      "label": "drip reassessment (5 min)",
+      "wait": {
+        "skipLabel": "the 5-minute drip reassessment"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Norepinephrine, epinephrine, dobutamine prescribing information (half-lives 2-3 min)",
+        "checkedAt": "2026-11-09",
+        "note": "Time constant about t1/2 / ln 2; ICU titration every 5 minutes."
+      },
+      "effects": []
+    },
+    "protDone": {
+      "label": "protamine finished",
+      "wait": {
+        "skipLabel": "the protamine to finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Protamine sulfate prescribing information",
+        "checkedAt": "2026-11-09",
+        "note": "Slow IV over about 10 minutes, no more than 50 mg in any 10 minutes; hypotension during infusion."
+      },
+      "effects": []
+    },
+    "arriveT": {
+      "label": "surgeon arrival",
+      "wait": {
+        "skipLabel": "the surgeon's arrival (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Scrub out and walk about 10 min."
+      },
+      "effects": [
+        {
+          "set": "surgeonArrived",
+          "to": "true"
+        },
+        {
+          "if": "eff >= lateE",
+          "then": [
+            {
+              "set": "bedside",
+              "to": "true"
+            },
+            {
+              "set": "reexpAt",
+              "to": "t + (isNull(prepAt) ? bedsideNoTray : bedsideTray)"
+            },
+            {
+              "schedule": "reexpStart",
+              "after": "isNull(prepAt) ? bedsideNoTray : bedsideTray"
+            },
+            {
+              "log": "Surgeon at the bedside. Pressure is collapsing: decision to reopen the chest here in the ICU.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "set": "reexpAt",
+              "to": "t + (isNull(prepAt) ? orNotPrepped : orPrepped) + (echoResult == \"tamp\" ? 0 : noEchoExtra)"
+            },
+            {
+              "schedule": "reexpStart",
+              "after": "(isNull(prepAt) ? orNotPrepped : orPrepped) + (echoResult == \"tamp\" ? 0 : noEchoExtra)"
+            },
+            {
+              "log": "Surgeon at the bedside. Decision: back to the OR for re-exploration.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "reexpStart": {
+      "label": "{bedside ? \"bedside resternotomy\" : \"OR ready\"}",
+      "wait": {
+        "skipLabel": "{bedside ? \"the bedside resternotomy\" : \"the OR to be ready\"}"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "OR 15 min prepared, 30 min not; bedside 5 min with the tray, 10 without."
+      },
+      "effects": [
+        {
+          "set": "reexpStartAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "bedside or eff >= lateE",
+              "then": [
+                {
+                  "set": "path",
+                  "to": "\"late\""
+                },
+                {
+                  "log": "Pressure collapsing: emergency resternotomy at the bedside.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "eff < goodE and timeAt(surgeonEffAt) - onset <= 1200",
+              "then": [
+                {
+                  "set": "path",
+                  "to": "\"early\""
+                },
+                {
+                  "log": "Patient to the OR for re-exploration. About 350 mL of clot behind the right atrium and a bleeding vein-graft side branch, tied. Pressure came up as soon as the chest was opened.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "path",
+                  "to": "\"bridge\""
+                },
+                {
+                  "log": "Patient to the OR for re-exploration. About 500 mL of clot and a bleeding vein-graft side branch; 2 units of red cells and more support than an early return would have needed.",
+                  "kind": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cancel": "q15check"
+        },
+        {
+          "cancel": "callbackT"
+        },
+        {
+          "cancel": "recheckT"
+        },
+        {
+          "cancel": "echoResultT"
+        },
+        {
+          "cancel": "pocResult"
+        },
+        {
+          "cancel": "coagResult"
+        },
+        {
+          "cancel": "bolusDone"
+        },
+        {
+          "cancel": "dripCheck"
+        },
+        {
+          "cancel": "protDone"
+        },
+        {
+          "cancel": "arriveT"
+        },
+        {
+          "phase": "reexp"
+        },
+        {
+          "schedule": "backInIcu",
+          "after": "backAfter"
+        }
+      ]
+    },
+    "backInIcu": {
+      "label": "back in the ICU",
+      "wait": {
+        "skipLabel": "the patient's return to the ICU (about 90 min)"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Back in the ICU about 90 min after re-exploration starts."
+      },
+      "effects": [
+        {
+          "phase": "p2"
+        },
+        {
+          "set": "p2hr",
+          "to": "104"
+        },
+        {
+          "set": "p2sbp",
+          "to": "92"
+        },
+        {
+          "set": "p2dbp",
+          "to": "60"
+        },
+        {
+          "set": "p2cvp",
+          "to": "12"
+        },
+        {
+          "set": "p2paop",
+          "to": "20"
+        },
+        {
+          "set": "p2ci",
+          "to": "1.8"
+        },
+        {
+          "set": "p2spo2",
+          "to": "97"
+        },
+        {
+          "set": "p2svo2",
+          "to": "55"
+        },
+        {
+          "set": "p2uo",
+          "to": "20"
+        },
+        {
+          "set": "p2ct",
+          "to": "15"
+        },
+        {
+          "set": "p2lactate",
+          "to": "3.4"
+        },
+        {
+          "if": "path == \"late\"",
+          "then": [
+            {
+              "set": "p2ci",
+              "to": "1.6"
+            },
+            {
+              "set": "p2svo2",
+              "to": "51"
+            },
+            {
+              "set": "p2lactate",
+              "to": "4.8"
+            },
+            {
+              "set": "p2uo",
+              "to": "12"
+            }
+          ]
+        },
+        {
+          "if": "path == \"bridge\"",
+          "then": [
+            {
+              "set": "p2lactate",
+              "to": "3.9"
+            }
+          ]
+        },
+        {
+          "set": "neDose",
+          "to": "0.05"
+        },
+        {
+          "set": "epiDose",
+          "to": "0"
+        },
+        {
+          "set": "dobDose",
+          "to": "0"
+        },
+        {
+          "log": "Back in the ICU after re-exploration. Norepinephrine 0.05 mcg/kg/min running.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "p2a"
+        }
+      ]
+    },
+    "reassessT": {
+      "label": "reassessment (30 min)",
+      "wait": {
+        "skipLabel": "the 30-minute reassessment"
+      },
+      "instances": "one",
+      "with": {
+        "choice": {
+          "type": "enum",
+          "values": [
+            "inotrope",
+            "fluid",
+            "pressor",
+            "afterload"
+          ]
+        }
+      },
+      "source": {
+        "cite": "Post-cardiac-surgery ICU unit practice (authored estimate, prototype critical-care.html RULES)",
+        "checkedAt": "2026-11-09",
+        "note": "Reassess about 30 min after a change."
+      },
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "timer.with.choice == \"inotrope\"",
+              "then": [
+                {
+                  "set": "p2hr",
+                  "to": "108"
+                },
+                {
+                  "set": "p2sbp",
+                  "to": "106"
+                },
+                {
+                  "set": "p2dbp",
+                  "to": "62"
+                },
+                {
+                  "set": "p2cvp",
+                  "to": "10"
+                },
+                {
+                  "set": "p2paop",
+                  "to": "15"
+                },
+                {
+                  "set": "p2spo2",
+                  "to": "97"
+                },
+                {
+                  "set": "p2svo2",
+                  "to": "66"
+                },
+                {
+                  "set": "p2uo",
+                  "to": "55"
+                },
+                {
+                  "set": "p2ct",
+                  "to": "20"
+                },
+                {
+                  "set": "p2ci",
+                  "to": "path == \"late\" ? round((2.5 - 0.1) * 10) / 10 : 2.5"
+                },
+                {
+                  "set": "p2lactate",
+                  "to": "path == \"late\" ? round((2.2 + 1) * 10) / 10 : 2.2"
+                },
+                {
+                  "set": "dobDose",
+                  "to": "5"
+                },
+                {
+                  "log": "Cardiac index rises to 2.5, PAOP falls to 15 and SvO2 recovers to 66%. Feet warming, cap refill 2 s, urine picking up. Lactate trending down.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.choice == \"fluid\"",
+              "then": [
+                {
+                  "set": "p2hr",
+                  "to": "106"
+                },
+                {
+                  "set": "p2sbp",
+                  "to": "94"
+                },
+                {
+                  "set": "p2dbp",
+                  "to": "60"
+                },
+                {
+                  "set": "p2cvp",
+                  "to": "15"
+                },
+                {
+                  "set": "p2paop",
+                  "to": "24"
+                },
+                {
+                  "set": "p2spo2",
+                  "to": "93"
+                },
+                {
+                  "set": "p2svo2",
+                  "to": "56"
+                },
+                {
+                  "set": "p2uo",
+                  "to": "20"
+                },
+                {
+                  "set": "p2ct",
+                  "to": "15"
+                },
+                {
+                  "set": "p2ci",
+                  "to": "path == \"late\" ? round((1.9 - 0.1) * 10) / 10 : 1.9"
+                },
+                {
+                  "set": "p2lactate",
+                  "to": "path == \"late\" ? round((3.6 + 1) * 10) / 10 : 3.6"
+                },
+                {
+                  "log": "Filling pressures climb (PAOP 24) but cardiac index barely moves. SpO2 drifts to 93% with new crackles at the bases. The ventricle is already full; it needs help squeezing.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.choice == \"pressor\"",
+              "then": [
+                {
+                  "set": "p2hr",
+                  "to": "108"
+                },
+                {
+                  "set": "p2sbp",
+                  "to": "112"
+                },
+                {
+                  "set": "p2dbp",
+                  "to": "70"
+                },
+                {
+                  "set": "p2cvp",
+                  "to": "13"
+                },
+                {
+                  "set": "p2paop",
+                  "to": "22"
+                },
+                {
+                  "set": "p2spo2",
+                  "to": "97"
+                },
+                {
+                  "set": "p2svo2",
+                  "to": "50"
+                },
+                {
+                  "set": "p2uo",
+                  "to": "15"
+                },
+                {
+                  "set": "p2ct",
+                  "to": "15"
+                },
+                {
+                  "set": "p2ci",
+                  "to": "path == \"late\" ? round((1.6 - 0.1) * 10) / 10 : 1.6"
+                },
+                {
+                  "set": "p2lactate",
+                  "to": "path == \"late\" ? round((3.9 + 1) * 10) / 10 : 3.9"
+                },
+                {
+                  "set": "neDose",
+                  "to": "0.15"
+                },
+                {
+                  "log": "MAP looks better (84) but cardiac index falls to 1.6 and SvO2 to 50%. More afterload on a stunned ventricle: pressure up, flow down. Lactate rising.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.choice == \"afterload\"",
+              "then": [
+                {
+                  "set": "p2hr",
+                  "to": "112"
+                },
+                {
+                  "set": "p2sbp",
+                  "to": "80"
+                },
+                {
+                  "set": "p2dbp",
+                  "to": "50"
+                },
+                {
+                  "set": "p2cvp",
+                  "to": "12"
+                },
+                {
+                  "set": "p2paop",
+                  "to": "19"
+                },
+                {
+                  "set": "p2spo2",
+                  "to": "97"
+                },
+                {
+                  "set": "p2svo2",
+                  "to": "57"
+                },
+                {
+                  "set": "p2uo",
+                  "to": "18"
+                },
+                {
+                  "set": "p2ct",
+                  "to": "15"
+                },
+                {
+                  "set": "p2ci",
+                  "to": "path == \"late\" ? round((2.0 - 0.1) * 10) / 10 : 2.0"
+                },
+                {
+                  "set": "p2lactate",
+                  "to": "path == \"late\" ? round((3.5 + 1) * 10) / 10 : 3.5"
+                },
+                {
+                  "log": "Cardiac index nudges to 2.0 but MAP drops to 60. Afterload reduction can help a failing ventricle, but not on its own when pressure is already marginal.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "p2last == \"inotrope\" or p2count >= 2",
+              "then": [
+                {
+                  "set": "p2done",
+                  "to": "true"
+                }
+              ]
+            },
+            {
+              "when": "p2first == \"fluid\"",
+              "then": [
+                {
+                  "prompt": "p2b_fluid"
+                }
+              ]
+            },
+            {
+              "when": "p2first == \"pressor\"",
+              "then": [
+                {
+                  "prompt": "p2b_pressor"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "prompt": "p2b_afterload"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "sbpLow",
+      "when": "live and sbp < 100",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: ABP systolic below 100.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "hrHigh",
+      "when": "live and hr >= 110",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: HR above 110.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "mapLow",
+      "when": "live and map < 65",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: MAP below 65.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "goBedside",
+      "when": "live and surgeonArrived and not bedside and not isNull(reexpAt) and eff >= lateE",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "bedside",
+          "to": "true"
+        },
+        {
+          "if": "t + (isNull(prepAt) ? bedsideNoTray : bedsideTray) < timeAt(reexpAt)",
+          "then": [
+            {
+              "set": "reexpAt",
+              "to": "t + (isNull(prepAt) ? bedsideNoTray : bedsideTray)"
+            },
+            {
+              "schedule": "reexpStart",
+              "after": "isNull(prepAt) ? bedsideNoTray : bedsideTray"
+            }
+          ]
+        },
+        {
+          "log": "Pressure falling fast while waiting for the OR. The surgeon decides to reopen the chest at the bedside.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "firstCheck",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "q15check",
+          "after": "q15"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatIsHappening": {
+      "trigger": "live and (eff >= reasonE or t >= reasonAt)",
+      "question": "The picture is changing. What do you think is happening, and what will you do first?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names cardiac tamponade (clot around the heart after surgery) and supports it with at least two of: drainage that suddenly stopped, hypotension with tachycardia, narrowing pulse pressure, CVP and PAOP rising together, muffled heart sounds, falling CI or SvO2.",
+          "modelAnswer": "Cardiac tamponade from clot in the mediastinum: drainage suddenly stopped after steady output, hypotension with tachycardia, narrowing pulse pressure, CVP and PAOP rising toward each other, falling CI and SvO2, quieter heart sounds. Hypovolemia does not raise filling pressures."
+        },
+        {
+          "label": "What first",
+          "criteria": "Calls the cardiac surgeon to the bedside now (surgical re-exploration is the fix); treats fluid and drips as a bridge only; mentions echo, resternotomy preparation or OR notification.",
+          "modelAnswer": "Call the cardiac surgeon and ask them to come now, because re-exploration is the fix. Bridge with a small bolus and a low-dose vasopressor, get a STAT echo, prepare for resternotomy and notify the OR, draw labs."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "callWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "Surgeon paged to the bedside within 20 min of the drainage stopping (expert path)."
+        }
+      },
+      "definitiveWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Clinical outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-09",
+          "note": "Re-exploration within 45 min of the drainage stopping (expert path about 40 min)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "p2done and p2count == 0",
+      "class": "recovered",
+      "rationale": "Re-exploration happened, so the life-threatening problem was fixed; ending phase 2 without treating the low-output state leaves the patient stabilised but not optimised, which the clinical profile calls recovered.",
+      "source": {
+        "cite": "docs/sims.md 3.1 (critical care, phase 2 gap)",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "PEA arrest",
+      "class": "harm",
+      "when": "live and eff >= arrestThr",
+      "terminal": true,
+      "narrative": "PEA: organised rhythm on the ECG, no pulse on the arterial line. The clot has stopped the heart from filling. The code team starts CPR and the cardiac surgery advanced life support protocol, which calls for emergency resternotomy within about five minutes. The simulation ends here."
+    },
+    "early": {
+      "label": "Stable: early re-exploration",
+      "class": "target",
+      "when": "p2done and path == \"early\" and p2last == \"inotrope\" and timeAt(surgeonEffAt) - onset <= callWindow and timeAt(reexpStartAt) - onset <= definitiveWindow",
+      "terminal": true,
+      "narrative": "Early re-exploration and the low-output state treated with an inotrope. Recognition and escalation were early, so the patient never got close to arresting."
+    },
+    "earlyUntreated": {
+      "label": "Early re-exploration, low output not fully treated",
+      "class": "recovered",
+      "when": "p2done and path == \"early\"",
+      "terminal": true,
+      "narrative": "The surgeon came early and the tamponade was fixed, but either re-exploration started later than 45 minutes after the drainage stopped or the stunned ventricle after surgery did not end up on an inotrope."
+    },
+    "bridge": {
+      "label": "Stable, by a slower route",
+      "class": "recovered",
+      "when": "p2done and path == \"bridge\"",
+      "terminal": true,
+      "narrative": "The patient made it to re-exploration and is stable, but with more clot, more blood and more support than an earlier call would have needed."
+    },
+    "late": {
+      "label": "Late rescue: emergency bedside resternotomy",
+      "class": "recovered",
+      "when": "p2done and path == \"late\"",
+      "terminal": true,
+      "narrative": "The patient survived, but only through an emergency reopening at the bedside. A late rescue: higher risk of infection, kidney and brain injury."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its four-hour limit."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "tubes",
+        "label": "Noticed the sudden stop in chest tube drainage (inspected or checked patency)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(tubesAt)",
+            "score": "missed",
+            "why": "The tubes were not looked at after the drainage stopped."
+          },
+          {
+            "when": "timeAt(tubesAt) - onset <= recognizeWindow",
+            "score": "met",
+            "why": "First at {timeAt(tubesAt)|clock}, {(timeAt(tubesAt) - onset)|duration} after the drainage stopped. Expert: by the next q15-min check."
+          },
+          {
+            "when": "timeAt(tubesAt) - onset <= recognizePartialWindow",
+            "score": "partial",
+            "why": "First at {timeAt(tubesAt)|clock}, {(timeAt(tubesAt) - onset)|duration} after the drainage stopped. Expert: by the next q15-min check."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First at {timeAt(tubesAt)|clock}, more than 30 minutes after the drainage stopped."
+          }
+        ]
+      },
+      {
+        "id": "callEarly",
+        "label": "Called the surgeon to the bedside early",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(surgeonEffAt) and hasCall",
+            "score": "missed",
+            "why": "Calls ended with phone orders only; nobody came to the bedside."
+          },
+          {
+            "when": "isNull(surgeonEffAt)",
+            "score": "missed",
+            "why": "The surgeon was never called."
+          },
+          {
+            "when": "timeAt(surgeonEffAt) - onset <= callWindow",
+            "score": "met",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, {(timeAt(surgeonEffAt) - onset)|duration} after the drainage stopped; expert target 20 min or less."
+          },
+          {
+            "when": "timeAt(surgeonEffAt) - onset <= callPartialWindow",
+            "score": "partial",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, {(timeAt(surgeonEffAt) - onset)|duration} after the drainage stopped; expert target 20 min or less."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, more than 35 minutes after the drainage stopped."
+          }
+        ],
+        "critical": true
+      },
+      {
+        "id": "sbar",
+        "label": "SBAR named the problem and asked for what was needed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not hasCall",
+            "score": "missed",
+            "why": "No SBAR call made."
+          },
+          {
+            "when": "bestFull",
+            "score": "met",
+            "why": "Clear situation, background, a named suspicion and a direct ask."
+          },
+          {
+            "when": "bestEffective",
+            "score": "partial",
+            "why": "The surgeon came, but the SBAR was missing the named suspicion, full background or a direct ask."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The call sounded routine, so it ended with phone orders."
+          }
+        ]
+      },
+      {
+        "id": "confirm",
+        "label": "Confirmed the picture (echo; PAOP vs CVP)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(echoAt)",
+            "score": "met",
+            "why": "Echo requested at {timeAt(echoAt)|clock}."
+          },
+          {
+            "when": "wedgedAfterOnset",
+            "score": "partial",
+            "why": "Wedged to compare PAOP with CVP, but no echo."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No echo and no wedge after the change."
+          }
+        ]
+      },
+      {
+        "id": "bridge",
+        "label": "Used fluid and drips as a bridge, not the fix",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "(not isNull(firstPressorAt) and (isNull(surgeonEffAt) or timeAt(surgeonEffAt) - timeAt(firstPressorAt) > titrate)) and (fluidTotal <= 1000 and (fluidTotal == 0 or not isNull(surgeonEffAt)))",
+            "score": "partial",
+            "why": "Fluid total {fluidTotal} mL. Vasopressor started at {timeAt(firstPressorAt)|clock} without escalating soon after."
+          },
+          {
+            "when": "(not isNull(firstPressorAt) and (isNull(surgeonEffAt) or timeAt(surgeonEffAt) - timeAt(firstPressorAt) > titrate))",
+            "score": "missed",
+            "why": "Fluid total {fluidTotal} mL. Vasopressor started at {timeAt(firstPressorAt)|clock} without escalating soon after."
+          },
+          {
+            "when": "(fluidTotal <= 1000 and (fluidTotal == 0 or not isNull(surgeonEffAt)))",
+            "score": "met",
+            "why": "Fluid total {fluidTotal} mL."
+          },
+          {
+            "when": "((fluidTotal <= 1000 and fluidTotal > 0 and isNull(surgeonEffAt)) or (fluidTotal > 1000 and not isNull(surgeonEffAt) and timeAt(surgeonEffAt) - onset <= callWindow))",
+            "score": "partial",
+            "why": "Fluid total {fluidTotal} mL."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fluid total {fluidTotal} mL: fluid kept going while the surgeon was not there."
+          }
+        ]
+      },
+      {
+        "id": "prep",
+        "label": "Prepared for emergency resternotomy and notified the OR",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(prepAt)",
+            "score": "met",
+            "why": "Prepared at {timeAt(prepAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The surgeon had to wait for setup."
+          }
+        ]
+      },
+      {
+        "id": "labs",
+        "label": "Drew labs (ABG, Hgb, ACT, coags) and let them guide treatment",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(labsAt)",
+            "score": "missed",
+            "why": "No labs drawn."
+          },
+          {
+            "when": "not isNull(protAt)",
+            "score": "partial",
+            "why": "Protamine was given although the ACT was near baseline (or before it came back); it was unlikely to help."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Drawn at {timeAt(labsAt)|clock}; blood gas and ACT back 5 minutes later."
+          }
+        ]
+      },
+      {
+        "id": "phase2",
+        "label": "Phase 2: treated low output with an inotrope",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "p2first == \"inotrope\"",
+            "score": "met",
+            "why": "Inotrope first: flow and SvO2 recovered."
+          },
+          {
+            "when": "p2last == \"inotrope\"",
+            "score": "partial",
+            "why": "First tried something else, then switched to an inotrope."
+          },
+          {
+            "when": "p2count > 0",
+            "score": "missed",
+            "why": "The stunned ventricle did not get an inotrope."
+          },
+          {
+            "when": "path != \"none\"",
+            "score": "missed",
+            "why": "Ended before making a phase 2 decision."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The run ended before phase 2."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatIsHappening",
+        "label": "Written reasoning: named tamponade and the first move",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "recognition",
+        "label": "Time to recognition",
+        "value": "isNull(recognizedAt) ? -1 : timeAt(recognizedAt) - onset",
+        "format": "duration",
+        "expert": "15 min or less (by the next q15-min check)"
+      },
+      {
+        "id": "page",
+        "label": "Time to paging the surgeon to the bedside",
+        "value": "isNull(surgeonEffAt) ? -1 : timeAt(surgeonEffAt) - onset",
+        "format": "duration",
+        "expert": "20 min or less"
+      },
+      {
+        "id": "reexp",
+        "label": "Drainage stop to re-exploration",
+        "value": "isNull(reexpStartAt) ? -1 : timeAt(reexpStartAt) - onset",
+        "format": "duration",
+        "expert": "about 40 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "~14:10",
+        "text": "Notice drainage falling from about 100 mL/h to almost nothing (at the latest by the 14:15 q15-min check). Inspect the tubes, clear them per protocol (clots found)."
+      },
+      {
+        "at": "~14:12",
+        "text": "Put it together: rising HR, narrowing pulse pressure, CVP rising toward PAOP, quieter heart sounds. Suspect tamponade."
+      },
+      {
+        "at": "~14:13",
+        "text": "Page the cardiac surgeon and give an SBAR asking them to come now. Callback about 2 min, at the bedside about 10 min later."
+      },
+      {
+        "at": "~14:14",
+        "text": "STAT bedside echo (about 10 min), resternotomy tray to the bedside, OR and perfusion notified, labs drawn (blood gas and ACT back in about 5 min, coags about 45 min)."
+      },
+      {
+        "at": "~14:15",
+        "text": "Bridge only: 250 mL bolus (about 5 min to run in), low-dose norepinephrine titrated every 5 min to hold MAP at 65 or more while the surgeon comes."
+      },
+      {
+        "at": "~14:25",
+        "text": "Surgeon at the bedside; echo confirms. OR already prepared, so the patient is in the OR about 15 min later (about 40 min after the drainage stopped)."
+      },
+      {
+        "at": "Phase 2",
+        "text": "Low CI with high PAOP and cool extremities after re-exploration: add an inotrope, hold MAP with norepinephrine, no more fluid. Reassess at about 30 min."
+      }
+    ],
+    "debrief": {
+      "early": {
+        "headline": "Stable: early re-exploration",
+        "body": "You spotted the change and got the surgeon there early. That is the expert path."
+      },
+      "earlyUntreated": {
+        "headline": "Early re-exploration, then a gap",
+        "body": "The surgeon came early. The minutes after the operation are where to look: re-exploration later than 45 minutes after the drainage stopped, or a stunned ventricle left without an inotrope."
+      },
+      "bridge": {
+        "headline": "Stable, by a slower route",
+        "body": "Re-exploration came after the clot had grown: more blood and more support than an earlier return would have needed. Paging the surgeon to the bedside within about 20 minutes of the drainage stopping, with the OR already notified, is what turns this into the expert path."
+      },
+      "late": {
+        "headline": "Late rescue: emergency bedside resternotomy",
+        "body": "The patient survived, but only through an emergency reopening at the bedside. The minutes before the call are where to look."
+      },
+      "arrest": {
+        "headline": "PEA arrest",
+        "body": "The tamponade progressed until the heart could not fill. Fluid and drips bought minutes, but only the surgeon could fix it."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The run reached its time limit."
+      }
+    },
+    "modelReasoning": "Cardiac tamponade from clot in the mediastinum. The clues: chest tube drainage that suddenly stopped after hours of steady output, hypotension with tachycardia, a narrowing pulse pressure, CVP and PAOP rising and moving toward the same number (equalisation), falling cardiac index and SvO2, muffled heart sounds and falling urine output. Hypovolemia does not raise filling pressures. Priority: call the cardiac surgeon now and ask them to come to the bedside, because the fix is surgical re-exploration, and getting the surgeon there takes minutes you cannot get back. While waiting: support the pressure (small fluid bolus, vasopressor as a bridge), get a STAT echo, prepare for emergency resternotomy and notify the OR, and draw labs. Fluids and drips buy minutes, not a cure."
+  }
+}

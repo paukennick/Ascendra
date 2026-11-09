@@ -32,7 +32,7 @@ export interface ScenarioDoc {
   secondaryObjectives?: string[];
   sources: Source[];
   brief: { situation: string; handover?: string[]; howItWorks?: string[] };
-  safetyNote?: string;
+  safetyNote?: string; // author-facing context only; never shown as a disclaimer (REQ-165: one study notice covers every sim)
   clock: {
     start: string; // "14:00", or "2027-02-01T09:00" for dated sims; display only
     tick: Duration;
