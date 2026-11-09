@@ -7,6 +7,7 @@ import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
+import { isLegacyClient } from "@/lib/client-version";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,9 @@ export async function POST(req: Request) {
     // REQ-119 sends one version string (acceptedTermsVersion); REQ-093 sends
     // the Terms and Privacy versions separately (termsVersion,
     // privacyVersion). Either, when current, records both documents.
-    const acceptedTermsVersion = signupAcceptedVersion(body);
+    // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
+    const termsCtx = { legacy: isLegacyClient(req) };
+    const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
     }
@@ -97,7 +100,7 @@ export async function POST(req: Request) {
     if (!userRow) return ok({ message: CREATED_MESSAGE }, 201);
     // REQ-119: the sign-up form's "I agree" (version + time); none sent means
     // the account is asked once on its first launch instead.
-    await recordSignupTermsAcceptance(userRow.id, acceptedTermsVersion, "register");
+    await recordSignupTermsAcceptance(userRow.id, acceptedTermsVersion, "register", termsCtx);
 
     const rawToken = await issueVerificationToken(userRow.id, false);
     if (await mayEmail(normalizedEmail)) await sendVerificationEmail(normalizedEmail, rawToken);

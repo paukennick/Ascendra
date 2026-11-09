@@ -7,6 +7,7 @@ import { completeLogin } from "@/lib/auth/session";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
+import { isLegacyClient } from "@/lib/client-version";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +36,9 @@ export async function POST(req: Request) {
   try {
     const body = await readJson(req);
     const { idToken, deviceLabel } = body ?? {};
-    const acceptedTermsVersion = signupAcceptedVersion(body);
+    // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
+    const termsCtx = { legacy: isLegacyClient(req) };
+    const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
     }
@@ -106,7 +109,7 @@ export async function POST(req: Request) {
         user = created;
         // REQ-119: a new account made here saw "By continuing you agree..."
         // under the Google button; existing accounts are asked on launch.
-        await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup");
+        await recordSignupTermsAcceptance(user.id, acceptedTermsVersion, "google_signup", termsCtx);
       }
       await query(
         `insert into oauth_accounts (user_id, provider, provider_account_id, email)
