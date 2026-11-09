@@ -434,9 +434,26 @@ triangular three-point estimates with path variance, resource levelling,
 earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
 break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
 Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
-weighted option scoring with a weight sensitivity (PMI-PBA). Still to
-author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
-CSPP.
+weighted option scoring with a weight sensitivity (PMI-PBA).
+
+REQ-171 completes the PMI family at the same depth (`lib/labs-pm-extended.test.ts`):
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| PgMP (March 2024 ECO) | 11 (7 build, 4 case) | 2/3/2/2/2 | [PgMP](https://www.pmi.org/certifications/program-management-pgmp) |
+| PfMP (ECO (c)2013) | 11 (7 build, 4 case) | 3/2/2/2/2 | [PfMP](https://www.pmi.org/certifications/portfolio-management-pfmp) |
+| PMI-CP (February 2024 ECO) | 9 (7 build, 2 case) | 3/3/2/1 | [PMI-CP](https://www.pmi.org/certifications/construction) |
+| PMI-PMOCP (January 2025 ECO V2) | 12 (8 build, 4 case) | 2/2/2/2/2/2 | [PMI-PMOCP](https://www.pmi.org/certifications/pmo-certified-professional-pmi-pmocp) |
+| PMI-CPMAI (September 2025 ECO) | 11 (7 build, 4 case) | 2/3/2/2/2 | [PMI-CPMAI](https://www.pmi.org/certifications/ai-project-management-cpmai) |
+| CSPP (V2, March 2026, Certified Practitioner) | 10 (6 build, 4 case) | 2/2/3/2/1 | [CSPP ECO 2026](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/cspp/cspp-exam-content-outline_2026.pdf) |
+
+Each pmi.org certification page was re-read on 2026-11-09 (exam still
+offered, weights unchanged, no new outline announced); the CSPP outline PDF
+was re-read the same day. Quantitative labs: program EVM roll-up (PgMP),
+weighted scoring with a sensitivity, NPV scenarios, supply/demand and a
+reserve from expected values (PfMP), whole-life value engineering (PMI-CP),
+PMO capacity in days (PMI-PMOCP), ROI/TCO and precision/recall go-live
+criteria (PMI-CPMAI).
 
 ### Fitness wave (REQ-149)
 

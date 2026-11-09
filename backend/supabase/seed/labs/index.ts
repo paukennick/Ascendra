@@ -104,6 +104,13 @@ import { EX280_LABS } from "./k8s-ex280";
 import { GCPNET_LABS } from "./gcp-net";
 import { AI901_LABS } from "./microsoft-ai901";
 import { TECHPLUS_LABS } from "./comptia-techplus";
+// REQ-171: the remaining PMI courses.
+import { PGMP_LABS } from "./pm-pgmp";
+import { PFMP_LABS } from "./pm-pfmp";
+import { PMICP_LABS } from "./pm-cp";
+import { PMIPMOCP_LABS } from "./pm-pmocp";
+import { PMICPMAI_LABS } from "./pm-cpmai";
+import { CSPP_LABS } from "./pm-cspp";
 // REQ-174: NREMT EMS courses.
 import { NREMTEMT_LABS } from "./ems-emt";
 import { NREMTEMR_LABS } from "./ems-emr";
@@ -216,6 +223,12 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   GCPNET_LABS,
   AI901_LABS,
   TECHPLUS_LABS,
+  PGMP_LABS,
+  PFMP_LABS,
+  PMICP_LABS,
+  PMIPMOCP_LABS,
+  PMICPMAI_LABS,
+  CSPP_LABS,
   NREMTEMT_LABS,
   NREMTEMR_LABS,
 ].map(withValueSources);
