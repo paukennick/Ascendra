@@ -13,7 +13,6 @@
 //      billing issue.
 //   4. Grants, web checkout, /api/billing/me and the export.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
-import { labDisclaimer } from "./lab-disclaimer";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -196,7 +195,7 @@ describe("BILLING_ENABLED off (the default): nothing changes", () => {
       const ex = await json(await call(explainGet, `/api/objectives/${obj}/explain-back`, u, "GET", undefined, { id: obj }));
       assert.equal(ex.locked, undefined);
       const lab = await json(await call(labGet, `/api/objectives/${obj}/lab`, u, "GET", undefined, { id: obj }));
-      assert.deepEqual(lab.lab, { prompt: "Try it", disclaimer: labDisclaimer("general", null) }); // REQ-125: every lab carries the disclaimer
+      assert.deepEqual(lab.lab, { prompt: "Try it" }); // REQ-165: no per-lab disclaimer
       assert.equal(lab.locked, undefined);
       const uc = await json(await call(unitCheckGet, `/api/units/${unit}/check`, u, "GET", undefined, { id: unit }));
       assert.equal(uc.locked, undefined);
@@ -441,7 +440,7 @@ describe("BILLING_ENABLED on: Pro", () => {
     process.env.BILLING_ENABLED = "yes";
     const u = await pro();
     assert.equal((await call(pbqGet, `/api/pbq?scenarioId=${scen}`, u)).status, 200);
-    assert.deepEqual((await json(await call(labGet, `/api/objectives/${obj}/lab`, u, "GET", undefined, { id: obj }))).lab, { prompt: "Try it", disclaimer: labDisclaimer("general", null) });
+    assert.deepEqual((await json(await call(labGet, `/api/objectives/${obj}/lab`, u, "GET", undefined, { id: obj }))).lab, { prompt: "Try it" });
     const course = await json(await call(courseGet, `/api/courses/${track}`, u, "GET", undefined, { id: track }));
     assert.notEqual(course.readiness, null);
     assert.equal((await chat(u)).status, 200);

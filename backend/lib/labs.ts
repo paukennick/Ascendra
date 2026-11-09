@@ -4,7 +4,6 @@ import { servableSql } from "@/lib/item-quality";
 import type { Feature } from "@/lib/billing-config";
 import { hasFeature } from "@/lib/entitlements";
 import { featureEnabledFor } from "@/lib/account-access";
-import { labDisclaimerFor, type LabDisclaimer } from "@/lib/lab-disclaimer";
 import type { LabSafetyFamily } from "@/lib/lab-grading";
 import { recordAttemptTx, findClientAttempt, isDuplicateClientAttempt } from "@/lib/grading-service";
 import { cleanText, hasUnstorableText } from "@/lib/text-input";
@@ -33,9 +32,11 @@ import {
 // Which labs are served: not retired, not pulled by "Report a problem"
 // (item_status), not rejected, and either approved by an expert or still
 // waiting for review -- the latter unless LABS_SERVE_UNREVIEWED is set off.
-// REQ-125 (Nick, 2026-11-07): every lab is available now, in every subject,
-// each with the lab disclaimer (lib/lab-disclaimer.ts) and, until approved,
-// the "Awaiting expert review" badge (docs/labs.md, "Serving").
+// REQ-125 (Nick, 2026-11-07): every lab is available now, in every subject.
+// REQ-165 (Nick, 2026-11-09): no per-lab disclaimer and no "Awaiting expert
+// review" badge any more -- the one study notice (lib/study-notice.ts)
+// covers labs. review_status stays internal (seed, review tooling, the
+// currency report) and is not shown to learners (docs/labs.md, "Serving").
 
 // The single feature key for tier gating, shared with the self-reported
 // CompTIA labs (lib/billing-config.ts FEATURES.labs). `satisfies Feature`
@@ -63,7 +64,8 @@ export interface LabRow {
   track_id: string;
   objective_title: string;
   // REQ-125: clinical / fitness / general, from the course's category (the
-  // same rule as lib/lab-grading.ts labSafetyFamily), for the disclaimer.
+  // same rule as lib/lab-grading.ts labSafetyFamily). Clinical and fitness
+  // labs need the study notice (REQ-165).
   safety_family: LabSafetyFamily;
 }
 
@@ -81,8 +83,8 @@ export class LabError extends Error {
 // needs_expert_review by default (REQ-125, Nick 2026-11-07: "for now we can
 // make the labs available"), in every subject family. This reverses
 // REQ-124 decision 11, which never served unreviewed clinical and fitness
-// labs; the stronger clinical/fitness disclaimer and its one-time
-// acknowledgement (lib/lab-disclaimer.ts) stand in its place.
+// labs; the study notice (lib/study-notice.ts, REQ-165), required before
+// any clinical or fitness lab, stands in its place.
 // LABS_SERVE_UNREVIEWED=off (or 0 / false / no) turns unreviewed labs off
 // again everywhere, without a deploy of the app.
 export function servedReviewStatuses(env: Record<string, string | undefined> = process.env): ReviewStatus[] {
@@ -93,15 +95,15 @@ export function servedReviewStatuses(env: Record<string, string | undefined> = p
 
 // REQ-144: the same for one learner. With LABS_SERVE_UNREVIEWED off, owner
 // and unrestricted accounts still get unreviewed labs (early access,
-// lib/account-access-config.ts EARLY_ACCESS), with the same disclaimer and
-// acknowledgement as everyone. No database read while the switch is on.
+// lib/account-access-config.ts EARLY_ACCESS), under the same study notice
+// as everyone. No database read while the switch is on.
 export async function servedReviewStatusesFor(userId: string, env: Record<string, string | undefined> = process.env): Promise<ReviewStatus[]> {
   const everyone = servedReviewStatuses(env);
   if (everyone.includes("needs_expert_review")) return everyone;
   return (await featureEnabledFor(userId, "labs_unreviewed", env as NodeJS.ProcessEnv)) ? ["approved", "needs_expert_review"] : everyone;
 }
 
-// The subject family of a course for the lab disclaimer: the course
+// The subject family of a course (which labs need the study notice): the course
 // taxonomy's healthcare-* categories are clinical, health-fitness is
 // fitness, everything else general -- the rule lib/lab-grading.ts
 // labSafetyFamily applies to the coach context's category slug.
@@ -440,10 +442,6 @@ export interface LabView {
     // Steps revealed so far: graded ones and the current one.
     steps: { index: number; text: string; ask: string; parts: string[] }[];
   };
-  // REQ-125: the disclaimer to show before the learner starts and with the
-  // results, and whether the one-time clinical/fitness acknowledgement is
-  // still owed (lib/lab-disclaimer.ts).
-  disclaimer: LabDisclaimer;
   run: {
     id: string;
     status: "open" | "finished";
@@ -525,7 +523,6 @@ export async function labView(lab: LabRow, userId: string, runId?: string | null
         }
       : null,
     runsFinished: finished?.n ?? 0,
-    disclaimer: await labDisclaimerFor(userId, lab.safety_family, lab.review_status),
   };
 }
 

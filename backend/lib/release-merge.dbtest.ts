@@ -10,7 +10,6 @@ import { recordLabCompletion, findLabObjective, tryItLab, tryItFields, objective
 import { latestLabReport } from "./lesson-experience";
 import { purgeExpired, RETENTION } from "./retention";
 import { cancelEmailChangeToken } from "./auth/emailTokens";
-import { labDisclaimer } from "./lab-disclaimer";
 import { GET as labGet, POST as labPost } from "../app/api/objectives/[id]/lab/route";
 
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
@@ -97,13 +96,9 @@ describe("Try it lab self-report (REQ-096) on A's lab data model", () => {
     assert.equal(await latestLabReport(u, objective), null, "the lab card's report ignores a self-report");
   });
 
-  test("the lesson's Try it fields carry the prompt and the lab disclaimer (B's contract), or nulls", () => {
-    const disclaimer = labDisclaimer("general", null);
-    assert.deepEqual(tryItFields({ prompt: "Inspect a service with systemctl.", disclaimer }), {
-      labPrompt: "Inspect a service with systemctl.",
-      labDisclaimer: disclaimer,
-    });
-    assert.deepEqual(tryItFields(null), { labPrompt: null, labDisclaimer: null });
+  test("the lesson's Try it fields carry the prompt (B's contract), or null; no lab disclaimer since REQ-165", () => {
+    assert.deepEqual(tryItFields({ prompt: "Inspect a service with systemctl." }), { labPrompt: "Inspect a service with systemctl." });
+    assert.deepEqual(tryItFields(null), { labPrompt: null });
   });
 
   // REQ-139 (FAIL-526): the lab card on the Done screen and the Try it step
@@ -115,7 +110,7 @@ describe("Try it lab self-report (REQ-096) on A's lab data model", () => {
     assert.equal(card.status, 200);
     assert.equal((await card.json()).lab?.prompt, "Inspect a service with systemctl.", "the lab card is shown");
     assert.equal(await tryItLab(u, objective), null, "so no Try it step");
-    assert.deepEqual(tryItFields(await tryItLab(u, objective)), { labPrompt: null, labDisclaimer: null });
+    assert.deepEqual(tryItFields(await tryItLab(u, objective)), { labPrompt: null });
     const res = await labPost(req(u, `/api/objectives/${objective}/lab`), { params: Promise.resolve({ id: objective }) });
     assert.equal(res.status, 404);
     const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1`, [u]);

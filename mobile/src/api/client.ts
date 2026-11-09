@@ -2,6 +2,7 @@
 // set in .env.local for local dev or in eas.json for production builds — see mobile/.env.example.
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
+import { studyNoticeGate } from "../lib/studyNotice.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -208,6 +209,9 @@ async function request<T>(
   alreadyRetried = false
 ): Promise<T> {
   const timeoutMs = requestTimeoutMs(path, opts.timeoutMs);
+  // REQ-165: the study notice (with its AI data disclosure) comes before the first request
+  // that sends the learner's own text to the AI provider.
+  if (!alreadyRetried) await studyNoticeGate(options.method, path);
   try {
     return await rawRequest<T>(path, options, timeoutMs);
   } catch (err) {

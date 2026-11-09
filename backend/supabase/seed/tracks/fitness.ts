@@ -25,7 +25,7 @@
 // overridden to certification_aligned on the track.
 //
 // REQ-114 (Audit 3 M7): every fitness track now carries a disclaimer gate
-// (disclaimerKey "fitness-content", text in mobile/src/content/disclaimers.ts)
+// (disclaimerKey "fitness-content"; since REQ-165 it needs the study notice)
 // and the prompts' exam-prep safety framing (lib/prompts.ts domainFraming,
 // category health-fitness). These are not clinical credentials, but the
 // tracks teach exercise for special populations, screening and nutrition,

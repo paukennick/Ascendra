@@ -6,6 +6,7 @@ import { courseReadiness } from "@/lib/readiness";
 import { cachedExamBlueprint, courseReadinessCache, stampOf } from "@/lib/readiness-cache";
 import { featureLock } from "@/lib/entitlements";
 import { READINESS_LOCKED_TEXT } from "@/lib/billing-config";
+import { studyNoticeAcceptedSql } from "@/lib/study-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +32,8 @@ export async function GET(
       `select st.*, vp.total_units, vp.total_objectives, vp.mastered_objectives, vp.percent_complete,
               vp.started_objectives, vp.percent_progress,
               ${isFavoriteSelect("$2")},
-              exists (select 1 from track_acknowledgements ta
-                       where ta.user_id = $2 and ta.track_id = st.id
-                         and ta.disclaimer_version = coalesce(st.disclaimer_version, 1)) as __acknowledged,
+              -- REQ-165: a gated course now needs the one study notice.
+              ${studyNoticeAcceptedSql("$2")} as __acknowledged,
               (select max(a.created_at)::text from attempts a where a.user_id = $2) as __attempt_stamp
        from subject_tracks st
        ${trackProgressLateral("$2")}

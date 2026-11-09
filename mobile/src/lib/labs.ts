@@ -74,51 +74,12 @@ export interface LabView {
   };
   run: { id: string; status: "open" | "finished"; stepsDone: number; results: LabStepResult[]; final: LabFinal | null } | null;
   runsFinished: number;
-  // REQ-125: sent by the server with every lab; optional only so an older
-  // server's payload still renders.
-  disclaimer?: LabDisclaimer;
 }
 
-// ---------------------------------------------------------------------------
-// The lab disclaimer (REQ-125)
-// ---------------------------------------------------------------------------
-//
-// The wording is the server's (backend/lib/lab-disclaimer.ts), sent with the
-// lab, so it can change without an app update. The app never keeps a copy;
-// it only decides how to show it.
-
-export interface LabDisclaimer {
-  version: number;
-  family: "clinical" | "fitness" | "general";
-  title: string;
-  lines: string[];
-  resultsNote: string;
-  acknowledgement: { required: boolean; acknowledged: boolean; acknowledgedAt: string | null; label: string };
-}
-
-// The learner still owes the one-time clinical / fitness acknowledgement.
-export function mustAcknowledge(d: LabDisclaimer | null | undefined): boolean {
-  return !!d && d.acknowledgement.required && !d.acknowledgement.acknowledged;
-}
-
-// One spoken label for the whole disclaimer card.
-export function disclaimerA11yLabel(d: LabDisclaimer): string {
-  return `${d.title}. ${d.lines.join(" ")}`;
-}
-
-// The view after the learner accepted: the server's answer folded in, so
-// the Start button appears without another round trip.
-export function withAcknowledgement(view: LabView, acknowledgedAt: string): LabView {
-  if (!view.disclaimer) return view;
-  return { ...view, disclaimer: { ...view.disclaimer, acknowledgement: { ...view.disclaimer.acknowledgement, acknowledged: true, acknowledgedAt } } };
-}
-
-// A start or submit the server refused because the acknowledgement is owed
-// (403, code lab_disclaimer_required): the screen reloads the lab to show it.
-export function isAcknowledgementRequired(err: unknown): boolean {
-  const e = err as { status?: unknown; data?: { code?: unknown } } | null;
-  return !!e && e.status === 403 && e.data?.code === "lab_disclaimer_required";
-}
+// REQ-165: the lab disclaimer (REQ-125), its per-family acknowledgement and
+// the "Awaiting expert review" line are gone; the study notice
+// (src/lib/studyNotice.ts) covers labs. reviewStatus is still sent and kept
+// in the types, but never shown.
 
 export interface LabSubmitResult {
   step: LabStepResult;
@@ -178,9 +139,7 @@ export function labAccessBadge(access: LabAccess | undefined): string | null {
 
 export function labA11yLabel(it: LabListItem): string {
   const plan = it.access === "sample" ? " Your plan's sample lab for this course." : it.access === "locked" ? " Part of the Pro plan." : "";
-  return `${KIND_LABEL[it.kind]} lab: ${it.title}. Objective: ${it.objectiveTitle}. ${labStateLabel(it)}.${
-    it.reviewStatus !== "approved" ? " Not yet checked by a subject expert." : ""
-  }${plan}`;
+  return `${KIND_LABEL[it.kind]} lab: ${it.title}. Objective: ${it.objectiveTitle}. ${labStateLabel(it)}.${plan}`;
 }
 
 // ---------------------------------------------------------------------------
