@@ -56,7 +56,7 @@ function returnUrl(env: NodeJS.ProcessEnv, which: "success" | "cancel" | "portal
 }
 
 export async function createCheckoutSession(
-  opts: { userId: string; email: string; planId: string; idempotencyKey?: string; coupon?: string | null; founding?: boolean },
+  opts: { userId: string; email: string; planId: string; idempotencyKey?: string; coupon?: string | null },
   env: NodeJS.ProcessEnv = process.env
 ): Promise<{ url: string; plan: PlanInfo }> {
   const key = requireKey(env);
@@ -81,7 +81,6 @@ export async function createCheckoutSession(
       "subscription_data[metadata][tier]": plan.tier,
       "subscription_data[metadata][family]": plan.family,
       "subscription_data[metadata][plan]": plan.period,
-      ...(opts.founding ? { "subscription_data[metadata][founding]": "1" } : {}),
       success_url: returnUrl(env, "success"),
       cancel_url: returnUrl(env, "cancel"),
       // REQ-166: a verified group discount is a published Stripe coupon,

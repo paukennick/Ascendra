@@ -39,7 +39,6 @@ export interface BillingConfig {
   scopes: Array<{ id: PlanScope; name: string; summary: string; families: string[] }>;
   families: Record<string, BillingFamily>;
   samePriceNote: string;
-  founding: { percent: number; playOffer: string } | null;
 }
 
 export interface BillingFamily {
@@ -87,10 +86,9 @@ export interface BillingMe {
     next?: { tier: Tier; from: string } | null;
   } | null;
   freeCourse?: FreeCourse | null;
-  // REQ-170: every plan held, whether they cover every course, founding seat.
+  // REQ-170: every plan held, and whether together they cover every course.
   plans?: Array<{ family: string | null; scope: PlanScope | null; tier: Tier; status: string; periodEnd: string | null }>;
   coversEverything?: boolean;
-  founding?: { percent: number; state: "member" | "held" | "open" | "full" } | null;
   allowances?: AllowanceStatus[];
   aiPaused?: { paused: boolean; resetsAt: string | null };
   // REQ-144: set for owner and unrestricted accounts instead of a plan.
@@ -109,7 +107,6 @@ export const DISABLED_CONFIG: BillingConfig = {
   scopes: [],
   families: {},
   samePriceNote: "",
-  founding: null,
 };
 
 // Anything that isn't a well-formed config with enabled === true is "off".
@@ -268,17 +265,6 @@ export function defaultFamily(config: BillingConfig, scope: PlanScope, me: Billi
   return list.find((f) => config.families[f]?.tier === tier) ?? list[0] ?? null;
 }
 
-// "Founding member: 40% off, for as long as you stay subscribed." Only
-// while a seat is open or held for this learner; a published discount, the
-// same for every founding member.
-export function foundingLine(me: BillingMe | null): string | null {
-  const f = me?.founding;
-  if (!f) return null;
-  if (f.state === "member") return `You're a founding member: ${f.percent}% off for as long as you stay subscribed.`;
-  if (f.state === "full") return null;
-  return `Founding members: ${f.percent}% off for the first subscribers, kept for as long as they stay subscribed. The same discount for every founding member.`;
-}
-
 // The price to show: the store's localised string when the store gave one,
 // else the US list price marked as such.
 export function priceText(plan: BillingPlan, storePrice?: string | null): string {
@@ -364,19 +350,4 @@ export function googlePlanChange(
   }
   const rank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };
   return { oldProductIdentifier: oldSub, mode: rank[target.tier] > rank[current.tier] ? "immediate" : "deferred" };
-}
-
-// REQ-170: the one discount on Google Play -- the verified group offer or
-// the founding offer, whichever is larger (never both; a tie goes to the
-// verified one, which doesn't use a founding seat). App Store: founding is
-// not offered in the app (offer codes can't keep a price for life).
-export function playDiscountChoice(
-  config: Pick<BillingConfig, "founding">,
-  me: Pick<BillingMe, "founding"> | null,
-  verified: { percent: number; playOfferId: string } | null
-): { offerId: string; founding: boolean } | null {
-  const f = config.founding && me?.founding && me.founding.state !== "full" ? me.founding : null;
-  if (verified && (!f || verified.percent >= f.percent)) return { offerId: verified.playOfferId, founding: false };
-  if (f && config.founding) return { offerId: config.founding.playOffer, founding: true };
-  return null;
 }

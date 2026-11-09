@@ -127,9 +127,9 @@ drop table if exists
   review_sessions, study_plans, unit_check_items, terms_acceptances,
   -- REQ-166 (058): verified group discounts and the App Store offer-code pool
   verified_discounts,
-  -- REQ-169/170 (060): intake answers and founding-member seats (060's
-  -- family and scope columns go with entitlements, also in this list)
-  learner_intake, learner_intake_targets, founding_members
+  -- REQ-169/170 (060): intake answers (060's family and scope columns go
+  -- with entitlements, also in this list)
+  learner_intake, learner_intake_targets
   cascade;
 
 -- 4b. The two rollup views 033 redefined, back to master's definitions

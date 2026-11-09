@@ -10,8 +10,8 @@ import { localToday } from "@/lib/studyPlan";
 import { spacing } from "@/lib/theme";
 
 // REQ-169: Settings > Study profile -- the intake answers, editable any
-// time. Saving updates each named course's study plan (exam date and a
-// share of the weekly hours).
+// time. Saving sets each named course's exam date, and weekly hours only for
+// a course that has no study plan yet (existing hours are never changed).
 export default function StudyProfile() {
   const [view, setView] = useState<IntakeView | null>(null);
   const [form, setForm] = useState<IntakeForm>(EMPTY_FORM);

@@ -178,42 +178,46 @@ the sum of both caps; a held period and its new plan count once.
 | Clinical Pro | $14.61 (from $99 for 3 months) | `AI_MONTHLY_CAP_CLINICAL_PRO_USD` |
 | Clinical add-on | $12.81 | `AI_MONTHLY_CAP_CLINICAL_ADDON_USD` |
 | A grant (no plan) | Plus $2.95, Pro $7.35 | `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` |
+| Unrestricted access (REQ-144), granted by the owner | $20.16: all-access plus the clinical add-on, the most a paying learner can hold | `AI_MONTHLY_CAP_UNRESTRICTED_USD` |
+| An owner (`OWNER_EMAILS`) | none | -- |
 
-`off` removes a cap. Discounts (verified, founding) never lower it and
-don't stack. Spend is summed from `ai_calls` for the calendar month (UTC).
+`off` removes a cap. A verified discount never lowers it, and only one
+discount ever applies. Spend is summed from `ai_calls` for the calendar month (UTC).
 At the cap, **coach chat and lesson regenerate pause** with a kind message
 naming the day they open again. **Grading and review never stop.** Learners
 see allowances (messages a day, versions a week, mocks a month), never
 dollars. Unit tests (`lib/billing-config.test.ts`) check that no plan, at
 any length, goes negative for a learner who uses the AI right up to the
-cap, at list price and at 20% and 40% off.
+cap, at list price and at 20% and 25% off.
 
 #### Margins (AI cost only, per learner per month, after fees)
 
 Typical use is 30% of the cap; worst case is 100%. Percentages are of the
-month's take after fees. Monthly, 3-month and yearly lengths:
+month's take after fees. The only discount is a verified group discount
+(REQ-166), at most 25% (below); there is no founding-member discount (Nick,
+2026-11-09: removed on every platform, as the App Store can't offer it).
 
-| Plan and length | Take | Typical: list / 20% / 40% off | Worst: list / 20% / 40% off |
+| Plan and length | Take | Typical: list / 20% / 25% off | Worst: list / 20% / 25% off |
 |---|---|---|---|
-| Category Plus, monthly $12.99 | $11.42 | $10.54 / $8.24 / $5.93 | $8.47 / $6.17 / $3.87 |
-| Category Plus, 3 months $29.99 | $8.83 | $7.95 / $6.17 / $4.40 | $5.88 / $4.11 / $2.34 |
-| Category Plus, yearly $79.99 | $5.90 | $5.02 / $3.83 / $2.65 | $2.95 / $1.77 / **$0.59** |
-| Category Pro, monthly $19.99 | $17.63 | $16.19 / $12.64 / $9.10 | $12.83 / $9.28 / $5.74 |
-| Category Pro, 3 months $44.99 | $13.26 | $11.82 / $9.16 / $6.50 | $8.46 / $5.80 / $3.14 |
-| Category Pro, yearly $129.99 | $9.59 | $8.15 / $6.23 / $4.31 | $4.79 / $2.87 / $0.95 |
-| All access, monthly $29.99 | $26.49 | $24.29 / $18.97 / $13.65 | $19.14 / $13.82 / $8.51 |
-| All access, 3 months $69.99 | $20.65 | $18.44 / $14.31 / $10.17 | $13.30 / $9.16 / $5.03 |
-| All access, yearly $199 | $14.69 | $12.49 / $9.55 / $6.61 | $7.34 / $4.40 / $1.46 |
-| Clinical Pro, monthly $49 | $43.34 | $38.96 / $30.27 / $21.58 | $28.73 / $20.04 / $11.36 |
-| Clinical Pro, 3 months $99 | $29.22 | $24.83 / $18.99 / $13.14 | $14.61 / $8.76 / $2.91 |
-| Clinical add-on, monthly $29 | $25.61 | $21.77 / $16.63 / $11.49 | $12.80 / $7.66 / $2.52 |
+| Category Plus, monthly $12.99 | $11.42 | $10.54 / $8.24 / $7.66 | $8.47 / $6.17 / $5.59 |
+| Category Plus, 3 months $29.99 | $8.83 | $7.95 / $6.17 / $5.73 | $5.88 / $4.11 / $3.67 |
+| Category Plus, yearly $79.99 | $5.90 | $5.02 / $3.83 / $3.54 | $2.95 / $1.77 / **$1.47** |
+| Category Pro, monthly $19.99 | $17.63 | $16.19 / $12.64 / $11.76 | $12.83 / $9.28 / $8.40 |
+| Category Pro, 3 months $44.99 | $13.26 | $11.82 / $9.16 / $8.50 | $8.46 / $5.80 / $5.14 |
+| Category Pro, yearly $129.99 | $9.59 | $8.15 / $6.23 / $5.75 | $4.79 / $2.87 / $2.39 |
+| All access, monthly $29.99 | $26.49 | $24.29 / $18.97 / $17.64 | $19.14 / $13.82 / $12.50 |
+| All access, 3 months $69.99 | $20.65 | $18.44 / $14.31 / $13.27 | $13.30 / $9.16 / $8.13 |
+| All access, yearly $199 | $14.69 | $12.49 / $9.55 / $8.81 | $7.34 / $4.40 / $3.67 |
+| Clinical Pro, monthly $49 | $43.34 | $38.96 / $30.27 / $28.10 | $28.73 / $20.04 / $17.87 |
+| Clinical Pro, 3 months $99 | $29.22 | $24.83 / $18.99 / $17.52 | $14.61 / $8.76 / $7.30 |
+| Clinical add-on, monthly $29 | $25.61 | $21.77 / $16.63 / $15.34 | $12.80 / $7.66 / $6.38 |
 
-Worst case overall: a founding member (40% off) on a yearly category Plus
-plan who uses the whole cap every month keeps **$0.59 a month (17%)**. Every
-plan's yearly (or cheapest) length breaks even at a discount of just under
-50%, because the cap is half the undiscounted take. REQ-166 accepts
-verified percentages up to 90: anything above about 49% loses money at the
-cap on the yearly lengths.
+Worst case overall: a learner with the largest allowed discount (25%) on a
+yearly category Plus plan who uses the whole cap every month leaves **$1.47
+a month (25% of that month's take)**. Every plan's yearly (or cheapest)
+length would break even at a discount of just under 50%, because the cap is
+half the undiscounted take; the 25% limit keeps every plan positive at the
+cap with room to spare (a unit test checks list, 20% and 25%).
 
 Allowance counts are rolling windows (24 hours, 7 days, 30 days), counted in
 `allowance_uses` under a lock so parallel requests can't overrun them. A use
@@ -275,7 +279,6 @@ Backend (Vercel). All optional until you turn plans on.
 | `STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY` ... `STRIPE_PRICE_CLINICAL_ADDON_MONTHLY` | The 24 Stripe price ids, `STRIPE_PRICE_<PLAN ID>` (REQ-170). A plan without one shows "Not available yet" on the web. |
 | `BILLING_WEB_RETURN_URL` | Where Stripe Checkout and the portal return (e.g. `https://www.ascendra-learn.com`). Falls back to `APP_URL`. |
 | `AI_MONTHLY_CAP_<FAMILY>_USD` | Per-plan caps (REQ-170; defaults in "The AI cap"). `AI_MONTHLY_CAP_PLUS_USD` / `_PRO_USD` are the caps of grants. |
-| `FOUNDING_MEMBERS_*`, `STRIPE_COUPON_FOUNDING`, `PLAY_OFFER_FOUNDING` | The founding-member offer (off by default; "Founding members"). |
 | `BILLING_ALLOWANCE_<KIND>_<TIER>` | Allowance overrides (above). |
 | `BILLING_FREE_COURSE_SWITCH_DAYS` | Default 7. |
 | `BILLING_PRICE_<FAMILY>_<PERIOD>_USD` | Fallback display prices, e.g. `BILLING_PRICE_ALL_ACCESS_YEARLY_USD`. |
@@ -327,9 +330,8 @@ Group **"Ascendra Clinical"** (one level):
 - `ascendra_clinical_addon` -- `monthly`
 
 (RevenueCat reports these as `ascendra_pm_plus:three-month` and so on.)
-For the founding offer, add a developer-determined offer `founding` (40%
-off, recurring) to each base plan; for verified discounts, the
-`verified-<group>` offers (below).
+For verified discounts, add the `verified-<group>` offers (below). There is
+no founding offer.
 
 **RevenueCat** -- one project with the iOS and Android apps:
 
@@ -350,46 +352,9 @@ off, recurring) to each base plan; for verified discounts, the
 USD. Put each `price_...` id in `STRIPE_PRICE_<PLAN ID>`, e.g.
 `STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY`, `STRIPE_PRICE_ALL_ACCESS_YEARLY`,
 `STRIPE_PRICE_CLINICAL_ADDON_MONTHLY`. A plan without one shows "Not
-available yet" on the web. For founding members, one coupon (40% off,
-duration **forever**) in `STRIPE_COUPON_FOUNDING`. Turn on the customer
+available yet" on the web. Turn on the customer
 portal (Settings > Billing > Customer portal) with cancel and
 payment-method update.
-
-## Founding members (REQ-170)
-
-40% off for the first 100 paying learners, kept for as long as they stay
-subscribed. **Off** unless `FOUNDING_MEMBERS_ENABLED` is on (and plans are
-on). It is a published discount -- the same percentage for every founding
-member -- and doesn't stack with a verified discount: the larger applies
-(a tie goes to the verified one, so it doesn't use a seat). It never lowers
-the AI cap.
-
-- Seats (`founding_members`, migration 060): a seat is **held** when a
-  learner starts a web checkout with the founding coupon, or just before the
-  app buys the Play `founding` offer (`POST /api/billing/founding`), under a
-  lock so parallel checkouts can't overrun the limit. The first paid
-  subscription event confirms it. An unpaid hold lapses after
-  `FOUNDING_MEMBERS_HOLD_HOURS` (48) and frees the seat. A member keeps
-  their percentage on later plans.
-- Web: the Stripe coupon (duration forever) replaces the promotion-code box.
-- Google Play: the `founding` developer-determined offer (recurring). Like
-  the verified offers, eligibility is decided by the app; watch its sales
-  against `founding_members`.
-- App Store: **not offered in the app.** Apple's offer codes and promotional
-  offers can't keep a price for the life of a subscription (open question
-  for Nick: separate founding products, or web and Play only).
-- `GET /api/billing/me` has `founding: { percent, state }` (`member`,
-  `held`, `open`, `full`); the plans screen shows one line while seats are
-  open and to members.
-
-| Variable | What |
-|---|---|
-| `FOUNDING_MEMBERS_ENABLED` | The switch, off by default. |
-| `FOUNDING_MEMBERS_PERCENT` | Default 40 (1-90). Must match the coupon and the Play offers. |
-| `FOUNDING_MEMBERS_LIMIT` | Default 100. |
-| `FOUNDING_MEMBERS_HOLD_HOURS` | Default 48. |
-| `STRIPE_COUPON_FOUNDING` | The Stripe coupon id. Without it the web doesn't offer the founding discount. |
-| `PLAY_OFFER_FOUNDING` | The Play offer id (default `founding`). |
 
 ## Study profile: the intake form (REQ-169)
 
@@ -401,9 +366,11 @@ of the first run and editable any time in Settings > Study profile
 (`GET/PUT /api/intake`, `lib/intake.ts`, migration 060's `learner_intake` and
 `learner_intake_targets`).
 
-- **Study plan**: saving writes each named course's exam date and an even
-  share of the weekly hours into its study plan (the same `study_plans` row
-  the course's plan screen edits). Experience other than "new" suggests the
+- **Study plan**: saving writes each named course's exam date into its
+  study plan (the same `study_plans` row the course's plan screen edits).
+  The weekly hours fill in **only plans that have no hours yet** (an even
+  share per new plan); hours a plan already has are never overwritten (Nick,
+  2026-11-09). Experience other than "new" suggests the
   quick placement check.
 - **Plan suggestion** (only with `BILLING_ENABLED` on): from the courses'
   categories and the latest exam date only -- never experience, goal, hours
@@ -498,15 +465,18 @@ limits whatever the tier and **whether or not `BILLING_ENABLED` is on**.
 
 | Lifted for owner and unrestricted | Never lifted |
 |---|---|
-| Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course, every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
-| Plan allowances (no `allowance_uses` row is written) and the per-tier monthly AI cap | Course disclaimers and acknowledgements, the lab disclaimer |
+| Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course in **every category, clinical included** (REQ-170: no payment, no free-course limit, no upgrade prompt), every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
+| Plan allowances (no `allowance_uses` row is written). The monthly AI cap: none for owners; for unrestricted grants, the highest a paying learner can hold -- all-access plus the clinical add-on, **$20.16** (REQ-170, Nick 2026-11-09; was no cap) | Course disclaimers and acknowledgements, the lab disclaimer |
 | The $0.50 daily AI budget, **raised** to the safety ceiling below | Access checks: another learner's private courses and data stay invisible (unrestricted is not admin) |
 | Early access to features behind a switch that is off for everyone else | |
 
-How: `tierFor` answers Pro for them (Pro has every feature; a unit test
-fails if a feature is ever added above Pro), `consumeAllowance`,
-`allowanceStatus` and the monthly cap return "no limit" for them
-(`lib/entitlements.ts`), and `requireAiBudget` uses the ceiling
+How: `tierFor`, `tierForCourse` and `requireCourseAccess` answer Pro for
+them on every course whatever its category (Pro has every feature; a unit
+test fails if a feature is ever added above Pro), `consumeAllowance` and
+`allowanceStatus` return "no limit", and the monthly cap is
+`unrestrictedCapUsd` for a grant and none for an owner (`lib/entitlements.ts`;
+`lib/intake-plans.dbtest.ts` checks a granted, unpaid learner end to end on
+clinical, PM and IT courses), and `requireAiBudget` uses the ceiling
 (`lib/ai-budget.ts`). With the switch off nothing reads the access tables
 for plan gates (everyone already has everything); the AI budget looks the
 level up only once a learner is over the everyday budget.
@@ -616,12 +586,13 @@ Nick's rules:
 - **No stacking.** A learner gets one discount: the largest among their live
   verifications. On the web a verified coupon replaces the promotion-code box
   at Stripe Checkout (Stripe takes one or the other), so a promo code such as
-  a future founding-member offer can't be added on top. On Google Play one
+  a promotion code can't be added on top. On Google Play one
   offer is bought, and on the App Store one offer code is redeemed per
   subscription.
 - **The full AI cap.** A discounted learner keeps their plan's whole monthly
-  AI cap. The cap is set per tier from the list price (`monthlyAiCapUsd`,
-  above), and nothing in it reads what the learner paid. A unit test
+  AI cap. The cap is set per plan from the list price (`familyCapUsd`,
+  above), and nothing in it reads what the learner paid. REQ-170: the
+  published percentage is at most 25%. A unit test
   (`lib/verified-discounts-config.test.ts`) pins this.
 
 ### When it is on
@@ -695,7 +666,7 @@ only while the server says discounts are available.
 |---|---|
 | `VERIFIED_DISCOUNTS_ENABLED` | The switch (off unless set to something other than `0`/`false`/`off`/`no`). |
 | `VERIFIED_DISCOUNT_GROUPS` | Comma list replacing the default set `military,responder,nurse,student`. Add `teacher` to offer teachers. |
-| `DISCOUNT_PERCENT_<GROUP>` | The published percentage, a whole number 1-90. **No default**: a group without one isn't offered. Nick hasn't set them yet (likely a flat 20%). It must match the Stripe coupon and the store offers. |
+| `DISCOUNT_PERCENT_<GROUP>` | The published percentage, a whole number **1-25** (REQ-170, Nick 2026-11-09: capped at 25%; a larger value is refused and the group isn't offered -- `npm run discounts:codes -- --config` lists it under `rejectedPercents`). **No default**: a group without one isn't offered. Nick hasn't set them yet (likely a flat 20%). It must match the Stripe coupon and the store offers. |
 | `STRIPE_COUPON_<GROUP>` | The Stripe coupon id for the group. Without it, web checkout charges the regular price and the page says the discount is app-only. |
 | `PLAY_OFFER_<GROUP>` | The Play offer id (default `verified-<group>`). |
 | `APP_STORE_OFFER_REDEEM_URL` | App Store Connect's example redemption link with the code left off (optional; the app opens Apple's redemption sheet first). |

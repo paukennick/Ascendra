@@ -5,7 +5,6 @@ import { tooManyRequests } from "@/lib/http";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { createCheckoutSession } from "@/lib/stripe-checkout";
 import { stripeCouponForUser } from "@/lib/verified-discounts";
-import { checkoutCoupon } from "@/lib/discount-choice";
 import { requirePlanPrerequisite } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
@@ -29,16 +28,13 @@ export async function POST(req: Request) {
     const requestId = validClientAttemptId(body.requestId);
     // REQ-170: the clinical add-on is sold only beside all-access.
     await requirePlanPrerequisite(user.id, body.planId);
-    // REQ-166: the learner's verified group discount, if any (null while
-    // verified discounts are off -- no table is read then). REQ-170: or the
-    // founding-member discount when that is larger; never both.
-    const chosen = await checkoutCoupon(user.id, await stripeCouponForUser(user.id));
     const { url } = await createCheckoutSession({
       userId: user.id,
       email: user.email,
       planId: body.planId,
-      coupon: chosen.coupon,
-      founding: chosen.founding,
+      // REQ-166: the learner's verified group discount, if any (null while
+      // verified discounts are off -- no table is read then).
+      coupon: await stripeCouponForUser(user.id),
       idempotencyKey: requestId ? `checkout:${user.id}:${requestId}` : undefined,
     });
     return ok({ url });

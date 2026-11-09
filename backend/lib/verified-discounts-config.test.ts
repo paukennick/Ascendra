@@ -14,6 +14,8 @@ import {
   playOfferFor,
   stripeCouponFor,
   supportEmail,
+  MAX_DISCOUNT_PERCENT,
+  rejectedPercents,
 } from "./verified-discounts-config";
 import {
   APP_RETURN_URL,
@@ -74,10 +76,17 @@ describe("REQ-166 groups and percentages", () => {
     assert.match(TEACHER_NOTE, /doesn't cover using Ascendra with a class/);
   });
 
-  test("percentages come only from config; no default; 1-90 whole numbers", () => {
+  // REQ-170 (Nick, 2026-11-09): capped at 25% (was 1-90). Above it the group
+  // isn't offered, and the operator report names it.
+  test("percentages come only from config; no default; 1-25 whole numbers", () => {
     assert.equal(discountPercent("military", {}), null);
     assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: "20" }), 20);
-    for (const bad of ["0", "91", "12.5", "x", "-5"]) assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: bad }), null, bad);
+    for (const bad of ["0", "26", "40", "90", "91", "12.5", "x", "-5"]) assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: bad }), null, bad);
+    assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: "25" }), 25);
+    assert.equal(MAX_DISCOUNT_PERCENT, 25);
+    assert.deepEqual(offeredGroups({ DISCOUNT_PERCENT_MILITARY: "30", DISCOUNT_PERCENT_NURSE: "20" }).map((g) => g.id), ["nurse"], "a group over 25% is not offered");
+    assert.deepEqual(rejectedPercents({ DISCOUNT_PERCENT_MILITARY: "30", DISCOUNT_PERCENT_NURSE: "20" }), [{ group: "military", value: "30" }]);
+    assert.deepEqual(discountOperatorConfig({ DISCOUNT_PERCENT_STUDENT: "50" }).rejectedPercents, ["student: 50 (allowed 1-25)"]);
     // A group without a percentage is not offered.
     assert.deepEqual(offeredGroups({ DISCOUNT_PERCENT_NURSE: "15" }).map((g) => g.id), ["nurse"]);
   });
@@ -211,10 +220,10 @@ describe("REQ-166 Nick's rules: full AI cap, no stacking", () => {
   test("the monthly AI cap ignores every discount setting (list price, not discounted)", () => {
     for (const tier of ["plus", "pro"] as const) {
       assert.equal(monthlyAiCapUsd(tier, ON), monthlyAiCapUsd(tier, {}));
-      assert.equal(monthlyAiCapUsd(tier, { ...ON, DISCOUNT_PERCENT_MILITARY: "90" }), monthlyAiCapUsd(tier, {}));
+      assert.equal(monthlyAiCapUsd(tier, { ...ON, DISCOUNT_PERCENT_MILITARY: "25" }), monthlyAiCapUsd(tier, {}));
     }
     // REQ-170: every category plan's cap too (FAIL-232: updated, not deleted).
-    for (const f of PLAN_FAMILY_IDS) assert.equal(familyCapUsd(f, { ...ON, DISCOUNT_PERCENT_MILITARY: "90" }), familyCapUsd(f, {}), f);
+    for (const f of PLAN_FAMILY_IDS) assert.equal(familyCapUsd(f, { ...ON, DISCOUNT_PERCENT_MILITARY: "25" }), familyCapUsd(f, {}), f);
   });
 
   test("Stripe checkout: a verified coupon replaces the promotion-code box (never both)", async () => {

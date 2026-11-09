@@ -11,9 +11,10 @@ import { CLASS_CONTACT_LINE, supportEmail } from "@/lib/verified-discounts-confi
 // It asks for a goal, the course(s)/exam(s) the learner is preparing for,
 // each with an optional exam date, their experience, weekly study time and,
 // optionally, what they'll use it for. The answers:
-//   - set up the study plan: each named course's plan gets its exam date and
-//     a share of the weekly hours (study_plans, the same row the course's
-//     own plan screen edits);
+//   - set up the study plan: each named course's plan gets its exam date and,
+//     only if that course has no plan yet, a share of the weekly hours
+//     (study_plans, the same row the course's own plan screen edits). Nick,
+//     2026-11-09: the study profile never overwrites hours a plan already has;
 //   - suggest whether to start with the quick placement check (some
 //     experience, experienced, or a retake);
 //   - with plans on, suggest a category plan and a length
@@ -176,8 +177,9 @@ export async function intakeFor(userId: string, today: string, env: NodeJS.Proce
 }
 
 // Saves the answers (replacing the previous ones) and, unless applyToPlan is
-// false, writes each named course's exam date and share of the weekly hours
-// into its study plan. Course ids must already be checked visible by the
+// false, writes each named course's exam date into its study plan, and its
+// share of the weekly hours only into a plan that doesn't exist yet (a
+// plan's hours, once set, are the learner's to change on the plan screen). Course ids must already be checked visible by the
 // caller (the route does, with lib/visibility.ts).
 export async function saveIntake(userId: string, input: IntakeInput): Promise<void> {
   await withTransaction(async (tx) => {
@@ -197,12 +199,12 @@ export async function saveIntake(userId: string, input: IntakeInput): Promise<vo
     }
     if (input.applyToPlan) {
       for (const t of input.targets) {
-        // Only what the learner answered: no hours given keeps the plan's own.
+        // A new plan takes the learner's share of the weekly hours (or the
+        // plan default); an existing plan keeps its own hours, always.
         await tx.query(
           `insert into study_plans (user_id, track_id, exam_date, weekly_hours)
            values ($1, $2, $3::date, coalesce($4::numeric, 5))
-           on conflict (user_id, track_id) do update set exam_date = excluded.exam_date,
-             weekly_hours = coalesce($4::numeric, study_plans.weekly_hours), updated_at = now()`,
+           on conflict (user_id, track_id) do update set exam_date = excluded.exam_date, updated_at = now()`,
           [userId, t.trackId, t.examDate, input.weeklyHours === null ? null : hoursPerCourse(input.weeklyHours, input.targets.length)]
         );
       }

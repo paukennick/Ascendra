@@ -126,7 +126,11 @@ export function IntakeFormFields({ value, onChange }: { value: Form; onChange: (
             />
           ))}
         </View>
-        {value.targets.length > 1 && value.weeklyHours ? <Muted>Shared evenly between your courses; you can adjust each course's plan.</Muted> : null}
+        {value.weeklyHours ? (
+          <Muted>
+            Sets the pace for courses that don't have a study plan yet{value.targets.length > 1 ? ", shared evenly" : ""}. Plans you've already set keep their hours.
+          </Muted>
+        ) : null}
       </View>
 
       <View style={{ gap: spacing.sm }}>

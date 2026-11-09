@@ -3,7 +3,6 @@ import { query, queryOne, withTransaction } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { spendSinceUsd } from "@/lib/ai-budget";
 import { accessFor, isUnrestricted } from "@/lib/account-access";
-import { foundingStatus } from "@/lib/founding";
 import {
   ALLOWANCE_DEFAULTS,
   ALLOWANCE_KINDS,
@@ -23,6 +22,7 @@ import {
   learnerCapUsd,
   monthlyAiCapUsd,
   planById,
+  unrestrictedCapUsd,
   scopeCovers,
   scopeForCategory,
   tierHas,
@@ -532,11 +532,19 @@ export async function aiAllowanceStatus(
   if (!billingEnabled(env)) return { paused: false, resetsAt: null };
   const t = tier ?? (await tierFor(userId, env));
   if (t === "free") return { paused: false, resetsAt: null }; // Free has no chat or regenerate
-  // REQ-144: no monthly cap; the daily safety ceiling (lib/ai-budget.ts) still applies.
-  if (await isUnrestricted(userId, env)) return { paused: false, resetsAt: null };
-  // REQ-170: the sum of the caps of the plans the learner holds.
-  const rows = await accessRows(userId);
-  const cap = rows.length ? learnerCapUsd(rows, env) : monthlyAiCapUsd(t, env);
+  // REQ-144: owners have no monthly cap (the daily safety ceiling in
+  // lib/ai-budget.ts still applies). REQ-170 (Nick, 2026-11-09): an account
+  // granted unrestricted access is capped like the most a paying learner can
+  // hold, all-access plus the clinical add-on.
+  const access = await accessFor(userId, env);
+  if (access?.level === "owner") return { paused: false, resetsAt: null };
+  let cap: number | null;
+  if (access) cap = unrestrictedCapUsd(env);
+  else {
+    // REQ-170: the sum of the caps of the plans the learner holds.
+    const rows = await accessRows(userId);
+    cap = rows.length ? learnerCapUsd(rows, env) : monthlyAiCapUsd(t, env);
+  }
   if (cap === null) return { paused: false, resetsAt: null };
   const spent = await spendSinceUsd(userId, monthStartUtc()).catch(() => 0);
   return spent >= cap ? { paused: true, resetsAt: nextMonthStartUtc().toISOString() } : { paused: false, resetsAt: null };
@@ -732,10 +740,9 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
       entitlement: null,
       plans: [],
       coversEverything: true,
-      founding: null,
       freeCourse: null,
       allowances: [] as AllowanceStatus[],
-      aiPaused: { paused: false, resetsAt: null },
+      aiPaused: await aiAllowanceStatus(userId, "pro", env),
     };
   }
   const rows = await accessRows(userId);
@@ -787,7 +794,6 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
     plans: rows.map((r) => ({ family: r.family, scope: r.scope, tier: r.tier, status: r.status, periodEnd: r.period_end ? new Date(r.period_end).toISOString() : null })),
     coversEverything: coversEverything(rows),
     freeCourse: coversEverything(rows) ? null : await freeCourseFor(userId, env),
-    founding: await foundingStatus(userId, env),
     allowances,
     aiPaused: await aiAllowanceStatus(userId, tier, env),
   };

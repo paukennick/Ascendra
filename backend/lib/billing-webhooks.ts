@@ -15,7 +15,6 @@ import {
   type PlanScope,
   type StoreProductPlan,
 } from "@/lib/billing-config";
-import { confirmSeat } from "@/lib/founding";
 
 // REQ-122: the payment providers tell us what each learner has paid for.
 //
@@ -323,8 +322,6 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
       c.scope,
     ]
   );
-  // REQ-170: the first paid event after a founding-member hold confirms it.
-  if (c.status === "active") await confirmSeat(tx, c.userId, c.source);
   return "applied";
 }
 

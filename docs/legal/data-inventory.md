@@ -29,7 +29,6 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `track_acknowledgements` | which course disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate now) | while account open | deleted (cascade) | yes |
 | `legal_acceptances` | which Terms, Privacy and study-notice (REQ-165) versions were accepted, how and when | record of consent | while account open | deleted (cascade) | yes |
 | `learner_intake`, `learner_intake_targets` (REQ-169) | study-profile answers: goal, experience, weekly study hours, what it's for (personal, work, teaching), up to five courses with exam dates | setting up the study plan; suggesting a plan and length (never a price) | while account open; editable in Settings > Study profile | deleted (cascade) | yes (`intake`, `intakeTargets`) |
-| `founding_members` (REQ-170) | whether the account holds a founding-member seat: percentage, when held and confirmed, where bought | the published founding-member discount (off by default) | while account open | deleted (cascade) | yes (`foundingMember`) |
 
 Shared, not personal: `lesson_content`, `pbq_scenarios`, catalog and taxonomy
 tables, `content_review_findings`, `schema_migrations`.

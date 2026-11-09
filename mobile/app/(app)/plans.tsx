@@ -20,9 +20,7 @@ import {
   TIER_NAME,
   defaultFamily,
   familiesFor,
-  foundingLine,
   isScope,
-  playDiscountChoice,
   type BillingPlan,
   type PlanScope,
 } from "@/lib/billing";
@@ -90,11 +88,8 @@ export default function Plans() {
               )
             : null;
           // REQ-166: on Play a verified learner buys the group's published offer.
-          // REQ-170: or the founding offer when it's larger (one discount only);
-          // the server holds the founding seat first.
-          const offer = Platform.OS === "android" ? playDiscountChoice(config, me, discounts.active) : null;
-          if (offer?.founding) await api.post("/api/billing/founding", {}).catch(() => undefined);
-          const r = await buy(config, user.id, pkg, change, offer?.offerId ?? null);
+          // REQ-166: on Play a verified learner buys the group's published offer.
+          const r = await buy(config, user.id, pkg, change, discounts.active?.playOfferId ?? null);
           if (r === "cancelled") return;
           setNote("Thanks! Your plan is being set up. It can take a minute to show here.");
           setTimeout(() => refresh(), 4000);
@@ -275,7 +270,6 @@ export default function Plans() {
               />
             </>
           ) : null}
-          {foundingLine(me) ? <Muted>{foundingLine(me)}</Muted> : null}
           {config.samePriceNote ? <Muted>{config.samePriceNote}</Muted> : null}
           {!native || store?.length ? null : (
             <Muted>Prices are shown by your app store in your own currency.</Muted>

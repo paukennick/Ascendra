@@ -1,4 +1,4 @@
-// REQ-169 (intake form) and REQ-170 (category plans, founding members),
+// REQ-169 (intake form) and REQ-170 (category plans),
 // against a real Postgres with every migration applied (060 included). The
 // model is a fake client and Stripe a fake fetch -- no key, no network.
 //
@@ -8,9 +8,9 @@
 //   2. Category plans: a plan opens its own category only; all-access is
 //      every non-clinical course; the clinical add-on needs all-access; the
 //      AI cap is the sum of the plans held; webhooks store family and scope.
-//   3. Founding members: off by default, seats limited under parallel
-//      checkouts, confirmed by the first paid event, lapsed holds released,
-//      the founding coupon at web checkout.
+//   3. Unrestricted access (REQ-144) under category pricing: every
+//      category, clinical included, no payment, no upgrade prompt, capped at
+//      all-access plus the clinical add-on.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
@@ -20,13 +20,12 @@ import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
 import { aiAllowanceStatus, featureLock, grantEntitlement, requireCourseAccess, requireFeature, tierFor, tierForCourse, UpgradeRequiredError } from "./entitlements";
-import { holdSeat, seatsTaken } from "./founding";
-import { foundingConfig } from "./billing-config";
 import { buildAccountExport } from "./account-export";
 import { GET as intakeGet, PUT as intakePut } from "../app/api/intake/route";
 import { GET as meGet } from "../app/api/billing/me/route";
 import { POST as checkoutPost } from "../app/api/billing/checkout/route";
-import { POST as foundingPost } from "../app/api/billing/founding/route";
+import { POST as grantsPost } from "../app/api/access/grants/route";
+import { GET as courseGet } from "../app/api/courses/[id]/route";
 import { POST as rcPost } from "../app/api/billing/webhooks/revenuecat/route";
 import { POST as chatPost } from "../app/api/chat/route";
 
@@ -36,11 +35,8 @@ const tracks: Record<"it" | "pm" | "nurse" | "acad" | "own", string> = { it: ran
 let owner = "";
 const ENV = [
   "BILLING_ENABLED",
-  "FOUNDING_MEMBERS_ENABLED",
-  "FOUNDING_MEMBERS_LIMIT",
-  "STRIPE_COUPON_FOUNDING",
+  "OWNER_EMAILS",
   "STRIPE_SECRET_KEY",
-  "STRIPE_PRICE_ALL_ACCESS_YEARLY",
   "STRIPE_PRICE_CLINICAL_ADDON_MONTHLY",
   "BILLING_WEB_RETURN_URL",
   "REVENUECAT_WEBHOOK_AUTH",
@@ -171,6 +167,26 @@ describe("REQ-169 the intake form", () => {
     assert.deepEqual(o.targets, []);
   });
 
+  test("weekly hours fill in only plans with no hours yet; existing plan hours are never overwritten (Nick, 2026-11-09)", async () => {
+    const u = await newUser();
+    // The learner already set 8 hours on the IT course's own plan screen.
+    await query(`insert into study_plans (user_id, track_id, exam_date, weekly_hours) values ($1, $2, null, 8)`, [u, tracks.it]);
+    await json(await call(intakePut, "/api/intake", u, "PUT", {
+      weeklyHours: 2,
+      targets: [{ trackId: tracks.it, examDate: inDays(40) }, { trackId: tracks.pm }],
+      today,
+    }));
+    const hours = async (t: string) =>
+      queryOne<{ h: string; d: string | null }>(`select weekly_hours as h, to_char(exam_date, 'YYYY-MM-DD') as d from study_plans where user_id = $1 and track_id = $2`, [u, t]);
+    const it = (await hours(tracks.it))!;
+    assert.equal(Number(it.h), 8, "existing hours kept");
+    assert.equal(it.d, inDays(40), "the exam date is still applied");
+    assert.equal(Number((await hours(tracks.pm))!.h), 1, "a new plan gets its share (2 hours over 2 courses)");
+    // Saving again with other hours changes neither plan's hours.
+    await json(await call(intakePut, "/api/intake", u, "PUT", { weeklyHours: 20, targets: [{ trackId: tracks.it }, { trackId: tracks.pm }], today }));
+    assert.deepEqual([Number((await hours(tracks.it))!.h), Number((await hours(tracks.pm))!.h)], [8, 1]);
+  });
+
   test("bad answers are a 400; another learner's private course is a 404; nothing is saved", async () => {
     const u = await newUser();
     await json(await call(intakePut, "/api/intake", u, "PUT", { goal: "fame", today }), 400);
@@ -214,7 +230,6 @@ describe("REQ-169 the intake form", () => {
     const exp = (await buildAccountExport(u, (sql, p) => query(sql, p))) as Record<string, any>;
     assert.equal(exp.intake[0].goal, "career_change");
     assert.equal(exp.intakeTargets[0].track_id, tracks.pm);
-    assert.deepEqual(exp.foundingMember, []);
     await query(`delete from app_users where id = $1`, [u]);
     assert.equal(Number((await queryOne<{ n: number }>(
       `select (select count(*) from learner_intake where user_id = $1) + (select count(*) from learner_intake_targets where user_id = $1) as n`,
@@ -312,69 +327,48 @@ describe("REQ-170 category plans", () => {
   });
 });
 
-describe("REQ-170 founding members", () => {
-  test("off by default: no seat is held and checkout offers the promotion-code box", async () => {
+describe("REQ-144 unrestricted access under category pricing", () => {
+  test("a granted, unpaid learner opens clinical, PM and IT courses with every feature and never sees an upgrade prompt", async () => {
     process.env.BILLING_ENABLED = "true";
-    const u = await newUser();
-    assert.equal(await holdSeat(u), null);
-    assert.equal((await json(await call(foundingPost, "/api/billing/founding", u, "POST", {}), 404)).error, "The founding-member offer isn't available.");
-    assert.equal((await json(await call(meGet, "/api/billing/me", u))).founding, null);
-  });
+    process.env.AI_DAILY_BUDGET_USD = "off";
+    const ownerEmail = `owner-${run}@example.test`;
+    process.env.OWNER_EMAILS = ownerEmail;
+    const ownerAcct = randomUUID();
+    users.push(ownerAcct);
+    await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [ownerAcct, ownerEmail]);
+    const u = randomUUID();
+    users.push(u);
+    const email = `granted-${run}@example.test`;
+    await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [u, email]);
+    // Granted the way the owner does it in Settings > Access.
+    await json(await call(grantsPost, "/api/access/grants", ownerAcct, "POST", { email }));
+    assert.equal((await queryOne(`select 1 from entitlements where user_id = $1`, [u])), null, "no payment, no plan row");
 
-  test("seats: never more than the limit, even in parallel; lapsed holds free a seat; the first paid event confirms", async () => {
-    process.env.BILLING_ENABLED = "true";
-    process.env.FOUNDING_MEMBERS_ENABLED = "true";
-    await query(`delete from founding_members`); // a fresh CI database; seats are counted across all learners
-    process.env.FOUNDING_MEMBERS_LIMIT = "2";
-    const us = await Promise.all([newUser(), newUser(), newUser(), newUser()]);
-    const got = await Promise.all(us.map((u) => holdSeat(u)));
-    assert.equal(got.filter((p) => p === 40).length, 2);
-    assert.equal(got.filter((p) => p === null).length, 2);
-    assert.equal(await seatsTaken(foundingConfig()), 2);
-    const [a, b] = us.filter((_, i) => got[i] === 40);
-    const late = us.find((_, i) => got[i] === null)!;
-    assert.equal((await json(await call(meGet, "/api/billing/me", late))).founding.state, "full");
-    // a pays: confirmed. b's hold lapses: the seat goes to someone else.
-    await json(await buy(a, "ascendra.pm_pro.yearly", 365));
-    assert.equal((await json(await call(meGet, "/api/billing/me", a))).founding.state, "member");
-    await query(`update founding_members set held_at = now() - interval '3 days' where user_id = $1`, [b]);
-    assert.equal(await holdSeat(late), 40);
-    assert.equal(await holdSeat(b), null, "full again");
-    // A member keeps their seat (and percentage) for later plans.
-    process.env.FOUNDING_MEMBERS_LIMIT = "1";
-    assert.equal(await holdSeat(a), 40);
-    // An event for a learner without a live hold confirms nothing.
-    await json(await buy(b, "ascendra.pm_plus.monthly"));
-    assert.equal((await queryOne<{ c: Date | null }>(`select confirmed_at as c from founding_members where user_id = $1`, [b]))!.c, null);
-    await query(`delete from founding_members where user_id = any($1::uuid[])`, [us]);
-  });
-
-  test("web checkout: the founding coupon replaces the promotion-code box, and the seat is held", async () => {
-    process.env.BILLING_ENABLED = "true";
-    process.env.FOUNDING_MEMBERS_ENABLED = "true";
-    process.env.STRIPE_COUPON_FOUNDING = "co_founding40";
-    process.env.STRIPE_SECRET_KEY = "sk_test_x";
-    process.env.STRIPE_PRICE_ALL_ACCESS_YEARLY = "price_all_y";
-    process.env.BILLING_WEB_RETURN_URL = "https://a.test";
-    const u = await newUser();
-    const sent: string[] = [];
-    const real = globalThis.fetch;
-    globalThis.fetch = (async (_url: string, init: RequestInit) => {
-      sent.push(String(init.body));
-      return new Response(JSON.stringify({ url: "https://checkout.stripe.test/s" }), { status: 200 });
-    }) as typeof fetch;
-    try {
-      await json(await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "all_access_yearly" }));
-    } finally {
-      globalThis.fetch = real;
+    for (const k of ["nurse", "pm", "it"] as const) {
+      assert.equal(await requireCourseAccess(u, tracks[k]), "pro", k);
+      for (const f of ["coach", "pbq", "labs", "readiness", "mock_exam"] as const) {
+        assert.equal(await featureLock(u, f, tracks[k]), null, `${k} ${f}`);
+        assert.equal(await requireFeature(u, f, tracks[k]), "pro");
+      }
+      const course = await json(await (courseGet as any)(new Request(`http://t/api/courses/${tracks[k]}`, { headers: auth(u) }), { params: Promise.resolve({ id: tracks[k] }) }));
+      assert.equal(course.readinessLocked, undefined, `${k}: no "part of a plan" line`);
+      const res = await call(chatPost, "/api/chat", u, "POST", { trackId: tracks[k], message: "hi" });
+      const body = await res.json();
+      assert.equal(res.status, 200, `${k} coach: ${JSON.stringify(body)}`);
+      assert.equal(body.upgrade, undefined);
     }
-    const form = new URLSearchParams(sent[0]);
-    assert.equal(form.get("discounts[0][coupon]"), "co_founding40");
-    assert.equal(form.get("allow_promotion_codes"), null);
-    assert.equal(form.get("line_items[0][price]"), "price_all_y", "the published price; the discount is a separate coupon");
-    assert.equal(form.get("subscription_data[metadata][family]"), "all_access");
-    assert.equal(form.get("subscription_data[metadata][founding]"), "1");
-    assert.ok(await queryOne(`select 1 from founding_members where user_id = $1 and confirmed_at is null`, [u]));
-    await query(`delete from founding_members where user_id = $1`, [u]);
+    assert.equal((await queryOne(`select 1 from free_course_choice where user_id = $1`, [u])), null, "opening three categories never set a free course");
+    const me = await json(await call(meGet, "/api/billing/me", u));
+    assert.equal(me.tier, "pro");
+    assert.equal(me.coversEverything, true);
+    assert.equal(me.unrestricted.level, "unrestricted");
+    assert.deepEqual(me.allowances, []);
+    assert.equal(me.freeCourse, null);
+
+    // Capped at all-access + the clinical add-on: $20.16 (40M test tokens = $20).
+    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at) values ($1,'chat','claude-haiku-5-5',0,40000000,1,true, date_trunc('month', now()))`, [u]);
+    assert.equal((await aiAllowanceStatus(u, "pro")).paused, false);
+    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at) values ($1,'chat','claude-haiku-5-5',0,1000000,1,true, date_trunc('month', now()))`, [u]);
+    assert.equal((await aiAllowanceStatus(u, "pro")).paused, true);
   });
 });

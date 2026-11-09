@@ -135,11 +135,10 @@ export const EXPORT_SECTIONS = {
   freeCourse: "select * from free_course_choice where user_id = $1 order by user_id asc",
   allowanceUses: "select kind, used_at from allowance_uses where user_id = $1 order by used_at asc, id asc",
   // REQ-169 (migration 060): the learner's answers to the intake form and
-  // the courses and exam dates they named. REQ-170: a founding-member seat.
+  // the courses and exam dates they named.
   intake: "select goal, experience, weekly_hours, use_for, skipped, created_at, updated_at from learner_intake where user_id = $1 order by user_id asc",
   intakeTargets:
     "select track_id, exam_date, position, created_at from learner_intake_targets where user_id = $1 order by position asc, track_id asc",
-  foundingMember: "select percent, held_at, confirmed_at, source from founding_members where user_id = $1 order by user_id asc",
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.

@@ -127,10 +127,9 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     // write the intake tables whatever the billing switch says; category
     // plans read entitlements.scope once billing is on.
     migration: "060_intake_and_category_plans.sql",
-    what: "learner_intake, learner_intake_targets and founding_members tables, entitlements.family and entitlements.scope",
+    what: "learner_intake and learner_intake_targets tables, entitlements.family and entitlements.scope",
     sql: `select to_regclass('public.learner_intake') is not null
              and to_regclass('public.learner_intake_targets') is not null
-             and to_regclass('public.founding_members') is not null
              and exists(select 1 from information_schema.columns
                          where table_schema = 'public' and table_name = 'entitlements' and column_name = 'scope')
              and exists(select 1 from information_schema.columns

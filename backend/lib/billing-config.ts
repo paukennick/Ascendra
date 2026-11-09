@@ -381,6 +381,21 @@ export function monthlyAiCapUsd(tier: Tier, env: Env = process.env): number | nu
   return o === undefined ? familyCapUsd(GRANT_CAP_FAMILY[tier], env) : o;
 }
 
+// REQ-144 under REQ-170 (Nick, 2026-11-09): an account the owner granted
+// unrestricted access has every category, clinical included, without
+// paying, and the highest cap a paying learner can reach: all-access plus
+// the clinical add-on ($7.35 + $12.81 = $20.16 at the proposed prices).
+// AI_MONTHLY_CAP_UNRESTRICTED_USD overrides it ("off" removes it). Owners
+// (OWNER_EMAILS) have no monthly cap, as before; the daily safety ceiling
+// (lib/ai-budget.ts) applies to both.
+export const UNRESTRICTED_CAP_FAMILIES: readonly PlanFamily[] = ["all_access", "clinical_addon"];
+
+export function unrestrictedCapUsd(env: Env = process.env): number | null {
+  const o = capOverride("AI_MONTHLY_CAP_UNRESTRICTED_USD", env);
+  if (o !== undefined) return o;
+  return learnerCapUsd(UNRESTRICTED_CAP_FAMILIES.map((f) => ({ family: f, tier: PLAN_FAMILIES[f].tier, scope: PLAN_FAMILIES[f].scope })), env);
+}
+
 // One learner's cap: the plans they hold each bring their own cap, so a
 // learner who pays for two (a category and clinical) has both. Rows of the
 // same scope (a downgrade's held period beside the new plan) count once, at
@@ -403,46 +418,6 @@ export function learnerCapUsd(rows: Array<{ family: PlanFamily | null; tier: Pai
     total += v;
   }
   return Math.round(total * 100) / 100;
-}
-
-// ---------------------------------------------------------------------------
-// Founding members (REQ-170): 40% off for the first 100 paying learners,
-// kept for as long as they stay subscribed. OFF unless
-// FOUNDING_MEMBERS_ENABLED is on (and plans are on). It is one more
-// published discount: the same percentage for every founding member, and it
-// doesn't stack with a verified discount (the larger applies). It never
-// changes the AI cap.
-// ---------------------------------------------------------------------------
-
-export interface FoundingConfig {
-  enabled: boolean;
-  percent: number;
-  limit: number;
-  // Seats held at checkout expire after this many hours unless paid.
-  holdHours: number;
-}
-
-export function foundingConfig(env: Env = process.env): FoundingConfig {
-  const raw = env.FOUNDING_MEMBERS_ENABLED?.trim().toLowerCase();
-  const on = billingEnabled(env) && raw !== undefined && !OFF.has(raw);
-  const pct = Number(env.FOUNDING_MEMBERS_PERCENT);
-  const lim = Number(env.FOUNDING_MEMBERS_LIMIT);
-  const hold = Number(env.FOUNDING_MEMBERS_HOLD_HOURS);
-  return {
-    enabled: on,
-    percent: Number.isInteger(pct) && pct >= 1 && pct <= 90 ? pct : 40,
-    limit: Number.isInteger(lim) && lim >= 1 ? lim : 100,
-    holdHours: Number.isFinite(hold) && hold > 0 && hold <= 168 ? hold : 48,
-  };
-}
-
-export function stripeFoundingCoupon(env: Env = process.env): string | null {
-  return env.STRIPE_COUPON_FOUNDING?.trim() || null;
-}
-
-export function playFoundingOffer(env: Env = process.env): string {
-  const raw = env.PLAY_OFFER_FOUNDING?.trim();
-  return raw && /^[a-z0-9][a-z0-9-]{0,62}$/.test(raw) ? raw : "founding";
 }
 
 // ---------------------------------------------------------------------------
@@ -619,7 +594,6 @@ export function publicConfig(env: Env = process.env) {
 // What the app gets with the switch on (publicConfig only serves it then;
 // operatorConfig shows it whatever the switch says).
 function fullConfig(env: Env) {
-  const founding = foundingConfig(env);
   return {
     enabled: true as const,
     tiers: TIERS.map((t) => ({ id: t, ...TIER_COPY[t], features: featuresFor(t) })),
@@ -637,9 +611,6 @@ function fullConfig(env: Env) {
     freeCourseSwitchDays: freeCourseSwitchDays(env),
     webCheckout: Boolean(env.STRIPE_SECRET_KEY),
     samePriceNote: SAME_PRICE_NOTE,
-    // Whether the founding offer exists at all; seats left are per request
-    // (GET /api/billing/me), never part of the price.
-    founding: founding.enabled ? { percent: founding.percent, playOffer: playFoundingOffer(env) } : null,
   };
 }
 
@@ -648,7 +619,6 @@ function fullConfig(env: Env) {
 // values -- a secret is reported as set or missing). For pre-launch checks.
 export function operatorConfig(env: Env = process.env) {
   const set = (k: string) => Boolean(env[k]?.trim());
-  const founding = foundingConfig({ ...env, BILLING_ENABLED: "true" });
   return {
     switchOn: billingEnabled(env),
     wouldServe: fullConfig(env),
@@ -656,13 +626,8 @@ export function operatorConfig(env: Env = process.env) {
       ...PLAN_FAMILY_IDS.map((f) => [f, familyCapUsd(f, env)]),
       ["grant_plus", monthlyAiCapUsd("plus", env)],
       ["grant_pro", monthlyAiCapUsd("pro", env)],
+      ["unrestricted", unrestrictedCapUsd(env)],
     ]),
-    founding: {
-      switchOn: (env.FOUNDING_MEMBERS_ENABLED?.trim() ?? "") !== "" && !OFF.has(env.FOUNDING_MEMBERS_ENABLED!.trim().toLowerCase()),
-      percent: founding.percent,
-      limit: founding.limit,
-      STRIPE_COUPON_FOUNDING: set("STRIPE_COUPON_FOUNDING") ? "set" : "missing",
-    },
     settings: {
       REVENUECAT_WEBHOOK_AUTH: set("REVENUECAT_WEBHOOK_AUTH") ? "set" : "missing",
       STRIPE_WEBHOOK_SECRET: set("STRIPE_WEBHOOK_SECRET") ? "set" : "missing",

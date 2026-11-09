@@ -13,7 +13,7 @@ import {
   familyCapUsd,
   familyPrice,
   FEATURES,
-  foundingConfig,
+  unrestrictedCapUsd,
   learnerCapUsd,
   netAfterFees,
   PLAN_FAMILIES,
@@ -59,7 +59,7 @@ describe("the switch", () => {
     assert.equal(c.plans.find((p) => p.id === "it_cloud_pro_yearly")!.web, false);
     assert.deepEqual(c.scopes.map((x) => x.id), ["it_cloud", "pm", "fitness", "all_access", "clinical"]);
     assert.match(c.samePriceNote, /same for everyone/);
-    assert.equal(c.founding, null, "the founding offer is off by default");
+    assert.equal("founding" in c, false, "no founding offer (Nick, 2026-11-09: removed on every platform)");
     const text = JSON.stringify(c);
     assert.ok(!text.includes("sk_test_x") && !text.includes("price_1") && !text.includes("stripePriceEnv"));
     assert.deepEqual(c.tiers.map((t) => t.id), ["free", "plus", "pro"]);
@@ -162,9 +162,9 @@ describe("the monthly AI cap", () => {
   test("no plan loses money on a learner at the cap, at any length", () => {
     for (const p of plans({})) assert.ok(netAfterFees(p.usd) / p.months - familyCapUsd(p.family, {})! > 0, p.id);
   });
-  test("discounts never lower the cap, and the largest one (40% founding) still leaves every plan above water at the cap", () => {
+  test("discounts never lower the cap, and the largest allowed one (25%, verified) still leaves every plan above water at the cap", () => {
     for (const p of plans({})) {
-      for (const pct of [20, 40]) {
+      for (const pct of [20, 25]) {
         const margin = netAfterFees(p.usd * (1 - pct / 100)) / p.months - familyCapUsd(p.family, {})!;
         assert.ok(margin > 0, `${p.id} at ${pct}% off: ${margin.toFixed(2)}`);
       }
@@ -184,6 +184,15 @@ describe("the monthly AI cap", () => {
     assert.equal(learnerCapUsd([{ family: "all_access", tier: "pro", scope: "all_access" }, { family: "clinical_addon", tier: "pro", scope: "clinical" }], {}), 20.16);
     assert.equal(learnerCapUsd([{ family: "it_cloud_pro", tier: "pro", scope: "it_cloud" }, { family: "it_cloud_plus", tier: "plus", scope: "it_cloud" }], {}), 4.8);
     assert.equal(learnerCapUsd([], {}), null);
+  });
+  test("unrestricted access (REQ-144) is capped like the most a paying learner can hold: all-access plus the clinical add-on", () => {
+    assert.equal(unrestrictedCapUsd({}), 20.16);
+    assert.equal(unrestrictedCapUsd({}), learnerCapUsd([{ family: "all_access", tier: "pro", scope: "all_access" }, { family: "clinical_addon", tier: "pro", scope: "clinical" }], {}));
+    const caps = plans({}).map((p) => familyCapUsd(p.family, {})!);
+    assert.ok(unrestrictedCapUsd({})! >= Math.max(...caps), "never below any single plan");
+    assert.equal(unrestrictedCapUsd({ AI_MONTHLY_CAP_ALL_ACCESS_USD: "10" }), 22.81, "follows the plan caps");
+    assert.equal(unrestrictedCapUsd({ AI_MONTHLY_CAP_UNRESTRICTED_USD: "30" }), 30);
+    assert.equal(unrestrictedCapUsd({ AI_MONTHLY_CAP_UNRESTRICTED_USD: "off" }), null);
   });
 });
 
@@ -228,13 +237,6 @@ describe("REQ-170 category plans", () => {
     assert.ok(planRank("pm_pro", "pro") > planRank("pm_plus", "plus"));
     assert.equal(planRank("pm_plus", "plus"), planRank("fitness_plus", "plus"));
     assert.equal(PLAN_FAMILIES.clinical_addon.requires, "all_access");
-  });
-  test("founding members: off by default, off with plans off, 40% for 100 when on", () => {
-    assert.equal(foundingConfig({}).enabled, false);
-    assert.equal(foundingConfig({ FOUNDING_MEMBERS_ENABLED: "true" }).enabled, false, "plans off");
-    const on = foundingConfig({ BILLING_ENABLED: "true", FOUNDING_MEMBERS_ENABLED: "true" });
-    assert.deepEqual([on.enabled, on.percent, on.limit, on.holdHours], [true, 40, 100, 48]);
-    assert.equal(foundingConfig({ BILLING_ENABLED: "1", FOUNDING_MEMBERS_ENABLED: "1", FOUNDING_MEMBERS_PERCENT: "95" }).percent, 40);
   });
 });
 

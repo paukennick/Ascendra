@@ -14,8 +14,6 @@ import {
   plansFor,
   scopePlanName,
   familiesFor,
-  foundingLine,
-  playDiscountChoice,
   priceText,
   resetPhrase,
   savingsPercent,
@@ -195,7 +193,7 @@ describe("REQ-124: plan changes and readiness", () => {
     assert.deepEqual(googlePlanChange(all, { tier: "pro", family: "pm_pro", playProductId: "ascendra_pm_pro:monthly" }, fams), { oldProductIdentifier: "ascendra_all_access", mode: "deferred" });
     assert.equal(googlePlanChange(all, { tier: "pro", family: "clinical_addon", playProductId: "ascendra_clinical_addon:monthly" }, fams), null, "the add-on sits beside all-access");
   });
-  test("REQ-170 names, families offered, founding line and the one Play discount", () => {
+  test("REQ-170 names and the families offered", () => {
     assert.equal(scopePlanName("pm", "plus"), "Project management Plus");
     assert.equal(scopePlanName("all_access", "pro"), "All access");
     assert.equal(scopePlanName("clinical", "pro"), "Clinical Pro");
@@ -206,19 +204,10 @@ describe("REQ-124: plan changes and readiness", () => {
         clinical_pro: { scope: "clinical" as const, tier: "pro" as const, name: "Clinical Pro", requires: null, storeGroup: "clinical" as const, rank: 1 },
         clinical_addon: { scope: "clinical" as const, tier: "pro" as const, name: "Clinical add-on", requires: "all_access" as const, storeGroup: "clinical" as const, rank: 1 },
       },
-      founding: { percent: 40, playOffer: "founding" },
     };
     assert.deepEqual(familiesFor(cfg, "clinical", null), ["clinical_pro"]);
     const withAll = { enabled: true, tier: "pro" as const, plans: [{ family: "all_access", scope: "all_access" as const, tier: "pro" as const, status: "active", periodEnd: null }] };
     assert.deepEqual(familiesFor(cfg, "clinical", withAll), ["clinical_addon"]);
-    assert.equal(foundingLine(null), null);
-    assert.match(foundingLine({ enabled: true, tier: "free", founding: { percent: 40, state: "open" } })!, /40% off .* same discount for every founding member/);
-    assert.equal(foundingLine({ enabled: true, tier: "free", founding: { percent: 40, state: "full" } }), null);
-    const open = { founding: { percent: 40, state: "open" as const } };
-    assert.deepEqual(playDiscountChoice(cfg, open, null), { offerId: "founding", founding: true });
-    assert.deepEqual(playDiscountChoice(cfg, open, { percent: 20, playOfferId: "verified-nurse" }), { offerId: "founding", founding: true });
-    assert.deepEqual(playDiscountChoice(cfg, open, { percent: 40, playOfferId: "verified-nurse" }), { offerId: "verified-nurse", founding: false }, "a tie keeps the seat free");
-    assert.deepEqual(playDiscountChoice({ founding: null }, open, null), null);
   });
   test("Free's readiness line is the server's words, with the same fallback", () => {
     assert.equal(readinessLockedLine({ message: "Readiness: unconfirmed \u2014 prove it with typed answers in Plus" }), READINESS_LOCKED_FALLBACK);

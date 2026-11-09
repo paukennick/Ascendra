@@ -145,7 +145,7 @@ the seed.
    release's data).** After a fresh `pg_dump` (step 1 again, new file name):
    `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rollback-release-2026-11-07.sql`.
    One transaction: restores levels, puts B's 025 columns and master's two
-   rollup views back, drops the release's triggers, functions, 64 tables (055's review queue, 056's two access tables, 058's two discount tables and 060's three intake and founding tables included) and
+   rollup views back, drops the release's triggers, functions, 63 tables (055's review queue, 056's two access tables, 058's two discount tables and 060's two intake tables included) and
    the columns it added to pre-release tables, and removes 027a-054 from the
    ledger. Rehearsed: afterwards the schema equals the pre-release one apart
    from three enum values Postgres cannot drop (`attempt_kind` review and
@@ -186,7 +186,7 @@ so leaving it in place is always safe for the old code):
 | 057 | education_categories row cloud-native-certifications and its three education_subcategories rows (cncf-certifications, container-tooling, red-hat-openshift) | nothing learner-owned: the taxonomy rows the containers and Kubernetes tracks hang off |
 | 058 | verified_discounts, discount_offer_codes | verified-discount results and the App Store offer-code pool (codes already handed out stay valid in the App Store; re-import the unissued ones after rolling forward) |
 | 059 | `study_notice` rows in legal_acceptances; the document check returns to 027's `terms`/`privacy` | which learners accepted the study notice (they accept it again after rolling forward) |
-| 060 | learner_intake, learner_intake_targets, founding_members; entitlements.family and entitlements.scope (dropped with entitlements) | study-profile answers and founding-member seats |
+| 060 | learner_intake, learner_intake_targets; entitlements.family and entitlements.scope (dropped with entitlements) | study-profile answers |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -281,7 +281,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 057 | REQ-164: the Cloud Native & Kubernetes category and its `cncf-certifications`, `container-tooling` and `red-hat-openshift` subcategories (upserts into education_categories and education_subcategories, same shape as 019). Apply BEFORE `npm run seed`: the containers and Kubernetes tracks resolve `container-tooling` / `cncf-certifications` / `red-hat-openshift` by slug and the seed fails without them. Nothing is backfilled | instant | no | taxonomy rows only |
 | 058 | REQ-166: `verified_discounts` (only the result of a group verification: account, group, provider, verified, expires, the provider's opaque subject id) and `discount_offer_codes` (the App Store one-time offer-code pool), RLS on. Additive; apply BEFORE the backend deploy: the account export reads both and `/api/health` probes them, even while `VERIFIED_DISCOUNTS_ENABLED` is off. 057 is the Kubernetes taxonomy migration (#66); either order applies cleanly | instant (empty tables) | no | none |
 | 059 | REQ-165: widens the `legal_acceptances` document check to add `study_notice` (named `legal_acceptances_document_059`, added NOT VALID then validated). Apply BEFORE the backend deploy: the launch flow records the notice and `/api/health` probes the constraint. Nothing is backfilled | instant | no | ACCESS EXCLUSIVE on legal_acceptances for the constraint swap only (5 s lock_timeout) |
-| 060 | REQ-169/REQ-170: `learner_intake` and `learner_intake_targets` (the study-profile answers: goal, experience, weekly hours, use; up to five courses with exam dates), `founding_members` (founding-member seats), and two nullable columns `entitlements.family` / `entitlements.scope` (which category plan a subscription is for; null = every course, as for grants), RLS on. Additive; apply BEFORE the backend deploy: the first run and Settings > Study profile write the intake tables whatever `BILLING_ENABLED` says, the account export reads all three, and `/api/health` probes them. 059 (study notice, #67) and 061/062 (reserved) are independent; any order applies cleanly | instant (empty tables; two ADD COLUMN without defaults) | no | instant ACCESS EXCLUSIVE on entitlements for the ADD COLUMNs (5 s lock_timeout; the table is empty while billing is off) |
+| 060 | REQ-169/REQ-170: `learner_intake` and `learner_intake_targets` (the study-profile answers: goal, experience, weekly hours, use; up to five courses with exam dates), and two nullable columns `entitlements.family` / `entitlements.scope` (which category plan a subscription is for; null = every course, as for grants), RLS on. Additive; apply BEFORE the backend deploy: the first run and Settings > Study profile write the intake tables whatever `BILLING_ENABLED` says, the account export reads both, and `/api/health` probes them. 059 (study notice, #67) and 061/062 (reserved) are independent; any order applies cleanly | instant (empty tables; two ADD COLUMN without defaults) | no | instant ACCESS EXCLUSIVE on entitlements for the ADD COLUMNs (5 s lock_timeout; the table is empty while billing is off) |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.

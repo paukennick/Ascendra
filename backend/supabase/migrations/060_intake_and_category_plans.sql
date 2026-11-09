@@ -11,14 +11,10 @@
 -- 3. entitlements.family / entitlements.scope: which category plan a
 --    subscription is for. A row without a scope (every grant, and anything
 --    written before this migration) covers every course, as before.
--- 4. founding_members: the first N paying learners (FOUNDING_MEMBERS_LIMIT,
---    default 100) while FOUNDING_MEMBERS_ENABLED is on. A seat is held at
---    checkout and confirmed by the first paid webhook; an unpaid hold
---    lapses after FOUNDING_MEMBERS_HOLD_HOURS (48).
 --
 -- Deleting an account deletes all of it (on delete cascade, like every other
 -- per-learner table); a deleted course drops out of the targets. Purely
--- additive: three new tables and two nullable columns. The code before this
+-- additive: two new tables and two nullable columns. The code before this
 -- migration never reads them. Independent of 058 (verified discounts) and
 -- 059 (study notice): any order applies cleanly. Safe to run twice.
 
@@ -68,29 +64,13 @@ begin
   end if;
 end $$;
 
--- 3. Founding members ---------------------------------------------------------------
-
-create table if not exists founding_members (
-    user_id uuid primary key references app_users(id) on delete cascade,
-    percent smallint not null check (percent between 1 and 90),
-    held_at timestamptz not null default now(),
-    -- set by the first paid subscription event after the hold; a confirmed
-    -- seat keeps its discount for as long as the subscription continues
-    confirmed_at timestamptz,
-    -- stripe / revenuecat: where it was taken
-    source text check (source is null or source in ('stripe', 'revenuecat'))
-);
-
-create index if not exists founding_members_confirmed_idx on founding_members (confirmed_at, held_at);
-
 -- Supabase Data API lock-out, as 026 and 052 did for every table before.
 alter table learner_intake enable row level security;
 alter table learner_intake_targets enable row level security;
-alter table founding_members enable row level security;
 do $$
 begin
   if exists (select 1 from pg_roles where rolname = 'anon')
      and exists (select 1 from pg_roles where rolname = 'authenticated') then
-    revoke all on learner_intake, learner_intake_targets, founding_members from anon, authenticated;
+    revoke all on learner_intake, learner_intake_targets from anon, authenticated;
   end if;
 end $$;
