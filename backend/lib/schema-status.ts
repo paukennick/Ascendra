@@ -77,6 +77,43 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where table_schema = 'public' and table_name = 'app_users' and column_name = 'whats_new_seen_id') as ok`,
   },
   {
+    // REQ-143: the daily content-signals cron writes it; npm run items and
+    // npm run review-queue resolve entries in it.
+    migration: "055_content_review_queue.sql",
+    what: "content_review_queue and its one-open-entry index, signal thresholds in item_quality_params (learner-signal review queue)",
+    sql: `select to_regclass('public.content_review_queue') is not null
+             and to_regclass('public.content_review_queue_one_open') is not null
+             and (select count(*) from item_quality_params where name like 'signal\\_%') = 11 as ok`,
+  },
+  {
+    // REQ-143: the daily job's date index on attempts. Production builds it
+    // with CREATE INDEX CONCURRENTLY first (runbook), and a failed concurrent
+    // build leaves an INVALID index that to_regclass still finds, so this
+    // probe asks for a valid one.
+    migration: "055_content_review_queue.sql",
+    what: "attempts_answered_created, a valid date index for the content-signals job's 194-day scan",
+    sql: `select coalesce((select i.indisvalid from pg_index i
+                          where i.indexrelid = to_regclass('public.attempts_answered_created')), false) as ok`,
+  },
+  {
+    // REQ-144: every gated route reads account_access once billing is on, and
+    // the AI budget reads it for anyone over the daily budget.
+    migration: "056_account_access.sql",
+    what: "account_access and account_access_events tables (unrestricted access, Settings > Access, the AI safety ceiling)",
+    sql: `select to_regclass('public.account_access') is not null
+             and to_regclass('public.account_access_events') is not null
+             and to_regclass('public.account_access_live_email_unique') is not null as ok`,
+  },
+  {
+    // REQ-164: the containers and Kubernetes tracks hang off these rows; the
+    // seed resolves them by slug and fails without them.
+    migration: "057_containers_kubernetes_taxonomy.sql",
+    what: "Cloud Native & Kubernetes category and its three subcategories (seed)",
+    sql: `select (select count(*) from education_subcategories s join education_categories c on c.id = s.category_id
+                  where c.slug = 'cloud-native-certifications'
+                    and s.slug in ('cncf-certifications', 'container-tooling', 'red-hat-openshift')) = 3 as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

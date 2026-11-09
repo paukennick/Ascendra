@@ -303,6 +303,120 @@ Leave out `--until` for no end. A grant and a paid plan can coexist; the
 learner gets the higher one. Grants show in the app as "Pro, given to you
 until ...", with no "Manage subscription".
 
+## Unrestricted access (REQ-144)
+
+Separate from plans and grants: an account level that lifts the plan
+limits whatever the tier and **whether or not `BILLING_ENABLED` is on**.
+
+- **Owner**: an account whose **verified** email is in `OWNER_EMAILS`
+  (comma-separated, any case). A server setting, not a row, so the app can
+  never remove an owner and no SQL is needed. An unverified account with an
+  owner's address is an ordinary learner (anyone can type an address into
+  sign-up). Owner implies unrestricted.
+- **Unrestricted**: a grant in `account_access` (migration 056) given by an
+  owner, by email, with an optional end date and note.
+
+### What it lifts, and what it doesn't
+
+| Lifted for owner and unrestricted | Never lifted |
+|---|---|
+| Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course, every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
+| Plan allowances (no `allowance_uses` row is written) and the per-tier monthly AI cap | Course disclaimers and acknowledgements, the lab disclaimer |
+| The $0.50 daily AI budget, **raised** to the safety ceiling below | Access checks: another learner's private courses and data stay invisible (unrestricted is not admin) |
+| Early access to features behind a switch that is off for everyone else | |
+
+How: `tierFor` answers Pro for them (Pro has every feature; a unit test
+fails if a feature is ever added above Pro), `consumeAllowance`,
+`allowanceStatus` and the monthly cap return "no limit" for them
+(`lib/entitlements.ts`), and `requireAiBudget` uses the ceiling
+(`lib/ai-budget.ts`). With the switch off nothing reads the access tables
+for plan gates (everyone already has everything); the AI budget looks the
+level up only once a learner is over the everyday budget.
+
+### The AI safety ceiling
+
+Unrestricted is not unlimited spend. Over the same rolling 24 hours as the
+daily budget, an unrestricted account may use up to
+`AI_UNRESTRICTED_DAILY_CEILING_USD` (default **$20**: 40 times the learner
+budget and far beyond a heavy study day of about $0.15, but a hard stop on a
+runaway loop, a leaked session or a broken client). At the ceiling the
+coach and lesson regenerate pause with their own message, grading keeps
+working, the server logs `[ai-ceiling]`, records a `ceiling_reached` row in
+`account_access_events`, and emails every owner (at most once per account
+per 24 hours). The ceiling can be changed but not switched off ("off" or 0
+fall back to $20), and it applies even if `AI_DAILY_BUDGET_USD` is off.
+
+### Early access
+
+`featureEnabledFor(userId, flag)` (`lib/account-access.ts`) is true when the
+switch is on for everyone, and otherwise only for owner and unrestricted
+accounts. The switches are listed in `EARLY_ACCESS`
+(`lib/account-access-config.ts`). Today: `LABS_SERVE_UNREVIEWED` -- set off,
+unreviewed labs are still served to owner and unrestricted accounts (with
+the same disclaimer and acknowledgement). For a new switch such as
+`SIMS_ENABLED` (docs/sims.md on feature/sim-engine-design): add
+`sims: { env: "SIMS_ENABLED", defaultOn: false }` to `EARLY_ACCESS` and read
+it on the server with `featureEnabledFor(user.id, "sims")` instead of
+reading the env. A switch meant as an emergency stop for everyone should
+not be listed there.
+
+### Giving and removing it
+
+**In the app** (owners only): Settings > Access. Give access by email with
+an optional end date and note; remove it with "Remove access". If no
+verified account has that address yet, the grant waits and applies once
+that address signs up and verifies; it is then bound to that account for
+good (a later email change doesn't move it). Granting the same address
+again renews its grant. Owners are listed but can't be removed. Unrestricted
+accounts don't see the section and the server refuses them (403). Each
+change is rate-limited (30 an hour) and emailed to the owner who made it,
+so one made from a stolen session is noticed.
+
+The recipient sees it as their plan: "Unrestricted access, granted by Nick"
+in Settings and on the plans screen, with no upgrade prompts.
+
+API (owner only, 403 otherwise): `GET /api/access/grants` (owners, grants,
+the last 50 audit entries), `POST /api/access/grants { email, until?:
+"YYYY-MM-DD", note? }`, `DELETE /api/access/grants/:id`. `GET /api/auth/me`
+carries `access: { level, grantedBy, expiresAt } | null`.
+
+**From the command line** (emergencies; uses `DATABASE_URL`):
+
+```sh
+cd backend
+npm run access:grant -- --email friend@example.com --until 2027-06-30 --note "beta tester"
+npm run access:grant -- --email friend@example.com --revoke
+npm run access:grant -- --list
+```
+
+**Audit trail**: `account_access_events` records every grant, change,
+revoke, claim (a waiting grant applied to a new account) and safety-ceiling
+hit, with who did it (an owner's account, or `cli`). The affected learner's
+account export includes their grants (`accessGrants`) and this trail
+(`accessEvents`), naming the giver by display name, never by email.
+Deleting the learner's account deletes both.
+
+### Deploying it
+
+1. Vercel -> the backend project -> Settings -> Environment Variables: add
+   `OWNER_EMAILS=paukennick2@gmail.com` for **Production and Preview**.
+   Optional: `AI_UNRESTRICTED_DAILY_CEILING_USD` (default 20).
+2. Apply migration 056 with the routine deploy: push the release commit to
+   `ops/migrate-production` (docs/deploy-runbook-integration.md, "Routine
+   deploys") and wait for "Schema is current". Additive; the code before
+   this release never reads it. If 055 (content currency, PR #44) merges
+   first, the same run applies only 056; either order works.
+3. Merge. Vercel redeploys (which also picks up the new variable);
+   `/api/health` must answer `"schema":"current"`.
+4. Check: signed in as paukennick2@gmail.com, `GET /api/auth/me` shows
+   `"access": {"level": "owner", ...}`. The owner's email must be verified
+   (a Google sign-in is).
+
+Server-side access works at once for every installed app version (the
+gates are on the server). The Settings > Access screen and the "Unrestricted
+access" plan line need the new app: on the web on the next deploy, on
+phones with the next app update. Until then Nick can grant with the CLI.
+
 ## Turning it on
 
 1. Apply migration 049 (`npm run migrate -- --all`; see

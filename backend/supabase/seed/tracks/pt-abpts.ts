@@ -339,7 +339,6 @@ const ABPTS_PROVIDER = {
   credentialType: "specialist_certification",
 } as const;
 
-const VERIFIED_AT = "2026-10-08T00:00:00Z";
 const PT_DISCLAIMER_KEY = "pt-clinical-content";
 
 const EXAM_FORMAT =
@@ -350,12 +349,24 @@ const DURATION = 360;
 const BASE_ELIGIBILITY =
   "Current, unrestricted US physical therapist licence, plus either 2,000 hours of direct patient care in the specialty within the last 10 years (at least 500 within the last 3) or an ABPTRFE-accredited residency in the specialty completed within the last 10 years.";
 
+// REQ-142: the outline's version is the edition of the Description of
+// Specialty Practice it is built from. ABPTS states the edition only on some
+// specialties' DSP pages (specialization.apta.org/become-a-specialist/<x>/dsp,
+// "Practice Analysis Summary"); the others, and the APTA Store listings, name
+// the DSP without a year. Read 2026-11-08; outline percentages re-checked
+// against the units for OCS, NCS and GCS the same day.
+const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
+const DSP_EDITION_UNPUBLISHED =
+  "ABPTS's exam outline, DSP and APTA Store pages name the Description of Specialty Practice without an edition year (read 2026-11-08), and the DSP itself is sold, not public.";
+
 function abptsCredential(params: {
   slug: string;
   name: string;
   url: string;
   outlineUrl: string;
   extraEligibility?: string;
+  // The DSP edition, when ABPTS states it; otherwise the reason it can't be recorded.
+  dspEdition?: string;
 }) {
   return {
     ...ABPTS_PROVIDER,
@@ -365,7 +376,8 @@ function abptsCredential(params: {
     basis: "vendor_exam_unpublished_code" as const,
     status: "active" as const,
     officialObjectivesUrl: params.outlineUrl,
-    lastVendorVerifiedAt: VERIFIED_AT,
+    ...(params.dspEdition ? { objectivesRevision: params.dspEdition } : { versionNote: DSP_EDITION_UNPUBLISHED }),
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience: params.extraEligibility
       ? `${BASE_ELIGIBILITY} ${params.extraEligibility}`
       : BASE_ELIGIBILITY,
@@ -379,7 +391,7 @@ const COMMON = {
   trackType: "certification" as const,
   subcategorySlug: "physical-therapy",
   freshnessModel: "certification_aligned" as const,
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   requiresAcknowledgement: true,
   disclaimerKey: PT_DISCLAIMER_KEY,
   disclaimerVersion: 1,
@@ -405,6 +417,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
     slug: "orthopaedic-clinical-specialist",
     name: "Board-Certified Clinical Specialist in Orthopaedic Physical Therapy (OCS)",
     url: "https://specialization.apta.org/become-a-specialist/orthopaedics",
+    dspEdition: "2026 Description of Specialty Practice (2022-2025 revalidation)",
     outlineUrl:
       "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
     extraEligibility:
@@ -524,6 +537,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
     slug: "geriatric-clinical-specialist",
     name: "Board-Certified Clinical Specialist in Geriatric Physical Therapy",
     url: "https://specialization.apta.org/become-a-specialist/geriatrics",
+    dspEdition: "2020 Description of Specialty Practice (2017-2020 revalidation)",
     outlineUrl:
       "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
   }),
@@ -642,6 +656,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
     slug: "neurologic-clinical-specialist",
     name: "Board-Certified Clinical Specialist in Neurologic Physical Therapy",
     url: "https://specialization.apta.org/become-a-specialist/neurology",
+    dspEdition: "2026 Description of Specialty Practice (2023-2026 revalidation)",
     outlineUrl:
       "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
   }),
