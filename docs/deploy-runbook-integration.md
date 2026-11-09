@@ -182,7 +182,7 @@ so leaving it in place is always safe for the old code):
 | 052 | legal_acceptances.source; B's *_choice_feedback columns come back, filled from option reasons | how each acceptance was given |
 | 054 | app_users.whats_new_seen_id | which "What's new" note each learner dismissed |
 | 055 | content_review_queue, eleven `signal_*` rows in item_quality_params, index attempts_answered_created | the learner-signal review queue and its history |
-| 056 | education_categories row cloud-native-certifications and its two education_subcategories rows (cncf-certifications, container-tooling) | nothing learner-owned: the taxonomy rows the containers and Kubernetes tracks hang off |
+| 056 | education_categories row cloud-native-certifications and its three education_subcategories rows (cncf-certifications, container-tooling, red-hat-openshift) | nothing learner-owned: the taxonomy rows the containers and Kubernetes tracks hang off |
 
 Every command runs from `backend/` with `DATABASE_URL` pointing at the
 production database over the Session pooler (port 5432), not the
@@ -273,7 +273,7 @@ including `psql` start-up (about 50-80 ms of each figure).
 | 053 | REQ-096 (#12, was 028 on its branch): attempt format `lab` for the Try it self-report | instant | no | enum value |
 | 054 | REQ-140: `app_users.whats_new_seen_id` (nullable, no default, no rewrite) -- the newest "What's new" note each learner dismissed. Apply BEFORE the backend deploy: sign-up writes it. Existing accounts start NULL and see the newest note once | instant | no | instant ACCESS EXCLUSIVE on app_users (5 s lock_timeout) |
 | 055 | REQ-143: `content_review_queue` (new table, RLS on) with a one-open-entry-per-item-and-signal unique index, and the detection thresholds as `signal_*` rows in `item_quality_params`. Apply BEFORE the backend deploy: the daily `/api/cron/content-signals` writes it and `/api/health` probes it. Nothing is backfilled. Also `attempts_answered_created`, the job's partial date index on attempts: **build it CONCURRENTLY first** ([operations-runbook.md](operations-runbook.md), "055 attempts index"); then the migration only records it | instant after the concurrent build (2.7 s build on a 3M-attempt fixture) | no, after the concurrent build | a plain build blocks attempt inserts while it runs |
-| 056 | REQ-164: the Cloud Native & Kubernetes category and its `cncf-certifications` and `container-tooling` subcategories (upserts into education_categories and education_subcategories, same shape as 019). Apply BEFORE `npm run seed`: the containers and Kubernetes tracks resolve `container-tooling` / `cncf-certifications` by slug and the seed fails without them. Nothing is backfilled | instant | no | taxonomy rows only |
+| 056 | REQ-164: the Cloud Native & Kubernetes category and its `cncf-certifications`, `container-tooling` and `red-hat-openshift` subcategories (upserts into education_categories and education_subcategories, same shape as 019). Apply BEFORE `npm run seed`: the containers and Kubernetes tracks resolve `container-tooling` / `cncf-certifications` / `red-hat-openshift` by slug and the seed fails without them. Nothing is backfilled | instant | no | taxonomy rows only |
 
 All of 029 through 041b on the fixture: about 8.5 minutes, nearly all of it
 029b, 031b and 041b; 042 to 045b add about 6.3 minutes.

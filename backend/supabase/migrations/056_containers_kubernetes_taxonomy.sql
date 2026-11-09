@@ -8,11 +8,12 @@
 -- AWS/Azure/GCP (its exams are vendor-neutral and hands-on), so it does not
 -- belong inside any one cloud's category.
 --
--- Two subcategories from the start: the exam-aligned CNCF certifications,
--- and container tooling (Docker, Compose, registries) that follows the
+-- Three subcategories from the start: the exam-aligned CNCF certifications;
+-- container tooling (Docker, Compose, registries) that follows the
 -- technology rather than an exam blueprint -- the same split the
 -- Development category makes between certification-aligned and
--- technology-aligned content.
+-- technology-aligned content; and Red Hat's Podman and OpenShift exams
+-- (EX188, EX280), which are vendor exams on a Kubernetes distribution.
 
 insert into education_categories (slug, name, description, default_freshness_model, sort_order) values
 ('cloud-native-certifications','Cloud Native & Kubernetes','Kubernetes and cloud native certification exam preparation from the Linux Foundation and CNCF, plus container tooling.','certification_aligned',20)
@@ -23,7 +24,8 @@ on conflict (slug) do update set
 
 with seed(category_slug, slug, name, freshness_model, sort_order) as (values
 ('cloud-native-certifications','cncf-certifications','Linux Foundation & CNCF Certifications','certification_aligned',1),
-('cloud-native-certifications','container-tooling','Containers & Docker','technology_aligned',2)
+('cloud-native-certifications','container-tooling','Containers & Docker','technology_aligned',2),
+('cloud-native-certifications','red-hat-openshift','Red Hat Containers & OpenShift','certification_aligned',3)
 )
 insert into education_subcategories(category_id, slug, name, freshness_model, sort_order)
 select c.id, s.slug, s.name, s.freshness_model::content_freshness_model, s.sort_order

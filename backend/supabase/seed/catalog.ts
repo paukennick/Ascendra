@@ -29,6 +29,7 @@ import { MS_HEALTH_INFORMATICS_TRACK } from "./tracks/informatics";
 import { KUBERNETES_TRACKS } from "./tracks/kubernetes";
 import { DOCKER_TRACKS } from "./tracks/docker";
 import { CNCF_ECOSYSTEM_TRACKS } from "./tracks/cncf-ecosystem";
+import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -60,6 +61,7 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...KUBERNETES_TRACKS,
   ...DOCKER_TRACKS,
   ...CNCF_ECOSYSTEM_TRACKS,
+  ...REDHAT_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

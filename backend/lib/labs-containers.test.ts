@@ -14,10 +14,11 @@ import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
 import { KUBERNETES_TRACKS } from "../supabase/seed/tracks/kubernetes";
 import { DOCKER_TRACKS } from "../supabase/seed/tracks/docker";
 import { CNCF_ECOSYSTEM_TRACKS } from "../supabase/seed/tracks/cncf-ecosystem";
+import { REDHAT_TRACKS } from "../supabase/seed/tracks/redhat-openshift";
 import { unitPlan, type PlanTrack } from "../scripts/generate-labs-lib";
 
 // Hands-on exams: every lab works at the kubectl prompt.
-const HANDS_ON = ["CKA", "CKAD", "CKS", "DCA"] as const;
+const HANDS_ON = ["CKA", "CKAD", "CKS", "DCA", "EX188", "EX280"] as const;
 // Multiple-choice exams: labs apply the concepts (read output, choose, design).
 const CONCEPTUAL = ["KCNA", "KCSA"] as const;
 // CNCF project exams: labs write that project's configuration and queries.
@@ -170,6 +171,9 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       if (code === "DCA") {
         assert.ok(set!.sources.some((s) => s.url.includes("docker-study-guide_v1-5")), `${code} cites the v1.5 study guide`);
         assert.ok(set!.sources.some((s) => s.url.includes("store.mirantis.com")), `${code} cites Mirantis's listing`);
+      } else if (code === "EX188" || code === "EX280") {
+        assert.ok(set!.sources.some((s) => s.url.startsWith("https://www.redhat.com/en/services/training/")), `${code} cites the Red Hat exam page`);
+        assert.ok(set!.sources.length >= 3, `${code} cites product documentation`);
       } else if (code in TOOLING) {
         assert.ok(set!.sources.some((s) => s.url.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
         assert.ok(set!.sources.some((s) => s.url.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
@@ -275,6 +279,40 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     }
   });
 
+  test("Red Hat EX188 and EX280: current names, durations and objective groups from redhat.com (2026-11-09)", () => {
+    for (const t of REDHAT_TRACKS) {
+      assert.ok(tracks.has(t.code), `${t.code} in CATALOG_TRACKS`);
+      assert.equal(t.subcategorySlug, "red-hat-openshift", t.code);
+      assert.equal(t.credential?.providerSlug, "red-hat", t.code);
+      assert.ok(t.credential?.officialObjectivesUrl.startsWith("https://www.redhat.com/en/services/training/"), `${t.code} cites redhat.com`);
+      assert.equal(activeUnits(t).reduce((a, u) => a + (u.weight ?? 0), 0), 100, `${t.code} weights`);
+      // Red Hat publishes no weights or pass mark: the course must say so rather than invent them.
+      assert.match(t.credential?.passingScorePolicy ?? "", /does not publish a pass mark or per-domain weights/, t.code);
+      assert.match(t.credential?.questionFormat ?? "", /performance-based/, t.code);
+    }
+    const ex188 = tracks.get("EX188")!;
+    assert.equal(ex188.credential?.credentialName, "Red Hat Certified Developer in Cloud-native Applications");
+    assert.equal(ex188.credential?.durationMinutes, 150);
+    assert.deepEqual(
+      activeUnits(ex188).map((u) => u.title),
+      ["Implement images using Podman and Containerfile", "Manage images", "Run containers locally using Podman", "Run multi-container applications with Podman", "Troubleshoot containerized applications"]
+    );
+    const ex280 = tracks.get("EX280")!;
+    assert.equal(ex280.credential?.credentialName, "Red Hat Certified System Administrator in OpenShift");
+    assert.equal(ex280.credential?.durationMinutes, 180);
+    assert.deepEqual(
+      activeUnits(ex280).map((u) => u.title),
+      ["Manage OpenShift Container Platform", "Declarative Resource Management", "Deploy applications", "Manage authentication and authorization", "Configure network security", "Enable developer self-service", "Manage OpenShift operators", "Configure application security"]
+    );
+    // Hands-on with the vendor's own tools.
+    for (const lab of setFor("EX188").labs) {
+      assert.match(lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n"), /podman |FROM |HEALTHCHECK|ENTRYPOINT/, `EX188/${lab.slug} uses Podman`);
+    }
+    for (const lab of setFor("EX280").labs) {
+      assert.match(lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n"), /\boc |apiVersion:|helm /, `EX280/${lab.slug} uses oc or manifests`);
+    }
+  });
+
   test("DCA is Mirantis's current blueprint (Study Guide v1.5, January 2025), still on sale when checked", () => {
     const dca = DOCKER_TRACKS.find((t) => t.code === "DCA")!;
     assert.ok(tracks.has("DCA"));
@@ -328,10 +366,10 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const labs = setFor(code).labs;
       for (const lab of labs) {
         const answers = lab.steps.flatMap((s) => s.parts.map((p) => p.modelAnswer)).join("\n");
-        assert.match(answers, /kubectl|helm |cosign |trivy |docker |apiVersion:|^\s*(FROM|spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
+        assert.match(answers, /kubectl|\boc |podman |helm |cosign |trivy |docker |apiVersion:|^\s*(FROM|spec|metadata|affinity|tolerations|resources|volumes|containers|rules|egress|ingress|startupProbe|livenessProbe|readinessProbe|securityContext|env|initContainers):/m, `${code}/${lab.slug}: the reference answers are hands-on`);
         if (lab.kind === "case") {
           const shown = lab.steps.map((s) => s.text).join("\n");
-          assert.match(shown, /\$ kubectl|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\$ docker|\$ df |\/ # /, `${code}/${lab.slug}: the case shows authored command output`);
+          assert.match(shown, /\$ kubectl|\$ oc |\$ podman|\$ sudo|\$ systemctl|\$ etcdctl|\$ crictl|\$ docker|\$ df |\/ # /, `${code}/${lab.slug}: the case shows authored command output`);
         }
       }
       // Admin and developer families lean to build labs with real cases
