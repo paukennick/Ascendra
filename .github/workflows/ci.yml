@@ -228,6 +228,124 @@ jobs:
       - run: npx -y expo-doctor@1.21.6 || true
         working-directory: mobile
 
+  # REQ-141 (docs/sims.md 16, 17 step 2; docs/sims-hermes-spike.md): the sim
+  # engine must give byte-identical results on every JS engine the app runs
+  # on. Hermes (the app's engine on phones) ships no runnable VM for Linux,
+  # only the hermesc compiler, so this builds the VM from the exact tag
+  # react-native pins (sdks/.hermesv1version) and caches it by that tag. The
+  # fixture runs twice: as source, and as bytecode from the app's own hermesc
+  # with -O (what a release build ships). Both must match Node byte for byte.
+  # Phase 1a step 3 swaps the fixture for the v1 corpus.
+  sim-hermes:
+    name: Sim cross-runtime (Hermes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            mobile/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm ci
+        working-directory: mobile
+      - name: Hermes version the app ships
+        id: hermes
+        run: |
+          tag="$(cat mobile/node_modules/react-native/sdks/.hermesv1version)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # The VM links the runner's ICU and readline, so a new runner image
+          # rebuilds it rather than reusing a binary built against old libraries.
+          echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
+          echo "react-native $(node -p "require('./mobile/node_modules/react-native/package.json').version"), Hermes $tag"
+          mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -version | grep -i 'release version'
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: ~/hermes-vm
+          key: hermes-vm-${{ steps.hermes.outputs.tag }}-${{ steps.hermes.outputs.os }}-x64-release-1
+      - name: Build the Hermes VM from source (cache miss only)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ninja-build libicu-dev libreadline-dev
+          git clone --depth 1 --branch "${{ steps.hermes.outputs.tag }}" https://github.com/facebook/hermes "$RUNNER_TEMP/hermes"
+          cmake -S "$RUNNER_TEMP/hermes" -B "$RUNNER_TEMP/hermes-build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DHERMES_ENABLE_TEST_SUITE=OFF
+          cmake --build "$RUNNER_TEMP/hermes-build" --target hermes -j "$(nproc)"
+          mkdir -p ~/hermes-vm
+          cp "$RUNNER_TEMP/hermes-build/bin/hermes" ~/hermes-vm/
+          git -C "$RUNNER_TEMP/hermes" rev-parse HEAD > ~/hermes-vm/source-commit
+      - name: VM identity
+        run: |
+          echo "built from facebook/hermes $(cat ~/hermes-vm/source-commit)"
+          ~/hermes-vm/hermes -version | grep -i -E 'release version|bytecode'
+      - name: Fixture as source under Hermes = Node, byte for byte
+        working-directory: backend
+        run: |
+          npm run -s sim:cross-runtime -- hermes-script fixture "$RUNNER_TEMP/fixture.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/fixture.js" > "$RUNNER_TEMP/hermes-source.txt"
+          cmp "$RUNNER_TEMP/hermes-source.txt" lib/sim/cross-runtime/fixture.expected.txt \
+            || { diff "$RUNNER_TEMP/hermes-source.txt" lib/sim/cross-runtime/fixture.expected.txt; exit 1; }
+      - name: Fixture as the app's -O bytecode under Hermes = Node, byte for byte
+        working-directory: backend
+        run: |
+          ../mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -emit-binary -O \
+            -out "$RUNNER_TEMP/fixture.hbc" "$RUNNER_TEMP/fixture.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/fixture.hbc" > "$RUNNER_TEMP/hermes-hbc.txt"
+          cmp "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt \
+            || { diff "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt; exit 1; }
+          echo "Hermes source and -O bytecode both match Node"
+      # Informational: native Math.exp/sin/pow/... are implementation-defined,
+      # which is why the engine computes its own (docs/sims.md 5.5). The
+      # count is evidence for that rule, not a failure.
+      - name: Native Math differences (report only)
+        working-directory: backend
+        run: |
+          npm run -s sim:cross-runtime -- hermes-script native "$RUNNER_TEMP/native.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/native.js" > "$RUNNER_TEMP/hermes-native.txt"
+          npm run -s sim:cross-runtime -- print-native > "$RUNNER_TEMP/node-native.txt"
+          diff "$RUNNER_TEMP/node-native.txt" "$RUNNER_TEMP/hermes-native.txt" > "$RUNNER_TEMP/native.diff" || true
+          if [ -s "$RUNNER_TEMP/native.diff" ]; then
+            echo "native Math functions where Hermes and Node disagree on the grid:"
+            grep '^>' "$RUNNER_TEMP/native.diff" | cut -d: -f1
+          else
+            echo "no native Math differences on the grid"
+          fi
+
+  # REQ-141 (docs/sims.md 16): the same fixture on V8, SpiderMonkey and
+  # JavaScriptCore (Playwright's Chromium, Firefox and WebKit), which covers
+  # Expo web. Playwright is pinned here and installed outside both
+  # package.json files; it is a CI tool, not an app dependency.
+  sim-browsers:
+    name: Sim cross-runtime (Chromium, Firefox, WebKit)
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_VERSION: 1.64.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Install Playwright and its browsers
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION"
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Fixture in each browser = Node, byte for byte
+        working-directory: backend
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright
+        run: npm run -s sim:cross-runtime -- browsers
+
   omni-workspace:
     name: OmniEngineering workspace freshness
     runs-on: ubuntu-latest

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Virtual Desktop Specialty (AZ-140).
 //
@@ -20,28 +21,28 @@ export const AZ140_LABS: SeedLabSet = {
   trackCode: "AZ140",
   sources: [
     // Exam outline (checked 2026-11-07)
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140", "exam_outline", "2026-11-07"),
     // Host pool load balancing
-    "https://learn.microsoft.com/azure/virtual-desktop/host-pool-load-balancing",
+    source("https://learn.microsoft.com/azure/virtual-desktop/host-pool-load-balancing", "reference", "2026-11-07"),
     // FSLogix storage options, share and NTFS permissions
-    "https://learn.microsoft.com/he-il/azure/virtual-desktop/store-fslogix-profile",
-    "https://learn.microsoft.com/en-us/fslogix/fslogix-storage-config-ht",
+    source("https://learn.microsoft.com/he-il/azure/virtual-desktop/store-fslogix-profile", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/fslogix/fslogix-storage-config-ht", "reference", "2026-11-07"),
     // RDP Shortpath and RDP Multipath
-    "https://learn.microsoft.com/azure/virtual-desktop/rdp-shortpath",
-    "https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-multipath",
+    source("https://learn.microsoft.com/azure/virtual-desktop/rdp-shortpath", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-multipath", "reference", "2026-11-07"),
     // Microsoft Entra joined session hosts
-    "https://learn.microsoft.com/en-us/azure/virtual-desktop/deploy-azure-ad-joined-vm",
+    source("https://learn.microsoft.com/en-us/azure/virtual-desktop/deploy-azure-ad-joined-vm", "reference", "2026-11-07"),
     // Conditional Access for AVD
-    "https://learn.microsoft.com/en-us/azure/virtual-desktop/set-up-mfa",
+    source("https://learn.microsoft.com/en-us/azure/virtual-desktop/set-up-mfa", "reference", "2026-11-07"),
     // FSLogix configuration reference
-    "https://learn.microsoft.com/en-us/fslogix/reference-configuration-settings",
+    source("https://learn.microsoft.com/en-us/fslogix/reference-configuration-settings", "reference", "2026-11-07"),
     // App attach
-    "https://learn.microsoft.com/azure/virtual-desktop/app-attach-overview",
+    source("https://learn.microsoft.com/azure/virtual-desktop/app-attach-overview", "reference", "2026-11-07"),
     // Autoscale scaling plans
-    "https://learn.microsoft.com/he-il/azure/virtual-desktop/autoscale-scaling-plan",
-    "https://learn.microsoft.com/en-au/azure/virtual-desktop/autoscale-scenarios",
+    source("https://learn.microsoft.com/he-il/azure/virtual-desktop/autoscale-scaling-plan", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-au/azure/virtual-desktop/autoscale-scenarios", "reference", "2026-11-07"),
     // Multiregion BCDR
-    "https://learn.microsoft.com/en-us/azure/architecture/example-scenario/azure-virtual-desktop/azure-virtual-desktop-multi-region-bcdr",
+    source("https://learn.microsoft.com/en-us/azure/architecture/example-scenario/azure-virtual-desktop/azure-virtual-desktop-multi-region-bcdr", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

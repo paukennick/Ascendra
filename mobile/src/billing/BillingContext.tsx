@@ -27,6 +27,7 @@ import {
   type BillingSignal,
 } from "@/lib/billing";
 import { signOutPurchases } from "./purchases";
+import { hasUnrestricted } from "@/lib/access";
 
 interface BillingState {
   config: BillingConfig;
@@ -86,7 +87,8 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(() => ({ config, me, refresh }), [config, me, refresh]);
   const copy = signal ? signalCopy(signal) : null;
-  const canUpgrade = me?.tier !== "pro";
+  // REQ-144: unrestricted accounts are never offered a plan.
+  const canUpgrade = me?.tier !== "pro" && !hasUnrestricted(user);
 
   return (
     <BillingCtx.Provider value={value}>

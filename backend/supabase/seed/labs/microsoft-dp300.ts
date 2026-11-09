@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Database Administrator Associate (DP-300).
 //
@@ -22,27 +23,27 @@ export const DP300_LABS: SeedLabSet = {
   trackCode: "DP300",
   sources: [
     // Exam outline (checked 2026-11-07)
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300", "exam_outline", "2026-11-07"),
     // Tier comparison: General Purpose / Business Critical 4 TB, Hyperscale 128 TB
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale?view=azuresql", "reference", "2026-11-07"),
     // SQL Database vs SQL Server: SQL Agent, cross-database names, instance features
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/transact-sql-tsql-differences-sql-server?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/transact-sql-tsql-differences-sql-server?view=azuresql", "reference", "2026-11-07"),
     // Microsoft Entra authentication and contained users
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview?view=azuresql",
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/logins-create-manage?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview?view=azuresql", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/logins-create-manage?view=azuresql", "reference", "2026-11-07"),
     // Row-level security
-    "https://learn.microsoft.com/en-us/sql/relational-databases/security/row-level-security",
+    source("https://learn.microsoft.com/en-us/sql/relational-databases/security/row-level-security", "reference", "2026-11-07"),
     // Dynamic data masking
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/dynamic-data-masking-overview?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/dynamic-data-masking-overview?view=azuresql", "reference", "2026-11-07"),
     // Elastic jobs
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/elastic-jobs-overview?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/elastic-jobs-overview?view=azuresql", "reference", "2026-11-07"),
     // Business continuity: RPO/RTO table, backup cadence, PITR, failover groups, LTR
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/business-continuity-high-availability-disaster-recover-hadr-overview?view=azuresql",
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/failover-group-sql-db?view=azuresql",
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/long-term-retention-overview?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/business-continuity-high-availability-disaster-recover-hadr-overview?view=azuresql", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/failover-group-sql-db?view=azuresql", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/long-term-retention-overview?view=azuresql", "reference", "2026-11-07"),
     // Backup to URL with a shared access signature credential, STOPAT restore
-    "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-credential-transact-sql?view=sql-server-ver17",
-    "https://learn.microsoft.com/en-us/sql/relational-databases/tutorial-use-azure-blob-storage-service-with-sql-server?view=sql-server-ver17",
+    source("https://learn.microsoft.com/en-us/sql/t-sql/statements/create-credential-transact-sql?view=sql-server-ver17", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/sql/relational-databases/tutorial-use-azure-blob-storage-service-with-sql-server?view=sql-server-ver17", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

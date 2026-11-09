@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-123 pilot: PMP (PMI Examination Content Outline, July 2026).
 //
@@ -15,7 +16,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const PMP_LABS: SeedLabSet = {
   trackCode: "PMP",
-  sources: ["https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf"],
+  sources: [source("https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf", "exam_outline", "2026-11-07")],
   labs: [
     {
       slug: "team-conflict-case",

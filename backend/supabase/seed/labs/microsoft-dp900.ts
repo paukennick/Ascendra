@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Data Fundamentals (DP-900).
 //
@@ -22,17 +23,17 @@ export const DP900_LABS: SeedLabSet = {
   trackCode: "DP900",
   sources: [
     // Exam outline (checked 2026-11-07)
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900", "exam_outline", "2026-11-07"),
     // Azure Storage services, Data Lake Storage, Table storage
-    "https://learn.microsoft.com/en-us/azure/storage/",
-    "https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction",
-    "https://learn.microsoft.com/en-us/azure/storage/tables/",
+    source("https://learn.microsoft.com/en-us/azure/storage/", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/tables/", "reference", "2026-11-07"),
     // Azure SQL Database tiers (Hyperscale page compares the tiers)
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale?view=azuresql",
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale?view=azuresql", "reference", "2026-11-07"),
     // Azure Cosmos DB APIs
-    "https://learn.microsoft.com/en-us/azure/cosmos-db/",
+    source("https://learn.microsoft.com/en-us/azure/cosmos-db/", "reference", "2026-11-07"),
     // Power BI visualization guidance
-    "https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualizations-overview",
+    source("https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualizations-overview", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

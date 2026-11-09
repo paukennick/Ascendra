@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure for SAP Workloads Specialty (AZ-120).
 //
@@ -22,28 +23,28 @@ export const AZ120_LABS: SeedLabSet = {
   trackCode: "AZ120",
   sources: [
     // Exam outline (checked 2026-11-07)
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120", "exam_outline", "2026-11-07"),
     // SAPS, SAP Note 1928533 and the HANA hardware directory
-    "https://learn.microsoft.com/en-gb/Azure/sap/workloads/supported-product-on-azure",
+    source("https://learn.microsoft.com/en-gb/Azure/sap/workloads/supported-product-on-azure", "reference", "2026-11-07"),
     // Classical (two-step) vs DMO (one-step) migration
-    "https://learn.microsoft.com/en-ca/azure/cloud-adoption-framework/scenarios/sap/migrate",
-    "https://learn.microsoft.com/en-nz/training/modules/explore-migration-options/7-explore-two-step-migration-lift-shift-followed-database-move-only",
+    source("https://learn.microsoft.com/en-ca/azure/cloud-adoption-framework/scenarios/sap/migrate", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-nz/training/modules/explore-migration-options/7-explore-two-step-migration-lift-shift-followed-database-move-only", "reference", "2026-11-07"),
     // RISE with SAP connectivity
-    "https://learn.microsoft.com/en-in/azure/sap/workloads/rise-integration-network",
+    source("https://learn.microsoft.com/en-in/azure/sap/workloads/rise-integration-network", "reference", "2026-11-07"),
     // Proximity placement groups (current guidance)
-    "https://learn.microsoft.com/azure/sap/workloads/proximity-placement-scenarios",
+    source("https://learn.microsoft.com/azure/sap/workloads/proximity-placement-scenarios", "reference", "2026-11-07"),
     // HANA storage KPIs, Premium SSD layouts, Write Accelerator, caching
-    "https://learn.microsoft.com/azure/sap/workloads/hana-vm-operations-storage",
-    "https://learn.microsoft.com/en-us/azure/sap/workloads/hana-vm-premium-ssd-v1",
+    source("https://learn.microsoft.com/azure/sap/workloads/hana-vm-operations-storage", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/sap/workloads/hana-vm-premium-ssd-v1", "reference", "2026-11-07"),
     // Pacemaker fencing options on SLES
-    "https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker",
+    source("https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker", "reference", "2026-11-07"),
     // HANA system replication cluster and its load balancer
-    "https://learn.microsoft.com/azure/sap/workloads/sap-hana-high-availability",
+    source("https://learn.microsoft.com/azure/sap/workloads/sap-hana-high-availability", "reference", "2026-11-07"),
     // Savings plan vs reservation
-    "https://learn.microsoft.com/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation",
+    source("https://learn.microsoft.com/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation", "reference", "2026-11-07"),
     // Azure Monitor for SAP solutions
-    "https://learn.microsoft.com/azure/sap/monitor/about-azure-monitor-sap-solutions",
-    "https://learn.microsoft.com/en-us/azure/sap/monitor/providers",
+    source("https://learn.microsoft.com/azure/sap/monitor/about-azure-monitor-sap-solutions", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/sap/monitor/providers", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------
