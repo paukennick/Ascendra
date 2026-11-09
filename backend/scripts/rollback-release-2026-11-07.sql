@@ -124,7 +124,10 @@ drop table if exists
   lesson_progress_tombstones, mastery_backup_029, mastery_backup_031, mastery_backup_041, mastery_backup_045,
   mastery_model_params, objective_prerequisites, objective_terms, pbq_generation_claims, placement_checks,
   placement_items, prerequisite_refreshers, review_items, review_log, review_schedule, review_session_items,
-  review_sessions, study_plans, unit_check_items, terms_acceptances
+  review_sessions, study_plans, unit_check_items, terms_acceptances,
+  -- REQ-169/170 (060): intake answers and founding-member seats (060's
+  -- family and scope columns go with entitlements, also in this list)
+  learner_intake, learner_intake_targets, founding_members
   cascade;
 
 -- 4b. The two rollup views 033 redefined, back to master's definitions
