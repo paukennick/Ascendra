@@ -16,6 +16,12 @@
 // on-device study data (REQ-119, H3). Terms and Privacy are a new version,
 // so every account is asked to agree once.
 //
+// 2026-11-09 (REQ-165, Nick): Terms section 4 describes the one study notice
+// in place of per-course acknowledgements; Privacy sections 1 and 5 add
+// graded lab-step answers, coach-reply reports, access grants and the study
+// notice record. Both are a new version: everyone agrees once more, in the
+// same launch flow as the study notice (src/lib/legal.ts launchGate).
+//
 // Items in [square brackets] are owner decisions not yet made. They render
 // visibly on purpose: a placeholder that looks finished is worse than one
 // that looks unfinished. Nothing here has had legal review yet.
@@ -51,8 +57,8 @@ export const OWNER = {
 
 export const TERMS: LegalDoc = {
   title: "Terms of Service",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-09",
+  updated: "November 9, 2026",
   status: DRAFT,
   intro:
     "These terms are the agreement between you and Ascendra's operator when you use Ascendra on the web or in the app. Please read them; creating an account means you accept them.",
@@ -81,7 +87,8 @@ export const TERMS: LegalDoc = {
     {
       title: "4. Study material, not professional advice",
       body: [
-        "Everything in Ascendra is study material. It is not medical, nursing, clinical, legal, financial or other professional advice, and it can be wrong. Courses for health professions are exam preparation only and must never be used to make decisions about a real patient; those courses ask you to acknowledge this before you start.",
+        "Everything in Ascendra is study material. It is not medical, nursing, clinical, legal, financial or other professional advice, and it can be wrong. Courses for health professions are exam preparation only and must never be used to make decisions about a real patient or client.",
+        "The first time you use Ascendra (and again if its wording changes), you are asked to read and accept a short study notice that covers all of Ascendra — lessons, questions, labs, sims and the AI coach — and, on a separate page, what the AI features send and to whom. Health courses and clinical and fitness labs can't be used until you have accepted it.",
       ],
     },
     {
@@ -174,8 +181,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-07",
-  updated: "November 7, 2026",
+  version: "2026-11-09",
+  updated: "November 9, 2026",
   status: DRAFT,
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
@@ -185,11 +192,12 @@ export const PRIVACY: LegalDoc = {
       body: [
         "• Account: email address, optional display name, optional profile photo, and a hashed password (never the password itself). If you sign in with Google, the Google account's ID and email address.",
         "• Security: two-factor settings and backup codes (stored hashed or encrypted); signed-in sessions with device name, browser or app details and IP address; a log of sign-in and security events with time and IP address, used to show your sessions, limit repeated attempts and flag suspicious activity; short-lived codes for verifying email, resetting passwords and confirming changes.",
-        "• Study activity: the courses you add or favourite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; study sessions; and which course and lab disclaimers you accepted. If you choose to tell us how a real exam went, the date, the result and any score you enter.",
+        "• Study activity: the courses you add or favourite; the lessons, questions, reviews, practice exams, scenarios and labs you've attempted; your answers (including anything you type) and how confident you said you were; the mastery levels, review schedule and study plan calculated from them; study sessions; and that you accepted the study notice (and any course or lab disclaimers you accepted before it replaced them). If you choose to tell us how a real exam went, the date, the result and any score you enter.",
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported — with the time and the course it belongs to. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
-        "• Support: tickets, course requests and problem reports about a lesson, question or lab that you send, with your account email so we can reply, and our replies.",
-        "• Agreements: which versions of these terms and this policy you accepted, how (at sign-up or in the app) and when.",
+        "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
+        "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
+        "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when.",
       ],
     },
     {
@@ -226,7 +234,7 @@ export const PRIVACY: LegalDoc = {
         "Some features send text to Anthropic to be processed by an AI model. Your name, email address and account ID are not sent with these requests.",
         "Features that send what you type:",
         "• Ask the coach: your message, the earlier messages in that course's conversation (up to the last 40), the course and unit titles, and a short summary of your weakest topics and recent kinds of mistakes in that course.",
-        "• Grading and feedback on written answers: lesson answers you write in your own words, your first guess in a lesson, \"explain it back\" explanations, lab reports, scenario (PBQ) answers, written review answers and unit-check answers. Each is sent with the question and the course material it is graded against.",
+        "• Grading and feedback on written answers: lesson answers you write in your own words, your first guess in a lesson, \"explain it back\" explanations, lab reports, your answers to each step of a build or case lab, scenario (PBQ) answers, written review answers and unit-check answers. Each is sent with the question and the course material it is graded against.",
         "Features that send no personal data: writing lessons, practice and exam-style questions, comparison cards, \"Quiz me\" questions and practice scenarios. These are created from the course's published topics and shared by everyone studying that course.",
         "Under Anthropic's commercial terms, Anthropic may not train its models on what we send. Anthropic says it deletes these inputs and outputs from its systems within 30 days, but may keep them longer where the law requires or to enforce its usage policy (up to 2 years for content its safety systems flag).",
         "We keep your answers, the feedback and your coach conversations with your account, as described in section 6. For each AI request we also log counts only — which feature, how many tokens, how long it took, whether it worked — never the text.",

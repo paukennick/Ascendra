@@ -3,6 +3,9 @@ import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { launchGate, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
 import { syncRemindersFor } from "@/lib/reminderScheduler";
+import { router } from "expo-router";
+import { STUDY_NOTICE_VERSION, registerStudyNoticeHandler, studyNoticeDecision } from "@/lib/studyNotice";
+import { StudyNoticeSheet } from "@/components/StudyNotice";
 
 // REQ-119 (Audit 3 product H5, M2): what a signed-in launch asks first --
 // the one-tap Terms prompt for an account that hasn't accepted the current
@@ -18,6 +21,8 @@ interface OnboardingValue {
   state: OnboardingState | null;
   gate: LaunchGate;
   acceptTerms: () => Promise<void>;
+  // REQ-165: records the study notice; throws if the request fails.
+  acceptNotice: () => Promise<void>;
   completeFirstRun: (goal: { trackId: string | null }) => Promise<void>;
 }
 
@@ -25,6 +30,7 @@ const Ctx = createContext<OnboardingValue>({
   state: null,
   gate: null,
   acceptTerms: async () => undefined,
+  acceptNotice: async () => undefined,
   completeFirstRun: async () => undefined,
 });
 
@@ -81,11 +87,82 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
+  // REQ-165: the study notice. The launch screen (app/(app)/notice.tsx)
+  // records it with acceptNotice. As a backstop, when the launch state is
+  // unknown, the API client asks through the handler registered here before
+  // a request that sends the learner's text to the AI provider; every
+  // request waiting on it is let through or refused together.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const acceptedThisSession = useRef(false);
+  const waiting = useRef<((go: boolean) => void)[]>([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetBusy, setSheetBusy] = useState(false);
+
+  const acceptNotice = useCallback(async () => {
+    const s = await api.post<OnboardingState>("/api/onboarding/notice", { version: STUDY_NOTICE_VERSION });
+    acceptedThisSession.current = true;
+    setState(s);
+  }, []);
+
+  const settleSheet = useCallback((go: boolean) => {
+    const list = waiting.current;
+    waiting.current = [];
+    setSheetOpen(false);
+    list.forEach((resolve) => resolve(go));
+  }, []);
+
+  useEffect(() => {
+    acceptedThisSession.current = false;
+    if (!userId) {
+      registerStudyNoticeHandler(null);
+      settleSheet(false);
+      return;
+    }
+    registerStudyNoticeHandler(() => {
+      if (studyNoticeDecision(stateRef.current, acceptedThisSession.current) === "go") return Promise.resolve(true);
+      return new Promise<boolean>((resolve) => {
+        waiting.current.push(resolve);
+        setSheetOpen(true);
+      });
+    });
+    return () => registerStudyNoticeHandler(null);
+  }, [userId, settleSheet]);
+
+  // From the sheet, recording is best effort: if it fails the request still
+  // goes ahead (the learner did accept) and the next launch asks again.
+  const acceptFromSheet = useCallback(async () => {
+    setSheetBusy(true);
+    try {
+      await acceptNotice();
+    } catch {
+      acceptedThisSession.current = true;
+    } finally {
+      setSheetBusy(false);
+      settleSheet(true);
+    }
+  }, [acceptNotice, settleSheet]);
+
   const value = useMemo(
-    () => ({ state, gate: launchGate(state), acceptTerms, completeFirstRun }),
-    [state, acceptTerms, completeFirstRun]
+    () => ({ state, gate: launchGate(state), acceptTerms, acceptNotice, completeFirstRun }),
+    [state, acceptTerms, acceptNotice, completeFirstRun]
   );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      {children}
+      <StudyNoticeSheet
+        visible={sheetOpen}
+        busy={sheetBusy}
+        onAccept={acceptFromSheet}
+        onCancel={() => settleSheet(false)}
+        onReadPrivacy={() => {
+          // Nothing is sent; the learner sends again after reading.
+          settleSheet(false);
+          router.push("/privacy");
+        }}
+      />
+    </Ctx.Provider>
+  );
 }
 
 export function useOnboarding(): OnboardingValue {

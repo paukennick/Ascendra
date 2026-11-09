@@ -186,8 +186,9 @@ const REVIEW_DUE_AT = "2027-10-31T00:00:00Z";
 const HANDBOOK_URL =
   "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en";
 
-// Shared with every nursing track; wording lives in
-// mobile/src/content/disclaimers.ts.
+// Shared with every nursing track. REQ-165: the key only marks the course
+// as gated (it needs the study notice, mobile/src/lib/studyNotice.ts); no
+// per-course text is shown any more.
 const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 
 // ---------------------------------------------------------------------------

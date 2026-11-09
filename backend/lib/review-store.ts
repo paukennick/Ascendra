@@ -4,6 +4,7 @@ import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { recordAttemptTx, type AssistReason } from "@/lib/grading-service";
 import { utcDay } from "@/lib/review-scheduler";
 import { stepSchedule } from "@/lib/review-step";
+import { studyNoticeAcceptedSql } from "@/lib/study-notice";
 import {
   md5,
   planSession,
@@ -68,8 +69,7 @@ export async function dueObjectives(userId: string, today: string, trackId: stri
         and ($3::uuid is null or cu.track_id = $3::uuid)
         and ${isActive("o")} and ${isActive("cu")}
         and (not coalesce(st.requires_acknowledgement, false)
-             or exists (select 1 from track_acknowledgements ta
-                         where ta.user_id = $1 and ta.track_id = st.id and ta.disclaimer_version = st.disclaimer_version))
+             or ${studyNoticeAcceptedSql("$1")})
         and d.objective_id not in (
           -- REQ-118 (Audit 3 MEDIUM-4): computed once, not per due row, and
           -- as a time range so the partial index on answered items

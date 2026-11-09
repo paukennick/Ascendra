@@ -304,6 +304,12 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_constraint where conname = 'lab_disclaimer_ack_family_051') as ok`,
   },
   {
+    // REQ-165: recording the study notice (POST /api/onboarding/notice).
+    migration: "059_study_notice.sql",
+    what: "legal_acceptances accepts the 'study_notice' document (the one-time study notice)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,
