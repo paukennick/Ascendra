@@ -105,6 +105,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.account_access_live_email_unique') is not null as ok`,
   },
   {
+    // REQ-164: the containers and Kubernetes tracks hang off these rows; the
+    // seed resolves them by slug and fails without them.
+    migration: "057_containers_kubernetes_taxonomy.sql",
+    what: "Cloud Native & Kubernetes category and its three subcategories (seed)",
+    sql: `select (select count(*) from education_subcategories s join education_categories c on c.id = s.category_id
+                  where c.slug = 'cloud-native-certifications'
+                    and s.slug in ('cncf-certifications', 'container-tooling', 'red-hat-openshift')) = 3 as ok`,
+  },
+  {
     // REQ-166: GET /api/discounts, checkout and the account export read
     // these (the export always; the rest only once verified discounts are on).
     migration: "058_verified_discounts.sql",
