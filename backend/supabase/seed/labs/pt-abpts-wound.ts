@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-152: ABPTS Wound Management Clinical Specialist (ABPTSWMS), authored
 // labs.
@@ -53,7 +54,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ABPTSWMS_LABS: SeedLabSet = {
   trackCode: "ABPTSWMS",
-  sources: ["https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management"],
+  sources: [source("https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management", "exam_outline", "2026-11-07")],
   labs: [
     // ----------------------------------------------------------------- Foundation sciences (1)
     {

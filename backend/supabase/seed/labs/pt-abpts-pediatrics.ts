@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-152: ABPTS Pediatric Clinical Specialist (ABPTSPCS), authored labs.
 //
@@ -75,7 +76,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ABPTSPCS_LABS: SeedLabSet = {
   trackCode: "ABPTSPCS",
-  sources: ["https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics"],
+  sources: [source("https://specialization.apta.org/become-a-specialist/pediatrics/specialist-certification-examination-outline-pediatrics", "exam_outline", "2026-11-07")],
   labs: [
     // ----------------------------------------------------------------- Knowledge (2)
     {

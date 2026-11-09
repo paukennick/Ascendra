@@ -74,6 +74,16 @@ export function reissuedAccessToken(data: unknown): string | null {
 // show beside their Retry/Submit buttons. Routes that wait on the model get
 // a longer default (see requestTimeoutMs below); any call can pass its own.
 // Audit 2 (mobile) item 7, client half: FAIL-061.
+// REQ-146 (FAIL-530): the protocol this app speaks, sent on every request
+// (native and web) as X-Ascendra-Client. Protocol 1: the lesson payload's
+// soloChoices is always empty and the Solo choices come from
+// POST /api/objectives/:id/hint. A request without the header is treated as
+// an app build from before this (no hint flow) and is sent the Solo choices
+// in the lesson, with the hint recorded (backend/lib/client-protocol.ts).
+// Raise it only together with the server's own check.
+export const CLIENT_PROTOCOL_HEADER = "X-Ascendra-Client";
+export const CLIENT_PROTOCOL = 1;
+
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
 
@@ -146,6 +156,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        [CLIENT_PROTOCOL_HEADER]: String(CLIENT_PROTOCOL),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },

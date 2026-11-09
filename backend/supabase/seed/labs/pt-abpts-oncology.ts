@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-152: ABPTS Oncologic Clinical Specialist (ABPTSONC), authored labs.
 //
@@ -69,7 +70,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ABPTSONC_LABS: SeedLabSet = {
   trackCode: "ABPTSONC",
-  sources: ["https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology"],
+  sources: [source("https://specialization.apta.org/become-a-specialist/oncology/specialist-certification-examination-outline-oncology", "exam_outline", "2026-11-07")],
   labs: [
     // ----------------------------------------------------------------- Knowledge (1)
     {

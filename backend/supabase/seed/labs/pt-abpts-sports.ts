@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-152: ABPTS Sports Clinical Specialist (ABPTSSCS), authored labs.
 //
@@ -43,7 +44,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ABPTSSCS_LABS: SeedLabSet = {
   trackCode: "ABPTSSCS",
-  sources: ["https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports"],
+  sources: [source("https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports", "exam_outline", "2026-11-07")],
   labs: [
     // ----------------------------------------------------------------- Knowledge areas (2)
     {

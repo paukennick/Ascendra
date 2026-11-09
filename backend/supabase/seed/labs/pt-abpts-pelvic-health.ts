@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-152: ABPTS Pelvic & Women's Health Clinical Specialist (ABPTSPWCS),
 // authored labs.
@@ -40,7 +41,7 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ABPTSPWCS_LABS: SeedLabSet = {
   trackCode: "ABPTSPWCS",
-  sources: ["https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health"],
+  sources: [source("https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health", "exam_outline", "2026-11-07")],
   labs: [
     // ----------------------------------------------------------------- Knowledge (1)
     {
