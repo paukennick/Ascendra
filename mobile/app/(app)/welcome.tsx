@@ -5,7 +5,10 @@ import { useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useOnboarding } from "@/auth/OnboardingContext";
 import { Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField } from "@/components/ui";
-import { DateField } from "@/components/DatePicker";
+import { IntakeFormFields } from "@/components/IntakeForm";
+import { IntakeResult } from "@/components/IntakeResult";
+import { useBilling } from "@/billing/BillingContext";
+import { addTarget, EMPTY_FORM, intakeBody, parseIntakeView, PRIVACY_LINE, type IntakeForm, type IntakeView } from "@/lib/intake";
 import { friendlyError } from "@/lib/errorMessage";
 import { localToday } from "@/lib/studyPlan";
 import { pickableCourses } from "@/lib/firstRun";
@@ -17,13 +20,15 @@ import type { PlanResponse } from "@/types/plan";
 // short, skippable steps, for any starting point -- complete beginner to
 // someone re-sitting an exam:
 //   1. what they're working toward (a course, or "just exploring");
-//   2. an exam date, if they have one (feeds the study plan);
+//   2. REQ-169: the intake questions (goal, the exam(s) and dates,
+//      experience, weekly time, use) -- they set up the study plan and,
+//      with paid plans on, suggest a plan (never a price; step 2b shows it);
 //   3. an optional quick placement check, or start at the beginning;
 // then it lands on a clear first step: the course page, whose main button
 // reads "Start course", or the placement check, or Explore.
 // "Skip for now" on every step finishes it; it is never shown again.
 
-type Step = "goal" | "date" | "placement";
+type Step = "goal" | "date" | "result" | "placement";
 
 export default function Welcome() {
   const router = useRouter();
@@ -34,7 +39,9 @@ export default function Welcome() {
   const [search, setSearch] = useState("");
   const [goal, setGoal] = useState<Track | null>(null);
   const [plan, setPlan] = useState<PlanResponse | null>(null);
-  const [examDate, setExamDate] = useState<string | null>(null);
+  const [form, setForm] = useState<IntakeForm>(EMPTY_FORM);
+  const [intake, setIntake] = useState<IntakeView | null>(null);
+  const { config } = useBilling();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const planRequest = useRef<Promise<PlanResponse | null>>(Promise.resolve(null));
@@ -52,6 +59,8 @@ export default function Welcome() {
 
   async function finish(to: "home" | "explore" | "course" | "placement") {
     setBusy(true);
+    // REQ-169: leaving without answering is remembered, so it isn't asked again.
+    if (!intake) await api.put("/api/intake", { skip: true }).catch(() => undefined);
     await completeFirstRun({ trackId: to === "home" || to === "explore" ? goal?.id ?? null : goal!.id });
     setBusy(false);
     if (to === "home") return router.replace("/");
@@ -66,6 +75,7 @@ export default function Welcome() {
   async function chooseGoal(t: Track) {
     setGoal(t);
     setError(null);
+    setForm(addTarget({ ...EMPTY_FORM, targets: [] }, t));
     setStep("date");
     // Placement availability and the plan's current settings; if this fails
     // the date step still works (default hours) and placement is not offered.
@@ -76,27 +86,28 @@ export default function Welcome() {
     planRequest.current.then((p) => setPlan(p));
   }
 
-  async function saveDate(withDate: boolean) {
+  // REQ-169: saves the intake answers (which also set the study plan of
+  // every named course), then shows a suggestion if there is one, then
+  // placement when it's on offer.
+  async function saveAbout(answered: boolean) {
     setError(null);
     setBusy(true);
-    let current = plan ?? (await planRequest.current);
-    setBusy(false);
-    if (withDate && examDate) {
-      setBusy(true);
-      try {
-        const saved = await api.put<PlanResponse>(`/api/courses/${goal!.id}/plan`, {
-          examDate,
-          weeklyHours: current?.settings.weeklyHours ?? 5,
-          today: localToday(),
-        });
-        setPlan(saved);
-        current = saved;
-      } catch (err) {
-        setBusy(false);
-        return setError(friendlyError(err));
-      }
+    let saved: IntakeView | null = null;
+    try {
+      saved = parseIntakeView(await api.put<unknown>("/api/intake", answered ? intakeBody(form, localToday()) : { skip: true }));
+      setIntake(saved);
+    } catch (err) {
       setBusy(false);
+      return setError(friendlyError(err));
     }
+    const current = plan ?? (await planRequest.current);
+    setBusy(false);
+    const hasResult = !!saved && ((config.enabled && !!saved.planSuggestion) || !!saved.classContact);
+    if (answered && hasResult) return setStep("result");
+    await afterResult(current);
+  }
+
+  async function afterResult(current: PlanResponse | null = plan) {
     if (current?.placement.available && current.placement.status !== "done") setStep("placement");
     else await finish("course");
   }
@@ -105,7 +116,7 @@ export default function Welcome() {
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Muted>
-          Step {step === "goal" ? 1 : step === "date" ? 2 : 3} of 3
+          Step {step === "goal" ? 1 : step === "date" || step === "result" ? 2 : 3} of 3
         </Muted>
         <Button label="Skip for now" variant="link" fullWidth={false} disabled={busy} onPress={() => finish("home")} />
       </View>
@@ -153,17 +164,21 @@ export default function Welcome() {
 
       {step === "date" && goal ? (
         <>
-          <H1>{goal.title}</H1>
-          <H2>Do you have an exam date?</H2>
-          <Muted>
-            If you've booked one, we'll pace your plan to it. No date is fine too; you can add or change it later in
-            the course's study plan.
-          </Muted>
+          <H1>A few questions</H1>
+          <Muted>{PRIVACY_LINE}</Muted>
           {error ? <ErrorBanner message={error} /> : null}
-          <DateField label="Exam date (optional)" value={examDate} onChange={setExamDate} min={localToday()} />
-          <Button label="Continue" icon="arrow-right" loading={busy} disabled={!examDate} onPress={() => saveDate(true)} />
-          <Button label="No date yet" variant="ghost" disabled={busy} onPress={() => saveDate(false)} />
+          <IntakeFormFields value={form} onChange={setForm} />
+          <Button label="Continue" icon="arrow-right" loading={busy} onPress={() => saveAbout(true)} />
+          <Button label="Skip these questions" variant="ghost" disabled={busy} onPress={() => saveAbout(false)} />
           <Button label="Pick a different course" variant="link" fullWidth={false} onPress={() => setStep("goal")} />
+        </>
+      ) : null}
+
+      {step === "result" && goal ? (
+        <>
+          <H1>Your study plan is set up</H1>
+          <IntakeResult view={intake} />
+          <Button label="Continue" icon="arrow-right" disabled={busy} onPress={() => afterResult()} />
         </>
       ) : null}
 

@@ -2,7 +2,8 @@ import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleTrack } from "@/lib/visibility";
 import { billingEnabled } from "@/lib/billing-config";
-import { chooseFreeCourse, tierFor } from "@/lib/entitlements";
+import { accessRows, chooseFreeCourse, coversEverything } from "@/lib/entitlements";
+import { isUnrestricted } from "@/lib/account-access";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,11 @@ export async function PUT(req: Request) {
     if (typeof body?.trackId !== "string") return badRequest("trackId is required");
     const track = await visibleTrack(body.trackId, user.id);
     if (!track) return notFound("Course not found");
-    if ((await tierFor(user.id)) !== "free") return badRequest("Your plan includes every course.");
+    // REQ-170: a category plan leaves the other categories on Free terms, so
+    // the free course still matters unless the plans cover every course.
+    if ((await isUnrestricted(user.id)) || coversEverything(await accessRows(user.id))) {
+      return badRequest("Your plan includes every course.");
+    }
     return ok({ freeCourse: await chooseFreeCourse(user.id, track.id) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

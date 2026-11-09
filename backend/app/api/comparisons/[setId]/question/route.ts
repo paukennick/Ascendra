@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ setId: s
     const set = await visibleConceptSet(setId, user.id);
     if (!set) return notFound("Comparison not found");
     await requireAcknowledgementForTrack(set.track_id, user.id);
-    await requireFeature(user.id, "comparison"); // REQ-122
+    await requireFeature(user.id, "comparison", set.track_id); // REQ-122, REQ-170
     const next = await nextDiscriminationItem(user.id, setId);
     if (!next) return notFound("This comparison has no questions yet");
     const { item, seen } = next;

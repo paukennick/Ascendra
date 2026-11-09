@@ -41,7 +41,8 @@ export default function FreeCoursePicker() {
     [refresh]
   );
 
-  if (!config.enabled || me?.tier !== "free") {
+  // REQ-170: a category plan leaves other categories on Free terms.
+  if (!config.enabled || !me || me.coversEverything) {
     return (
       <Screen>
         <Card>

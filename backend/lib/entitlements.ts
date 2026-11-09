@@ -22,6 +22,7 @@ import {
   isTier,
   learnerCapUsd,
   monthlyAiCapUsd,
+  planById,
   scopeCovers,
   scopeForCategory,
   tierHas,
@@ -691,6 +692,21 @@ export async function revokeGrants(userId: string): Promise<number> {
     );
   }
   return rows.length;
+}
+
+// REQ-170: the clinical add-on is sold only to a learner who has all-access
+// (or a plan that already covers every course).
+export async function requirePlanPrerequisite(userId: string, planId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  if (!billingEnabled(env)) return;
+  const plan = planById(planId, env);
+  const needs = plan ? PLAN_FAMILIES[plan.family].requires : undefined;
+  if (!needs) return;
+  const rows = await accessRows(userId);
+  if (rows.some((r) => r.scope === null || r.scope === needs)) return;
+  throw new UserFacingError(
+    `The ${PLAN_FAMILIES[plan!.family].name} is for learners with ${SCOPE_NAME[needs]}. Clinical Pro covers the clinical courses on its own.`,
+    409
+  );
 }
 
 // Every course is covered: a row with no scope, or all-access with clinical.

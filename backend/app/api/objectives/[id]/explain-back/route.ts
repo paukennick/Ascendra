@@ -43,7 +43,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     await requireAcknowledgementForObjective(id, user.id);
     const status = await masteryStatus(user.id, id);
     // REQ-122: not in this learner's plan -- shown as not open, with why.
-    const locked = await featureLock(user.id, "explain_back");
+    const locked = await featureLock(user.id, "explain_back", { objectiveId: id });
     return ok({
       ...(locked ? { locked } : {}),
       eligible: !locked && isGuidedPlus(status),
@@ -83,7 +83,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
-    await requireFeature(user.id, "explain_back"); // REQ-122
+    const tier = await requireFeature(user.id, "explain_back", { objectiveId: objective.id }); // REQ-122, REQ-170
     const body = await req.json().catch(() => ({}));
 
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
@@ -132,7 +132,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Nick, 2026-11-07 (decision 9): an explanation counts against the same
       // daily allowance as a graded typed answer (only a tier with a count
       // limit is counted; given back if grading fails).
-      const use = await consumeAllowance(user.id, "graded_answer");
+      const use = await consumeAllowance(user.id, "graded_answer", tier);
       let graded: Awaited<ReturnType<typeof gradeExplainBack>>;
       try {
         graded = await gradeExplainBack({

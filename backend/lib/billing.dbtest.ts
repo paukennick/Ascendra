@@ -64,8 +64,8 @@ const BILLING_ENV = [
   "REVENUECAT_WEBHOOK_AUTH",
   "STRIPE_WEBHOOK_SECRET",
   "STRIPE_SECRET_KEY",
-  "STRIPE_PRICE_PLUS_MONTHLY",
-  "STRIPE_PRICE_PRO_YEARLY",
+  "STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY",
+  "STRIPE_PRICE_IT_CLOUD_PRO_YEARLY",
   "BILLING_WEB_RETURN_URL",
 ];
 
@@ -224,7 +224,7 @@ describe("BILLING_ENABLED off (the default): nothing changes", () => {
       // REQ-124 (decision 7): nothing but the switch's state while it is off.
       assert.deepEqual(await json(await configGet()), { enabled: false });
       assert.equal((await call(freeCoursePut, "/api/billing/free-course", u, "PUT", { trackId: track })).status, 404);
-      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" })).status, 404);
+      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 404);
     }
   });
 
@@ -297,8 +297,10 @@ describe("BILLING_ENABLED on: Free", () => {
     const u = await newUser();
     await guidedOn(u);
     const c = await json(await chat(u), 402);
-    assert.deepEqual(c.upgrade, { feature: "coach", requiredTier: "plus", currentTier: "free" });
-    assert.match(c.error, /The AI coach comes with Plus/);
+    // REQ-170: the upgrade names the plan for this course's category (the
+    // test course has no catalog category, so all-access is the plan).
+    assert.deepEqual(c.upgrade, { feature: "coach", requiredTier: "plus", currentTier: "free", scope: "all_access" });
+    assert.match(c.error, /The AI coach comes with All access/);
     assert.equal((await call(explainPost, `/api/objectives/${obj}/explain-back`, u, "POST", { answer: "x" }, { id: obj })).status, 402);
     assert.equal((await call(regenPost, `/api/objectives/${obj}/lesson`, u, "POST", {}, { id: obj })).status, 402);
     assert.equal((await call(quizPost, "/api/coach/quiz", u, "POST", { trackId: track })).status, 402);
@@ -397,8 +399,9 @@ describe("BILLING_ENABLED on: Plus", () => {
   test("at the monthly AI cap the coach and regenerate pause kindly, grading never stops", async () => {
     process.env.AI_DAILY_BUDGET_USD = "off";
     const u = await plus();
-    // 3M Haiku output tokens = $1.50, over Plus's $1.29.
-    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok) values ($1,'chat','claude-haiku-5-5',0,3000000,1,true)`, [u]);
+    // 7M Haiku output tokens = $3.50, over a Plus grant's cap (REQ-170: like
+    // IT and cloud Plus, $2.95; was $1.29 at the first prices).
+    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok) values ($1,'chat','claude-haiku-5-5',0,7000000,1,true)`, [u]);
     const res = await json(await chat(u), 429);
     assert.ok(res.aiPaused.resetsAt);
     assert.equal(new Date(res.aiPaused.resetsAt).getUTCDate(), 1);
@@ -406,7 +409,7 @@ describe("BILLING_ENABLED on: Plus", () => {
     assert.equal((await call(regenPost, `/api/objectives/${obj}/lesson`, u, "POST", {}, { id: obj })).status, 429);
     assert.equal((await gradeOpen(u)).status, 200, "grading goes on");
     assert.equal((await json(await call(meGet, "/api/billing/me", u))).aiPaused.paused, true);
-    process.env.AI_MONTHLY_CAP_PLUS_USD = "2";
+    process.env.AI_MONTHLY_CAP_PLUS_USD = "4";
     assert.equal((await chat(u)).status, 200);
   });
 
@@ -520,24 +523,24 @@ describe("RevenueCat webhook", () => {
     const base = { app_user_id: u, original_transaction_id: otx, store: "APP_STORE", environment: "SANDBOX" };
     const ev = (type: string, at: number, extra: Record<string, unknown> = {}) => ({ id: `rc-${run}-${randomUUID()}`, type, event_timestamp_ms: at, ...base, ...extra });
 
-    const buy = ev("INITIAL_PURCHASE", t0, { product_id: "ascendra.plus.monthly", entitlement_ids: ["plus"], expiration_at_ms: Date.now() + 30 * DAY });
+    const buy = ev("INITIAL_PURCHASE", t0, { product_id: "ascendra.it_cloud_plus.monthly", entitlement_ids: ["it_cloud_plus"], expiration_at_ms: Date.now() + 30 * DAY });
     assert.equal((await json(await rc(buy))).outcome, "applied");
     assert.equal(await tierFor(u), "plus");
     assert.equal((await json(await rc(buy))).outcome, "duplicate");
     assert.equal(Number((await queryOne<{ n: number }>(`select count(*)::int as n from billing_events where event_id = $1`, [buy.id]))!.n), 1);
 
-    const renew = ev("RENEWAL", t0 + 2000, { product_id: "ascendra.pro.yearly", entitlement_ids: ["pro"], expiration_at_ms: Date.now() + 365 * DAY });
+    const renew = ev("RENEWAL", t0 + 2000, { product_id: "ascendra.it_cloud_pro.yearly", entitlement_ids: ["it_cloud_pro"], expiration_at_ms: Date.now() + 365 * DAY });
     assert.equal((await json(await rc(renew))).outcome, "applied");
     assert.equal(await tierFor(u), "pro");
     const row = await queryOne<{ plan: string; product_id: string }>(`select plan, product_id from entitlements where external_id = $1`, [otx]);
-    assert.deepEqual(row, { plan: "yearly", product_id: "ascendra.pro.yearly" });
+    assert.deepEqual(row, { plan: "yearly", product_id: "ascendra.it_cloud_pro.yearly" });
 
     // An expiry stamped before the renewal, delivered after it: ignored.
-    assert.equal((await json(await rc(ev("EXPIRATION", t0 + 1000, { product_id: "ascendra.plus.monthly", expiration_at_ms: t0 })))).outcome, "stale");
+    assert.equal((await json(await rc(ev("EXPIRATION", t0 + 1000, { product_id: "ascendra.it_cloud_plus.monthly", expiration_at_ms: t0 })))).outcome, "stale");
     assert.equal(await tierFor(u), "pro");
 
     // Cancelled (auto-renew off): access until the period ends.
-    assert.equal((await json(await rc(ev("CANCELLATION", t0 + 3000, { product_id: "ascendra.pro.yearly", entitlement_ids: ["pro"], cancel_reason: "UNSUBSCRIBE", expiration_at_ms: Date.now() + 10 * DAY })))).outcome, "applied");
+    assert.equal((await json(await rc(ev("CANCELLATION", t0 + 3000, { product_id: "ascendra.it_cloud_pro.yearly", entitlement_ids: ["it_cloud_pro"], cancel_reason: "UNSUBSCRIBE", expiration_at_ms: Date.now() + 10 * DAY })))).outcome, "applied");
     assert.equal(await tierFor(u), "pro");
     const me = await json(await call(meGet, "/api/billing/me", u));
     assert.equal(me.entitlement.status, "canceled");
@@ -545,10 +548,10 @@ describe("RevenueCat webhook", () => {
     assert.equal(me.entitlement.manage, "app_store");
 
     // Billing issue: access continues through the grace period.
-    await rc(ev("BILLING_ISSUE", t0 + 4000, { product_id: "ascendra.pro.yearly", entitlement_ids: ["pro"], expiration_at_ms: Date.now() - DAY * 2, grace_period_expiration_at_ms: Date.now() + 3 * DAY }));
+    await rc(ev("BILLING_ISSUE", t0 + 4000, { product_id: "ascendra.it_cloud_pro.yearly", entitlement_ids: ["it_cloud_pro"], expiration_at_ms: Date.now() - DAY * 2, grace_period_expiration_at_ms: Date.now() + 3 * DAY }));
     assert.equal(await tierFor(u), "pro");
 
-    assert.equal((await json(await rc(ev("EXPIRATION", t0 + 5000, { product_id: "ascendra.pro.yearly", expiration_at_ms: Date.now() })))).outcome, "applied");
+    assert.equal((await json(await rc(ev("EXPIRATION", t0 + 5000, { product_id: "ascendra.it_cloud_pro.yearly", expiration_at_ms: Date.now() })))).outcome, "applied");
     assert.equal(await tierFor(u), "free");
   });
 
@@ -557,13 +560,13 @@ describe("RevenueCat webhook", () => {
     const u = await newUser();
     const otx = `otx-${run}-${randomUUID()}`;
     const at = Date.now() - 10_000;
-    await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: u, original_transaction_id: otx, product_id: "ascendra_plus:monthly", expiration_at_ms: Date.now() + 30 * DAY, store: "PLAY_STORE" });
+    await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: u, original_transaction_id: otx, product_id: "ascendra_it_cloud_plus:monthly", expiration_at_ms: Date.now() + 30 * DAY, store: "PLAY_STORE" });
     assert.equal(await tierFor(u), "plus");
     assert.equal((await json(await call(meGet, "/api/billing/me", u))).entitlement.manage, "play_store");
-    await rc({ id: `rc-${run}-${randomUUID()}`, type: "CANCELLATION", event_timestamp_ms: at + 1, app_user_id: u, original_transaction_id: otx, product_id: "ascendra_plus:monthly", cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() + 30 * DAY });
+    await rc({ id: `rc-${run}-${randomUUID()}`, type: "CANCELLATION", event_timestamp_ms: at + 1, app_user_id: u, original_transaction_id: otx, product_id: "ascendra_it_cloud_plus:monthly", cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() + 30 * DAY });
     assert.equal(await tierFor(u), "free");
 
-    assert.equal((await json(await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: "$RCAnonymousID:abc", original_transaction_id: `o-${randomUUID()}`, product_id: "ascendra.plus.monthly" }))).outcome, "unmatched");
+    assert.equal((await json(await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: "$RCAnonymousID:abc", original_transaction_id: `o-${randomUUID()}`, product_id: "ascendra.it_cloud_plus.monthly" }))).outcome, "unmatched");
     assert.equal((await json(await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: u, original_transaction_id: `o-${randomUUID()}`, product_id: "someone.else" }))).outcome, "unmatched");
     assert.equal((await json(await rc({ id: `rc-${run}-${randomUUID()}`, type: "TEST", event_timestamp_ms: at }))).outcome, "ignored");
   });
@@ -573,7 +576,7 @@ describe("RevenueCat webhook", () => {
     const a = await newUser();
     const b = await newUser();
     const at = Date.now() - 10_000;
-    await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: a, original_transaction_id: `o-${randomUUID()}`, product_id: "ascendra.pro.monthly", expiration_at_ms: Date.now() + DAY * 30 });
+    await rc({ id: `rc-${run}-${randomUUID()}`, type: "INITIAL_PURCHASE", event_timestamp_ms: at, app_user_id: a, original_transaction_id: `o-${randomUUID()}`, product_id: "ascendra.it_cloud_pro.monthly", expiration_at_ms: Date.now() + DAY * 30 });
     assert.equal(await tierFor(a), "pro");
     await rc({ id: `rc-${run}-${randomUUID()}`, type: "TRANSFER", event_timestamp_ms: at + 1, transferred_from: [a], transferred_to: [b] });
     assert.equal(await tierFor(a), "free");
@@ -596,7 +599,7 @@ const sub = (u: string, id: string, extra: Record<string, unknown> = {}) => ({
   customer: `cus_${id}`,
   status: "active",
   cancel_at_period_end: false,
-  metadata: { user_id: u, tier: "plus", plan: "monthly" },
+  metadata: { user_id: u, family: "it_cloud_plus", plan: "monthly" },
   items: { data: [{ price: { id: "price_plus_m" }, current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400 }] },
   ...extra,
 });
@@ -646,7 +649,7 @@ describe("Stripe webhook", () => {
     // A second subscription, refunded in full.
     const sub2 = `sub_${run}_${randomUUID()}`;
     await stripe(evt("customer.subscription.created", now + 8, sub(u, sub2, { metadata: { user_id: u }, items: { data: [{ price: { id: "price_pro_y" }, current_period_end: now + 365 * 86400 }] } })));
-    process.env.STRIPE_PRICE_PRO_YEARLY = "price_pro_y";
+    process.env.STRIPE_PRICE_IT_CLOUD_PRO_YEARLY = "price_pro_y";
     const sub3 = `sub_${run}_${randomUUID()}`;
     await stripe(evt("customer.subscription.created", now + 9, sub(u, sub3, { customer: `cus_${sub3}`, metadata: { user_id: u }, items: { data: [{ price: { id: "price_pro_y" }, current_period_end: now + 365 * 86400 }] } })));
     assert.equal(await tierFor(u), "pro", "tier from the STRIPE_PRICE_* map");
@@ -676,7 +679,7 @@ describe("REQ-124: downgrades keep the paid plan until the period ends (decision
     process.env.REVENUECAT_WEBHOOK_AUTH = RC_SECRET;
   });
   const proSub = (u: string, id: string, extra: Record<string, unknown> = {}) =>
-    sub(u, id, { metadata: { user_id: u, tier: "pro", plan: "monthly" }, ...extra });
+    sub(u, id, { metadata: { user_id: u, family: "it_cloud_pro", plan: "monthly" }, ...extra });
   const evt = (type: string, created: number, object: Record<string, unknown>) => ({ id: `evt_${run}_${randomUUID()}`, type, created, data: { object } });
 
   test("Stripe: Pro to Plus keeps Pro to the paid period's end, then Plus; an upgrade applies at once", async () => {
@@ -751,9 +754,9 @@ describe("REQ-124: downgrades keep the paid plan until the period ends (decision
     const evRc = (u: string, otx: string, type: string, at: number, extra: Record<string, unknown>) =>
       ({ id: `rc-${run}-${randomUUID()}`, type, event_timestamp_ms: at, app_user_id: u, original_transaction_id: otx, store: "PLAY_STORE", ...extra });
     const proBuy = (u: string, otx: string, at: number) =>
-      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_pro:monthly", entitlement_ids: ["pro"], expiration_at_ms: Date.now() + 20 * DAY });
+      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_it_cloud_pro:monthly", entitlement_ids: ["it_cloud_pro"], expiration_at_ms: Date.now() + 20 * DAY });
     const plusNow = (u: string, otx: string, at: number) =>
-      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_plus:monthly", entitlement_ids: ["plus"], expiration_at_ms: Date.now() + 30 * DAY });
+      evRc(u, otx, "INITIAL_PURCHASE", at, { product_id: "ascendra_it_cloud_plus:monthly", entitlement_ids: ["it_cloud_plus"], expiration_at_ms: Date.now() + 30 * DAY });
 
     const u = await newUser();
     const otx = `otx-${run}-${randomUUID()}`;
@@ -768,7 +771,7 @@ describe("REQ-124: downgrades keep the paid plan until the period ends (decision
     await rc(plusNow(v, otxV, t0 + 1000));
     assert.equal((await json(await rc(proBuy(v, otxV, t0)))).outcome, "stale");
     assert.equal(await tierFor(v), "pro", "out of order");
-    await rc(evRc(v, otxV, "CANCELLATION", t0 + 2000, { product_id: "ascendra_plus:monthly", entitlement_ids: ["plus"], cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() + 30 * DAY }));
+    await rc(evRc(v, otxV, "CANCELLATION", t0 + 2000, { product_id: "ascendra_it_cloud_plus:monthly", entitlement_ids: ["it_cloud_plus"], cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() + 30 * DAY }));
     assert.equal(await tierFor(v), "free", "a refund ends the held period too");
   });
 
@@ -858,11 +861,11 @@ describe("web checkout and portal", () => {
   test("503 without the key or the price; with them, a Checkout session with the learner's id in the metadata; a Stripe error is a 502", async () => {
     process.env.BILLING_ENABLED = "true";
     const u = await newUser();
-    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" })).status, 503);
+    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 503);
     process.env.STRIPE_SECRET_KEY = "sk_test_fake_not_real";
     process.env.BILLING_WEB_RETURN_URL = "https://app.example.test";
-    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" })).status, 503, "price not set");
-    process.env.STRIPE_PRICE_PLUS_MONTHLY = "price_plus_m";
+    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 503, "price not set");
+    process.env.STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY = "price_plus_m";
     assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "gold_forever" })).status, 400);
 
     const realFetch = globalThis.fetch;
@@ -874,7 +877,7 @@ describe("web checkout and portal", () => {
       return new Response(JSON.stringify({ id: "cs_test_1", url: "https://checkout.stripe.test/cs_test_1" }), { status: 200 });
     }) as typeof fetch;
     try {
-      const ok = await json(await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly", requestId: "req-12345678" }));
+      const ok = await json(await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly", requestId: "req-12345678" }));
       assert.equal(ok.url, "https://checkout.stripe.test/cs_test_1");
       assert.equal(sent[0].url, "https://api.stripe.com/v1/checkout/sessions");
       const form = new URLSearchParams(String(sent[0].init.body));
@@ -885,7 +888,7 @@ describe("web checkout and portal", () => {
       assert.equal((sent[0].init.headers as Record<string, string>).Authorization, "Bearer sk_test_fake_not_real");
       assert.equal((sent[0].init.headers as Record<string, string>)["Idempotency-Key"], `checkout:${u}:req-12345678`);
       fail = true;
-      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "plus_monthly" })).status, 502);
+      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 502);
       // Portal: only for a web subscriber.
       assert.equal((await call(portalPost, "/api/billing/portal", u, "POST", {})).status, 404);
     } finally {

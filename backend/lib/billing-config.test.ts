@@ -9,8 +9,17 @@ import {
   allowanceLimit,
   billingEnabled,
   capFromYearlyPrice,
-  DEFAULT_MONTHLY_CAP_USD,
+  courseCategoryOf,
+  familyCapUsd,
+  familyPrice,
   FEATURES,
+  foundingConfig,
+  learnerCapUsd,
+  netAfterFees,
+  PLAN_FAMILIES,
+  PLAN_FAMILY_IDS,
+  planRank,
+  scopeCovers,
   featuresFor,
   monthlyAiCapUsd,
   planById,
@@ -40,26 +49,30 @@ describe("the switch", () => {
     const off = publicConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1" });
     assert.deepEqual(off, { enabled: false });
   });
-  test("publicConfig when on lists six plans with store ids and no secrets", () => {
-    const c = publicConfig({ BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1" });
+  // REQ-170: was six plans (Plus and Pro); now the category plans.
+  test("publicConfig when on lists the category plans with store ids and no secrets", () => {
+    const c = publicConfig({ BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY: "price_1" });
     assert.ok(c.enabled === true && "plans" in c);
-    assert.equal(c.plans.length, 6);
+    assert.equal(c.plans.length, 24);
     assert.equal(c.webCheckout, true);
-    assert.equal(c.plans.find((p) => p.id === "plus_monthly")!.web, true);
-    assert.equal(c.plans.find((p) => p.id === "pro_yearly")!.web, false);
+    assert.equal(c.plans.find((p) => p.id === "it_cloud_plus_monthly")!.web, true);
+    assert.equal(c.plans.find((p) => p.id === "it_cloud_pro_yearly")!.web, false);
+    assert.deepEqual(c.scopes.map((x) => x.id), ["it_cloud", "pm", "fitness", "all_access", "clinical"]);
+    assert.match(c.samePriceNote, /same for everyone/);
+    assert.equal(c.founding, null, "the founding offer is off by default");
     const text = JSON.stringify(c);
     assert.ok(!text.includes("sk_test_x") && !text.includes("price_1") && !text.includes("stripePriceEnv"));
     assert.deepEqual(c.tiers.map((t) => t.id), ["free", "plus", "pro"]);
   });
   test("operatorConfig shows what would be served, whatever the switch, and reports secrets only as set or missing", () => {
-    const o = operatorConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1", REVENUECAT_WEBHOOK_AUTH: "rc-secret" });
+    const o = operatorConfig({ STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY: "price_1", REVENUECAT_WEBHOOK_AUTH: "rc-secret" });
     assert.equal(o.switchOn, false);
     assert.equal(o.wouldServe.enabled, true, "what the app would get once switched on");
-    assert.equal(o.wouldServe.plans.length, 6);
+    assert.equal(o.wouldServe.plans.length, 24);
     assert.equal(o.settings.STRIPE_SECRET_KEY, "set");
     assert.equal(o.settings.STRIPE_WEBHOOK_SECRET, "missing");
-    assert.equal(o.settings.stripePrices.STRIPE_PRICE_PLUS_MONTHLY, "set");
-    assert.equal(o.settings.stripePrices.STRIPE_PRICE_PRO_YEARLY, "missing");
+    assert.equal(o.settings.stripePrices.STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY, "set");
+    assert.equal(o.settings.stripePrices.STRIPE_PRICE_IT_CLOUD_PRO_YEARLY, "missing");
     const text = JSON.stringify(o);
     assert.ok(!text.includes("sk_test_x") && !text.includes("price_1") && !text.includes("rc-secret"));
   });
@@ -133,42 +146,115 @@ describe("allowances", () => {
 });
 
 describe("the monthly AI cap", () => {
+  // REQ-170: was one cap per tier from the first prices; now one per plan.
   test("defaults follow the agreed rule: half the yearly plan's monthly take after fees", () => {
-    const plusYear = planById("plus_yearly", {})!.usd;
-    const proYear = planById("pro_yearly", {})!.usd;
-    assert.ok(Math.abs(capFromYearlyPrice(plusYear) - DEFAULT_MONTHLY_CAP_USD.plus) < 0.01);
-    assert.ok(Math.abs(capFromYearlyPrice(proYear) - DEFAULT_MONTHLY_CAP_USD.pro) < 0.01);
-    assert.ok(DEFAULT_MONTHLY_CAP_USD.pro > DEFAULT_MONTHLY_CAP_USD.plus);
+    for (const f of PLAN_FAMILY_IDS) {
+      const yearly = familyPrice(f, "yearly", {});
+      if (yearly !== null) assert.ok(Math.abs(capFromYearlyPrice(yearly) - familyCapUsd(f, {})!) < 0.01, f);
+    }
+    assert.equal(familyCapUsd("it_cloud_plus", {}), 2.95);
+    assert.equal(familyCapUsd("it_cloud_pro", {}), 4.8);
+    assert.equal(familyCapUsd("all_access", {}), 7.35);
+    // No yearly length: the cheapest month (3 months at $99 = $33 a month).
+    assert.equal(familyCapUsd("clinical_pro", {}), 14.61);
+    assert.equal(familyCapUsd("clinical_addon", {}), 12.81);
   });
   test("no plan loses money on a learner at the cap, at any length", () => {
+    for (const p of plans({})) assert.ok(netAfterFees(p.usd) / p.months - familyCapUsd(p.family, {})! > 0, p.id);
+  });
+  test("discounts never lower the cap, and the largest one (40% founding) still leaves every plan above water at the cap", () => {
     for (const p of plans({})) {
-      const take = (0.7 * p.usd * 0.85 + 0.3 * (p.usd * 0.971 - 0.3)) / p.months;
-      assert.ok(take - monthlyAiCapUsd(p.tier, {})! > 0, p.id);
+      for (const pct of [20, 40]) {
+        const margin = netAfterFees(p.usd * (1 - pct / 100)) / p.months - familyCapUsd(p.family, {})!;
+        assert.ok(margin > 0, `${p.id} at ${pct}% off: ${margin.toFixed(2)}`);
+      }
     }
   });
-  test("configurable; off removes it; Free has none", () => {
+  test("configurable; off removes it; Free has none; grants are capped like the plan they stand in for", () => {
+    assert.equal(familyCapUsd("pm_plus", { AI_MONTHLY_CAP_PM_PLUS_USD: "2" }), 2);
+    assert.equal(familyCapUsd("pm_plus", { AI_MONTHLY_CAP_PM_PLUS_USD: "off" }), null);
+    assert.equal(familyCapUsd("pm_plus", { AI_MONTHLY_CAP_PM_PLUS_USD: "bad" }), 2.95);
     assert.equal(monthlyAiCapUsd("plus", { AI_MONTHLY_CAP_PLUS_USD: "2" }), 2);
     assert.equal(monthlyAiCapUsd("plus", { AI_MONTHLY_CAP_PLUS_USD: "off" }), null);
-    assert.equal(monthlyAiCapUsd("pro", { AI_MONTHLY_CAP_PRO_USD: "bad" }), 2.21);
+    assert.equal(monthlyAiCapUsd("plus", {}), familyCapUsd("it_cloud_plus", {}));
+    assert.equal(monthlyAiCapUsd("pro", { AI_MONTHLY_CAP_PRO_USD: "bad" }), familyCapUsd("all_access", {}));
     assert.equal(monthlyAiCapUsd("free", {}), null);
+  });
+  test("a learner's cap is the sum over the plans they hold; a held period and its new plan count once", () => {
+    assert.equal(learnerCapUsd([{ family: "all_access", tier: "pro", scope: "all_access" }, { family: "clinical_addon", tier: "pro", scope: "clinical" }], {}), 20.16);
+    assert.equal(learnerCapUsd([{ family: "it_cloud_pro", tier: "pro", scope: "it_cloud" }, { family: "it_cloud_plus", tier: "plus", scope: "it_cloud" }], {}), 4.8);
+    assert.equal(learnerCapUsd([], {}), null);
+  });
+});
+
+describe("REQ-170 category plans", () => {
+  test("Nick's proposed prices are the defaults; every one is overridable, and a length can be added", () => {
+    const usd = (id: string) => planById(id, {})!.usd;
+    for (const c of ["it_cloud", "pm", "fitness"]) {
+      assert.deepEqual([usd(`${c}_plus_monthly`), usd(`${c}_plus_quarterly`), usd(`${c}_plus_yearly`)], [12.99, 29.99, 79.99]);
+      assert.deepEqual([usd(`${c}_pro_monthly`), usd(`${c}_pro_quarterly`), usd(`${c}_pro_yearly`)], [19.99, 44.99, 129.99]);
+    }
+    assert.deepEqual([usd("all_access_monthly"), usd("all_access_quarterly"), usd("all_access_yearly")], [29.99, 69.99, 199]);
+    assert.deepEqual([usd("clinical_pro_monthly"), usd("clinical_pro_quarterly")], [49, 99]);
+    assert.equal(planById("clinical_pro_yearly", {}), null);
+    assert.equal(usd("clinical_addon_monthly"), 29);
+    assert.equal(planById("pm_plus_monthly", { BILLING_PRICE_PM_PLUS_MONTHLY_USD: "9.99" })!.usd, 9.99);
+    assert.equal(planById("clinical_pro_yearly", { BILLING_PRICE_CLINICAL_PRO_YEARLY_USD: "299" })!.usd, 299);
+  });
+  test("one price per plan: nothing but the environment changes it (no per-learner input exists)", () => {
+    // plans() takes only the environment; the same env gives the same list.
+    assert.deepEqual(plans({}), plans({}));
+    assert.ok(plans.length <= 1, "plans() takes at most the environment");
+  });
+  test("catalog categories map to plans; all-access covers every non-clinical category", () => {
+    assert.equal(courseCategoryOf("aws-certifications"), "it_cloud");
+    assert.equal(courseCategoryOf("cloud-native-certifications"), "it_cloud");
+    assert.equal(courseCategoryOf("development"), "it_cloud");
+    assert.equal(courseCategoryOf("project-management-certifications"), "pm");
+    assert.equal(courseCategoryOf("business", "project-management"), "pm");
+    assert.equal(courseCategoryOf("health-fitness"), "fitness");
+    assert.equal(courseCategoryOf("healthcare-nursing", "physical-therapy"), "clinical");
+    assert.equal(courseCategoryOf("teaching-academics"), "other");
+    assert.equal(courseCategoryOf(null), "other");
+    assert.equal(scopeCovers("all_access", "pm"), true);
+    assert.equal(scopeCovers("all_access", "other"), true);
+    assert.equal(scopeCovers("all_access", "clinical"), false);
+    assert.equal(scopeCovers("clinical", "clinical"), true);
+    assert.equal(scopeCovers("it_cloud", "pm"), false);
+    assert.equal(scopeCovers(null, "clinical"), true, "a grant covers every course");
+  });
+  test("ranks: all-access over a category's Pro over its Plus; a crossgrade is equal", () => {
+    assert.ok(planRank("all_access", "pro") > planRank("pm_pro", "pro"));
+    assert.ok(planRank("pm_pro", "pro") > planRank("pm_plus", "plus"));
+    assert.equal(planRank("pm_plus", "plus"), planRank("fitness_plus", "plus"));
+    assert.equal(PLAN_FAMILIES.clinical_addon.requires, "all_access");
+  });
+  test("founding members: off by default, off with plans off, 40% for 100 when on", () => {
+    assert.equal(foundingConfig({}).enabled, false);
+    assert.equal(foundingConfig({ FOUNDING_MEMBERS_ENABLED: "true" }).enabled, false, "plans off");
+    const on = foundingConfig({ BILLING_ENABLED: "true", FOUNDING_MEMBERS_ENABLED: "true" });
+    assert.deepEqual([on.enabled, on.percent, on.limit, on.holdHours], [true, 40, 100, 48]);
+    assert.equal(foundingConfig({ BILLING_ENABLED: "1", FOUNDING_MEMBERS_ENABLED: "1", FOUNDING_MEMBERS_PERCENT: "95" }).percent, 40);
   });
 });
 
 describe("plans and product ids", () => {
-  test("the agreed prices; overridable", () => {
-    assert.deepEqual(plans({}).map((p) => [p.id, p.usd]), [
-      ["plus_monthly", 5.99], ["plus_quarterly", 13.99], ["plus_yearly", 34.99],
-      ["pro_monthly", 9.99], ["pro_quarterly", 22.99], ["pro_yearly", 59.99],
-    ]);
-    assert.equal(planById("plus_monthly", { BILLING_PRICE_PLUS_MONTHLY_USD: "4.99" })!.usd, 4.99);
-  });
-  test("store products and Stripe prices map to tiers", () => {
-    assert.deepEqual(planForStoreProduct("ascendra.pro.quarterly"), { tier: "pro", period: "quarterly" });
-    assert.deepEqual(planForStoreProduct("ascendra_plus:three-month"), { tier: "plus", period: "quarterly" });
-    assert.deepEqual(planForStoreProduct("ascendra_plus"), { tier: "plus", period: null });
+  test("store products and Stripe prices map to category plans", () => {
+    assert.deepEqual(planForStoreProduct("ascendra.it_cloud_pro.quarterly"), { family: "it_cloud_pro", scope: "it_cloud", tier: "pro", period: "quarterly" });
+    assert.deepEqual(planForStoreProduct("ascendra_pm_plus:three-month"), { family: "pm_plus", scope: "pm", tier: "plus", period: "quarterly" });
+    assert.deepEqual(planForStoreProduct("ascendra_all_access"), { family: "all_access", scope: "all_access", tier: "pro", period: null });
+    assert.deepEqual(planForStoreProduct("ascendra.clinical_addon.monthly"), { family: "clinical_addon", scope: "clinical", tier: "pro", period: "monthly" });
+    // REQ-170: the first pricing page's ids were never created and are not sold.
+    assert.equal(planForStoreProduct("ascendra.pro.monthly"), null);
     assert.equal(planForStoreProduct("other.app.monthly"), null);
-    assert.equal(planForStripePrice("price_x", { STRIPE_PRICE_PRO_YEARLY: "price_x" })!.id, "pro_yearly");
+    assert.equal(planForStripePrice("price_x", { STRIPE_PRICE_FITNESS_PRO_YEARLY: "price_x" })!.id, "fitness_pro_yearly");
     assert.equal(planForStripePrice("price_x", {}), null);
+    for (const p of plans({})) {
+      assert.match(p.appStoreProductId, /^ascendra\.[a-z_]+\.(monthly|quarterly|yearly)$/);
+      assert.match(p.playProductId, /^ascendra_[a-z_]+:(monthly|three-month|yearly)$/);
+      assert.deepEqual(planForStoreProduct(p.appStoreProductId)!.family, p.family);
+      assert.deepEqual(planForStoreProduct(p.playProductId)!.family, p.family);
+    }
   });
 });
 
@@ -233,7 +319,7 @@ describe("REQ-124 decision 6: an attempt in progress may be finished", () => {
   test("a mock exam is gated only when it starts: answering and submitting a started session never check the plan", () => {
     const root = path.resolve(__dirname, "../app/api/exam/sessions");
     const start = readFileSync(path.join(root, "route.ts"), "utf8");
-    assert.match(start, /requireFeature\(user\.id, "mock_exam"\)/, "starting a mock is gated");
+    assert.match(start, /requireFeature\(user\.id, "mock_exam", trackId\)/, "starting a mock is gated (REQ-170: on its course)");
     for (const f of ["[id]/route.ts", "[id]/items/[position]/route.ts", "[id]/submit/route.ts"]) {
       const src = readFileSync(path.join(root, f), "utf8");
       assert.doesNotMatch(src, /requireFeature|featureLock|consumeAllowance|requireCourseAccess/, f);

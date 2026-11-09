@@ -7602,6 +7602,28 @@
       "prevention_rules": [],
       "prevention_notes": "Before changing what a response carries, read the STORE build's screen (the last release that shipped to the stores, not the last merge), for how it renders the field, not only whether it dereferences it. The app now declares its protocol, so the server can keep serving old builds what they understand; raise CLIENT_PROTOCOL when a payload change needs it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-550",
+      "date": "2026-11-09",
+      "title": "Release rollback runbook gave a stale count of dropped tables",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "docs/deploy-runbook-integration.md said the rollback script drops 59 tables while scripts/rollback-release-2026-11-07.sql dropped 61 on master (64 with migration 060).",
+      "how_detected": "review while adding migration 060's rollback lines",
+      "root_cause": "The count is hand-written prose next to the script; migrations that added tables to the drop list (055, 056, 058) edited the list and the parenthetical but not the number.",
+      "requirement": "REQ-170",
+      "affected": [
+        "docs/deploy-runbook-integration.md",
+        "backend/scripts/rollback-release-2026-11-07.sql"
+      ],
+      "fix_summary": "Counted the tables in the script's drop list (64) and corrected the runbook.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Documentation number; the rehearsal compares schemas, not the prose count. The runbook now names which migrations' tables are in the list so the next edit sees the count beside them.",
+      "prevention_rules": [],
+      "prevention_notes": "When a migration adds a table to the rollback drop list, update the runbook's table count in the same change (recount the list).",
+      "recurrence_of": ""
     }
   ]
 }

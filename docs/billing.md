@@ -1,6 +1,16 @@
-# Paid plans and payments (REQ-122, REQ-124)
+# Paid plans and payments (REQ-122, REQ-124, REQ-170)
 
-Ascendra has three plans -- Free, Plus and Pro -- fully built and **off**.
+**REQ-170 (Nick, 2026-11-09): plans are by category.** IT and cloud,
+project management and fitness each have a Plus and a Pro plan; all-access
+covers every non-clinical course with Pro's features; clinical is its own
+Pro plan, with a cheaper add-on for all-access holders. There is **one
+published price per plan for everyone** -- no personalised pricing (the New
+York and Connecticut personalised-pricing laws are the reason). The intake
+form (REQ-169, "Study profile" below) only *suggests* a plan and a length;
+nothing a learner answers ever changes a price. See "Category plans" below;
+Free, Plus and Pro remain the feature levels inside a plan.
+
+Ascendra has three feature levels -- Free, Plus and Pro -- fully built and **off**.
 One server setting, `BILLING_ENABLED`, turns them on. Until then every
 learner is treated as Pro, the app shows no plan, price or upgrade prompt
 anywhere, and nothing behaves differently from before (the $0.50 daily AI
@@ -101,31 +111,109 @@ applies only from then. Upgrades apply at once.
   hours after access ended (`FINISH_IN_PROGRESS_HOURS`; not after a refund
   or a revocation), while a new scenario needs the plan.
 
-### Prices
+### Prices (REQ-170, proposed -- not final)
 
-| Plan | Monthly | 3 months | Yearly |
-|---|---|---|---|
-| Plus | $5.99 | $13.99 | $34.99 |
-| Pro | $9.99 | $22.99 | $59.99 |
+| Plan | Covers | Monthly | 3 months | Yearly |
+|---|---|---|---|---|
+| IT and cloud Plus / Pro | AWS, Azure, Google Cloud, CompTIA, Kubernetes, programming | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| Project management Plus / Pro | PMI and other PM courses | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| Fitness Plus / Pro | Personal trainer, strength and conditioning | $12.99 / $19.99 | $29.99 / $44.99 | $79.99 / $129.99 |
+| All access (Pro features) | Every non-clinical course, academic ones included | $29.99 | $69.99 | $199 |
+| Clinical Pro | Nursing and physical therapy | $49 | $99 | -- |
+| Clinical add-on (all-access holders only) | Nursing and physical therapy | $29 | -- | -- |
 
-These are US list prices in `backend/lib/billing-config.ts` (each overridable
-with `BILLING_PRICE_<PLAN>_USD`, e.g. `BILLING_PRICE_PLUS_MONTHLY_USD`). The
-app shows the **store's** price, in the learner's currency, whenever the
-store gives one; the US price is only a fallback. Set regional prices in
-App Store Connect and Google Play.
+These are US list prices in `backend/lib/billing-config.ts`
+(`PLAN_FAMILIES`). Each is overridable with
+`BILLING_PRICE_<FAMILY>_<PERIOD>_USD` (e.g. `BILLING_PRICE_PM_PLUS_MONTHLY_USD`),
+which can also **add** a length that has no default (e.g.
+`BILLING_PRICE_CLINICAL_PRO_YEARLY_USD`). The app shows the **store's**
+price, in the learner's currency, whenever the store gives one; the US price
+is only a fallback. Set regional prices in App Store Connect and Google
+Play. The plans screen says under every price list: "Every plan has one
+published price, the same for everyone. Your answers to the study questions
+never change it."
+
+### Category plans: who gets what (REQ-170)
+
+- Which plan covers a course comes from its catalog category
+  (`EDUCATION_CATEGORY_PLAN` in `billing-config.ts`): the AWS, Azure, Google
+  Cloud, CompTIA, cloud-native, IT and development categories are IT and
+  cloud; the PM categories are project management; health and fitness is
+  fitness; healthcare and nursing (including physical therapy and health
+  informatics) is clinical. Anything else ("other", e.g. academics) is
+  covered only by all-access. A learner's own course comes with any paid
+  plan.
+- A learner's level **on a course** is the highest level among their plans
+  that cover it. Every gated route passes its course (`requireFeature(user,
+  feature, course)`), so Project management Pro never opens Pro features in
+  an IT course. A course no plan covers is on Free terms: the one free
+  course still applies to the other categories.
+- An upgrade prompt names the plan for that course ("The AI coach comes
+  with Project management Plus") and carries `upgrade.scope`, so the app's
+  "See plans" opens on that category.
+- One non-clinical plan at a time in the stores (one App Store subscription
+  group; Play replaces the plan the same way). Two categories means
+  all-access. Clinical is held beside it.
+- Grants (comps, the launch comp) have no scope: they cover every course,
+  clinical included.
+- Downgrades keep the higher plan's paid period, as before; "higher" is the
+  plan's rank (all-access over a category's Pro over its Plus). Moving
+  between two categories at the same level is a crossgrade (App Store:
+  immediate; Play: at the end of the paid period).
 
 ### The AI cap (never losing money on a learner)
 
-Each paid plan has one monthly AI spending cap, the same for every billing
-length: half of what the plan's yearly price brings in per month after store
-and card fees. Plus: about **$1.29**; Pro: about **$2.21**
-(`AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD`; `off` removes one).
-Spend is summed from `ai_calls` for the calendar month (UTC). At the cap,
-**coach chat and lesson regenerate pause** with a kind message naming the
-day they open again. **Grading and review never stop.** Learners see
-allowances (messages a day, versions a week, mocks a month), never dollars.
-A unit test (`lib/billing-config.test.ts`) checks that no plan, at any
-length, goes negative for a learner who uses the AI right up to the cap.
+Each plan has one monthly AI spending cap, the same for every billing
+length: half of what the plan's **yearly** price brings in per month after
+store and card fees (70% bought in the stores at 15%, 30% on the web at
+2.9% + $0.30). A plan without a yearly length (clinical) uses its cheapest
+month instead. A learner holding two plans (a category and clinical) has
+the sum of both caps; a held period and its new plan count once.
+
+| Plan | Cap a month | Override |
+|---|---|---|
+| IT and cloud / PM / fitness Plus | $2.95 | `AI_MONTHLY_CAP_<FAMILY>_USD`, e.g. `AI_MONTHLY_CAP_PM_PLUS_USD` |
+| IT and cloud / PM / fitness Pro | $4.80 | |
+| All access | $7.35 | `AI_MONTHLY_CAP_ALL_ACCESS_USD` |
+| Clinical Pro | $14.61 (from $99 for 3 months) | `AI_MONTHLY_CAP_CLINICAL_PRO_USD` |
+| Clinical add-on | $12.81 | `AI_MONTHLY_CAP_CLINICAL_ADDON_USD` |
+| A grant (no plan) | Plus $2.95, Pro $7.35 | `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` |
+
+`off` removes a cap. Discounts (verified, founding) never lower it and
+don't stack. Spend is summed from `ai_calls` for the calendar month (UTC).
+At the cap, **coach chat and lesson regenerate pause** with a kind message
+naming the day they open again. **Grading and review never stop.** Learners
+see allowances (messages a day, versions a week, mocks a month), never
+dollars. Unit tests (`lib/billing-config.test.ts`) check that no plan, at
+any length, goes negative for a learner who uses the AI right up to the
+cap, at list price and at 20% and 40% off.
+
+#### Margins (AI cost only, per learner per month, after fees)
+
+Typical use is 30% of the cap; worst case is 100%. Percentages are of the
+month's take after fees. Monthly, 3-month and yearly lengths:
+
+| Plan and length | Take | Typical: list / 20% / 40% off | Worst: list / 20% / 40% off |
+|---|---|---|---|
+| Category Plus, monthly $12.99 | $11.42 | $10.54 / $8.24 / $5.93 | $8.47 / $6.17 / $3.87 |
+| Category Plus, 3 months $29.99 | $8.83 | $7.95 / $6.17 / $4.40 | $5.88 / $4.11 / $2.34 |
+| Category Plus, yearly $79.99 | $5.90 | $5.02 / $3.83 / $2.65 | $2.95 / $1.77 / **$0.59** |
+| Category Pro, monthly $19.99 | $17.63 | $16.19 / $12.64 / $9.10 | $12.83 / $9.28 / $5.74 |
+| Category Pro, 3 months $44.99 | $13.26 | $11.82 / $9.16 / $6.50 | $8.46 / $5.80 / $3.14 |
+| Category Pro, yearly $129.99 | $9.59 | $8.15 / $6.23 / $4.31 | $4.79 / $2.87 / $0.95 |
+| All access, monthly $29.99 | $26.49 | $24.29 / $18.97 / $13.65 | $19.14 / $13.82 / $8.51 |
+| All access, 3 months $69.99 | $20.65 | $18.44 / $14.31 / $10.17 | $13.30 / $9.16 / $5.03 |
+| All access, yearly $199 | $14.69 | $12.49 / $9.55 / $6.61 | $7.34 / $4.40 / $1.46 |
+| Clinical Pro, monthly $49 | $43.34 | $38.96 / $30.27 / $21.58 | $28.73 / $20.04 / $11.36 |
+| Clinical Pro, 3 months $99 | $29.22 | $24.83 / $18.99 / $13.14 | $14.61 / $8.76 / $2.91 |
+| Clinical add-on, monthly $29 | $25.61 | $21.77 / $16.63 / $11.49 | $12.80 / $7.66 / $2.52 |
+
+Worst case overall: a founding member (40% off) on a yearly category Plus
+plan who uses the whole cap every month keeps **$0.59 a month (17%)**. Every
+plan's yearly (or cheapest) length breaks even at a discount of just under
+50%, because the cap is half the undiscounted take. REQ-166 accepts
+verified percentages up to 90: anything above about 49% loses money at the
+cap on the yearly lengths.
 
 Allowance counts are rolling windows (24 hours, 7 days, 30 days), counted in
 `allowance_uses` under a lock so parallel requests can't overrun them. A use
@@ -184,12 +272,13 @@ Backend (Vercel). All optional until you turn plans on.
 | `REVENUECAT_WEBHOOK_AUTH` | The Authorization header value you type into RevenueCat's webhook settings. Long and random. |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` from the Stripe webhook endpoint. |
 | `STRIPE_SECRET_KEY` | `sk_live_...` (or `sk_test_...` to test). Server only. Without it web checkout answers 503. |
-| `STRIPE_PRICE_PLUS_MONTHLY` ... `STRIPE_PRICE_PRO_YEARLY` | The six Stripe price ids. A plan without one shows "Not available yet" on the web. |
+| `STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY` ... `STRIPE_PRICE_CLINICAL_ADDON_MONTHLY` | The 24 Stripe price ids, `STRIPE_PRICE_<PLAN ID>` (REQ-170). A plan without one shows "Not available yet" on the web. |
 | `BILLING_WEB_RETURN_URL` | Where Stripe Checkout and the portal return (e.g. `https://www.ascendra-learn.com`). Falls back to `APP_URL`. |
-| `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` | The caps (defaults 1.29 / 2.21). |
+| `AI_MONTHLY_CAP_<FAMILY>_USD` | Per-plan caps (REQ-170; defaults in "The AI cap"). `AI_MONTHLY_CAP_PLUS_USD` / `_PRO_USD` are the caps of grants. |
+| `FOUNDING_MEMBERS_*`, `STRIPE_COUPON_FOUNDING`, `PLAY_OFFER_FOUNDING` | The founding-member offer (off by default; "Founding members"). |
 | `BILLING_ALLOWANCE_<KIND>_<TIER>` | Allowance overrides (above). |
 | `BILLING_FREE_COURSE_SWITCH_DAYS` | Default 7. |
-| `BILLING_PRICE_<PLAN>_USD` | Fallback display prices. |
+| `BILLING_PRICE_<FAMILY>_<PERIOD>_USD` | Fallback display prices, e.g. `BILLING_PRICE_ALL_ACCESS_YEARLY_USD`. |
 
 App (EAS build env, `mobile/eas.json` `build.production.env`):
 
@@ -202,47 +291,136 @@ The purchases SDK starts only when the server says plans are on **and** the
 key for that platform is in the build. Never put RevenueCat's secret key or
 any Stripe key in the app.
 
-## Product ids to create
+## Product ids to create (REQ-170)
 
 Create these with exactly these ids (they are what `billing-config.ts`
-matches on).
+matches on). The first pricing page's six ids (`ascendra.plus.monthly` ...)
+were never created and are no longer sold.
 
-**App Store Connect** -- one subscription group "Ascendra", six
-auto-renewable subscriptions; Pro ranked above Plus so a change is an
-upgrade:
+**App Store Connect** -- two subscription groups, 24 auto-renewable
+subscriptions. Enrol in the App Store Small Business Program (15%).
 
-- `ascendra.plus.monthly`, `ascendra.plus.quarterly`, `ascendra.plus.yearly`
-- `ascendra.pro.monthly`, `ascendra.pro.quarterly`, `ascendra.pro.yearly`
+Group **"Ascendra"** (one non-clinical plan at a time). Rank all-access
+highest, then the three Pro plans at one level, then the three Plus plans
+at one level:
 
-Enrol in the App Store Small Business Program (15%).
+- `ascendra.it_cloud_plus.monthly`, `ascendra.it_cloud_plus.quarterly`, `ascendra.it_cloud_plus.yearly`
+- `ascendra.it_cloud_pro.monthly`, `ascendra.it_cloud_pro.quarterly`, `ascendra.it_cloud_pro.yearly`
+- `ascendra.pm_plus.monthly`, `ascendra.pm_plus.quarterly`, `ascendra.pm_plus.yearly`
+- `ascendra.pm_pro.monthly`, `ascendra.pm_pro.quarterly`, `ascendra.pm_pro.yearly`
+- `ascendra.fitness_plus.monthly`, `ascendra.fitness_plus.quarterly`, `ascendra.fitness_plus.yearly`
+- `ascendra.fitness_pro.monthly`, `ascendra.fitness_pro.quarterly`, `ascendra.fitness_pro.yearly`
+- `ascendra.all_access.monthly`, `ascendra.all_access.quarterly`, `ascendra.all_access.yearly`
 
-**Google Play Console** -- two subscriptions, each with three auto-renewing
-base plans:
+Group **"Ascendra Clinical"** (one level):
 
-- subscription `ascendra_plus`, base plans `monthly`, `three-month`, `yearly`
-- subscription `ascendra_pro`, base plans `monthly`, `three-month`, `yearly`
+- `ascendra.clinical_pro.monthly`, `ascendra.clinical_pro.quarterly`
+- `ascendra.clinical_addon.monthly`
 
-(RevenueCat reports these as `ascendra_plus:monthly` and so on.)
+**Google Play Console** -- nine subscriptions; base plans `monthly`,
+`three-month`, `yearly` where the plan has that length:
+
+- `ascendra_it_cloud_plus`, `ascendra_it_cloud_pro`, `ascendra_pm_plus`,
+  `ascendra_pm_pro`, `ascendra_fitness_plus`, `ascendra_fitness_pro`,
+  `ascendra_all_access` -- all three base plans
+- `ascendra_clinical_pro` -- `monthly`, `three-month`
+- `ascendra_clinical_addon` -- `monthly`
+
+(RevenueCat reports these as `ascendra_pm_plus:three-month` and so on.)
+For the founding offer, add a developer-determined offer `founding` (40%
+off, recurring) to each base plan; for verified discounts, the
+`verified-<group>` offers (below).
 
 **RevenueCat** -- one project with the iOS and Android apps:
 
-- Entitlements `plus` and `pro`. Attach the three Plus products to `plus`
-  and the three Pro products to `pro`.
-- Offering `default` (set as current) with the six products as packages,
-  using custom package identifiers equal to the plan ids: `plus_monthly`,
-  `plus_quarterly`, `plus_yearly`, `pro_monthly`, `pro_quarterly`,
-  `pro_yearly` (the built-in `$rc_monthly` can only be used once per
-  offering). The app matches packages by store product id, so a different
-  package name still works.
+- Nine entitlements named after the plans: `it_cloud_plus`, `it_cloud_pro`,
+  `pm_plus`, `pm_pro`, `fitness_plus`, `fitness_pro`, `all_access`,
+  `clinical_pro`, `clinical_addon`; attach each plan's App Store and Play
+  products to its entitlement. (The server reads the product id; the
+  entitlement is the fallback.)
+- Offering `default` (set as current) with the 24 products as packages,
+  using custom package identifiers equal to the plan ids
+  (`it_cloud_plus_monthly` ... `clinical_addon_monthly`). The app matches
+  packages by store product id, so a different package name still works.
 - App user id: the app logs in with the Ascendra account id; leave
   "transfer behaviour" at its default.
 - Webhook: URL below, Authorization header = `REVENUECAT_WEBHOOK_AUTH`.
 
-**Stripe** -- two products (Plus, Pro), each with three recurring prices
-(monthly, every 3 months, yearly) in USD (add currencies as you like). Put
-the six `price_...` ids in the `STRIPE_PRICE_*` variables. Turn on the
-customer portal (Settings > Billing > Customer portal) with cancel and
+**Stripe** -- nine products, one recurring price per length (24 prices) in
+USD. Put each `price_...` id in `STRIPE_PRICE_<PLAN ID>`, e.g.
+`STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY`, `STRIPE_PRICE_ALL_ACCESS_YEARLY`,
+`STRIPE_PRICE_CLINICAL_ADDON_MONTHLY`. A plan without one shows "Not
+available yet" on the web. For founding members, one coupon (40% off,
+duration **forever**) in `STRIPE_COUPON_FOUNDING`. Turn on the customer
+portal (Settings > Billing > Customer portal) with cancel and
 payment-method update.
+
+## Founding members (REQ-170)
+
+40% off for the first 100 paying learners, kept for as long as they stay
+subscribed. **Off** unless `FOUNDING_MEMBERS_ENABLED` is on (and plans are
+on). It is a published discount -- the same percentage for every founding
+member -- and doesn't stack with a verified discount: the larger applies
+(a tie goes to the verified one, so it doesn't use a seat). It never lowers
+the AI cap.
+
+- Seats (`founding_members`, migration 060): a seat is **held** when a
+  learner starts a web checkout with the founding coupon, or just before the
+  app buys the Play `founding` offer (`POST /api/billing/founding`), under a
+  lock so parallel checkouts can't overrun the limit. The first paid
+  subscription event confirms it. An unpaid hold lapses after
+  `FOUNDING_MEMBERS_HOLD_HOURS` (48) and frees the seat. A member keeps
+  their percentage on later plans.
+- Web: the Stripe coupon (duration forever) replaces the promotion-code box.
+- Google Play: the `founding` developer-determined offer (recurring). Like
+  the verified offers, eligibility is decided by the app; watch its sales
+  against `founding_members`.
+- App Store: **not offered in the app.** Apple's offer codes and promotional
+  offers can't keep a price for the life of a subscription (open question
+  for Nick: separate founding products, or web and Play only).
+- `GET /api/billing/me` has `founding: { percent, state }` (`member`,
+  `held`, `open`, `full`); the plans screen shows one line while seats are
+  open and to members.
+
+| Variable | What |
+|---|---|
+| `FOUNDING_MEMBERS_ENABLED` | The switch, off by default. |
+| `FOUNDING_MEMBERS_PERCENT` | Default 40 (1-90). Must match the coupon and the Play offers. |
+| `FOUNDING_MEMBERS_LIMIT` | Default 100. |
+| `FOUNDING_MEMBERS_HOLD_HOURS` | Default 48. |
+| `STRIPE_COUPON_FOUNDING` | The Stripe coupon id. Without it the web doesn't offer the founding discount. |
+| `PLAY_OFFER_FOUNDING` | The Play offer id (default `founding`). |
+
+## Study profile: the intake form (REQ-169)
+
+New learners are asked, once and skippably, what they want to learn: their
+goal, the exam(s) or course(s) they're preparing for (up to five, each with
+an optional exam date), their experience, weekly study time and, optionally,
+what they'll use it for (personal, work, or teaching a class). It is step 2
+of the first run and editable any time in Settings > Study profile
+(`GET/PUT /api/intake`, `lib/intake.ts`, migration 060's `learner_intake` and
+`learner_intake_targets`).
+
+- **Study plan**: saving writes each named course's exam date and an even
+  share of the weekly hours into its study plan (the same `study_plans` row
+  the course's plan screen edits). Experience other than "new" suggests the
+  quick placement check.
+- **Plan suggestion** (only with `BILLING_ENABLED` on): from the courses'
+  categories and the latest exam date only -- never experience, goal, hours
+  or use (`lib/intake-suggest.ts`). One category gives that plan, several
+  (or an "other" course) give all-access, clinical with anything else gives
+  all-access with the clinical add-on. The length is the cheapest way to
+  cover the time to the exam at the published prices (an exam about 10
+  weeks away suggests 3 months). The suggestion has no price of its own: the
+  plans screen opens on it, marks the length "Suggested for you", and shows
+  the same published price as for everyone.
+- **Teaching a class**: no personal plan is suggested; the app shows
+  "Using Ascendra with a class? Contact us" (`CLASS_CONTACT_LINE`, REQ-166)
+  with `SUPPORT_EMAIL`.
+- **Billing off**: the form works the same for the study plan; nothing
+  about plans or prices appears.
+- The answers are in the account export (`intake`, `intakeTargets`) and are
+  deleted with the account.
 
 ## Webhook URLs
 
@@ -487,7 +665,7 @@ never to one taken from the request.
 | Where | How | What Nick sets up |
 |---|---|---|
 | Web (Stripe) | `POST /api/billing/checkout` adds the group's coupon (`discounts[0][coupon]`) in place of the promotion-code box | One coupon per group (below), id in `STRIPE_COUPON_<GROUP>` |
-| Google Play | The plans screen buys the base plan's **developer-determined offer** for the group (RevenueCat `purchaseSubscriptionOption`); with no such offer the regular price is bought | One offer per group on each of the six base plans (below) |
+| Google Play | The plans screen buys the base plan's **developer-determined offer** for the group (RevenueCat `purchaseSubscriptionOption`); with no such offer the regular price is bought | One offer per group on each base plan (below) |
 | App Store | The discount page hands the learner a **one-time offer code** for the plan they pick, from a pool Nick uploads; the app opens Apple's redemption sheet (or the redemption link) | Offer codes per group and product, uploaded with `npm run discounts:codes` |
 
 Google Play promo codes can't carry a percentage off a subscription (Google:
@@ -538,7 +716,7 @@ their values) and which groups are on offer.
    `STRIPE_COUPON_<GROUP>`. Don't make these promotion codes: they are
    applied by the server, never typed.
 3. **Google Play Console** (each subscription > each base plan > Add offer):
-   on all six base plans, one offer per group with offer id
+   on every base plan, one offer per group with offer id
    `verified-<group>` (e.g. `verified-military`), eligibility *Developer
    determined*, and one phase *Discounted recurring payment* at the published
    percentage for as many periods as a year (12 monthly, 4 three-month, 1
@@ -553,8 +731,8 @@ their values) and which groups are on offer.
    the CSV and load it:
    ```sh
    cd backend
-   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01 --dry-run
-   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.it_cloud_pro.yearly --expires 2027-05-01 --dry-run
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.it_cloud_pro.yearly --expires 2027-05-01
    npm run discounts:codes -- --status    # free / issued per group and product, next expiry
    ```
    Refill before a batch expires. Optionally copy the offer's example

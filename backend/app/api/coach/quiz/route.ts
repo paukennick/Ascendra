@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const track = await visibleTrack(trackId, user.id);
     if (!track) return notFound("Track not found");
     await requireAcknowledgementForTrack(trackId, user.id);
-    await requireFeature(user.id, "quiz_me"); // REQ-122
+    await requireFeature(user.id, "quiz_me", track.id); // REQ-122, REQ-170
 
     const result = await nextQuizTurn(user.id, trackId, {
       beforeGenerate: async () => {

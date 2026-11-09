@@ -30,7 +30,7 @@ import {
 } from "./discount-providers";
 import { availableGroups, discountOperatorConfig, discountStatus, discountsAvailable, parseCodeFile, startVerification } from "./verified-discounts";
 import { parseCodesArgs } from "./discount-codes-cli";
-import { monthlyAiCapUsd, DEFAULT_MONTHLY_CAP_USD } from "./billing-config";
+import { familyCapUsd, monthlyAiCapUsd, PLAN_FAMILY_IDS } from "./billing-config";
 import { createCheckoutSession } from "./stripe-checkout";
 
 const SECRET = { AUTH_JWT_SECRET: "unit-test-secret" };
@@ -200,8 +200,8 @@ describe("REQ-166 offer-code pool parsing", () => {
     assert.deepEqual(parseCodesArgs(["--status"], now), { kind: "status" });
     assert.match(String(parseCodesArgs(["--import", "f"], now)), /--group/);
     assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "nope"], now)), /--product/);
-    assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.pro.yearly", "--expires", "2020-01-01"], now)), /future/);
-    const ok = parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.pro.yearly", "--expires", "2027-05-01", "--dry-run"], now);
+    assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.it_cloud_pro.yearly", "--expires", "2020-01-01"], now)), /future/);
+    const ok = parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.it_cloud_pro.yearly", "--expires", "2027-05-01", "--dry-run"], now);
     assert.equal(typeof ok, "object");
     assert.equal((ok as any).dryRun, true);
   });
@@ -210,13 +210,15 @@ describe("REQ-166 offer-code pool parsing", () => {
 describe("REQ-166 Nick's rules: full AI cap, no stacking", () => {
   test("the monthly AI cap ignores every discount setting (list price, not discounted)", () => {
     for (const tier of ["plus", "pro"] as const) {
-      assert.equal(monthlyAiCapUsd(tier, ON), DEFAULT_MONTHLY_CAP_USD[tier]);
+      assert.equal(monthlyAiCapUsd(tier, ON), monthlyAiCapUsd(tier, {}));
       assert.equal(monthlyAiCapUsd(tier, { ...ON, DISCOUNT_PERCENT_MILITARY: "90" }), monthlyAiCapUsd(tier, {}));
     }
+    // REQ-170: every category plan's cap too (FAIL-232: updated, not deleted).
+    for (const f of PLAN_FAMILY_IDS) assert.equal(familyCapUsd(f, { ...ON, DISCOUNT_PERCENT_MILITARY: "90" }), familyCapUsd(f, {}), f);
   });
 
   test("Stripe checkout: a verified coupon replaces the promotion-code box (never both)", async () => {
-    const env = { BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1", APP_URL: "https://a.test" } as unknown as NodeJS.ProcessEnv;
+    const env = { BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY: "price_1", APP_URL: "https://a.test" } as unknown as NodeJS.ProcessEnv;
     const sent: string[] = [];
     const real = globalThis.fetch;
     globalThis.fetch = (async (_url: string, init: RequestInit) => {
@@ -224,8 +226,8 @@ describe("REQ-166 Nick's rules: full AI cap, no stacking", () => {
       return new Response(JSON.stringify({ url: "https://checkout.stripe.test/s" }), { status: 200 });
     }) as typeof fetch;
     try {
-      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "plus_monthly", coupon: "co_mil20" }, env);
-      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "plus_monthly" }, env);
+      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "it_cloud_plus_monthly", coupon: "co_mil20" }, env);
+      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "it_cloud_plus_monthly" }, env);
     } finally {
       globalThis.fetch = real;
     }

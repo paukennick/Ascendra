@@ -186,7 +186,7 @@ export async function POST(
     // REQ-122: regenerate is in Plus and Pro, counted per week, and pauses at
     // the plan's monthly AI cap. All no-ops while billing is off.
     await requireCourseAccessForObjective(user.id, id);
-    const tier = await requireFeature(user.id, "regenerate");
+    const tier = await requireFeature(user.id, "regenerate", { objectiveId: id }); // REQ-170: the tier on this course
     await requireAiAllowance(user.id, tier);
     try {
       await consumeRateLimit(REGEN_RATE_EVENT, user.id, REGEN_LIMIT, { userId: user.id });

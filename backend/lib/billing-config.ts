@@ -627,7 +627,10 @@ function fullConfig(env: Env) {
     allowances: allowanceTable(env),
     scopes: PLAN_SCOPES.map((s) => ({ id: s, name: SCOPE_NAME[s], ...SCOPE_COPY[s], families: familiesForScope(s) })),
     families: Object.fromEntries(
-      PLAN_FAMILY_IDS.map((f) => [f, { scope: PLAN_FAMILIES[f].scope, tier: PLAN_FAMILIES[f].tier, name: PLAN_FAMILIES[f].name, requires: PLAN_FAMILIES[f].requires ?? null }])
+      PLAN_FAMILY_IDS.map((f) => {
+        const i = PLAN_FAMILIES[f];
+        return [f, { scope: i.scope, tier: i.tier, name: i.name, requires: i.requires ?? null, storeGroup: i.storeGroup, rank: i.rank }];
+      })
     ),
     plans: plans(env).map(({ stripePriceEnv, ...p }) => ({ ...p, web: Boolean(env[stripePriceEnv]) })),
     revenueCat: { entitlements: REVENUECAT_ENTITLEMENTS, offering: REVENUECAT_OFFERING },

@@ -149,7 +149,7 @@ export async function sampleLabId(trackId: string): Promise<string | null> {
 }
 
 export async function labAccess(userId: string, lab: Pick<LabRow, "id" | "track_id">): Promise<LabAccess> {
-  if (await hasFeature(userId, LABS_FEATURE)) return "full";
+  if (await hasFeature(userId, LABS_FEATURE, lab.track_id)) return "full"; // REQ-170: on this course
   return (await sampleLabId(lab.track_id)) === lab.id ? "sample" : "locked";
 }
 
@@ -290,13 +290,17 @@ export async function listLabs(userId: string, scope: LabScope, env = process.en
       order by cu.sort_order, o.sort_order, l.kind, l.title, l.id`,
     [id, userId, await servedReviewStatusesFor(userId, env)]
   );
-  const full = await hasFeature(userId, LABS_FEATURE);
+  // REQ-170: labs are on a plan per course, so "full" is decided per course.
+  const fullOn = new Map<string, boolean>();
   const samples = new Map<string, string | null>();
-  if (!full) {
-    for (const r of rows) if (!samples.has(r.track_id)) samples.set(r.track_id, await sampleLabId(r.track_id));
+  for (const r of rows) {
+    if (fullOn.has(r.track_id)) continue;
+    const full = await hasFeature(userId, LABS_FEATURE, r.track_id);
+    fullOn.set(r.track_id, full);
+    if (!full) samples.set(r.track_id, await sampleLabId(r.track_id));
   }
   return rows.map((r) => ({
-    access: full ? ("full" as const) : samples.get(r.track_id) === r.id ? ("sample" as const) : ("locked" as const),
+    access: fullOn.get(r.track_id) ? ("full" as const) : samples.get(r.track_id) === r.id ? ("sample" as const) : ("locked" as const),
     id: r.id,
     kind: r.kind,
     title: r.title,

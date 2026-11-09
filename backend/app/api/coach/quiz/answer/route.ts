@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     ]);
     if (!owned) return notFound("Quiz question not found");
     await requireAcknowledgementForTrack(owned.track_id, user.id);
-    await requireFeature(user.id, "quiz_me"); // REQ-122
+    await requireFeature(user.id, "quiz_me", owned.track_id); // REQ-122, REQ-170
 
     const result = await answerQuizTurn(user.id, turnId, body.choice, validClientAttemptId(body.clientAttemptId));
     if (result.status === "not_found") return notFound("Quiz question not found");

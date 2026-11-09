@@ -54,7 +54,7 @@ export async function GET(req: Request) {
       const scenario = await visibleScenario(scenarioId, authUser.id);
       if (!scenario) return notFound("PBQ scenario not found");
       await requireAcknowledgementForUnit(scenario.unit_id, authUser.id);
-      await requireFeature(authUser.id, "pbq"); // REQ-122
+      await requireFeature(authUser.id, "pbq", { unitId: scenario.unit_id }); // REQ-122, REQ-170
       const row = await queryOne(`select * from pbq_scenarios where id = $1`, [scenario.id]);
       return ok({ scenario: row, cached: true });
     }
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
     );
     if (!unit) return notFound("Unit not found");
     await requireAcknowledgementForUnit(unitId, authUser.id);
-    await requireFeature(authUser.id, "pbq"); // REQ-122
+    await requireFeature(authUser.id, "pbq", { unitId }); // REQ-122, REQ-170
 
     // Runs only when nothing unseen is left (or fresh=1), and only in the
     // one request holding this learner's generation lease for the unit, so
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
     await requireAcknowledgementForUnit(unitId, authUser.id);
     // REQ-122; REQ-124 (decision 6): an answer to a scenario already on
     // screen when the paid period ended may still be sent and graded.
-    await requireFeatureToFinish(authUser.id, "pbq");
+    await requireFeatureToFinish(authUser.id, "pbq", { unitId });
 
     // A retry (dropped connection, double tap) replays the stored result.
     // Checked before the rate limit and the Anthropic call.

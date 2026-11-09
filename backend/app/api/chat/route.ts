@@ -104,7 +104,7 @@ export async function POST(req: Request) {
     await requireAiBudget(userId);
     // REQ-122: the coach is in Plus and Pro, pauses at the plan's monthly AI
     // cap, and Plus counts messages a day. All no-ops while billing is off.
-    const tier = await requireFeature(userId, "coach");
+    const tier = await requireFeature(userId, "coach", trackId); // REQ-170: the tier on this course
     await requireAiAllowance(userId, tier);
 
     try {

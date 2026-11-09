@@ -25,7 +25,7 @@ import {
   type LabRow,
   type SubmitInput,
 } from "@/lib/labs";
-import { consumeAllowance, requireCourseAccess, requireFeature } from "@/lib/entitlements";
+import { consumeAllowance, requireCourseAccess, requireFeature, tierForCourse } from "@/lib/entitlements";
 import { requireLabAcknowledgement } from "@/lib/lab-disclaimer";
 
 // REQ-123: the lab routes' shared error mapping and the submit flow, kept
@@ -56,7 +56,7 @@ export async function gateLab(userId: string, lab: LabRow, mode: "view" | "resum
   const continuing = mode === "view" ? runs.any : runs.open;
   if (!continuing) {
     await requireCourseAccess(userId, lab.track_id);
-    if (access === "locked") await requireFeature(userId, LABS_FEATURE);
+    if (access === "locked") await requireFeature(userId, LABS_FEATURE, lab.track_id);
   }
   return access;
 }
@@ -117,7 +117,8 @@ export async function submitLab(
     // Decision 9 extended to sample labs: a graded lab step counts against
     // the daily graded-answer allowance on a tier that has a count (Free);
     // given back if grading fails. At the limit the run stays open for later.
-    const use = await consumeAllowance(userId, "graded_answer");
+    // REQ-170: the count that applies is the learner's tier on this course.
+    const use = await consumeAllowance(userId, "graded_answer", await tierForCourse(userId, lab.track_id));
     const ctx = (await coachContextForObjective(lab.objective_id)) ?? undefined;
     const graded = await gradeLabStep(
       {
