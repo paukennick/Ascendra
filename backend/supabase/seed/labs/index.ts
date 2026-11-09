@@ -13,6 +13,13 @@ import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
 import { NPTEPT_LABS } from "./pt-nptept";
 import { NPTEPTA_LABS } from "./pt-nptepta";
 import { DPT_LABS } from "./pt-dpt";
+// REQ-150: more project-management courses.
+import { CAPM_LABS } from "./pm-capm";
+import { PMIACP_LABS } from "./pm-acp";
+import { PMIRMP_LABS } from "./pm-rmp";
+import { PMISP_LABS } from "./pm-sp";
+import { PMIPBA_LABS } from "./pm-pba";
+import { PROJECTPLUS_LABS } from "./pm-projectplus";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -33,4 +40,10 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NPTEPT_LABS,
   NPTEPTA_LABS,
   DPT_LABS,
+  CAPM_LABS,
+  PMIACP_LABS,
+  PMIRMP_LABS,
+  PMISP_LABS,
+  PMIPBA_LABS,
+  PROJECTPLUS_LABS,
 ].map(withValueSources);
