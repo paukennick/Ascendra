@@ -114,7 +114,7 @@ end $$;
 -- them.
 
 drop table if exists
-  ai_calls, allowance_uses, assessment_types, billing_events, coach_quiz_items, coach_quiz_turns,
+  account_access, account_access_events, ai_calls, allowance_uses, assessment_types, billing_events, coach_quiz_items, coach_quiz_turns,
   concept_set_members, concept_sets, content_review_queue, course_insights, discrimination_items, entitlements,
   error_log_backup_029, exam_items, exam_outcomes, exam_session_items, exam_sessions, free_course_choice,
   grading_claims, item_flags, item_holdbacks, item_quality_params, item_status,

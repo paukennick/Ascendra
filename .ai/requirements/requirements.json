@@ -5036,6 +5036,68 @@
         "Clinical content must be reviewed by a licensed PT/PTA educator before approval; served unreviewed with the disclaimer per REQ-125",
         "Scope change after merging master: the PT density, framing and PTA-scope checks live in backend/lib/labs-pt.test.ts (as REQ-149 did for fitness); backend/lib/labs.test.ts is unchanged."
       ]
+    },
+    {
+      "id": "REQ-144",
+      "category": "feature",
+      "title": "Unrestricted access: owner account from OWNER_EMAILS and owner-granted unrestricted access for selected people",
+      "description": "Server-side access levels. Owner comes from OWNER_EMAILS (comma-separated; matched case-insensitively against VERIFIED emails only). Unrestricted comes from an account_access grant (migration 056) by email with optional end date and note; a grant for an email with no verified account waits and applies once that email registers and verifies. Owner implies unrestricted. Unrestricted lifts every plan feature and course and lab regardless of tier and BILLING_ENABLED; plan allowances and the per-tier monthly AI cap; and raises the daily AI budget to a safety ceiling (AI_UNRESTRICTED_DAILY_CEILING_USD default 20) that logs and emails the owners when hit. Early access: featureEnabledFor(user flag) lets owner and unrestricted accounts see features behind off switches (LABS_SERVE_UNREVIEWED today; SIMS_ENABLED later). Not lifted: authentication and MFA and rate limits and access checks and disclaimers and acknowledgements and other learners' data. Owner-only API (/api/access/grants) and Settings > Access screen and npm run access:grant CLI; every grant and revoke and claim is in an audit table and in the affected learner's export. Recipients see 'Unrestricted access granted by <owner>' as their plan.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/056_account_access.sql",
+        "backend/lib/account-access.ts",
+        "backend/lib/account-access-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/email.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/access",
+        "backend/app/api/auth/me/route.ts",
+        "backend/scripts/access-grant.ts",
+        "backend/package.json",
+        "mobile/src/lib/access.ts",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/settings/access.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "mobile/src/types/index.ts",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "OWNER_EMAILS account resolves to owner only when its email is verified",
+        "Owner and unrestricted pass every gated route with BILLING_ENABLED on and off",
+        "No allowance rows and no monthly cap for unrestricted",
+        "Daily AI budget for unrestricted is the ceiling and hitting it logs and records and emails the owners",
+        "Chat and regenerate rate limits still apply to unrestricted",
+        "Pending grant applies after the email verifies",
+        "Expired and revoked grants stop applying",
+        "Only owners can list or grant or revoke (unrestricted users get 403)",
+        "Every grant and revoke and claim is audited and exported to the affected learner",
+        "CLI grant and revoke and list work",
+        "Settings Access section only for owners",
+        "Recipient sees Unrestricted access granted by owner in Settings and Plans"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database",
+        "mobile typecheck",
+        "mobile tests",
+        "security_review"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "Unrestricted accounts can spend up to the ceiling per day each",
+        "Owner is decided by env so changing OWNER_EMAILS needs a redeploy",
+        "Migration 056 must follow 055 from feature/content-currency"
+      ]
     }
   ]
 }

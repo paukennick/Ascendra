@@ -171,3 +171,20 @@ export async function sendSecurityAlertEmail(to: string, subject: string, messag
     html: `<p>${escapeHtml(message)}</p><p>If this wasn't you, change your password immediately and review your active sessions in Ascendra's Account settings.</p>`,
   });
 }
+
+// REQ-144: to each owner (OWNER_EMAILS) when an unrestricted account reaches
+// the AI safety ceiling (lib/account-access-config.ts). At most once a day
+// per account. `accountEmail` is escaped.
+export async function sendAiCeilingNotice(to: string, accountEmail: string, spentUsd: number, ceilingUsd: number): Promise<void> {
+  await getClient().emails.send({
+    from: getFrom(),
+    to,
+    subject: "Ascendra: an unrestricted account reached the AI safety ceiling",
+    html:
+      `<p><strong>${escapeHtml(accountEmail)}</strong> has unrestricted access and reached the AI safety ceiling: ` +
+      `US$${spentUsd.toFixed(2)} of model use in the last 24 hours (ceiling US$${ceilingUsd.toFixed(2)}).</p>` +
+      `<p>The coach and new lesson versions are paused for that account until its spend over the last 24 hours drops below the ceiling. Grading and review keep working.</p>` +
+      `<p>If this is unexpected, revoke the account's access in Settings &gt; Access (or <code>npm run access:grant -- --email ... --revoke</code>), and check <code>ai_calls</code>. ` +
+      `The ceiling is <code>AI_UNRESTRICTED_DAILY_CEILING_USD</code>.</p>`,
+  });
+}
