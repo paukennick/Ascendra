@@ -434,9 +434,26 @@ triangular three-point estimates with path variance, resource levelling,
 earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
 break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
 Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
-weighted option scoring with a weight sensitivity (PMI-PBA). Still to
-author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
-CSPP.
+weighted option scoring with a weight sensitivity (PMI-PBA).
+
+REQ-171 completes the PMI family at the same depth (`lib/labs-pm-extended.test.ts`):
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| PgMP (March 2024 ECO) | 11 (7 build, 4 case) | 2/3/2/2/2 | [PgMP](https://www.pmi.org/certifications/program-management-pgmp) |
+| PfMP (ECO (c)2013) | 11 (7 build, 4 case) | 3/2/2/2/2 | [PfMP](https://www.pmi.org/certifications/portfolio-management-pfmp) |
+| PMI-CP (February 2024 ECO) | 9 (7 build, 2 case) | 3/3/2/1 | [PMI-CP](https://www.pmi.org/certifications/construction) |
+| PMI-PMOCP (January 2025 ECO V2) | 12 (8 build, 4 case) | 2/2/2/2/2/2 | [PMI-PMOCP](https://www.pmi.org/certifications/pmo-certified-professional-pmi-pmocp) |
+| PMI-CPMAI (September 2025 ECO) | 11 (7 build, 4 case) | 2/3/2/2/2 | [PMI-CPMAI](https://www.pmi.org/certifications/ai-project-management-cpmai) |
+| CSPP (V2, March 2026, Certified Practitioner) | 10 (6 build, 4 case) | 2/2/3/2/1 | [CSPP ECO 2026](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/cspp/cspp-exam-content-outline_2026.pdf) |
+
+Each pmi.org certification page was re-read on 2026-11-09 (exam still
+offered, weights unchanged, no new outline announced); the CSPP outline PDF
+was re-read the same day. Quantitative labs: program EVM roll-up (PgMP),
+weighted scoring with a sensitivity, NPV scenarios, supply/demand and a
+reserve from expected values (PfMP), whole-life value engineering (PMI-CP),
+PMO capacity in days (PMI-PMOCP), ROI/TCO and precision/recall go-live
+criteria (PMI-CPMAI).
 
 ### Fitness wave (REQ-149)
 
@@ -485,6 +502,24 @@ never offered as answers. The AZ-104 seed outline carries two objectives the
 official guide does not list ("encryption at host", "soft delete for blobs and
 containers"); no lab sits on them, pending the lead's decision.
 
+### Google Cloud network, Azure AI Fundamentals and Tech+ (REQ-172)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| Google Cloud Professional Cloud Network Engineer | 12 (7 build, 5 case) | 2/2/2/2/2/2 | [exam guide 042426](https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf) (re-read 2026-11-09) |
+| Azure AI Fundamentals (AI-901) | 6 (4 build, 2 case) | 3/3 | [AI-901 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901) (skills as of 2026-04-15) |
+| CompTIA Tech+ (FC0-U71) | 8 (6 build, 2 case) | 1/1/1/2/1/2 | [Tech+](https://www.comptia.org/en/certifications/tech/) and the FC0-U71 objectives v1.2 |
+
+Files `seed/labs/gcp-net.ts`, `microsoft-ai901.ts` and `comptia-techplus.ts`;
+`lib/labs-it-cloud.test.ts` checks the density unit by unit, one lab per
+objective, the general safety note and dated sources. Every figure the
+network labs grade against (the 99.99% Interconnect and HA VPN topologies,
+Cloud NAT port arithmetic, Private Google Access VIPs) cites the Google Cloud
+page it came from, read on 2026-11-09; no price or quota is quoted. The
+AI-901 labs apply concepts (deployment types, generation settings, prompts,
+agents, Content Understanding field schemas) without SDK method names that
+change between releases. All 26 are `needs_expert_review`.
+
 ### ABPTS Clinical Electrophysiologic Specialist (REQ-173)
 
 10 labs (4 build, 6 case), 2/1/2/3/2 by the hybrid plan, in
@@ -500,10 +535,11 @@ sources in `value-sources.ts` (AANEM bleeding-risk guidance and its 2005
 position statement, the AAEM/AAN/AAPM&R CTS practice parameter, the EAN/PNS
 2021 CIDP guideline and primary EDX reviews), or says why none
 (`lib/labs-abpts-ecs.test.ts` checks it). Nerve conduction numbers in cases
-come with the fictional laboratory's own limits. One disagreement is open
-for the clinical reviewer: the seed track's screening objective says never
-to do needle EMG in a lymphedematous limb, but AANEM (2005) lists no
-contraindication and leaves it to judgment; the lab follows AANEM. A
+come with the fictional laboratory's own limits. The ECS screening
+objective follows AANEM's 2005 position statement: lymphedema is not a
+contraindication to needle EMG, and the risk is weighed case by case (it
+used to forbid needle EMG in a lymphedematous limb; reworded with Nick's
+approval). A
 board-certified clinical electrophysiologic PT must read all 10 before
 approval.
 

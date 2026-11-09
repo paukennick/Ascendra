@@ -100,6 +100,17 @@ import { CNPA_LABS } from "./k8s-cnpa";
 import { CNPE_LABS } from "./k8s-cnpe";
 import { EX188_LABS } from "./k8s-ex188";
 import { EX280_LABS } from "./k8s-ex280";
+// REQ-172: Google Cloud network engineer, Azure AI Fundamentals, CompTIA Tech+.
+import { GCPNET_LABS } from "./gcp-net";
+import { AI901_LABS } from "./microsoft-ai901";
+import { TECHPLUS_LABS } from "./comptia-techplus";
+// REQ-171: the remaining PMI courses.
+import { PGMP_LABS } from "./pm-pgmp";
+import { PFMP_LABS } from "./pm-pfmp";
+import { PMICP_LABS } from "./pm-cp";
+import { PMIPMOCP_LABS } from "./pm-pmocp";
+import { PMICPMAI_LABS } from "./pm-cpmai";
+import { CSPP_LABS } from "./pm-cspp";
 // REQ-173: ABPTS Clinical Electrophysiologic Specialist.
 import { ABPTSECS_LABS } from "./pt-abpts-ecs";
 import { withValueSources } from "./value-sources";
@@ -208,5 +219,14 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CNPE_LABS,
   EX188_LABS,
   EX280_LABS,
+  GCPNET_LABS,
+  AI901_LABS,
+  TECHPLUS_LABS,
+  PGMP_LABS,
+  PFMP_LABS,
+  PMICP_LABS,
+  PMIPMOCP_LABS,
+  PMICPMAI_LABS,
+  CSPP_LABS,
   ABPTSECS_LABS,
 ].map(withValueSources);
