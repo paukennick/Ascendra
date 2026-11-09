@@ -291,8 +291,9 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     // REQ-156: Microsoft AZ-120, AZ-140, DP-900 and DP-300 follow the same plan.
     // REQ-158: Google Cloud DBE/GAIL/MLE/PDE/SEC and CompTIA Cloud+/CloudNetX.
     // REQ-151: ABPTS OCS, GCS, NCS and CCS (ECS to follow).
+    // REQ-152: the five ABPTS specialist courses of wave B.
     // REQ-161: the programming, informatics and academic courses too.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS", "GCPDBE", "GCPGAIL", "GCPMLE", "GCPPDE", "GCPSEC", "CLOUDPLUS", "CLOUDNETX", "ABPTSOCS", "ABPTSGCS", "ABPTSNCS", "ABPTSCCS", "PYTHON", "JAVASCRIPT", "MSHI", "MSCS"]) {
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS", "GCPDBE", "GCPGAIL", "GCPMLE", "GCPPDE", "GCPSEC", "CLOUDPLUS", "CLOUDNETX", "ABPTSOCS", "ABPTSGCS", "ABPTSNCS", "ABPTSCCS", "ABPTSONC", "ABPTSPCS", "ABPTSPWCS", "ABPTSSCS", "ABPTSWMS", "PYTHON", "JAVASCRIPT", "MSHI", "MSCS"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {
