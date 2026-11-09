@@ -30,6 +30,11 @@ import { AWSAIF_LABS } from "./aws-aif";
 import { AWSDVA_LABS } from "./aws-dva";
 import { AWSSOA_LABS } from "./aws-soa";
 import { AWSSAP_LABS } from "./aws-sap";
+import { AWSANS_LABS } from "./aws-ans";
+import { AWSDEA_LABS } from "./aws-dea";
+import { AWSDOP_LABS } from "./aws-dop";
+import { AWSMLA_LABS } from "./aws-mla";
+import { AWSSCS_LABS } from "./aws-scs";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -66,4 +71,9 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   AWSDVA_LABS,
   AWSSOA_LABS,
   AWSSAP_LABS,
+  AWSANS_LABS,
+  AWSDEA_LABS,
+  AWSDOP_LABS,
+  AWSMLA_LABS,
+  AWSSCS_LABS,
 ].map(withValueSources);
