@@ -49,6 +49,13 @@ import { GCPACE_LABS } from "./gcp-ace";
 import { GCPPCA_LABS } from "./gcp-pca";
 import { GCPDEV_LABS } from "./gcp-dev";
 import { GCPDEVOPS_LABS } from "./gcp-devops";
+import { GCPDBE_LABS } from "./gcp-dbe";
+import { GCPGAIL_LABS } from "./gcp-gail";
+import { GCPMLE_LABS } from "./gcp-mle";
+import { GCPPDE_LABS } from "./gcp-pde";
+import { GCPSEC_LABS } from "./gcp-sec";
+import { CLOUDPLUS_LABS } from "./comptia-cloudplus";
+import { CLOUDNETX_LABS } from "./comptia-cloudnetx";
 import { SECPLUS_LABS } from "./security-secplus";
 import { SECPLUSV8_LABS } from "./security-secplusv8";
 import { CYSAPLUS_LABS } from "./security-cysaplus";
@@ -110,6 +117,13 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   GCPPCA_LABS,
   GCPDEV_LABS,
   GCPDEVOPS_LABS,
+  GCPDBE_LABS,
+  GCPGAIL_LABS,
+  GCPMLE_LABS,
+  GCPPDE_LABS,
+  GCPSEC_LABS,
+  CLOUDPLUS_LABS,
+  CLOUDNETX_LABS,
   SECPLUS_LABS,
   SECPLUSV8_LABS,
   CYSAPLUS_LABS,
