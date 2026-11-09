@@ -1,7 +1,7 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 import { NREMT_ALS_FAQ, NREMT_EXAM_CONTENT, NREMT_PARAMEDIC_PLAN, SCOPE_OF_PRACTICE_2019 } from "./ems-sources";
 
-// REQ-175: NREMT Paramedic (Paramedic Examination Specifications, from
+// REQ-182: NREMT Paramedic (Paramedic Examination Specifications, from
 // 2024-07-01).
 //
 // Density (hybrid, DEFAULT_LAB_POLICY) over the six domains at their

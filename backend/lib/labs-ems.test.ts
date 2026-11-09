@@ -1,4 +1,4 @@
-// REQ-174 (EMT, EMR) and REQ-175 (Paramedic, AEMT): the NREMT EMS courses' tracks and authored labs. The generic
+// REQ-174 (EMT, EMR) and REQ-182 (Paramedic, AEMT): the NREMT EMS courses' tracks and authored labs. The generic
 // content, objective and slug checks run over every lab set in labs.test.ts;
 // this file adds the clinical framing, the adopted density (hybrid,
 // docs/labs.md "Density"), the dated value sources every EMS lab must carry,

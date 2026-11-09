@@ -542,7 +542,7 @@ an EMS clinical reviewer (a paramedic educator or EMS physician) to read them
 in full; the PR lists the points that rest on teaching practice rather than a
 cited guideline.
 
-### NREMT EMS: Paramedic and Advanced EMT (REQ-175)
+### NREMT EMS: Paramedic and Advanced EMT (REQ-182)
 
 | Course | Labs | Per unit (d) | Outline |
 |---|---|---|---|

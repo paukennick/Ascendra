@@ -341,7 +341,7 @@ export const NREMT_EMR_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// REQ-175: the ALS exams (Paramedic, AEMT), administered from 2024-07-01 on
+// REQ-182: the ALS exams (Paramedic, AEMT), administered from 2024-07-01 on
 // the 2019 National EMS Practice Analysis and its 2021 Addendum. NREMT ended
 // the separate psychomotor exam on 2024-06-30 and added a Clinical Judgment
 // domain (communication, leadership, and recognize cues / analyze cues /

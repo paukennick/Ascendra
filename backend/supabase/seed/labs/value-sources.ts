@@ -246,7 +246,7 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "emr-handoff-to-crew": { none: CASE_DATA },
     "emr-injured-child-no-parent": [NASEMSO_MODEL_GUIDELINES_V3],
   },
-  // REQ-175: NREMT Paramedic and AEMT, sources as for NREMTEMT.
+  // REQ-182: NREMT Paramedic and AEMT, sources as for NREMTEMT.
   NREMTPARAMEDIC: {
     "medic-flash-pulmonary-edema": [NASEMSO_MODEL_GUIDELINES_V3],
     "medic-capnography-four-waveforms": [NASEMSO_MODEL_GUIDELINES_V3, AHA_2025_ADULT_ALS],

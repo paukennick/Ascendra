@@ -1,7 +1,7 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 import { NREMT_AEMT_PLAN, NREMT_ALS_FAQ, NREMT_EXAM_CONTENT, SCOPE_OF_PRACTICE_2019 } from "./ems-sources";
 
-// REQ-175: NREMT Advanced EMT (AEMT Examination Specifications, from
+// REQ-182: NREMT Advanced EMT (AEMT Examination Specifications, from
 // 2024-07-01).
 //
 // Density (hybrid, DEFAULT_LAB_POLICY) over the six domains at their
