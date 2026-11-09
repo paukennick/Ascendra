@@ -491,6 +491,24 @@ never offered as answers. The AZ-104 seed outline carries two objectives the
 official guide does not list ("encryption at host", "soft delete for blobs and
 containers"); no lab sits on them, pending the lead's decision.
 
+### Google Cloud network, Azure AI Fundamentals and Tech+ (REQ-172)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| Google Cloud Professional Cloud Network Engineer | 12 (7 build, 5 case) | 2/2/2/2/2/2 | [exam guide 042426](https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf) (re-read 2026-11-09) |
+| Azure AI Fundamentals (AI-901) | 6 (4 build, 2 case) | 3/3 | [AI-901 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901) (skills as of 2026-04-15) |
+| CompTIA Tech+ (FC0-U71) | 8 (6 build, 2 case) | 1/1/1/2/1/2 | [Tech+](https://www.comptia.org/en/certifications/tech/) and the FC0-U71 objectives v1.2 |
+
+Files `seed/labs/gcp-net.ts`, `microsoft-ai901.ts` and `comptia-techplus.ts`;
+`lib/labs-it-cloud.test.ts` checks the density unit by unit, one lab per
+objective, the general safety note and dated sources. Every figure the
+network labs grade against (the 99.99% Interconnect and HA VPN topologies,
+Cloud NAT port arithmetic, Private Google Access VIPs) cites the Google Cloud
+page it came from, read on 2026-11-09; no price or quota is quoted. The
+AI-901 labs apply concepts (deployment types, generation settings, prompts,
+agents, Content Understanding field schemas) without SDK method names that
+change between releases. All 26 are `needs_expert_review`.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as
