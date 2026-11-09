@@ -142,3 +142,40 @@ describe("client protocol header (FAIL-530)", () => {
     for (const h of seen) assert.equal(h["X-Ascendra-Client"], String(CLIENT_PROTOCOL));
   });
 });
+
+// REQ-175 (FAIL-560): without X-Ascendra-App the server treats the app as a
+// build from before the header (it may accept the previous Terms). This app
+// must always send it, before and after its build is known; a 426
+// { code: "update_required" } reaches the "Update required" screen.
+describe("app version header and update required (REQ-175)", () => {
+  test("every request carries X-Ascendra-App, and the platform once the build is known", async () => {
+    const { setAppIdentity } = await import("../api/client.ts");
+    const { APP_VERSION } = await import("./appVersion.ts");
+    const seen: Array<Record<string, string>> = [];
+    globalThis.fetch = ((_url: string, init?: RequestInit) => {
+      seen.push(init?.headers as Record<string, string>);
+      return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve("{}") });
+    }) as unknown as typeof fetch;
+    await api.get("/api/onboarding");
+    setAppIdentity({ version: APP_VERSION, build: "u.abcdef12", platform: "android" });
+    await api.post("/api/onboarding/terms", { version: "x" });
+    assert.match(seen[0]["X-Ascendra-App"], new RegExp(`^${APP_VERSION.replace(/\./g, "\\.")}\\+`));
+    assert.equal(seen[1]["X-Ascendra-App"], `${APP_VERSION}+u.abcdef12`);
+    assert.equal(seen[1]["X-Ascendra-Platform"], "android");
+  });
+
+  test("a 426 update_required calls the registered hook and still throws", async () => {
+    const { registerUpdateRequiredHook } = await import("../api/client.ts");
+    const got: unknown[] = [];
+    registerUpdateRequiredHook((info) => got.push(info));
+    globalThis.fetch = (() =>
+      Promise.resolve({
+        ok: false,
+        status: 426,
+        text: () => Promise.resolve(JSON.stringify({ error: "Please update Ascendra.", code: "update_required", minVersion: "9.0.0", storeUrl: null })),
+      })) as unknown as typeof fetch;
+    await assert.rejects(api.get("/api/onboarding"), (err: unknown) => err instanceof ApiError && err.status === 426);
+    registerUpdateRequiredHook(null);
+    assert.deepEqual(got, [{ message: "Please update Ascendra.", minVersion: "9.0.0", storeUrl: null }]);
+  });
+});

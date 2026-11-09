@@ -7602,6 +7602,38 @@
       "prevention_rules": [],
       "prevention_notes": "Before changing what a response carries, read the STORE build's screen (the last release that shipped to the stores, not the last merge), for how it renders the field, not only whether it dereferences it. The app now declares its protocol, so the server can keep serving old builds what they understand; raise CLIENT_PROTOCOL when a payload change needs it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-560",
+      "date": "2026-11-09",
+      "title": "Old app builds could never accept the Terms after the 2026-11-09 bump",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "Agree and continue failed with 'version must be the current terms version (2026-11-09)'; the Terms gate looped on every app build that bundles TERMS_VERSION 2026-11-07",
+      "how_detected": "user report (Nick, production)",
+      "root_cause": "PR #67 bumped LEGAL_VERSIONS and the server accepted only CURRENT_TERMS_VERSION, assuming every client ships the new text at the same time. Installed native builds cannot be updated without an OTA (EXPO_TOKEN unset) or a store release, and cached web bundles lag too. The server had no way to tell an old build from a new one for this, and no update-required path, so the raw validation string reached learners.",
+      "requirement": "REQ-175",
+      "affected": [
+        "backend/app/api/onboarding/terms/route.ts",
+        "backend/app/api/legal/accept/route.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/onboarding.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "fix_summary": "Clients send X-Ascendra-App; requests without it may accept the previous Terms version, recorded as sent, which satisfies their gate; headered clients still need the current one; MIN_APP_VERSION gives a 426 update_required with an Update required screen instead of raw errors",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legacy-terms.dbtest.ts",
+        "backend/lib/client-version.test.ts",
+        "mobile/src/lib/appVersion.test.ts",
+        "mobile/src/lib/apiClient.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: bumping a legal or protocol version moves the old value to PREVIOUS_LEGAL_VERSIONS and is checked against the installed builds (legacy clients without X-Ascendra-App); a version gate never returns a raw validation string to the app",
+      "recurrence_of": ""
     }
   ]
 }
