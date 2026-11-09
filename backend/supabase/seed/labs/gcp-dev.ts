@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-157: Google Cloud Professional Cloud Developer.
 //
@@ -20,10 +21,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPDEV_LABS: SeedLabSet = {
   trackCode: "GCPDEV",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_cloud_developer_exam_guide_english.pdf",
-    "https://cloud.google.com/learn/certification/cloud-developer",
-    "https://docs.cloud.google.com/run/docs/about-concurrency",
-    "https://docs.cloud.google.com/sdk/gcloud/reference",
+    source("https://services.google.com/fh/files/misc/professional_cloud_developer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/learn/certification/cloud-developer", "exam_outline", "2026-11-07"),
+    source("https://docs.cloud.google.com/run/docs/about-concurrency", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/sdk/gcloud/reference", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

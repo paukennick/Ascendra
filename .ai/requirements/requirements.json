@@ -4722,6 +4722,95 @@
       ]
     },
     {
+      "id": "REQ-142",
+      "category": "feature",
+      "title": "Source expiry dates: dated outlines and lab sources and an offline currency report",
+      "description": "Every course already records its exam outline in the seed (credential block plus sourceUrl / sourceVerifiedAt / contentReviewDueAt; migration 007); lib/content-currency.ts courseOutline() reads it as { name, version, url, checkedAt, recheckBy } with recheckBy defaulting to checkedAt + 12 months. Every authored lab source becomes { url, kind, checkedAt, recheckBy? } (seed/sources.ts): exam_outline and reference re-check after 12 months, clinical_guideline and cloud_pricing_limits after 6. Existing lab sources are backfilled with checkedAt 2026-11-07, the day git history shows each line last edited. The database keeps labs.sources as URLs only because no app or server code reads the dates. npm run currency:report lists without network access everything overdue or due within 60 days grouped by course, plus courses with no outline and outlines with no version. Visibility only: stale content keeps being served.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sources.ts",
+        "backend/supabase/seed/labs",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/lib/content-currency.ts",
+        "backend/lib/content-currency.test.ts",
+        "backend/lib/labs.test.ts",
+        "backend/lib/labs.dbtest.ts",
+        "backend/scripts/currency-report.ts",
+        "backend/package.json",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Seed tests fail on a lab source without kind or checked date or with a future or backwards date",
+        "Seed tests fail on a course whose outline or source has no checked date and on a certification course without an outline",
+        "currency:report runs offline and lists overdue and due-soon sources by course plus courses with no outline or no version",
+        "labs.sources in the database stays a URL array and lab content hashes are unchanged"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog",
+        "readme"
+      ],
+      "risk_notes": [
+        "Course checked dates are the seed's existing human-recorded verification dates and were not re-verified",
+        "Courses whose credential carries no revision (Azure / GCP / some PMI and ABPTS) are listed as having no outline version until someone records one",
+        "The report reads the seed; a newer check recorded in production by the catalog review agent is not seen",
+        "Docs: no README change was needed; the docs touched are docs/source-reliability-standard.md, docs/labs.md and docs/operations-runbook.md",
+        "2026-11-08: clinical and fitness labs name the guideline their values rest on (seed/labs/value-sources.ts, clinical_guideline, 6-month re-check) or say why not; lab wording that disagrees with a current guideline is reported for clinical review, never edited silently",
+        "2026-11-08: outline versions go in objectivesRevision (examRevision is part of credential_exams identity and would add a second exam row on the production seed); publishers that print none carry versionNote; non-exam courses carry curriculum"
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "category": "feature",
+      "title": "Learner signals that put content in a review queue",
+      "description": "Daily job (GET /api/cron/content-signals with CRON_SECRET; npm run review-queue -- run) that detects per item and per lab (lesson checks review exam quiz comparison lab and lesson steps) rising learner reports (3+ distinct learners in 30 days or 2+ reporters who are 10%+ of 10+ recent learners) and a sharp drop in correct rate (last 14 days vs the previous 180; first answer per learner per window; min 30 baseline and 20 recent learners; drop of 20+ points and one-sided two-proportion z >= 3.09). Detections go to content_review_queue (migration 055) with reason and evidence; nothing is unpublished. One open entry per item and signal (unique partial index plus an advisory try-lock per run); resolved entries stay as history and only evidence after a resolution re-opens. npm run items confirm/clear resolve the item's open entries. Thresholds are item_quality_params rows. Attempt sources are one SELECT per kind so sims (REQ-141) plug in without a migration. No admin role exists so the queue is read with npm run review-queue.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/055_content_review_queue.sql",
+        "backend/lib/content-signals.ts",
+        "backend/lib/content-signals.test.ts",
+        "backend/lib/content-review-queue.ts",
+        "backend/lib/content-review-queue.dbtest.ts",
+        "backend/lib/cron-auth.ts",
+        "backend/app/api/cron",
+        "backend/vercel.json",
+        "backend/scripts/review-queue.ts",
+        "backend/scripts/item-quality.ts",
+        "backend/lib/schema-status.ts",
+        "backend/package.json",
+        "docs"
+      ],
+      "acceptance_criteria": [
+        "Unit tests cover the report rules and the drop test including no flag at low volume and few chance flags on simulated stable items",
+        "DB tests cover opening with evidence and refresh on re-run and no entry at low volume and window expiry and re-trigger only after resolution and skip of confirmed-wrong items and two concurrent runs and the cron route auth",
+        "Schema probe for 055 passes on a fresh database",
+        "No content is pulled or hidden by the job"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation",
+        "security_review"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "The job scans attempts in the last 194 days without a created_at index; fine at today's size and worth an index later",
+        "A cohort change (many beginners) can lower an item's correct rate without the item being wrong; the 20-point floor and strict z limit this",
+        "Migration 055 must be applied before the backend deploy",
+        "Resolved 2026-11-08: 055 now adds attempts_answered_created, a partial created_at index matching the job's filter; build it CONCURRENTLY before applying 055 on production (operations-runbook.md, '055 attempts index'); the 055 probe requires it valid; the release rollback drops it"
+      ]
+    },
+    {
       "id": "REQ-141",
       "category": "design",
       "title": "Sim labs: interactive simulation engine, Phase 1 design (bedside monitor)",
@@ -4768,7 +4857,8 @@
         "secondary objectives",
         "first scenarios",
         "pricing) must be answered before Phase 1b",
-        "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer"
+        "Expert review is not a rollout gate by Nick's decision (2026-11-07); unreviewed sims are served with the badge and disclaimer",
+        "Phase 1a steps 1-2 (branch feature/sim-engine-1a): test scripts reach lib/sim/** and src/sim/** with discovery canaries (lib/test-discovery.test.ts, mobile src/lib/testDiscovery.test.ts); allowImportingTsExtensions in backend/tsconfig.json; engine v1 placeholder, generated app copy (npm run sim:sync-engine) and drift test (lib/sim/engineCopy.test.ts); Hermes spike done (docs/sims-hermes-spike.md): CI builds the Hermes VM from react-native's pinned tag and requires byte-identical fixture output vs Node, plus a Playwright Chromium/Firefox/WebKit job. On-device Hermes run still required before Phase 1c exits. This description still says design only; Nick to decide whether implementation stays under REQ-141 or gets its own requirement."
       ]
     },
     {
@@ -4800,6 +4890,365 @@
       ],
       "risk_notes": [
         "Requirement and failure ids (REQ/FAIL) taken from master at 061f829; a concurrent branch may take the same numbers"
+      ]
+    },
+    {
+      "id": "REQ-146",
+      "category": "defect",
+      "title": "Old app builds: Solo choices in the lesson with the hint recorded",
+      "description": "Store app builds from before the 2026-11-07 release (c3e13ab) default the Solo step to multiple choice and render lesson.soloChoices, which the release made an empty list, so the learner saw no options and a disabled Submit. The app now sends X-Ascendra-Client (protocol 1). A lesson request without it gets the Solo choices in the learner's fixed shuffled order and the hint reveal recorded first, as the hint route does, so a later Solo answer in any format is assisted (capped at Guided). Clients with the header are unchanged.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/client-protocol.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/api/client.ts"
+      ],
+      "acceptance_criteria": [
+        "Header present: soloChoices empty and no reveal recorded",
+        "Header absent: soloChoices in the hint route's shuffled order and one reveal recorded",
+        "An old build's Solo MC pick grades against the shown order and is capped at Guided",
+        "A free-response Solo answer after the choices were sent is assisted (Guided)",
+        "The app sends the header on every request"
+      ],
+      "validation_required": [
+        "backend tsc + npm test + build",
+        "backend test:db on a fresh CI-equivalent Postgres",
+        "mobile tsc + npm test"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Old-app learners can no longer earn Independent from lesson Solo items until they update (intended)",
+        "A caller can omit the header to see choices but the reveal is recorded"
+      ]
+    },
+    {
+      "id": "REQ-163",
+      "category": "documentation",
+      "title": "Professional README refresh with real screenshots and an architecture diagram",
+      "description": "Rewrite README.md to describe Ascendra as it is today (catalog, learning loop, honest mastery, labs, AI guardrails, accessibility, plans off, sims in design), with a brand banner, real screenshots of a local web build with a demo account, a Mermaid architecture diagram, verified getting-started steps, testing/CI, deployment and a docs index.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "docs/images/readme/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every number in the README comes from the repo or a command run for it",
+        "Every relative link and image resolves",
+        "Screenshots use only a local demo account with fictional data and no AI output",
+        "Renders cleanly at desktop and phone width",
+        "No product code changes"
+      ],
+      "validation_required": [
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "readme",
+        "changelog"
+      ],
+      "risk_notes": [
+        "Screenshots go stale as the UI changes; re-capture with the documented local path",
+        "Course and lab counts change as the seed grows"
+      ]
+    },
+    {
+      "id": "REQ-149",
+      "category": "feature",
+      "title": "Authored labs for the remaining fitness courses (ACE, ACSM, NSCA-CPT, NSCA CSCS, NCCPT)",
+      "description": "48 authored build and case labs at the NASM-CPT pilot's depth for ACECPT (9), ACSMCPT (7), NSCACPT (10), NSCACSCS (12) and NCCPTCPT (10), following the adopted hybrid density unit by unit, each in its certifying body's own model and vocabulary (ACE IFT Model and ABC approach; ACSM preparticipation screening algorithm, FITT-VP, HRR and RPE; NSCA periodization, training load chart, technique and spotting; CSCS needs analysis, testing, monitoring and heat illness; NCCPT nutrition review, periodization and kinetic-chain checkpoints). FITNESS_SAFETY on every lab, fictional people only, every quoted value cited to an authoritative source checked 2026-11-07; all needs_expert_review.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/fitness-acecpt.ts",
+        "backend/supabase/seed/labs/fitness-acsmcpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacpt.ts",
+        "backend/supabase/seed/labs/fitness-nscacscs.ts",
+        "backend/supabase/seed/labs/fitness-nccptcpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-fitness.test.ts",
+        "docs/labs.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an exact active objective",
+        "Each course matches unitPlan hybrid unit by unit",
+        "Every lab carries FITNESS_SAFETY and a fictional brief and never asks about a real client",
+        "Each quoted guideline value is cited in the file header with the date checked",
+        "Seed is idempotent (run twice)"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on a migrated database",
+        "npm run test:db",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a certified fitness reviewer approves each lab",
+        "NCCPT outline could not be re-fetched this session"
+      ]
+    },
+    {
+      "id": "REQ-147",
+      "category": "feature",
+      "title": "Authored labs: physical therapy entry level (NPTE-PT, NPTE-PTA, DPT)",
+      "description": "53 authored build and case labs (hybrid density, unit by unit) for NPTEPT (20), NPTEPTA (19) and DPT (14), CLINICAL_SAFETY, needs_expert_review. Clinical-judgment cases dominate (examination, evaluation, diagnosis, prognosis, intervention, progression/discharge, red flags and referral, vitals and exercise stopping criteria, CPG-based interventions). PTA labs keep PTA scope in every rubric: the PTA implements and progresses within the PT's plan of care and holds, reports and defers to the PT; no evaluation, plan or goal changes, or discharge (CMS BPM ch.15 sec.230.1). Values cite APTA/JOSPT CPGs, ACSM-derived stopping criteria, PVA autonomic dysreflexia guideline, ADA hypoglycemia guide, CMS, and original MCID papers, verified 2026-11-07. No migration; no runtime code.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pt-nptept.ts",
+        "backend/supabase/seed/labs/pt-nptepta.ts",
+        "backend/supabase/seed/labs/pt-dpt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an active objective by exact title",
+        "Hybrid density holds unit by unit for NPTEPT NPTEPTA and DPT",
+        "Clinical framing and fictional people in every brief",
+        "PTA rubrics never credit evaluation plan changes or discharge by the PTA",
+        "Every quoted standard value cites a source verified on 2026-11-07"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "DB tests with npm run seed twice",
+        "omni gate",
+        "CI green"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Clinical content must be reviewed by a licensed PT/PTA educator before approval; served unreviewed with the disclaimer per REQ-125",
+        "Scope change after merging master: the PT density, framing and PTA-scope checks live in backend/lib/labs-pt.test.ts (as REQ-149 did for fitness); backend/lib/labs.test.ts is unchanged."
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "category": "feature",
+      "title": "Unrestricted access: owner account from OWNER_EMAILS and owner-granted unrestricted access for selected people",
+      "description": "Server-side access levels. Owner comes from OWNER_EMAILS (comma-separated; matched case-insensitively against VERIFIED emails only). Unrestricted comes from an account_access grant (migration 056) by email with optional end date and note; a grant for an email with no verified account waits and applies once that email registers and verifies. Owner implies unrestricted. Unrestricted lifts every plan feature and course and lab regardless of tier and BILLING_ENABLED; plan allowances and the per-tier monthly AI cap; and raises the daily AI budget to a safety ceiling (AI_UNRESTRICTED_DAILY_CEILING_USD default 20) that logs and emails the owners when hit. Early access: featureEnabledFor(user flag) lets owner and unrestricted accounts see features behind off switches (LABS_SERVE_UNREVIEWED today; SIMS_ENABLED later). Not lifted: authentication and MFA and rate limits and access checks and disclaimers and acknowledgements and other learners' data. Owner-only API (/api/access/grants) and Settings > Access screen and npm run access:grant CLI; every grant and revoke and claim is in an audit table and in the affected learner's export. Recipients see 'Unrestricted access granted by <owner>' as their plan.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/056_account_access.sql",
+        "backend/lib/account-access.ts",
+        "backend/lib/account-access-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/email.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/access",
+        "backend/app/api/auth/me/route.ts",
+        "backend/scripts/access-grant.ts",
+        "backend/package.json",
+        "mobile/src/lib/access.ts",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/settings/access.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "mobile/src/types/index.ts",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "OWNER_EMAILS account resolves to owner only when its email is verified",
+        "Owner and unrestricted pass every gated route with BILLING_ENABLED on and off",
+        "No allowance rows and no monthly cap for unrestricted",
+        "Daily AI budget for unrestricted is the ceiling and hitting it logs and records and emails the owners",
+        "Chat and regenerate rate limits still apply to unrestricted",
+        "Pending grant applies after the email verifies",
+        "Expired and revoked grants stop applying",
+        "Only owners can list or grant or revoke (unrestricted users get 403)",
+        "Every grant and revoke and claim is audited and exported to the affected learner",
+        "CLI grant and revoke and list work",
+        "Settings Access section only for owners",
+        "Recipient sees Unrestricted access granted by owner in Settings and Plans"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "backend test:db on a fresh database",
+        "mobile typecheck",
+        "mobile tests",
+        "security_review"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "Unrestricted accounts can spend up to the ceiling per day each",
+        "Owner is decided by env so changing OWNER_EMAILS needs a redeploy",
+        "Migration 056 must follow 055 from feature/content-currency"
+      ]
+    },
+    {
+      "id": "REQ-150",
+      "category": "feature",
+      "title": "Verifiable labs for more project-management courses: CAPM, PMI-ACP, PMI-RMP, PMI-SP, PMI-PBA, CompTIA Project+",
+      "description": "59 authored build and case labs (needs_expert_review, GENERAL_SAFETY) at the PMP pilot's depth, one file per course in backend/supabase/seed/labs/pm-*.ts, each following the adopted hybrid density unit by unit, aligned to each exam's official outline, with every number in a rubric worked in its model answer. PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and CSPP remain.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs",
+        "backend/lib/labs-pm.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab passes the content rules and names an active objective",
+        "Each course matches unitPlan(hybrid) unit by unit",
+        "At most one lab per objective",
+        "Seed runs twice idempotently",
+        "Calculations verified independently"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run seed twice on local Postgres",
+        "npm run test:db",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content is unreviewed until a qualified PM reviewer reads it",
+        "PMI ECO PDFs for RMP SP PBA were read via mirrors or pmi.org pages because the PDFs were not fetchable from the session"
+      ]
+    },
+    {
+      "id": "REQ-148",
+      "category": "content",
+      "title": "Labs for the remaining nursing courses (NCLEX-PN, LPN/VN, CNA, ADN-RN, BSN-RN)",
+      "description": "65 authored build and case labs for NCLEXPN, LPNVN, CNA, ADNRN and BSNRN at the NCLEX-RN/CCRN pilot depth, hybrid density, scoped per role, guideline values verified 2026-11-07. All needs_expert_review; no migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/nursing-sources.ts",
+        "backend/supabase/seed/labs/nursing-nclexpn.ts",
+        "backend/supabase/seed/labs/nursing-lpnvn.ts",
+        "backend/supabase/seed/labs/nursing-cna.ts",
+        "backend/supabase/seed/labs/nursing-adnrn.ts",
+        "backend/supabase/seed/labs/nursing-bsnrn.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-nursing.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Exact active objective titles",
+        "Hybrid density unit by unit",
+        "Clinical framing",
+        "Guideline values cited"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db",
+        "npm run seed twice",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Unreviewed clinical content until a nurse educator approves each lab"
+      ]
+    },
+    {
+      "id": "REQ-153",
+      "category": "content",
+      "title": "Authored labs for AWSCLF, AWSAIF, AWSDVA, AWSSOA and AWSSAP",
+      "description": "53 authored build and case labs for the five AWS courses CLF-C02, AIF-C01, DVA-C03, SOA-C03 and SAP-C03 in new seed files backend/supabase/seed/labs/aws-{clf,aif,dva,soa,sap}.ts, matching the AWSSAA pilot's depth at each exam's level, following the hybrid density policy unit by unit, naming performance objectives by exact title, GENERAL_SAFETY framing, and citing the exam guides and AWS documentation pages verified on 2026-11-07 for every limit or figure. All labs are needs_expert_review.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts density and objective checks pass for the five courses",
+        "npm run seed twice is idempotent",
+        "every quoted limit or price has a cited AWS page"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "migrations plus seed twice plus test:db on local Postgres",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-154",
+      "category": "content",
+      "title": "Authored labs for five AWS courses (ANS, DEA, DOP, MLA, SCS)",
+      "description": "54 verifiable build and case labs for AWSANS, AWSDEA, AWSDOP, AWSMLA and AWSSCS at hybrid density, every quoted AWS limit or behaviour checked against the named AWS documentation page on 2026-11-07, stored needs_expert_review.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "labs.test.ts density",
+        "objective and content checks pass for the five courses; npm run seed twice is idempotent; CI green"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (539 pass)",
+        "local Postgres migrate --all + seed x2 + test:db"
+      ],
+      "documentation_required": [
+        "docs/labs.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-155",
+      "category": "labs",
+      "title": "Labs: Microsoft Azure wave A (AZ-900, AZ-104, AZ-305, AZ-400, AZ-700)",
+      "description": "49 authored build and case labs for the five Microsoft certification courses at hybrid density (3/2/3, 3/2/2/2/2, 3/2/1/3, 2/2/3/2/1, 3/2/2/2/2), aligned to each exam's current study guide and verified against Microsoft Learn on 2026-11-07. Every lab is needs_expert_review and carries GENERAL_SAFETY.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "labs.test.ts content",
+        "objective and density checks pass for AZ900 AZ104 AZ305 AZ400 AZ700",
+        "seed runs twice idempotently with the new sets",
+        "sources cite each exam's study guide and the Learn pages behind every figure"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run typecheck",
+        "migrate --all + seed twice on a local Postgres"
+      ],
+      "documentation_required": [
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "AZ-104 seed outline has two objectives not in the official study guide (encryption at host; soft delete for blobs and containers); reported to the lead and no lab placed on them"
       ]
     },
     {

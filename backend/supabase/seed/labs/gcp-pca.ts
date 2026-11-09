@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-157: Google Cloud Professional Cloud Architect.
 //
@@ -40,20 +41,20 @@ const HARBORLINE =
 export const GCPPCA_LABS: SeedLabSet = {
   trackCode: "GCPPCA",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_cloud_architect_exam_guide_english.pdf",
-    "https://cloud.google.com/learn/certification/cloud-architect",
-    "https://cloud.google.com/sql/sla",
-    "https://docs.cloud.google.com/sql/docs/mysql/editions-intro",
-    "https://docs.cloud.google.com/spanner/docs/editions-overview",
-    "https://docs.cloud.google.com/storage/docs/storage-classes",
-    "https://docs.cloud.google.com/storage/docs/lifecycle",
-    "https://cloud.google.com/storage/pricing",
-    "https://docs.cloud.google.com/logging/quotas",
-    "https://sre.google/workbook/alerting-on-slos/",
-    "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate",
-    "https://docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview",
-    "https://docs.cloud.google.com/compute/docs/instances/spot",
-    "https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks",
+    source("https://services.google.com/fh/files/misc/professional_cloud_architect_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/learn/certification/cloud-architect", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/sql/sla", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/sql/docs/mysql/editions-intro", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/spanner/docs/editions-overview", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/storage/docs/storage-classes", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/storage/docs/lifecycle", "reference", "2026-11-07"),
+    source("https://cloud.google.com/storage/pricing", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/logging/quotas", "cloud_pricing_limits", "2026-11-07"),
+    source("https://sre.google/workbook/alerting-on-slos/", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/compute/docs/instances/spot", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-157: Google Cloud Professional Cloud DevOps Engineer.
 //
@@ -39,16 +40,16 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPDEVOPS_LABS: SeedLabSet = {
   trackCode: "GCPDEVOPS",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_cloud_devops_engineer_exam_guide_english.pdf",
-    "https://cloud.google.com/learn/certification/cloud-devops-engineer",
-    "https://sre.google/workbook/alerting-on-slos/",
-    "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate",
-    "https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks",
-    "https://cloud.google.com/products/observability/pricing",
-    "https://docs.cloud.google.com/logging/quotas",
-    "https://docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview",
-    "https://docs.cloud.google.com/compute/docs/instances/spot",
-    "https://docs.cloud.google.com/run/docs/about-concurrency",
+    source("https://services.google.com/fh/files/misc/professional_cloud_devops_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/learn/certification/cloud-devops-engineer", "exam_outline", "2026-11-07"),
+    source("https://sre.google/workbook/alerting-on-slos/", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks", "reference", "2026-11-07"),
+    source("https://cloud.google.com/products/observability/pricing", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/logging/quotas", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/compute/docs/instances/committed-use-discounts-overview", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/compute/docs/instances/spot", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/run/docs/about-concurrency", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

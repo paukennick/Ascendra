@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-157: Google Cloud Digital Leader.
 //
@@ -24,12 +25,12 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPCDL_LABS: SeedLabSet = {
   trackCode: "GCPCDL",
   sources: [
-    "https://services.google.com/fh/files/misc/cloud_digital_leader_exam_guide_english.pdf",
-    "https://cloud.google.com/learn/certification/cloud-digital-leader",
-    "https://docs.cloud.google.com/storage/docs/storage-classes",
-    "https://cloud.google.com/storage/pricing",
-    "https://docs.cloud.google.com/compute/docs/instances/spot",
-    "https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks",
+    source("https://services.google.com/fh/files/misc/cloud_digital_leader_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/learn/certification/cloud-digital-leader", "exam_outline", "2026-11-07"),
+    source("https://docs.cloud.google.com/storage/docs/storage-classes", "reference", "2026-11-07"),
+    source("https://cloud.google.com/storage/pricing", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.cloud.google.com/compute/docs/instances/spot", "reference", "2026-11-07"),
+    source("https://docs.cloud.google.com/architecture/infra-reliability-guide/building-blocks", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------
