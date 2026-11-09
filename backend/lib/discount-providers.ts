@@ -23,6 +23,7 @@
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { DiscountGroup } from "./verified-discounts-config";
+import { idmeProvider } from "./discount-provider-idme";
 
 type Env = Record<string, string | undefined>;
 
@@ -51,8 +52,10 @@ export interface VerificationProvider {
   complete(input: { code: string; codeVerifier: string; group: DiscountGroup }, env: Env): Promise<VerificationOutcome>;
 }
 
-// The registry. Empty in REQ-166 on purpose (see the header).
-const PROVIDERS: VerificationProvider[] = [];
+// The registry. REQ-166 left it empty; REQ-167 adds ID.me, which stays
+// unconfigured (and the feature off) until IDME_CLIENT_ID,
+// IDME_CLIENT_SECRET and IDME_REDIRECT_URI are set.
+const PROVIDERS: VerificationProvider[] = [idmeProvider];
 
 // Tests (and only tests) swap the registry for a mock provider.
 let override: VerificationProvider[] | null = null;

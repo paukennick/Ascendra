@@ -113,8 +113,8 @@ describe("REQ-166 groups and percentages", () => {
 });
 
 describe("REQ-166 off unless everything is set", () => {
-  test("no live provider is registered in the framework", () => {
-    assert.equal(allProviders().length, 0);
+  test("registered providers stay unconfigured without their credentials (REQ-167: ID.me)", () => {
+    assert.deepEqual(allProviders().map((p) => p.id), ["idme"]);
     assert.deepEqual(configuredProviders(ON), []);
     assert.equal(discountsAvailable(ON), false);
   });
