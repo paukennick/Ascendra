@@ -299,6 +299,22 @@ jobs:
           cmp "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt \
             || { diff "$RUNNER_TEMP/hermes-hbc.txt" lib/sim/cross-runtime/fixture.expected.txt; exit 1; }
           echo "Hermes source and -O bytecode both match Node"
+      # REQ-162: engine major 1 itself, the v1 corpus and every seeded
+      # document's golden replays, as source and as the app's -O bytecode.
+      - name: Engine corpus and golden replays under Hermes = Node, byte for byte
+        working-directory: backend
+        run: |
+          npm run -s sim:cross-runtime -- engine-print > "$RUNNER_TEMP/engine-node.txt"
+          npm run -s sim:cross-runtime -- engine-hermes-script "$RUNNER_TEMP/engine.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/engine.js" > "$RUNNER_TEMP/engine-hermes.txt"
+          cmp "$RUNNER_TEMP/engine-hermes.txt" "$RUNNER_TEMP/engine-node.txt" \
+            || { diff "$RUNNER_TEMP/engine-hermes.txt" "$RUNNER_TEMP/engine-node.txt"; exit 1; }
+          ../mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -emit-binary -O \
+            -out "$RUNNER_TEMP/engine.hbc" "$RUNNER_TEMP/engine.js"
+          ~/hermes-vm/hermes "$RUNNER_TEMP/engine.hbc" > "$RUNNER_TEMP/engine-hbc.txt"
+          cmp "$RUNNER_TEMP/engine-hbc.txt" "$RUNNER_TEMP/engine-node.txt" \
+            || { diff "$RUNNER_TEMP/engine-hbc.txt" "$RUNNER_TEMP/engine-node.txt"; exit 1; }
+          tail -n 1 "$RUNNER_TEMP/engine-node.txt"
       # Informational: native Math.exp/sin/pow/... are implementation-defined,
       # which is why the engine computes its own (docs/sims.md 5.5). The
       # count is evidence for that rule, not a failure.
