@@ -473,6 +473,24 @@ reasoning instead. Like every lab, all 48 are `needs_expert_review` and need
 an NCCA-accredited trainer or strength coach (a CSCS for the CSCS set) to read
 them in full.
 
+### Microsoft Azure wave A (REQ-155)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| AZ-900 | 8 (7 build, 1 case) | 3/2/3 | [AZ-900 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900) (skills as of 2026-07-20) |
+| AZ-104 | 11 (7 build, 4 case) | 3/2/2/2/2 | [AZ-104 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104) (skills as of 2023-10-26) |
+| AZ-305 | 9 (6 build, 3 case) | 3/2/1/3 | [AZ-305 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305) (skills as of 2026-04-17) |
+| AZ-400 | 10 (8 build, 2 case) | 2/2/3/2/1 | [AZ-400 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400) (skills as of 2026-07-27) |
+| AZ-700 | 11 (8 build, 3 case) | 3/2/2/2/2 | [AZ-700 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700) (skills as of 2026-07-27) |
+
+Files `seed/labs/microsoft-az*.ts`; every figure (storage durability, SKU
+limits, retirement dates, rule-set versions) cites the Microsoft Learn page it
+came from in the file header and `sources`, all read on 2026-11-07. Retired
+options (Basic Load Balancer, Application Gateway v1, Front Door classic) are
+never offered as answers. The AZ-104 seed outline carries two objectives the
+official guide does not list ("encryption at host", "soft delete for blobs and
+containers"); no lab sits on them, pending the lead's decision.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as
