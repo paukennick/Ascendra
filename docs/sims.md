@@ -392,15 +392,22 @@ Deliberate differences, beyond the 3.1 reclassification:
   q15 check), as the prototype's jump to phase 2 never delivers them.
 - **Drips** always offer "Turn off"; the prototype offers it only while one
   runs (turning off a drip that is off changes nothing).
-- **Contraindicated actions: none named.** Protamine without an ACT and
-  dobutamine in tamponade are scored as poor choices, as in the prototype,
-  not as `harm`. A reviewer should confirm or name one with a source (19.3).
+- **Contraindicated actions: none in this case** (Nick, 2026-11-09: a harm
+  ending only where a published guideline names the action). The 2015 ESC
+  pericardial guidelines (Adler et al., Eur Heart J 2015;36:2921-2964,
+  checked 2026-11-09) mark vasodilators and diuretics "not recommended" in
+  tamponade (class III, level C); this case offers neither before
+  re-exploration (nicardipine appears only in phase 2, after the tamponade is
+  relieved). Protamine with a normal ACT and dobutamine in tamponade have no
+  guideline naming them as contraindicated, so they stay poor choices in the
+  scoring and are listed for clinical review (19.3).
 - **The chest-tube tile** reads `history` in whole 5-second samples, so for
   a few seconds after clearing the tubes (when the 15-minute window's far
   edge crosses that moment) it differs from the prototype's interpolated
   ledger by up to the 120 mL removed.
 - `time_up` (4 h) is never reached: every legal path arrests or reaches the
-  OR first. The linter warns instead of failing for an unreached `time_up`.
+  OR first. An unreached `time_up` is a lint warning, not an error (Nick,
+  2026-11-09).
 
 ## 4. The scenario document
 
@@ -1751,7 +1758,7 @@ capabilities (5.10).
 | Route | What |
 |---|---|
 | `GET /api/sims?trackId=` / `?unitId=` / `?objectiveId=` | Sims the learner can open: title, screen type, objective, state ("In progress", "Done: Mediocre"), `access` (full/sample/locked), `reviewStatus`, `runnable` (false = "Update the app to open this"). |
-| `GET /api/sims/:id` | One sim: brief, safety note, disclaimer payload, client document of the served version (or the pinned version of an open run) with its hash, the open run if any, the latest finished run's summary. |
+| `GET /api/sims/:id` | One sim: brief (no per-sim disclaimer; the study notice covers sims, REQ-165), client document of the served version (or the pinned version of an open run) with its hash, the open run if any, the latest finished run's summary. |
 | `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. A clinical or fitness sim needs the study notice (403 `study_notice_required`, REQ-165). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |
 | `GET /api/sims/runs/:runId` | Resume on any device: checkpoint, commands after it, `lastTick`, waits pending, current lease holder. |
 | `POST /api/sims/runs/:runId/lease { deviceId }` | "Continue on this device": take the lease; returns the new epoch and the checkpoint. |
@@ -2806,13 +2813,15 @@ rules below followed. Nick approved all of them.
   tamponade early path that can reach the OR after 45 minutes. The ports
   use the defaults; Nick may ask to keep a prototype value as a sourced
   tightening.
-- **Contraindicated actions in the tamponade port** (3.1, 3.2): none named,
-  so `harm` is reached only by the arrest. A reviewer either confirms that
-  or names an action (for example protamine with a normal ACT) with a
-  source, and the port adds a `harm` ending for it.
-- **Tamponade per-tick bound** (3.2): the cap of three running boluses keeps
-  the 90-minute skip inside its budget. Alternatives are a cheaper bound
-  for derived values the engine memoises, or chaining the 90-minute wait.
+- **Decided (Nick, 2026-11-09):** harm endings for contraindicated actions
+  only where a published guideline names them, with a dated source; the cap
+  of three concurrent boluses stays; written reasoning is scored; an
+  unreached `time_up` stays a lint warning (every other terminal ending must
+  still be reached by a golden path).
+- **For clinical review (tamponade, 3.2):** protamine 25 mg after the ACT is
+  back near baseline, and dobutamine during tamponade. No guideline found
+  names either as contraindicated in this setting (searched 2026-11-09), so
+  neither is a `harm` ending; a reviewer may supply a source.
 
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
