@@ -5821,6 +5821,89 @@
         "All labs are needs_expert_review until a qualified reviewer reads them",
         "Cloud figures change: sources carry 12-month recheck dates"
       ]
+    },
+    {
+      "id": "REQ-171",
+      "category": "content",
+      "title": "Labs for the remaining PMI courses (PgMP, PfMP, PMI-CP, PMI-PMOCP, PMI-CPMAI, CSPP)",
+      "description": "Author the hybrid-density lab sets for the six PMI courses that had none, aligned to each exam outline re-checked on pmi.org on the day, with dated sources and a density test.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pm-pgmp.ts",
+        "backend/supabase/seed/labs/pm-pfmp.ts",
+        "backend/supabase/seed/labs/pm-cp.ts",
+        "backend/supabase/seed/labs/pm-pmocp.ts",
+        "backend/supabase/seed/labs/pm-cpmai.ts",
+        "backend/supabase/seed/labs/pm-cspp.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-pm-extended.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every number in a rubric is worked in its model answer"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until a qualified PM reviewer reads each set",
+        "PMI-CPMAI and PgMP ECO PDFs were not fetchable on the day; weights confirmed from pmi.org pages where listed"
+      ]
+    },
+    {
+      "id": "REQ-168",
+      "category": "operations",
+      "title": "Rolling housekeeping for release backups (tables and schemas): kept 30 days, dropped weekly after",
+      "description": "Nick 2026-11-09: release backups are kept 30 days and then dropped automatically within 7 days after. A weekly GitHub Actions workflow (Tuesdays 09:17 UTC; workflow_dispatch with dry_run defaulting to true) using the PROD_DATABASE_URL secret and production-database environment like migrate-production.yml runs backend/scripts/backup-housekeeping.ts. It drops tables in schema public and schemas (pg_namespace) whose name is exactly backup_release_ plus 8 digits that form a real UTC date more than 30 days before the run date; exactly 30 days and future dates are kept; anything else is never touched. Tables are dropped without CASCADE. A matching schema is dropped with DROP SCHEMA CASCADE after every table in it is logged with its row count, and is refused (run fails) if any object outside it depends on it. Each backup dropped or that would be dropped is logged with date, age and row counts; connection strings are never printed.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/backup-housekeeping.yml",
+        "backend/scripts/backup-housekeeping-lib.ts",
+        "backend/scripts/backup-housekeeping-lib.test.ts",
+        "backend/scripts/backup-housekeeping.ts",
+        "backend/lib/backup-housekeeping.dbtest.ts",
+        "backend/package.json",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Only public tables and schemas named exactly backup_release_YYYYMMDD with a real date are candidates",
+        "A backup is dropped only when its date is more than 30 days before the UTC run date (exactly 30 days and future dates are kept)",
+        "Bad names and malformed dates and backup-named tables in other schemas are never touched",
+        "Tables are dropped without CASCADE; only an exact-named schema is dropped with CASCADE and only after each of its tables is logged with its row count",
+        "An expired schema that anything outside it depends on is refused and the run fails",
+        "Manual runs default to a dry run that drops nothing",
+        "No secret or connection string is printed",
+        "backup_release_20261107 is kept by the weekly runs through 2026-12-01 and first dropped by the run on 2026-12-08"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (unit tests for the name and date filter and the schema path)",
+        "npm run test:db (integration test against local Postgres including schemas)",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md release backups section",
+        "docs/legal/data-inventory.md retention"
+      ],
+      "risk_notes": [
+        "Weekly cadence: a backup lives 30 to 37 days",
+        "The Supabase advisor's RLS-disabled flag on backup_release_20261107 is a false positive: checked on production 2026-11-09 that anon and authenticated and authenticator and service_role have no USAGE on the schema and no table grants"
+      ]
     }
   ]
 }

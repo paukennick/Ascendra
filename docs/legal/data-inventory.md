@@ -61,3 +61,13 @@ No cookies, analytics, crash reporting or advertising identifiers.
 `lib/retention.ts`. It needs `CRON_SECRET` set on the Vercel project;
 without it the route refuses every call, so nothing is purged.
 `lib/retention.test.ts` fails if the periods drift from the Privacy Policy.
+
+Release backups (REQ-168): a pre-release copy of production data taken
+inside the database -- a table `public.backup_release_YYYYMMDD` or a schema
+`backup_release_YYYYMMDD` -- is kept 30 days, then dropped within 7 days
+after that by the weekly "Release backup housekeeping" GitHub workflow
+(Tuesdays, 09:17 UTC). It is a copy of the tables above, so it holds the
+same personal data, and an account deleted in the meantime stays in the
+copy until it is dropped. The 2026-11-07 copy (schema
+`backup_release_20261107`) is dropped by the run on 2026-12-08. The API
+roles have no access to it.
