@@ -5791,6 +5791,39 @@
         "Weekly cadence: a backup lives 30 to 37 days",
         "The Supabase advisor's RLS-disabled flag on backup_release_20261107 is a false positive: checked on production 2026-11-09 that anon and authenticated and authenticator and service_role have no USAGE on the schema and no table grants"
       ]
+    },
+    {
+      "id": "REQ-181",
+      "category": "billing",
+      "title": "Owner monthly AI safety cap ($35)",
+      "description": "Owners (OWNER_EMAILS) had no monthly AI spending cap. Nick decided 2026-11-09 that owners get a high safety cap of $35 a month: coach chat and lesson regenerate pause at it exactly like a plan's monthly cap, grading and review never stop. Config OWNER_MONTHLY_AI_CAP_USD, default 35, cannot be switched off; applies with the billing switch on or off. Granted unrestricted accounts unchanged on master.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/account-access-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/account-access-config.test.ts",
+        "backend/lib/account-access.dbtest.ts",
+        "backend/.env.example",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "An owner at or over $35 of model spend this calendar month (UTC) gets the aiPaused 429 on chat and regenerate",
+        "Grading keeps working at the cap",
+        "OWNER_MONTHLY_AI_CAP_USD overrides the cap and off/0/junk fall back to 35",
+        "The cap applies with BILLING_ENABLED on and off"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }
