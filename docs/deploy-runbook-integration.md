@@ -423,7 +423,7 @@ drop table if exists error_log_backup_029;
 drop table if exists mastery_backup_031;   -- probe: 031b_weighted_mastery_backfill.sql (checks the table too)
 drop table if exists mastery_backup_041;   -- probe: 041b_mastery_rule_backfill.sql
 drop table if exists mastery_backup_045;   -- probe: 045b_mastery_honesty_backfill.sql
-drop schema if exists backup_release_20261107 cascade;   -- the pre-release copy (no probe); due 2026-12-08
+drop schema if exists backup_release_20261107 cascade;   -- the pre-release copy (no probe); due 2026-12-08; a schema, so REQ-168's job does not drop it
 ```
 
 Confirmed by the 2026-11-07 release: production's size (3 accounts, ~25
@@ -466,6 +466,39 @@ the only place to get the string again.
 
 Rollback stays as in step 7 above: Vercel Instant Rollback for code,
 migrations are additive so the database can stay.
+
+### Release backups: kept 30 days (REQ-168)
+
+A release backup taken inside the database is a table named
+`public.backup_release_YYYYMMDD` (the date the backup was taken, UTC). It is
+kept 30 days and then dropped automatically by the "Release backup
+housekeeping" workflow (`.github/workflows/backup-housekeeping.yml`), which
+runs `npm run backups:housekeeping -- --apply` on the 8th of every month at
+09:17 UTC with the same `PROD_DATABASE_URL` secret and `production-database`
+environment as the migrate workflow.
+
+- It drops a table only if it is in schema `public`, its name is exactly
+  `backup_release_` plus 8 digits, the digits are a real date, and that date
+  is more than 30 days before the run date (UTC). Exactly 30 days old is
+  kept; a future date is kept. Everything else -- `mastery_backup_*`,
+  `error_log_backup_*`, `backup_release_20261107_old`, a malformed date,
+  another schema -- is never touched.
+- Because the run is monthly, a backup lives at least 30 days and is dropped
+  by the first run after that (up to about two months).
+- Each table it drops (or would drop) is logged with its date, age and row
+  count. Nothing else is printed.
+- To see what the next run will do, run the workflow by hand from the
+  Actions tab: `dry_run` is ticked by default and drops nothing. Untick it
+  to drop now. Locally: `npm run backups:housekeeping` (dry run) or
+  `-- --apply`.
+- A backup you still need past 30 days: rename it out of the pattern (for
+  example `alter table backup_release_20261201 rename to
+  keep_backup_release_20261201;`) before the run.
+
+The 2026-11-07 backup is not covered: it was taken as a **schema**,
+`backup_release_20261107` (32 tables), not a `public` table, so the job
+does not drop it. Drop it by hand on or after 2026-12-08 as in "Cleanup"
+above.
 
 ## Migration 050: verifiable labs (REQ-123)
 

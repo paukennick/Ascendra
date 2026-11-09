@@ -5672,6 +5672,49 @@
       "risk_notes": [
         "ID.me partner approval and scope names are confirmed only against ID.me's published docs until the account exists"
       ]
+    },
+    {
+      "id": "REQ-168",
+      "category": "operations",
+      "title": "Rolling housekeeping for release backup tables: kept 30 days, then dropped monthly",
+      "description": "Nick 2026-11-09: release backups are kept 30 days and then dropped automatically. A monthly GitHub Actions workflow (8th of each month 09:17 UTC; workflow_dispatch with dry_run defaulting to true) using the PROD_DATABASE_URL secret and production-database environment like migrate-production.yml runs backend/scripts/backup-housekeeping.ts. It drops only tables in schema public whose name is exactly backup_release_ plus 8 digits that form a real UTC date more than 30 days before the run date; exactly 30 days and future dates are kept; anything else is never touched. Each table dropped or that would be dropped is logged with date, age and row count; connection strings are never printed. First scheduled run 2026-12-08.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/backup-housekeeping.yml",
+        "backend/scripts/backup-housekeeping-lib.ts",
+        "backend/scripts/backup-housekeeping-lib.test.ts",
+        "backend/scripts/backup-housekeeping.ts",
+        "backend/lib/backup-housekeeping.dbtest.ts",
+        "backend/package.json",
+        "docs/deploy-runbook-integration.md",
+        "docs/legal/data-inventory.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Only public tables named exactly backup_release_YYYYMMDD with a real date are candidates",
+        "A backup is dropped only when its date is more than 30 days before the UTC run date (exactly 30 days is kept and future dates are kept)",
+        "Bad names and malformed dates and other schemas are never touched",
+        "Manual runs default to a dry run that drops nothing",
+        "Every table dropped or that would be dropped is logged with date and age and row count",
+        "No secret or connection string is printed",
+        "The first scheduled run after merge is 2026-12-08"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test (unit tests for the name and date filter)",
+        "npm run test:db (integration test against local Postgres)",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md release backups section",
+        "docs/legal/data-inventory.md retention"
+      ],
+      "risk_notes": [
+        "The 2026-11-07 backup is a schema (backup_release_20261107 with 32 tables) not a public table so this job does not drop it; dropped by hand per the runbook Cleanup unless Nick extends the job to schemas",
+        "Monthly cadence means a backup lives 30 to about 60 days"
+      ]
     }
   ]
 }
