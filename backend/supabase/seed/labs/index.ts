@@ -72,6 +72,11 @@ import { ABPTSOCS_LABS } from "./pt-abpts-ocs";
 import { ABPTSGCS_LABS } from "./pt-abpts-gcs";
 import { ABPTSNCS_LABS } from "./pt-abpts-ncs";
 import { ABPTSCCS_LABS } from "./pt-abpts-ccs";
+import { ABPTSONC_LABS } from "./pt-abpts-oncology";
+import { ABPTSPCS_LABS } from "./pt-abpts-pediatrics";
+import { ABPTSPWCS_LABS } from "./pt-abpts-pelvic-health";
+import { ABPTSSCS_LABS } from "./pt-abpts-sports";
+import { ABPTSWMS_LABS } from "./pt-abpts-wound";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -150,4 +155,9 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   ABPTSGCS_LABS,
   ABPTSNCS_LABS,
   ABPTSCCS_LABS,
+  ABPTSONC_LABS,
+  ABPTSPCS_LABS,
+  ABPTSPWCS_LABS,
+  ABPTSSCS_LABS,
+  ABPTSWMS_LABS,
 ].map(withValueSources);
