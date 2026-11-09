@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Administrator Associate (AZ-104).
 //
@@ -49,23 +50,23 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AZ104_LABS: SeedLabSet = {
   trackCode: "AZ104",
   sources: [
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104",
-    "https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles",
-    "https://learn.microsoft.com/en-us/azure/governance/management-groups/overview",
-    "https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effect-basics",
-    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources",
-    "https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/savings-plan-overview",
-    "https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview",
-    "https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-policy-structure",
-    "https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview",
-    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-cli",
-    "https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots",
-    "https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview",
-    "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview",
-    "https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview",
-    "https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules",
-    "https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-common-questions",
-    "https://learn.microsoft.com/en-us/azure/backup/secure-by-default",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104", "exam_outline", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/governance/management-groups/overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effect-basics", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/savings-plan-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-policy-structure", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-cli", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-common-questions", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/backup/secure-by-default", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

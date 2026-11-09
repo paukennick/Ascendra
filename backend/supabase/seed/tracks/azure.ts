@@ -66,6 +66,10 @@ const AZURE_PROVIDER = {
 
 const VERIFIED_AT = "2026-09-18T00:00:00Z";
 
+// REQ-142: the day each outline below was re-read for its version (name,
+// version, url) on the publisher's own page; see each block's comment.
+const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
+
 // ---------------------------------------------------------------------------
 // Foundational: Microsoft Certified: Azure Fundamentals (AZ-900)
 // 45 minutes, scaled score 1-1000, minimum passing score 700.
@@ -81,7 +85,7 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-fundamentals",
@@ -89,12 +93,16 @@ export const AZURE_AZ900_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/",
     examCode: "AZ-900",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of July 20, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 20, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "No prerequisites; Microsoft suggests familiarity with any area of IT (infrastructure, database, or software development) as helpful but not required.",
     durationMinutes: 45,
@@ -194,7 +202,7 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-administrator",
@@ -202,12 +210,18 @@ export const AZURE_AZ104_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/",
     examCode: "AZ-104",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    // The live guide still prints October 26, 2023 (older than the other nine);
+    // that is Microsoft's page, not a stale copy here.
+    objectivesRevision: "Skills measured as of October 26, 2023",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 26, 2023) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Familiarity with operating systems, networking, servers, and virtualization; experience with PowerShell, Azure CLI, the Azure portal, Azure Resource Manager templates or Bicep files, and Microsoft Entra ID.",
     durationMinutes: 100,
@@ -353,7 +367,7 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-solutions-architect-expert",
@@ -361,12 +375,16 @@ export const AZURE_AZ305_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/",
     examCode: "AZ-305",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of April 17, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 17, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Requires the Azure Administrator Associate certification. Advanced experience with networking, virtualization, identity, security, business continuity, disaster recovery, data platforms, governance, Azure administration, Azure development, and DevOps processes.",
     questionFormat:
@@ -477,7 +495,7 @@ export const AZURE_AI901_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-ai-fundamentals",
@@ -485,12 +503,16 @@ export const AZURE_AI901_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/",
     examCode: "AI-901",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of April 15, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 15, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-901
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "No prerequisites; benefits from familiarity with Python syntax and programming techniques, Azure resources, and REST APIs/SDKs/CLIs.",
     questionFormat:
@@ -559,7 +581,7 @@ export const AZURE_DP900_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-data-fundamentals/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-data-fundamentals",
@@ -567,12 +589,16 @@ export const AZURE_DP900_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-data-fundamentals/",
     examCode: "DP-900",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of July 21, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 21, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-900
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "No prerequisites; familiarity with relational and non-relational data concepts and with transactional versus analytical data workloads is helpful.",
     durationMinutes: 45,
@@ -658,7 +684,7 @@ export const AZURE_AZ700_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer-associate/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-network-engineer-associate",
@@ -666,8 +692,12 @@ export const AZURE_AZ700_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer-associate/",
     examCode: "AZ-700",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of July 27, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Experience creating and managing compute, storage, and networking resources in Azure; understanding of networking fundamentals such as name resolution, network protocols, and network address management.",
     durationMinutes: 100,
@@ -861,7 +891,7 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-virtual-desktop-specialty",
@@ -869,12 +899,16 @@ export const AZURE_AZ140_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/",
     examCode: "AZ-140",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of July 20, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of July 20, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Server or desktop administrator experience designing, implementing, managing, and maintaining Azure Virtual Desktop experiences and remote apps, working closely with Azure administrators, Azure architects, Microsoft 365 administrators, and Azure security engineers; experience with Azure compute, networking, identity, storage, and resiliency.",
     durationMinutes: 100,
@@ -1008,6 +1042,7 @@ export const AZURE_DP300_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
+  contentReviewDueAt: "2026-10-27T00:00:00Z",
   sourceVerifiedAt: VERIFIED_AT,
   credential: {
     ...AZURE_PROVIDER,
@@ -1016,6 +1051,14 @@ export const AZURE_DP300_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-database-administrator-associate/",
     examCode: "DP-300",
     status: "active",
+    // REQ-142: OUTDATED. The guide (read 2026-11-08) is "Skills measured as of
+    // October 27, 2026"; its change log marks "Implement security for data at rest
+    // and data in transit" Minor, and the objectives below still say "Always
+    // Encrypted with VBS enclaves" where the live guide says "with secure
+    // enclaves". So the version recorded is the one these objectives follow, the
+    // verified date is left at the last full read, and the review is due from
+    // the change date. Not rewritten here (PR #44).
+    objectivesRevision: "Skills measured prior to October 27, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of October 27, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300
@@ -1179,7 +1222,7 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/devops-engineer/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "devops-engineer-expert",
@@ -1187,8 +1230,12 @@ export const AZURE_AZ400_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/devops-engineer/",
     examCode: "AZ-400",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of July 27, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Experience both administering and developing in Azure, with strong skills in at least one area, plus experience implementing both GitHub and Azure DevOps solutions; requires holding the Microsoft Certified: Azure Administrator Associate certification as a prerequisite.",
     questionFormat: "Microsoft does not publish an exact question count or duration for AZ-400",
@@ -1336,7 +1383,7 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
   subcategorySlug: "azure-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-for-sap-workloads-specialty/",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...AZURE_PROVIDER,
     credentialSlug: "azure-for-sap-workloads-specialty",
@@ -1344,12 +1391,16 @@ export const AZURE_AZ120_TRACK: SeedTrack = {
     credentialUrl: "https://learn.microsoft.com/en-us/credentials/certifications/azure-for-sap-workloads-specialty/",
     examCode: "AZ-120",
     status: "active",
+    // REQ-142: version = the study guide's "Skills measured as of" date, read
+    // 2026-11-08 at the officialObjectivesUrl below; no retirement date on the
+    // certification page.
+    objectivesRevision: "Skills measured as of April 17, 2026",
     officialObjectivesUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120",
     // REQ-102: domain ranges re-read 2026-11-07 (skills measured as of April 17, 2026) at
     // https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-120
     // -- unchanged. Unit weights are now points inside those ranges that total 100;
     // see "Domain weights" in the file header.
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Experience as an architect or engineer designing and managing SAP landscapes on Azure, including RISE with SAP, with extensive knowledge of SAP HANA, SAP Business Suite, and SAP NetWeaver, plus virtualization, cloud infrastructure, storage, high availability, disaster recovery, and networking; an Azure Administrator Associate certification is strongly recommended first.",
     durationMinutes: 100,

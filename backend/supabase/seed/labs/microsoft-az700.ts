@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Network Engineer Associate (AZ-700).
 //
@@ -64,25 +65,25 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AZ700_LABS: SeedLabSet = {
   trackCode: "AZ700",
   sources: [
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
-    "https://learn.microsoft.com/en-us/azure/networking/design-guide/ip-planning",
-    "https://learn.microsoft.com/en-us/azure/bastion/bastion-sku-comparison",
-    "https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview",
-    "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview",
-    "https://learn.microsoft.com/en-us/azure/vpn-gateway/about-gateway-skus",
-    "https://learn.microsoft.com/en-us/azure/expressroute/expressroute-faqs",
-    "https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/tier-comparison",
-    "https://learn.microsoft.com/en-us/azure/frontdoor/tier-migration",
-    "https://learn.microsoft.com/en-us/azure/application-gateway/configuration-request-routing-rules",
-    "https://learn.microsoft.com/en-us/azure/application-gateway/v1-retirement",
-    "https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns",
-    "https://learn.microsoft.com/en-us/azure/networking/design-guide/private-platform-as-a-service",
-    "https://learn.microsoft.com/en-us/azure/firewall/choose-firewall-sku",
-    "https://learn.microsoft.com/en-us/azure/firewall/rule-processing",
-    "https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/ag-overview",
-    "https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules",
-    "https://learn.microsoft.com/en-us/azure/load-balancer/skus",
-    "https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700", "exam_outline", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/networking/design-guide/ip-planning", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/bastion/bastion-sku-comparison", "cloud_pricing_limits", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/vpn-gateway/about-gateway-skus", "cloud_pricing_limits", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/expressroute/expressroute-faqs", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/tier-comparison", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/frontdoor/tier-migration", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/application-gateway/configuration-request-routing-rules", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/application-gateway/v1-retirement", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/networking/design-guide/private-platform-as-a-service", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/firewall/choose-firewall-sku", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/firewall/rule-processing", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/ag-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/load-balancer/skus", "cloud_pricing_limits", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

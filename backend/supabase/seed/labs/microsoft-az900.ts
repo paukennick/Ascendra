@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Fundamentals (AZ-900).
 //
@@ -35,13 +36,13 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AZ900_LABS: SeedLabSet = {
   trackCode: "AZ900",
   sources: [
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900",
-    "https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy",
-    "https://learn.microsoft.com/en-us/azure/governance/management-groups/overview",
-    "https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effect-basics",
-    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources",
-    "https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/savings-plan-overview",
-    "https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900", "exam_outline", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/governance/management-groups/overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effect-basics", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/savings-plan-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Solutions Architect Expert (AZ-305).
 //
@@ -51,20 +52,20 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AZ305_LABS: SeedLabSet = {
   trackCode: "AZ305",
   sources: [
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305",
-    "https://learn.microsoft.com/en-us/azure/governance/management-groups/overview",
-    "https://learn.microsoft.com/en-us/azure/key-vault/general/overview",
-    "https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/overview",
-    "https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/choose-ad-authn",
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
-    "https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview",
-    "https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy",
-    "https://learn.microsoft.com/en-us/azure/azure-sql/database/business-continuity-high-availability-disaster-recover-hadr-overview",
-    "https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-common-questions",
-    "https://learn.microsoft.com/en-us/azure/backup/secure-by-default",
-    "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/compute-decision-tree",
-    "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/load-balancing-overview",
-    "https://learn.microsoft.com/en-us/azure/migrate/migrate-services-overview",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305", "exam_outline", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/governance/management-groups/overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/key-vault/general/overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/choose-ad-authn", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-sql/database/business-continuity-high-availability-disaster-recover-hadr-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-common-questions", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/backup/secure-by-default", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/compute-decision-tree", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/load-balancing-overview", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/migrate/migrate-services-overview", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------

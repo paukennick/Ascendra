@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: DevOps Engineer Expert (AZ-400).
 //
@@ -55,19 +56,19 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AZ400_LABS: SeedLabSet = {
   trackCode: "AZ400",
   sources: [
-    "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400",
-    "https://learn.microsoft.com/en-us/azure/devops/report/dashboards/cycle-time-and-lead-time",
-    "https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github",
-    "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
-    "https://learn.microsoft.com/en-us/azure/devops/pipelines/yaml-schema/pipeline",
-    "https://learn.microsoft.com/en-us/azure/devops/pipelines/process/approvals",
-    "https://learn.microsoft.com/en-us/azure/devops/pipelines/process/deployment-jobs",
-    "https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots",
-    "https://learn.microsoft.com/en-us/azure/devops/pipelines/release/configure-workload-identity",
-    "https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect",
-    "https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure",
-    "https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security",
-    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/queries/apprequests",
+    source("https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400", "exam_outline", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/report/dashboards/cycle-time-and-lead-time", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github", "reference", "2026-11-07"),
+    source("https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/pipelines/yaml-schema/pipeline", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/pipelines/process/approvals", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/pipelines/process/deployment-jobs", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/app-service/deploy-staging-slots", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/devops/pipelines/release/configure-workload-identity", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect", "reference", "2026-11-07"),
+    source("https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure", "reference", "2026-11-07"),
+    source("https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security", "reference", "2026-11-07"),
+    source("https://learn.microsoft.com/en-us/azure/azure-monitor/reference/queries/apprequests", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------------
