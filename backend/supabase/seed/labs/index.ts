@@ -13,5 +13,24 @@ import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
 import { NPTEPT_LABS } from "./pt-nptept";
 import { NPTEPTA_LABS } from "./pt-nptepta";
 import { DPT_LABS } from "./pt-dpt";
+import { withValueSources } from "./value-sources";
 
-export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS, ACECPT_LABS, ACSMCPT_LABS, NSCACPT_LABS, NSCACSCS_LABS, NCCPTCPT_LABS, NPTEPT_LABS, NPTEPTA_LABS, DPT_LABS];
+// REQ-142: each clinical and fitness lab's own guideline sources are attached
+// here (value-sources.ts), apart from the lab content.
+export const LAB_SETS: readonly SeedLabSet[] = [
+  AWSSAA_LABS,
+  PMP_LABS,
+  NCLEXRN_LABS,
+  NASMCPT_LABS,
+  CCRNADULT_LABS,
+  CCRNPEDS_LABS,
+  CCRNNEO_LABS,
+  ACECPT_LABS,
+  ACSMCPT_LABS,
+  NSCACPT_LABS,
+  NSCACSCS_LABS,
+  NCCPTCPT_LABS,
+  NPTEPT_LABS,
+  NPTEPTA_LABS,
+  DPT_LABS,
+].map(withValueSources);

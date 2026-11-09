@@ -63,3 +63,44 @@ Each course file's header lists every source with title, publisher,
 edition or year, URL, licence and access date, and records which tier it
 falls in. Disagreements and how they were resolved are listed in the same
 header.
+
+## Re-checking (REQ-142)
+
+Sources go stale: outlines are revised, guidelines updated, cloud limits
+and prices changed. Each course's exam outline is dated in its seed track
+(the credential block's `lastVendorVerifiedAt`, and `sourceVerifiedAt` /
+`contentReviewDueAt`), and each authored lab's sources carry a checked date
+and a re-check date (`backend/supabase/seed/sources.ts`). Default re-check:
+12 months after the check for exam outlines and references, 6 months for
+clinical guidelines and cloud prices or service limits; set `recheckBy`
+earlier when the publisher has announced a change. `npm run currency:report`
+(from `backend/`, no network) lists everything overdue or due within 60 days
+by course, plus the courses that record no outline or no outline version.
+It is a to-do list, not a gate: stale content keeps being served until a
+person re-checks it and updates the date.
+
+What to record (2026-11-08):
+
+- **Outline version.** The version the course's objectives follow, as the
+  publisher prints it: an exam code (SAA-C03), Microsoft's "Skills measured
+  as of" date, a Google guide's version or date, a PMI outline's copyright
+  year, an ABPTS Description of Specialty Practice edition. Put it in the
+  credential block's `objectivesRevision` (not `examRevision`: that is part of
+  the exam row's identity, and changing it would add a second exam row on the
+  next production seed). When the publisher prints none, say so in
+  `versionNote`; the report lists those with the reason instead of as
+  missing. When the live outline is newer than the course, record the older
+  version the objectives follow, leave the verified date at the last full
+  read, and set `contentReviewDueAt` to the change date (DP-300, Google
+  Cloud DevOps).
+- **A course with no exam** records `curriculum` on its seed track: the
+  language's official reference, the school's published degree plan, or
+  `self_defined` for a syllabus the course writes itself.
+- **A clinical or fitness lab's values.** The set's `sources` say a topic is on
+  the exam; they do not make a blood-pressure limit or a dose right. Each
+  NCLEX-RN, CCRN and NASM-CPT lab names the guideline its values rest on, or
+  says why it names none, in `backend/supabase/seed/labs/value-sources.ts`
+  (`kind: "clinical_guideline"`, so the 6-month re-check applies). Check the
+  guideline's own publisher page, never a summary. When a lab disagrees with
+  the current guideline, do not edit the lab to match: report it for the
+  clinical reviewer, because the reviewed wording and the rubric move together.

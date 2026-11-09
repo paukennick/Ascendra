@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-147: Doctor of Physical Therapy (DPT) entry-to-practice pathway.
 //
@@ -46,14 +47,14 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const DPT_LABS: SeedLabSet = {
   trackCode: "DPT",
   sources: [
-    "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf",
-    "https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf",
-    "https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf",
-    "https://doi.org/10.2519/jospt.2021.0304",
-    "https://doi.org/10.1007/s10741-023-10310-9",
-    "https://doi.org/10.1001/jama.286.15.1841",
-    "https://doi.org/10.1097/BRS.0b013e31815e3a10",
-    "https://doi.org/10.2522/ptj.20090079",
+    source("https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf", "reference", "2026-11-07"),
+    source("https://doi.org/10.2519/jospt.2021.0304", "reference", "2026-11-07"),
+    source("https://doi.org/10.1007/s10741-023-10310-9", "reference", "2026-11-07"),
+    source("https://doi.org/10.1001/jama.286.15.1841", "reference", "2026-11-07"),
+    source("https://doi.org/10.1097/BRS.0b013e31815e3a10", "reference", "2026-11-07"),
+    source("https://doi.org/10.2522/ptj.20090079", "reference", "2026-11-07"),
   ],
   labs: [
     // ---------------------------------------------------------------- Foundational sciences (7A) (2)

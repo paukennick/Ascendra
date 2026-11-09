@@ -230,6 +230,10 @@ rubric has no key a checker can answer), so a flagged lab goes to a person.
 If the person confirms it wrong, `confirmItemWrong` voids every attempt with
 that `lab_id` and recomputes the learners' mastery.
 
+Below the quarantine threshold, rising reports and a sharp drop in a lab's
+correct rate open an entry in the content review queue (REQ-143,
+docs/content-review.md); the lab keeps being served.
+
 ## Safety rules per subject family
 
 | Family | Courses | Rules |
@@ -245,8 +249,18 @@ never asks about "your patient/client".
 ## Authoring a lab
 
 Authored labs live in `backend/supabase/seed/labs/<course>.ts`, one
-`SeedLabSet` per course with the exam outline URL(s) in `sources`, and are
-listed in `seed/labs/index.ts`.
+`SeedLabSet` per course with the exam outline(s) in `sources`, and are
+listed in `seed/labs/index.ts`. Each source is dated (REQ-142,
+`seed/sources.ts`): `source(url, kind, checkedAt, recheckBy?)`, where
+`checkedAt` is the day you confirmed it and `kind` sets the default
+re-check (`exam_outline` and `reference` 12 months, `clinical_guideline`
+and `cloud_pricing_limits` 6 months). `npm test` fails on a source without
+dates; `npm run currency:report` lists what is due. The database keeps the
+URLs only (`labs.sources`). A clinical or fitness lab also names the
+guideline its own values rest on, or why it names none, in
+`seed/labs/value-sources.ts` (`labs.test.ts` requires one or the other);
+those URLs are stored after the set's, and adding one does not change the
+lab's content hash or review status.
 
 1. **Pick the skill, not the topic.** Choose the 1-3 objectives per unit
    that the exam tests by doing (see "Density" below). An objective that is

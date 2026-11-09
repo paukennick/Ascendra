@@ -115,7 +115,7 @@ end $$;
 
 drop table if exists
   ai_calls, allowance_uses, assessment_types, billing_events, coach_quiz_items, coach_quiz_turns,
-  concept_set_members, concept_sets, course_insights, discrimination_items, entitlements,
+  concept_set_members, concept_sets, content_review_queue, course_insights, discrimination_items, entitlements,
   error_log_backup_029, exam_items, exam_outcomes, exam_session_items, exam_sessions, free_course_choice,
   grading_claims, item_flags, item_holdbacks, item_quality_params, item_status,
   lab_disclaimer_acknowledgements, lab_report_questions, lab_run_steps, lab_runs, labs,
@@ -179,6 +179,7 @@ alter table attempts drop constraint if exists attempts_lab_not_mastery_evidence
 alter table attempts drop constraint if exists attempts_labtask_shape;
 drop index if exists attempts_unit;
 drop index if exists attempts_user_unit_created;
+drop index if exists attempts_answered_created;  -- 055 (REQ-143)
 drop index if exists idx_attempts_user_objective;
 drop index if exists idx_attempts_user_pbq_scenario;
 drop index if exists error_log_attempt;
