@@ -105,6 +105,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.account_access_live_email_unique') is not null as ok`,
   },
   {
+    // REQ-164: the containers and Kubernetes tracks hang off these rows; the
+    // seed resolves them by slug and fails without them.
+    migration: "057_containers_kubernetes_taxonomy.sql",
+    what: "Cloud Native & Kubernetes category and its three subcategories (seed)",
+    sql: `select (select count(*) from education_subcategories s join education_categories c on c.id = s.category_id
+                  where c.slug = 'cloud-native-certifications'
+                    and s.slug in ('cncf-certifications', 'container-tooling', 'red-hat-openshift')) = 3 as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

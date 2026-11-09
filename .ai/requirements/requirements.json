@@ -5485,6 +5485,42 @@
       "risk_notes": [
         "Requirement entry added at merge time (PR #65 shipped without one); labs are needs_expert_review until a reviewer approves them"
       ]
+    },
+    {
+      "id": "REQ-164",
+      "category": "content",
+      "title": "Containers and Kubernetes certification courses with authored labs",
+      "description": "Add the Linux Foundation / CNCF container and Kubernetes certification courses (CKA, CKAD, KCNA, CKS, KCSA, then Docker and the wider CNCF/Red Hat container exams) to the seeded catalog at the depth of the existing cloud tracks: units weighted by the official exam domains, verified against the official curriculum (github.com/cncf/curriculum, training.linuxfoundation.org) on the day of authoring, with authored build and case labs at the adopted hybrid density using current kubectl and Kubernetes APIs only.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/k8s-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-containers.test.ts",
+        "backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every course's domains and weights match the official curriculum fetched on the authoring date and the source URL and date are recorded",
+        "Every lab names an exact active objective and passes the content rules and the hybrid density check",
+        "No removed Kubernetes API or deprecated tool (PodSecurityPolicy extensions/v1beta1 dockershim) appears in a lab",
+        "Each course lands complete (track + labs + tests) in its own commit"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "python3 omni gate",
+        "migrations plus npm run seed twice on a local Postgres when available"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Linux Foundation exam environments move to each new Kubernetes minor within 4-8 weeks so version-specific facts are kept out of rubrics",
+        "Migration renumbered 055 -> 056 after master merged REQ-143's 055_content_review_queue, then 056 -> 057 because production already has 056_account_access (REQ-144); scope path is backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql"
+      ]
     }
   ]
 }
