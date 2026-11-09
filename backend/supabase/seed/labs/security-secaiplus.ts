@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-159: CompTIA SecAI+ CY0-001 (V1) -- verifiable labs beside the
 // course's existing self-reported labs. SecAI+ is CompTIA's AI-security
@@ -34,11 +35,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const SECAIPLUS_LABS: SeedLabSet = {
   trackCode: "SECAIPLUS",
   sources: [
-    "https://www.comptia.org/en-us/certifications/secai/",
-    "https://genai.owasp.org/llm-top10/",
-    "https://atlas.mitre.org/",
-    "https://www.nist.gov/itl/ai-risk-management-framework",
-    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    source("https://www.comptia.org/en-us/certifications/secai/", "exam_outline", "2026-11-07"),
+    source("https://genai.owasp.org/llm-top10/", "reference", "2026-11-07"),
+    source("https://atlas.mitre.org/", "reference", "2026-11-07"),
+    source("https://www.nist.gov/itl/ai-risk-management-framework", "reference", "2026-11-07"),
+    source("https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Domain 1: Basic AI Concepts Related to Cybersecurity (1)

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-159: CompTIA SecurityX CAS-005 (V5, formerly CASP+) -- verifiable
 // enterprise-architecture labs beside the course's existing self-reported
@@ -27,11 +28,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const SECURITYX_LABS: SeedLabSet = {
   trackCode: "SECURITYX",
   sources: [
-    "https://www.comptia.org/en-us/certifications/securityx/",
-    "https://csrc.nist.gov/pubs/sp/800/207/final",
-    "https://csrc.nist.gov/pubs/fips/203/final",
-    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
-    "https://www.first.org/epss/",
+    source("https://www.comptia.org/en-us/certifications/securityx/", "exam_outline", "2026-11-07"),
+    source("https://csrc.nist.gov/pubs/sp/800/207/final", "reference", "2026-11-07"),
+    source("https://csrc.nist.gov/pubs/fips/203/final", "reference", "2026-11-07"),
+    source("https://csrc.nist.gov/pubs/sp/800/61/r3/final", "reference", "2026-11-07"),
+    source("https://www.first.org/epss/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Domain 1: Governance, Risk, Compliance (2)

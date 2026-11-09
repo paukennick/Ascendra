@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-159: CompTIA CySA+ CS0-004 (V4) -- verifiable SOC-analyst labs beside
 // the course's existing self-reported labs.
@@ -31,11 +32,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CYSAPLUS_LABS: SeedLabSet = {
   trackCode: "CYSAPLUS",
   sources: [
-    "https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/",
-    "https://www.first.org/cvss/v4.0/specification-document",
-    "https://www.first.org/epss/",
-    "https://www.cisa.gov/known-exploited-vulnerabilities",
-    "https://attack.mitre.org/",
+    source("https://www.comptia.org/en-us/certifications/cybersecurity-analyst/v4/", "exam_outline", "2026-11-07"),
+    source("https://www.first.org/cvss/v4.0/specification-document", "reference", "2026-11-07"),
+    source("https://www.first.org/epss/", "reference", "2026-11-07"),
+    source("https://www.cisa.gov/known-exploited-vulnerabilities", "reference", "2026-11-07"),
+    source("https://attack.mitre.org/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Domain 1: Security Operations (3)

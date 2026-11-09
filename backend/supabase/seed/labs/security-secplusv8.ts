@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-159: CompTIA Security+ SY0-801 (V8) -- verifiable labs beside the
 // course's existing self-reported labs.
@@ -37,12 +38,12 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const SECPLUSV8_LABS: SeedLabSet = {
   trackCode: "SECPLUSV8",
   sources: [
-    "https://www.comptia.org/en-us/certifications/security/v8/",
-    "https://lecbyo.files.cmp.optimizely.com/download/77f3bd3223ac11f180820e495f189928",
-    "https://www.first.org/cvss/v4.0/specification-document",
-    "https://csrc.nist.gov/pubs/sp/800/63/b/4/final",
-    "https://genai.owasp.org/llm-top10/",
-    "https://atlas.mitre.org/",
+    source("https://www.comptia.org/en-us/certifications/security/v8/", "exam_outline", "2026-11-07"),
+    source("https://lecbyo.files.cmp.optimizely.com/download/77f3bd3223ac11f180820e495f189928", "reference", "2026-11-07"),
+    source("https://www.first.org/cvss/v4.0/specification-document", "reference", "2026-11-07"),
+    source("https://csrc.nist.gov/pubs/sp/800/63/b/4/final", "reference", "2026-11-07"),
+    source("https://genai.owasp.org/llm-top10/", "reference", "2026-11-07"),
+    source("https://atlas.mitre.org/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Domain 1: General Security Concepts (2)

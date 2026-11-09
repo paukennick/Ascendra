@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-123 pilot: NASM Certified Personal Trainer (NASM-CPT, 7th edition).
 //
@@ -21,8 +22,8 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 export const NASMCPT_LABS: SeedLabSet = {
   trackCode: "NASMCPT",
   sources: [
-    "https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf",
-    "https://www.nasm.org/certified-personal-trainer/exam-information",
+    source("https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.nasm.org/certified-personal-trainer/exam-information", "exam_outline", "2026-11-07"),
   ],
   labs: [
     {

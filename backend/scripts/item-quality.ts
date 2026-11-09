@@ -10,6 +10,7 @@
 import "../supabase/seed/env-local";
 import { query, queryOne, closePool } from "../lib/db";
 import { ITEM_KINDS, clearItem, confirmItemWrong, type ItemKind } from "../lib/item-quality";
+import { resolveQueueForItem } from "../lib/content-review-queue";
 
 async function main() {
   const [cmd, kind, itemId, note] = process.argv.slice(2);
@@ -37,6 +38,10 @@ async function main() {
     } else {
       console.log((await clearItem({ kind: kind as ItemKind, itemId }, note)) ? "Cleared: served again." : "Not quarantined; nothing changed.");
     }
+    // REQ-143: a person has now looked at this item; its open review-queue
+    // entries (npm run review-queue) are resolved with the same decision.
+    const q = await resolveQueueForItem(kind, itemId, cmd === "confirm" ? "confirmed_wrong" : "cleared", note);
+    if (q) console.log(`Resolved ${q} open review-queue entr${q === 1 ? "y" : "ies"} for this item.`);
     return;
   }
   console.log('Usage: npm run items -- list | confirm <kind> <itemId> "<note>" | clear <kind> <itemId> "<note>"');

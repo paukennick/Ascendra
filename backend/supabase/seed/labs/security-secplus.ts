@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-159: CompTIA Security+ SY0-701 (V7) -- verifiable labs beside the
 // course's existing self-reported labs.
@@ -35,11 +36,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const SECPLUS_LABS: SeedLabSet = {
   trackCode: "SECPLUS",
   sources: [
-    "https://www.comptia.org/en-us/certifications/security/v7/",
-    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
-    "https://www.first.org/cvss/v4.0/specification-document",
-    "https://www.first.org/epss/",
-    "https://www.cisa.gov/known-exploited-vulnerabilities",
+    source("https://www.comptia.org/en-us/certifications/security/v7/", "exam_outline", "2026-11-07"),
+    source("https://csrc.nist.gov/pubs/sp/800/61/r3/final", "reference", "2026-11-07"),
+    source("https://www.first.org/cvss/v4.0/specification-document", "reference", "2026-11-07"),
+    source("https://www.first.org/epss/", "reference", "2026-11-07"),
+    source("https://www.cisa.gov/known-exploited-vulnerabilities", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Domain 1: General Security Concepts (2)

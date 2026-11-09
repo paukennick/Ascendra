@@ -7,6 +7,7 @@
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 // REQ-125: unreviewed labs are served by default; the tests run on the default.
 delete process.env.LABS_SERVE_UNREVIEWED;
+import { source } from "../supabase/seed/sources";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -560,6 +561,8 @@ describe("generated labs: every gate before storing", () => {
 describe("seeding authored labs", () => {
   test("upsert keeps an expert's approval while content is unchanged, resets it when content changes, and retires labs the seed dropped", async () => {
     const code = `LAB-${run}`;
+    // REQ-142: the seed's dated source; the database keeps the URL only.
+    const OUTLINE = source("https://example.test/outline", "exam_outline", "2026-11-07");
     const lab = (title: string) => ({
       slug: "seed-test",
       objective: "LAB O2",
@@ -569,12 +572,14 @@ describe("seeding authored labs", () => {
       safetyNote: "Fictional.",
       steps: [{ text: "", ask: "Write the plan for the team.", parts: [{ label: "Plan", criteria: "Covers the requirement.", modelAnswer: "A plan covering the requirement." }] }],
     });
-    await seedLabs(dbPool, { trackCode: code, sources: ["https://example.test/outline"], labs: [lab("Seed lab one")] });
+    await seedLabs(dbPool, { trackCode: code, sources: [OUTLINE], labs: [lab("Seed lab one")] });
     await query(`update labs set review_status = 'approved', reviewed_by = 'expert' where objective_id = $1 and slug = 'seed-test'`, [OBJ_SIBLING]);
-    await seedLabs(dbPool, { trackCode: code, sources: ["https://example.test/outline"], labs: [lab("Seed lab one")] });
+    await seedLabs(dbPool, { trackCode: code, sources: [OUTLINE], labs: [lab("Seed lab one")] });
     let row = await queryOne<{ review_status: string; reviewed_by: string | null }>(`select review_status, reviewed_by from labs where objective_id = $1 and slug = 'seed-test'`, [OBJ_SIBLING]);
     assert.deepEqual(row, { review_status: "approved", reviewed_by: "expert" });
-    await seedLabs(dbPool, { trackCode: code, sources: ["https://example.test/outline"], labs: [lab("Seed lab one, revised")] });
+    const stored = await queryOne<{ sources: unknown }>(`select sources from labs where objective_id = $1 and slug = 'seed-test'`, [OBJ_SIBLING]);
+    assert.deepEqual(stored?.sources, ["https://example.test/outline"]);
+    await seedLabs(dbPool, { trackCode: code, sources: [OUTLINE], labs: [lab("Seed lab one, revised")] });
     row = await queryOne(`select review_status, reviewed_by from labs where objective_id = $1 and slug = 'seed-test'`, [OBJ_SIBLING]);
     assert.deepEqual(row, { review_status: "needs_expert_review", reviewed_by: null });
     // Dropped from the seed: retired (the hand-inserted fixtures are authored too).
