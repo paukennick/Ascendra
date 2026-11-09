@@ -62,6 +62,12 @@ import { CYSAPLUS_LABS } from "./security-cysaplus";
 import { PENTESTPLUS_LABS } from "./security-pentestplus";
 import { SECURITYX_LABS } from "./security-securityx";
 import { SECAIPLUS_LABS } from "./security-secaiplus";
+import { NETWORKPLUS_LABS } from "./comptia-networkplus";
+import { LINUXPLUS_LABS } from "./comptia-linuxplus";
+import { SERVERPLUS_LABS } from "./comptia-serverplus";
+import { AUTOOPSPLUS_LABS } from "./comptia-autoopsplus";
+import { DATAPLUS_LABS } from "./comptia-dataplus";
+import { DATAAI_LABS } from "./comptia-dataai";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -130,4 +136,10 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PENTESTPLUS_LABS,
   SECURITYX_LABS,
   SECAIPLUS_LABS,
+  NETWORKPLUS_LABS,
+  LINUXPLUS_LABS,
+  SERVERPLUS_LABS,
+  AUTOOPSPLUS_LABS,
+  DATAPLUS_LABS,
+  DATAAI_LABS,
 ].map(withValueSources);
