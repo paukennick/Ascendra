@@ -24,6 +24,8 @@ const CONCEPTUAL = ["KCNA", "KCSA"] as const;
 const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
   PCA: { answers: /rate\(|sum by|histogram_quantile|scrape_configs|- alert:|amtool|promtool|Counter\(|Histogram\(|Gauge\(|remote_write/, shown: /\$ curl|\$ kubectl|groups:|expr:|^\s*[a-z_]+:\s/m },
   OTCA: { answers: /OTEL_|processors:|exporters:|receivers:|tracer|span\.|propagation|sending_queue/, shown: /\$ curl|\$ kubectl|Span from|traceparent|x-b3|attributes:|OTEL_/ },
+  CGOA: { answers: /argocd|Argo CD|Flux|Kustomization|GitRepository|selfHeal|prune|overlays\/|reconcil|Rollout|AnalysisTemplate|canary/, shown: /\$ |Timeline:|proposals|Proposal|Current push model|Facts from the review|Requirements gathered|delivery design/ },
+  CAPA: { answers: /argoproj\.io|argo |argocd|kubectl argo rollouts|workflowTemplateRef|AnalysisTemplate|EventSource|Sensor/, shown: /\$ argo|\$ kubectl|\$ argocd/ },
 };
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON, ...CONCEPTUAL, ...Object.keys(TOOLING)] as const;
@@ -189,7 +191,15 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       activeUnits(tracks.get("OTCA")!).map((u) => [u.title, u.weight]),
       [["Fundamentals of Observability", 18], ["The OpenTelemetry API and SDK", 46], ["The OpenTelemetry Collector", 26], ["Maintaining and Debugging Observability Pipelines", 10]]
     );
-    for (const code of ["PCA", "OTCA"]) {
+    assert.deepEqual(
+      activeUnits(tracks.get("CGOA")!).map((u) => [u.title, u.weight]),
+      [["GitOps Terminology", 20], ["GitOps Principles", 30], ["Related Practices", 16], ["GitOps Patterns", 20], ["Tooling", 14]]
+    );
+    assert.deepEqual(
+      activeUnits(tracks.get("CAPA")!).map((u) => [u.title, u.weight]),
+      [["Argo Workflows", 36], ["Argo CD", 34], ["Argo Rollouts", 18], ["Argo Events", 12]]
+    );
+    for (const code of ["PCA", "OTCA", "CGOA", "CAPA"]) {
       const c = tracks.get(code)!.credential!;
       assert.equal(c.durationMinutes, 90, code);
       assert.match(c.passingScorePolicy ?? "", /75%/, code);

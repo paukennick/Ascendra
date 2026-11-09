@@ -214,4 +214,182 @@ export const OTCA_TRACK: SeedTrack = {
   ],
 };
 
-export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK];
+// ---------------------------------------------------------------------------
+// Certified GitOps Associate (CGOA)
+// Multiple choice, 90 minutes, $250, beginner; GitOps Terminology 20%, GitOps
+// Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%
+// (CGOA_Curriculum.pdf, read page by page on 2026-11-08).
+// ---------------------------------------------------------------------------
+export const CGOA_TRACK: SeedTrack = {
+  code: "CGOA",
+  title: "Certified GitOps Associate (CGOA) Coach",
+  description:
+    "CGOA: GitOps as the OpenGitOps project defines it. The vocabulary (desired state, drift, reconciliation, state store), the four principles, how GitOps relates to IaC, CI/CD and DevSecOps, the deployment and architecture patterns teams use, and the tooling -- manifests, state stores, reconcilers such as Argo CD and Flux -- that implements it.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-gitops-associate-cgoa/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cgoa",
+    credentialName: "Certified GitOps Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-gitops-associate-cgoa/",
+    basis: "vendor_exam",
+    examCode: "CGOA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CGOA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Beginner level: for anyone adopting or operating GitOps-based delivery, from developers to platform and release engineers.",
+    durationMinutes: 90,
+    questionFormat: MC_FORMAT,
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "GitOps Terminology",
+      weight: 20,
+      gate: "Given a description of a delivery setup, name each GitOps term that applies -- desired state, drift, reconciliation, state store, feedback loop -- and spot where the description misuses one.",
+      objectives: [
+        "Continuous: what 'continuous' means in GitOps -- reconciliation that keeps running, not a one-time deployment",
+        "Declarative description and desired state: describing what the system should be rather than steps to get there, and where the desired state is recorded",
+        "State drift and state reconciliation: how the actual state diverges and how an agent detects and corrects the difference",
+        "GitOps managed software system and the state store: what is under GitOps control and the versioned, immutable store that holds its desired state",
+        "Feedback loop and rollback: how observed state informs operators, and how rollback is a change to desired state rather than a manual intervention",
+        "Recognise GitOps terminology misuse: 'GitOps' claimed for a CI pipeline that pushes with kubectl, or for a system with no reconciler",
+      ],
+    },
+    {
+      title: "GitOps Principles",
+      weight: 30,
+      gate: "Given a delivery design, evaluate it against each of the four OpenGitOps principles, identify which it violates, and redesign it to satisfy them.",
+      objectives: [
+        "Declarative: the whole desired state expressed declaratively, and why imperative steps and scripts break the principle",
+        "Versioned and immutable: desired state stored in a way that enforces immutability and versioning with full history, and what that enables (audit, rollback, review)",
+        "Pulled automatically: software agents pull the desired state from the source rather than having changes pushed to them, and why pull matters for security and reliability",
+        "Continuously reconciled: agents continuously observe actual state and attempt to apply the desired state, and the implications for manual changes and drift",
+        "Evaluate a design against the four principles and identify which are violated by common shortcuts (CI pushing to the cluster, hand-edited live resources, unversioned config stores)",
+        "Design a delivery flow that satisfies all four principles for a given application and team",
+      ],
+    },
+    {
+      title: "Related Practices",
+      weight: 16,
+      gate: "Given a team's existing practices, say how GitOps relates to and differs from each -- IaC, CaC, DevOps, DevSecOps, CI and CD -- and where it fits in their pipeline.",
+      objectives: [
+        "Configuration as Code (CaC): managing configuration in version control and how GitOps consumes it",
+        "Infrastructure as Code (IaC): declarative infrastructure (Terraform, Crossplane, cluster API) and how GitOps reconciles infrastructure as well as applications",
+        "DevOps and DevSecOps: GitOps as an implementation of DevOps principles and how security review and policy enter the Git workflow",
+        "CI and CD: the boundary between integration (build, test, publish) and delivery (reconcile desired state), and why GitOps separates them",
+        "Choose where GitOps fits a given pipeline and which practices it replaces, complements or leaves unchanged",
+      ],
+    },
+    {
+      title: "GitOps Patterns",
+      weight: 20,
+      gate: "Given release and architecture requirements, select the GitOps patterns that meet them -- deployment strategy, progressive delivery, pull or event-driven reconciliation, reconciler placement -- and justify each.",
+      objectives: [
+        "Deployment and release patterns: environment promotion through branches or directories, release by pull request, and tagging and pinning versions",
+        "Progressive delivery patterns: canary, blue/green and feature flags driven from desired state, and the role of metrics in automated promotion",
+        "Pull versus event-driven: scheduled reconciliation versus webhook-triggered reconciliation, and their trade-offs for latency and robustness",
+        "Architecture patterns: in-cluster versus external reconcilers, hub-and-spoke for many clusters, and state store management (monorepo, repo per team or environment)",
+        "Select patterns for a given scenario and explain the trade-offs between them",
+      ],
+    },
+    {
+      title: "Tooling",
+      weight: 14,
+      gate: "Given an organisation's stack, choose the manifest format, state store and reconciliation engine, and describe how they interoperate with notifications, observability and CI.",
+      objectives: [
+        "Select a manifest format and packaging: plain YAML, Kustomize, Helm and OCI artifacts as inputs to a reconciler",
+        "State store systems: Git and its alternatives (OCI registries, object storage) and what makes a store suitable as a GitOps state store",
+        "Configure a reconciliation engine: Argo CD, Flux and alternatives -- their models (Applications, Kustomizations/HelmReleases), sync and health",
+        "Interoperability with notifications, observability and continuous integration tools: alerts on drift and sync failure, metrics, and CI that updates desired state",
+        "Choose tooling for a given organisation and justify the choice",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Certified Argo Project Associate (CAPA)
+// Multiple choice, 90 minutes, $250, beginner; Argo Workflows 36%, Argo CD
+// 34%, Argo Rollouts 18%, Argo Events 12% (CAPA_Curriculum.pdf, read page
+// by page on 2026-11-08).
+// ---------------------------------------------------------------------------
+export const CAPA_TRACK: SeedTrack = {
+  code: "CAPA",
+  title: "Certified Argo Project Associate (CAPA) Coach",
+  description:
+    "CAPA: the four Argo projects. Argo Workflows for container-native pipelines and DAGs with artifacts and templates, Argo CD for GitOps delivery with Applications, Helm and Kustomize, Argo Rollouts for canary and blue/green with analysis, and Argo Events for event-driven automation.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-argo-project-associate-capa/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "capa",
+    credentialName: "Certified Argo Project Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-argo-project-associate-capa/",
+    basis: "vendor_exam",
+    examCode: "CAPA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CAPA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Beginner level: for engineers using or evaluating the Argo projects on Kubernetes.",
+    durationMinutes: 90,
+    questionFormat: MC_FORMAT,
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "Argo Workflows",
+      weight: 36,
+      gate: "Given a multi-step job, write the Workflow with the right templates, pass artifacts and parameters between steps, and structure it as steps or a DAG that runs in the right order.",
+      objectives: [
+        "Argo Workflow fundamentals: the Workflow CRD, the controller, templates and the entrypoint, and how each step runs as a Pod",
+        "Configure artifacts: inputs and outputs, artifact repositories (S3-compatible, GCS, and others), and passing files and parameters between steps",
+        "Write Workflow templates: container, script, resource and suspend templates, WorkflowTemplate and ClusterWorkflowTemplate for reuse, and CronWorkflow for schedules",
+        "Understand the Workflow spec: parameters, volumes, retryStrategy, timeouts, activeDeadlineSeconds, exit handlers, and workflow and pod garbage collection",
+        "Build DAGs: tasks with dependencies, conditional execution with when, loops with withItems and withParam, and fan-out and fan-in",
+        "Design data processing jobs with Argo Workflows: parallelism controls, memoization, resource requests per step, and patterns for large batch pipelines",
+      ],
+    },
+    {
+      title: "Argo CD",
+      weight: 34,
+      gate: "Given an application repository and target clusters, write the Argo CD Application (or ApplicationSet), choose sync and health options, and explain how a change in Git becomes a change in the cluster -- and what happens when it does not.",
+      objectives: [
+        "Argo CD fundamentals: the Application and AppProject CRDs, the application controller, repo server and API server, and sync status versus health status",
+        "Configure synchronization in Argo CD: manual and automated sync, prune and self-heal, sync waves and hooks, sync options, and reading diffs",
+        "Build Applications and ApplicationSets: source (repo, path, revision), destination (cluster, namespace), generators for many clusters or teams, and the app-of-apps pattern",
+        "Configure Argo CD with Helm and Kustomize: Helm values and parameters, Kustomize overlays and images, and multiple sources",
+        "Troubleshoot common reconciliation patterns: OutOfSync caused by drift, ignoring differences, resource hooks, degraded health, and a sync that fails",
+      ],
+    },
+    {
+      title: "Argo Rollouts",
+      weight: 18,
+      gate: "Given a release requirement, write the Rollout with a canary or blue/green strategy, wire an AnalysisTemplate to metrics, and explain how the controller promotes or aborts.",
+      objectives: [
+        "Argo Rollouts fundamentals: the Rollout CRD as a Deployment replacement, the controller, and how it integrates with Services, Ingress and service meshes for traffic shaping",
+        "Implement progressive rollout strategies: canary with steps (setWeight, pause, analysis), blue/green with preview and active Services, and manual or automatic promotion and abort",
+        "Design AnalysisTemplates and AnalysisRuns: metric providers (Prometheus, Datadog, Kayenta, web, job), success and failure conditions, and how analysis gates a rollout",
+      ],
+    },
+    {
+      title: "Argo Events",
+      weight: 12,
+      gate: "Given an external event that should trigger work in the cluster, wire the EventSource, EventBus and Sensor so the event becomes a Workflow or Kubernetes object, with filtering and parameters.",
+      objectives: [
+        "Argo Events fundamentals: event-driven automation for Kubernetes and how it connects external systems to Workflows and other resources",
+        "Build event flows from the Argo Events components: EventSource types (webhook, S3, Kafka, calendar, resource and more), the EventBus (NATS/JetStream), Sensors with dependencies, filters and triggers, and trigger parameterization",
+      ],
+    },
+  ],
+};
+
+export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK];
