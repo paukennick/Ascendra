@@ -23,6 +23,8 @@ import { PCA_LABS } from "./k8s-pca";
 import { OTCA_LABS } from "./k8s-otca";
 import { CGOA_LABS } from "./k8s-cgoa";
 import { CAPA_LABS } from "./k8s-capa";
+import { CCA_LABS } from "./k8s-cca";
+import { ICA_LABS } from "./k8s-ica";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -54,4 +56,6 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   OTCA_LABS,
   CGOA_LABS,
   CAPA_LABS,
+  CCA_LABS,
+  ICA_LABS,
 ].map(withValueSources);

@@ -26,6 +26,8 @@ const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
   OTCA: { answers: /OTEL_|processors:|exporters:|receivers:|tracer|span\.|propagation|sending_queue/, shown: /\$ curl|\$ kubectl|Span from|traceparent|x-b3|attributes:|OTEL_/ },
   CGOA: { answers: /argocd|Argo CD|Flux|Kustomization|GitRepository|selfHeal|prune|overlays\/|reconcil|Rollout|AnalysisTemplate|canary/, shown: /\$ |Timeline:|proposals|Proposal|Current push model|Facts from the review|Requirements gathered|delivery design/ },
   CAPA: { answers: /argoproj\.io|argo |argocd|kubectl argo rollouts|workflowTemplateRef|AnalysisTemplate|EventSource|Sensor/, shown: /\$ argo|\$ kubectl|\$ argocd/ },
+  CCA: { answers: /cilium|hubble|CiliumNetworkPolicy|eBPF|helm (install|upgrade) cilium/, shown: /\$ cilium|\$ hubble|\$ kubectl|\$ helm/ },
+  ICA: { answers: /istioctl|istio\.io|PeerAuthentication|AuthorizationPolicy|VirtualService|DestinationRule|Gateway/, shown: /\$ istioctl|\$ kubectl/ },
 };
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON, ...CONCEPTUAL, ...Object.keys(TOOLING)] as const;
@@ -199,11 +201,23 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       activeUnits(tracks.get("CAPA")!).map((u) => [u.title, u.weight]),
       [["Argo Workflows", 36], ["Argo CD", 34], ["Argo Rollouts", 18], ["Argo Events", 12]]
     );
-    for (const code of ["PCA", "OTCA", "CGOA", "CAPA"]) {
+    for (const code of ["PCA", "OTCA", "CGOA", "CAPA", "CCA"]) {
       const c = tracks.get(code)!.credential!;
       assert.equal(c.durationMinutes, 90, code);
       assert.match(c.passingScorePolicy ?? "", /75%/, code);
     }
+    assert.deepEqual(
+      activeUnits(tracks.get("CCA")!).map((u) => [u.title, u.weight]),
+      [["Architecture", 20], ["Network Policy", 18], ["Service Mesh", 16], ["Network Observability", 10], ["Installation and Configuration", 10], ["Cluster Mesh", 10], ["eBPF", 10], ["BGP and External Networking", 6]]
+    );
+    assert.deepEqual(
+      activeUnits(tracks.get("ICA")!).map((u) => [u.title, u.weight]),
+      [["Installation, Upgrades, and Configuration", 20], ["Traffic Management", 35], ["Securing Workloads", 25], ["Troubleshooting", 20]]
+    );
+    const ica = tracks.get("ICA")!.credential!;
+    assert.equal(ica.durationMinutes, 120);
+    assert.match(ica.passingScorePolicy ?? "", /68%/);
+    assert.match(ica.questionFormat ?? "", /performance-based and multiple-choice/);
   });
 
   test("project courses: reference answers use the project's own configuration or query language, and cases show its output", () => {

@@ -392,4 +392,208 @@ export const CAPA_TRACK: SeedTrack = {
   ],
 };
 
-export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK];
+// ---------------------------------------------------------------------------
+// Cilium Certified Associate (CCA)
+// Multiple choice, 90 minutes, $250, beginner (Kubernetes and basic
+// networking knowledge recommended). Architecture 20%, Network Policy 18%,
+// Service Mesh 16%, Network Observability 10%, Installation and
+// Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking
+// 6% (CCA_Curriculum.pdf, read page by page on 2026-11-08).
+// ---------------------------------------------------------------------------
+export const CCA_TRACK: SeedTrack = {
+  code: "CCA",
+  title: "Cilium Certified Associate (CCA) Coach",
+  description:
+    "CCA: Cilium as the Kubernetes network layer. Its eBPF datapath and components, identity-based network policy, Ingress and Gateway API with sidecarless service mesh, Hubble observability, installation with the Cilium CLI, Cluster Mesh across clusters, and BGP for external connectivity.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/cilium-certified-associate-cca/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cca",
+    credentialName: "Cilium Certified Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/cilium-certified-associate-cca/",
+    basis: "vendor_exam",
+    examCode: "CCA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CCA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites, but Kubernetes and basic networking knowledge (the 7-layer model, TCP/UDP, IP addressing) are recommended. Beginner level.",
+    durationMinutes: 90,
+    questionFormat: MC_FORMAT,
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "Architecture",
+      weight: 20,
+      gate: "Given a cluster running Cilium, explain what each component does, how a Pod gets an address, and which datapath mode a packet takes between two Pods.",
+      objectives: [
+        "Understand the role of Cilium in Kubernetes environments: CNI, kube-proxy replacement, network policy, observability and service mesh in one agent",
+        "Cilium architecture: the agent DaemonSet, operator, Envoy proxy, Hubble relay and UI, and the Cilium CLI",
+        "Configure IP address management (IPAM) with Cilium: cluster-scope and Kubernetes host-scope modes, pod CIDRs per node, and cloud-native IPAM (ENI, Azure, GKE)",
+        "Cilium component roles: what the agent, operator and proxy each own, and how they interact with the Kubernetes API",
+        "Datapath models: encapsulation (VXLAN, Geneve) versus native routing, and how to choose between them",
+      ],
+    },
+    {
+      title: "Network Policy",
+      weight: 18,
+      gate: "Given an application's required flows, write Cilium network policies that allow exactly them at L3, L4 and L7, read an existing policy's intent, and explain how identities make it work.",
+      objectives: [
+        "Interpret Cilium network policies and their intent: endpointSelector, ingress and egress rules, and what a policy allows at L3, L4 and L7",
+        "Understand Cilium's identity-based network security model: security identities derived from labels, how they replace IP-based rules, and how identities are shared across nodes",
+        "Policy enforcement modes: default, always and never, and what each means for endpoints with no policy",
+        "Write policy rules using the policy rule structure: CiliumNetworkPolicy and CiliumClusterwideNetworkPolicy, toEndpoints, toFQDNs, toEntities, toCIDR, toPorts with L7 rules",
+        "Kubernetes NetworkPolicies versus Cilium network policies: what each can express, and how Cilium enforces both",
+      ],
+    },
+    {
+      title: "Service Mesh",
+      weight: 16,
+      gate: "Given an application that needs north-south routing and encrypted east-west traffic, configure Cilium's Ingress or Gateway API and transparent encryption, and explain the sidecarless model's trade-offs.",
+      objectives: [
+        "Know how to use Ingress or Gateway API for ingress routing with Cilium: the Cilium ingress controller, GatewayClass, Gateway and HTTPRoute",
+        "Service mesh use cases: traffic management, observability, mutual authentication and encryption without application changes",
+        "Understand the benefits of Gateway API over Ingress: role-oriented resources, expressive routing, and portability",
+        "Configure encryption of traffic in transit with Cilium: WireGuard and IPsec transparent encryption, and node-to-node encryption",
+        "Sidecar-based versus sidecarless architectures: Cilium's per-node Envoy and eBPF datapath compared with per-Pod sidecar meshes",
+      ],
+    },
+    {
+      title: "Network Observability",
+      weight: 10,
+      gate: "Given a connectivity complaint, use Hubble to see the flows, the verdicts and the Layer 7 details, and point to the policy or endpoint responsible.",
+      objectives: [
+        "Understand the observability capabilities of Hubble: flow logs, verdicts (forwarded, dropped, audited), service maps and metrics",
+        "Configure Layer 7 protocol visibility: visibility annotations and L7 policy rules that make HTTP, DNS and Kafka visible in Hubble",
+        "Troubleshoot connectivity with Hubble from the command line or the Hubble UI: hubble observe filters, hubble status, and reading the UI's service map",
+      ],
+    },
+    {
+      title: "Installation and Configuration",
+      weight: 10,
+      gate: "Given a new cluster, install Cilium with the CLI or Helm, run the connectivity test, and read and change the running configuration.",
+      objectives: [
+        "Know how to use the Cilium CLI to query and modify the configuration: cilium status, cilium config view and set, and Helm values",
+        "Use the Cilium CLI to install Cilium, run connectivity tests and monitor its status: cilium install, cilium connectivity test, cilium status --wait",
+      ],
+    },
+    {
+      title: "Cluster Mesh",
+      weight: 10,
+      gate: "Given two clusters, explain what Cluster Mesh connects, enable it, and make a Service global so it is discovered and load balanced across clusters.",
+      objectives: [
+        "Understand the benefits of Cluster Mesh for multi-cluster connectivity: Pod IP routing across clusters, shared identities and policy, and high availability",
+        "Configure service discovery and load balancing across clusters with Cluster Mesh: cilium clustermesh enable and connect, global services, and affinity annotations",
+      ],
+    },
+    {
+      title: "eBPF",
+      weight: 10,
+      gate: "Explain what eBPF is, why Cilium is built on it, and what it changes compared with an iptables-based datapath.",
+      objectives: [
+        "Understand the role of eBPF in Cilium: programs attached to kernel hooks for networking, policy, load balancing and observability",
+        "eBPF key benefits: safety through verification, performance, programmability without kernel modules, and in-kernel visibility",
+        "eBPF-based platforms versus iptables-based platforms: per-packet cost, rule-chain growth, kube-proxy replacement and identity-aware policy",
+      ],
+    },
+    {
+      title: "BGP and External Networking",
+      weight: 6,
+      gate: "Given a cluster that must exchange routes with the data centre network, configure Cilium's BGP control plane and explain how Pod and Service addresses reach external systems.",
+      objectives: [
+        "Egress connectivity requirements: masquerading, Egress Gateway for predictable source IPs, and routing Pod traffic to external networks",
+        "Understand options to connect Cilium-managed clusters with external networks: the BGP control plane (peering policies, advertised Pod CIDRs and LoadBalancer IPs) and LB IPAM",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Istio Certified Associate (ICA)
+// Performance-based and multiple-choice, 2 hours, $250, intermediate; pass
+// mark 68% (Linux Foundation ICA FAQ). Installation, Upgrades and
+// Configuration 20%, Traffic Management 35%, Securing Workloads 25%,
+// Troubleshooting 20% (ICA_Curriculum.pdf).
+// ---------------------------------------------------------------------------
+export const ICA_TRACK: SeedTrack = {
+  code: "ICA",
+  title: "Istio Certified Associate (ICA) Coach",
+  description:
+    "ICA: Istio hands-on. Install and upgrade it with istioctl or Helm in sidecar or ambient mode, manage traffic with Gateways, VirtualServices, DestinationRules, shifting, resilience and fault injection, secure workloads with mTLS, JWT and authorization policies, and troubleshoot the control plane and data plane with istioctl.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/istio-certified-associate-ica/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "ica",
+    credentialName: "Istio Certified Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/istio-certified-associate-ica/",
+    basis: "vendor_exam",
+    examCode: "ICA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/ICA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Intermediate level: comfortable with Kubernetes, kubectl and YAML, and with how HTTP services call each other.",
+    durationMinutes: 120,
+    questionFormat: "Online, proctored, performance-based and multiple-choice exam: hands-on tasks against a live Istio cluster plus multiple-choice items, 120 minutes (Linux Foundation ICA FAQ).",
+    passingScorePolicy: "68% or above to pass (Linux Foundation ICA FAQ). Certification valid for 2 years; one retake included.",
+  },
+  units: [
+    {
+      title: "Installation, Upgrades, and Configuration",
+      weight: 20,
+      gate: "Given a cluster and requirements, install Istio in the right mode with istioctl or Helm, customise the installation, and upgrade it without breaking traffic.",
+      objectives: [
+        "Install and configure Istio with istioctl or Helm: profiles, IstioOperator overlays, Helm charts (base, istiod, gateway) and verifying the installation",
+        "Install Istio in sidecar or ambient mode: namespace injection labels and the ztunnel/waypoint model, and when each fits",
+        "Customise your Istio installation: mesh config, component settings, gateway deployments and resource tuning",
+        "Plan and perform an Istio upgrade, canary (revision-based) or in-place, and move workloads between revisions safely",
+      ],
+    },
+    {
+      title: "Traffic Management",
+      weight: 35,
+      gate: "Given routing and resilience requirements, write the Gateway, VirtualService and DestinationRule objects that implement them, shift traffic between versions, and verify the behaviour.",
+      objectives: [
+        "Configure ingress and egress traffic: Istio Gateway and VirtualService for inbound traffic, egress gateways and ServiceEntry for outbound",
+        "Configure routing within the service mesh: VirtualService match rules on host, path, headers and weights, and route to subsets",
+        "Define traffic policies with DestinationRules: subsets by labels, load balancing, connection pools and TLS settings",
+        "Configure traffic shifting between versions with weighted routes and header-based routing for canaries and dark launches",
+        "Connect in-mesh workloads to external workloads and services with ServiceEntry, resolution modes and TLS origination",
+        "Use resilience features: circuit breaking and outlier detection, failover and locality load balancing, timeouts and retries",
+        "Use fault injection: HTTP delays and aborts in VirtualServices to test an application's resilience",
+      ],
+    },
+    {
+      title: "Securing Workloads",
+      weight: 25,
+      gate: "Given security requirements, enforce mutual TLS, authenticate end users with JWT, write authorization policies that allow exactly the needed calls, and terminate TLS at the edge.",
+      objectives: [
+        "Configure authorization with AuthorizationPolicy: ALLOW, DENY and CUSTOM actions, sources, operations and conditions, and policy evaluation order",
+        "Configure authentication with PeerAuthentication (mTLS modes STRICT, PERMISSIVE, DISABLE at mesh, namespace and workload scope) and RequestAuthentication (JWT issuers and JWKS)",
+        "Secure edge traffic with TLS: Gateway servers with SIMPLE, MUTUAL and PASSTHROUGH modes, certificates in Secrets, and SNI routing",
+        "Understand Istio identity: SPIFFE identities from ServiceAccounts, certificate issuance by istiod, and how identity feeds authorization",
+      ],
+    },
+    {
+      title: "Troubleshooting",
+      weight: 20,
+      gate: "Given a request that fails or routes wrongly, use istioctl and proxy logs to find whether the configuration, the control plane or the data plane is at fault, and fix it.",
+      objectives: [
+        "Troubleshoot configuration with istioctl analyze, istioctl x describe and validation messages, and common conflicts between VirtualServices and DestinationRules",
+        "Troubleshoot the mesh control plane: istiod health, configuration distribution status (istioctl proxy-status), revision mismatches and injection failures",
+        "Troubleshoot the mesh data plane: Envoy access logs and response flags, istioctl proxy-config for listeners, routes, clusters and endpoints, and debugging mTLS and policy denials",
+      ],
+    },
+  ],
+};
+
+export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK, CCA_TRACK, ICA_TRACK];
