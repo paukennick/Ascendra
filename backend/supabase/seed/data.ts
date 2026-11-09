@@ -55,6 +55,11 @@ export interface SeedCredential {
   standardName?: string;
   standardRevision?: string;
   objectivesRevision?: string;
+  // REQ-142: why no outline version is recorded, when the publisher prints
+  // none (Google's unversioned exam guides, ABPTS outlines that name no DSP
+  // edition). Seed-only; npm run currency:report lists these with the reason
+  // instead of as missing a version.
+  versionNote?: string;
   status: "draft" | "active" | "transitioning" | "beta" | "retired" | "archived";
   effectiveDate?: string; // ISO date
   retirementDate?: string; // ISO date
@@ -76,6 +81,15 @@ export interface SeedCredential {
   publishedWeightsNote?: string;
 }
 
+export interface CurriculumSource {
+  kind: "language_reference" | "degree_plan" | "self_defined";
+  name: string;
+  version: string;
+  url: string;
+  checkedAt: string; // YYYY-MM-DD
+  recheckBy?: string; // YYYY-MM-DD; default checkedAt + 12 months
+}
+
 export interface SeedTrack {
   code: string;
   title: string;
@@ -93,6 +107,13 @@ export interface SeedTrack {
   sourceUrl?: string;
   sourceVerifiedAt?: string; // ISO timestamp
   contentReviewDueAt?: string; // ISO timestamp
+  // REQ-142: what a course with no exam is built on, so the currency report
+  // dates it instead of listing it as a course with no outline. Seed-only (no
+  // column): the app's Verified / Review due badges still read sourceUrl.
+  //   language_reference  a language's official documentation or standard
+  //   degree_plan         a school's published degree plan
+  //   self_defined        a syllabus the course defines itself
+  curriculum?: CurriculumSource;
 
   // Disclaimer gate (migration 012). Set on tracks where acting on wrong
   // content has real-world consequences -- the nursing tracks -- so the
@@ -112,6 +133,16 @@ export const MSCS_TRACK: SeedTrack = {
     "15-week graduate-CS bridge covering algorithms, data structures, discrete math, OS, computer architecture, database theory, ML math, cybersecurity, HCI/UX, and big data.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  // REQ-142: no exam -- a 15-week bridge the course defines itself (its units
+  // below are the syllabus). Recorded so the currency report dates it rather
+  // than listing it as a course with no outline.
+  curriculum: {
+    kind: "self_defined",
+    name: "MSCS Foundations Coach 15-week bridge syllabus",
+    version: "15-week plan, Sept 15-Dec 28, 2026",
+    url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
+    checkedAt: "2026-11-08",
+  },
   units: [
     {
       title: "Complexity & computational thinking",
@@ -865,6 +896,17 @@ export const PYTHON_TRACK: SeedTrack = {
     "9-week intro-to-advanced Python progression: syntax and control flow through OOP, the standard library, functional patterns, testing/typing, and concurrency.",
   trackType: "graduate",
   subcategorySlug: "programming-languages",
+  // REQ-142: no exam; built on the language itself. Python 3.15 is the newest
+  // feature release (3.15.0 on 2026-10-09; docs.python.org shows "Python
+  // 3.15.2 documentation", python.org/downloads, read 2026-11-08). Nothing in
+  // the units below depends on a 3.15-only feature.
+  curriculum: {
+    kind: "language_reference",
+    name: "The Python documentation (docs.python.org)",
+    version: "Python 3.15",
+    url: "https://docs.python.org/3/",
+    checkedAt: "2026-11-08",
+  },
   units: [
     {
       title: "Syntax, variables & control flow",
@@ -992,6 +1034,16 @@ export const JAVASCRIPT_TRACK: SeedTrack = {
     "9-week intro-to-advanced JavaScript progression: syntax and the DOM through async patterns, ES6+, prototypes, testing/tooling, and Node.js.",
   trackType: "graduate",
   subcategorySlug: "programming-languages",
+  // REQ-142: no exam; built on the language standard. ECMA-262 17th edition,
+  // ECMAScript 2026, June 2026, is the current edition on Ecma's page (read
+  // 2026-11-08).
+  curriculum: {
+    kind: "language_reference",
+    name: "ECMA-262 ECMAScript Language Specification",
+    version: "ECMAScript 2026 (17th edition, June 2026)",
+    url: "https://ecma-international.org/publications-and-standards/standards/ecma-262/",
+    checkedAt: "2026-11-08",
+  },
   units: [
     {
       title: "Syntax, variables & control flow",
@@ -1796,6 +1848,17 @@ export const CMPCBS_TRACK: SeedTrack = {
     "Liberty University's 2026-2027 BS in Computational Mathematics: Computer Science degree completion plan (120 credits) -- gen ed, Christianity core, and the full math/CS major sequence, mirrored from the official plan.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
+  // REQ-142: no exam; mirrors Liberty's published degree plan. NOT re-checked
+  // on 2026-11-08: catalog.liberty.edu reset the connection and a fetch of the
+  // catalog page returned its 2024-2025 edition, so checkedAt is the date the
+  // plan was last edited here (git history, the REQ-142 backfill rule).
+  curriculum: {
+    kind: "degree_plan",
+    name: "Liberty University BS Computational Mathematics: Computer Science, Degree Completion Plan CMPC-BS-D",
+    version: "2026-2027",
+    url: "https://catalog.liberty.edu/undergraduate/colleges-schools/arts-sciences/computational-mathematics-major-bs/computational-mathematics-bs-computer-science-online/",
+    checkedAt: "2026-10-31",
+  },
   units: [
     {
       title: "Communication & Information Literacy",

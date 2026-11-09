@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: Google Cloud Professional Machine Learning Engineer.
 //
@@ -41,10 +42,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPMLE_LABS: SeedLabSet = {
   trackCode: "GCPMLE",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english.pdf",
-    "https://cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-create",
-    "https://cloud.google.com/vertex-ai/generative-ai/docs/context-cache/context-cache-overview",
-    "https://cloud.google.com/vertex-ai/docs/model-monitoring/overview",
+    source("https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-create", "reference", "2026-11-07"),
+    source("https://cloud.google.com/vertex-ai/generative-ai/docs/context-cache/context-cache-overview", "reference", "2026-11-07"),
+    source("https://cloud.google.com/vertex-ai/docs/model-monitoring/overview", "reference", "2026-11-07"),
   ],
   labs: [
     // ---------------- Section 1: Low-code AI (2) ----------------

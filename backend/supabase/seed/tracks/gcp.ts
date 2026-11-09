@@ -41,7 +41,9 @@ const GCP_PROVIDER = {
   credentialType: "certification",
 } as const;
 
-const VERIFIED_AT = "2026-09-23T00:00:00Z";
+// REQ-142: the day each outline below was re-read for its version (name,
+// version, url) on the publisher's own page; see each block's comment.
+const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
 
 // ---------------------------------------------------------------------------
 // Foundational: Google Cloud Digital Leader
@@ -58,7 +60,7 @@ export const GCP_CDL_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-digital-leader",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-digital-leader",
@@ -66,8 +68,13 @@ export const GCP_CDL_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-digital-leader",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/cloud_digital_leader_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    // The PDF footer: "Cloud Digital Leader exam guide - launched on August 12, 2026".
+    objectivesRevision: "Exam guide launched on August 12, 2026",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-digital-leader",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "No prerequisites; aimed at anyone who wants to demonstrate knowledge of cloud computing basics and how Google Cloud products and services help an organization reach its goals.",
     durationMinutes: 90,
@@ -185,8 +192,6 @@ export const GCP_CDL_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_2 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Associate: Google Cloud Associate Cloud Engineer
 // 120 minutes, 50-60 questions, multiple choice/multiple select, $125.
@@ -202,7 +207,7 @@ export const GCP_ACE_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-engineer",
-  sourceVerifiedAt: VERIFIED_AT_2,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "associate-cloud-engineer",
@@ -210,8 +215,14 @@ export const GCP_ACE_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/associate_cloud_engineer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    // Objective wording was not re-diffed this pass.
+    versionNote:
+      "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_2,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "6+ months of hands-on experience with Google Cloud, working with public clouds or on-premises solutions.",
     durationMinutes: 120,
@@ -336,8 +347,6 @@ export const GCP_ACE_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_3 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud Architect
 // 120 minutes, 50-60 questions (2 case studies, 20-30% of the exam), $200.
@@ -355,7 +364,7 @@ export const GCP_PCA_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-  sourceVerifiedAt: VERIFIED_AT_3,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-architect",
@@ -363,8 +372,13 @@ export const GCP_PCA_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-architect",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_cloud_architect_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    versionNote:
+      "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-architect",
-    lastVendorVerifiedAt: VERIFIED_AT_3,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud. Experience with common open-source technologies and multitiered distributed application design across legacy, multicloud, or hybrid environments.",
     durationMinutes: 120,
@@ -519,8 +533,6 @@ export const GCP_PCA_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_4 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Data Engineer
 // 120 minutes, 40-50 questions, $200. Exam guide is versioned "v4.2".
@@ -535,7 +547,7 @@ export const GCP_PDE_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/data-engineer",
-  sourceVerifiedAt: VERIFIED_AT_4,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "data-engineer",
@@ -543,8 +555,13 @@ export const GCP_PDE_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/data-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_data_engineer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    // Version from the PDF's title: "v4.2 Professional Data Engineer Exam Guide".
+    objectivesRevision: "Exam guide v4.2",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/data-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_4,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing data solutions using Google Cloud.",
     durationMinutes: 120,
@@ -660,8 +677,6 @@ export const GCP_PDE_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_5 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud DevOps Engineer
 // 120 minutes, 50-60 questions, $200.
@@ -676,7 +691,8 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
-  sourceVerifiedAt: VERIFIED_AT_5,
+  contentReviewDueAt: "2026-11-23T00:00:00Z",
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-devops-engineer",
@@ -684,8 +700,17 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-devops-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: OUTDATED FROM 2026-11-23. Read 2026-11-08: the certification page links
+    // two guides. The current one (professional_cloud_devops_engineer_exam_guide_english.pdf,
+    // "take the exam before November 23") matches the units below (20/25/18/25/12). The new
+    // one, https://services.google.com/fh/files/misc/112326_professional_cloud_devops_engineer_exam_guide_english.pdf
+    // ("live on November 23"), renames section 1 ("Establishing and bootstrapping
+    // foundational infrastructure and organizational governance"), adds "maintaining" and
+    // ML workloads to section 2, and reweights to 18/30/18/22/12. Not rewritten here; the
+    // review is due on the switch date.
+    objectivesRevision: "Exam guide in effect until November 22, 2026",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_5,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
     durationMinutes: 120,
@@ -806,8 +831,6 @@ export const GCP_DEVOPS_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_6 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud Security Engineer
 // 120 minutes, 50-60 questions, $200.
@@ -822,7 +845,7 @@ export const GCP_SEC_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-security-engineer",
-  sourceVerifiedAt: VERIFIED_AT_6,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-security-engineer",
@@ -830,8 +853,13 @@ export const GCP_SEC_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-security-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    versionNote:
+      "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-security-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_6,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
     durationMinutes: 120,
@@ -947,8 +975,6 @@ export const GCP_SEC_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_7 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud Network Engineer
 // 120 minutes, 50-60 questions, $200. Densest GCP guide built so far --
@@ -964,7 +990,7 @@ export const GCP_NET_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-network-engineer",
-  sourceVerifiedAt: VERIFIED_AT_7,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-network-engineer",
@@ -972,8 +998,14 @@ export const GCP_NET_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-network-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    // "042426" is Google's date-coded file prefix (the DevOps guide that goes live
+    // on November 23 is "112326"), i.e. the April 24, 2026 guide.
+    objectivesRevision: "Exam guide 042426",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-network-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_7,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
     durationMinutes: 120,
@@ -1156,8 +1188,6 @@ export const GCP_NET_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_8 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud Database Engineer
 // 120 minutes, 50-60 questions, $200. Exam guide is versioned "v1.2".
@@ -1172,7 +1202,7 @@ export const GCP_DBE_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-database-engineer",
-  sourceVerifiedAt: VERIFIED_AT_8,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-database-engineer",
@@ -1180,8 +1210,13 @@ export const GCP_DBE_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-database-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_cloud_database_engineer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    // Version from the PDF's title: "Professional Cloud Database Engineer Exam Guide v1.2".
+    objectivesRevision: "Exam guide v1.2",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-database-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_8,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "5+ years of overall IT/database experience, including 2+ years of hands-on experience with Google Cloud database solutions.",
     durationMinutes: 120,
@@ -1266,8 +1301,6 @@ export const GCP_DBE_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_9 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Cloud Developer
 // 120 minutes, 50-60 questions, $200.
@@ -1282,7 +1315,7 @@ export const GCP_DEV_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-developer",
-  sourceVerifiedAt: VERIFIED_AT_9,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "cloud-developer",
@@ -1290,8 +1323,13 @@ export const GCP_DEV_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/cloud-developer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_cloud_developer_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    versionNote:
+      "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide.",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/cloud-developer",
-    lastVendorVerifiedAt: VERIFIED_AT_9,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year designing and managing solutions using Google Cloud.",
     durationMinutes: 120,
@@ -1387,8 +1425,6 @@ export const GCP_DEV_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_10 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Professional: Google Cloud Professional Machine Learning Engineer
 // 120 minutes, 50-60 questions, $200. Exam guide states "as of June 1,
@@ -1408,7 +1444,7 @@ export const GCP_MLE_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/guides/machine-learning-engineer",
-  sourceVerifiedAt: VERIFIED_AT_10,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "machine-learning-engineer",
@@ -1416,8 +1452,13 @@ export const GCP_MLE_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/machine-learning-engineer",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/professional_machine_learning_engineer_exam_guide_english_new.pdf);
+    // its section names and weights match the units below.
+    // The PDF's heading: "Certification exam guide as of June 1, 2026".
+    objectivesRevision: "Exam guide as of June 1, 2026",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/guides/machine-learning-engineer",
-    lastVendorVerifiedAt: VERIFIED_AT_10,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "3+ years of industry experience, including 1+ year using Google Cloud. The exam does not directly test coding, but assumes minimum Python/SQL proficiency to interpret code snippets in questions.",
     durationMinutes: 120,
@@ -1529,8 +1570,6 @@ export const GCP_MLE_TRACK: SeedTrack = {
   ],
 };
 
-const VERIFIED_AT_11 = "2026-09-24T00:00:00Z";
-
 // ---------------------------------------------------------------------------
 // Foundational: Google Cloud Generative AI Leader
 // 90 minutes, 50-60 questions, $99. Confirmed real and current directly
@@ -1547,7 +1586,7 @@ export const GCP_GAIL_TRACK: SeedTrack = {
   subcategorySlug: "gcp-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://cloud.google.com/learn/certification/generative-ai-leader",
-  sourceVerifiedAt: VERIFIED_AT_11,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...GCP_PROVIDER,
     credentialSlug: "generative-ai-leader",
@@ -1555,8 +1594,13 @@ export const GCP_GAIL_TRACK: SeedTrack = {
     credentialUrl: "https://cloud.google.com/learn/certification/generative-ai-leader",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: read 2026-11-08 -- the exam guide PDF linked from the certification
+    // page (https://services.google.com/fh/files/misc/generative_ai_leader_exam_guide_english.pdf);
+    // its section names and weights match the units below.
+    versionNote:
+      "Google prints no version or date on this exam guide (page or PDF, read 2026-11-08); section names and weights match the units, so it is the current guide. The page notes the exam \"was recently updated to reflect branding changes\" (product names only).",
     officialObjectivesUrl: "https://cloud.google.com/learn/certification/generative-ai-leader",
-    lastVendorVerifiedAt: VERIFIED_AT_11,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "No prerequisites; aimed at anyone in any role, technical or not, who wants to demonstrate business-level knowledge of Google Cloud's generative AI offerings.",
     durationMinutes: 90,

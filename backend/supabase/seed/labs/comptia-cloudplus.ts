@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: CompTIA Cloud+ (CV0-004, V4).
 //
@@ -22,7 +23,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const CLOUDPLUS_LABS: SeedLabSet = {
   trackCode: "CLOUDPLUS",
-  sources: ["https://www.comptia.org/en-us/certifications/cloud/"],
+  sources: [source("https://www.comptia.org/en-us/certifications/cloud/", "exam_outline", "2026-11-07")],
   labs: [
     // ---------------- Cloud architecture (2) ----------------
     {

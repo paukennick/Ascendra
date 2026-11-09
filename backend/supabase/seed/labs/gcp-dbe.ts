@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: Google Cloud Professional Cloud Database Engineer.
 //
@@ -40,11 +41,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPDBE_LABS: SeedLabSet = {
   trackCode: "GCPDBE",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_cloud_database_engineer_exam_guide_english.pdf",
-    "https://cloud.google.com/spanner/sla",
-    "https://cloud.google.com/sql/sla",
-    "https://cloud.google.com/sql/docs/editions-intro",
-    "https://cloud.google.com/alloydb/sla",
+    source("https://services.google.com/fh/files/misc/professional_cloud_database_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/spanner/sla", "cloud_pricing_limits", "2026-11-07"),
+    source("https://cloud.google.com/sql/sla", "cloud_pricing_limits", "2026-11-07"),
+    source("https://cloud.google.com/sql/docs/editions-intro", "cloud_pricing_limits", "2026-11-07"),
+    source("https://cloud.google.com/alloydb/sla", "cloud_pricing_limits", "2026-11-07"),
   ],
   labs: [
     // ---------------- Section 1: Design (3) ----------------

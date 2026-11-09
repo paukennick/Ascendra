@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: Google Cloud Generative AI Leader.
 //
@@ -23,7 +24,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const GCPGAIL_LABS: SeedLabSet = {
   trackCode: "GCPGAIL",
-  sources: ["https://services.google.com/fh/files/misc/generative_ai_leader_exam_guide_english.pdf"],
+  sources: [source("https://services.google.com/fh/files/misc/generative_ai_leader_exam_guide_english.pdf", "exam_outline", "2026-11-07")],
   labs: [
     // ---------------- Section 1: Fundamentals (3) ----------------
     {

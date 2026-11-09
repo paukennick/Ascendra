@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: Google Cloud Professional Cloud Security Engineer.
 //
@@ -56,11 +57,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const GCPSEC_LABS: SeedLabSet = {
   trackCode: "GCPSEC",
   sources: [
-    "https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf",
-    "https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints",
-    "https://cloud.google.com/vpc/docs/configure-private-google-access",
-    "https://cloud.google.com/logging/docs/audit",
-    "https://cloud.google.com/kms/docs/hsm",
+    source("https://services.google.com/fh/files/misc/professional_cloud_security_engineer_exam_guide_english.pdf", "exam_outline", "2026-11-07"),
+    source("https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints", "reference", "2026-11-07"),
+    source("https://cloud.google.com/vpc/docs/configure-private-google-access", "reference", "2026-11-07"),
+    source("https://cloud.google.com/logging/docs/audit", "reference", "2026-11-07"),
+    source("https://cloud.google.com/kms/docs/hsm", "reference", "2026-11-07"),
   ],
   labs: [
     // ---------------- Section 1: Configuring access (3) ----------------

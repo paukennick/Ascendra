@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-158: CompTIA CloudNetX (CNX-001, V1).
 //
@@ -25,7 +26,7 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 
 export const CLOUDNETX_LABS: SeedLabSet = {
   trackCode: "CLOUDNETX",
-  sources: ["https://www.comptia.org/en-us/certifications/cloudnetx/", "https://www.rfc-editor.org/rfc/rfc1918"],
+  sources: [source("https://www.comptia.org/en-us/certifications/cloudnetx/", "exam_outline", "2026-11-07"), source("https://www.rfc-editor.org/rfc/rfc1918", "reference", "2026-11-07")],
   labs: [
     // ---------------- Network architecture design (2) ----------------
     {
