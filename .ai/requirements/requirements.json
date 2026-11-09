@@ -5277,6 +5277,401 @@
         "docs/labs.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-155",
+      "category": "labs",
+      "title": "Labs: Microsoft Azure wave A (AZ-900, AZ-104, AZ-305, AZ-400, AZ-700)",
+      "description": "49 authored build and case labs for the five Microsoft certification courses at hybrid density (3/2/3, 3/2/2/2/2, 3/2/1/3, 2/2/3/2/1, 3/2/2/2/2), aligned to each exam's current study guide and verified against Microsoft Learn on 2026-11-07. Every lab is needs_expert_review and carries GENERAL_SAFETY.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "labs.test.ts content",
+        "objective and density checks pass for AZ900 AZ104 AZ305 AZ400 AZ700",
+        "seed runs twice idempotently with the new sets",
+        "sources cite each exam's study guide and the Learn pages behind every figure"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run typecheck",
+        "migrate --all + seed twice on a local Postgres"
+      ],
+      "documentation_required": [
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "AZ-104 seed outline has two objectives not in the official study guide (encryption at host; soft delete for blobs and containers); reported to the lead and no lab placed on them"
+      ]
+    },
+    {
+      "id": "REQ-156",
+      "category": "feature",
+      "title": "Authored labs for Microsoft AZ-120, AZ-140, DP-900, DP-300 (AI-901 pending)",
+      "description": "Hand-authored build and case labs for four Microsoft certification courses at hybrid density: AZ-120 (10), AZ-140 (9), DP-900 (4), DP-300 (11), all needs_expert_review with GENERAL_SAFETY framing and exam-outline sources checked on learn.microsoft.com on 2026-11-07. AI-901 (6 labs planned, 3/3) is still to be authored.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/microsoft-az120.ts",
+        "backend/supabase/seed/labs/microsoft-az140.ts",
+        "backend/supabase/seed/labs/microsoft-dp900.ts",
+        "backend/supabase/seed/labs/microsoft-dp300.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts density check passes for AZ120 AZ140 DP900 DP300",
+        "every lab names an exact active objective title",
+        "npm run seed is idempotent"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "local Postgres migrate and seed twice"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-157",
+      "category": "content",
+      "title": "Authored labs for the Google Cloud certification courses",
+      "description": "Build and case labs at the pilot's depth for GCPCDL, GCPACE, GCPPCA, GCPDEV, GCPDEVOPS and GCPNET, following the hybrid density policy, exact objective titles, GENERAL_SAFETY, and sources verified against Google's current exam guides and cloud.google.com docs. This PR ships the first five courses (55 labs); GCPNET (12 labs) remains.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/gcp-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts density check passes for each GCP course",
+        "every lab names an active objective title",
+        "every figure cites a verified source",
+        "npm test and seed run clean"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "GCPNET not yet authored; DevOps exam guide PDF says a new guide applies on or after November 23 (no year/link); HTML exam-guide pages served stale content versus the PDFs"
+      ]
+    },
+    {
+      "id": "REQ-158",
+      "category": "content",
+      "title": "Labs: Google Cloud DBE, GAIL, MLE, PDE, SEC and CompTIA Cloud+, CloudNetX",
+      "description": "Authored build and case labs at hybrid density for seven courses (73 labs), aligned to each exam's current official guide, with sources verified 2026-11-07. CompTIA self-reported labs are unchanged.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/gcp-*.ts",
+        "backend/supabase/seed/labs/comptia-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts passes including density for the seven courses",
+        "npm run seed is idempotent"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "PR #44 (source dates) not merged: sources kept as URL strings with checkedAt in file comments"
+      ]
+    },
+    {
+      "id": "REQ-159",
+      "category": "content",
+      "title": "Verifiable security-course labs",
+      "description": "Author verifiable build/case labs for the seven security courses (SECPLUS, SECPLUSV8, CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS) beside the existing CompTIA self-reported labs, aligned to current exam objectives at the hybrid density, with incident response (NIST SP 800-61r3), log/alert analysis, CVSS v4.0/EPSS/KEV prioritisation, threat modelling, IAM/Zero Trust, cryptography and AI-system security. Pen-testing labs framed within authorised scoped engagements only. Every lab needs_expert_review.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs"
+      ],
+      "acceptance_criteria": [
+        "content/objective/density tests pass; typecheck and npm test green; seed idempotent"
+      ],
+      "validation_required": [
+        "backend typecheck; npm test; local Postgres migrations + seed twice; omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-160",
+      "category": "content",
+      "title": "Verifiable labs for CompTIA infrastructure and data courses",
+      "description": "Authored build and case labs for Network+, Linux+, Server+, AutoOps+, Data+ and DataAI (Tech+ pending), following the hybrid density, exact objective titles, GENERAL_SAFETY framing and the official CompTIA certification pages as sources; additional to the courses' self-reported labs.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/comptia-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-comptia-infra.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "npm test passes including the new density test",
+        "seed runs twice idempotently",
+        "every lab names an active objective"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Tech+ (8 labs) not yet authored; sources use the master string[] shape pending PR #44"
+      ]
+    },
+    {
+      "id": "REQ-151",
+      "category": "content",
+      "title": "Verifiable labs for the five ABPTS physical therapy specialist courses (OCS, GCS, NCS, CCS, ECS)",
+      "description": "Author build and case labs at the adopted hybrid density for ABPTSOCS, ABPTSGCS, ABPTSNCS, ABPTSCCS and ABPTSECS in new seed files backend/supabase/seed/labs/pt-abpts-*.ts, specialist-level (differential diagnosis and referral, examination selection, CPG-based intervention, outcome measures with sourced MCIDs), every clinical threshold cited to an authoritative source verified on the day, all fictional and needs_expert_review. This PR covers OCS, GCS, NCS and CCS (46 labs); ECS remains.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pt-abpts-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "labs.test.ts density check passes for each course",
+        "every lab names an exact active objective title",
+        "clinical safety framing on every lab",
+        "thresholds cited in file headers"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "ECS set not yet authored",
+        "sources shape matches current master (PR #44 not merged)",
+        "expert review required before approval"
+      ]
+    },
+    {
+      "id": "REQ-152",
+      "category": "content",
+      "title": "Authored labs for five ABPTS specialist courses (oncology, pediatrics, pelvic health, sports, wound)",
+      "description": "48 verifiable build and case labs at hybrid density for ABPTSONC, ABPTSPCS, ABPTSPWCS, ABPTSSCS and ABPTSWMS in new seed files backend/supabase/seed/labs/pt-abpts-*.ts, each needs_expert_review with CLINICAL_SAFETY framing and sourced clinical values.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every lab names an exact active objective",
+        "hybrid density per unit passes labs.test.ts",
+        "clinical framing test passes",
+        "seed is idempotent"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run seed twice on local Postgres",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "sources checked 2026-11-07 where the search budget allowed; remainder rest on track-seed values verified 2026-11-04; expert review required before approval"
+      ]
+    },
+    {
+      "id": "REQ-161",
+      "category": "content",
+      "title": "Verifiable labs for the programming, informatics and academic courses",
+      "description": "Authored build and case labs for Python (9), JavaScript (10), MS Health Informatics (15), MSCS Foundations (16) and the Computational Math: CS degree coach (21, one per course unit; advising units get none), following the hybrid density, exact objective titles and GENERAL_SAFETY framing, with dated reference sources (language docs, course materials, standards, the degree catalog). Code and numbers were run or computed before being written in; all labs await expert review.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/dev-*.ts",
+        "backend/supabase/seed/labs/academic-*.ts",
+        "backend/supabase/seed/labs/informatics-mshi.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "npm test passes including the density tests (CMPCBS course units only)",
+        "every lab names an active objective",
+        "every set cites dated sources"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Requirement entry added at merge time (PR #65 shipped without one); labs are needs_expert_review until a reviewer approves them"
+      ]
+    },
+    {
+      "id": "REQ-164",
+      "category": "content",
+      "title": "Containers and Kubernetes certification courses with authored labs",
+      "description": "Add the Linux Foundation / CNCF container and Kubernetes certification courses (CKA, CKAD, KCNA, CKS, KCSA, then Docker and the wider CNCF/Red Hat container exams) to the seeded catalog at the depth of the existing cloud tracks: units weighted by the official exam domains, verified against the official curriculum (github.com/cncf/curriculum, training.linuxfoundation.org) on the day of authoring, with authored build and case labs at the adopted hybrid density using current kubectl and Kubernetes APIs only.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/k8s-*.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-containers.test.ts",
+        "backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every course's domains and weights match the official curriculum fetched on the authoring date and the source URL and date are recorded",
+        "Every lab names an exact active objective and passes the content rules and the hybrid density check",
+        "No removed Kubernetes API or deprecated tool (PodSecurityPolicy extensions/v1beta1 dockershim) appears in a lab",
+        "Each course lands complete (track + labs + tests) in its own commit"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "python3 omni gate",
+        "migrations plus npm run seed twice on a local Postgres when available"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Linux Foundation exam environments move to each new Kubernetes minor within 4-8 weeks so version-specific facts are kept out of rubrics",
+        "Migration renumbered 055 -> 056 after master merged REQ-143's 055_content_review_queue, then 056 -> 057 because production already has 056_account_access (REQ-144); scope path is backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql"
+      ]
+    },
+    {
+      "id": "REQ-166",
+      "category": "feature",
+      "title": "Verified discounts framework: published group discounts behind flags with no live provider",
+      "description": "Nick 2026-11-09: standard published discounts for verified groups (military and veterans; first responders; nurses; students; teachers configurable and off by default and for a personal plan only). Same percentage for everyone in a group (DISCOUNT_PERCENT_<GROUP>; no default); never per-person pricing; no failure or retake discount; no stacking (one discount: the largest); a discounted learner keeps the full per-tier AI cap. Provider-agnostic VerificationProvider interface with an empty registry (ID.me is REQ-167). Signed 15-minute state with a PKCE verifier derived from it; fixed return URLs. Migration 058 stores only the result (verified_discounts: user; group; provider; verified_at; expires_at; opaque provider subject) and the App Store offer-code pool (discount_offer_codes). Applied as a Stripe coupon at web checkout (replacing the promotion-code box); a Google Play developer-determined offer bought by the app; an App Store one-time offer code from the pool. Off unless BILLING_ENABLED and VERIFIED_DISCOUNTS_ENABLED are on and a provider is configured and a group has a percentage.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/058_verified_discounts.sql",
+        "backend/lib/verified-discounts-config.ts",
+        "backend/lib/discount-providers.ts",
+        "backend/lib/verified-discounts.ts",
+        "backend/lib/discount-codes-cli.ts",
+        "backend/scripts/discount-codes.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/app/api/billing/checkout/route.ts",
+        "backend/app/api/discounts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "backend/package.json",
+        "backend/.env.example",
+        "mobile/src/lib/discounts.ts",
+        "mobile/src/billing/useDiscounts.ts",
+        "mobile/src/billing/purchases.ts",
+        "mobile/app/(app)/settings/discount.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "docs/billing.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "With no provider registered GET /api/discounts answers only available false and checkout has no coupon",
+        "Each switch alone keeps the feature off",
+        "Only the verification result is stored and one provider identity serves one account",
+        "Forged or expired or declined or unverified callbacks store nothing",
+        "One discount at a time and the largest applies",
+        "Verified Stripe checkout carries the group coupon instead of allow_promotion_codes",
+        "The monthly AI cap ignores discount settings",
+        "App Store codes are one per learner and product and idempotent and skip codes about to expire",
+        "Teachers off by default with personal-use copy and a class contact line",
+        "Account deletion removes verifications and unlinks codes and the export includes both"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "npm run test:db on a fresh database with every migration and seed twice",
+        "mobile typecheck and tests",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md Verified discounts",
+        "docs/deploy-runbook-integration.md 058 rows",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Play developer-determined offers are app-enforced so a modified client could buy one unverified",
+        "Apple offer codes cannot be revoked once issued",
+        "Percentages must match the Stripe coupons and store offers by hand"
+      ]
+    },
+    {
+      "id": "REQ-167",
+      "category": "feature",
+      "title": "ID.me verification provider for verified discounts (stacked on REQ-166; draft until partner keys)",
+      "description": "The ID.me adapter for the REQ-166 VerificationProvider interface: OAuth 2.0 authorization code with PKCE against ID.me's group (community) scopes military; responder; nurse; student; teacher; the attributes endpoint's status array (group; subgroups; verified) decides the result; the opaque uuid attribute is the stored subject. Config from env (IDME_CLIENT_ID; IDME_CLIENT_SECRET; IDME_REDIRECT_URI; sandbox or production host); with no credentials the provider is unconfigured and the feature stays off. One callback route. Tests mock ID.me entirely. Owner setup docs for the ID.me partner account. Stays a draft until Nick has ID.me partner keys.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/discount-provider-idme.ts",
+        "backend/lib/discount-providers.ts",
+        "backend/app/api/discounts/verify/idme/callback",
+        "backend/.env.example",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Without IDME credentials the provider is unconfigured and nothing is shown",
+        "The authorization URL carries the group scope and state and an S256 code challenge",
+        "Only a verified status for the requested group records a result",
+        "Tests never call ID.me"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "npm run test:db",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md ID.me setup"
+      ],
+      "risk_notes": [
+        "ID.me partner approval and scope names are confirmed only against ID.me's published docs until the account exists"
+      ]
     }
   ]
 }

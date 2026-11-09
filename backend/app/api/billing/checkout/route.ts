@@ -4,6 +4,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { tooManyRequests } from "@/lib/http";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { createCheckoutSession } from "@/lib/stripe-checkout";
+import { stripeCouponForUser } from "@/lib/verified-discounts";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
       userId: user.id,
       email: user.email,
       planId: body.planId,
+      // REQ-166: the learner's verified group discount, if any (null while
+      // verified discounts are off -- no table is read then).
+      coupon: await stripeCouponForUser(user.id),
       idempotencyKey: requestId ? `checkout:${user.id}:${requestId}` : undefined,
     });
     return ok({ url });
