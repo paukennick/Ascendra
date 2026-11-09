@@ -58,7 +58,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
             part(
               "The bleeding man",
               "Applies a tourniquet above the arm wound (or has a walking bystander hold direct pressure) as a quick life-saving intervention, then categorises him immediate because he needed a life-saving intervention and has a major hemorrhage.",
-              "A tourniquet high on the arm, tightened until the bleeding stops -- seconds, not minutes. He is immediate."
+              "A tourniquet 2 to 3 inches above the wound, tightened until the bleeding stops -- seconds, not minutes. He is immediate."
             ),
             part(
               "The apnoeic woman",
