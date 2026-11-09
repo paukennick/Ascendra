@@ -49,6 +49,13 @@ import { GCPACE_LABS } from "./gcp-ace";
 import { GCPPCA_LABS } from "./gcp-pca";
 import { GCPDEV_LABS } from "./gcp-dev";
 import { GCPDEVOPS_LABS } from "./gcp-devops";
+import { GCPDBE_LABS } from "./gcp-dbe";
+import { GCPGAIL_LABS } from "./gcp-gail";
+import { GCPMLE_LABS } from "./gcp-mle";
+import { GCPPDE_LABS } from "./gcp-pde";
+import { GCPSEC_LABS } from "./gcp-sec";
+import { CLOUDPLUS_LABS } from "./comptia-cloudplus";
+import { CLOUDNETX_LABS } from "./comptia-cloudnetx";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -104,4 +111,11 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   GCPPCA_LABS,
   GCPDEV_LABS,
   GCPDEVOPS_LABS,
+  GCPDBE_LABS,
+  GCPGAIL_LABS,
+  GCPMLE_LABS,
+  GCPPDE_LABS,
+  GCPSEC_LABS,
+  CLOUDPLUS_LABS,
+  CLOUDNETX_LABS,
 ].map(withValueSources);
