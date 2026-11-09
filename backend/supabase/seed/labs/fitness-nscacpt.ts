@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-149: NSCA Certified Personal Trainer (NSCACPT), authored to the depth
 // of the NASM-CPT pilot (REQ-123) in the NSCA's own terms: periodized
@@ -38,15 +39,18 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 
 export const NSCACPT_LABS: SeedLabSet = {
   trackCode: "NSCACPT",
+  // REQ-142: dated by the backfill rule (the day git history shows the line
+  // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
+  // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    "https://www.nsca.com/certification/nsca-cpt/nsca-cpt-exam-description",
-    "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
-    "https://dxpprod.nsca.com/contentassets/61d813865e264c6e852cadfe247eae52/nsca_training_load_chart.pdf",
-    "https://www.hprc-online.org/articles/one-rep-max-for-strength",
-    "https://www.nsca.com/contentassets/fb8a7be6eb174934bb8844703c4de4cc/ptq-10.1.3-how-to-manipulate-rest-intervals-to-maixmize-strength-training-effectiveness.pdf",
-    "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html",
-    "https://pubmed.ncbi.nlm.nih.gov/37752011/",
-    "https://www.vumc.org/resuscitation-program/sites/default/files/public_files/BLS/Heartsaver/Heartsaver-CPR-AED-Summary-High-Quality-CPR%20Components-2025-Guidelines.pdf",
+    source("https://www.nsca.com/certification/nsca-cpt/nsca-cpt-exam-description", "exam_outline", "2026-11-07"),
+    source("https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf", "exam_outline", "2026-11-07"),
+    source("https://dxpprod.nsca.com/contentassets/61d813865e264c6e852cadfe247eae52/nsca_training_load_chart.pdf", "reference", "2026-11-07"),
+    source("https://www.hprc-online.org/articles/one-rep-max-for-strength", "reference", "2026-11-07"),
+    source("https://www.nsca.com/contentassets/fb8a7be6eb174934bb8844703c4de4cc/ptq-10.1.3-how-to-manipulate-rest-intervals-to-maixmize-strength-training-effectiveness.pdf", "reference", "2026-11-07"),
+    source("https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html", "clinical_guideline", "2026-11-07"),
+    source("https://pubmed.ncbi.nlm.nih.gov/37752011/", "reference", "2026-11-07"),
+    source("https://www.vumc.org/resuscitation-program/sites/default/files/public_files/BLS/Heartsaver/Heartsaver-CPR-AED-Summary-High-Quality-CPR%20Components-2025-Guidelines.pdf", "clinical_guideline", "2026-11-07"),
   ],
   labs: [
     // -----------------------------------------------------------------------

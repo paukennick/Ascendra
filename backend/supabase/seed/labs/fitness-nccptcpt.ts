@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-149: ISSA / NCCPT Certified Personal Trainer (NCCPTCPT), authored to
 // the depth of the NASM-CPT pilot (REQ-123) on the NCCPT outline's own terms:
@@ -38,14 +39,17 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 
 export const NCCPTCPT_LABS: SeedLabSet = {
   trackCode: "NCCPTCPT",
+  // REQ-142: dated by the backfill rule (the day git history shows the line
+  // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
+  // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    "https://assets.ctfassets.net/qw8ps43tg2ux/7KxejJj5WXgNhleXZrzZo4/c789e3aa043335ceb9641ad2d2accf81/nccpt-candidate-handbook.pdf",
-    "https://nccpt.issaonline.com/pages/exam-information",
-    "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-macronutrients-dietary-reference-intakes-tables-2005.html",
-    "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html",
-    "https://www.eurekalert.org/news-releases/1094543",
-    "https://stacks.cdc.gov/view/cdc/121857",
-    "https://www.fda.gov/food/nutrition-facts-label/lows-and-highs-percent-daily-value-nutrition-facts-label",
+    source("https://assets.ctfassets.net/qw8ps43tg2ux/7KxejJj5WXgNhleXZrzZo4/c789e3aa043335ceb9641ad2d2accf81/nccpt-candidate-handbook.pdf", "exam_outline", "2026-11-07"),
+    source("https://nccpt.issaonline.com/pages/exam-information", "exam_outline", "2026-11-07"),
+    source("https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-macronutrients-dietary-reference-intakes-tables-2005.html", "clinical_guideline", "2026-11-07"),
+    source("https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html", "clinical_guideline", "2026-11-07"),
+    source("https://www.eurekalert.org/news-releases/1094543", "reference", "2026-11-07"),
+    source("https://stacks.cdc.gov/view/cdc/121857", "reference", "2026-11-07"),
+    source("https://www.fda.gov/food/nutrition-facts-label/lows-and-highs-percent-daily-value-nutrition-facts-label", "reference", "2026-11-07"),
   ],
   labs: [
     // -----------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-147: NPTE-PT (FSBPT, physical therapist licensure examination).
 //
@@ -103,22 +104,22 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const NPTEPT_LABS: SeedLabSet = {
   trackCode: "NPTEPT",
   sources: [
-    "https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf",
-    "https://www.fsbpt.org/Free-Resources/NPTE-Development/NPTE-Content",
-    "https://doi.org/10.2519/jospt.2021.0304",
-    "https://doi.org/10.1093/ptj/pzag058",
-    "https://doi.org/10.1097/NPT.0000000000000303",
-    "https://doi.org/10.1093/ptj/pzab302",
-    "https://doi.org/10.1519/JPT.0000000000000454",
-    "https://doi.org/10.1093/ptj/pzaa087",
-    "https://doi.org/10.1093/ptj/pzae171",
-    "https://doi.org/10.1007/s10741-023-10310-9",
-    "https://pva.org/wp-content/uploads/2021/09/CPG_Autonomic-Dysreflexia_2025_digital_03.26-.pdf",
-    "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
-    "https://doi.org/10.1097/BRS.0b013e31815e3a10",
-    "https://pubmed.ncbi.nlm.nih.gov/10201543/",
-    "https://doi.org/10.1111/j.1532-5415.2006.00701.x",
-    "https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf",
+    source("https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.fsbpt.org/Free-Resources/NPTE-Development/NPTE-Content", "exam_outline", "2026-11-07"),
+    source("https://doi.org/10.2519/jospt.2021.0304", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzag058", "reference", "2026-11-07"),
+    source("https://doi.org/10.1097/NPT.0000000000000303", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzab302", "reference", "2026-11-07"),
+    source("https://doi.org/10.1519/JPT.0000000000000454", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzaa087", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzae171", "reference", "2026-11-07"),
+    source("https://doi.org/10.1007/s10741-023-10310-9", "reference", "2026-11-07"),
+    source("https://pva.org/wp-content/uploads/2021/09/CPG_Autonomic-Dysreflexia_2025_digital_03.26-.pdf", "reference", "2026-11-07"),
+    source("https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf", "reference", "2026-11-07"),
+    source("https://doi.org/10.1097/BRS.0b013e31815e3a10", "reference", "2026-11-07"),
+    source("https://pubmed.ncbi.nlm.nih.gov/10201543/", "reference", "2026-11-07"),
+    source("https://doi.org/10.1111/j.1532-5415.2006.00701.x", "reference", "2026-11-07"),
+    source("https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf", "reference", "2026-11-07"),
   ],
   labs: [
     // ---------------------------------------------------------------- Musculoskeletal (3)

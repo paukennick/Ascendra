@@ -230,6 +230,10 @@ rubric has no key a checker can answer), so a flagged lab goes to a person.
 If the person confirms it wrong, `confirmItemWrong` voids every attempt with
 that `lab_id` and recomputes the learners' mastery.
 
+Below the quarantine threshold, rising reports and a sharp drop in a lab's
+correct rate open an entry in the content review queue (REQ-143,
+docs/content-review.md); the lab keeps being served.
+
 ## Safety rules per subject family
 
 | Family | Courses | Rules |
@@ -245,8 +249,18 @@ never asks about "your patient/client".
 ## Authoring a lab
 
 Authored labs live in `backend/supabase/seed/labs/<course>.ts`, one
-`SeedLabSet` per course with the exam outline URL(s) in `sources`, and are
-listed in `seed/labs/index.ts`.
+`SeedLabSet` per course with the exam outline(s) in `sources`, and are
+listed in `seed/labs/index.ts`. Each source is dated (REQ-142,
+`seed/sources.ts`): `source(url, kind, checkedAt, recheckBy?)`, where
+`checkedAt` is the day you confirmed it and `kind` sets the default
+re-check (`exam_outline` and `reference` 12 months, `clinical_guideline`
+and `cloud_pricing_limits` 6 months). `npm test` fails on a source without
+dates; `npm run currency:report` lists what is due. The database keeps the
+URLs only (`labs.sources`). A clinical or fitness lab also names the
+guideline its own values rest on, or why it names none, in
+`seed/labs/value-sources.ts` (`labs.test.ts` requires one or the other);
+those URLs are stored after the set's, and adding one does not change the
+lab's content hash or review status.
 
 1. **Pick the skill, not the topic.** Choose the 1-3 objectives per unit
    that the exam tests by doing (see "Density" below). An objective that is
@@ -404,6 +418,31 @@ labs, a PT or PTA educator) must read each before it is approved.
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
 lab is framed.
+
+### More project-management courses (REQ-150)
+
+Authored to the same depth as the PMP pilot, one file per course
+(`seed/labs/pm-*.ts`), each following (d) unit by unit
+(`lib/labs-pm.test.ts` checks it, and that no objective gets two labs).
+Every number in a rubric is worked in its reference answer.
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CAPM (2023 ECO) | 10 (7 build, 3 case) | 3/2/2/3 | [CAPM ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf) |
+| PMI-ACP (Nov 2024 / Mar 2026 ECO) | 10 (6 build, 4 case) | 3/2/2/3 | [PMI-ACP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf) |
+| PMI-RMP (Jan 2023 ECO) | 11 (8 build, 3 case) | 2/3/2/2/2 | [PMI-RMP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf) |
+| PMI-SP | 10 (6 build, 4 case) | 2/3/2/1/2 | [PMI-SP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf) |
+| PMI-PBA | 11 (8 build, 3 case) | 2/2/3/2/2 | [PMI-PBA ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf) |
+| CompTIA Project+ (PK0-005) | 7 (5 build, 2 case) | 3/1/1/2 | [Project+](https://www.comptia.org/en-us/certifications/project/) |
+
+Quantitative labs: CPM and float (CAPM, PMI-SP, Project+), PERT and
+triangular three-point estimates with path variance, resource levelling,
+earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
+break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
+Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
+weighted option scoring with a weight sensitivity (PMI-PBA). Still to
+author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
+CSPP.
 
 ### Fitness wave (REQ-149)
 

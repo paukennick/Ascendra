@@ -1,9 +1,9 @@
+import { source } from "../sources";
+
 // REQ-148: the sources behind the nursing lab sets (NCLEX-PN, LPN/VN, CNA,
 // ADN-RN, BSN-RN). Each URL was opened and the value it backs was read on the
-// page itself on 2026-11-07 (checkedAt below). The lab `sources` shape on
-// master is a plain list of https URLs (supabase/seed/labs/types.ts); when
-// PR #44's dated source records land, these move to that shape with
-// checkedAt 2026-11-07.
+// page itself on 2026-11-07 (checkedAt below). Each is a dated source record
+// (REQ-142, seed/sources.ts) with checkedAt 2026-11-07.
 //
 // What each one backs, so a reviewer can re-check a value at its source:
 //
@@ -81,27 +81,27 @@
 //   AACN_ESSENTIALS -- the 2021 Essentials' ten domains the BSN course
 //     follows.
 
-export const NCSBN_PN_2026 = "https://nclex.com/files/2026_PN_Test%20Plan-F.pdf";
-export const NCSBN_RN_2026 = "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf";
+export const NCSBN_PN_2026 = source("https://nclex.com/files/2026_PN_Test%20Plan-F.pdf", "exam_outline", "2026-11-07");
+export const NCSBN_RN_2026 = source("https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf", "exam_outline", "2026-11-07");
 export const NCSBN_ANA_DELEGATION =
-  "https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf";
-export const CDC_HAND_HYGIENE = "https://www.cdc.gov/clean-hands/hcp/clinical-safety/index.html";
-export const CDC_TBP = "https://www.cdc.gov/infection-control/hcp/basics/transmission-based-precautions.html";
-export const CDC_EBP = "https://www.cdc.gov/long-term-care-facilities/hcp/prevent-mdro/ppe.html";
-export const CDC_PPE_SEQUENCE = "https://www.miemss.org/home/Portals/0/Docs/Infectious_Diseases/Poster-CDC-Donning-and-Doffing-PPE-20200305.2p.pdf";
-export const ISMP_ABBREVIATIONS = "https://online.ecri.org/hubfs/ISMP/Resources/ISMP_ErrorProneAbbreviation_List.pdf";
-export const ISMP_HIGH_ALERT = "https://home.ecri.org/blogs/ismp-resources/high-alert-medications-in-acute-care-settings";
-export const ADA_HYPOGLYCEMIA = "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf";
-export const DKA_CONSENSUS_2024 = "https://www.ccjm.org/content/92/3/152";
-export const SSC_2021 = "https://sccm.org/sepsisguidelines";
+  source("https://www.nursingworld.org/globalassets/practiceandpolicy/nursing-excellence/ana-position-statements/nursing-practice/ana-ncsbn-joint-statement-on-delegation.pdf", "clinical_guideline", "2026-11-07");
+export const CDC_HAND_HYGIENE = source("https://www.cdc.gov/clean-hands/hcp/clinical-safety/index.html", "clinical_guideline", "2026-11-07");
+export const CDC_TBP = source("https://www.cdc.gov/infection-control/hcp/basics/transmission-based-precautions.html", "clinical_guideline", "2026-11-07");
+export const CDC_EBP = source("https://www.cdc.gov/long-term-care-facilities/hcp/prevent-mdro/ppe.html", "clinical_guideline", "2026-11-07");
+export const CDC_PPE_SEQUENCE = source("https://www.miemss.org/home/Portals/0/Docs/Infectious_Diseases/Poster-CDC-Donning-and-Doffing-PPE-20200305.2p.pdf", "clinical_guideline", "2026-11-07");
+export const ISMP_ABBREVIATIONS = source("https://online.ecri.org/hubfs/ISMP/Resources/ISMP_ErrorProneAbbreviation_List.pdf", "clinical_guideline", "2026-11-07");
+export const ISMP_HIGH_ALERT = source("https://home.ecri.org/blogs/ismp-resources/high-alert-medications-in-acute-care-settings", "clinical_guideline", "2026-11-07");
+export const ADA_HYPOGLYCEMIA = source("https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf", "clinical_guideline", "2026-11-07");
+export const DKA_CONSENSUS_2024 = source("https://www.ccjm.org/content/92/3/152", "clinical_guideline", "2026-11-07");
+export const SSC_2021 = source("https://sccm.org/sepsisguidelines", "clinical_guideline", "2026-11-07");
 // ACOG Practice Bulletin No. 222 (June 2020), as hosted by the Kansas Perinatal Quality Collaborative (KDHE).
-export const ACOG_PB222 = "https://kansaspqc.kdhe.ks.gov/acog-gestation-htn-and-preeclampsia-practice-bulletin";
-export const NICHD_FHR = "https://ncc-efm.org/filz/NICHD_Reference_from_CCPR.pdf";
-export const AHA_BLS_2025 = "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support";
-export const CFR_483_12 = "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-483/subpart-B/section-483.12";
-export const CFR_483_152 = "https://www.ecfr.gov/current/title-42/section-483.152";
-export const CHEMM_START = "https://chemm.hhs.gov/startalgotext.htm";
-export const AHRQ_TEAMSTEPPS = "https://www.ahrq.gov/patient-safety/settings/labor-delivery/perinatal-care/modules/teamwork/implement-slides.html";
+export const ACOG_PB222 = source("https://kansaspqc.kdhe.ks.gov/acog-gestation-htn-and-preeclampsia-practice-bulletin", "clinical_guideline", "2026-11-07");
+export const NICHD_FHR = source("https://ncc-efm.org/filz/NICHD_Reference_from_CCPR.pdf", "clinical_guideline", "2026-11-07");
+export const AHA_BLS_2025 = source("https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-basic-life-support", "clinical_guideline", "2026-11-07");
+export const CFR_483_12 = source("https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-483/subpart-B/section-483.12", "reference", "2026-11-07");
+export const CFR_483_152 = source("https://www.ecfr.gov/current/title-42/section-483.152", "reference", "2026-11-07");
+export const CHEMM_START = source("https://chemm.hhs.gov/startalgotext.htm", "clinical_guideline", "2026-11-07");
+export const AHRQ_TEAMSTEPPS = source("https://www.ahrq.gov/patient-safety/settings/labor-delivery/perinatal-care/modules/teamwork/implement-slides.html", "reference", "2026-11-07");
 // SCIRE Project evidence summary of autonomic dysreflexia (2025), citing the Consortium for Spinal Cord Medicine and PVA guidelines.
-export const SCIRE_AD = "https://scireproject.com/wp-content/uploads/2025/06/AD-Executive-Summary-ES.pdf";
-export const AACN_ESSENTIALS = "https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf";
+export const SCIRE_AD = source("https://scireproject.com/wp-content/uploads/2025/06/AD-Executive-Summary-ES.pdf", "clinical_guideline", "2026-11-07");
+export const AACN_ESSENTIALS = source("https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf", "reference", "2026-11-07");

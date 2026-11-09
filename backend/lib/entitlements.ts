@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { spendSinceUsd } from "@/lib/ai-budget";
+import { accessFor, isUnrestricted } from "@/lib/account-access";
 import {
   ALLOWANCE_DEFAULTS,
   ALLOWANCE_KINDS,
@@ -46,6 +47,11 @@ import {
 //     and review never stop.
 //   - requireCourseAccess: Free studies one course. The first course a Free
 //     learner opens becomes it; they can switch (lib: chooseFreeCourse).
+//
+// REQ-144: an owner or unrestricted account (lib/account-access.ts) is
+// treated as Pro by tierFor -- which has every feature and every course --
+// and has no allowance count and no monthly AI cap. With the switch off
+// these still return at once: everyone already has everything then.
 
 // Hours past period_end that a paid entitlement still counts, in case a
 // renewal's webhook arrives late. An EXPIRATION, refund or deletion event
@@ -107,6 +113,8 @@ export async function currentEntitlement(userId: string): Promise<EntitlementRow
 
 export async function tierFor(userId: string, env: NodeJS.ProcessEnv = process.env): Promise<Tier> {
   if (!billingEnabled(env)) return "pro";
+  // REQ-144: Pro is the top tier; billing-config.test.ts checks it has every feature.
+  if (await isUnrestricted(userId, env)) return "pro";
   const row = await currentEntitlement(userId);
   return row && isTier(row.tier) ? row.tier : "free";
 }
@@ -269,7 +277,7 @@ export async function allowanceStatus(
   env: NodeJS.ProcessEnv = process.env
 ): Promise<AllowanceStatus> {
   const window = ALLOWANCE_DEFAULTS[kind].window;
-  if (!billingEnabled(env)) return { kind, window, limit: null, used: 0, remaining: null, resetsAt: null };
+  if (!billingEnabled(env) || (await isUnrestricted(userId, env))) return { kind, window, limit: null, used: 0, remaining: null, resetsAt: null };
   const t = tier ?? (await tierFor(userId, env));
   const limit = allowanceLimit(kind, t, env);
   const { used, resetsAt } = await countUses((sql, p) => query(sql, p), userId, kind, limit);
@@ -303,6 +311,7 @@ export async function consumeAllowance(
   const t = tier ?? (await tierFor(userId, env));
   const limit = allowanceLimit(kind, t, env);
   if (limit === null) return NO_USE;
+  if (await isUnrestricted(userId, env)) return NO_USE; // REQ-144
   if (limit === 0) {
     const feature = KIND_FEATURE[kind];
     throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, t);
@@ -376,6 +385,8 @@ export async function aiAllowanceStatus(
   const t = tier ?? (await tierFor(userId, env));
   const cap = monthlyAiCapUsd(t, env);
   if (cap === null) return { paused: false, resetsAt: null };
+  // REQ-144: no monthly cap; the daily safety ceiling (lib/ai-budget.ts) still applies.
+  if (await isUnrestricted(userId, env)) return { paused: false, resetsAt: null };
   const spent = await spendSinceUsd(userId, monthStartUtc()).catch(() => 0);
   return spent >= cap ? { paused: true, resetsAt: nextMonthStartUtc().toISOString() } : { paused: false, resetsAt: null };
 }
@@ -530,6 +541,20 @@ export async function revokeGrants(userId: string): Promise<number> {
 
 export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = process.env) {
   if (!billingEnabled(env)) return { enabled: false, tier: "pro" as Tier };
+  // REQ-144: shown as the plan ("Unrestricted access, granted by Nick"), with
+  // no allowances, no free course and nothing to buy.
+  const access = await accessFor(userId, env);
+  if (access) {
+    return {
+      enabled: true,
+      tier: "pro" as Tier,
+      unrestricted: { level: access.level, grantedBy: access.grant?.grantedByName ?? null, expiresAt: access.grant?.expiresAt ?? null },
+      entitlement: null,
+      freeCourse: null,
+      allowances: [] as AllowanceStatus[],
+      aiPaused: { paused: false, resetsAt: null },
+    };
+  }
   const ent = await currentEntitlement(userId);
   const tier: Tier = ent && isTier(ent.tier) ? ent.tier : "free";
   // Decision 6: the plan shown may be a paid period kept after a downgrade;

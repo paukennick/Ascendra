@@ -20,7 +20,7 @@ describe("physical therapy lab wave (REQ-147)", () => {
     for (const code of CODES) {
       const set = LAB_SETS.find((s) => s.trackCode === code);
       assert.ok(set, `${code} has labs`);
-      assert.ok(set!.sources.length >= 2 && set!.sources.every((s) => s.startsWith("https://")), `${code} cites outline and references`);
+      assert.ok(set!.sources.length >= 2 && set!.sources.every((s) => s.url.startsWith("https://")), `${code} cites outline and references`);
     }
   });
 

@@ -2,6 +2,7 @@ import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { pendingAcceptance } from "@/lib/legal";
+import { accessSummary } from "@/lib/account-access";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,11 @@ export async function GET(req: Request) {
     if (!row) return notFound("Account no longer exists.");
     // REQ-093: documents whose current version this user hasn't accepted.
     const legalPending = await pendingAcceptance(authUser.id);
-    return ok({ user: { ...toUserResponse(row), legalPending } });
+    // REQ-144: { level: "owner" | "unrestricted", grantedBy, expiresAt } or
+    // null. The app shows Settings > Access to owners only; the server
+    // checks again on every Access request.
+    const access = await accessSummary(authUser.id);
+    return ok({ user: { ...toUserResponse(row), legalPending, access } });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
