@@ -289,7 +289,7 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     // REQ-154: the five further AWS courses (ANS, DEA, DOP, MLA, SCS).
     // REQ-155: the five Microsoft courses (AZ-900, AZ-104, AZ-305, AZ-400, AZ-700).
     // REQ-156: Microsoft AZ-120, AZ-140, DP-900 and DP-300 follow the same plan.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300"]) {
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {

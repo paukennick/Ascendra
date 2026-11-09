@@ -44,6 +44,11 @@ import { AZ120_LABS } from "./microsoft-az120";
 import { AZ140_LABS } from "./microsoft-az140";
 import { DP900_LABS } from "./microsoft-dp900";
 import { DP300_LABS } from "./microsoft-dp300";
+import { GCPCDL_LABS } from "./gcp-cdl";
+import { GCPACE_LABS } from "./gcp-ace";
+import { GCPPCA_LABS } from "./gcp-pca";
+import { GCPDEV_LABS } from "./gcp-dev";
+import { GCPDEVOPS_LABS } from "./gcp-devops";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -94,4 +99,9 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   AZ140_LABS,
   DP900_LABS,
   DP300_LABS,
+  GCPCDL_LABS,
+  GCPACE_LABS,
+  GCPPCA_LABS,
+  GCPDEV_LABS,
+  GCPDEVOPS_LABS,
 ].map(withValueSources);
