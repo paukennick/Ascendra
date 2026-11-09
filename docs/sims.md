@@ -359,6 +359,48 @@ and "25-49%" is 3.0-4.5.
 | `knees`, `burnout` (bad) - drop-out | `harm` | Consistent. |
 | `stopped` (bad) - chest symptoms in session | `harm` | Consistent (skipped required referral). |
 
+### 3.2 The tamponade port (Phase 1a step 5, REQ-162)
+
+`backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json` is the
+first port. Seven golden paths were driven through the revised prototype's
+`?test=1` hook and through the engine: the expert path (`early`, target,
+Good), early escalation with phase 2 on fluid then a pressor and early
+escalation ending phase 2 with no decision (`earlyUntreated`, recovered,
+Mediocre), a page just inside 20 minutes (`bridge`, recovered, Mediocre), a
+page at 20 minutes without preparation and phone orders then a late page
+(`late`, recovered, Mediocre and Bad), and fluids and drips without
+escalation (`arrest`, harm, Bad). The prototype's path, every criterion, the
+three KPIs and the arrest tick match exactly; the twelve vitals match within
+one display unit at ten snapshot ticks; the phase-2 numbers match exactly.
+Deliberate differences, beyond the 3.1 reclassification:
+
+- **Phase 2** is prompts: the first choice, a 30-minute reassessment the
+  learner skips to (the prototype jumps), then a second choice among the
+  other three unless the first was the inotrope; "End here" is a choice in
+  each prompt. Phase 2 ends by itself after the inotrope or a second choice.
+- **The arrest path** scores the phase-2 criterion `missed`; the prototype
+  leaves it out, so its process scores are not comparable.
+- **Written reasoning** adds a scored criterion (weight 1), graded by the
+  model in 1b; the prototype shows the model answer and does not score it.
+- **At most three boluses run at once** (the action is unavailable while
+  three run). The prototype has no limit; the cap keeps the per-tick bound
+  within the 90-minute-skip budget. Finished boluses join one decaying
+  accumulator, mathematically the same as the prototype's sum of
+  exponentials.
+- **Live timers are cancelled at re-exploration** (results, callbacks, the
+  q15 check), as the prototype's jump to phase 2 never delivers them.
+- **Drips** always offer "Turn off"; the prototype offers it only while one
+  runs (turning off a drip that is off changes nothing).
+- **Contraindicated actions: none named.** Protamine without an ACT and
+  dobutamine in tamponade are scored as poor choices, as in the prototype,
+  not as `harm`. A reviewer should confirm or name one with a source (19.3).
+- **The chest-tube tile** reads `history` in whole 5-second samples, so for
+  a few seconds after clearing the tubes (when the 15-minute window's far
+  edge crosses that moment) it differs from the prototype's interpolated
+  ledger by up to the 120 mL removed.
+- `time_up` (4 h) is never reached: every legal path arrests or reaches the
+  OR first. The linter warns instead of failing for an unreached `time_up`.
+
 ## 4. The scenario document
 
 ### 4.1 Shape
@@ -416,7 +458,8 @@ interface ScenarioDoc {
   secondaryObjectives?: string[];       // analytics only in Phase 1
   sources: Source[];                    // exam outline(s) and clinical refs
   brief: { situation: string; handover?: string[]; howItWorks?: string[] };
-  safetyNote?: string;
+  safetyNote?: string;                  // author-facing context only, never shown as a
+                                        // disclaimer (REQ-165: the one study notice covers sims)
 
   clock: {
     start: string;                      // "14:00", or "2027-02-01T09:00" for dated sims; display only
@@ -628,6 +671,9 @@ interface OutcomeSpec {                 // section 9.2
   profile: "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data";
   thresholds: Record<Id, { value: number; source: Source }>;
     // keys and defaults per profile (9.2); the linter allows tighter values only
+  noProgress: { when: Expr; class: OutcomeClass; rationale: string; source: Source };
+    // REQ-162 addition: the 9.2 "safe but little or no progress" rule, which
+    // 9.2 requires per scenario; it had no field until the engine was built
 }
 
 interface Ending {
@@ -637,6 +683,9 @@ interface Ending {
                                         // terminal ending EXCEPT time_up, which must not have one
   narrative: Template;                  // shown in the run
   terminal: boolean;                    // false = a branch point (e.g. go to phase 2)
+  phase?: Id;                           // REQ-162 addition: the phase a non-terminal ending moves
+                                        // to; required when terminal is false (5.3 says a branch
+                                        // point "applies its phase change" but gave it no field)
 }
 // `time_up` is the one engine-defined ending: it is terminal, carries an
 // authored class and narrative, has no `when`, is never named by an
@@ -747,7 +796,9 @@ template-string execution or access to host objects anywhere.
   time otherwise, with a linter warning); `r.f` reads a declared field of a
   record, catalogue entry or map. So `paths[path].pain`,
   `components[item.type].cost` and `fluidPeak[ml]` type-check. There is no
-  other property access.
+  other property access. (REQ-162 addition: `records[i]` also indexes a record
+  list by position, integer `i` clamped like a list, so a rule can read the
+  first or last record without a predicate.)
 - **Operators**: `+ - * /`, comparison, `and or not`, `? :`,
   `in` (membership in a set or list). No `**`, no bitwise ops, no
   assignment.
@@ -755,7 +806,9 @@ template-string execution or access to host objects anywhere.
   - maths: `min max clamp abs floor ceil round`, `exp ln sqrt sin cos`
     and `pow(x, y)` (engine implementations, 5.5), `lerp`, `num(s)`
     (an enum/option value to a number, validated at check time);
-  - time and lists: `isNull`, `since(timeVar)`, `seq(list, i)` (index
+  - time and lists: `isNull`, `since(timeVar)`, `timeAt(timeVar)` (the
+    time as a number of sim seconds, -1 when null; REQ-162 addition, so a
+    rule can compare two recorded times), `seq(list, i)` (index
     with last-value repeat);
   - history (`seconds` is clamped to ≥ 0; the buffer always holds the
     tick-0 sample onward, 4.1): `past(h, seconds)` = the newest sample
@@ -893,7 +946,8 @@ shape `labContentProblems` already uses. Three layers:
    the default, has passed); units are dimension-checked (a `/min` or `/h` rate
    multiplied by `dt` must be divided by 60 or 3,600; warning); fictional
    framing and safety rules per safety family (the lab rules: no "your
-   patient/client", fictional people, the safety note); outcome rules
+   patient/client", fictional people; since REQ-165 no per-sim safety
+   note is required, the one study notice covers sims); outcome rules
    (9.2): every outcome threshold is no looser than the profile default,
    each of `target`, `recovered` and `harm` is the class of some reachable
    terminal ending, and no explored path reaches a `target` ending with a
@@ -2459,7 +2513,9 @@ through them. The project prototype has **neither**, so the PMP port
 needs a **new driver** (a script in the style of `test-cloud.js`, or a
 `?test=1` hook added to the prototype), written in Phase 1a step 5 before
 its golden paths can be compared (17). (The prototypes are outside this
-repository; this was not re-checked from here.) Endings and criteria must match the prototype exactly
+repository: `npm run sim:golden -- prototype <port> <dir>` drives them and
+commits what they did as `<slug>.prototype.json`, and `lib/sim/ports.test.ts`
+compares the engine with that recording in CI.) Endings and criteria must match the prototype exactly
 except where 3.1 records a deliberate change; continuous values such as
 vitals must match within ±1 display unit at the listed ticks. This shows
 the port behaves like what Nick tried; it does not prove the two are
@@ -2484,7 +2540,8 @@ outcome rules (each class reachable, thresholds no looser than the
 profile default, no `target` with a critical command-derived criterion
 missed, reasoning criteria excluded from that check, at least one
 critical criterion); `time_up` without a `when` and every other terminal
-ending with one; the longest-skip bound (4.3); golden-path rules (every ending reached, every criterion both
+ending with one; the longest-skip bound (4.3); golden-path rules (every ending reached, except that an unreached
+`time_up` hard stop is a warning, every criterion both
 met and missed, at least one Good, one Mediocre and one Bad path); no
 unreachable action (never `available` in any golden path is a warning); a
 `wait` pending at every tick of a golden path is a warning (3); every tile
@@ -2751,6 +2808,13 @@ rules below followed. Nick approved all of them.
   tamponade early path that can reach the OR after 45 minutes. The ports
   use the defaults; Nick may ask to keep a prototype value as a sourced
   tightening.
+- **Contraindicated actions in the tamponade port** (3.1, 3.2): none named,
+  so `harm` is reached only by the arrest. A reviewer either confirms that
+  or names an action (for example protamine with a normal ACT) with a
+  source, and the port adds a `harm` ending for it.
+- **Tamponade per-tick bound** (3.2): the cap of three running boluses keeps
+  the 90-minute skip inside its budget. Alternatives are a cheaper bound
+  for derived values the engine memoises, or chaining the 90-minute wait.
 
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 

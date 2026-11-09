@@ -5526,7 +5526,7 @@
       "id": "REQ-162",
       "category": "feature",
       "title": "Sim engine v1 implementation (Phase 1a)",
-      "description": "Implements docs/sims.md Phase 1a steps 3-7 (REQ-141 is the design). Engine major 1 in backend/lib/sim/engine/v1/ (pure TypeScript, own deterministic maths, no imports outside the folder, generated copy in mobile/src/sim/engine/v1/): expression parser and type checker, safe evaluator, the tick contract of 5.3 (Pre/Post, processes, timer instances, history, settle, time_up, skips stopping on interrupts, checkpoints), scoring and the Good/Mediocre/Bad rating, the validator and content linter with the bounded path search, the zod schema with a compile-time and run-time conformance test, the content hash and client document, and the draft v1 semantics corpus (22 hand-computed cases) with property tests. Steps 5 (four prototype ports with golden paths), 6 (paper scenarios) and 7 (freeze) are still open.",
+      "description": "Implements docs/sims.md Phase 1a steps 3-7 (REQ-141 is the design). Engine major 1 in backend/lib/sim/engine/v1/ (pure TypeScript, own deterministic maths, no imports outside the folder, generated copy in mobile/src/sim/engine/v1/): expression parser and type checker, safe evaluator, the tick contract of 5.3, scoring and the Good/Mediocre/Bad rating, the validator and content linter with the bounded path search, the zod schema with a compile-time and run-time conformance test, the content hash and client document, and the draft v1 semantics corpus (22 hand-computed cases) with property tests. Step 5 has its first port: tamponade after CABG (CCRNADULT) with seven golden paths matched to the revised prototype (recorded by npm run sim:golden, compared by lib/sim/ports.test.ts). The Hermes and browser CI jobs run the engine itself (corpus and golden replays) through a transpiled one-script bundle. npm run sims:lint / sims:validate and a client-document key-leak test. Still open: the cloud, project and fitness ports, step 6 (paper scenarios or ports of the security, terminal and data prototypes), step 7 (freeze).",
       "priority": "high",
       "status": "pending",
       "minimum_access_scope": [
@@ -5557,7 +5557,11 @@
       "risk_notes": [
         "Corpus is a draft: hashes may change until the step-7 freeze",
         "golden ports and paper scenarios not yet written",
-        "cross-runtime jobs still run the step-2 fixture not the corpus"
+        "cross-runtime jobs still run the step-2 fixture not the corpus",
+        "Prototype recordings (<slug>.prototype.json) are re-made only by hand: the prototypes live outside the repository",
+        "Tamponade port: deliberate differences from the prototype are listed in docs/sims.md 3.2; contraindicated actions are not named (reviewer or Nick to confirm)",
+        "Linter: the per-sim safety note is no longer required (REQ-165, one study notice); an unreached time_up is a warning",
+        "Update 2026-11-09: the cross-runtime jobs now run the engine corpus and golden replays (the fixture still runs too); the tamponade port and its golden paths are written; three ports and the paper scenarios are not"
       ]
     }
   ]
