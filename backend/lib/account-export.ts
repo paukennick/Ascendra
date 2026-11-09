@@ -151,6 +151,13 @@ export const EXPORT_SECTIONS = {
                         case when e.actor_id is not null then coalesce(nullif(trim(ac.display_name), ''), 'the account owner') end as by
                    from account_access_events e left join app_users ac on ac.id = e.actor_id
                   where e.user_id = $1 order by e.created_at asc, e.id asc`,
+  // REQ-166 (migration 058): verified group discounts -- only the result
+  // (group, provider, when, until when, the provider's reference) -- and any
+  // App Store offer codes handed to the account.
+  verifiedDiscounts: `select group_id, provider, provider_subject, verified_at, expires_at, updated_at
+                        from verified_discounts where user_id = $1 order by verified_at asc, id asc`,
+  discountOfferCodes: `select store, group_id, product_id, code, issued_at, expires_at
+                         from discount_offer_codes where issued_to = $1 order by issued_at asc, id asc`,
 } as const;
 
 export type ExportSection = keyof typeof EXPORT_SECTIONS;

@@ -9,12 +9,15 @@ import { useAuth } from "@/auth/AuthContext";
 import { useBilling } from "@/billing/BillingContext";
 import { planSummary } from "@/lib/billing";
 import { accessPlanLine, parseAccess, showAccessSettings } from "@/lib/access";
+import { useDiscounts } from "@/billing/useDiscounts";
+import { settingsRowValue } from "@/lib/discounts";
 
 export default function Settings() {
   const router = useRouter();
   const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
   const [biometricBusy, setBiometricBusy] = useState(false);
   const { config, me } = useBilling();
+  const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
 
   async function toggleBiometric(next: boolean) {
@@ -68,6 +71,13 @@ export default function Settings() {
               <>
                 <Divider />
                 <ListRow icon="book" label="Free course" value={me.freeCourse?.title ?? "Not picked yet"} onPress={() => router.push("/settings/free-course")} />
+              </>
+            ) : null}
+            {/* REQ-166: only when the server offers verified discounts. */}
+            {discounts.available ? (
+              <>
+                <Divider />
+                <ListRow icon="award" label="Verified discount" value={settingsRowValue(discounts)} onPress={() => router.push("/settings/discount")} />
               </>
             ) : null}
           </Card>

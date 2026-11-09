@@ -115,7 +115,7 @@ end $$;
 
 drop table if exists
   account_access, account_access_events, ai_calls, allowance_uses, assessment_types, billing_events, coach_quiz_items, coach_quiz_turns,
-  concept_set_members, concept_sets, content_review_queue, course_insights, discrimination_items, entitlements,
+  concept_set_members, concept_sets, content_review_queue, course_insights, discount_offer_codes, discrimination_items, entitlements,
   error_log_backup_029, exam_items, exam_outcomes, exam_session_items, exam_sessions, free_course_choice,
   grading_claims, item_flags, item_holdbacks, item_quality_params, item_status,
   lab_disclaimer_acknowledgements, lab_report_questions, lab_run_steps, lab_runs, labs,
@@ -125,6 +125,8 @@ drop table if exists
   mastery_model_params, objective_prerequisites, objective_terms, pbq_generation_claims, placement_checks,
   placement_items, prerequisite_refreshers, review_items, review_log, review_schedule, review_session_items,
   review_sessions, study_plans, unit_check_items, terms_acceptances,
+  -- REQ-166 (058): verified group discounts and the App Store offer-code pool
+  verified_discounts,
   -- REQ-169/170 (060): intake answers and founding-member seats (060's
   -- family and scope columns go with entitlements, also in this list)
   learner_intake, learner_intake_targets, founding_members
