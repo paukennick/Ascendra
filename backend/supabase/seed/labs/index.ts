@@ -100,6 +100,13 @@ import { CNPA_LABS } from "./k8s-cnpa";
 import { CNPE_LABS } from "./k8s-cnpe";
 import { EX188_LABS } from "./k8s-ex188";
 import { EX280_LABS } from "./k8s-ex280";
+// REQ-171: the remaining PMI courses.
+import { PGMP_LABS } from "./pm-pgmp";
+import { PFMP_LABS } from "./pm-pfmp";
+import { PMICP_LABS } from "./pm-cp";
+import { PMIPMOCP_LABS } from "./pm-pmocp";
+import { PMICPMAI_LABS } from "./pm-cpmai";
+import { CSPP_LABS } from "./pm-cspp";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -206,4 +213,10 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CNPE_LABS,
   EX188_LABS,
   EX280_LABS,
+  PGMP_LABS,
+  PFMP_LABS,
+  PMICP_LABS,
+  PMIPMOCP_LABS,
+  PMICPMAI_LABS,
+  CSPP_LABS,
 ].map(withValueSources);

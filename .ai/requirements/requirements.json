@@ -5521,6 +5521,45 @@
         "Linux Foundation exam environments move to each new Kubernetes minor within 4-8 weeks so version-specific facts are kept out of rubrics",
         "Migration renumbered 055 -> 056 after master merged REQ-143's 055_content_review_queue, then 056 -> 057 because production already has 056_account_access (REQ-144); scope path is backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql"
       ]
+    },
+    {
+      "id": "REQ-171",
+      "category": "content",
+      "title": "Labs for the remaining PMI courses (PgMP, PfMP, PMI-CP, PMI-PMOCP, PMI-CPMAI, CSPP)",
+      "description": "Author the hybrid-density lab sets for the six PMI courses that had none, aligned to each exam outline re-checked on pmi.org on the day, with dated sources and a density test.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pm-pgmp.ts",
+        "backend/supabase/seed/labs/pm-pfmp.ts",
+        "backend/supabase/seed/labs/pm-cp.ts",
+        "backend/supabase/seed/labs/pm-pmocp.ts",
+        "backend/supabase/seed/labs/pm-cpmai.ts",
+        "backend/supabase/seed/labs/pm-cspp.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-pm-extended.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every number in a rubric is worked in its model answer"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until a qualified PM reviewer reads each set",
+        "PMI-CPMAI and PgMP ECO PDFs were not fetchable on the day; weights confirmed from pmi.org pages where listed"
+      ]
     }
   ]
 }
