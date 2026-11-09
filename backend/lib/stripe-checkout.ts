@@ -56,7 +56,7 @@ function returnUrl(env: NodeJS.ProcessEnv, which: "success" | "cancel" | "portal
 }
 
 export async function createCheckoutSession(
-  opts: { userId: string; email: string; planId: string; idempotencyKey?: string },
+  opts: { userId: string; email: string; planId: string; idempotencyKey?: string; coupon?: string | null },
   env: NodeJS.ProcessEnv = process.env
 ): Promise<{ url: string; plan: PlanInfo }> {
   const key = requireKey(env);
@@ -81,7 +81,11 @@ export async function createCheckoutSession(
       "subscription_data[metadata][plan]": plan.period,
       success_url: returnUrl(env, "success"),
       cancel_url: returnUrl(env, "cancel"),
-      allow_promotion_codes: "true",
+      // REQ-166: a verified group discount is a published Stripe coupon,
+      // applied here. Discounts never stack: Stripe takes either a coupon or
+      // the promotion-code box, so with a verified coupon the box is left
+      // out, and without one it is offered as before.
+      ...(opts.coupon ? { "discounts[0][coupon]": opts.coupon } : { allow_promotion_codes: "true" }),
     },
     key,
     opts.idempotencyKey
