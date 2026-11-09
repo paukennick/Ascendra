@@ -114,6 +114,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                     and s.slug in ('cncf-certifications', 'container-tooling', 'red-hat-openshift')) = 3 as ok`,
   },
   {
+    // REQ-166: GET /api/discounts, checkout and the account export read
+    // these (the export always; the rest only once verified discounts are on).
+    migration: "058_verified_discounts.sql",
+    what: "verified_discounts and discount_offer_codes tables (verified group discounts, App Store offer-code pool)",
+    sql: `select to_regclass('public.verified_discounts') is not null
+             and to_regclass('public.verified_discounts_subject_unique') is not null
+             and to_regclass('public.discount_offer_codes') is not null as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

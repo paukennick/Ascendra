@@ -5523,6 +5523,104 @@
       ]
     },
     {
+      "id": "REQ-166",
+      "category": "feature",
+      "title": "Verified discounts framework: published group discounts behind flags with no live provider",
+      "description": "Nick 2026-11-09: standard published discounts for verified groups (military and veterans; first responders; nurses; students; teachers configurable and off by default and for a personal plan only). Same percentage for everyone in a group (DISCOUNT_PERCENT_<GROUP>; no default); never per-person pricing; no failure or retake discount; no stacking (one discount: the largest); a discounted learner keeps the full per-tier AI cap. Provider-agnostic VerificationProvider interface with an empty registry (ID.me is REQ-167). Signed 15-minute state with a PKCE verifier derived from it; fixed return URLs. Migration 058 stores only the result (verified_discounts: user; group; provider; verified_at; expires_at; opaque provider subject) and the App Store offer-code pool (discount_offer_codes). Applied as a Stripe coupon at web checkout (replacing the promotion-code box); a Google Play developer-determined offer bought by the app; an App Store one-time offer code from the pool. Off unless BILLING_ENABLED and VERIFIED_DISCOUNTS_ENABLED are on and a provider is configured and a group has a percentage.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/058_verified_discounts.sql",
+        "backend/lib/verified-discounts-config.ts",
+        "backend/lib/discount-providers.ts",
+        "backend/lib/verified-discounts.ts",
+        "backend/lib/discount-codes-cli.ts",
+        "backend/scripts/discount-codes.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/app/api/billing/checkout/route.ts",
+        "backend/app/api/discounts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "backend/package.json",
+        "backend/.env.example",
+        "mobile/src/lib/discounts.ts",
+        "mobile/src/billing/useDiscounts.ts",
+        "mobile/src/billing/purchases.ts",
+        "mobile/app/(app)/settings/discount.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "docs/billing.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "With no provider registered GET /api/discounts answers only available false and checkout has no coupon",
+        "Each switch alone keeps the feature off",
+        "Only the verification result is stored and one provider identity serves one account",
+        "Forged or expired or declined or unverified callbacks store nothing",
+        "One discount at a time and the largest applies",
+        "Verified Stripe checkout carries the group coupon instead of allow_promotion_codes",
+        "The monthly AI cap ignores discount settings",
+        "App Store codes are one per learner and product and idempotent and skip codes about to expire",
+        "Teachers off by default with personal-use copy and a class contact line",
+        "Account deletion removes verifications and unlinks codes and the export includes both"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "npm run test:db on a fresh database with every migration and seed twice",
+        "mobile typecheck and tests",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md Verified discounts",
+        "docs/deploy-runbook-integration.md 058 rows",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Play developer-determined offers are app-enforced so a modified client could buy one unverified",
+        "Apple offer codes cannot be revoked once issued",
+        "Percentages must match the Stripe coupons and store offers by hand"
+      ]
+    },
+    {
+      "id": "REQ-167",
+      "category": "feature",
+      "title": "ID.me verification provider for verified discounts (stacked on REQ-166; draft until partner keys)",
+      "description": "The ID.me adapter for the REQ-166 VerificationProvider interface: OAuth 2.0 authorization code with PKCE against ID.me's group (community) scopes military; responder; nurse; student; teacher; the attributes endpoint's status array (group; subgroups; verified) decides the result; the opaque uuid attribute is the stored subject. Config from env (IDME_CLIENT_ID; IDME_CLIENT_SECRET; IDME_REDIRECT_URI; sandbox or production host); with no credentials the provider is unconfigured and the feature stays off. One callback route. Tests mock ID.me entirely. Owner setup docs for the ID.me partner account. Stays a draft until Nick has ID.me partner keys.",
+      "priority": "medium",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/discount-provider-idme.ts",
+        "backend/lib/discount-providers.ts",
+        "backend/app/api/discounts/verify/idme/callback",
+        "backend/.env.example",
+        "docs/billing.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Without IDME credentials the provider is unconfigured and nothing is shown",
+        "The authorization URL carries the group scope and state and an S256 code challenge",
+        "Only a verified status for the requested group records a result",
+        "Tests never call ID.me"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "npm test",
+        "npm run test:db",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md ID.me setup"
+      ],
+      "risk_notes": [
+        "ID.me partner approval and scope names are confirmed only against ID.me's published docs until the account exists"
+      ]
+    },
+    {
       "id": "REQ-171",
       "category": "content",
       "title": "Labs for the remaining PMI courses (PgMP, PfMP, PMI-CP, PMI-PMOCP, PMI-CPMAI, CSPP)",

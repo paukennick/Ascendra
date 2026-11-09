@@ -13,6 +13,7 @@
 
 import { Platform } from "react-native";
 import { shouldInitPurchases, type BillingConfig, type BillingPlan } from "@/lib/billing";
+import { playOptionFor } from "@/lib/discounts";
 
 type PurchasesModule = typeof import("react-native-purchases").default;
 type PurchasesPackage = import("react-native-purchases").PurchasesPackage;
@@ -76,16 +77,31 @@ export async function loadStorePackages(config: BillingConfig, userId: string, p
 // `change` (Android only, from googlePlanChange): replace the learner's
 // current Play subscription -- at once for an upgrade, at the end of the
 // paid period for a downgrade (REQ-124).
+// `playOfferId` (Android only, REQ-166): a verified learner's published
+// group discount -- the base plan's developer-determined offer with that id.
+// If the store has no such offer the regular price is bought.
 export async function buy(
   config: BillingConfig,
   userId: string,
   pkg: PurchasesPackage,
-  change?: { oldProductIdentifier: string; mode: "immediate" | "deferred" } | null
+  change?: { oldProductIdentifier: string; mode: "immediate" | "deferred" } | null,
+  playOfferId?: string | null
 ): Promise<"purchased" | "cancelled"> {
   const P = await ready(config, userId);
   if (!P) throw new Error("Purchases aren't available in this version of the app.");
   try {
-    if (change && Platform.OS === "android") {
+    const option = Platform.OS === "android" ? playOptionFor(pkg.product.subscriptionOptions, playOfferId) : null;
+    if (option) {
+      await P.purchaseSubscriptionOption(
+        option,
+        change
+          ? {
+              oldProductIdentifier: change.oldProductIdentifier,
+              prorationMode: change.mode === "deferred" ? P.PRORATION_MODE.DEFERRED : P.PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+            }
+          : null
+      );
+    } else if (change && Platform.OS === "android") {
       await P.purchasePackage(pkg, null, {
         oldProductIdentifier: change.oldProductIdentifier,
         prorationMode: change.mode === "deferred" ? P.PRORATION_MODE.DEFERRED : P.PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
@@ -98,6 +114,16 @@ export async function buy(
     if ((err as { userCancelled?: boolean })?.userCancelled) return "cancelled";
     throw err;
   }
+}
+
+// iOS (REQ-166): the App Store's own offer-code redemption sheet, for a
+// verified learner's offer code. false where it isn't available.
+export async function presentOfferCodeSheet(config: BillingConfig, userId: string): Promise<boolean> {
+  if (Platform.OS !== "ios") return false;
+  const P = await ready(config, userId);
+  if (!P) return false;
+  await P.presentCodeRedemptionSheet();
+  return true;
 }
 
 export async function restore(config: BillingConfig, userId: string): Promise<void> {
