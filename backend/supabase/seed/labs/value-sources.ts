@@ -128,6 +128,26 @@ const NASM_OPT_MODEL = source("https://www.nasm.org/certified-personal-trainer/t
 
 type ValueSources = Record<string, SourceRef[] | { none: string }>;
 
+// REQ-173: ABPTS Clinical Electrophysiologic Specialist (pt-abpts-ecs.ts),
+// read 2026-11-09. AANEM bleeding-risk guidance: caution below 50,000
+// platelets (INR above about 1.5-2.0); don't routinely stop anticoagulants
+// or defer EMG. AANEM 2005 position: no contraindication in lymphedema or
+// prosthetic joints, judge each case (disagrees with the seed track's
+// objective wording -- listed for the clinical reviewer). AAEM/AAN/AAPM&R
+// 2002 CTS practice parameter. AAEM 1999 ulnar-at-elbow parameter is not
+// used. Practical Neurology 2024 LEMS review (secondary; cites the 100% and
+// 60% increment criteria). Goncalves 2025 on cervical radiculopathy EDX.
+// EAN/PNS CIDP 2021 (abstract only; 8-week element not re-read). Robinson
+// 2000 AANEM minimonograph (abstract only).
+const ECS_CHECKED = "2026-11-09";
+const AANEM_BLEEDING_RISK = source("https://www.aanem.org/about-aanem/news-express/news/2021/03/31/patient-safety-emg-ncs-and-risk-of-bleeding", "clinical_guideline", ECS_CHECKED);
+const AANEM_UNCOMMON_CONTEXTS_2005 = source("https://doi.org/10.1002/mus.20238", "clinical_guideline", ECS_CHECKED);
+const AANEM_CTS_PARAMETER_2002 = source("https://www.aanem.org/clinical-practice-resources/guidelines/guideline/practice-parameter-for-edx-studies-in-cts-summary-statement-(including-literature-review)", "clinical_guideline", ECS_CHECKED);
+const LEMS_REVIEW_2024 = source("https://practicalneurology.com/articles/2024-apr/diagnosis-and-treatment-of-lambert-eaton-myasthenic-syndrome", "reference", ECS_CHECKED);
+const CERVICAL_RADICULOPATHY_EDX_2025 = source("https://doi.org/10.1055/s-0045-1812893", "reference", ECS_CHECKED);
+const EAN_PNS_CIDP_2021 = source("https://doi.org/10.1111/ene.14959", "clinical_guideline", ECS_CHECKED);
+const ROBINSON_NERVE_INJURY_2000 = source("https://pubmed.ncbi.nlm.nih.gov/10842261/", "reference", ECS_CHECKED);
+
 const NO_VALUE = "Quotes no clinical threshold, dose or target (recognition, priorities, communication or ethics).";
 const CASE_DATA = "Its numbers are the fictional patient's own readings, not a threshold or dose the lab teaches.";
 
@@ -208,6 +228,19 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "pn-hypoglycemia-case": [ADA_HYPOGLYCEMIA],
     "pn-trends-against-baseline": { none: CASE_DATA },
     "pn-anaphylaxis-first-dose": { none: "Names intramuscular epinephrine as the first drug without a dose; the other numbers are the client's own readings." },
+  },
+  // REQ-173
+  ABPTSECS: {
+    "ecs-nerve-injury-grades": [ROBINSON_NERVE_INJURY_2000],
+    "ecs-presynaptic-nmj-case": [LEMS_REVIEW_2024],
+    "ecs-pretest-screening-case": [AANEM_BLEEDING_RISK, AANEM_UNCOMMON_CONTEXTS_2005],
+    "ecs-muscle-selection-c7-vs-radial": [CERVICAL_RADICULOPATHY_EDX_2025],
+    "ecs-timing-after-humeral-fracture-case": [ROBINSON_NERVE_INJURY_2000],
+    "ecs-axonal-vs-demyelinating-tables": { none: "Interprets against the fictional laboratory's own stated reference limits; teaches no population norm." },
+    "ecs-carpal-tunnel-sensory-first-case": [AANEM_CTS_PARAMETER_2002],
+    "ecs-cervical-radiculopathy-emg-case": [CERVICAL_RADICULOPATHY_EDX_2025],
+    "ecs-formulate-diagnosis-polyneuropathy-case": [EAN_PNS_CIDP_2021],
+    "ecs-preganglionic-plexus-injury": [CERVICAL_RADICULOPATHY_EDX_2025],
   },
   NASMCPT: {
     "energy-systems-by-activity": { none: "Energy-system durations follow the NASM CPT 7 textbook; no official NASM page states them (not verified)." },

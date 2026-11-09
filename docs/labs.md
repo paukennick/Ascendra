@@ -491,6 +491,28 @@ never offered as answers. The AZ-104 seed outline carries two objectives the
 official guide does not list ("encryption at host", "soft delete for blobs and
 containers"); no lab sits on them, pending the lead's decision.
 
+### ABPTS Clinical Electrophysiologic Specialist (REQ-173)
+
+10 labs (4 build, 6 case), 2/1/2/3/2 by the hybrid plan, in
+`seed/labs/pt-abpts-ecs.ts`, aligned to the ABPTS clinical
+electrophysiology outline (re-read 2026-11-09): nerve injury grading,
+the Lambert-Eaton pattern on repetitive stimulation, screening before a
+study (anticoagulation, low platelets, lymphedema, skin infection), needle
+EMG muscle selection, timing a study after nerve injury, axonal vs
+demyelinating vs focal tables, carpal tunnel comparison studies, cervical
+radiculopathy, a polyneuropathy diagnosis with a CIDP red flag, and
+preganglionic vs postganglionic plexus injury. Every lab names its value
+sources in `value-sources.ts` (AANEM bleeding-risk guidance and its 2005
+position statement, the AAEM/AAN/AAPM&R CTS practice parameter, the EAN/PNS
+2021 CIDP guideline and primary EDX reviews), or says why none
+(`lib/labs-abpts-ecs.test.ts` checks it). Nerve conduction numbers in cases
+come with the fictional laboratory's own limits. One disagreement is open
+for the clinical reviewer: the seed track's screening objective says never
+to do needle EMG in a lymphedematous limb, but AANEM (2005) lists no
+contraindication and leaves it to judgment; the lab follows AANEM. A
+board-certified clinical electrophysiologic PT must read all 10 before
+approval.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

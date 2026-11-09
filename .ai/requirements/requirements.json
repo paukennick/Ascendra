@@ -5521,6 +5521,42 @@
         "Linux Foundation exam environments move to each new Kubernetes minor within 4-8 weeks so version-specific facts are kept out of rubrics",
         "Migration renumbered 055 -> 056 after master merged REQ-143's 055_content_review_queue, then 056 -> 057 because production already has 056_account_access (REQ-144); scope path is backend/supabase/migrations/057_containers_kubernetes_taxonomy.sql"
       ]
+    },
+    {
+      "id": "REQ-173",
+      "category": "content",
+      "title": "Labs for the ABPTS Clinical Electrophysiologic Specialist course",
+      "description": "Author the hybrid-density clinical lab set for ABPTSECS, aligned to the ABPTS outline re-read on the day, with a value-sources entry for every lab (current guidelines and primary sources, dated) and needs_expert_review.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/pt-abpts-ecs.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/lib/labs-abpts-ecs.test.ts",
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Every lab names an exact active objective and passes the content rules",
+        "Hybrid density unit by unit with case labs dominating",
+        "Every lab names its value sources or why none"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md"
+      ],
+      "risk_notes": [
+        "Clinical: must be read in full by a board-certified clinical electrophysiologic PT before approval",
+        "Track objective on lymphedema conflicts with AANEM 2005 (lab follows AANEM)",
+        "CIDP 8-week element and Wallerian timing not re-read in full text"
+      ]
     }
   ]
 }

@@ -100,6 +100,8 @@ import { CNPA_LABS } from "./k8s-cnpa";
 import { CNPE_LABS } from "./k8s-cnpe";
 import { EX188_LABS } from "./k8s-ex188";
 import { EX280_LABS } from "./k8s-ex280";
+// REQ-173: ABPTS Clinical Electrophysiologic Specialist.
+import { ABPTSECS_LABS } from "./pt-abpts-ecs";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -206,4 +208,5 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   CNPE_LABS,
   EX188_LABS,
   EX280_LABS,
+  ABPTSECS_LABS,
 ].map(withValueSources);
