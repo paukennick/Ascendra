@@ -22,6 +22,8 @@ import {
 } from "@/lib/billing";
 import { colors, spacing } from "@/lib/theme";
 import { accessPlanLine, parseAccess, UNRESTRICTED_NOTE } from "@/lib/access";
+import { useDiscounts } from "@/billing/useDiscounts";
+import { plansDiscountLine } from "@/lib/discounts";
 
 // REQ-122: the plans screen. Reachable only while paid plans are on (the
 // Settings row and the upgrade sheet are the only ways in); if the switch is
@@ -36,6 +38,8 @@ export default function Plans() {
   const router = useRouter();
   const { user } = useAuth();
   const { config, me, refresh } = useBilling();
+  // REQ-166: verified group discounts (shown only when the server offers them).
+  const { status: discounts } = useDiscounts();
   const [tier, setTier] = useState<"plus" | "pro">("plus");
   const [store, setStore] = useState<StorePackage[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -66,7 +70,8 @@ export default function Plans() {
           const change = me?.entitlement
             ? googlePlanChange({ tier: me.tier, manage: me.entitlement.manage, productId: me.entitlement.productId, status: me.entitlement.status }, plan)
             : null;
-          const r = await buy(config, user.id, pkg, change);
+          // REQ-166: on Play a verified learner buys the group's published offer.
+          const r = await buy(config, user.id, pkg, change, discounts.active?.playOfferId ?? null);
           if (r === "cancelled") return;
           setNote("Thanks! Your plan is being set up. It can take a minute to show here.");
           setTimeout(() => refresh(), 4000);
@@ -81,7 +86,7 @@ export default function Plans() {
         setBusy(null);
       }
     },
-    [config, me, native, refresh, store, user]
+    [config, discounts.active, me, native, refresh, store, user]
   );
 
   const doRestore = useCallback(async () => {
@@ -210,6 +215,16 @@ export default function Plans() {
               </Card>
             );
           })}
+          {discounts.available ? (
+            <>
+              {plansDiscountLine(discounts, Platform.OS) ? <Muted>{plansDiscountLine(discounts, Platform.OS)}</Muted> : null}
+              <Button
+                label={discounts.active ? "Your discount" : "Verify for a discount"}
+                variant="link"
+                onPress={() => router.push("/settings/discount")}
+              />
+            </>
+          ) : null}
           {!native || store?.length ? null : (
             <Muted>Prices are shown by your app store in your own currency.</Muted>
           )}
