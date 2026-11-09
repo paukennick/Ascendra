@@ -9,8 +9,6 @@ import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { LAB_COUNTS_NOTE, LAB_SAFETY_NOTES, labReportReady } from "@/lib/lessonExperience";
 import { gradeSubmitError, isMiss } from "@/lib/lessonFeedback";
 import { useStoredDraft } from "@/lib/useStoredDraft";
-import { LabDisclaimerCard } from "@/components/LabDisclaimer";
-import type { LabDisclaimer } from "@/lib/labs";
 
 // REQ-106 (research #7): the optional hands-on lab on a lesson's Done card,
 // then a short report (up to three questions) graded by the free-response
@@ -28,8 +26,7 @@ interface LabReportResult {
 }
 
 export function LabCard({ objectiveId, userId }: { objectiveId: string; userId: string | null }) {
-  // REQ-125: `disclaimer` is the server's practice-lab disclaimer.
-  const [lab, setLab] = useState<{ prompt: string; disclaimer?: LabDisclaimer } | null>(null);
+  const [lab, setLab] = useState<{ prompt: string } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [questions, setQuestions] = useState<string[] | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
@@ -43,7 +40,7 @@ export function LabCard({ objectiveId, userId }: { objectiveId: string; userId: 
   useEffect(() => {
     let cancelled = false;
     api
-      .get<{ lab: { prompt: string; disclaimer?: LabDisclaimer } | null; report: LabReportResult | null }>(`/api/objectives/${objectiveId}/lab`)
+      .get<{ lab: { prompt: string } | null; report: LabReportResult | null }>(`/api/objectives/${objectiveId}/lab`)
       .then((res) => {
         if (cancelled) return;
         setLab(res.lab);
@@ -121,7 +118,6 @@ export function LabCard({ objectiveId, userId }: { objectiveId: string; userId: 
         <Feather name="terminal" size={18} color={colors.accent} />
         <H3>Optional hands-on lab</H3>
       </View>
-      {lab.disclaimer ? <LabDisclaimerCard disclaimer={lab.disclaimer} /> : null}
       <Body>{lab.prompt}</Body>
       <View style={{ gap: 4 }} accessibilityRole="list">
         {LAB_SAFETY_NOTES.map((n) => (

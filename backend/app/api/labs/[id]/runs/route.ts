@@ -4,7 +4,7 @@ import { isUuid } from "@/lib/visibility";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
 import { LabError, labView, openRun, visibleLab } from "@/lib/labs";
 import { gateLab, labRouteError } from "@/lib/lab-routes";
-import { requireLabAcknowledgement } from "@/lib/lab-disclaimer";
+import { requireStudyNotice } from "@/lib/study-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +23,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const lab = await visibleLab(id, user.id);
     if (!lab) throw new LabError(404, "Lab not found");
     await requireAcknowledgementForObjective(lab.objective_id, user.id);
-    // REQ-125: no clinical or fitness lab starts before the learner has
-    // accepted the lab disclaimer for that family (403 with a clear message).
-    await requireLabAcknowledgement(user.id, lab.safety_family);
+    // REQ-165: no clinical or fitness lab starts before the learner has
+    // accepted the study notice (403 with a clear message).
+    if (lab.safety_family !== "general") await requireStudyNotice(user.id);
     const restart = body?.restart === true;
     // REQ-124: resuming an open run is always allowed (an attempt in
     // progress may be finished); a new run needs Pro or the sample.

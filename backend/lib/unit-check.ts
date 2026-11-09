@@ -13,6 +13,7 @@ import { UserFacingError } from "@/lib/http";
 import { ReviewError } from "@/lib/review-service";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { withGradingClaim } from "@/lib/grading-claims";
+import { studyNoticeAcceptedSql } from "@/lib/study-notice";
 
 // REQ-108 (research item #1): the unit gate check. Every unit carries a
 // gate statement in the seed (course_units.gate_description) -- what a
@@ -99,8 +100,7 @@ export async function readyUnitChecks(userId: string, trackId: string | null, li
              and not exists (select 1 from mastery m where m.user_id = $1 and m.objective_id = o.id and m.status <> 'Not started'))
         and not exists (select 1 from attempts a where a.user_id = $1 and a.unit_id = cu.id and a.kind = 'unitcheck' and a.verdict = 'correct')
         and (not coalesce(st.requires_acknowledgement, false)
-             or exists (select 1 from track_acknowledgements ta
-                         where ta.user_id = $1 and ta.track_id = st.id and ta.disclaimer_version = st.disclaimer_version))
+             or ${studyNoticeAcceptedSql("$1")})
       order by (select max(m.updated_at) from mastery m join objectives o on o.id = m.objective_id
                  where m.user_id = $1 and o.unit_id = cu.id) desc nulls last
       limit $3`,
