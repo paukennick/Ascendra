@@ -5842,6 +5842,50 @@
         "State protocols may narrow or widen national scope",
         "Clinical guideline sources carry 6-month recheck dates"
       ]
+    },
+    {
+      "id": "REQ-175",
+      "category": "content",
+      "title": "NREMT Paramedic and AEMT courses with labs",
+      "description": "Add the National Registry Paramedic and Advanced EMT certification-exam courses (ALS test plans from 2024-07-01, including the Clinical Judgment domain) under the Emergency Medical Services subcategory, with hybrid-density case and build labs whose doses cite dated guidelines and stay within each level's national scope of practice.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ems.ts",
+        "backend/supabase/seed/labs/ems-sources.ts",
+        "backend/supabase/seed/labs/ems-paramedic.ts",
+        "backend/supabase/seed/labs/ems-aemt.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/lib/labs-ems.test.ts",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Domains and ranges and format match NREMT's Paramedic and AEMT test plans read on the day",
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every lab cites a dated clinical guideline or reference or says why not",
+        "No AEMT lab grades an action outside AEMT national scope"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until an EMS clinical reviewer reads them",
+        "Weights are midpoints of NREMT's published ranges (Paramedic 102 and AEMT 101)",
+        "Local protocols vary in ALS drugs and doses",
+        "Clinical guideline sources carry 6-month recheck dates"
+      ]
     }
   ]
 }

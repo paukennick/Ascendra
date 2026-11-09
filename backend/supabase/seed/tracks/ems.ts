@@ -340,4 +340,304 @@ export const NREMT_EMR_TRACK: SeedTrack = {
   ],
 };
 
-export const EMS_TRACKS: readonly SeedTrack[] = [NREMT_EMT_TRACK, NREMT_EMR_TRACK];
+// ---------------------------------------------------------------------------
+// REQ-175: the ALS exams (Paramedic, AEMT), administered from 2024-07-01 on
+// the 2019 National EMS Practice Analysis and its 2021 Addendum. NREMT ended
+// the separate psychomotor exam on 2024-06-30 and added a Clinical Judgment
+// domain (communication, leadership, and recognize cues / analyze cues /
+// define hypothesis / generate solutions / take action / evaluation). The
+// four clinical domains each sample assessment, pathophysiology and
+// management. The Clinical Judgment unit carries the cross-system cases that
+// test the six steps; its objectives say so.
+// ---------------------------------------------------------------------------
+const PARAMEDIC_PLAN_URL = "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024";
+const AEMT_PLAN_URL = "https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final";
+const EXAM_CONTENT_URL = "https://nremt.org/Handbooks/Certification-Examinations/Examinations-Content";
+const ALS_ITEM_TYPES =
+  "multiple choice, multiple response, build list, drag-and-drop, options box, graphical (charts, rhythm or capnography strips, images) and scenario-based sets; every item scored right or wrong, no partial credit";
+const ALS_EXPERIENCE =
+  "Completion of a state-approved program at the level. From July 1 2024 NREMT ended its separate ALS psychomotor exam: one certification exam now covers cognitive and psychomotor content (NREMT ALS FAQ, March 2024).";
+
+// Paramedic: CAT, 3.5 h, 110-150 items incl. 20 unscored pilot items.
+// Ranges 8-12 / 10-14 / 6-10 / 24-28 / 8-12 / 34-38; midpoints
+// 10 / 12 / 8 / 26 / 10 / 36 (sum 102).
+export const NREMT_PARAMEDIC_TRACK: SeedTrack = {
+  code: "NREMTPARAMEDIC",
+  title: "NREMT Paramedic Coach",
+  description:
+    "The National Registry's Paramedic certification exam, built on its test plan in force since July 1 2024: airway, cardiology and resuscitation, trauma, medical and obstetric emergencies, EMS operations, and the Clinical Judgment domain that replaced the separate skills exam, weighted as the exam weights them.",
+  trackType: "certification",
+  subcategorySlug: "emergency-medical-services",
+  freshnessModel: "certification_aligned",
+  sourceUrl: PARAMEDIC_PLAN_URL,
+  sourceVerifiedAt: VERIFIED_AT,
+  contentReviewDueAt: REVIEW_DUE_AT,
+  requiresAcknowledgement: true,
+  disclaimerKey: EMS_DISCLAIMER_KEY,
+  disclaimerVersion: 1,
+  credential: {
+    ...NREMT_PROVIDER,
+    credentialSlug: "nremt-paramedic",
+    credentialName: "National Paramedic Certification (NREMT)",
+    credentialUrl: EXAM_CONTENT_URL,
+    basis: "vendor_exam_unpublished_code",
+    examRevision: "Paramedic Examination Specifications (2019 Practice Analysis, 2021 Addendum), from 2024-07-01",
+    objectivesRevision: "Paramedic Test Plan, 1 July 2024",
+    status: "active",
+    effectiveDate: "2024-07-01",
+    officialObjectivesUrl: PARAMEDIC_PLAN_URL,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: ALS_EXPERIENCE,
+    durationMinutes: 210,
+    questionFormat: `Computer adaptive, 110-150 items in 3.5 hours, including 20 unscored pilot items, at Pearson VUE centres. Item types: ${ALS_ITEM_TYPES}.`,
+    passingScorePolicy: NREMT_PASSING,
+    publishedWeightsNote:
+      "NREMT publishes each domain as a range (8-12, 10-14, 6-10, 24-28, 8-12, 34-38%) with no planning midpoints. The weights are the midpoints of those ranges, which sum to 102; kept as derived rather than adjusted to 100.",
+  },
+  units: [
+    {
+      title: "Airway, Respiration & Ventilation",
+      rangeLabel: "8-12% of the exam",
+      weight: 10,
+      gate: "Given a fictional patient in respiratory distress or failure, assess oxygenation and ventilation with SpO2 and waveform capnography, choose the least invasive support that works, and escalate to an advanced airway only when it is needed.",
+      objectives: [
+        "Assess oxygenation and ventilation separately, using pulse oximetry and waveform capnography",
+        "Interpret waveform capnography: tube placement, hypoventilation, bronchospasm and return of circulation",
+        "Choose between oxygen, noninvasive ventilation, bag-valve-mask ventilation and an advanced airway, using the least invasive method that works",
+        "Manage acute pulmonary edema with CPAP and nitrates, dosing nitroglycerin to blood pressure",
+        "Manage severe bronchospasm with bronchodilators, steroids and magnesium, and recognise impending respiratory failure",
+        "Plan for a difficult airway: preoxygenation, a backup supraglottic airway and a surgical airway as the last resort",
+        "Confirm and continuously monitor an advanced airway with waveform capnography",
+        "Ventilate an intubated patient at a rate and volume that avoid hyperventilation",
+        "Recognise and decompress a tension pneumothorax",
+        "Manage a tracheostomy emergency: obstruction, dislodgement and bleeding",
+        "Assess and manage respiratory distress in infants and children, including croup and bronchiolitis",
+      ],
+    },
+    {
+      title: "Cardiology & Resuscitation",
+      rangeLabel: "10-14% of the exam",
+      weight: 12,
+      gate: "Interpret the rhythm and 12-lead, decide whether the patient is stable, and run resuscitation and post-arrest care to current AHA guidance.",
+      objectives: [
+        "Interpret common rhythms on the monitor and identify STEMI on a 12-lead ECG",
+        "Manage cardiac arrest with shockable and non-shockable rhythms: defibrillation, epinephrine timing and antiarrhythmics",
+        "Manage symptomatic bradycardia with atropine, vasopressors and transcutaneous pacing",
+        "Manage tachycardia with a pulse: decide stable or unstable, then vagal manoeuvres, adenosine, rate control or synchronized cardioversion",
+        "Manage a STEMI: aspirin, nitrates within their limits, analgesia and destination for reperfusion",
+        "Provide post-arrest care: oxygenation and ventilation targets, blood pressure support and a 12-lead",
+        "Decide with medical direction when to terminate resuscitation, and support the family",
+        "Recognise cardiogenic shock and avoid treatments that worsen it",
+        "Recognise and manage pediatric cardiac arrest and bradycardia with poor perfusion",
+        "Recognise acute aortic dissection and other non-coronary causes of chest pain",
+      ],
+    },
+    {
+      title: "Trauma",
+      rangeLabel: "6-10% of the exam",
+      weight: 8,
+      gate: "Assess a fictional injured patient, control hemorrhage first, protect the brain from hypoxia and hypotension, resuscitate to the right targets and choose a trauma destination.",
+      objectives: [
+        "Control hemorrhage and resuscitate hemorrhagic shock to a target blood pressure, with tranexamic acid where protocol allows",
+        "Manage traumatic brain injury: prevent hypoxia and hypotension and avoid hyperventilation",
+        "Manage chest trauma: tension pneumothorax, open pneumothorax and flail chest",
+        "Apply selective spinal motion restriction",
+        "Estimate burn size and depth, and manage the airway and fluids in major burns",
+        "Recognise traumatic cardiac arrest and treat its reversible causes",
+        "Manage crush injury and the risks of releasing a crushed limb",
+        "Assess and manage the injured pregnant patient and the injured child",
+        "Apply the field triage guideline to choose a destination for an injured patient",
+      ],
+    },
+    {
+      title: "Medical/Obstetrics/Gynecology",
+      rangeLabel: "24-28% of the exam",
+      weight: 26,
+      gate: "Assess fictional medical, obstetric and gynecologic emergencies, form a working diagnosis, and treat with paramedic-level medications at the right dose and route.",
+      objectives: [
+        "Manage status epilepticus with benzodiazepines by the right route, and look for its cause",
+        "Manage hypoglycemia and hyperglycemic emergencies, including dextrose and glucagon dosing",
+        "Manage anaphylaxis with epinephrine, fluids and adjuncts, including refractory hypotension",
+        "Manage suspected stroke: time last known well, stroke scale, glucose and destination",
+        "Recognise sepsis and septic shock and begin fluids early",
+        "Manage opioid and other toxidromes, including naloxone titration and stimulant toxicity",
+        "Manage pre-eclampsia and eclampsia with magnesium and blood-pressure control",
+        "Manage childbirth, complicated deliveries and postpartum hemorrhage",
+        "Resuscitate the newborn: warmth, airway, ventilation and when to start compressions",
+        "Manage a behavioral emergency and severe agitation safely for patient and crew",
+        "Manage pain with analgesics, choosing agents and doses safely",
+        "Recognise abdominal emergencies, including ruptured ectopic pregnancy and aneurysm",
+        "Manage environmental emergencies: heat stroke, hypothermia and drowning",
+      ],
+    },
+    {
+      title: "EMS Operations",
+      rangeLabel: "8-12% of the exam",
+      weight: 10,
+      gate: "Lead a crew, communicate and document clearly, keep within legal and ethical limits, and run safe vehicle, equipment and incident operations.",
+      objectives: [
+        "Lead a resuscitation team: assign roles, use closed-loop communication and keep compressions continuous",
+        "Write a patient care report that supports the clinical decisions made",
+        "Apply consent, refusal, capacity and advance directives such as POLST in the field",
+        "Recognise and report a medication error, and protect the patient",
+        "Work within medical direction and protocols, and know when to call online medical control",
+        "Run the first-arriving role at a mass-casualty incident within the incident command system",
+        "Recognise hazardous-materials and rescue scenes, and keep the crew safe",
+        "Maintain the ambulance, monitor and medications so they are ready for use",
+        "Protect the crew's well-being after difficult calls",
+      ],
+    },
+    {
+      title: "Clinical Judgment",
+      rangeLabel: "34-38% of the exam",
+      weight: 36,
+      gate: "Work through an unfolding fictional call: recognise and analyse cues, define a working hypothesis, generate and take actions, evaluate the response, and lead and communicate as the paramedic in charge.",
+      objectives: [
+        "Recognise cues that separate a sick patient from a stable one as a call unfolds",
+        "Analyse cues to choose among competing hypotheses in an undifferentiated patient",
+        "Generate and prioritise solutions, then take action and evaluate the response for an unstable tachycardia",
+        "Evaluate the response to treatment and change the plan when the patient does not improve",
+        "Apply the clinical judgment steps to a child in respiratory distress",
+        "Apply the clinical judgment steps to altered mental status with several possible causes",
+        "Communicate a structured handoff and lead the crew through a changing call",
+      ],
+    },
+  ],
+};
+
+// AEMT: linear computer-based test, 135 items in 3 hours incl. 35 unscored
+// pilot items. Ranges 9-13 / 11-15 / 7-11 / 25-29 / 6-10 / 31-35; midpoints
+// 11 / 13 / 9 / 27 / 8 / 33 (sum 101). AEMT scope adds to EMT (Scope of
+// Practice Model): supraglottic airways, waveform capnography, IV and IO
+// access, non-medicated IV fluids, sublingual nitroglycerin, inhaled nitrous
+// oxide, parenteral analgesia, and IV medications limited to analgesia,
+// antiemetics, dextrose, epinephrine, glucagon and naloxone (and others the
+// state defines). It does NOT include intubation, needle decompression,
+// manual defibrillation, cardioversion, pacing, 12-lead interpretation or
+// antiarrhythmics: the AEMT recognises those needs and calls ALS.
+export const NREMT_AEMT_TRACK: SeedTrack = {
+  code: "NREMTAEMT",
+  title: "NREMT Advanced EMT Coach",
+  description:
+    "The National Registry's Advanced EMT certification exam, built on its test plan in force since July 1 2024: the same six domains as the Paramedic exam at AEMT scope -- supraglottic airways, capnography, IV and IO access and a limited set of IV medications -- including the Clinical Judgment domain.",
+  trackType: "certification",
+  subcategorySlug: "emergency-medical-services",
+  freshnessModel: "certification_aligned",
+  sourceUrl: AEMT_PLAN_URL,
+  sourceVerifiedAt: VERIFIED_AT,
+  contentReviewDueAt: REVIEW_DUE_AT,
+  requiresAcknowledgement: true,
+  disclaimerKey: EMS_DISCLAIMER_KEY,
+  disclaimerVersion: 1,
+  credential: {
+    ...NREMT_PROVIDER,
+    credentialSlug: "nremt-aemt",
+    credentialName: "National Advanced EMT Certification (NREMT)",
+    credentialUrl: EXAM_CONTENT_URL,
+    basis: "vendor_exam_unpublished_code",
+    examRevision: "AEMT Examination Specifications (2019 Practice Analysis, 2021 Addendum), from 2024-07-01",
+    objectivesRevision: "AEMT Test Plan, 1 July 2024",
+    status: "active",
+    effectiveDate: "2024-07-01",
+    officialObjectivesUrl: AEMT_PLAN_URL,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: ALS_EXPERIENCE,
+    durationMinutes: 180,
+    questionFormat: `Fixed-length linear computer-based test, 135 items in 3 hours, including 35 unscored pilot items, at Pearson VUE centres; an answer cannot be changed once submitted. Item types: ${ALS_ITEM_TYPES}.`,
+    passingScorePolicy:
+      "Criterion-referenced: the passing standard comes from a standard-setting study in which a psychometrician leads a national panel of EMS subject-matter experts, approved by the National Registry Board of Directors and applied to every candidate.",
+    publishedWeightsNote:
+      "NREMT publishes each domain as a range (9-13, 11-15, 7-11, 25-29, 6-10, 31-35%) with no planning midpoints. The weights are the midpoints of those ranges, which sum to 101; kept as derived rather than adjusted to 100.",
+  },
+  units: [
+    {
+      title: "Airway, Respiration & Ventilation",
+      rangeLabel: "9-13% of the exam",
+      weight: 11,
+      gate: "Given a fictional patient who cannot breathe adequately, choose and escalate support within AEMT scope -- oxygen, CPAP, bag-valve mask, supraglottic airway -- and confirm it with waveform capnography.",
+      objectives: [
+        "Assess oxygenation and ventilation with pulse oximetry and waveform capnography",
+        "Decide when a supraglottic airway is indicated, place it, and confirm it with waveform capnography",
+        "Manage asthma and COPD exacerbations with nebulised bronchodilators and CPAP within AEMT scope",
+        "Apply CPAP for respiratory distress and recognise when it is failing",
+        "Ventilate with a bag-valve mask or through a supraglottic airway without hyperventilating",
+        "Recognise a tension pneumothorax and call for paramedic decompression",
+        "Assess and support infants and children in respiratory distress",
+      ],
+    },
+    {
+      title: "Cardiology & Resuscitation",
+      rangeLabel: "11-15% of the exam",
+      weight: 13,
+      gate: "Run BLS and AEMT-level resuscitation -- AED, supraglottic airway, IV or IO epinephrine -- and manage chest pain within AEMT scope, calling paramedics for what lies beyond it.",
+      objectives: [
+        "Manage cardiac arrest at AEMT level: high-quality CPR, AED, supraglottic airway and IV or IO epinephrine",
+        "Manage suspected acute coronary syndrome with aspirin, nitroglycerin and 12-lead acquisition within AEMT scope",
+        "Recognise when a nitrate is contraindicated or risky: hypotension, a marginal blood pressure and recent phosphodiesterase-inhibitor use",
+        "Recognise unstable bradycardia and tachycardia and request paramedic care for pacing or cardioversion",
+        "Provide post-arrest care within AEMT scope: ventilation, oxygen and blood pressure",
+        "Recognise heart failure and cardiogenic shock and avoid fluid overload",
+      ],
+    },
+    {
+      title: "Trauma",
+      rangeLabel: "7-11% of the exam",
+      weight: 9,
+      gate: "Control bleeding, give IV fluids to the right targets, protect the injured brain, and get the patient to the right trauma centre.",
+      objectives: [
+        "Resuscitate hemorrhagic shock with hemorrhage control and IV fluids to a target blood pressure",
+        "Protect the injured brain from hypoxia and hypotension",
+        "Apply selective spinal motion restriction and splint injuries",
+        "Manage burns: cool, cover, estimate size and keep the patient warm",
+        "Apply the field triage guideline to choose a destination for an injured patient",
+      ],
+    },
+    {
+      title: "Medical/Obstetrics/Gynecology",
+      rangeLabel: "25-29% of the exam",
+      weight: 27,
+      gate: "Assess fictional medical and obstetric emergencies and treat with the IV and IM medications an AEMT may give, recognising when the patient needs drugs or skills beyond AEMT scope.",
+      objectives: [
+        "Treat hypoglycemia in a patient who cannot swallow with IV dextrose or IM glucagon",
+        "Treat anaphylaxis with IM epinephrine and IV fluids for hypotension",
+        "Titrate IV naloxone to breathing in an opioid overdose",
+        "Recognise a seizure that needs a benzodiazepine and support the patient within AEMT scope until paramedics arrive",
+        "Recognise a stroke and choose the destination by last-known-well time and severity",
+        "Give antiemetics and analgesics within AEMT scope and state protocol",
+        "Recognise sepsis and start IV fluids early",
+        "Assist with childbirth and manage postpartum bleeding",
+        "Recognise a ruptured ectopic pregnancy and treat the shock",
+        "Manage behavioral emergencies safely",
+      ],
+    },
+    {
+      title: "EMS Operations",
+      rangeLabel: "6-10% of the exam",
+      weight: 8,
+      gate: "Communicate, document and hand over care to paramedics clearly, and work within protocol, law and safe operations.",
+      objectives: [
+        "Hand over care to a paramedic intercept with a structured report that includes every medication given",
+        "Document IV access, fluids and medications so another clinician could repeat or continue them",
+        "Apply consent, refusal and capacity in the field",
+        "Maintain equipment, IV supplies and medications so they are ready and in date",
+        "Work within medical direction, protocols and the limits of AEMT scope",
+      ],
+    },
+    {
+      title: "Clinical Judgment",
+      rangeLabel: "31-35% of the exam",
+      weight: 33,
+      gate: "Work an unfolding fictional call through the clinical judgment steps -- recognise and analyse cues, define a hypothesis, generate solutions, take action, evaluate -- within AEMT scope, and know when to call paramedics.",
+      objectives: [
+        "Recognise cues that separate a sick patient from a stable one as a call unfolds",
+        "Analyse cues to choose among competing hypotheses in a patient with altered mental status",
+        "Generate solutions within AEMT scope and decide when a paramedic intercept is needed",
+        "Evaluate the response to a fluid bolus or medication and change the plan",
+        "Apply the clinical judgment steps to a patient with abdominal pain and signs of shock",
+        "Communicate and lead a crew through a changing call",
+      ],
+    },
+  ],
+};
+
+export const EMS_TRACKS: readonly SeedTrack[] = [NREMT_EMT_TRACK, NREMT_EMR_TRACK, NREMT_PARAMEDIC_TRACK, NREMT_AEMT_TRACK];
