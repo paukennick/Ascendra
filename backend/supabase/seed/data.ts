@@ -436,7 +436,7 @@ export const SECPLUS_TRACK: SeedTrack = {
       gate: "Given an unfamiliar scenario, name which CIA-triad property and which control type/category apply, and explain a PKI or authentication choice without hand-waving the mechanism.",
       objectives: [
         "CIA triad, non-repudiation, and the AAA security model",
-        "Security control types (technical, managerial, operational, physical) and control functions (preventive, detective, corrective, deterrent, compensating, directive)",
+        "Security control categories (technical, managerial, operational, physical) and control types (preventive, deterrent, detective, corrective, compensating, directive)",
         "Cryptographic fundamentals: symmetric vs asymmetric encryption, hashing, digital signatures, key exchange",
         "PKI basics: certificates, certificate authorities, chains of trust, revocation (CRL/OCSP)",
         "Authentication methods and factors: MFA, biometrics, SSO, federation",

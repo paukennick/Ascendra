@@ -84,7 +84,7 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             part(
               "Address plan",
               "Allocates non-overlapping RFC 1918 space outside 10.0.0.0/12 and 192.168.0.0/16 (for example 10.64.0.0/16 for the hub and a /16 or /18 per spoke, each split into three /22 or larger subnets for 1,000+ hosts), summarisable for routing.",
-              "Avoid 10.0.0.0-10.15.255.255 and 192.168.0.0/16, which on-premises owns. Carve 10.64.0.0/14 for the cloud: hub 10.64.0.0/16; spokes 10.65.0.0/16 (production), 10.66.0.0/16 (test), 10.67.0.0/16 (data), 10.68.0.0/16 (partner zone, from the next /14 if you want 10.64.0.0/14 to stay internal-only). Within each spoke, three /22 subnets (1,022 usable addresses each) leave room to grow, and the whole cloud estate summarises as a couple of routes toward on-premises."
+              "Avoid 10.0.0.0-10.15.255.255 and 192.168.0.0/16, which on-premises owns. Carve 10.64.0.0/14 for the cloud: hub 10.64.0.0/16; spokes 10.65.0.0/16 (production), 10.66.0.0/16 (test), 10.67.0.0/16 (data), 10.68.0.0/16 (partner zone, from the next /14 if you want 10.64.0.0/14 to stay internal-only). Within each spoke, three /22 subnets (1,019 usable addresses each, since the major clouds reserve five addresses per subnet) leave room to grow, and the whole cloud estate summarises as a couple of routes toward on-premises."
             ),
             part(
               "Routing",
@@ -213,8 +213,8 @@ export const CLOUDNETX_LABS: SeedLabSet = {
           parts: [
             part(
               "Response",
-              "Identifies a BGP prefix hijack (a more-specific announcement stealing traffic) and responds immediately by announcing equally specific /24s itself, contacting upstream providers to filter the rogue announcement, and warning customers; permanently by creating RPKI Route Origin Authorizations for its prefixes, registering IRR route objects, and monitoring announcements.",
-              "A BGP hijack: the attacker announces a more-specific /24, which wins over the /22 everywhere it propagates. Immediately announce your own /24s so you are at least as specific, open tickets with your upstreams and the attacker's upstream to filter the rogue route, and alert customers about the fake site. Permanently: publish RPKI Route Origin Authorizations so networks doing route origin validation drop announcements not from your AS, keep IRR route objects current so upstream filters are built correctly, and subscribe to a BGP monitoring service that alerts on any announcement of your space."
+              "Identifies a BGP prefix hijack (a more-specific announcement stealing traffic) and responds immediately by announcing equally specific /24s itself, contacting upstream providers to filter the rogue announcement, and warning customers; permanently by creating RPKI Route Origin Authorizations for its prefixes (with a maximum length of /24 so its own emergency /24 announcements stay valid), registering IRR route objects, and monitoring announcements.",
+              "A BGP hijack: the attacker announces a more-specific /24, which wins over the /22 everywhere it propagates. Immediately announce your own /24s so you are at least as specific, open tickets with your upstreams and the attacker's upstream to filter the rogue route, and alert customers about the fake site. Permanently: publish RPKI Route Origin Authorizations for the /22 with a maximum length of 24 -- a ROA with max length 22 would make your own emergency /24s invalid -- so networks doing route origin validation drop announcements not from your AS, keep IRR route objects current so upstream filters are built correctly, and subscribe to a BGP monitoring service that alerts on any announcement of your space."
             ),
           ],
         },
@@ -395,8 +395,8 @@ export const CLOUDNETX_LABS: SeedLabSet = {
             ),
             part(
               "D: SYN in, nothing out",
-              "Reads SYNs arriving with no SYN-ACK as a host-level block: a host firewall dropping inbound 443, or the service bound to the wrong interface/address (listening on localhost only), or a return-route problem; checks the listening socket's bind address and the host firewall rules.",
-              "The packets reach the server, so the cloud network and security groups are passing them; the host is not answering. Either the host firewall is dropping inbound 443, or the web service is listening on 127.0.0.1:443 rather than the server's address, or the server has no route back to the client. Check the listening socket's bind address (ss -ltnp), the host firewall rules, and the routing table; fix the bind address or add the firewall allow, then watch tcpdump for the SYN-ACK."
+              "Reads SYNs arriving with no reply at all as a host-level drop: a host firewall silently dropping inbound 443, or a return-route problem (replies leaving by another path); notes that a service bound only to localhost would answer with a RST rather than silence; checks the host firewall rules, the routing table and the listening socket.",
+              "The packets reach the server, so the cloud network and security groups are passing them; the host is not answering. Silence means something is discarding the SYN or the reply: most likely the host firewall dropping inbound 443, or the server has no route back to the client (or replies leave by another interface). A service listening only on 127.0.0.1:443 would not cause silence -- the kernel would answer the SYN with a RST, which tcpdump would show. Check the host firewall rules and the routing table, and confirm the listener with ss -ltnp; add the firewall allow or fix the route, then watch tcpdump for the SYN-ACK."
             ),
           ],
         },

@@ -7634,6 +7634,122 @@
       ],
       "prevention_notes": "Pre-completion checklist: bumping a legal or protocol version moves the old value to PREVIOUS_LEGAL_VERSIONS and is checked against the installed builds (legacy clients without X-Ascendra-App); a version gate never returns a raw validation string to the app",
       "recurrence_of": ""
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-581",
+      "title": "Security+ V7 objective swapped control types and control categories",
+      "severity": "high",
+      "symptom": "The SY0-701 unit 1 objective read 'Security control types (technical, managerial, operational, physical) and control functions (preventive, ...)', the reverse of CompTIA's terms; lessons generated from it teach the swap, which fails exam questions.",
+      "root_cause": "The objective was paraphrased from the outline from memory of the older 'types/functions' wording rather than quoted from SY0-701 1.1, and nothing compared objective wording against the outline's terms.",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Reworded in place (same sort order): 'Security control categories (technical, managerial, operational, physical) and control types (preventive, deterrent, detective, corrective, compensating, directive)'.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Security+ V7 names control categories and control types the SY0-701 way (FAIL-581)"
+      ],
+      "prevention_notes": "Terms of art in an objective are quoted from the outline, not paraphrased; the test pins the SY0-701 wording."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-582",
+      "title": "Network+ lab's test commands removed the default route",
+      "severity": "medium",
+      "symptom": "The model answer ran 'ip addr del 10.20.5.37/16' before 'ip addr add 10.20.5.37/24'; deleting the only address removes the default route, so the confirming ping to FS01 fails (reproduced in a network namespace).",
+      "root_cause": "Commands were written from reasoning, not run; the kernel drops routes whose source address disappears.",
+      "affected": [
+        "backend/supabase/seed/labs/comptia-networkplus.ts"
+      ],
+      "fix_summary": "Add the /24 first, then delete the /16, with the reason stated.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Network+ adds the /24 before deleting the /16 so the default route survives (FAIL-582)"
+      ],
+      "prevention_notes": "Command sequences in labs are run (a namespace or container is enough) before they become a key."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-583",
+      "title": "Linux+ archive script exited 0 and miscounted when gzip failed",
+      "severity": "medium",
+      "symptom": "With gzip failing, the model script printed 'archived 2 file(s)' and exited 0 (reproduced), although the brief requires a non-zero exit on any failure.",
+      "root_cause": "set -e does not fire for a command that fails on the left of && ('gzip ... && rm'), a well-known Bash exception the answer relied on without testing.",
+      "affected": [
+        "backend/supabase/seed/labs/comptia-linuxplus.ts"
+      ],
+      "fix_summary": "Explicit 'if ! gzip ...; then rm partial .gz; die; fi' before removing the original; the explanation and rubric say why set -e alone is not enough.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Linux+ archive script stops with exit 1 and keeps the log when gzip fails (FAIL-583)"
+      ],
+      "prevention_notes": "The test extracts the model script and runs it against a failing gzip; scripts in model answers are executed, not read."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-584",
+      "title": "Security+ V8 CVSS key used E:Attacked for a published exploit",
+      "severity": "medium",
+      "symptom": "The brief said only that a working exploit had been published, which is E:P (POC) in CVSS v4.0 and scores 8.9 High, but the key gave E:A and 9.3 Critical.",
+      "root_cause": "Exploit Maturity values were taken as 'exploit exists = Attacked'; CVSS v4.0 reserves Attacked for reported attacks or exploit toolkits.",
+      "affected": [
+        "backend/supabase/seed/labs/security-secplusv8.ts"
+      ],
+      "fix_summary": "Brief now states exploitation in the wild has been reported, so E:A and 9.3 hold; the answer adds E:P 8.9 and E:U 8.1 (computed with the cvss library).",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Security+ V8 CVSS lab: reported attacks justify E:A and the 9.3 key; a PoC alone is 8.9 (FAIL-584)"
+      ],
+      "prevention_notes": "CVSS scores in labs are computed from the full vector with a calculator, and the brief must state the facts each metric value rests on."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-585",
+      "title": "EPSS percentiles in two labs were far below real values",
+      "severity": "medium",
+      "symptom": "Security+ and CySA+ labs gave EPSS 0.93 as the 94th percentile, 0.6 as the 90th, 0.91 as the 93rd and 0.55 as the 88th; the FIRST API puts them near the 99th-99.8th.",
+      "root_cause": "Percentiles were invented to look plausible instead of read from the EPSS data; EPSS scores are heavily skewed.",
+      "affected": [
+        "backend/supabase/seed/labs/security-secplus.ts",
+        "backend/supabase/seed/labs/security-cysaplus.ts"
+      ],
+      "fix_summary": "Percentiles set from the FIRST EPSS API on 2026-11-09 (count of CVEs above each score over the total).",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::EPSS percentiles are realistic for the stated scores (FAIL-585)"
+      ],
+      "prevention_notes": "A derived figure (percentile, score) in a lab is computed from the source data, never estimated."
     }
   ]
 }
