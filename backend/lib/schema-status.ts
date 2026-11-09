@@ -96,6 +96,24 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                           where i.indexrelid = to_regclass('public.attempts_answered_created')), false) as ok`,
   },
   {
+    // REQ-144: every gated route reads account_access once billing is on, and
+    // the AI budget reads it for anyone over the daily budget.
+    migration: "056_account_access.sql",
+    what: "account_access and account_access_events tables (unrestricted access, Settings > Access, the AI safety ceiling)",
+    sql: `select to_regclass('public.account_access') is not null
+             and to_regclass('public.account_access_events') is not null
+             and to_regclass('public.account_access_live_email_unique') is not null as ok`,
+  },
+  {
+    // REQ-164: the containers and Kubernetes tracks hang off these rows; the
+    // seed resolves them by slug and fails without them.
+    migration: "057_containers_kubernetes_taxonomy.sql",
+    what: "Cloud Native & Kubernetes category and its three subcategories (seed)",
+    sql: `select (select count(*) from education_subcategories s join education_categories c on c.id = s.category_id
+                  where c.slug = 'cloud-native-certifications'
+                    and s.slug in ('cncf-certifications', 'container-tooling', 'red-hat-openshift')) = 3 as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

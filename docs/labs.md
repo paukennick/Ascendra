@@ -359,6 +359,11 @@ test checks it).
 | CCRN (Adult) | 12 (6 build, 6 case) | 2 per domain | [AACN CCRN exam handbook](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en) |
 | CCRN (Pediatric) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Pediatric test plan (PDF p.21-24) |
 | CCRN (Neonatal) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Neonatal test plan (PDF p.27-30) |
+| NCLEX-PN (2026 test plan) | 14 (6 build, 8 case) | 2/2/1/2/2/2/2/1 (REQ-148) | [NCSBN 2026 PN Test Plan](https://nclex.com/files/2026_PN_Test%20Plan-F.pdf) |
+| Practical Nursing (LPN/LVN) | 12 (5 build, 7 case) | 2 per unit (REQ-148) | same PN test plan (the program's licensure outcome) |
+| Certified Nursing Assistant | 12 (5 build, 7 case) | 2/2/2/2/1/2/1 (REQ-148) | [42 CFR 483.152](https://www.ecfr.gov/current/title-42/section-483.152) |
+| Associate Degree Nursing (RN) | 12 (4 build, 8 case) | 2 per unit (REQ-148) | [NCSBN 2026 RN Test Plan](https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf) |
+| BSN Nursing | 15 (6 build, 9 case) | 2/2/2/2/2/1/1/1/1/1 (REQ-148) | [AACN Essentials (2021)](https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf) |
 | NPTE-PT (REQ-147) | 20 (7 build, 13 case) | 3/3/2/2 then 1 per domain | [FSBPT 2024 PT content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf) |
 | NPTE-PTA (REQ-147) | 19 (6 build, 13 case) | 3/3/2 then 1 per domain | [FSBPT 2024 PTA content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf) |
 | DPT (REQ-147) | 14 (4 build, 10 case) | 2/2/2/2/2/2/1/1 (unweighted units) | [CAPTE 2024 PT standards](https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf) |
@@ -372,6 +377,26 @@ fetched from that session (sources in `seed/labs/ccrn.ts`). Every one is
 fictional, framed as "exam practice, not clinical guidance", and
 `needs_expert_review`; a pediatric or neonatal critical-care nurse educator
 must read each before it is served.
+
+REQ-148 added the five remaining nursing courses (65 labs), at the
+NCLEX-RN and CCRN depth (`backend/lib/labs-nursing.test.ts` checks them): unfolding clinical-judgment cases that walk
+the NCSBN model (recognise and analyse cues, prioritise hypotheses, generate
+solutions, act, evaluate), prioritisation and delegation, infection control
+and medication calculations, each scoped to its licence. The LPN/VN and
+NCLEX-PN labs collect data, give care within the RN's plan, reinforce
+teaching and report to the RN; the CNA labs observe, measure, give personal
+care and tell the nurse, and never assess or give medications; the ADN and
+BSN labs carry RN assessment and judgment, and the BSN set adds population
+health, evidence appraisal, quality improvement and root cause analysis,
+speaking up, transitions, AI tools and ethics. Every guideline value quoted
+(ADA hypoglycemia, the 2024 DKA consensus, Surviving Sepsis 2021, ACOG
+Practice Bulletin 222, NICHD fetal heart rate definitions, the 2025 AHA
+choking sequence, CDC precautions and PPE order, ISMP abbreviations, 42 CFR
+483.12 reporting times, START triage) was read at its source on 2026-11-07;
+`seed/labs/nursing-sources.ts` says which value each URL backs. The ADN,
+BSN, LPN/VN and CNA weights are Ascendra's study-emphasis judgment, not a
+vendor blueprint, so their per-unit counts follow the hybrid plan from
+those weights. A nurse educator must read each before approval.
 
 **Physical therapy (REQ-147).** The three entry-level PT courses follow (d)
 unit by unit. Case labs dominate and walk the patient-management model
@@ -393,6 +418,31 @@ labs, a PT or PTA educator) must read each before it is approved.
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
 lab is framed.
+
+### More project-management courses (REQ-150)
+
+Authored to the same depth as the PMP pilot, one file per course
+(`seed/labs/pm-*.ts`), each following (d) unit by unit
+(`lib/labs-pm.test.ts` checks it, and that no objective gets two labs).
+Every number in a rubric is worked in its reference answer.
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CAPM (2023 ECO) | 10 (7 build, 3 case) | 3/2/2/3 | [CAPM ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf) |
+| PMI-ACP (Nov 2024 / Mar 2026 ECO) | 10 (6 build, 4 case) | 3/2/2/3 | [PMI-ACP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf) |
+| PMI-RMP (Jan 2023 ECO) | 11 (8 build, 3 case) | 2/3/2/2/2 | [PMI-RMP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf) |
+| PMI-SP | 10 (6 build, 4 case) | 2/3/2/1/2 | [PMI-SP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf) |
+| PMI-PBA | 11 (8 build, 3 case) | 2/2/3/2/2 | [PMI-PBA ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf) |
+| CompTIA Project+ (PK0-005) | 7 (5 build, 2 case) | 3/1/1/2 | [Project+](https://www.comptia.org/en-us/certifications/project/) |
+
+Quantitative labs: CPM and float (CAPM, PMI-SP, Project+), PERT and
+triangular three-point estimates with path variance, resource levelling,
+earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
+break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
+Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
+weighted option scoring with a weight sensitivity (PMI-PBA). Still to
+author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
+CSPP.
 
 ### Fitness wave (REQ-149)
 
@@ -422,6 +472,24 @@ lists from the textbooks) are not stated as numbers; those rubrics grade the
 reasoning instead. Like every lab, all 48 are `needs_expert_review` and need
 an NCCA-accredited trainer or strength coach (a CSCS for the CSCS set) to read
 them in full.
+
+### Microsoft Azure wave A (REQ-155)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| AZ-900 | 8 (7 build, 1 case) | 3/2/3 | [AZ-900 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-900) (skills as of 2026-07-20) |
+| AZ-104 | 11 (7 build, 4 case) | 3/2/2/2/2 | [AZ-104 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104) (skills as of 2023-10-26) |
+| AZ-305 | 9 (6 build, 3 case) | 3/2/1/3 | [AZ-305 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305) (skills as of 2026-04-17) |
+| AZ-400 | 10 (8 build, 2 case) | 2/2/3/2/1 | [AZ-400 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400) (skills as of 2026-07-27) |
+| AZ-700 | 11 (8 build, 3 case) | 3/2/2/2/2 | [AZ-700 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700) (skills as of 2026-07-27) |
+
+Files `seed/labs/microsoft-az*.ts`; every figure (storage durability, SKU
+limits, retirement dates, rule-set versions) cites the Microsoft Learn page it
+came from in the file header and `sources`, all read on 2026-11-07. Retired
+options (Basic Load Balancer, Application Gateway v1, Front Door classic) are
+never offered as answers. The AZ-104 seed outline carries two objectives the
+official guide does not list ("encryption at host", "soft delete for blobs and
+containers"); no lab sits on them, pending the lead's decision.
 
 ## Expert review before launch
 

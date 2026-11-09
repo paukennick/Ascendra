@@ -12,6 +12,8 @@ export interface AuthUser {
   avatarDataUrl?: string | null;
   // REQ-093: documents whose current version this user still has to accept.
   legalPending?: ("terms" | "privacy")[];
+  // REQ-144: owner or unrestricted access (src/lib/access.ts), null otherwise.
+  access?: { level: "owner" | "unrestricted"; grantedBy: string | null; expiresAt: string | null } | null;
 }
 
 export type MasteryStatus =

@@ -21,6 +21,7 @@
 
 import { source, type SourceRef } from "../sources";
 import type { SeedLabSet } from "./types";
+import { ADA_HYPOGLYCEMIA, CDC_EBP, CDC_HAND_HYGIENE, CDC_TBP, ISMP_ABBREVIATIONS, NCSBN_ANA_DELEGATION } from "./nursing-sources";
 
 const CHECKED = "2026-11-08";
 const guideline = (url: string) => source(url, "clinical_guideline", CHECKED);
@@ -188,6 +189,25 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "hypokalemia-before-digoxin": { none: "The potassium range is the case's own laboratory reference range." },
     "copd-exacerbation-abg": [BTS_OXYGEN],
     "increased-icp-case": { none: "Head of bed about 30 degrees is nursing practice; no guideline found that sets it." },
+  },
+  // REQ-148: NCLEX-PN. Its sources live in nursing-sources.ts (checked
+  // 2026-11-07 by the nursing labs' author); each lab below names the ones its
+  // values rest on, as that file's header and the lab set's header describe.
+  NCLEXPN: {
+    "pn-who-needs-the-rn-now": { none: CASE_DATA },
+    "pn-assign-or-not": [NCSBN_ANA_DELEGATION],
+    "pn-precautions-four-residents": [CDC_TBP, CDC_EBP, CDC_HAND_HYGIENE],
+    "pn-fall-found-on-floor": { none: NO_VALUE },
+    "pn-postpartum-boggy-fundus": { none: CASE_DATA },
+    "pn-alcohol-withdrawal": { none: CASE_DATA },
+    "pn-therapeutic-responses": { none: NO_VALUE },
+    "pn-pain-data-dementia": { none: NO_VALUE },
+    "pn-immobility-dvt-pe": { none: CASE_DATA },
+    "pn-dosage-calculations": { none: "Fictional medications; the arithmetic is the content." },
+    "pn-medication-rights-case": [ISMP_ABBREVIATIONS],
+    "pn-hypoglycemia-case": [ADA_HYPOGLYCEMIA],
+    "pn-trends-against-baseline": { none: CASE_DATA },
+    "pn-anaphylaxis-first-dose": { none: "Names intramuscular epinephrine as the first drug without a dose; the other numbers are the client's own readings." },
   },
   NASMCPT: {
     "energy-systems-by-activity": { none: "Energy-system durations follow the NASM CPT 7 textbook; no official NASM page states them (not verified)." },

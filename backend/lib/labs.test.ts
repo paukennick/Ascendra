@@ -274,7 +274,7 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     assert.equal(labContentHash(seedLabContent(lab)), labContentHash(seedLabContent({ ...lab, sources: undefined })));
   });
   test("clinical and fitness labs carry the exam-practice framing and never ask about a real person", () => {
-    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {
+    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM|ABPTS)/.test(s.trackCode))) {
       for (const lab of set.labs) {
         assert.match(lab.safetyNote!, /not (clinical guidance|exercise, nutrition or medical advice)/, lab.slug);
         assert.match(lab.brief, /fictional/i, `${lab.slug}: the brief says the person is fictional`);
@@ -285,12 +285,19 @@ describe("authored pilot content (supabase/seed/labs)", () => {
   });
   test("the full pilot courses follow the recommended density (hybrid) unit by unit", () => {
     // REQ-124: CCRN Pediatric and Neonatal are full pilot courses now too.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO"]) {
+    // REQ-153: the five further AWS courses (CLF, AIF, DVA, SOA, SAP).
+    // REQ-154: the five further AWS courses (ANS, DEA, DOP, MLA, SCS).
+    // REQ-155: the five Microsoft courses (AZ-900, AZ-104, AZ-305, AZ-400, AZ-700).
+    // REQ-156: Microsoft AZ-120, AZ-140, DP-900 and DP-300 follow the same plan.
+    // REQ-158: Google Cloud DBE/GAIL/MLE/PDE/SEC and CompTIA Cloud+/CloudNetX.
+    // REQ-151: ABPTS OCS, GCS, NCS and CCS (ECS to follow).
+    // REQ-152: the five ABPTS specialist courses of wave B.
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS", "GCPDBE", "GCPGAIL", "GCPMLE", "GCPPDE", "GCPSEC", "CLOUDPLUS", "CLOUDNETX", "ABPTSOCS", "ABPTSGCS", "ABPTSNCS", "ABPTSCCS", "ABPTSONC", "ABPTSPCS", "ABPTSPWCS", "ABPTSSCS", "ABPTSWMS"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {
         code,
-        family: /^(NCLEX|CCRN)/.test(code) ? "clinical" : code === "NASMCPT" ? "fitness" : "general",
+        family: /^(NCLEX|CCRN|ABPTS)/.test(code) ? "clinical" : code === "NASMCPT" ? "fitness" : "general",
         units: units.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })),
       };
       const want = unitPlan(plan, "hybrid");
