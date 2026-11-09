@@ -230,6 +230,10 @@ rubric has no key a checker can answer), so a flagged lab goes to a person.
 If the person confirms it wrong, `confirmItemWrong` voids every attempt with
 that `lab_id` and recomputes the learners' mastery.
 
+Below the quarantine threshold, rising reports and a sharp drop in a lab's
+correct rate open an entry in the content review queue (REQ-143,
+docs/content-review.md); the lab keeps being served.
+
 ## Safety rules per subject family
 
 | Family | Courses | Rules |
@@ -245,8 +249,18 @@ never asks about "your patient/client".
 ## Authoring a lab
 
 Authored labs live in `backend/supabase/seed/labs/<course>.ts`, one
-`SeedLabSet` per course with the exam outline URL(s) in `sources`, and are
-listed in `seed/labs/index.ts`.
+`SeedLabSet` per course with the exam outline(s) in `sources`, and are
+listed in `seed/labs/index.ts`. Each source is dated (REQ-142,
+`seed/sources.ts`): `source(url, kind, checkedAt, recheckBy?)`, where
+`checkedAt` is the day you confirmed it and `kind` sets the default
+re-check (`exam_outline` and `reference` 12 months, `clinical_guideline`
+and `cloud_pricing_limits` 6 months). `npm test` fails on a source without
+dates; `npm run currency:report` lists what is due. The database keeps the
+URLs only (`labs.sources`). A clinical or fitness lab also names the
+guideline its own values rest on, or why it names none, in
+`seed/labs/value-sources.ts` (`labs.test.ts` requires one or the other);
+those URLs are stored after the set's, and adding one does not change the
+lab's content hash or review status.
 
 1. **Pick the skill, not the topic.** Choose the 1-3 objectives per unit
    that the exam tests by doing (see "Density" below). An objective that is
@@ -345,8 +359,11 @@ test checks it).
 | CCRN (Adult) | 12 (6 build, 6 case) | 2 per domain | [AACN CCRN exam handbook](https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en) |
 | CCRN (Pediatric) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Pediatric test plan (PDF p.21-24) |
 | CCRN (Neonatal) | 12 (6 build, 6 case) | 2 per category (REQ-124) | same handbook, Neonatal test plan (PDF p.27-30) |
+| NPTE-PT (REQ-147) | 20 (7 build, 13 case) | 3/3/2/2 then 1 per domain | [FSBPT 2024 PT content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf) |
+| NPTE-PTA (REQ-147) | 19 (6 build, 13 case) | 3/3/2 then 1 per domain | [FSBPT 2024 PTA content outline](https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf) |
+| DPT (REQ-147) | 14 (4 build, 10 case) | 2/2/2/2/2/2/1/1 (unweighted units) | [CAPTE 2024 PT standards](https://www.capteonline.org/globalassets/capte-docs/2024-capte-pt-standards-required-elements.pdf) |
 
-That is 80 authored labs. The CCRN Pediatric and Neonatal sets (Nick's
+That is 133 authored labs (80 in the first pilot, 53 for physical therapy). The CCRN Pediatric and Neonatal sets (Nick's
 decision 13) follow (d) unit by unit (the content test checks it) and name
 objectives that paraphrase each test plan's patient-care problems and
 Testable Nursing Actions; the category weights were cross-checked on
@@ -356,9 +373,80 @@ fictional, framed as "exam practice, not clinical guidance", and
 `needs_expert_review`; a pediatric or neonatal critical-care nurse educator
 must read each before it is served.
 
+**Physical therapy (REQ-147).** The three entry-level PT courses follow (d)
+unit by unit. Case labs dominate and walk the patient-management model
+(examination, evaluation, diagnosis, prognosis, intervention, progression,
+discharge or referral), with red flags, vital-sign and exercise stopping
+criteria, and guideline-based interventions. NPTE-PTA rubrics keep PTA
+scope: the PTA carries out and progresses care within the PT's plan,
+collects data, holds treatment and reports to the PT, and never evaluates,
+changes goals or the plan, or discharges (Medicare Benefit Policy Manual
+ch. 15 sec. 230.1). Every value quoted as a standard (APTA/JOSPT guidelines,
+ACSM-derived stopping criteria, the PVA autonomic dysreflexia guideline,
+the ADA hypoglycemia guide, CMS rules, MCIDs from the original papers)
+was verified on 2026-11-07 and is cited in each file's header; values that
+could not be verified (a guideline SpO2 target, Wells point scores, resting
+blood-pressure limits outside heart failure) appear only as a fictional
+order or facility parameter. A licensed physical therapist (and, for PTA
+labs, a PT or PTA educator) must read each before it is approved.
+
 The PMP 2026 outline does not name earned value; its tasks ask for project
 metrics and analysis of schedule and financial variation, which is how that
 lab is framed.
+
+### More project-management courses (REQ-150)
+
+Authored to the same depth as the PMP pilot, one file per course
+(`seed/labs/pm-*.ts`), each following (d) unit by unit
+(`lib/labs-pm.test.ts` checks it, and that no objective gets two labs).
+Every number in a rubric is worked in its reference answer.
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| CAPM (2023 ECO) | 10 (7 build, 3 case) | 3/2/2/3 | [CAPM ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf) |
+| PMI-ACP (Nov 2024 / Mar 2026 ECO) | 10 (6 build, 4 case) | 3/2/2/3 | [PMI-ACP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf) |
+| PMI-RMP (Jan 2023 ECO) | 11 (8 build, 3 case) | 2/3/2/2/2 | [PMI-RMP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline_updated-2024.pdf) |
+| PMI-SP | 10 (6 build, 4 case) | 2/3/2/1/2 | [PMI-SP ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf) |
+| PMI-PBA | 11 (8 build, 3 case) | 2/2/3/2/2 | [PMI-PBA ECO](https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf) |
+| CompTIA Project+ (PK0-005) | 7 (5 build, 2 case) | 3/1/1/2 | [Project+](https://www.comptia.org/en-us/certifications/project/) |
+
+Quantitative labs: CPM and float (CAPM, PMI-SP, Project+), PERT and
+triangular three-point estimates with path variance, resource levelling,
+earned schedule, least-cost crashing (PMI-SP), decision-tree EMV with a
+break-even sensitivity and response cost-effectiveness (PMI-RMP), WSJF,
+Little's Law and process cycle efficiency (PMI-ACP), payback/ROI and
+weighted option scoring with a weight sensitivity (PMI-PBA). Still to
+author for the PM family: PgMP, PfMP, PMI-PMOCP, PMI-CP, PMI-CPMAI and
+CSPP.
+
+### Fitness wave (REQ-149)
+
+The other five fitness courses now have authored labs at the NASM pilot's
+depth, each in its certifying body's own model and vocabulary, following (d)
+unit by unit (`backend/lib/labs-fitness.test.ts` checks it). Files:
+`seed/labs/fitness-<course>.ts`.
+
+| Course | Labs | Per unit (d) | Built around |
+|---|---|---|---|
+| ACE-CPT | 9 (5 build, 4 case) | 2/3/3/1 | ACE IFT Model phases (Functional, Movement, Load/Speed; Base, Fitness, Performance by VT1/VT2 and the talk test), five primary movements, ACE ABC approach |
+| ACSM-CPT | 7 (3 build, 4 case) | 1/3/2/1 | ACSM preparticipation screening algorithm, FITT-VP, heart-rate reserve and RPE, RM-based loads, criteria for stopping exercise, S.M.A.R.T.S. goals |
+| NSCA-CPT | 10 (7 build, 3 case) | 2/3/3/2 | Periodized macro/meso/microcycles, NSCA training load chart, order, rest and tempo, technique and spotting, emergency response |
+| NSCA CSCS | 12 (8 build, 4 case) | 3/1/1/2/2/2/1 | Needs analysis, force-velocity, energy systems, periodization off- to in-season, testing order and monitoring (session RPE, HRV), heat illness |
+| NCCPT-CPT | 10 (6 build, 4 case) | 1/2/2/2/2/1 | Food-log review against the AMDRs, label reading, assessment battery, linear vs undulating periodization and GAS, kinetic-chain checkpoints, over-training |
+
+Every value a lab quotes is cited in its file's header comment with the
+date checked (2026-11-07): ACSM GETP 12th edition's screening model (Riebe
+et al. 2015) and FITT values (Garber et al. 2011), the Physical Activity
+Guidelines for Americans (2nd ed.), the 2025 AHA/ACC blood pressure
+categories, ACC/AHA criteria for stopping an exercise test, the NSCA training
+load chart, NATA's exertional heat illness statement, the 2025 AHA CPR
+guidelines, the IOM AMDRs, CDC BMI categories and FDA %DV guidance. Values
+that could not be verified against an authoritative page that session (for
+example NSCA work-to-rest ratios, rest periods for hypertrophy, test-order
+lists from the textbooks) are not stated as numbers; those rubrics grade the
+reasoning instead. Like every lab, all 48 are `needs_expert_review` and need
+an NCCA-accredited trainer or strength coach (a CSCS for the CSCS set) to read
+them in full.
 
 ## Expert review before launch
 

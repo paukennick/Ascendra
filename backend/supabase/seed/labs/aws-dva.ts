@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-153: AWS Certified Developer - Associate (DVA-C03), associate level.
 //
@@ -81,17 +82,17 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSDVA_LABS: SeedLabSet = {
   trackCode: "AWSDVA",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html",
-    "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html",
-    "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html",
-    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html",
-    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html",
-    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html",
-    "https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html",
-    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
-    "https://docs.aws.amazon.com/AmazonECR/latest/userguide/lifecycle_policy_parameters.html",
-    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
-    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/developer-associate-03/developer-associate-03.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonECR/latest/userguide/lifecycle_policy_parameters.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Development with AWS Services (3) -----

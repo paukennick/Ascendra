@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-153: AWS Certified Cloud Practitioner (CLF-C02), foundational level.
 //
@@ -42,13 +43,13 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSCLF_LABS: SeedLabSet = {
   trackCode: "AWSCLF",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
-    "https://aws.amazon.com/compliance/shared-responsibility-model/",
-    "https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-tasks.html",
-    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html",
-    "https://aws.amazon.com/s3/storage-classes/",
-    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
-    "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html", "exam_outline", "2026-11-07"),
+    source("https://aws.amazon.com/compliance/shared-responsibility-model/", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-tasks.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html", "reference", "2026-11-07"),
+    source("https://aws.amazon.com/s3/storage-classes/", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Cloud Concepts (2) -----

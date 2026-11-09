@@ -33,6 +33,7 @@ import {
 } from "@/lib/lesson-store";
 import { factCheckGate, modelFactChecker, type CheckItem, type FactChecker } from "@/lib/fact-check";
 import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { recordHintReveal } from "@/lib/grading-service";
 
 export type { LessonRow, LessonScope } from "@/lib/lesson-store";
 
@@ -58,8 +59,9 @@ export interface ObjectiveRow {
 // (*_why) never leave the server before the learner answers; /api/grade
 // returns them with the verdict. Guided choices come in this learner's fixed
 // shuffled order (lib/choice-order.ts). Solo choices are not sent (the field
-// is an empty list for old app builds): they are a hint, fetched from
-// POST /api/objectives/:id/hint, which records that the hint was used.
+// is an empty list): they are a hint, fetched from
+// POST /api/objectives/:id/hint, which records that the hint was used. App
+// builds without the hint flow are served by lessonForClient (REQ-146).
 export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveId: string }) {
   const fadeChoices = Array.isArray(row.fade_choices) && row.fade_problem
     ? shuffleForPresentation(
@@ -89,6 +91,36 @@ export function rowToLesson(row: LessonRow, viewer: { userId: string; objectiveI
     model: row.model,
     generatedAt: row.generated_at,
   };
+}
+
+// REQ-146 (FAIL-530): the lesson payload for the app that asked. App builds
+// from before the release (no X-Ascendra-Client header, lib/client-protocol.ts)
+// have no hint flow: their Solo step defaults to multiple choice and rendered
+// the empty soloChoices as no options at all, so the learner was stuck. Such
+// a caller gets the Solo choices in the lesson, in this learner's fixed
+// shuffled order (the order the hint route returns and /api/grade maps a
+// chosenIndex back through), and the hint reveal is recorded first, exactly
+// as POST /api/objectives/:id/hint does. It is recorded when the choices are
+// sent, not when an answer arrives, because sending them is what lets the
+// learner see them: a later Solo answer to this item in any format is graded
+// as assisted and can't lift mastery above Guided. A hint-aware app (the
+// header present) gets rowToLesson unchanged and nothing is recorded.
+// `viewer.objectiveId` must be the canonical id (visibleObjective's).
+export async function lessonForClient(
+  row: LessonRow,
+  viewer: { userId: string; objectiveId: string },
+  hintAware: boolean
+) {
+  const lesson = rowToLesson(row, viewer);
+  if (hintAware) return lesson;
+  const question = row.solo_check;
+  const choices = row.solo_choices;
+  // Same readiness test as lessonCheckFor: the practice half must be there
+  // (it is whenever rowToLesson is used, but a malformed row sends nothing).
+  if (!question || !Array.isArray(choices) || !Number.isInteger(row.solo_correct_index)) return lesson;
+  await recordHintReveal(viewer.userId, viewer.objectiveId, "solo", question);
+  const order = presentationOrder(presentationSeed(viewer.userId, viewer.objectiveId, "solo", question), choices.length);
+  return { ...lesson, soloChoices: shuffleForPresentation(choices as string[], order) };
 }
 
 export function teachCardsField(v: unknown) {

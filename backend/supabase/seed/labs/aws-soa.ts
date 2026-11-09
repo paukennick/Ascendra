@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-153: AWS Certified CloudOps Engineer - Associate (SOA-C03), associate
 // level (formerly SysOps Administrator - Associate).
@@ -85,21 +86,21 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSSOA_LABS: SeedLabSet = {
   trackCode: "AWSSOA",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.html",
-    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ConsoleAlarms.html",
-    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarms-and-missing-data.html",
-    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/installing-cloudwatch-agent-ssm.html",
-    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.BackupRetention.html",
-    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html",
-    "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
-    "https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html",
-    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html",
-    "https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html",
-    "https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_access-denied.html",
-    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html",
-    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html",
-    "https://docs.aws.amazon.com/vpc/latest/userguide/nacl-examples.html",
-    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/query-logs.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/sysops-administrator-associate-03/sysops-administrator-associate-03.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ConsoleAlarms.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarms-and-missing-data.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/installing-cloudwatch-agent-ssm.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.BackupRetention.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_access-denied.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpc/latest/userguide/nacl-examples.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/query-logs.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Monitoring, Logging, Analysis, Remediation, and Performance Optimization (3) -----

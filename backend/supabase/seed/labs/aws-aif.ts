@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-153: AWS Certified AI Practitioner (AIF-C01), foundational level.
 //
@@ -45,12 +46,12 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSAIF_LABS: SeedLabSet = {
   trackCode: "AWSAIF",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html",
-    "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Fundamentals of AI and ML (2) -----

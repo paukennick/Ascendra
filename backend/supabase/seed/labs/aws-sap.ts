@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-153: AWS Certified Solutions Architect - Professional (SAP-C03),
 // professional level.
@@ -98,23 +99,23 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const AWSSAP_LABS: SeedLabSet = {
   trackCode: "AWSSAP",
   sources: [
-    "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
-    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/specifying-conditions.html",
-    "https://docs.aws.amazon.com/vpc/latest/peering/invalid-peering-configurations.html",
-    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/high-throughput-fifo.html",
-    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-retry-policy.html",
-    "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html",
-    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
-    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html",
-    "https://aws.amazon.com/vpc/pricing/",
-    "https://aws.amazon.com/privatelink/pricing/",
-    "https://aws.amazon.com/rds/aurora/pricing/",
-    "https://aws.amazon.com/savingsplans/database-pricing/",
-    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
-    "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html",
-    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
-    "https://docs.aws.amazon.com/codepipeline/latest/userguide/pipelines-create-cross-account.html",
-    "https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/what-is-cloudformation-hooks.html",
+    source("https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html", "exam_outline", "2026-11-07"),
+    source("https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/specifying-conditions.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/vpc/latest/peering/invalid-peering-configurations.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/high-throughput-fifo.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-retry-policy.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html", "reference", "2026-11-07"),
+    source("https://aws.amazon.com/vpc/pricing/", "cloud_pricing_limits", "2026-11-07"),
+    source("https://aws.amazon.com/privatelink/pricing/", "cloud_pricing_limits", "2026-11-07"),
+    source("https://aws.amazon.com/rds/aurora/pricing/", "cloud_pricing_limits", "2026-11-07"),
+    source("https://aws.amazon.com/savingsplans/database-pricing/", "cloud_pricing_limits", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/codepipeline/latest/userguide/pipelines-create-cross-account.html", "reference", "2026-11-07"),
+    source("https://docs.aws.amazon.com/cloudformation-cli/latest/hooks-userguide/what-is-cloudformation-hooks.html", "reference", "2026-11-07"),
   ],
   labs: [
     // ----- Architecture Design and Implementation Built for the Cloud (3) -----

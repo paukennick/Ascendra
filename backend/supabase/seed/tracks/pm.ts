@@ -34,6 +34,10 @@ const VERIFIED_AT = "2026-09-26T00:00:00Z";
 // Strand 2 roster (see docs/catalog-backlog.md).
 const VERIFIED_AT_20260927 = "2026-09-27T00:00:00Z";
 
+// REQ-142: the day each outline below was re-read for its version (name,
+// version, url) on the publisher's own page; see each block's comment.
+const OUTLINE_CHECKED_AT = "2026-11-08T00:00:00Z";
+
 // ---------------------------------------------------------------------------
 // CAPM -- Certified Associate in Project Management. Confirmed current: 2023
 // ECO update, still in effect as of this fetch (pmi.org serves the same PDF
@@ -476,7 +480,7 @@ export const PFMP_TRACK: SeedTrack = {
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/portfolio-management-pfmp",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...PMI_PROVIDER,
     credentialSlug: "pfmp",
@@ -484,7 +488,12 @@ export const PFMP_TRACK: SeedTrack = {
     credentialUrl: "https://www.pmi.org/certifications/portfolio-management-pfmp",
     basis: "vendor_exam_unpublished_code",
     status: "active",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
+    // REQ-142: version = the copyright year printed on the PfMP Examination
+    // Content Outline PDF below ("(c)2013 Project Management Institute"), read 2026-11-08.
+    // PMI's certification pages answered 403 to this session, so an update announced
+    // only there would not have been seen; a web search found none.
+    objectivesRevision: "Examination Content Outline (c)2013",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/portfolio-management-professional-exam-outline.pdf",
     recommendedExperience:
@@ -694,7 +703,7 @@ export const PMISP_TRACK: SeedTrack = {
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/scheduling-sp",
-  sourceVerifiedAt: VERIFIED_AT,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...PMI_PROVIDER,
     credentialSlug: "pmi-sp",
@@ -702,9 +711,14 @@ export const PMISP_TRACK: SeedTrack = {
     credentialUrl: "https://www.pmi.org/certifications/scheduling-sp",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: version = the copyright year printed on the PMI-SP Examination
+    // Content Outline PDF below ("(c)2012 Project Management Institute"), read 2026-11-08.
+    // PMI's certification pages answered 403 to this session, so an update announced
+    // only there would not have been seen; a web search found none.
+    objectivesRevision: "Examination Content Outline (c)2012",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/scheduling-professional-exam-outline.pdf",
-    lastVendorVerifiedAt: VERIFIED_AT,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Secondary diploma + 40 months of project scheduling experience + 40 hours of scheduling education, or a GAC-accredited bachelor's/postgraduate degree + 12 months + 30 hours of scheduling education -- all within the past 5 years.",
     durationMinutes: 210,
@@ -1010,7 +1024,7 @@ export const PMIPBA_TRACK: SeedTrack = {
   subcategorySlug: "pmi-certifications",
   freshnessModel: "certification_aligned",
   sourceUrl: "https://www.pmi.org/certifications/business-analysis-pba",
-  sourceVerifiedAt: VERIFIED_AT_20260927,
+  sourceVerifiedAt: OUTLINE_CHECKED_AT,
   credential: {
     ...PMI_PROVIDER,
     credentialSlug: "pmi-pba",
@@ -1018,9 +1032,14 @@ export const PMIPBA_TRACK: SeedTrack = {
     credentialUrl: "https://www.pmi.org/certifications/business-analysis-pba",
     basis: "vendor_exam_unpublished_code",
     status: "active",
+    // REQ-142: version = the copyright year printed on the PMI-PBA Examination
+    // Content Outline PDF below ("(c)2013 Project Management Institute"), read 2026-11-08.
+    // PMI's certification pages answered 403 to this session, so an update announced
+    // only there would not have been seen; a web search found none.
+    objectivesRevision: "Examination Content Outline (c)2013",
     officialObjectivesUrl:
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/professional-business-analysis-exam-outline.pdf",
-    lastVendorVerifiedAt: VERIFIED_AT_20260927,
+    lastVendorVerifiedAt: OUTLINE_CHECKED_AT,
     recommendedExperience:
       "Secondary diploma + 60 months of business analysis experience within 8 years + 35 contact hours, or bachelor's degree + 36 months + 35 hours, or a GAC-accredited bachelor's/postgraduate degree + 24 months.",
     questionFormat: "200 questions (175 scored, 25 unscored pretest); multiple choice",
