@@ -596,4 +596,198 @@ export const ICA_TRACK: SeedTrack = {
   ],
 };
 
-export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK, CCA_TRACK, ICA_TRACK];
+// ---------------------------------------------------------------------------
+// Kyverno Certified Associate (KCA)
+// Multiple choice, 90 minutes, $250, beginner. Fundamentals of Kyverno 18%,
+// Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying
+// Policies 10%, Writing Policies 32%, Policy Management 10%
+// (KCA_Curriculum.pdf).
+// ---------------------------------------------------------------------------
+export const KCA_TRACK: SeedTrack = {
+  code: "KCA",
+  title: "Kyverno Certified Associate (KCA) Coach",
+  description:
+    "KCA: policy as Kubernetes resources with Kyverno. How admission control and Kyverno's rules work, installing and upgrading it with Helm, writing validate, mutate, generate, verifyImages and cleanup rules with variables, preconditions and CEL, testing with the Kyverno CLI, applying policies safely in Audit and Enforce, and reading policy reports.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/kyverno-certified-associate-kca/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "kca",
+    credentialName: "Kyverno Certified Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/kyverno-certified-associate-kca/",
+    basis: "vendor_exam",
+    examCode: "KCA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/KCA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Beginner level: for platform and security engineers who write or operate Kubernetes policy with Kyverno.",
+    durationMinutes: 90,
+    questionFormat: MC_FORMAT,
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "Fundamentals of Kyverno",
+      weight: 18,
+      gate: "Given a governance need, explain how Kyverno meets it as an admission controller and background scanner, and read a policy's YAML to say what it matches and does.",
+      objectives: [
+        "Interpret Kyverno policies and rules: ClusterPolicy and Policy, rule types (validate, mutate, generate, verifyImages, cleanup), match and exclude blocks, and how rules are evaluated",
+        "YAML manifests as the unit of policy: how Kyverno treats Kubernetes resources, the admission request it sees, and how policies are themselves Kubernetes resources",
+        "Recognise how admission controllers work: validating and mutating admission webhooks, how Kyverno registers them, failure policies and the admission request lifecycle",
+        "OCI images in Kyverno: image references in Pod specs, how verifyImages resolves digests and signatures, and what registry access Kyverno needs",
+      ],
+    },
+    {
+      title: "Installation, Configuration, and Upgrades",
+      weight: 18,
+      gate: "Given a cluster, install Kyverno with Helm in a highly available configuration, tune its controllers and RBAC, and upgrade it without breaking admission.",
+      objectives: [
+        "Install and configure Kyverno with Helm: chart values for the admission, background, cleanup and reports controllers, resource filters and webhook settings",
+        "Kyverno Custom Resource Definitions: ClusterPolicy, Policy, PolicyException, CleanupPolicy, UpdateRequest and the report CRDs, and what each stores",
+        "Configure the controllers with flags and the kyverno ConfigMap: webhook timeouts, excluded namespaces and resource filters, and generate/background behaviour",
+        "Configure Kyverno RBAC, roles and permissions: what the controllers may read and write, and the extra ClusterRoles a generate rule needs",
+        "Plan a highly available installation: replica counts per controller, pod disruption budgets, leader election and webhook failurePolicy",
+        "Upgrade Kyverno: Helm upgrade order, CRD updates, compatibility between versions, and verifying policies still load",
+      ],
+    },
+    {
+      title: "Kyverno CLI",
+      weight: 12,
+      gate: "Given a set of policies and manifests, use the Kyverno CLI to apply policies offline, write tests that prove each rule's expected result, and query JSON with jp.",
+      objectives: [
+        "Install the Kyverno CLI (kubectl kyverno plugin or standalone binary) and understand what it can do without a cluster",
+        "Apply policies offline with kyverno apply against manifests or a cluster, with variables and values files",
+        "Write tests with kyverno test: the kyverno-test.yaml layout, expected results per rule and resource, and running tests in CI",
+        "Query and transform JSON with kyverno jp: JMESPath expressions and the Kyverno custom functions",
+      ],
+    },
+    {
+      title: "Applying Policies",
+      weight: 10,
+      gate: "Given a policy and a cluster, choose the validation action, scope the policy to the right resources and namespaces, and roll it out from Audit to Enforce safely.",
+      objectives: [
+        "Apply policies in the cluster: Audit versus Enforce (validationFailureAction), background scanning, and the effect on existing resources",
+        "Select resources with match and exclude: kinds, names, namespaces, selectors, operations, roles and subjects, any and all blocks",
+        "Configure common policy settings for Kyverno rules: failurePolicy, webhookTimeoutSeconds, admission and background flags, skipBackgroundRequests and schemaValidation",
+      ],
+    },
+    {
+      title: "Writing Policies",
+      weight: 32,
+      gate: "Given a governance requirement, write the Kyverno rule that enforces or implements it -- validate, mutate, generate, verifyImages or cleanup -- with the right preconditions, variables and tests.",
+      objectives: [
+        "Write validation rules: pattern, anyPattern, deny with conditions, CEL expressions, messages and the operators and anchors in patterns",
+        "Use preconditions to control when a rule applies: any and all conditions on request and resource data",
+        "Understand background scans: how validate rules run against existing resources and feed policy reports",
+        "Write mutation rules: patchStrategicMerge, patchesJson6902, foreach for lists, and mutating existing resources with targets",
+        "Write generation rules: creating resources from a data block or by cloning, synchronization, and triggers such as new namespaces",
+        "Write verifyImage rules: Sigstore cosign and Notary signatures, attestations, required digests and mutating image references to digests",
+        "Use variables and API calls in policies: request, serviceAccountName and image variables, context with configMap and apiCall, and JMESPath",
+        "Write JSON patches: RFC 6902 operations and paths for precise mutations",
+        "Autogen rules: how Pod rules are generated for Deployments, StatefulSets, Jobs and other controllers, and when to disable autogen",
+        "Write cleanup policies: CleanupPolicy and ClusterCleanupPolicy with schedules and conditions, and TTL labels",
+        "Use the Common Expression Language in Kyverno: CEL validations, variables and expressions versus pattern-based rules",
+      ],
+    },
+    {
+      title: "Policy Management",
+      weight: 10,
+      gate: "Given a running Kyverno installation, read its policy reports, create exceptions for legitimate violations, and monitor the controllers with metrics.",
+      objectives: [
+        "Policy reports: PolicyReport and ClusterPolicyReport resources, result statuses (pass, fail, warn, error, skip) and reading them with kubectl",
+        "Configure PolicyExceptions: exempting specific resources from specific rules, scoping and approving exceptions",
+        "Monitor Kyverno metrics: admission latency, policy results, controller health and the Prometheus endpoints",
+      ],
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Certified Backstage Associate (CBA)
+// Multiple choice, 90 minutes, $250, beginner. Backstage Development Workflow
+// 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing
+// Backstage 32% (CBA_Curriculum.pdf).
+// ---------------------------------------------------------------------------
+export const CBA_TRACK: SeedTrack = {
+  code: "CBA",
+  title: "Certified Backstage Associate (CBA) Coach",
+  description:
+    "CBA: building and running a Backstage developer portal. The local development workflow with TypeScript, Yarn and Docker, the framework and its client-server architecture and configuration, the Software Catalog and how entities are ingested, and customising the app with frontend and backend plugins, React and Material UI.",
+  trackType: "certification",
+  subcategorySlug: "cncf-certifications",
+  freshnessModel: "certification_aligned",
+  sourceUrl: "https://training.linuxfoundation.org/certification/certified-backstage-associate-cba/",
+  sourceVerifiedAt: VERIFIED_AT,
+  credential: {
+    ...LF_PROVIDER,
+    credentialSlug: "cba",
+    credentialName: "Certified Backstage Associate",
+    credentialUrl: "https://training.linuxfoundation.org/certification/certified-backstage-associate-cba/",
+    basis: "vendor_exam",
+    examCode: "CBA",
+    objectivesRevision: "Curriculum, cncf/curriculum 0a8cc08",
+    status: "active",
+    officialObjectivesUrl: `${CURRICULUM}/CBA_Curriculum.pdf`,
+    lastVendorVerifiedAt: VERIFIED_AT,
+    recommendedExperience: "No prerequisites. Beginner level: for platform engineers and developers who build, customise or operate a Backstage portal; TypeScript and React familiarity helps.",
+    durationMinutes: 90,
+    questionFormat: MC_FORMAT,
+    passingScorePolicy: MC_PASS,
+  },
+  units: [
+    {
+      title: "Backstage Development Workflow",
+      weight: 24,
+      gate: "Given a fresh checkout of a Backstage app, run it locally, compile it, manage its dependencies and build a container image of it, explaining what each tool does.",
+      objectives: [
+        "Build and run Backstage projects locally: create-app, yarn install, yarn start and yarn dev, and the app-config files the dev server reads",
+        "Understand local development workflows: the monorepo layout (packages/app, packages/backend, plugins/), hot reload, and how frontend and backend run together",
+        "Compile a Backstage project with TypeScript: yarn tsc, type checking across packages, and common type errors in plugins",
+        "Download and install dependencies for a Backstage project with NPM/Yarn: Yarn workspaces, the lockfile, backstage-cli versions:bump and keeping @backstage packages aligned",
+        "Use Docker to build a container image of a Backstage project: yarn build:backend, the Dockerfile the CLI generates, host versus multi-stage builds and runtime configuration",
+      ],
+    },
+    {
+      title: "Backstage Infrastructure",
+      weight: 22,
+      gate: "Given a Backstage deployment target, configure the app and backend for it, explain how the frontend and backend communicate, and deploy it to production with a real database.",
+      objectives: [
+        "Understand the Backstage framework: the new backend system, plugins and extension points, services, and the frontend app shell",
+        "Configure Backstage: app-config.yaml and environment overlays (app-config.production.yaml), secrets via environment variables, and the configuration schema",
+        "Plan and deploy Backstage to production: PostgreSQL instead of SQLite, the backend container behind an ingress, Helm chart or manifests, and health endpoints",
+        "Understand Backstage client-server architecture: the frontend served by the backend or separately, backend plugins as HTTP APIs, authentication providers and the proxy",
+      ],
+    },
+    {
+      title: "Backstage Catalog",
+      weight: 22,
+      gate: "Given an organisation's software, model it as catalog entities, register and ingest them, annotate them for plugins, and fix an entity that will not appear.",
+      objectives: [
+        "Understand how and why to use the Backstage Catalog: entity kinds (Component, API, Resource, System, Domain, Group, User, Location, Template), ownership and relations",
+        "Populate the Backstage Catalog: catalog-info.yaml files, static locations in app-config, and the entity model's apiVersion, kind, metadata and spec",
+        "Use annotations on entities to connect plugins: source location, TechDocs, Kubernetes, CI and ownership annotations",
+        "Work with manually registered entity locations: the register-component flow, Location entities and refresh",
+        "Troubleshoot entity ingestion: processing errors, orphaned entities, schema validation failures and refresh intervals",
+        "Configure automated ingestion: entity providers (GitHub discovery, LDAP and other integrations), schedules and processors",
+      ],
+    },
+    {
+      title: "Customizing Backstage",
+      weight: 32,
+      gate: "Given a product request for the portal, decide whether it is a frontend or backend plugin change, implement it with React and Material UI in the app, and wire the plugin into the app and backend.",
+      objectives: [
+        "Understand frontend versus backend plugins: what runs in the browser, what runs in Node, and how a plugin's frontend talks to its backend",
+        "Customize Backstage plugins: installing community plugins, configuring them in app-config, and adding routes and tabs to the entity page",
+        "Make changes to React code in the Backstage app: packages/app's App.tsx, Root sidebar, entity page layout and custom components",
+        "Use Material UI components and the Backstage theme: creating and applying a custom theme, using Backstage core components, and consistent styling",
+        "Create a new plugin with backstage-cli: scaffolding a frontend or backend plugin, its API client and router, and registering it with the app and backend",
+      ],
+    },
+  ],
+};
+
+export const CNCF_ECOSYSTEM_TRACKS: readonly SeedTrack[] = [PCA_TRACK, OTCA_TRACK, CGOA_TRACK, CAPA_TRACK, CCA_TRACK, ICA_TRACK, KCA_TRACK, CBA_TRACK];

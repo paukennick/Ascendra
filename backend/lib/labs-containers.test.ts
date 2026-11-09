@@ -28,6 +28,8 @@ const TOOLING: Record<string, { answers: RegExp; shown: RegExp }> = {
   CAPA: { answers: /argoproj\.io|argo |argocd|kubectl argo rollouts|workflowTemplateRef|AnalysisTemplate|EventSource|Sensor/, shown: /\$ argo|\$ kubectl|\$ argocd/ },
   CCA: { answers: /cilium|hubble|CiliumNetworkPolicy|eBPF|helm (install|upgrade) cilium/, shown: /\$ cilium|\$ hubble|\$ kubectl|\$ helm/ },
   ICA: { answers: /istioctl|istio\.io|PeerAuthentication|AuthorizationPolicy|VirtualService|DestinationRule|Gateway/, shown: /\$ istioctl|\$ kubectl/ },
+  KCA: { answers: /kyverno|ClusterPolicy|PolicyException|CleanupPolicy|validate:|mutate:|generate:/, shown: /\$ kubectl|\$ kyverno|\$ helm|kind: ClusterPolicy|validationFailureAction/ },
+  CBA: { answers: /yarn |backstage|app-config|catalog-info|createPlugin|EntityLayout|Dockerfile|FROM /, shown: /\$ yarn|\$ kubectl|\$ git|catalog-info|apiVersion: backstage|Pull request|\/\/ plugins\// },
 };
 // Every container/Kubernetes course with a lab set.
 const CODES = [...HANDS_ON, ...CONCEPTUAL, ...Object.keys(TOOLING)] as const;
@@ -201,7 +203,15 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       activeUnits(tracks.get("CAPA")!).map((u) => [u.title, u.weight]),
       [["Argo Workflows", 36], ["Argo CD", 34], ["Argo Rollouts", 18], ["Argo Events", 12]]
     );
-    for (const code of ["PCA", "OTCA", "CGOA", "CAPA", "CCA"]) {
+    assert.deepEqual(
+      activeUnits(tracks.get("KCA")!).map((u) => [u.title, u.weight]),
+      [["Fundamentals of Kyverno", 18], ["Installation, Configuration, and Upgrades", 18], ["Kyverno CLI", 12], ["Applying Policies", 10], ["Writing Policies", 32], ["Policy Management", 10]]
+    );
+    assert.deepEqual(
+      activeUnits(tracks.get("CBA")!).map((u) => [u.title, u.weight]),
+      [["Backstage Development Workflow", 24], ["Backstage Infrastructure", 22], ["Backstage Catalog", 22], ["Customizing Backstage", 32]]
+    );
+    for (const code of ["PCA", "OTCA", "CGOA", "CAPA", "CCA", "KCA", "CBA"]) {
       const c = tracks.get(code)!.credential!;
       assert.equal(c.durationMinutes, 90, code);
       assert.match(c.passingScorePolicy ?? "", /75%/, code);
