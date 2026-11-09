@@ -3,7 +3,7 @@ import { featureLock } from "@/lib/entitlements";
 import { LABS_FEATURE, listLabs } from "@/lib/labs";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { labSafetyFamily } from "@/lib/lab-grading";
-import { labDisclaimerFor, type LabDisclaimer } from "@/lib/lab-disclaimer";
+import { hasAcceptedStudyNotice } from "@/lib/study-notice";
 
 // REQ-096 ("labs step zero"): an objective's optional hands-on lab
 // (objectives.lab_prompt) is shown after the solo check. The learner can say
@@ -97,13 +97,11 @@ export async function recordLabCompletion(
 // rules for showing a lab. Null -- no Try it step -- when the objective has
 // no prompt or the caller can't see it, when the learner's plan has no labs
 // (REQ-122 featureLock; never locked while BILLING_ENABLED is off), or when
-// the lab's family (clinical / fitness) needs the one-time disclaimer
-// acknowledgement and the learner hasn't given it yet (REQ-125): the lab
-// card on the Done screen asks for it. Otherwise the prompt and the
-// disclaimer the app shows with it.
+// the lab's family (clinical / fitness) needs the study notice and the
+// learner hasn't accepted it (REQ-165; it replaced REQ-125's per-family lab
+// acknowledgement). Otherwise the prompt.
 export interface TryItLab {
   prompt: string;
-  disclaimer: LabDisclaimer;
 }
 
 //
@@ -119,9 +117,9 @@ export async function tryItLab(userId: string, objectiveId: string): Promise<Try
   if (!objective || !prompt) return null;
   if (await featureLock(userId, LABS_FEATURE)) return null;
   if (await objectiveHasLab(userId, objective)) return null;
-  const disclaimer = await labDisclaimerFor(userId, labSafetyFamily(await coachContextForObjective(objective.id)), null);
-  if (disclaimer.acknowledgement.required && !disclaimer.acknowledgement.acknowledged) return null;
-  return { prompt, disclaimer };
+  const family = labSafetyFamily(await coachContextForObjective(objective.id));
+  if (family !== "general" && !(await hasAcceptedStudyNotice(userId))) return null;
+  return { prompt };
 }
 
 // REQ-139: does the learner see a lab for this objective elsewhere in the
@@ -135,7 +133,8 @@ export async function objectiveHasLab(userId: string, objective: LabObjective): 
   return (await listLabs(userId, { objectiveId: objective.id })).length > 0;
 }
 
-// The lesson GET's fields: `labPrompt` (B's contract) and `labDisclaimer`.
-export function tryItFields(lab: TryItLab | null): { labPrompt: string | null; labDisclaimer: LabDisclaimer | null } {
-  return { labPrompt: lab?.prompt ?? null, labDisclaimer: lab?.disclaimer ?? null };
+// The lesson GET's field: `labPrompt` (B's contract). REQ-165: the
+// `labDisclaimer` that came with it is gone (the study notice covers labs).
+export function tryItFields(lab: TryItLab | null): { labPrompt: string | null } {
+  return { labPrompt: lab?.prompt ?? null };
 }

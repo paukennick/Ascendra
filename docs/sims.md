@@ -89,9 +89,10 @@ engine and the practice-lab acknowledgement).
    hides sims everywhere and `SIMS_RENDERERS` turns renderers on one at a
    time; the app tells the server which engine majors and renderers it
    can run, and is never offered a sim it cannot open. Sims are Pro with
-   one sample per course for Free and Plus, carry the lab disclaimer and the one-time clinical/fitness
-   acknowledgement, and show "Awaiting expert review" until a person
-   approves the version. Unreviewed sims are served by default
+   one sample per course for Free and Plus, and are covered by the one
+   study notice (REQ-165; it replaced the lab disclaimer, the clinical/fitness
+   acknowledgement and the "Awaiting expert review" badge). Review status
+   stays internal until a person approves the version. Unreviewed sims are served by default
    (`SIMS_SERVE_UNREVIEWED`), as labs are; review is Nick's, at his pace,
    and no rollout phase waits on it.
 8. **Accessibility is designed in, not added.** Monitor values are read on
@@ -1751,7 +1752,7 @@ capabilities (5.10).
 |---|---|
 | `GET /api/sims?trackId=` / `?unitId=` / `?objectiveId=` | Sims the learner can open: title, screen type, objective, state ("In progress", "Done: Mediocre"), `access` (full/sample/locked), `reviewStatus`, `runnable` (false = "Update the app to open this"). |
 | `GET /api/sims/:id` | One sim: brief, safety note, disclaimer payload, client document of the served version (or the pinned version of an open run) with its hash, the open run if any, the latest finished run's summary. |
-| `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. Needs the safety-family acknowledgement (403 `lab_disclaimer_required`, reused). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |
+| `POST /api/sims/:id/runs { restart?, deviceId }` | Start or resume (one open run per learner and sim); takes the lease. A clinical or fitness sim needs the study notice (403 `study_notice_required`, REQ-165). Returns `{ run, seed, leaseEpoch, clientDocument?, checkpoint, commandsAfter, lastTick }`; the document is omitted when the app's cached hash matches. |
 | `GET /api/sims/runs/:runId` | Resume on any device: checkpoint, commands after it, `lastTick`, waits pending, current lease holder. |
 | `POST /api/sims/runs/:runId/lease { deviceId }` | "Continue on this device": take the lease; returns the new epoch and the checkpoint. |
 | `POST /api/sims/runs/:runId/commands { leaseEpoch, fromSeq, commands[], stateHash, tick }` | Sync. 409 `lease_lost` on an old epoch. Idempotent by `seq` (a resent `seq` with the same payload is accepted; with a different one is 409). Locks the run row, replays from the checkpoint, validates, stores, writes a new checkpoint (Pre(k) at a command boundary at least 300 ticks after the last, never mid-skip; 5.3), returns `{ acceptedThrough, serverHash, rejected?, ended?, stoppedAt? }`. |
@@ -2199,26 +2200,23 @@ migration (decision 8).
 
 ### 11.3 Disclaimers
 
-Every sim carries the lab disclaimer from `lib/lab-disclaimer.ts` (general
-line, "not reviewed" line until approved, the clinical/fitness safety line
-first), plus one sim-specific line, added there:
+REQ-165 (Nick, 2026-11-09): there is no per-sim or per-lab disclaimer and
+no "Awaiting expert review" badge. The one **study notice**
+(`mobile/src/lib/studyNotice.ts`, `backend/lib/study-notice.ts`), accepted
+once at launch, names sims among the content it covers. The server should
+refuse to start, resume, sync or grade a clinical or fitness sim until it is
+accepted, as it does for labs (`requireStudyNotice`, 403
+`study_notice_required`).
 
-> The patient's (client's, system's) responses come from a simplified
-> teaching model written for exam practice, not a validated model of the
-> real thing.
-
-The one-time **clinical and fitness acknowledgement** is the lab one: same
-table, same safety family, same version. Accepting it once covers labs and sims
-("these labs are practice only" reads correctly for sim labs). Adding the
-sim line does not change the acknowledged text, so no version bump. The
-server refuses to start, resume, sync or grade a clinical or fitness sim
-without the acknowledgement (403, the lab message). The disclaimer stays
-on the intro and above the debrief, as for labs.
+The sim-specific point -- the patient's (client's, system's) responses come
+from a simplified teaching model written for exam practice, not a validated
+model of the real thing -- belongs in the study notice when sims ship (a
+meaning change: bump `STUDY_NOTICE_VERSION`, so everyone is asked once more).
 
 ### 11.4 Review workflow
 
-Every version is stored `needs_expert_review`, served (by default) with the
-"Awaiting expert review" badge and the "not reviewed" line. Review is
+Every version is stored `needs_expert_review` and served by default; since
+REQ-165 the review status is not shown to learners. Review is
 **not a gate on any rollout phase** (Nick, 2026-11-07: "Don't worry about
 the realism checks, just produce. I'll take care of it at my pace."). The
 mechanism exists so that review can happen whenever Nick chooses:

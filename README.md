@@ -62,7 +62,7 @@ Course objectives are written from published exam guides, standards and licensur
 **Hands-on labs**
 
 - **Build labs** (produce an artifact, such as an IAM policy, a work breakdown structure or an SBAR handoff) and **case labs** (a fictional case that unfolds over two to four steps). Every part is scored met, partly there or not yet, with the model answer beside yours, and a finished lab counts toward mastery.
-- Every lab shows a practice disclaimer before you start and with your results, and labs not yet reviewed by a subject-matter expert say "Awaiting expert review". The seed authors 80 labs today.
+- One study notice, accepted once at first launch, covers every lesson, question, lab, sim and the AI coach (practice material that may contain errors, not professional or clinical advice, not affiliated with any exam body, and what the AI features send to Anthropic). The seed authors 80 labs today.
 
 **AI coach with guardrails**
 

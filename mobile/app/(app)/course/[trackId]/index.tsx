@@ -21,9 +21,7 @@ import {
   SectionHeader,
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
-import { DisclaimerGate } from "@/components/DisclaimerGate";
 import { CoursePlanPanel } from "@/components/CoursePlanPanel";
-import { getDisclaimer } from "@/content/disclaimers";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
 import { nextCourseStep } from "@/lib/nextStep";
@@ -32,13 +30,6 @@ import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
 import { readinessLockedLine } from "@/lib/billing";
-
-interface AcknowledgementState {
-  required: boolean;
-  acknowledged: boolean;
-  disclaimerKey?: string | null;
-  disclaimerVersion?: number;
-}
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -62,7 +53,6 @@ export default function CourseDashboard() {
   const [exam, setExam] = useState<{ providerName?: string | null; credentialName?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [ack, setAck] = useState<AcknowledgementState | null>(null);
   // REQ-123: verifiable labs per unit; empty (and nothing shown) for a
   // course without labs or if the request fails.
   const [labCounts, setLabCounts] = useState<Record<string, number>>({});
@@ -109,14 +99,9 @@ export default function CourseDashboard() {
         setExam(res.exam ?? null);
       })
       .catch((err) => setError(err.message));
-    // Asked for separately so a course that needs no disclaimer -- which is
-    // most of them -- renders without waiting on this, and so a failure here
-    // cannot blank the dashboard. If it fails we show the course; the server
-    // still refuses to teach a gated one.
-    api
-      .get<AcknowledgementState>(`/api/courses/${trackId}/acknowledgement`)
-      .then(setAck)
-      .catch(() => setAck(null));
+    // REQ-165: no per-course disclaimer any more. The one study notice is
+    // asked at launch (app/(app)/notice.tsx) and the server requires it
+    // before teaching a clinical course.
     api
       .get<{ labs: LabListItem[] }>(`/api/labs?trackId=${encodeURIComponent(trackId)}`)
       .then((res) => setLabCounts(labCountsByUnit(res.labs)))
@@ -142,12 +127,6 @@ export default function CourseDashboard() {
   // (src/lib/progress.ts, backend/lib/readiness.ts).
   const readiness = readinessSummary(readinessData);
 
-  // The gate stands in for the whole dashboard rather than sitting above it:
-  // every action below would be refused by the server anyway, and offering
-  // buttons that 403 is worse than not offering them.
-  const pendingDisclaimer =
-    ack?.required && !ack.acknowledged ? getDisclaimer(ack.disclaimerKey) : null;
-
   return (
     <Screen>
       <Stack.Screen
@@ -165,18 +144,7 @@ export default function CourseDashboard() {
       {error ? <ErrorBanner message={error} onRetry={load} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
-      {track && pendingDisclaimer ? (
-        <>
-          <H1>{track.title}</H1>
-          <DisclaimerGate
-            trackId={trackId}
-            disclaimer={pendingDisclaimer}
-            onAccepted={() => setAck({ required: true, acknowledged: true })}
-          />
-        </>
-      ) : null}
-
-      {track && !pendingDisclaimer ? (
+      {track ? (
         <>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View style={{ flex: 1 }}>

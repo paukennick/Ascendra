@@ -1,6 +1,7 @@
 import { queryOne, withTransaction } from "@/lib/db";
 import { recordEvent } from "@/lib/events";
 import { termsState, type TermsState } from "@/lib/legal";
+import { studyNoticeState, type StudyNoticeState } from "@/lib/study-notice";
 
 // REQ-119 (Audit 3 product M2): the first-run flow for a brand-new learner
 // (pick a goal or "just exploring", optional exam date, optional placement,
@@ -55,8 +56,12 @@ export async function completeFirstRun(
 export interface OnboardingState {
   terms: TermsState;
   firstRun: FirstRunState;
+  // REQ-165: whether the learner has accepted the current study notice (the
+  // one disclaimer for all content plus the AI data disclosure). The app
+  // asks for it at launch, after the Terms and before first run.
+  notice: StudyNoticeState;
 }
 
 export async function onboardingState(userId: string): Promise<OnboardingState> {
-  return { terms: await termsState(userId), firstRun: await firstRunState(userId) };
+  return { terms: await termsState(userId), firstRun: await firstRunState(userId), notice: await studyNoticeState(userId) };
 }

@@ -36,9 +36,9 @@ const NCSBN_PROVIDER = {
 
 const VERIFIED_AT = "2026-09-18T00:00:00Z";
 
-// The disclaimer every nursing track points at. The wording lives in the app
-// (mobile/src/content/disclaimers.ts) so it can be corrected without a data
-// migration across every track that shares it.
+// The disclaimer key every nursing track carries. REQ-165: it only marks the
+// course as gated (it needs the study notice, mobile/src/lib/studyNotice.ts);
+// no per-course text is shown any more.
 const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 
 // ---------------------------------------------------------------------------

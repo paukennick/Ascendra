@@ -201,12 +201,11 @@ export default function LessonFlow() {
       .catch(() => {});
   }, []);
 
-  // REQ-096: the objective's optional hands-on lab text and the lab
-  // disclaimer shown with it, or null. From the lesson GET (beside `lesson`),
-  // so it survives a regenerate. The server leaves it out when the lab card's
-  // rules (plan, clinical / fitness acknowledgement) wouldn't show it.
+  // REQ-096: the objective's optional hands-on lab text, or null. From the
+  // lesson GET (beside `lesson`), so it survives a regenerate. The server
+  // leaves it out when the lab card's rules (plan, and for clinical / fitness
+  // the study notice, REQ-165) wouldn't show it.
   const [labPrompt, setLabPrompt] = useState<string | null>(null);
-  const [labDisclaimerLines, setLabDisclaimerLines] = useState<string[]>([]);
   const [labSaving, setLabSaving] = useState(false);
   const [labError, setLabError] = useState<string | null>(null);
 
@@ -219,14 +218,12 @@ export default function LessonFlow() {
         practicePending?: boolean;
         learnerHistory?: LearnerHistory | null;
         labPrompt?: string | null;
-        labDisclaimer?: { lines?: string[] } | null;
       }>(`/api/objectives/${objectiveId}/lesson`)
       .then((res) => {
         setLesson(res.lesson);
         setPracticePending(!!res.practicePending);
         setLearnerHistory(res.learnerHistory ?? null);
         setLabPrompt(normalizeLabPrompt(res.labPrompt));
-        setLabDisclaimerLines(Array.isArray(res.labDisclaimer?.lines) ? res.labDisclaimer!.lines! : []);
       })
       .catch((err) => setError(friendlyError(err)));
   }, [objectiveId]);
@@ -241,7 +238,6 @@ export default function LessonFlow() {
     setTeachState(EMPTY_TEACH);
     setLearnerHistory(null);
     setLabPrompt(null);
-    setLabDisclaimerLines([]);
     setLabSaving(false);
     setLabError(null);
     setNext(null);
@@ -732,7 +728,6 @@ export default function LessonFlow() {
       {step === "lab" && labPrompt ? (
         <LabStep
           prompt={labPrompt}
-          disclaimer={labDisclaimerLines}
           saving={labSaving}
           error={labError}
           onSkip={() => setStep("done")}
@@ -941,19 +936,17 @@ function StepHeader({ step, steps, guidedSkipped }: { step: Step; steps: Progres
 
 // REQ-096: the optional hands-on lab. Nothing here is graded or checked --
 // the note says so plainly, and "I did it" is only a record that the learner
-// did it. Merged 2026-11-07: the lab disclaimer (REQ-125) is shown with it,
-// as on every lab. One calm card, one primary action; Skip is the quieter
+// did it. REQ-165: no per-lab disclaimer (the study notice covers labs).
+// One calm card, one primary action; Skip is the quieter
 // ghost button, and no motion beyond the buttons' own press feedback.
 function LabStep({
   prompt,
-  disclaimer,
   saving,
   error,
   onSkip,
   onDid,
 }: {
   prompt: string;
-  disclaimer: string[];
   saving: boolean;
   error: string | null;
   onSkip: () => void;
@@ -964,11 +957,6 @@ function LabStep({
       <SectionHeader label="Try it yourself · optional" style={{ marginTop: 0, marginBottom: 0 }} />
       <Body>{prompt}</Body>
       <Muted style={{ fontSize: 12 }}>Your mastery won't change. This is practice the app can't check.</Muted>
-      {disclaimer.map((line, i) => (
-        <Muted key={i} style={{ fontSize: 12 }}>
-          {line}
-        </Muted>
-      ))}
       {error ? <ErrorBanner message={error} /> : null}
       <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
         <Button label="I did it" icon="check" fullWidth={false} loading={saving} onPress={onDid} />

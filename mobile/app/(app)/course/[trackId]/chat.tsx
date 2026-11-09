@@ -11,6 +11,8 @@ import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/com
 import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ReportCoachReply } from "@/components/ReportCoachReply";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -35,6 +37,11 @@ export default function ChatScreen() {
   // same text again after a failure reuses it, so if the first request did
   // reach the server the stored reply comes back instead of a duplicate.
   const pendingRef = useRef<{ id: string; text: string } | null>(null);
+  // REQ-165: the coach reply being reported, if any (index into messages).
+  const [reporting, setReporting] = useState<number | null>(null);
+  // REQ-165: edge-to-edge (Android 15+ targets, enforced at API 36) draws
+  // under the navigation bar; keep the message box above it.
+  const insets = useSafeAreaInsets();
 
   // REQ-131: an unsent message survives leaving the screen. Per user and
   // course; a prefill from the lesson shortcut wins over an older draft, and
@@ -97,7 +104,7 @@ export default function ChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={{ padding: spacing.lg, gap: spacing.xs, flex: 1 }}>
+      <View style={{ padding: spacing.lg, paddingBottom: spacing.lg + insets.bottom, gap: spacing.xs, flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <View style={styles.headerIcon}>
             <Feather name="message-circle" size={16} color={colors.accent} />
@@ -105,6 +112,7 @@ export default function ChatScreen() {
           <View>
             <H1 style={{ fontSize: 19 }}>Ask the coach</H1>
             <Muted>{trackTitle ? `${trackTitle} · ` : ""}Open Q&A — not graded, doesn't touch mastery</Muted>
+            <Muted style={{ fontSize: 12 }}>Replies are written by AI and can be wrong. Report one with the flag under it.</Muted>
           </View>
         </View>
         {/* REQ-110: the coach quizzes the learner on their weakest objectives. */}
@@ -146,7 +154,7 @@ export default function ChatScreen() {
                 </View>
               ) : null
             }
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <View
                 style={[
                   styles.bubble,
@@ -154,11 +162,32 @@ export default function ChatScreen() {
                 ]}
               >
                 <Body style={item.role === "user" ? { color: colors.accentText } : undefined}>{item.content}</Body>
+                {item.role === "assistant" ? (
+                  <Pressable
+                    onPress={() => setReporting(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Report this reply"
+                    hitSlop={12}
+                    style={styles.reportLink}
+                  >
+                    <Feather name="flag" size={12} color={colors.mutedDim} />
+                    <Muted style={{ fontSize: 12 }}>Report</Muted>
+                  </Pressable>
+                ) : null}
               </View>
             )}
           />
         )}
 
+        {reporting !== null && messages?.[reporting]?.role === "assistant" ? (
+          <ReportCoachReply
+            key={reporting}
+            trackId={trackId}
+            trackTitle={trackTitle}
+            reply={messages[reporting].content}
+            onClose={() => setReporting(null)}
+          />
+        ) : null}
         {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
         <View style={styles.inputBar}>
           <TextInput
@@ -228,6 +257,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     borderBottomLeftRadius: 4,
   },
+  reportLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", marginTop: 6 },
   inputBar: {
     flexDirection: "row",
     gap: spacing.sm,
