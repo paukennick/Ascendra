@@ -40,6 +40,10 @@ import { AZ104_LABS } from "./microsoft-az104";
 import { AZ305_LABS } from "./microsoft-az305";
 import { AZ400_LABS } from "./microsoft-az400";
 import { AZ700_LABS } from "./microsoft-az700";
+import { AZ120_LABS } from "./microsoft-az120";
+import { AZ140_LABS } from "./microsoft-az140";
+import { DP900_LABS } from "./microsoft-dp900";
+import { DP300_LABS } from "./microsoft-dp300";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -86,4 +90,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   AZ305_LABS,
   AZ400_LABS,
   AZ700_LABS,
+  AZ120_LABS,
+  AZ140_LABS,
+  DP900_LABS,
+  DP300_LABS,
 ].map(withValueSources);
