@@ -292,7 +292,8 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     // REQ-158: Google Cloud DBE/GAIL/MLE/PDE/SEC and CompTIA Cloud+/CloudNetX.
     // REQ-151: ABPTS OCS, GCS, NCS and CCS (ECS to follow).
     // REQ-152: the five ABPTS specialist courses of wave B.
-    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS", "GCPDBE", "GCPGAIL", "GCPMLE", "GCPPDE", "GCPSEC", "CLOUDPLUS", "CLOUDNETX", "ABPTSOCS", "ABPTSGCS", "ABPTSNCS", "ABPTSCCS", "ABPTSONC", "ABPTSPCS", "ABPTSPWCS", "ABPTSSCS", "ABPTSWMS"]) {
+    // REQ-161: the programming, informatics and academic courses too.
+    for (const code of ["AWSSAA", "PMP", "NCLEXRN", "NASMCPT", "CCRNADULT", "CCRNPEDS", "CCRNNEO", "AWSCLF", "AWSAIF", "AWSDVA", "AWSSOA", "AWSSAP", "AWSANS", "AWSDEA", "AWSDOP", "AWSMLA", "AWSSCS", "AZ900", "AZ104", "AZ305", "AZ400", "AZ700", "AZ120", "AZ140", "DP900", "DP300", "GCPCDL", "GCPACE", "GCPPCA", "GCPDEV", "GCPDEVOPS", "GCPDBE", "GCPGAIL", "GCPMLE", "GCPPDE", "GCPSEC", "CLOUDPLUS", "CLOUDNETX", "ABPTSOCS", "ABPTSGCS", "ABPTSNCS", "ABPTSCCS", "ABPTSONC", "ABPTSPCS", "ABPTSPWCS", "ABPTSSCS", "ABPTSWMS", "PYTHON", "JAVASCRIPT", "MSHI", "MSCS"]) {
       const t = tracks.get(code)!;
       const units = activeUnits(t);
       const plan: PlanTrack = {
@@ -304,6 +305,23 @@ describe("authored pilot content (supabase/seed/labs)", () => {
       const set = LAB_SETS.find((s) => s.trackCode === code)!;
       const got = units.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
       assert.deepEqual(got, want, code);
+    }
+  });
+  // REQ-161: CMPCBS is a degree plan. Its course units (titled with a course
+  // code) follow the hybrid plan; its advising units (elective blocks, free
+  // electives, graduation checklist) have no skill to practise and get none.
+  test("CMPCBS course units follow the hybrid density; advising units have no lab", () => {
+    const t = tracks.get("CMPCBS")!;
+    const set = LAB_SETS.find((s) => s.trackCode === "CMPCBS")!;
+    const units = activeUnits(t);
+    const isCourse = (title: string) => /^[A-Z]{4} \d{3}:/.test(title);
+    const course = units.filter((u) => isCourse(u.title));
+    assert.ok(course.length >= 20, "course units found");
+    const want = unitPlan({ code: "CMPCBS", family: "general", units: course.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })) }, "hybrid");
+    const got = course.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
+    assert.deepEqual(got, want, "course units");
+    for (const u of units.filter((u) => !isCourse(u.title))) {
+      assert.equal(set.labs.filter((l) => u.objectives.includes(l.objective)).length, 0, u.title);
     }
   });
 });
