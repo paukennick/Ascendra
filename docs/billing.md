@@ -417,6 +417,161 @@ gates are on the server). The Settings > Access screen and the "Unrestricted
 access" plan line need the new app: on the web on the next deploy, on
 phones with the next app update. Until then Nick can grant with the CLI.
 
+## Verified discounts (REQ-166)
+
+Published group discounts for people a third party has verified: military
+and veterans, first responders, nurses and students (Nick's approved groups,
+2026-11-09), plus teachers, configurable and **off** by default. Built and
+off, like everything else on this page.
+
+Nick's rules:
+
+- **Published, never personal.** Each group has one percentage, the same for
+  everyone in it (`DISCOUNT_PERCENT_<GROUP>`). Nothing is priced per person,
+  and there is no failure or retake discount.
+- **Personal plans.** A verified discount covers a personal plan for the
+  learner's own study. The teacher group says so in its copy and terms
+  ("for your own study and professional development; it doesn't cover using
+  Ascendra with a class or a school"), and wherever teachers are offered the
+  page shows "Using Ascendra with a class? Contact us" pointing at
+  `SUPPORT_EMAIL`. Class or school use is a separate arrangement and isn't built.
+- **No stacking.** A learner gets one discount: the largest among their live
+  verifications. On the web a verified coupon replaces the promotion-code box
+  at Stripe Checkout (Stripe takes one or the other), so a promo code such as
+  a future founding-member offer can't be added on top. On Google Play one
+  offer is bought, and on the App Store one offer code is redeemed per
+  subscription.
+- **The full AI cap.** A discounted learner keeps their plan's whole monthly
+  AI cap. The cap is set per tier from the list price (`monthlyAiCapUsd`,
+  above), and nothing in it reads what the learner paid. A unit test
+  (`lib/verified-discounts-config.test.ts`) pins this.
+
+### When it is on
+
+All of these must hold, or the app shows nothing about discounts and
+`GET /api/discounts` answers only `{ "available": false }`:
+
+1. `BILLING_ENABLED` is on.
+2. `VERIFIED_DISCOUNTS_ENABLED` is on.
+3. A verification provider is configured. **None is wired in by REQ-166**: the
+   provider registry in `backend/lib/discount-providers.ts` is empty. ID.me
+   comes with REQ-167 (its own PR, stacked on this one).
+4. At least one enabled group has a published percentage.
+
+### What is checked and what is kept
+
+The learner signs in with the verification provider, not with us, and the
+provider confirms the group. We keep **only the result** in
+`verified_discounts` (migration 058): account, group, provider, verified at,
+expires at, and the provider's opaque subject id. The subject id stops one
+verification being used on many accounts: a second account with the same
+identity and group gets "already linked to another Ascendra account". There
+are no documents, names, birth dates, service or licence numbers, and no
+provider tokens. A verification lasts `VERIFIED_DISCOUNT_VALID_DAYS`
+(default 365), or less if the provider gives an earlier end. The learner can
+remove it at any time (Settings > Verified discount > Remove). Deleting the
+account deletes it, and the account export includes it (`verifiedDiscounts`,
+plus any App Store codes handed out, `discountOfferCodes`).
+
+The round trip (`backend/lib/discount-providers.ts`): `POST
+/api/discounts/verify { group, client }` signs a 15-minute state (account,
+group, provider, app or web) with a key derived from `AUTH_JWT_SECRET`,
+derives a PKCE (Proof Key for Code Exchange) verifier from it, and answers
+the provider's URL. The provider's callback route checks the state, exchanges
+the code and stores the result. It then redirects to a fixed address
+(`preplms://settings/discount` or `<BILLING_WEB_RETURN_URL>/settings/discount`),
+never to one taken from the request.
+
+### How the discount is applied
+
+| Where | How | What Nick sets up |
+|---|---|---|
+| Web (Stripe) | `POST /api/billing/checkout` adds the group's coupon (`discounts[0][coupon]`) in place of the promotion-code box | One coupon per group (below), id in `STRIPE_COUPON_<GROUP>` |
+| Google Play | The plans screen buys the base plan's **developer-determined offer** for the group (RevenueCat `purchaseSubscriptionOption`); with no such offer the regular price is bought | One offer per group on each of the six base plans (below) |
+| App Store | The discount page hands the learner a **one-time offer code** for the plan they pick, from a pool Nick uploads; the app opens Apple's redemption sheet (or the redemption link) | Offer codes per group and product, uploaded with `npm run discounts:codes` |
+
+Google Play promo codes can't carry a percentage off a subscription (Google:
+"Promo codes offer free trials to subscriptions and not free subscriptions"),
+so Play uses developer-determined offers instead. Their eligibility is
+decided by the app ("You solely decide the business logic and determine
+eligibility in your app"), and they can't be bought outside it. The app only
+picks the offer when the server says the learner has a live verification.
+Residual risk: a modified app could pick the offer without one. Google
+doesn't check, so watch the Play offer's sales against
+`verified_discounts`.
+
+App Store codes can't be revoked once handed out. A learner who asks twice
+for the same plan gets the same unexpired code, and the pool hands out
+codes with at least a day left, earliest expiry first.
+
+Routes: `GET /api/discounts` (status, groups, what's checked and kept,
+terms), `POST /api/discounts/verify`, `POST /api/discounts/offer-code
+{ planId }`, `DELETE /api/discounts/verifications`. In the app:
+`mobile/app/(app)/settings/discount.tsx`, a "Verify for a discount" link on
+the plans screen and a "Verified discount" row in Settings > Plan, all shown
+only while the server says discounts are available.
+
+### Environment variables
+
+| Variable | What |
+|---|---|
+| `VERIFIED_DISCOUNTS_ENABLED` | The switch (off unless set to something other than `0`/`false`/`off`/`no`). |
+| `VERIFIED_DISCOUNT_GROUPS` | Comma list replacing the default set `military,responder,nurse,student`. Add `teacher` to offer teachers. |
+| `DISCOUNT_PERCENT_<GROUP>` | The published percentage, a whole number 1-90. **No default**: a group without one isn't offered. Nick hasn't set them yet (likely a flat 20%). It must match the Stripe coupon and the store offers. |
+| `STRIPE_COUPON_<GROUP>` | The Stripe coupon id for the group. Without it, web checkout charges the regular price and the page says the discount is app-only. |
+| `PLAY_OFFER_<GROUP>` | The Play offer id (default `verified-<group>`). |
+| `APP_STORE_OFFER_REDEEM_URL` | App Store Connect's example redemption link with the code left off (optional; the app opens Apple's redemption sheet first). |
+| `VERIFIED_DISCOUNT_VALID_DAYS` | Default 365. |
+| `SUPPORT_EMAIL` | Already used for support mail; also the "Using Ascendra with a class?" contact. |
+
+`npm run discounts:codes -- --config` reports which of these are set (never
+their values) and which groups are on offer.
+
+### Owner setup (Nick)
+
+1. **Decide the percentages** and set `DISCOUNT_PERCENT_<GROUP>` for each
+   group you offer.
+2. **Stripe** (Products > Coupons): one coupon per group, *Percentage
+   discount* equal to the published percentage, duration *Repeating, 12
+   months*. That matches the yearly re-verification, so a lapsed
+   verification doesn't keep a discount forever. Put each coupon id in
+   `STRIPE_COUPON_<GROUP>`. Don't make these promotion codes: they are
+   applied by the server, never typed.
+3. **Google Play Console** (each subscription > each base plan > Add offer):
+   on all six base plans, one offer per group with offer id
+   `verified-<group>` (e.g. `verified-military`), eligibility *Developer
+   determined*, and one phase *Discounted recurring payment* at the published
+   percentage for as many periods as a year (12 monthly, 4 three-month, 1
+   yearly). Activate them. RevenueCat reads them as `<base plan>:<offer id>`
+   options.
+4. **App Store Connect** (the app > Subscriptions > each subscription >
+   Subscription Prices > Offer Codes): per product and group, an offer code
+   offer of type *Pay as you go* at the discounted price for a year of
+   periods, eligibility new, existing and expired subscribers, then
+   *Create One-Time Use Codes* (500 to 25,000 per batch, up to 1 million a
+   quarter per app, each batch expiring at most six months out). Download
+   the CSV and load it:
+   ```sh
+   cd backend
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01 --dry-run
+   npm run discounts:codes -- --import codes.csv --group military --product ascendra.pro.yearly --expires 2027-05-01
+   npm run discounts:codes -- --status    # free / issued per group and product, next expiry
+   ```
+   Refill before a batch expires. Optionally copy the offer's example
+   redemption link (without a code) into `APP_STORE_OFFER_REDEEM_URL`. The
+   app must be *Ready for Sale* for codes to redeem, and new codes can take
+   up to an hour to work.
+5. **The provider**: see REQ-167 (ID.me). Until a provider is configured
+   nothing is shown.
+6. Apply migration 058 (routine deploy), then set
+   `VERIFIED_DISCOUNTS_ENABLED=true` and redeploy. Check with
+   `npm run discounts:codes -- --config`.
+
+Sources (checked 2026-11-09): Apple, [Set up offer codes](https://developer.apple.com/help/app-store-connect/manage-subscriptions/set-up-subscription-offer-codes/);
+Google, [Promo codes](https://developer.android.com/google/play/billing/promo)
+and [Understanding subscriptions](https://support.google.com/googleplay/android-developer/answer/12154973)
+(offer eligibility and phases).
+
 ## Turning it on
 
 1. Apply migration 049 (`npm run migrate -- --all`; see
@@ -457,5 +612,8 @@ phones with the next app update. Until then Nick can grant with the CLI.
       suggests it).
 - [ ] Sales tax / VAT handling (Stripe Tax for the web; the stores handle
       theirs).
+- [ ] Verified discounts (REQ-166): set the percentages, the Stripe coupons,
+      the Play offers and the App Store code pool, and a provider (REQ-167),
+      before `VERIFIED_DISCOUNTS_ENABLED` ("Verified discounts" above).
 - [ ] Watch real AI spend for a month (`npm run metrics`, `ai_calls`) and tune
       the caps and allowances.
