@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-149: ACSM Certified Personal Trainer (ACSMCPT), authored to the depth
 // of the NASM-CPT pilot (REQ-123) in ACSM's own framework: the
@@ -46,14 +47,17 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ACSMCPT_LABS: SeedLabSet = {
   trackCode: "ACSMCPT",
+  // REQ-142: dated by the backfill rule (the day git history shows the line
+  // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
+  // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    "https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf",
-    "https://acsm.org/acsm-certified-personal-trainer-exam-content-outline",
-    "https://acsm.org/certification-exam-2025-getp12/",
-    "https://digitalcommons.uri.edu/kinesiology_facpubs/180",
-    "https://www.unm.edu/~lkravitz/Article%20folder/ACSMGuidelinesUNM.pdf",
-    "https://stacks.cdc.gov/view/cdc/121857",
-    "https://www.eurekalert.org/news-releases/1094543",
+    source("https://acsm.org/wp-content/uploads/2024/12/ACSM-Certified-Personal-Trainer-Exam-Content-Outline.pdf", "exam_outline", "2026-11-07"),
+    source("https://acsm.org/acsm-certified-personal-trainer-exam-content-outline", "exam_outline", "2026-11-07"),
+    source("https://acsm.org/certification-exam-2025-getp12/", "clinical_guideline", "2026-11-07"),
+    source("https://digitalcommons.uri.edu/kinesiology_facpubs/180", "reference", "2026-11-07"),
+    source("https://www.unm.edu/~lkravitz/Article%20folder/ACSMGuidelinesUNM.pdf", "reference", "2026-11-07"),
+    source("https://stacks.cdc.gov/view/cdc/121857", "reference", "2026-11-07"),
+    source("https://www.eurekalert.org/news-releases/1094543", "reference", "2026-11-07"),
   ],
   labs: [
     // -----------------------------------------------------------------------

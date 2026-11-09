@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Certified Kubernetes Security Specialist (CKS), curriculum v1.37.
 //
@@ -19,11 +20,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CKS_LABS: SeedLabSet = {
   trackCode: "CKS",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKS_Curriculum%20v1.37.pdf",
-    "https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/",
-    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
-    "https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/",
-    "https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKS_Curriculum%20v1.37.pdf", "exam_outline", "2026-11-07"),
+    source("https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/", "exam_outline", "2026-11-07"),
+    source("https://kubernetes.io/docs/concepts/security/pod-security-standards/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------- 15%

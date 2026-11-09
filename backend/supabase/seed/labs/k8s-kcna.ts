@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Kubernetes and Cloud Native Associate (KCNA).
 //
@@ -18,10 +19,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const KCNA_LABS: SeedLabSet = {
   trackCode: "KCNA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/KCNA_Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
-    "https://kubernetes.io/docs/concepts/overview/components/",
-    "https://github.com/cncf/toc/blob/main/process/README.md",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/KCNA_Curriculum.pdf", "exam_outline", "2026-11-07"),
+    source("https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/", "exam_outline", "2026-11-07"),
+    source("https://kubernetes.io/docs/concepts/overview/components/", "reference", "2026-11-07"),
+    source("https://github.com/cncf/toc/blob/main/process/README.md", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------- 44%

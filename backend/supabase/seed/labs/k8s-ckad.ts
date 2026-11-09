@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Certified Kubernetes Application Developer (CKAD), curriculum v1.37.
 //
@@ -17,10 +18,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CKAD_LABS: SeedLabSet = {
   trackCode: "CKAD",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf",
-    "https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/",
-    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
-    "https://kubernetes.io/docs/reference/using-api/deprecation-guide/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKAD_Curriculum_v1.37.pdf", "exam_outline", "2026-11-07"),
+    source("https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/", "exam_outline", "2026-11-07"),
+    source("https://kubernetes.io/docs/concepts/security/pod-security-standards/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/reference/using-api/deprecation-guide/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------- 20%

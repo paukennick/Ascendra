@@ -1,4 +1,5 @@
 import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-149: ACE Certified Personal Trainer (ACECPT), authored to the depth of
 // the NASM-CPT pilot (REQ-123) but in ACE's own model and vocabulary: the
@@ -40,14 +41,17 @@ import { FITNESS_SAFETY, part, type SeedLabSet } from "./types";
 
 export const ACECPT_LABS: SeedLabSet = {
   trackCode: "ACECPT",
+  // REQ-142: dated by the backfill rule (the day git history shows the line
+  // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
+  // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    "https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf",
-    "https://www.acefitness.org/about-ace/our-efforts/blog/8388/updated-exam-content-outline-for-ace-personal-trainer-certification/",
-    "https://www.acefitness.org/continuing-education/certified/february-2021/7780/how-to-design-body-weight-training-workouts-using-the-ace-integrated-fitness-training-model/",
-    "https://www.acefitness.org/education-and-resources/professional/expert-articles/7531/implementing-the-ace-mover-method-using-the-ace-abc-approach",
-    "https://digitalcommons.uri.edu/kinesiology_facpubs/180",
-    "https://read.qxmd.com/read/32217980/physical-activity-and-exercise-during-pregnancy-and-the-postpartum-period-acog-committee-opinion-number-804",
-    "https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf",
+    source("https://contentcdn.eacefitness.com/assets/certification/pdfs/CPT-Exam-Content-Outline.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.acefitness.org/about-ace/our-efforts/blog/8388/updated-exam-content-outline-for-ace-personal-trainer-certification/", "exam_outline", "2026-11-07"),
+    source("https://www.acefitness.org/continuing-education/certified/february-2021/7780/how-to-design-body-weight-training-workouts-using-the-ace-integrated-fitness-training-model/", "reference", "2026-11-07"),
+    source("https://www.acefitness.org/education-and-resources/professional/expert-articles/7531/implementing-the-ace-mover-method-using-the-ace-abc-approach", "reference", "2026-11-07"),
+    source("https://digitalcommons.uri.edu/kinesiology_facpubs/180", "reference", "2026-11-07"),
+    source("https://read.qxmd.com/read/32217980/physical-activity-and-exercise-during-pregnancy-and-the-postpartum-period-acog-committee-opinion-number-804", "clinical_guideline", "2026-11-07"),
+    source("https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf", "clinical_guideline", "2026-11-07"),
   ],
   labs: [
     // -----------------------------------------------------------------------

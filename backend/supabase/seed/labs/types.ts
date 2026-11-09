@@ -1,4 +1,5 @@
 // REQ-123: authored lab content for the seed (migration 050 `labs`).
+import type { SourceRef } from "../sources";
 //
 // A lab names its objective by the objective's exact title in the track, so
 // re-ordering objectives cannot silently move a lab; the seed test fails if a
@@ -28,12 +29,23 @@ export interface SeedLab {
   brief: string;
   safetyNote?: string;
   steps: SeedLabStep[];
+  // REQ-142: what the lab's own clinical or fitness values rest on (a
+  // guideline, a consensus statement, the certifying body's own material),
+  // on top of the set's exam outline. Stored with the set's URLs in
+  // labs.sources; the dates stay here for npm run currency:report.
+  sources?: SourceRef[];
+  // REQ-142: for a clinical or fitness lab that cites no such source, why
+  // (it quotes no threshold or dose, or the source could not be verified).
+  // lib/labs.test.ts requires one or the other on every NCLEX, CCRN and NASM
+  // lab, so a new lab cannot quote a value without deciding where it comes from.
+  noValueSource?: string;
 }
 
 export interface SeedLabSet {
   trackCode: string;
-  // Exam outline(s) the labs are aligned to.
-  sources: string[];
+  // Exam outline(s) the labs are aligned to, with checked / re-check dates
+  // (REQ-142, seed/sources.ts). The database keeps the URLs only.
+  sources: SourceRef[];
   labs: SeedLab[];
 }
 

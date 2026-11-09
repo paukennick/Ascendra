@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: OpenTelemetry Certified Associate (OTCA).
 //
@@ -16,10 +17,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const OTCA_LABS: SeedLabSet = {
   trackCode: "OTCA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/OTCA_Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
-    "https://opentelemetry.io/docs/specs/otel/",
-    "https://opentelemetry.io/docs/collector/configuration/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/OTCA_Curriculum.pdf", "exam_outline", "2026-11-08"),
+    source("https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/", "exam_outline", "2026-11-08"),
+    source("https://opentelemetry.io/docs/specs/otel/", "reference", "2026-11-08"),
+    source("https://opentelemetry.io/docs/collector/configuration/", "reference", "2026-11-08"),
   ],
   labs: [
     // ----------------------------------------------------------------- 18%

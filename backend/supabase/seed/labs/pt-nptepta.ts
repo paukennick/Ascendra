@@ -1,4 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-147: NPTE-PTA (FSBPT, physical therapist assistant licensure
 // examination).
@@ -46,17 +47,17 @@ import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
 export const NPTEPTA_LABS: SeedLabSet = {
   trackCode: "NPTEPTA",
   sources: [
-    "https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf",
-    "https://www.fsbpt.org/Free-Resources/NPTE-Development/NPTE-Content",
-    "https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf",
-    "https://www.capteonline.org/globalassets/capte-docs/2024-capte-pta-standards-required-elements.pdf",
-    "https://doi.org/10.1093/ptj/pzag058",
-    "https://doi.org/10.1093/ptj/pzab302",
-    "https://doi.org/10.1093/ptj/pzaa087",
-    "https://doi.org/10.1007/s10741-023-10310-9",
-    "https://pva.org/wp-content/uploads/2021/09/CPG_Autonomic-Dysreflexia_2025_digital_03.26-.pdf",
-    "https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf",
-    "https://www.sralab.org/sites/default/files/downloads/2023-03/Berg%20Balance%20Scale.INFOGRAPHIC.pdf",
+    source("https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PTA-Test-Content-Outline-Bullets.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.fsbpt.org/Free-Resources/NPTE-Development/NPTE-Content", "exam_outline", "2026-11-07"),
+    source("https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf", "reference", "2026-11-07"),
+    source("https://www.capteonline.org/globalassets/capte-docs/2024-capte-pta-standards-required-elements.pdf", "exam_outline", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzag058", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzab302", "reference", "2026-11-07"),
+    source("https://doi.org/10.1093/ptj/pzaa087", "reference", "2026-11-07"),
+    source("https://doi.org/10.1007/s10741-023-10310-9", "reference", "2026-11-07"),
+    source("https://pva.org/wp-content/uploads/2021/09/CPG_Autonomic-Dysreflexia_2025_digital_03.26-.pdf", "reference", "2026-11-07"),
+    source("https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf", "reference", "2026-11-07"),
+    source("https://www.sralab.org/sites/default/files/downloads/2023-03/Berg%20Balance%20Scale.INFOGRAPHIC.pdf", "reference", "2026-11-07"),
   ],
   labs: [
     // ---------------------------------------------------------------- Musculoskeletal (3)

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Certified Kubernetes Administrator (CKA), curriculum v1.37.
 //
@@ -22,10 +23,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CKA_LABS: SeedLabSet = {
   trackCode: "CKA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf",
-    "https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/",
-    "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
-    "https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CKA_Curriculum_v1.37.pdf", "exam_outline", "2026-11-07"),
+    source("https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/", "exam_outline", "2026-11-07"),
+    source("https://kubernetes.io/docs/reference/access-authn-authz/rbac/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------- 25%

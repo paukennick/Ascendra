@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Docker Certified Associate (DCA), Study Guide v1.5 (January 2025).
 //
@@ -17,10 +18,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const DCA_LABS: SeedLabSet = {
   trackCode: "DCA",
   sources: [
-    "https://a.storyblok.com/f/146871/x/2001ce939c/docker-study-guide_v1-5-jan-2025.pdf",
-    "https://store.mirantis.com/product/docker-certified-associate-dca/",
-    "https://docs.docker.com/engine/swarm/",
-    "https://docs.docker.com/engine/security/trust/",
+    source("https://a.storyblok.com/f/146871/x/2001ce939c/docker-study-guide_v1-5-jan-2025.pdf", "exam_outline", "2026-11-08"),
+    source("https://store.mirantis.com/product/docker-certified-associate-dca/", "exam_outline", "2026-11-08"),
+    source("https://docs.docker.com/engine/swarm/", "reference", "2026-11-08"),
+    source("https://docs.docker.com/engine/security/trust/", "reference", "2026-11-08"),
   ],
   labs: [
     // ----------------------------------------------------------------- 25%

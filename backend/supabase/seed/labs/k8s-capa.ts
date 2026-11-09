@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Certified Argo Project Associate (CAPA).
 //
@@ -16,11 +17,11 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CAPA_LABS: SeedLabSet = {
   trackCode: "CAPA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CAPA_Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/certified-argo-project-associate-capa/",
-    "https://argo-workflows.readthedocs.io/en/latest/",
-    "https://argo-cd.readthedocs.io/en/stable/",
-    "https://argo-rollouts.readthedocs.io/en/stable/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CAPA_Curriculum.pdf", "exam_outline", "2026-11-08"),
+    source("https://training.linuxfoundation.org/certification/certified-argo-project-associate-capa/", "exam_outline", "2026-11-08"),
+    source("https://argo-workflows.readthedocs.io/en/latest/", "reference", "2026-11-08"),
+    source("https://argo-cd.readthedocs.io/en/stable/", "reference", "2026-11-08"),
+    source("https://argo-rollouts.readthedocs.io/en/stable/", "reference", "2026-11-08"),
   ],
   labs: [
     // ----------------------------------------------------------------- 36%

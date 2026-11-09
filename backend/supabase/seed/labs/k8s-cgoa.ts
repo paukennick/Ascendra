@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Certified GitOps Associate (CGOA).
 //
@@ -16,10 +17,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const CGOA_LABS: SeedLabSet = {
   trackCode: "CGOA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CGOA_Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/certified-gitops-associate-cgoa/",
-    "https://opengitops.dev/",
-    "https://github.com/open-gitops/documents/blob/main/PRINCIPLES.md",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/CGOA_Curriculum.pdf", "exam_outline", "2026-11-08"),
+    source("https://training.linuxfoundation.org/certification/certified-gitops-associate-cgoa/", "exam_outline", "2026-11-08"),
+    source("https://opengitops.dev/", "reference", "2026-11-08"),
+    source("https://github.com/open-gitops/documents/blob/main/PRINCIPLES.md", "reference", "2026-11-08"),
   ],
   labs: [
     // ----------------------------------------------------------------- 20%

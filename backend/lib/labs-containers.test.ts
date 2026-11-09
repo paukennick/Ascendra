@@ -160,17 +160,17 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
       const set = LAB_SETS.find((s) => s.trackCode === code);
       assert.ok(set, `${code} has labs`);
       if (code === "DCA") {
-        assert.ok(set!.sources.some((s) => s.includes("docker-study-guide_v1-5")), `${code} cites the v1.5 study guide`);
-        assert.ok(set!.sources.some((s) => s.includes("store.mirantis.com")), `${code} cites Mirantis's listing`);
+        assert.ok(set!.sources.some((s) => s.url.includes("docker-study-guide_v1-5")), `${code} cites the v1.5 study guide`);
+        assert.ok(set!.sources.some((s) => s.url.includes("store.mirantis.com")), `${code} cites Mirantis's listing`);
       } else if (code in TOOLING) {
-        assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
-        assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
+        assert.ok(set!.sources.some((s) => s.url.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
+        assert.ok(set!.sources.some((s) => s.url.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
         assert.ok(set!.sources.length >= 3, `${code} cites the project's documentation`);
       } else {
-        assert.ok(set!.sources.some((s) => s.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
-        assert.ok(set!.sources.some((s) => s.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
+        assert.ok(set!.sources.some((s) => s.url.includes("github.com/cncf/curriculum")), `${code} cites the CNCF curriculum`);
+        assert.ok(set!.sources.some((s) => s.url.includes("training.linuxfoundation.org")), `${code} cites the exam page`);
       }
-      assert.ok(set!.sources.every((s) => s.startsWith("https://")), code);
+      assert.ok(set!.sources.every((s) => s.url.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(s.checkedAt)), `${code}: dated https sources`);
     }
   });
 

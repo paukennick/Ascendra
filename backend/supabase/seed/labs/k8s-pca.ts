@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Prometheus Certified Associate (PCA).
 //
@@ -16,10 +17,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const PCA_LABS: SeedLabSet = {
   trackCode: "PCA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/PCA_Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/prometheus-certified-associate/",
-    "https://prometheus.io/docs/prometheus/latest/querying/basics/",
-    "https://prometheus.io/docs/alerting/latest/configuration/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/PCA_Curriculum.pdf", "exam_outline", "2026-11-08"),
+    source("https://training.linuxfoundation.org/certification/prometheus-certified-associate/", "exam_outline", "2026-11-08"),
+    source("https://prometheus.io/docs/prometheus/latest/querying/basics/", "reference", "2026-11-08"),
+    source("https://prometheus.io/docs/alerting/latest/configuration/", "reference", "2026-11-08"),
   ],
   labs: [
     // ----------------------------------------------------------------- 28%

@@ -1,4 +1,5 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { source } from "../sources";
 
 // REQ-164: Kubernetes and Cloud Native Security Associate (KCSA).
 //
@@ -20,10 +21,10 @@ import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 export const KCSA_LABS: SeedLabSet = {
   trackCode: "KCSA",
   sources: [
-    "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/KCSA%20Curriculum.pdf",
-    "https://training.linuxfoundation.org/certification/kubernetes-and-cloud-native-security-associate-kcsa/",
-    "https://kubernetes.io/docs/concepts/security/cloud-native-security/",
-    "https://kubernetes.io/docs/concepts/security/pod-security-admission/",
+    source("https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5724c2bec7b88404e5a6b/KCSA%20Curriculum.pdf", "exam_outline", "2026-11-07"),
+    source("https://training.linuxfoundation.org/certification/kubernetes-and-cloud-native-security-associate-kcsa/", "exam_outline", "2026-11-07"),
+    source("https://kubernetes.io/docs/concepts/security/cloud-native-security/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/docs/concepts/security/pod-security-admission/", "reference", "2026-11-07"),
   ],
   labs: [
     // ----------------------------------------------------------------- 14%

@@ -23,5 +23,35 @@ import { PCA_LABS } from "./k8s-pca";
 import { OTCA_LABS } from "./k8s-otca";
 import { CGOA_LABS } from "./k8s-cgoa";
 import { CAPA_LABS } from "./k8s-capa";
+import { withValueSources } from "./value-sources";
 
-export const LAB_SETS: readonly SeedLabSet[] = [AWSSAA_LABS, PMP_LABS, NCLEXRN_LABS, NASMCPT_LABS, CCRNADULT_LABS, CCRNPEDS_LABS, CCRNNEO_LABS, ACECPT_LABS, ACSMCPT_LABS, NSCACPT_LABS, NSCACSCS_LABS, NCCPTCPT_LABS, NPTEPT_LABS, NPTEPTA_LABS, DPT_LABS, CKA_LABS, CKAD_LABS, KCNA_LABS, CKS_LABS, KCSA_LABS, DCA_LABS, PCA_LABS, OTCA_LABS, CGOA_LABS, CAPA_LABS];
+// REQ-142: each clinical and fitness lab's own guideline sources are attached
+// here (value-sources.ts), apart from the lab content.
+export const LAB_SETS: readonly SeedLabSet[] = [
+  AWSSAA_LABS,
+  PMP_LABS,
+  NCLEXRN_LABS,
+  NASMCPT_LABS,
+  CCRNADULT_LABS,
+  CCRNPEDS_LABS,
+  CCRNNEO_LABS,
+  ACECPT_LABS,
+  ACSMCPT_LABS,
+  NSCACPT_LABS,
+  NSCACSCS_LABS,
+  NCCPTCPT_LABS,
+  NPTEPT_LABS,
+  NPTEPTA_LABS,
+  DPT_LABS,
+  // REQ-164: containers and Kubernetes.
+  CKA_LABS,
+  CKAD_LABS,
+  KCNA_LABS,
+  CKS_LABS,
+  KCSA_LABS,
+  DCA_LABS,
+  PCA_LABS,
+  OTCA_LABS,
+  CGOA_LABS,
+  CAPA_LABS,
+].map(withValueSources);
