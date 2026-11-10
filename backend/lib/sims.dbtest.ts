@@ -63,7 +63,10 @@ let TAMP: string;
 let TB: string;
 let PRIVATE_SIM: string;
 
-const CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
+// REQ-209: the seeded tamponade case is engine minor 1, so the current app says 1.1.
+const CAPS = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
+// The app as shipped before REQ-209.
+const OLD_CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
 
 // The fake grader: every part scores `score`.
 let score: "met" | "partial" | "missed" = "met";
@@ -251,7 +254,7 @@ describe("switches, listing and capabilities", () => {
     assert.equal("reviewStatus" in byId[TAMP], false, "review status stays internal (19.4 item 5)");
     const old = await list(u, null);
     assert.ok(old.body.sims.every((s: any) => s.runnable === false));
-    const noBoard = await list(u, "protocol=1;engine=1.0;renderers=bedside@3");
+    const noBoard = await list(u, "protocol=1;engine=1.1;renderers=bedside@3");
     assert.equal(Object.fromEntries(noBoard.body.sims.map((s: any) => [s.id, s.runnable]))[TB], false);
   });
 
@@ -285,7 +288,7 @@ describe("switches, listing and capabilities", () => {
 describe("starting, resuming and the lease", () => {
   test("an app that cannot run the version gets 409 app_update_required", async () => {
     const u = await newUser();
-    const s = await start(u, TB, {}, "protocol=1;engine=1.0;renderers=board@2");
+    const s = await start(u, TB, {}, "protocol=1;engine=1.1;renderers=board@2");
     assert.equal(s.status, 409);
     assert.equal(s.body.code, "app_update_required");
   });
@@ -588,6 +591,252 @@ describe("study notice and tiers", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// REQ-209 (docs/sims.md 5.4a-5.4e): pace, focused start, the skip offer,
+// teaching prompts and chapters, on a live server.
+// ---------------------------------------------------------------------------
+
+// The tamponade case as it was before REQ-209: engine minor 0, none of the new
+// content, the original scoring row and the original q15 wait.
+function preS1(doc: ScenarioDoc): ScenarioDoc {
+  const d = structuredClone(doc) as any;
+  d.engine.minor = 0;
+  delete d.focusedStart;
+  delete d.chapters;
+  delete d.teaching;
+  delete d.params.recognizeExpertAt;
+  delete d.timers.q15check.wait.routine;
+  d.scoring.criteria[0].rows = d.scoring.criteria[0].rows.filter((r: any) => !String(r.when).includes("focusedAt"));
+  return d as ScenarioDoc;
+}
+
+describe("pacing (REQ-209)", () => {
+  const pTrack = randomUUID();
+  const pUnit = randomUUID();
+  const objs = [randomUUID(), randomUUID()];
+  let TAMP_C: string; // the seeded case in a clinical track
+  let TAMP_OLD: string; // the pre-REQ-209 case, clinical
+  let clin: string; // a learner who has accepted the study notice
+  const OLD_DOC = preS1(TAMP_DOC);
+
+  before(async () => {
+    await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'SIM pacing', 'certification', null)`, [pTrack, `SIMPACE-${run}`]);
+    await query(`insert into course_units (id, track_id, title, sort_order, weight) values ($1, $2, 'P unit', 0, 100)`, [pUnit, pTrack]);
+    await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $3, 'P tamponade', 0), ($2, $3, 'P tamponade old', 1)`, [objs[0], objs[1], pUnit]);
+    TAMP_C = await insertSim(objs[0], TAMP_DOC, "clinical");
+    TAMP_OLD = await insertSim(objs[1], OLD_DOC, "clinical");
+    clin = await newUser();
+    await recordStudyNoticeAcceptance(clin);
+  });
+  after(async () => {
+    await query(`delete from attempts where sim_id = any($1::uuid[])`, [[TAMP_C, TAMP_OLD]]);
+    await query(`delete from sims where id = any($1::uuid[])`, [[TAMP_C, TAMP_OLD]]);
+    await query(`delete from subject_tracks where id = $1`, [pTrack]);
+  });
+
+  const wallAgo = (runId: string, seconds: number) => query(`update sim_runs set started_at = now() - make_interval(secs => $2) where id = $1`, [runId, seconds]);
+  async function fresh(sim: string, wallSeconds: number) {
+    const s = await start(clin, sim, { restart: true, deviceId: "dev-a" });
+    assert.equal(s.status, 200, JSON.stringify(s.body));
+    await query(`update sim_runs set seed = 1 where id = $1`, [s.body.run.id]);
+    await wallAgo(s.body.run.id, wallSeconds);
+    return { runId: s.body.run.id as string, lease: s.body.run.leaseEpoch as number, body: s.body };
+  }
+  const pace3: Command = { seq: 1, tick: 0, type: "pace", pace: 3 };
+
+  test("pacing is offered only for a running phase in a clinical or fitness track; 3x is then the default", async () => {
+    const c = await start(clin, TAMP_C, { restart: true });
+    assert.deepEqual(c.body.pacing, { eligible: true, studyPace: 3, examPace: 1, defaultPace: 3 });
+    const g = await start(clin, TAMP, { restart: true });
+    assert.equal(g.body.pacing.eligible, false, "the same case in a general track gets none");
+    assert.equal(g.body.pacing.defaultPace, 1);
+    const tb = await start(clin, TB, { restart: true });
+    assert.equal(tb.body.pacing.eligible, false, "a turn-based cloud sim gets none");
+    assert.equal(tb.body.pacing.defaultPace, 1);
+  });
+
+  test("a legitimate 3x run is accepted; the same ticks with no pace logged, or 4x, are refused as too fast", async () => {
+    // 600 ticks at 3x need 200 s of wall time; 210 s have passed.
+    const ok = await fresh(TAMP_C, 210);
+    const a = await sync(clin, ok.runId, { leaseEpoch: ok.lease, commands: [pace3, { seq: 2, tick: 600, type: "act", action: "look" }], tick: 600 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    assert.equal(a.body.rejected, null);
+    assert.equal(a.body.tick, 600);
+    const row = await queryOne<{ realtime_ticks: number }>(`select realtime_ticks from sim_runs where id = $1`, [ok.runId]);
+    assert.equal(row?.realtime_ticks, 600);
+
+    // No pace logged: 1x, so 600 s are needed.
+    const noPace = await fresh(TAMP_C, 210);
+    const b = await sync(clin, noPace.runId, { leaseEpoch: noPace.lease, commands: [{ seq: 1, tick: 600, type: "act", action: "look" }] });
+    assert.equal(b.status, 409);
+    assert.equal(b.body.code, "too_fast");
+
+    // Logged 3x, claims to be faster than that: 1200 ticks need 400 s.
+    const over = await fresh(TAMP_C, 210);
+    const c = await sync(clin, over.runId, { leaseEpoch: over.lease, commands: [pace3, { seq: 2, tick: 1200, type: "act", action: "look" }] });
+    assert.equal(c.status, 409);
+    assert.equal(c.body.code, "too_fast");
+    assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from sim_run_commands where run_id = $1`, [over.runId]))?.n, 0, "nothing stored");
+
+    // Changing pace mid-run is bounded per segment: 300 ticks at 3x (100 s) then 300 at 1x (300 s) need 400 s.
+    const mid = await fresh(TAMP_C, 210);
+    const d = await sync(clin, mid.runId, { leaseEpoch: mid.lease, commands: [pace3, { seq: 2, tick: 300, type: "pace", pace: 1 }, { seq: 3, tick: 600, type: "act", action: "look" }] });
+    assert.equal(d.body.code, "too_fast");
+    await wallAgo(mid.runId, 410);
+    const e = await sync(clin, mid.runId, { leaseEpoch: mid.lease, commands: [pace3, { seq: 2, tick: 300, type: "pace", pace: 1 }, { seq: 3, tick: 600, type: "act", action: "look" }] });
+    assert.equal(e.status, 200, JSON.stringify(e.body));
+  });
+
+  test("pause is not a pace: logging a pause at 3x costs no wall-clock allowance", async () => {
+    const r = await fresh(TAMP_C, 60);
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [pace3, { seq: 2, tick: 120, type: "pause", reason: "learner" }, { seq: 3, tick: 120, type: "resume" }], tick: 120 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    assert.equal(a.body.rejected, null);
+  });
+
+  test("pace, begin, teach and chapter are refused (400) where pacing is not offered, and nothing is stored", async () => {
+    for (const sim of [TB, TAMP]) {
+      const s = await start(clin, sim, { restart: true });
+      const r = await sync(clin, s.body.run.id, { leaseEpoch: s.body.run.leaseEpoch, commands: [{ seq: 1, tick: 0, type: "pace", pace: 3 }] });
+      assert.equal(r.status, 400, JSON.stringify(r.body));
+      assert.equal(r.body.code, "pacing_not_available");
+      const k = await skip(clin, s.body.run.id, { leaseEpoch: s.body.run.leaseEpoch, seq: 1, tick: 0, calm: true });
+      assert.equal(k.status, 400);
+      assert.equal(k.body.code, "pacing_not_available");
+      assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from sim_run_commands where run_id = $1`, [s.body.run.id]))?.n, 0);
+    }
+  });
+
+  test("focused start: begin evolves the run to the scenario's start point, as the engine's own replay does", async () => {
+    const r = await fresh(TAMP_C, 5);
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], tick: 780 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    assert.equal(a.body.tick, 780, "the 780 ticks before it cost no wall time");
+    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], budget: 1e12 });
+    assert.equal(a.body.serverHash, stateHash(ref.run.state));
+    assert.equal((await queryOne<{ realtime_ticks: number }>(`select realtime_ticks from sim_runs where id = $1`, [r.runId]))?.realtime_ticks, 0);
+    // begin is first-command-only.
+    const late = await fresh(TAMP_C, 600);
+    const b = await sync(clin, late.runId, { leaseEpoch: late.lease, commands: [{ seq: 1, tick: 0, type: "act", action: "look" }, { seq: 2, tick: 0, type: "begin", start: "focused" }] });
+    assert.equal(b.status, 200);
+    assert.equal(b.body.acceptedThrough, 1);
+    assert.equal(b.body.rejected.seq, 2);
+  });
+
+  test("the skip offer: the server keeps the calm flag only when the engine agrees it stood", async () => {
+    const early = await fresh(TAMP_C, 60);
+    // Only the routine q15 check is pending: there is nothing to offer.
+    const no = await skip(clin, early.runId, { leaseEpoch: early.lease, seq: 1, tick: 0, calm: true });
+    assert.equal(no.status, 409, JSON.stringify(no.body));
+    assert.equal(no.body.code, "no_offer");
+
+    const r = await fresh(TAMP_C, 60);
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [pace3, { seq: 2, tick: 130, type: "act", action: "echo" }], tick: 130 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    const ok = await skip(clin, r.runId, { leaseEpoch: r.lease, seq: 3, tick: 130, calm: true, timer: "echoResultT" });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    assert.equal(ok.body.command.calm, true);
+    const stored = await queryOne<{ payload: Command }>(`select payload from sim_run_commands where run_id = $1 and seq = 3`, [r.runId]);
+    assert.equal((stored?.payload as any).calm, true, "logged, so replay and the debrief see it");
+    // An ordinary skip of the same kind carries no flag.
+    const r2 = await fresh(TAMP_C, 60);
+    await sync(clin, r2.runId, { leaseEpoch: r2.lease, commands: [pace3, { seq: 2, tick: 130, type: "act", action: "echo" }], tick: 130 });
+    const plain = await skip(clin, r2.runId, { leaseEpoch: r2.lease, seq: 3, tick: 130, timer: "echoResultT" });
+    assert.equal(plain.status, 200);
+    assert.equal("calm" in plain.body.command, false);
+  });
+
+  test("chapters and teaching answers are stored as commands and replay on a second device", async () => {
+    const r = await fresh(TAMP_C, 5000);
+    const path = pathOf(TAMP_GOLDEN, "expert3x");
+    // up to just before the first chapter break
+    const cut = path.commands.filter((c) => c.tick < 1380);
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: cut, tick: 1380 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    const seq = cut.length + 1;
+    const later = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq, tick: 1380, type: "chapter", chapter: "surgeonAtBedside", choice: "later" }], tick: 1380 });
+    assert.equal(later.status, 200, JSON.stringify(later.body));
+    assert.equal(later.body.rejected, null);
+    // another device takes the run
+    const b = await start(clin, TAMP_C, { deviceId: "dev-b" });
+    assert.equal(b.body.run.id, r.runId);
+    assert.equal(b.body.commands.length, seq);
+    assert.equal(b.body.commands[seq - 1].type, "chapter");
+    assert.equal(b.body.run.lastTick, 1380);
+    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: b.body.commands, toTick: 1380, budget: 1e12 });
+    assert.equal(stateHash(ref.run.state), later.body.serverHash);
+  });
+
+  test("full expert3x path through the routes: Good, and the debrief reports the pace and the sim minutes", async () => {
+    const u = clin;
+    const path = pathOf(TAMP_GOLDEN, "expert3x");
+    const { debrief: d } = await playPath(u, TAMP_C, TAMP_DOC, path);
+    assert.equal(d.rating, "good");
+    assert.equal(d.ending, path.expect.ending);
+    assert.equal(d.pacing.startPace, 3);
+    assert.equal(d.pacing.finalPace, 3);
+    assert.equal(d.pacing.studyTicks, 2580);
+    assert.equal(d.pacing.examTicks, 0);
+  });
+
+  test("full focused3x path: the tubes criterion is excluded, not missed, and the rating stays Good", async () => {
+    const path = pathOf(TAMP_GOLDEN, "focused3x");
+    const { debrief: d } = await playPath(clin, TAMP_C, TAMP_DOC, path);
+    assert.equal(d.rating, "good");
+    assert.equal(d.focusedStart.tick, 780);
+  });
+
+  test("a run begun before REQ-209: runs to Good, and the old app can resume it mid-run from a checkpoint that has no pace fields", async () => {
+    const path = pathOf(TAMP_GOLDEN, "expert");
+    const full = await playPath(clin, TAMP_OLD, OLD_DOC, path);
+    assert.equal(full.debrief.rating, "good");
+    assert.equal(full.debrief.pacing, undefined, "no pacing in a minor-0 debrief");
+    assert.equal(full.expected.stateHash, pathOf(TAMP_GOLDEN, "expert").expect.stateHash);
+
+    // Mid-run: five commands in, then the checkpoint is rewritten as the old server wrote it.
+    const r = await fresh(TAMP_OLD, 5000);
+    const head = path.commands.slice(0, 5);
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: head, tick: 660 });
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    const saved = await queryOne<{ checkpoint_state: any }>(`select checkpoint_state from sim_runs where id = $1`, [r.runId]);
+    assert.ok(saved?.checkpoint_state, "a checkpoint was taken");
+    await query(`update sim_runs set checkpoint_state = (checkpoint_state - 'paceTicks' - 'focusedAt') || jsonb_build_object('engine', '1.0') where id = $1`, [r.runId]);
+    // The pre-REQ-209 app resumes (the version is minor 0, so it is handed back) ...
+    const resumed = await start(clin, TAMP_OLD, { deviceId: "dev-old" }, OLD_CAPS);
+    assert.equal(resumed.status, 200, JSON.stringify(resumed.body));
+    assert.equal(resumed.body.run.id, r.runId);
+    // ... and carries on to the same state the engine reaches.
+    const rest = path.commands.slice(5, 10);
+    const b = await sync(clin, r.runId, { leaseEpoch: resumed.body.run.leaseEpoch, commands: rest, tick: 800 });
+    assert.equal(b.status, 200, JSON.stringify(b.body));
+    assert.equal(b.body.rejected, null);
+    const ref = replayRun({ doc: OLD_DOC, seed: 1, from: null, commands: path.commands.slice(0, 10), toTick: 800, budget: 1e12 });
+    assert.equal(b.body.serverHash, stateHash(ref.run.state));
+    assert.equal(ref.run.pace, 1);
+    const row = await queryOne<{ realtime_ticks: number }>(`select realtime_ticks from sim_runs where id = $1`, [r.runId]);
+    assert.equal(row?.realtime_ticks, 800, "judged at 1x, as before");
+    // The old speed bound still applies to it: 1x, no pace logged.
+    const fast = await fresh(TAMP_OLD, 100);
+    const f = await sync(clin, fast.runId, { leaseEpoch: fast.lease, commands: [{ seq: 1, tick: 600, type: "act", action: "look" }] });
+    assert.equal(f.body.code, "too_fast");
+  });
+
+  test("an open run on an engine-minor-1 version is not handed to an app that cannot replay it; a minor-0 run is", async () => {
+    const r = await fresh(TAMP_C, 60);
+    await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [pace3], tick: 0 });
+    const old = await start(clin, TAMP_C, { deviceId: "dev-old" }, OLD_CAPS);
+    assert.equal(old.status, 409);
+    assert.equal(old.body.code, "app_update_required");
+    const current = await start(clin, TAMP_C, { deviceId: "dev-new" });
+    assert.equal(current.status, 200);
+    assert.equal(current.body.run.id, r.runId, "the run is kept for the updated app");
+    const fresh0 = await start(clin, TAMP_OLD, { restart: true }, OLD_CAPS);
+    assert.equal(fresh0.status, 200, "a minor-0 case still starts for the old app");
+    const again = await start(clin, TAMP_OLD, {}, OLD_CAPS);
+    assert.equal(again.body.run.id, fresh0.body.run.id);
+  });
+});
+
 describe("schema", () => {
   test("the 067 probe passes and the migration runs twice", async () => {
     const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
@@ -612,6 +861,27 @@ describe("schema", () => {
       /item_flags_context_067/
     );
     await assert.rejects(query(`insert into item_flags (item_kind, item_id, question, user_id, source, context) values ('sim', 'x', 'q', $1, 'learner', '[1]')`, [u]), /item_flags_context_067/);
+  });
+
+  test("the 073 probe passes, the migration runs twice, and exactly the new command types are allowed (REQ-209)", async () => {
+    const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
+    assert.ok(!status.missing.some((m) => m.migration === "073_sim_pacing_commands.sql"), JSON.stringify(status.missing));
+    const sql = readFileSync(join(__dirname, "..", "supabase", "migrations", "073_sim_pacing_commands.sql"), "utf8");
+    const c = await dbPool.connect();
+    try {
+      await c.query("begin");
+      await c.query(sql);
+      await c.query("commit");
+    } finally {
+      c.release();
+    }
+    const checks = await query<{ conname: string }>(`select conname from pg_constraint where conrelid = 'sim_run_commands'::regclass and contype = 'c' and pg_get_constraintdef(oid) like '%act%'`);
+    assert.deepEqual(checks.map((x) => x.conname), ["sim_run_commands_type_073"], "one type check");
+    const u = await newUser();
+    const s = await start(u, TB);
+    const ins = (type: string) => query(`insert into sim_run_commands (run_id, seq, tick, type, payload, lease_epoch) values ($1, $2, 0, $3, '{}'::jsonb, 1)`, [s.body.run.id, Math.floor(Math.random() * 1e6) + 1, type]);
+    for (const t of ["act", "choose", "skip", "pause", "resume", "reason", "end", "pace", "begin", "teach", "chapter"]) await ins(t);
+    await assert.rejects(ins("rewind"), /sim_run_commands_type_073/);
   });
 
   test("the 062 probe passes and the migration runs twice", async () => {
