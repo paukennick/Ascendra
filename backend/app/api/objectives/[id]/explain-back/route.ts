@@ -22,6 +22,10 @@ import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { recordGraderMisconception } from "@/lib/understanding-grading";
 import { consumeAllowance, featureLock, requireFeature } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (one fast-model grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 const MAX_ANSWER = 4000;

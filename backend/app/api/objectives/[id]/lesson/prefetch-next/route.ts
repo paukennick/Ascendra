@@ -20,6 +20,10 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
 import { requireCourseAccessForObjective, UpgradeRequiredError } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (after() keeps the function alive for the whole generation). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
+
 // The objective immediately after this one in course order: same unit with
 // the next sort_order, or -- if this is the unit's last objective -- the
 // first objective of the next unit in the same track. Ordering entirely by

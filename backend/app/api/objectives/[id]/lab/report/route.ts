@@ -15,6 +15,10 @@ import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { consumeAllowance, requireFeature } from "@/lib/entitlements";
 import { LABS_FEATURE } from "@/lib/labs";
 
+// REQ-202: seconds this route may run (questions then grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/lab/report -- REQ-106 (research #7): grades a lab

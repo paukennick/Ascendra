@@ -5,6 +5,10 @@ import { validClientAttemptId } from "@/lib/lesson-progress";
 import { answerItem } from "@/lib/review-service";
 import { positionOf, reviewRouteError } from "@/lib/review-routes";
 
+// REQ-202: seconds this route may run (one fast-model grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 const MAX_ANSWER = 8000;

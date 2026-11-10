@@ -5,6 +5,7 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { errorCodeOf, loggedCall, logAiCall, setAiCallSink, AiResponseError, type AiCallRecord } from "./ai-calls";
+import { setSpendGateForTest } from "./ai-spend-gate";
 
 const flush = () => new Promise((r) => setImmediate(r));
 
@@ -31,12 +32,16 @@ describe("loggedCall / logAiCall", () => {
   const got: AiCallRecord[] = [];
   beforeEach(() => {
     got.length = 0;
+    setSpendGateForTest({ reserve: async () => null }); // no database here
     delete process.env.AI_CALL_LOG;
     setAiCallSink(async (r) => {
       got.push(r);
     });
   });
-  afterEach(() => setAiCallSink(null));
+  afterEach(() => {
+    setSpendGateForTest(null);
+    setAiCallSink(null);
+  });
 
   test("success: result returned untouched, usage mapped, user id kept", async () => {
     const res = { usage: { input_tokens: 10, output_tokens: 20, cache_read_input_tokens: 5, cache_creation_input_tokens: 7 } };

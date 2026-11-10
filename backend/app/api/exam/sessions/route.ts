@@ -8,6 +8,10 @@ import { examError } from "@/lib/exam-route-errors";
 import { requireCourseAccess, requireFeature, withAllowance } from "@/lib/entitlements";
 import { queryOne } from "@/lib/db";
 
+// REQ-202: seconds this route may run (up to 4 writer calls and fact-checks, 4 at a time). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
+
 export const dynamic = "force-dynamic";
 
 // REQ-122: a resend of a session this learner already started (same

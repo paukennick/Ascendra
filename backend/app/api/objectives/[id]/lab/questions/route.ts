@@ -8,6 +8,10 @@ import { labObjective, labQuestionsFor } from "@/lib/lesson-experience";
 import { requireFeature } from "@/lib/entitlements";
 import { LABS_FEATURE } from "@/lib/labs";
 
+// REQ-202: seconds this route may run (one fast-model call). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/lab/questions -- REQ-106: the lab report's

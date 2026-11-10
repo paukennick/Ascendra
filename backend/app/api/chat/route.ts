@@ -21,6 +21,10 @@ import { consumeAllowance, requireAiAllowance, requireFeature } from "@/lib/enti
 import { flagChatDisputes } from "@/lib/chat-dispute";
 import { inBackground } from "@/lib/understanding-ai";
 
+// REQ-202: seconds this route may run (Haiku reply plus the guards; one retry still fits). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // GET /api/chat?trackId=... — full chat history for a track (newest last).

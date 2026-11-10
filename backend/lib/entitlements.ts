@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { spendSinceUsd } from "@/lib/ai-budget";
+import { AiSpendUnavailableError } from "@/lib/ai-spend-ledger";
 import { accessFor, isOwner, isUnrestricted } from "@/lib/account-access";
 import { ownerEmails, ownerMonthlyCapUsd } from "@/lib/account-access-config";
 import {
@@ -528,16 +529,21 @@ export function aiPausedMessage(resetsAt: Date): string {
   );
 }
 
+// `failClosed` (REQ-202): the monthly spend read used to turn a database error
+// into "spent nothing", so the cap vanished while the database was failing.
+// requireAiAllowance, the gate on coach chat and lesson regenerate, asks for
+// the error to be thrown; the plan summary (a display) keeps the soft answer.
 export async function aiAllowanceStatus(
   userId: string,
   tier?: Tier,
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = process.env,
+  opts: { failClosed?: boolean } = {}
 ): Promise<{ paused: boolean; resetsAt: string | null }> {
   // Owners (OWNER_EMAILS): a monthly safety cap, billing switch on or off.
   // The access read is skipped when no owner is configured, so other
   // learners pay for it only on servers that have owners at all.
   if (ownerEmails(env).size && (await isOwner(userId, env).catch(() => false))) {
-    return monthlyCapStatus(userId, ownerMonthlyCapUsd(env));
+    return monthlyCapStatus(userId, ownerMonthlyCapUsd(env), opts.failClosed);
   }
   if (!billingEnabled(env)) return { paused: false, resetsAt: null };
   const t = tier ?? (await tierFor(userId, env));
@@ -550,7 +556,7 @@ export async function aiAllowanceStatus(
   // REQ-181 (#77) replaces REQ-144's "owners have no monthly cap": an owner
   // is normally caught by the owner branch at the top; this is the same cap
   // for an owner the access read found but isOwner did not.
-  if (access?.level === "owner") return monthlyCapStatus(userId, ownerMonthlyCapUsd(env));
+  if (access?.level === "owner") return monthlyCapStatus(userId, ownerMonthlyCapUsd(env), opts.failClosed);
   let cap: number | null;
   if (access) cap = unrestrictedCapUsd(env);
   else {
@@ -559,17 +565,24 @@ export async function aiAllowanceStatus(
     cap = rows.length ? learnerCapUsd(rows, env) : monthlyAiCapUsd(t, env);
   }
   if (cap === null) return { paused: false, resetsAt: null };
-  return monthlyCapStatus(userId, cap);
+  return monthlyCapStatus(userId, cap, opts.failClosed);
 }
 
-async function monthlyCapStatus(userId: string, cap: number): Promise<{ paused: boolean; resetsAt: string | null }> {
-  const spent = await spendSinceUsd(userId, monthStartUtc()).catch(() => 0);
+async function monthlyCapStatus(
+  userId: string,
+  cap: number,
+  failClosed = false
+): Promise<{ paused: boolean; resetsAt: string | null }> {
+  const spent = await spendSinceUsd(userId, monthStartUtc()).catch((err) => {
+    if (failClosed) throw new AiSpendUnavailableError();
+    return 0;
+  });
   return spent >= cap ? { paused: true, resetsAt: nextMonthStartUtc().toISOString() } : { paused: false, resetsAt: null };
 }
 
-// Coach chat and lesson regenerate only. Grading and review never call this.
+// Coach chat and lesson regenerate only: the monthly pause is not applied to grading or review (REQ-202 gives those a daily pool in lib/ai-spend-gate.ts instead).
 export async function requireAiAllowance(userId: string, tier?: Tier, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  const s = await aiAllowanceStatus(userId, tier, env);
+  const s = await aiAllowanceStatus(userId, tier, env, { failClosed: true });
   if (s.paused) throw new AiAllowancePausedError(aiPausedMessage(new Date(s.resetsAt!)), s.resetsAt!);
 }
 

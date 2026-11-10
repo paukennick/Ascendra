@@ -1,8 +1,7 @@
 import { AnthropicError, APIError } from "@anthropic-ai/sdk";
 import { query } from "@/lib/db";
 import { after } from "next/server";
-import { reserveAiSpend } from "@/lib/ai-spend-gate";
-import { estimateCall, type CallEstimate } from "@/lib/ai-spend-ledger";
+import type { CallEstimate } from "@/lib/ai-spend-ledger";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
 // failure rate and prompt-cache hit rate can be read from the database instead
@@ -242,6 +241,20 @@ function warnLogFailure(err: unknown): void {
   console.warn(`[ai_calls] could not record model call (ignored): ${msg.slice(0, 200)}`);
 }
 
+// The gate and the ledger import lib/http.ts (for UserFacingError), and
+// lib/http.ts imports this file (for isTransientModelFailure), so they are
+// loaded on first use rather than at the top: a static import makes a cycle
+// that fails with "Cannot access 'UserFacingError' before initialization".
+async function reserveSpend(meta: AiCallMeta) {
+  const [{ reserveAiSpend }, { estimateCall }] = await Promise.all([import("@/lib/ai-spend-gate"), import("@/lib/ai-spend-ledger")]);
+  return reserveAiSpend({
+    userId: meta.userId ?? null,
+    purpose: meta.purpose,
+    model: meta.model,
+    estimate: meta.estimate ?? estimateCall(meta.model, {}),
+  });
+}
+
 /**
  * Runs `send`, then `check` on its result, and records the outcome. Returns
  * what `send` returned; rethrows whatever `send` or `check` threw. Usage is
@@ -260,14 +273,7 @@ export async function loggedCall<R>(
   check?: (result: R) => void
 ): Promise<R> {
   // Refused here means no model call and no ai_calls row of its own.
-  const reservation = meta.free
-    ? null
-    : await reserveAiSpend({
-        userId: meta.userId ?? null,
-        purpose: meta.purpose,
-        model: meta.model,
-        estimate: meta.estimate ?? estimateCall(meta.model, {}),
-      });
+  const reservation = meta.free ? null : await reserveSpend(meta);
   const started = Date.now();
   let usage: AiUsage | undefined;
   let ok = false;
