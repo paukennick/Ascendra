@@ -39,6 +39,15 @@ describe("NREMT EMS courses (REQ-174)", () => {
     }
   });
 
+  test("titles describe the exam rather than brand the course with NREMT's marks, and descriptions say so (NREMT trademark page)", () => {
+    for (const t of EMS_TRACKS) {
+      assert.match(t.title, /^Prep for the National Registry .+ Exam$/, t.code);
+      assert.doesNotMatch(t.title, /\bNREMT\b|\bCoach\b/, t.code);
+      assert.match(t.description, /not affiliated with or endorsed by the National Registry/, t.code);
+      assert.match(t.description, /NREMT are trademarks of the National Registry of Emergency Medical Technicians/, t.code);
+    }
+  });
+
   test("migration 061 has a schema probe for the subcategory the seed resolves", () => {
     const probe = SCHEMA_PROBES.find((p) => p.migration === "061_ems_taxonomy.sql");
     assert.ok(probe && probe.sql.includes("emergency-medical-services"));
