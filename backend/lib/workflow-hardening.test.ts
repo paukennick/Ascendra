@@ -122,6 +122,13 @@ describe("FAIL-944: the production migration job", () => {
   });
 });
 
+describe("FAIL-940: CI runs the integration suite as app_runtime", () => {
+  test("the database job runs db-tests-as-runtime.sh and the script exists", () => {
+    assert.match(wf("ci.yml"), /bash scripts\/ci\/db-tests-as-runtime\.sh/);
+    assert.ok(existsSync(join(ROOT, "backend", "scripts", "ci", "db-tests-as-runtime.sh")));
+  });
+});
+
 describe("FAIL-949/950: keepalive does not print the health body", () => {
   test("body discarded; only the status code is logged", () => {
     const k = wf("keepalive.yml");

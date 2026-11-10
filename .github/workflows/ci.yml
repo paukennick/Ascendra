@@ -120,6 +120,12 @@ jobs:
       - name: Integration tests
         run: npm run test:db
         working-directory: backend
+      # REQ-207 (FAIL-940): the same suite again, connected as the
+      # least-privilege app_runtime role migration 071 creates. Proves the
+      # app works with no owner rights, no BYPASSRLS and no PUBLIC execute.
+      - name: Integration tests as app_runtime (least privilege)
+        run: bash scripts/ci/db-tests-as-runtime.sh
+        working-directory: backend
 
   # REQ-118 (Audit 3 LOW-11): the job above builds the schema on an EMPTY
   # database, so the data migrations (029b, 031b, 037b, 041b: backups,
