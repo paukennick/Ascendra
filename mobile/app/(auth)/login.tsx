@@ -36,7 +36,7 @@ export default function Login() {
     try {
       const result = await login(email.trim(), password);
       if (result.emailVerificationRequired) {
-        router.replace({ pathname: "/verify-email-pending", params: { email: email.trim() } });
+        router.replace({ pathname: "/verify-email-pending", params: { email: email.trim(), from: "login" } });
       } else if (result.mfaRequired && result.challengeToken) {
         router.push({
           pathname: "/mfa-challenge",

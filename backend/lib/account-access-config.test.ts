@@ -2,10 +2,12 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
+  DEFAULT_OWNER_MONTHLY_CAP_USD,
   DEFAULT_UNRESTRICTED_CEILING_USD,
   grantIsLive,
   isOwnerEmail,
   ownerEmails,
+  ownerMonthlyCapUsd,
   parseAccessArgs,
   parseGrantInput,
   parseUntil,
@@ -61,6 +63,15 @@ describe("the AI safety ceiling", () => {
     assert.equal(unrestrictedCeilingUsd({}), 20);
     assert.equal(unrestrictedCeilingUsd({ AI_UNRESTRICTED_DAILY_CEILING_USD: "5.5" }), 5.5);
     for (const v of ["off", "0", "-3", "lots", ""]) assert.equal(unrestrictedCeilingUsd({ AI_UNRESTRICTED_DAILY_CEILING_USD: v }), 20, v);
+  });
+});
+
+describe("the owner's monthly AI safety cap", () => {
+  test("$35 by default (Nick, 2026-11-09); overridable; never off", () => {
+    assert.equal(DEFAULT_OWNER_MONTHLY_CAP_USD, 35);
+    assert.equal(ownerMonthlyCapUsd({}), 35);
+    assert.equal(ownerMonthlyCapUsd({ OWNER_MONTHLY_AI_CAP_USD: "50" }), 50);
+    for (const v of ["off", "0", "-3", "lots", ""]) assert.equal(ownerMonthlyCapUsd({ OWNER_MONTHLY_AI_CAP_USD: v }), 35, v);
   });
 });
 

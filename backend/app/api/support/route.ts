@@ -4,6 +4,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sendSupportRequestNotification } from "@/lib/email";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { textField } from "@/lib/text-input";
+import { emailFailureHandler } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -142,7 +143,7 @@ export async function POST(req: Request) {
       courseSourceUrl,
       objectiveId,
       lessonStage,
-    }).catch(() => undefined);
+    }).catch(emailFailureHandler("support"));
 
     return ok({ request: created }, 201);
   } catch (err) {

@@ -4,7 +4,8 @@
 //
 //   1. Owner from OWNER_EMAILS (verified addresses only) and /api/auth/me.
 //   2. Gating bypass on representative gated routes, BILLING_ENABLED on and
-//      off; no allowance rows, no monthly cap; disclaimers and rate limits
+//      off; no allowance rows, no per-tier monthly cap for a grant, the
+//      owner's $35 monthly safety cap; disclaimers and rate limits
 //      still apply.
 //   3. The AI safety ceiling.
 //   4. Early access: unreviewed labs with LABS_SERVE_UNREVIEWED off.
@@ -50,7 +51,7 @@ const track2 = randomUUID(), unit2 = randomUUID(), objB = randomUUID();
 const ackTrack = randomUUID(), ackUnit = randomUUID(), ackObj = randomUUID();
 const lab = randomUUID();
 const users: string[] = [];
-const ENV = ["BILLING_ENABLED", "OWNER_EMAILS", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD", "LABS_SERVE_UNREVIEWED"];
+const ENV = ["BILLING_ENABLED", "OWNER_EMAILS", "AI_DAILY_BUDGET_USD", "AI_UNRESTRICTED_DAILY_CEILING_USD", "LABS_SERVE_UNREVIEWED", "OWNER_MONTHLY_AI_CAP_USD"];
 const OWNER = `owner-${run}@example.test`;
 
 const usage = { input_tokens: 100, output_tokens: 20, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
@@ -232,6 +233,38 @@ describe("unrestricted lifts the plan gates", () => {
     await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at) values ($1,'chat','claude-haiku-5-5',0,$2,1,true, now() - interval '3 days')`, [u, Math.round(5 / PER_TOKEN)]); // $5 this month, outside 24h
     assert.equal((await chat(u)).status, 200);
   });
+
+  // Nick, 2026-11-09: owners get a $35 monthly safety cap. Coach chat and
+  // regenerate pause at it like a plan's cap; grading never stops. It applies
+  // with the billing switch on or off. A granted account (above) has none.
+  for (const billing of ["true", "off"]) {
+    test(`owner monthly AI safety cap ($35), BILLING_ENABLED ${billing}`, async () => {
+      process.env.BILLING_ENABLED = billing;
+      process.env.AI_UNRESTRICTED_DAILY_CEILING_USD = "1000"; // keep the daily ceiling out of the way
+      const email = `owner2-${billing}-${run}@example.test`;
+      process.env.OWNER_EMAILS = `${OWNER}, ${email}`;
+      const o = await newUser({ email });
+      assert.equal((await accessFor(o))?.level, "owner");
+      // $34 this month, written at the start of the month (UTC): under the cap.
+      const monthSpend = (usd: number) =>
+        query(
+          `insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at)
+           values ($1,'chat','claude-haiku-5-5',0,$2,1,true, date_trunc('month', now() at time zone 'utc') at time zone 'utc')`,
+          [o, Math.round(usd / PER_TOKEN)]
+        );
+      await monthSpend(34);
+      assert.equal((await chat(o)).status, 200, "under $35 the coach answers");
+      await monthSpend(1.5);
+      const res = await json(await chat(o), 429);
+      assert.ok(res.aiPaused?.resetsAt, "paused like a plan's monthly cap");
+      assert.equal(new Date(res.aiPaused.resetsAt).getUTCDate(), 1);
+      assert.match(res.error, /You've used this month's AI coaching/);
+      assert.equal((await gradeOpen(o, "CTR turns a block cipher into a stream cipher with a counter.")).status, 200, "grading never stops");
+      if (billing === "true") assert.equal((await json(await call(billingMeGet, "/api/billing/me", o))).aiPaused.paused, true);
+      process.env.OWNER_MONTHLY_AI_CAP_USD = "50";
+      assert.equal((await chat(o)).status, 200, "the cap is a setting");
+    });
+  }
 
   test("BILLING_ENABLED off: the $0.50 daily budget is raised for unrestricted, not for others", async () => {
     const free = await newUser();

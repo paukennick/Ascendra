@@ -12,7 +12,8 @@
 //
 // What unrestricted lifts: every plan feature, course and lab whatever the
 // tier and whether or not BILLING_ENABLED is on; plan allowances; the
-// per-tier monthly AI cap; and it raises the daily AI budget to a SAFETY
+// per-tier monthly AI cap (an owner has its own monthly safety cap,
+// ownerMonthlyCapUsd below); and it raises the daily AI budget to a SAFETY
 // CEILING (below) instead of removing it. It also gives early access to
 // features behind switches that are off for everyone else (EARLY_ACCESS
 // below). It never lifts sign-in, MFA, rate limits, access checks on other
@@ -79,6 +80,25 @@ export function unrestrictedCeilingUsd(env: Env = process.env): number {
   const raw = env.AI_UNRESTRICTED_DAILY_CEILING_USD?.trim();
   const n = Number(raw);
   if (!raw || !Number.isFinite(n) || n <= 0) return DEFAULT_UNRESTRICTED_CEILING_USD;
+  return n;
+}
+
+// The owner's monthly AI safety cap (Nick, 2026-11-09). Owners skip every
+// plan gate, but not unlimited spend: over a calendar month (UTC) their coach
+// chat and lesson regenerate pause at this many dollars of model spend, the
+// same pause and message as a plan's monthly cap (lib/entitlements.ts
+// aiAllowanceStatus). Grading and review never stop. Unlike the plan caps it
+// applies whether or not BILLING_ENABLED is on: it is a safety stop, like
+// the daily ceiling above, not a plan limit. OWNER_MONTHLY_AI_CAP_USD
+// overrides it; it cannot be switched off ("off", 0 or junk fall back to the
+// default). Granted (non-owner) unrestricted accounts are not affected here.
+
+export const DEFAULT_OWNER_MONTHLY_CAP_USD = 35;
+
+export function ownerMonthlyCapUsd(env: Env = process.env): number {
+  const raw = env.OWNER_MONTHLY_AI_CAP_USD?.trim();
+  const n = Number(raw);
+  if (!raw || !Number.isFinite(n) || n <= 0) return DEFAULT_OWNER_MONTHLY_CAP_USD;
   return n;
 }
 

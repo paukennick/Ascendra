@@ -1,0 +1,258 @@
+# REQ-176: over-the-air (EAS) update for the mobile app, with a runtime check.
+#
+# An update reaches only installed builds with the same runtime version, and
+# runtimeVersion uses the "fingerprint" policy (a hash of the native project:
+# native dependencies, app.json, eas.json and so on). So this job first works
+# out the current code's runtime for Android and iOS, lists the finished EAS
+# builds, and writes to the job summary, per platform, whether any build on
+# the target channel has that runtime. It publishes only to the platforms that
+# match. If none match it publishes nothing and says a new store build is
+# needed, with the fingerprint diff against the newest build. It never runs
+# `eas build` or `eas submit`.
+#
+# Run it from the Actions tab (dry_run defaults to true: check and report
+# only), or push to ops/eas-update. A push is always a dry run unless its head
+# commit message contains [ota:publish]; [ota:channel=<name>] picks the
+# channel (default production). Publishing also requires the checked-out
+# commit to be master's tip, so only merged code is ever shipped.
+#
+# The bundle is exported here with the build profile's env from eas.json
+# (EXPO_PUBLIC_API_URL and the Google client ids), because `eas update` does
+# not read eas.json build env (REQ-031, REQ-058), and checked to contain the
+# production API URL and no private-network URL before it is uploaded.
+#
+# Needs the EXPO_TOKEN repository secret. Nothing here prints it.
+name: EAS update (OTA)
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "EAS channel to publish to"
+        type: string
+        default: production
+      message:
+        description: "Update message (default: the commit subject)"
+        type: string
+        default: ""
+      dry_run:
+        description: "Dry run: check fingerprints and report only"
+        type: boolean
+        default: true
+  push:
+    branches: [ops/eas-update]
+concurrency:
+  group: eas-update
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  ota:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      NO_COLOR: "1"
+      FORCE_COLOR: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the summary can show what changed in the native
+          # inputs since the commit a build was made from.
+          fetch-depth: 0
+      - name: Token present
+        run: test -n "$EXPO_TOKEN" || { echo "EXPO_TOKEN secret is not set"; exit 1; }
+      - name: Resolve inputs
+        id: inputs
+        env:
+          EVENT: ${{ github.event_name }}
+          IN_CHANNEL: ${{ inputs.channel }}
+          IN_MESSAGE: ${{ inputs.message }}
+          IN_DRY_RUN: ${{ inputs.dry_run }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          OUT="$RUNNER_TEMP/ota"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+          mkdir -p "$OUT"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            channel="${IN_CHANNEL:-production}"
+            dry_run="$IN_DRY_RUN"
+            message="$IN_MESSAGE"
+          else
+            channel="$(printf '%s' "$HEAD_MESSAGE" | sed -n 's/.*\[ota:channel=\([A-Za-z0-9_-]*\)\].*/\1/p' | head -n1)"
+            channel="${channel:-production}"
+            dry_run=true
+            case "$HEAD_MESSAGE" in *"[ota:publish]"*) dry_run=false ;; esac
+            message=""
+          fi
+          case "$channel" in *[!A-Za-z0-9_-]*|"") echo "bad channel name"; exit 1 ;; esac
+          sha="$(git rev-parse HEAD)"
+          [ -n "$message" ] || message="$(git log -1 --format=%s HEAD) ($(git rev-parse --short HEAD))"
+          git fetch --quiet origin master
+          master="$(git rev-parse origin/master)"
+          {
+            echo "channel=$channel"
+            echo "dry_run=$dry_run"
+            echo "on_master_tip=$([ "$sha" = "$master" ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+          printf '%s' "$message" > "$OUT/message.txt"
+          {
+            echo "### Inputs"
+            echo ""
+            echo "- Trigger: \`$EVENT\`, commit \`$(git rev-parse --short HEAD)\` (master tip: \`$(git rev-parse --short "$master")\`)"
+            echo "- Channel: \`$channel\`, dry run: \`$dry_run\`"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 27.4.1
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Decision logic tests
+        working-directory: .
+        run: node --test .github/scripts/eas-ota.test.mjs
+      - name: Expo doctor (report only, as in CI)
+        run: |
+          set +e
+          npx -y expo-doctor@1.21.6 > "$OUT/doctor.txt" 2>&1
+          rc=$?
+          cat "$OUT/doctor.txt"
+          {
+            echo "### Expo doctor: $([ $rc -eq 0 ] && echo passed || echo "reported issues (exit $rc, report only)")"
+            echo ""
+            echo '<details><summary>Output</summary>'
+            echo ""
+            echo '```'
+            tail -n 25 "$OUT/doctor.txt"
+            echo '```'
+            echo '</details>'
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Token check
+        run: |
+          if user="$(eas whoami 2>"$OUT/whoami.err")"; then
+            echo "Expo token accepted: logged in as $(printf '%s' "$user" | head -n1)"
+            echo "### Expo token: accepted (account \`$(printf '%s' "$user" | head -n1)\`)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Expo token: REJECTED" >> "$GITHUB_STEP_SUMMARY"
+            echo "eas whoami failed:"; cat "$OUT/whoami.err"
+            exit 1
+          fi
+      - name: Local runtime fingerprints
+        run: |
+          # shellcheck disable=SC2016 # JS template literals in node -e
+          for p in android ios; do
+            npx expo-updates fingerprint:generate --platform "$p" > "$OUT/fingerprint-$p.json"
+            npx expo-updates runtimeversion:resolve --platform "$p" > "$OUT/runtime-$p.json"
+            node -e '
+              const [f, r, p] = process.argv.slice(1);
+              const fp = require(f), rt = require(r);
+              console.log(`${p}: fingerprint ${fp.hash}, runtime ${rt.runtimeVersion}`);
+              if (fp.hash !== rt.runtimeVersion) { console.error(`${p}: fingerprint and runtime differ`); process.exit(1); }
+            ' "$OUT/fingerprint-$p.json" "$OUT/runtime-$p.json" "$p"
+          done
+      - name: Builds and updates on EAS
+        run: |
+          eas build:list --platform all --status finished --limit 50 --json --non-interactive > "$OUT/builds.json"
+          eas update:list --all --limit 10 --json --non-interactive > "$OUT/updates.json" || echo '{"currentPage":[]}' > "$OUT/updates.json"
+          echo "builds: $(node -p 'require(process.argv[1]).length' "$OUT/builds.json")"
+      - name: Fingerprint match report
+        id: report
+        run: |
+          node ../.github/scripts/eas-ota.mjs report \
+            --channel "${{ steps.inputs.outputs.channel }}" \
+            --dry-run "${{ steps.inputs.outputs.dry_run }}" \
+            --runtime-android "$OUT/runtime-android.json" \
+            --runtime-ios "$OUT/runtime-ios.json" \
+            --builds "$OUT/builds.json" \
+            --updates "$OUT/updates.json" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: What changed since the newest build (no-match platforms)
+        if: steps.report.outputs.android_compare_build != '' || steps.report.outputs.ios_compare_build != ''
+        env:
+          ANDROID_BUILD: ${{ steps.report.outputs.android_compare_build }}
+          ANDROID_COMMIT: ${{ steps.report.outputs.android_compare_commit }}
+          IOS_BUILD: ${{ steps.report.outputs.ios_compare_build }}
+          IOS_COMMIT: ${{ steps.report.outputs.ios_compare_commit }}
+        run: |
+          set +e
+          for p in android ios; do
+            if [ "$p" = android ]; then id="$ANDROID_BUILD"; commit="$ANDROID_COMMIT"; else id="$IOS_BUILD"; commit="$IOS_COMMIT"; fi
+            [ -n "$id" ] || continue
+            eas fingerprint:compare --build-id "$id" --environment production --non-interactive > "$OUT/compare-$p.txt" 2>&1
+            {
+              echo "### $p: fingerprint diff, build \`${id:0:8}\` vs this commit"
+              echo ""
+              echo '```'
+              sed 's/\x1b\[[0-9;]*m//g' "$OUT/compare-$p.txt" | grep -v 'is now available\|npm install -g eas-cli\|Proceeding with outdated' | tail -n 60
+              echo '```'
+              if [ -n "$commit" ] && git cat-file -e "$commit^{commit}" 2>/dev/null; then
+                echo ""
+                echo "Native inputs changed since the build's commit \`${commit:0:7}\`:"
+                echo ""
+                echo '```'
+                git diff --stat "$commit" HEAD -- package.json package-lock.json app.json eas.json .gitignore assets/icon.png assets/adaptive-icon.png assets/splash.png | tail -n 20
+                git diff "$commit" HEAD -- package.json | grep '^[+-] ' | head -n 40
+                echo '```'
+              fi
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          done
+          exit 0
+      - name: Publish
+        if: steps.inputs.outputs.dry_run != 'true' && steps.report.outputs.publish_platforms != ''
+        env:
+          CHANNEL: ${{ steps.inputs.outputs.channel }}
+          ON_MASTER_TIP: ${{ steps.inputs.outputs.on_master_tip }}
+          PLATFORMS: ${{ steps.report.outputs.publish_platforms }}
+          ANDROID_PROFILE: ${{ steps.report.outputs.android_profile }}
+          IOS_PROFILE: ${{ steps.report.outputs.ios_profile }}
+          ANDROID_RUNTIME: ${{ steps.report.outputs.android_runtime }}
+          IOS_RUNTIME: ${{ steps.report.outputs.ios_runtime }}
+        run: |
+          if [ "$ON_MASTER_TIP" != "true" ]; then
+            echo "### Not published: this commit is not master's tip" >> "$GITHUB_STEP_SUMMARY"
+            echo "Refusing to publish a commit that is not master's tip."; exit 1
+          fi
+          message="$(cat "$OUT/message.txt")"
+          echo "### Published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          # shellcheck disable=SC2016,SC1090 # JS template literals; generated env file
+          for p in $PLATFORMS; do
+            if [ "$p" = android ]; then profile="$ANDROID_PROFILE"; runtime="$ANDROID_RUNTIME"; else profile="$IOS_PROFILE"; runtime="$IOS_RUNTIME"; fi
+            case "$profile" in production|preview|development) environment="$profile" ;; *) environment=production ;; esac
+            # Subshell: each platform gets its own profile's env.
+            (
+              set -e
+              node ../.github/scripts/eas-ota.mjs env --eas-json eas.json --profile "$profile" > "$OUT/env-$p.sh"
+              . "$OUT/env-$p.sh"
+              EXPO_NO_DOTENV=1 npx expo export --output-dir "$OUT/dist-$p" --dump-sourcemap --dump-assetmap --platform "$p"
+              node ../.github/scripts/eas-ota.mjs verify-bundle --dir "$OUT/dist-$p" --platform "$p" --url "$EXPO_PUBLIC_API_URL"
+              eas update --skip-bundler --input-dir "$OUT/dist-$p" --channel "$CHANNEL" --platform "$p" \
+                --environment "$environment" --message "$message" --non-interactive --json > "$OUT/update-$p.json"
+              node -e '
+                const [file, p, want, channel] = process.argv.slice(1);
+                const u = require(file);
+                const lines = u.map((x) => `- ${p}: update group \`${x.group}\`, update \`${x.id}\`, runtime \`${x.runtimeVersion}\`, branch \`${x.branch}\` (channel \`${channel}\`)`);
+                console.log(lines.join("\n"));
+                require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+                if (u.some((x) => x.runtimeVersion !== want)) { console.error(`published runtime differs from the checked one (${want})`); process.exit(1); }
+              ' "$OUT/update-$p.json" "$p" "$runtime" "$CHANNEL"
+            )
+          done
+      - name: Keep the fingerprints and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-ota-report
+          path: |
+            ${{ runner.temp }}/ota/*.json
+            ${{ runner.temp }}/ota/*.txt
+          retention-days: 14

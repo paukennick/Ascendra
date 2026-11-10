@@ -321,13 +321,14 @@ limits whatever the tier and **whether or not `BILLING_ENABLED` is on**.
 | Lifted for owner and unrestricted | Never lifted |
 |---|---|
 | Every plan feature (coach, regenerate, explain-back, unit checks, comparisons, Quiz me, mock exams, PBQs, readiness), every course, every lab (not just the sample) | Sign-in, MFA, session checks, rate limits (chat 30 per 10 min, regenerate, grading, access changes) |
-| Plan allowances (no `allowance_uses` row is written) and the per-tier monthly AI cap | Course disclaimers and acknowledgements, the lab disclaimer |
+| Plan allowances (no `allowance_uses` row is written) and the per-tier monthly AI cap (an owner has a $35 monthly safety cap instead, below) | Course disclaimers and acknowledgements, the lab disclaimer |
 | The $0.50 daily AI budget, **raised** to the safety ceiling below | Access checks: another learner's private courses and data stay invisible (unrestricted is not admin) |
 | Early access to features behind a switch that is off for everyone else | |
 
 How: `tierFor` answers Pro for them (Pro has every feature; a unit test
 fails if a feature is ever added above Pro), `consumeAllowance`,
-`allowanceStatus` and the monthly cap return "no limit" for them
+`allowanceStatus` and the per-tier monthly cap return "no limit" for them
+(owners get their own monthly safety cap)
 (`lib/entitlements.ts`), and `requireAiBudget` uses the ceiling
 (`lib/ai-budget.ts`). With the switch off nothing reads the access tables
 for plan gates (everyone already has everything); the AI budget looks the
@@ -345,6 +346,18 @@ working, the server logs `[ai-ceiling]`, records a `ceiling_reached` row in
 `account_access_events`, and emails every owner (at most once per account
 per 24 hours). The ceiling can be changed but not switched off ("off" or 0
 fall back to $20), and it applies even if `AI_DAILY_BUDGET_USD` is off.
+
+### The owner's monthly AI safety cap
+
+Owners (`OWNER_EMAILS`) also have a monthly cap: **$35** of model spend per
+calendar month (UTC), set by `OWNER_MONTHLY_AI_CAP_USD` (Nick, 2026-11-09).
+At the cap the coach and lesson regenerate pause with the same message and
+`aiPaused` body as a plan's monthly cap, and open again on the 1st; grading
+and review never stop. It applies whether or not `BILLING_ENABLED` is on,
+because it is a safety stop rather than a plan limit, and like the ceiling
+it cannot be switched off ("off", 0 or junk fall back to $35). The daily
+ceiling above still applies on top of it. A granted (non-owner)
+unrestricted account is not affected by this setting.
 
 ### Early access
 
@@ -400,7 +413,8 @@ Deleting the learner's account deletes both.
 
 1. Vercel -> the backend project -> Settings -> Environment Variables: add
    `OWNER_EMAILS=paukennick2@gmail.com` for **Production and Preview**.
-   Optional: `AI_UNRESTRICTED_DAILY_CEILING_USD` (default 20).
+   Optional: `AI_UNRESTRICTED_DAILY_CEILING_USD` (default 20) and
+   `OWNER_MONTHLY_AI_CAP_USD` (default 35).
 2. Apply migration 056 with the routine deploy: push the release commit to
    `ops/migrate-production` (docs/deploy-runbook-integration.md, "Routine
    deploys") and wait for "Schema is current". Additive; the code before
