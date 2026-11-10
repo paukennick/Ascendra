@@ -100,6 +100,20 @@
   (lib/auth/refreshCookie.ts), and anything that reads the cookie checks
   `cookieRequestAllowed` (Origin + platform header). A dialog or sheet uses
   `SheetModal`, never React Native's `Modal`, so it hides under the lock.
+- Learning-data correctness (REQ-204, FAIL-880..893): a route keyed by an
+  objective uses `taughtObjective` (lib/visibility.ts) unless it must read
+  history, and every reader of a table with `retired_at` applies it, resumed
+  state and triggers included (FAIL-889, FAIL-890). A pulled item is pulled
+  with every copy of it (a lesson check copied into `exam_items`, FAIL-885),
+  and a cleared one can be pulled again (FAIL-886). A cooldown names who it
+  blocks (FAIL-882) and starts only on a verdict about the content, never on
+  our own failure (FAIL-883). A message written for the learner goes out as a
+  4xx, because the app hides a 5xx (FAIL-884). A one-open-row rule or a replay
+  by client id is taken under a lock (FAIL-880, FAIL-881). Old state is
+  destroyed only after the new state is stored, and a counted use is released
+  on every path that stores nothing (FAIL-887, FAIL-888). A seed that rewrites
+  a field generated content was made from invalidates that content
+  (FAIL-893).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

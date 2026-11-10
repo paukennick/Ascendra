@@ -7051,6 +7051,34 @@
         "migration 067 swaps item_kind checks on three tables (brief ACCESS EXCLUSIVE)",
         "the 050 schema probe now accepts the 067 check"
       ]
+    },
+    {
+      "id": "REQ-204",
+      "category": "data-correctness",
+      "title": "Learning-data correctness (batch F3)",
+      "description": "Fixes from the 2026-11-09 pre-launch audit that left learner data wrong or learners locked out: exam start double-submit and concurrent starts, the six hour held-back cooldown applied to every learner, a retryable queue error treated as a holdback, held-back and unsent-email refusals hidden behind a 5xx, wrong lesson keys coming back in mock exams, cleared items that could never be pulled again, a failed regenerate wiping the saved position and keeping its weekly use, retired objectives still reachable, repeats counted as spaced review, GET /api/attempts?limit=-1 returning 500, and objectives retitled in place keeping content for the old title. Migration 069.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [],
+      "acceptance_criteria": [
+        "each finding has a regression test against a real database that fails on batch-9",
+        "schema probe for 069",
+        "mobile shows the server's held-back message"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db seeded twice",
+        "mobile npm test and tsc",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "FAIL-884 changes the unsent-email status from 503 to 409: an app build that branches on 503 for email would need to follow",
+        "existing item_holdbacks rows count as shared-scope holdbacks until their six hours pass",
+        "a retitled objective's generated content is regenerated on the next visit (model cost)"
+      ]
     }
   ]
 }

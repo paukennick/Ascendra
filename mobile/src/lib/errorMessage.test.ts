@@ -77,6 +77,11 @@ describe("friendly messages", () => {
   test("server errors (5xx) never show the server's internals", () => {
     assert.equal(httpErrorMessage(500, { error: "relation does not exist" }, true), SERVER_MESSAGE);
     assert.equal(httpErrorMessage(400, { error: "answer is required" }, true), "answer is required");
+    // FAIL-884: the held-back lesson and the unsent email are 409s now, so the
+    // server's own sentence reaches the learner; the same text as a 5xx never did.
+    assert.equal(httpErrorMessage(409, { error: "This lesson didn't pass our accuracy checks.", held: true }, true), "This lesson didn't pass our accuracy checks.");
+    assert.equal(httpErrorMessage(409, { error: "We couldn't send the email just now.", retryable: true }, true), "We couldn't send the email just now.");
+    assert.equal(httpErrorMessage(503, { error: "This lesson didn't pass our accuracy checks.", held: true }, true), SERVER_MESSAGE);
     assert.equal(httpErrorMessage(400, null, false), UNREADABLE_MESSAGE);
   });
 });
