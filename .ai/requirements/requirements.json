@@ -5843,6 +5843,56 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-198",
+      "category": "catalog/feature",
+      "title": "PT School Prerequisites Refresher course and a DPT study path (refresher, DPT, NPTE-PT)",
+      "description": "Nick-approved 2026-11-09. New catalog course PTPREREQ, 'PT School Prerequisites Refresher' (graduate, physical-therapy subcategory like DPT, under the one study notice). It refreshes the undergraduate prerequisites DPT programs commonly require, scoped on APTA's PT admissions page and ACAPT's 2012 common core prerequisites (both read 2026-11-09), with depth from OpenStax Anatomy and Physiology 2e, Chemistry 2e, College Physics 2e, Biology 2e, Psychology 2e and Introductory Statistics 2e and dated sources per unit (PTPREREQ_UNIT_SOURCES). 11 units and 95 objectives. The first six units (cells and tissues, musculoskeletal anatomy, muscle physiology, biomechanics, nervous, cardiovascular) hold 62 objectives. No weights and no credential. 17 written-answer labs at hybrid density, because the interactive answer types of REQ-189 are not on the base. A study path is seed data (backend/supabase/seed/paths.ts, keyed by track code): dpt-student = PTPREREQ (before or at the start of the program), then DPT (during), then NPTEPT (final year, about 6 to 9 months before graduating). GET /api/courses/:id/path (lib/study-paths.ts) resolves it, and the course page (StudyPathPanel) shows Recommended before and after plus the whole path on all three courses. No migration (066 released to the lead). The intake form (#73) is not used, because its goal list is a check constraint in migration 060.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/pt-prereq.ts",
+        "backend/supabase/seed/labs/pt-prereq.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/paths.ts",
+        "backend/lib/study-paths.ts",
+        "backend/app/api/courses/[id]/path/route.ts",
+        "mobile/src/lib/studyPath.ts",
+        "mobile/src/components/StudyPathPanel.tsx",
+        "mobile/app/(app)/course/[trackId]/index.tsx",
+        "tests",
+        "docs/study-paths.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "PTPREREQ seeds idempotently with 11 units and 95 objectives and every unit has dated sources",
+        "Title and description say it is a refresher and name no exam body's mark",
+        "17 labs pass the content rules at hybrid density with one lab per objective",
+        "GET /api/courses/:id/path returns before and after for PTPREREQ and DPT and NPTEPT and [] for other courses and 404 for an invisible course",
+        "The DPT and NPTE-PT and refresher course pages show Recommended before and after",
+        "No migration"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "backend and mobile typecheck (no new errors)",
+        "npm run migrate --all and npm run seed twice and npm run test:db on fresh Postgres 16",
+        "omni gate",
+        "omni map from a fresh clone"
+      ],
+      "documentation_required": [
+        "docs/study-paths.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Content not reviewed by a licensed PT educator; served under the study notice as built",
+        "Interactive answer types (REQ-189) not used; convert torque/physics/stats labs when it merges",
+        "After REQ-194 (hidden_at) merges coursePaths should skip hidden courses (none of the three are hidden)",
+        "OpenStax CMS lists CC BY-NC-SA while pt-dpt.ts says CC BY 4.0; no text reproduced"
+      ]
     }
   ]
 }

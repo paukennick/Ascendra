@@ -22,6 +22,7 @@ import { NURSING_TRACKS } from "./tracks/nursing";
 import { COMPTIA_TRACKS } from "./tracks/comptia";
 import { PM_TRACKS } from "./tracks/pm";
 import { PT_TRACKS } from "./tracks/pt";
+import { PT_PREREQ_TRACK } from "./tracks/pt-prereq";
 import { FITNESS_TRACKS } from "./tracks/fitness";
 import { CCRN_TRACKS } from "./tracks/ccrn";
 import { CCRN_PEDS_NEO_TRACKS } from "./tracks/ccrn-peds-neo";
@@ -51,6 +52,9 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...COMPTIA_TRACKS,
   ...PM_TRACKS,
   ...PT_TRACKS,
+  // REQ-198: the PT school prerequisites refresher, first step of the DPT
+  // study path (seed/paths.ts).
+  PT_PREREQ_TRACK,
   ...FITNESS_TRACKS,
   // REQ-086: AACN CCRN (Adult, Pediatric, Neonatal) and the MS Health
   // Informatics degree pathway.
