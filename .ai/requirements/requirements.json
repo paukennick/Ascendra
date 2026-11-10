@@ -6592,6 +6592,58 @@
         "Study routes keep visibleTrack by design: a learner who knows a hidden course's id can still open it and answer, which then counts as activity and lists it for them",
         "Apply migration 065 before deploying the backend, then npm run seed; until the seed runs nothing is hidden"
       ]
+    },
+    {
+      "id": "REQ-174",
+      "category": "content",
+      "title": "NREMT EMT and EMR courses with labs",
+      "description": "Add the National Registry EMT and Emergency Medical Responder cognitive-exam courses under a new Emergency Medical Services subcategory (migration 061), built on NREMT's current test plans, with hybrid-density case and build labs whose clinical values cite dated guidelines and stay within each level's national scope of practice.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/ems.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/labs/ems-sources.ts",
+        "backend/supabase/seed/labs/ems-emt.ts",
+        "backend/supabase/seed/labs/ems-emr.ts",
+        "backend/supabase/seed/labs/index.ts",
+        "backend/supabase/seed/labs/value-sources.ts",
+        "backend/supabase/migrations/061_ems_taxonomy.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/labs-ems.test.ts",
+        "backend/scripts/generate-labs.ts",
+        "docs/deploy-runbook-integration.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Units, ranges and item facts match NREMT's EMT and EMR test plans read on the day",
+        "Every lab names an exact active objective and passes the content rules",
+        "Each course follows the hybrid density unit by unit with one lab per objective",
+        "Every lab cites a dated clinical guideline or reference or says why not",
+        "No lab grades an action outside the level's national scope",
+        "Migration 061 has a schema probe and runbook rows"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/labs.md",
+        "docs/catalog-backlog.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "risk_notes": [
+        "All labs are needs_expert_review until an EMS clinical reviewer reads them",
+        "Weights are midpoints of NREMT's published ranges (EMT sums to 99)",
+        "State protocols may narrow or widen national scope",
+        "Clinical guideline sources carry 6-month recheck dates",
+        "Titles retitled per Nick's approval (2026-11-09) on the REQ-097 pattern and NREMT's trademark page: 'Prep for the National Registry <level> Exam', descriptions end with an independence and non-affiliation statement and the mark attribution; codes and objective order unchanged. Not reviewed by a lawyer."
+      ]
     }
   ]
 }

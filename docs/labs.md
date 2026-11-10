@@ -608,6 +608,28 @@ AI-901 labs apply concepts (deployment types, generation settings, prompts,
 agents, Content Understanding field schemas) without SDK method names that
 change between releases. All 26 are `needs_expert_review`.
 
+### NREMT EMS: EMT and Emergency Medical Responder (REQ-174)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| NREMT EMT | 10 (8 case, 2 build) | 2/3/1/2/2 | [EMT Examination Specifications](https://nremt.org/getmedia/4cb170ab-35fa-4ec0-a76c-634847005bc4/EMT-Test-Plan_Public) (2023 BLS Practice Analysis; live 2025-04-07; read 2026-11-09) |
+| NREMT EMR | 11 (10 case, 1 build) | 2/3/2/2/2 | [EMR Examination Specifications](https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public) (same analysis and date) |
+
+Files `seed/labs/ems-emt.ts` and `ems-emr.ts`, sources in
+`seed/labs/ems-sources.ts`; `lib/labs-ems.test.ts` checks the density unit by
+unit (weights are the midpoints of NREMT's published ranges), one lab per
+objective, the clinical safety note, a dated guideline or a stated reason on
+every lab, and the scope rules by level. Each case is an unfolding call:
+scene, assessment, a treatment decision within that level's scope, then a
+handoff. Scope follows the National EMS Scope of Practice Model 2019 (with
+Change Notices 1.0 and 2.0); values follow the AHA 2025 CPR and ECC
+guidelines (Parts 6 and 7), the 2021 National Guideline for the Field Triage
+of Injured Patients and the NASEMSO National Model EMS Clinical Guidelines
+v3.0 (2022), all read on 2026-11-09. All 21 are `needs_expert_review` and need
+an EMS clinical reviewer (a paramedic educator or EMS physician) to read them
+in full; the PR lists the points that rest on teaching practice rather than a
+cited guideline.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as
@@ -617,7 +639,8 @@ since REQ-165 learners are not told which labs await review. Review is still
 required until a person sets a lab to `approved`. For
 **clinical and fitness labs this is a hard requirement**: each needs a
 licensed or certified subject expert (a nurse educator for NCLEX and CCRN, an
-NCCA-accredited trainer or educator for NASM) to read the brief, every step,
+NCCA-accredited trainer or educator for NASM, a paramedic educator or EMS
+physician for the NREMT courses) to read the brief, every step,
 every criterion and every reference answer, and to record who checked it
 (`reviewed_by`, `review_note`). Cloud and project-management labs need a
 qualified reviewer as well; a 20% sample per course is the floor for
