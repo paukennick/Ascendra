@@ -1,7 +1,20 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { isUuid } from "@/lib/visibility";
-import { TIER_RANK, planForStoreProduct, planForStripePrice, type PaidTier, type PlanPeriod } from "@/lib/billing-config";
+import {
+  isPlanFamily,
+  isPlanScope,
+  planForEntitlementId,
+  planForStoreProduct,
+  planForStripePrice,
+  planRank,
+  PLAN_FAMILIES,
+  type PaidTier,
+  type PlanFamily,
+  type PlanPeriod,
+  type PlanScope,
+  type StoreProductPlan,
+} from "@/lib/billing-config";
 
 // REQ-122: the payment providers tell us what each learner has paid for.
 //
@@ -110,6 +123,9 @@ interface EntitlementChange {
   source: "revenuecat" | "stripe";
   externalId: string;
   tier: PaidTier;
+  // REQ-170: the category plan (null only for an unknown product line)
+  family: PlanFamily | null;
+  scope: PlanScope | null;
   plan: PlanPeriod | null;
   productId: string | null;
   status: "active" | "canceled" | "billing_issue" | "expired" | "refunded" | "revoked";
@@ -156,6 +172,8 @@ async function holdPaidPeriod(
   tx: TxClient,
   c: Pick<EntitlementChange, "userId" | "source" | "externalId" | "store" | "customerRef">,
   tier: PaidTier,
+  family: PlanFamily | null,
+  scope: PlanScope | null,
   plan: string | null,
   productId: string | null,
   periodEnd: Date,
@@ -164,16 +182,43 @@ async function holdPaidPeriod(
 ): Promise<void> {
   await tx.query(
     `insert into entitlements (user_id, tier, source, external_id, product_id, plan, status, period_end, store, customer_ref,
-                               last_event_at, last_event_id, note)
-     values ($1, $2, $3, $4, $5, $6, 'canceled', $7, $8, $9, $10, $11, 'kept to the end of the paid period after a downgrade')
+                               last_event_at, last_event_id, note, family, scope)
+     values ($1, $2, $3, $4, $5, $6, 'canceled', $7, $8, $9, $10, $11, 'kept to the end of the paid period after a downgrade', $12, $13)
      on conflict (source, external_id) do update
         set tier = case when entitlements.tier = 'pro' or excluded.tier = 'pro' then 'pro' else 'plus' end,
+            -- REQ-170: the held plan is the higher-ranked of the two
+            family = case when $14::int >= coalesce($15::int, 0) then excluded.family else entitlements.family end,
+            scope = case when $14::int >= coalesce($15::int, 0) then excluded.scope else entitlements.scope end,
             period_end = greatest(entitlements.period_end, excluded.period_end),
             last_event_at = greatest(entitlements.last_event_at, excluded.last_event_at),
             updated_at = now()
       where entitlements.status not in ('refunded', 'revoked')`,
-    [c.userId, tier, c.source, heldExternalId(c.externalId), productId, plan, periodEnd, c.store ?? null, c.customerRef ?? null, at, eventId]
+    [
+      c.userId,
+      tier,
+      c.source,
+      heldExternalId(c.externalId),
+      productId,
+      plan,
+      periodEnd,
+      c.store ?? null,
+      c.customerRef ?? null,
+      at,
+      eventId,
+      family,
+      scope,
+      planRank(family, tier),
+      await heldRank(tx, c.source, c.externalId),
+    ]
   );
+}
+
+async function heldRank(tx: TxClient, source: string, externalId: string): Promise<number | null> {
+  const row = await tx.queryOne<{ family: string | null; tier: PaidTier }>(
+    `select family, tier from entitlements where source = $1 and external_id = $2`,
+    [source, heldExternalId(externalId)]
+  );
+  return row ? planRank(isPlanFamily(row.family) ? row.family : null, row.tier) : null;
 }
 
 // A refund or revocation of a subscription ends the paid time held from it.
@@ -192,28 +237,36 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
     id: string;
     last_event_at: Date | null;
     tier: PaidTier;
+    family: string | null;
+    scope: string | null;
     status: string;
     period_end: Date | null;
     plan: string | null;
     product_id: string | null;
     customer_ref: string | null;
   }>(
-    `select id, last_event_at, tier, status, period_end, plan, product_id, customer_ref
+    `select id, last_event_at, tier, family, scope, status, period_end, plan, product_id, customer_ref
        from entitlements where source = $1 and external_id = $2 for update`,
     [c.source, c.externalId]
   );
+  // REQ-170: "higher" is the plan's rank (all-access over a category's Pro
+  // over its Plus); a row without a family ranks by tier.
+  const newRank = planRank(c.family, c.tier);
+  const oldFamily = existing && isPlanFamily(existing.family) ? existing.family : null;
+  const oldScope = existing && isPlanScope(existing.scope) ? existing.scope : null;
+  const oldRank = existing ? planRank(oldFamily, existing.tier) : 0;
   if (existing?.last_event_at && new Date(existing.last_event_at).getTime() > at.getTime()) {
     // Decision 6, out of order: an older event for a HIGHER tier than the
     // newer stored state, with paid time left, is a period the learner paid
     // for before downgrading. Keep it, as in-order delivery would have.
     if (
-      TIER_RANK[c.tier] > TIER_RANK[existing.tier] &&
+      newRank > oldRank &&
       PAID_UP.has(c.status) &&
       ["active", "canceled", "billing_issue"].includes(existing.status) &&
       c.periodEnd &&
       c.periodEnd.getTime() > Date.now()
     ) {
-      await holdPaidPeriod(tx, { ...c, customerRef: c.customerRef ?? existing.customer_ref }, c.tier, c.plan, c.productId, c.periodEnd, eventId, at);
+      await holdPaidPeriod(tx, { ...c, customerRef: c.customerRef ?? existing.customer_ref }, c.tier, c.family, c.scope, c.plan, c.productId, c.periodEnd, eventId, at);
     }
     return "stale";
   }
@@ -221,7 +274,7 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
   // is still paid up keeps the higher tier to the paid period's end.
   if (
     existing &&
-    TIER_RANK[c.tier] < TIER_RANK[existing.tier] &&
+    newRank < oldRank &&
     PAID_UP.has(existing.status) &&
     !ENDS_NOW.has(c.status) &&
     existing.period_end &&
@@ -231,6 +284,8 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
       tx,
       { ...c, customerRef: c.customerRef ?? existing.customer_ref },
       existing.tier,
+      oldFamily,
+      oldScope,
       existing.plan,
       existing.product_id,
       new Date(existing.period_end),
@@ -241,10 +296,11 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
   await endHeld(tx, c.source, c.externalId, c.status, eventId, at);
   await tx.query(
     `insert into entitlements (user_id, tier, source, external_id, product_id, plan, status, period_end, store, customer_ref,
-                               last_event_at, last_event_id)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                               last_event_at, last_event_id, family, scope)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      on conflict (source, external_id) do update
         set user_id = excluded.user_id, tier = excluded.tier, product_id = excluded.product_id, plan = excluded.plan,
+            family = excluded.family, scope = excluded.scope,
             status = excluded.status, period_end = excluded.period_end,
             store = coalesce(excluded.store, entitlements.store),
             customer_ref = coalesce(excluded.customer_ref, entitlements.customer_ref),
@@ -262,6 +318,8 @@ async function upsertEntitlement(tx: TxClient, c: EntitlementChange, eventId: st
       c.customerRef ?? null,
       at,
       eventId,
+      c.family,
+      c.scope,
     ]
   );
   return "applied";
@@ -360,12 +418,17 @@ async function rcUserId(tx: TxClient, e: RevenueCatEvent): Promise<string | null
   return null;
 }
 
-function rcTier(e: RevenueCatEvent): { tier: PaidTier; period: PlanPeriod | null } | null {
+// REQ-170: the product id names the plan; the entitlement ids (one per plan
+// family) are the fallback for a product id we don't recognise.
+function rcTier(e: RevenueCatEvent): StoreProductPlan | null {
   const fromProduct = planForStoreProduct(e.product_id);
-  const ents = e.entitlement_ids ?? [];
-  if (ents.includes("pro")) return { tier: "pro", period: fromProduct?.period ?? null };
-  if (ents.includes("plus")) return { tier: "plus", period: fromProduct?.period ?? null };
-  return fromProduct;
+  if (fromProduct) return fromProduct;
+  let best: StoreProductPlan | null = null;
+  for (const id of e.entitlement_ids ?? []) {
+    const p = planForEntitlementId(id);
+    if (p && (!best || planRank(p.family, p.tier) > planRank(best.family, best.tier))) best = p;
+  }
+  return best;
 }
 
 export async function applyRevenueCatEvent(e: RevenueCatEvent): Promise<ApplyResult> {
@@ -424,7 +487,19 @@ export async function applyRevenueCatEvent(e: RevenueCatEvent): Promise<ApplyRes
       }
       const r = await upsertEntitlement(
         tx,
-        { userId, source: "revenuecat", externalId, tier: plan.tier, plan: plan.period, productId: e.product_id ?? null, status, periodEnd, store: e.store ?? null },
+        {
+          userId,
+          source: "revenuecat",
+          externalId,
+          tier: plan.tier,
+          family: plan.family,
+          scope: plan.scope,
+          plan: plan.period,
+          productId: e.product_id ?? null,
+          status,
+          periodEnd,
+          store: e.store ?? null,
+        },
         e.id,
         at
       );
@@ -510,7 +585,13 @@ export async function applyStripeEvent(e: StripeEvent, env: NodeJS.ProcessEnv = 
     if (e.type === "customer.subscription.created" || e.type === "customer.subscription.updated" || e.type === "customer.subscription.deleted") {
       const priceId = obj.items?.data?.[0]?.price?.id ?? null;
       const byPrice = planForStripePrice(priceId, env);
-      const tier: PaidTier | null = obj.metadata?.tier === "plus" || obj.metadata?.tier === "pro" ? obj.metadata.tier : byPrice?.tier ?? null;
+      // REQ-170: the price names the plan; the subscription's own metadata
+      // (set at checkout) is the fallback.
+      const metaFamily = isPlanFamily(obj.metadata?.family) ? (obj.metadata.family as PlanFamily) : null;
+      const family: PlanFamily | null = byPrice?.family ?? metaFamily;
+      // A bare tier (no plan family) is never enough: a row without a scope
+      // would open every course.
+      const tier: PaidTier | null = family ? PLAN_FAMILIES[family].tier : null;
       const plan: PlanPeriod | null = ["monthly", "quarterly", "yearly"].includes(obj.metadata?.plan) ? obj.metadata.plan : byPrice?.period ?? null;
       const status = e.type === "customer.subscription.deleted" ? await stripeDeletedStatus(tx, obj, at) : stripeSubStatus(obj);
       if (!userId || !tier) {
@@ -527,6 +608,8 @@ export async function applyStripeEvent(e: StripeEvent, env: NodeJS.ProcessEnv = 
           source: "stripe",
           externalId: obj.id,
           tier,
+          family,
+          scope: family ? PLAN_FAMILIES[family].scope : null,
           plan,
           productId: priceId,
           status,

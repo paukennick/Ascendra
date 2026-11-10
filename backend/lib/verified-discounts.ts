@@ -25,6 +25,8 @@ import {
   supportEmail,
   type DiscountGroup,
   type OfferedGroup,
+  MAX_DISCOUNT_PERCENT,
+  rejectedPercents,
 } from "./verified-discounts-config";
 import {
   configuredProviders,
@@ -346,6 +348,9 @@ export function discountOperatorConfig(env: Env = process.env) {
       playOffer: playOfferFor(g.id, env),
     })),
     APP_STORE_OFFER_REDEEM_URL: set("APP_STORE_OFFER_REDEEM_URL"),
+    // REQ-170: a percentage above 25 (or not a whole number) is refused and
+    // its group not offered.
+    rejectedPercents: rejectedPercents(env).map((r) => `${r.group}: ${r.value} (allowed 1-${MAX_DISCOUNT_PERCENT})`),
   };
 }
 

@@ -12,6 +12,8 @@ import {
   perMonthText,
   planSummary,
   plansFor,
+  scopePlanName,
+  familiesFor,
   priceText,
   resetPhrase,
   savingsPercent,
@@ -29,7 +31,7 @@ import { regenerateErrorMessage, REGENERATE_RATE_LIMITED } from "./regenerateErr
 const { api, registerBillingHook } = await import("../api/client.ts");
 
 const plan = (id: string, tier: "plus" | "pro", period: "monthly" | "quarterly" | "yearly", months: number, usd: number): BillingPlan => ({
-  id, tier, period, months, usd, appStoreProductId: `ascendra.${tier}.${period}`, playProductId: `ascendra_${tier}:${period}`, revenueCatPackage: "$rc", web: true,
+  id, family: `it_cloud_${tier}`, scope: "it_cloud", tier, period, months, usd, appStoreProductId: `ascendra.${tier}.${period}`, playProductId: `ascendra_${tier}:${period}`, revenueCatPackage: "$rc", web: true,
 });
 const CONFIG: BillingConfig = {
   ...DISABLED_CONFIG,
@@ -100,7 +102,7 @@ describe("words", () => {
     assert.match(allowanceLine({ kind: "graded_answer", window: "day", limit: 3, used: 3, remaining: 0, resetsAt: null }), /all 3 used today, more soon/);
   });
   test("plans sorted by length; store price preferred; savings and per-month", () => {
-    const list = plansFor(CONFIG, "plus");
+    const list = plansFor(CONFIG, "it_cloud_plus"); // REQ-170: by plan family (was by tier)
     assert.deepEqual(list.map((p) => p.period), ["monthly", "quarterly", "yearly"]);
     assert.equal(priceText(list[0]), "US$5.99/month");
     assert.equal(priceText(list[2], "₹1,499.00"), "₹1,499.00/year");
@@ -175,6 +177,37 @@ describe("REQ-124: plan changes and readiness", () => {
     assert.equal(googlePlanChange({ ...pro, manage: "app_store" }, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null, "the App Store defers by itself");
     assert.equal(googlePlanChange({ ...pro, status: "expired" }, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null);
     assert.equal(googlePlanChange(null, { tier: "plus", playProductId: "ascendra_plus:monthly" }), null);
+  });
+  test("REQ-170 Google Play: plans replace each other only in one store group; all-access over Pro over Plus", () => {
+    const fams = {
+      it_cloud_plus: { storeGroup: "main" as const, rank: 1 },
+      pm_plus: { storeGroup: "main" as const, rank: 1 },
+      pm_pro: { storeGroup: "main" as const, rank: 2 },
+      all_access: { storeGroup: "main" as const, rank: 3 },
+      clinical_addon: { storeGroup: "clinical" as const, rank: 1 },
+    };
+    const it = { tier: "plus" as const, manage: "play_store", productId: "ascendra_it_cloud_plus:monthly", status: "active" };
+    assert.deepEqual(googlePlanChange(it, { tier: "pro", family: "all_access", playProductId: "ascendra_all_access:yearly" }, fams), { oldProductIdentifier: "ascendra_it_cloud_plus", mode: "immediate" });
+    assert.deepEqual(googlePlanChange(it, { tier: "plus", family: "pm_plus", playProductId: "ascendra_pm_plus:monthly" }, fams), { oldProductIdentifier: "ascendra_it_cloud_plus", mode: "deferred" }, "a crossgrade waits for the paid period");
+    const all = { tier: "pro" as const, manage: "play_store", productId: "ascendra_all_access:yearly", status: "active" };
+    assert.deepEqual(googlePlanChange(all, { tier: "pro", family: "pm_pro", playProductId: "ascendra_pm_pro:monthly" }, fams), { oldProductIdentifier: "ascendra_all_access", mode: "deferred" });
+    assert.equal(googlePlanChange(all, { tier: "pro", family: "clinical_addon", playProductId: "ascendra_clinical_addon:monthly" }, fams), null, "the add-on sits beside all-access");
+  });
+  test("REQ-170 names and the families offered", () => {
+    assert.equal(scopePlanName("pm", "plus"), "Project management Plus");
+    assert.equal(scopePlanName("all_access", "pro"), "All access");
+    assert.equal(scopePlanName("clinical", "pro"), "Clinical Pro");
+    const cfg = {
+      ...CONFIG,
+      scopes: [{ id: "clinical" as const, name: "Clinical", summary: "", families: ["clinical_pro", "clinical_addon"] }],
+      families: {
+        clinical_pro: { scope: "clinical" as const, tier: "pro" as const, name: "Clinical Pro", requires: null, storeGroup: "clinical" as const, rank: 1 },
+        clinical_addon: { scope: "clinical" as const, tier: "pro" as const, name: "Clinical add-on", requires: "all_access" as const, storeGroup: "clinical" as const, rank: 1 },
+      },
+    };
+    assert.deepEqual(familiesFor(cfg, "clinical", null), ["clinical_pro"]);
+    const withAll = { enabled: true, tier: "pro" as const, plans: [{ family: "all_access", scope: "all_access" as const, tier: "pro" as const, status: "active", periodEnd: null }] };
+    assert.deepEqual(familiesFor(cfg, "clinical", withAll), ["clinical_addon"]);
   });
   test("Free's readiness line is the server's words, with the same fallback", () => {
     assert.equal(readinessLockedLine({ message: "Readiness: unconfirmed \u2014 prove it with typed answers in Plus" }), READINESS_LOCKED_FALLBACK);

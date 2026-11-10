@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const start = () => createSession({ userId: user.id, trackId, mode, timed, clientSessionId });
     let created: Awaited<ReturnType<typeof createSession>>;
     if (mode === "mock" && !(clientSessionId && (await sessionExists(user.id, clientSessionId)))) {
-      const tier = await requireFeature(user.id, "mock_exam");
+      const tier = await requireFeature(user.id, "mock_exam", trackId); // REQ-170: the tier on this course
       created = await withAllowance(user.id, "mock_exam", start, tier);
     } else {
       created = await start();

@@ -70,7 +70,8 @@ export default function Settings() {
           <SectionHeader label="Plan" />
           <Card style={{ gap: 0 }}>
             <ListRow icon="star" label="Current plan" value={planSummary(me) || "Free"} onPress={() => router.push("/plans")} />
-            {me?.tier === "free" ? (
+            {/* REQ-170: the free course matters until the plans cover every course. */}
+            {me && !me.coversEverything ? (
               <>
                 <Divider />
                 <ListRow icon="book" label="Free course" value={me.freeCourse?.title ?? "Not picked yet"} onPress={() => router.push("/settings/free-course")} />
@@ -90,6 +91,7 @@ export default function Settings() {
       {/* REQ-119 (M7): opt-in, kind study reminders. */}
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
+        <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
         <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
         <Divider />
         {/* REQ-197: exam change notices, exam countdown, weekly digest. */}

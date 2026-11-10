@@ -82,6 +82,7 @@ describe("wiring", () => {
     const p = read("app/(app)/plans.tsx");
     assert.match(p, /if \(unrestricted\)/);
     const b = read("src/billing/BillingContext.tsx");
-    assert.match(b, /canUpgrade = me\?\.tier !== "pro" && !hasUnrestricted\(user\)/);
+    // REQ-170: "nothing left to buy" is now "the plans cover every course" (was tier === "pro").
+    assert.match(b, /canUpgrade = !me\?\.coversEverything && !hasUnrestricted\(user\)/);
   });
 });

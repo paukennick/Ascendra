@@ -5,10 +5,11 @@ import { tooManyRequests } from "@/lib/http";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { createCheckoutSession } from "@/lib/stripe-checkout";
 import { stripeCouponForUser } from "@/lib/verified-discounts";
+import { requirePlanPrerequisite } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/billing/checkout { planId: "plus_monthly" | ..., requestId? } --
+// POST /api/billing/checkout { planId: "it_cloud_plus_monthly" | ..., requestId? } --
 // REQ-122: a Stripe Checkout session for the web app. Returns { url } to
 // open. 404 while paid plans are off; 503 with a plain message when
 // STRIPE_SECRET_KEY or the plan's STRIPE_PRICE_* is not set. Access is given
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
       throw err;
     }
     const requestId = validClientAttemptId(body.requestId);
+    // REQ-170: the clinical add-on is sold only beside all-access.
+    await requirePlanPrerequisite(user.id, body.planId);
     const { url } = await createCheckoutSession({
       userId: user.id,
       email: user.email,
