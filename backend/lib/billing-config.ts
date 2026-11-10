@@ -134,7 +134,9 @@ export const ALLOWANCE_DEFAULTS: Record<AllowanceKind, AllowanceDefault> = {
   // Nick, 2026-11-07: Pro's coach is "about 60 messages a day" -- a real daily
   // count, still under the monthly AI cap; Plus stays about 20.
   coach_message: { window: "day", noun: "coach messages", limits: { free: 0, plus: 20, pro: 60 } },
-  regeneration: { window: "week", noun: "new lesson versions", limits: { free: 0, plus: 5, pro: 15 } },
+  // Nick, 2026-11-09: Pro 15 -> 10 a week so a heavy Pro learner stays inside
+  // the $4.80 category-price AI cap (about $0.08 per new lesson version).
+  regeneration: { window: "week", noun: "new lesson versions", limits: { free: 0, plus: 5, pro: 10 } },
   mock_exam: { window: "month", noun: "mock exams", limits: { free: 0, plus: 1, pro: null } },
   // Free's "taste" of AI grading. Plus and Pro grade every typed answer.
   graded_answer: { window: "day", noun: "graded typed answers", limits: { free: 3, plus: null, pro: null } },

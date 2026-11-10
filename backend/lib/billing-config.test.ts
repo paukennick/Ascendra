@@ -106,7 +106,7 @@ describe("tiers and features", () => {
 });
 
 describe("allowances", () => {
-  test("defaults: Free 3 graded answers a day, Plus 20 / Pro 60 coach messages a day, 5 / 15 regenerations a week, 1 mock a month; Pro mocks uncounted", () => {
+  test("defaults: Free 3 graded answers a day, Plus 20 / Pro 60 coach messages a day, 5 / 10 regenerations a week, 1 mock a month; Pro mocks uncounted", () => {
     assert.equal(allowanceLimit("graded_answer", "free", {}), 3);
     assert.equal(allowanceLimit("graded_answer", "plus", {}), null);
     assert.equal(allowanceLimit("coach_message", "free", {}), 0);
@@ -115,7 +115,7 @@ describe("allowances", () => {
     assert.equal(allowanceLimit("coach_message", "pro", {}), 60);
     assert.equal(allowanceLimit("coach_message", "pro", { BILLING_ALLOWANCE_COACH_MESSAGE_PRO: "80" }), 80);
     assert.equal(allowanceLimit("regeneration", "free", {}), 0);
-    assert.equal(allowanceLimit("regeneration", "pro", {}), 15);
+    assert.equal(allowanceLimit("regeneration", "pro", {}), 10);
     assert.equal(allowanceLimit("regeneration", "plus", {}), 5);
     assert.equal(allowanceLimit("mock_exam", "plus", {}), 1);
     assert.equal(allowanceLimit("mock_exam", "pro", {}), null);
