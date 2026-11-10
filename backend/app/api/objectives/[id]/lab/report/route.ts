@@ -74,7 +74,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       const ctx = await coachContextForObjective(id);
-      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
+      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined, user.id);
       const answers = labAnswersFor(body?.answers, questions.length);
       if (typeof answers === "string") return badRequest(answers);
       // REQ-116: refused before the billed model call.

@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const state = await insightStatus(objective.track_id, "prerequisites");
-    if (state !== "ready") inBackground(() => ensurePrerequisites(objective.track_id));
+    if (state !== "ready") inBackground(() => ensurePrerequisites(objective.track_id, user.id));
     return ok({ offer: await refresherOffer(user.id, id), pending: state !== "ready" && state !== "failed" });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

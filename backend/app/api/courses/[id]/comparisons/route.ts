@@ -41,9 +41,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const state = await insightStatus(id, "concept_sets");
     if (state !== "ready") {
-      inBackground(() => ensureConceptSets(id));
+      inBackground(() => ensureConceptSets(id, user.id));
     } else {
-      inBackground(() => generateLearnedSets(id));
+      inBackground(() => generateLearnedSets(id, user.id));
     }
     const sets = await conceptSetsForTrack(id, user.id, objectiveId);
     return ok({ pending: state !== "ready" && state !== "failed", failed: state === "failed" && sets.length === 0, sets });

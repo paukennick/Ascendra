@@ -1,6 +1,8 @@
 import { AnthropicError, APIError } from "@anthropic-ai/sdk";
 import { query } from "@/lib/db";
 import { after } from "next/server";
+import { reserveAiSpend } from "@/lib/ai-spend-gate";
+import { estimateCall, type CallEstimate } from "@/lib/ai-spend-ledger";
 
 // Phase 0: one ai_calls row per model call (migration 028), so cost, latency,
 // failure rate and prompt-cache hit rate can be read from the database instead
@@ -74,7 +76,15 @@ export type AiPurpose =
 export interface AiCallMeta {
   purpose: AiPurpose;
   model: string;
+  // The learner the call is for. REQ-202: with one, the call is held to that
+  // learner's spend gate (lib/ai-spend-gate.ts) before it is sent. null means
+  // no learner (an offline script, an unattributed shared job).
   userId?: string | null;
+  // Worst-case cost of the request (estimateCall on the body). Omitted, the
+  // gate assumes a call with no prompt and a full-size answer.
+  estimate?: CallEstimate;
+  // A provider that costs nothing (AI_PROVIDER=local) skips the money gate.
+  free?: boolean;
 }
 
 export interface AiUsage {
@@ -237,12 +247,27 @@ function warnLogFailure(err: unknown): void {
  * what `send` returned; rethrows whatever `send` or `check` threw. Usage is
  * recorded even when `check` rejects an otherwise-delivered response, since
  * those tokens were billed.
+ *
+ * REQ-202: before `send`, the spend gate (lib/ai-spend-gate.ts) runs for every
+ * call, and for one with a userId it refuses the call (AiBudgetError, or
+ * AiSpendUnavailableError when the database cannot say) or reserves its
+ * worst-case cost. The reservation is settled with the real usage below, in
+ * the same ai_calls row, so a gated call writes one row, not two.
  */
 export async function loggedCall<R>(
   meta: AiCallMeta,
   send: () => Promise<R>,
   check?: (result: R) => void
 ): Promise<R> {
+  // Refused here means no model call and no ai_calls row of its own.
+  const reservation = meta.free
+    ? null
+    : await reserveAiSpend({
+        userId: meta.userId ?? null,
+        purpose: meta.purpose,
+        model: meta.model,
+        estimate: meta.estimate ?? estimateCall(meta.model, {}),
+      });
   const started = Date.now();
   let usage: AiUsage | undefined;
   let ok = false;
@@ -257,7 +282,7 @@ export async function loggedCall<R>(
     errorCode = errorCodeOf(err);
     throw err;
   } finally {
-    logAiCall({
+    const record: AiCallRecord = {
       userId: meta.userId ?? null,
       purpose: meta.purpose,
       model: meta.model,
@@ -268,6 +293,10 @@ export async function loggedCall<R>(
       latencyMs: Math.max(0, Date.now() - started),
       ok,
       errorCode,
-    });
+    };
+    // The reservation row IS this call's record; it is written whether or not
+    // AI_CALL_LOG is on, because the spend cap reads it.
+    if (reservation) await reservation.settle(record);
+    else logAiCall(record);
   }
 }

@@ -137,7 +137,7 @@ export async function POST(
     // Fully fire-and-forget: nobody is waiting on this response for actual
     // lesson content, so there's no reason to await the intro half inline
     // the way GET/POST do for a real visit.
-    const handle = ensureGeneration(nextId, objRow, { scope: SHARED });
+    const handle = ensureGeneration(nextId, objRow, { scope: SHARED, triggeredBy: user.id });
     after(() => handle.fullPromise.catch(() => {}));
 
     return ok({ nextObjectiveId: nextId, next, status: "started" });

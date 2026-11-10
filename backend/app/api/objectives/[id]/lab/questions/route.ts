@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       throw err;
     }
     const ctx = await coachContextForObjective(id);
-    return ok({ questions: await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined) });
+    return ok({ questions: await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined, user.id) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);
