@@ -25,6 +25,25 @@ export const NREMT_EMT_PLAN = source("https://nremt.org/getmedia/4cb170ab-35fa-4
 // 19-23 / 37-41 / 4-8 / 20-24 / 10-14%, CAT, 1 h 45 min, 90-110 items, 30
 // unscored pilot items.
 export const NREMT_EMR_PLAN = source("https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public", "exam_outline", CHECKED);
+// National Registry Paramedic Examination Specifications (2019 National EMS
+// Practice Analysis and 2021 Addendum), administered from 2024-07-01: six
+// domains 8-12 / 10-14 / 6-10 / 24-28 / 8-12 / 34-38% (Clinical Judgment the
+// last: communication, leadership and the six steps recognize cues, analyze
+// cues, define hypothesis, generate solutions, take action, evaluation); the
+// separate psychomotor exam discontinued and its content embedded in the
+// cognitive exam; CAT, 3.5 hours, 110-150 items, 20 unscored pilot items,
+// Pearson VUE centres; item types add graphical (incl. ECG strips) and
+// scenario-based.
+export const NREMT_PARAMEDIC_PLAN = source("https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024", "exam_outline", CHECKED);
+// National Registry AEMT Examination Specifications, from 2024-07-01: the
+// same six domains at 9-13 / 11-15 / 7-11 / 25-29 / 6-10 / 31-35%;
+// fixed-length linear computer-based test, 135 items in 3 hours, 35
+// unscored pilot items; graphical items include capnography strips.
+export const NREMT_AEMT_PLAN = source("https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final", "exam_outline", CHECKED);
+// NREMT ALS FAQ (March 2024): PATTs ended 2024-06-30; from 2024-07-01
+// candidates take the new AEMT or Paramedic exam, one exam covering cognitive
+// and psychomotor content.
+export const NREMT_ALS_FAQ = source("https://nremt.org/getmedia/864ba0fa-adb2-49fe-9d9e-85cfe57e550a/ALS_FAQ_3-4-24c.pdf", "exam_outline", CHECKED);
 // NREMT "EMT Full Education Program" pathway: a state-approved EMT course
 // meeting the National EMS Education Standards completed within 2 years, a
 // state-approved BLS skills competency, exam passes valid 24 months.
@@ -75,6 +94,13 @@ export const AHA_2025_ADULT_BLS = guideline("https://doi.org/10.1161/CIR.0000000
 // rescue breathing 1 breath every 2-3 s (20-30/min); infant FBAO 5 back
 // blows alternating with 5 chest thrusts (no abdominal thrusts); child FBAO 5
 // back blows alternating with 5 abdominal thrusts.
+// AHA 2025 Part 9: Adult Advanced Life Support (DOI 10.1161/CIR.0000000000001376).
+// Read on cpr.heart.org: epinephrine 1 mg every 3-5 min; as soon as feasible
+// for a non-shockable rhythm, after initial defibrillation attempts fail for
+// a shockable one; amiodarone or lidocaine may be considered for VF/pVT
+// unresponsive to defibrillation; vasopressin offers no advantage; an abrupt
+// rise in EtCO2 may signal ROSC; 1 breath every 6 s with an advanced airway.
+export const AHA_2025_ADULT_ALS = guideline("https://doi.org/10.1161/CIR.0000000000001376");
 export const AHA_2025_PEDIATRIC_BLS = guideline("https://doi.org/10.1161/CIR.0000000000001370");
 // National Guideline for the Field Triage of Injured Patients 2021 (ACS-COT
 // with partners; released 2022). Read in ACS's two-page handout: red criteria
@@ -121,6 +147,26 @@ export const ACS_FIELD_TRIAGE_2021 = guideline("https://www.facs.org/media/2zdlt
 //     interventions first; re-triage.
 //   heat stroke -- usually above 104 F (40 C) with altered mental status;
 //     active cooling, cold-water immersion fastest.
+//   ALS (Paramedic/AEMT labs) -- airway: SpO2 94-98%, waveform EtCO2 for
+//     significant distress and every advanced airway, ventilated EtCO2 35-40
+//     mmHg without lung disease; respiratory distress: albuterol 5 mg with
+//     ipratropium 0.5 mg, magnesium 40 mg/kg (max 2 g) for severe
+//     bronchospasm, CPAP, nitroglycerin 0.4 mg SL (0.8 mg if SBP >=160) for
+//     pulmonary edema; bradycardia: atropine 1 mg IV every 3-5 min (max 3
+//     mg), then epinephrine infusion or push-dose, or pacing; tachycardia:
+//     unstable -> synchronized cardioversion, stable SVT -> vagal manoeuvres
+//     then adenosine 6 mg then 12 mg; cardiac arrest: epinephrine early for
+//     non-shockable rhythms, amiodarone 300 mg or lidocaine 1 mg/kg for
+//     refractory VF/pVT; termination: asystole/slow wide PEA, no ROSC at 20
+//     min and EtCO2 <20 mmHg, with medical direction; seizures: >5 min or
+//     recurrent, midazolam 10 mg IM (0.2 mg/kg) without IV, check glucose;
+//     eclampsia: magnesium 4-6 g IV (or 8 g IM), goal BP about 140/90; head
+//     injury: avoid hypoxia, SBP >=110, EtCO2 35-45, no hyperventilation;
+//     trauma: SBP <90 or HR >120 -> 500 mL boluses to SBP 90 / radial pulse,
+//     TXA within 3 h; hypoglycemia: D10 preferred, max 25 g IV, glucagon 1 mg
+//     IM/IN without IV access; anaphylaxis with hypoperfusion: 20 mL/kg
+//     isotonic fluid; croup: nebulised epinephrine for stridor at rest,
+//     dexamethasone 0.6 mg/kg (max 16 mg).
 //   childbirth -- support the head, check for a nuchal cord, no routine
 //     suction, clamp and cut after 1 minute, dry, warm and stimulate.
 export const NASEMSO_MODEL_GUIDELINES_V3 = guideline("https://nasemso.org/?p=223");

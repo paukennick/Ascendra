@@ -630,6 +630,22 @@ an EMS clinical reviewer (a paramedic educator or EMS physician) to read them
 in full; the PR lists the points that rest on teaching practice rather than a
 cited guideline.
 
+### NREMT EMS: Paramedic and Advanced EMT (REQ-182)
+
+| Course | Labs | Per unit (d) | Outline |
+|---|---|---|---|
+| NREMT Paramedic | 12 (10 case, 2 build) | 2/2/1/2/2/3 | [Paramedic Examination Specifications](https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024) (from 2024-07-01; read 2026-11-09) |
+| NREMT AEMT | 12 (11 case, 1 build) | 2/2/1/3/1/3 | [AEMT Examination Specifications](https://www.nremt.org/getmedia/ae90d9db-c974-49e1-a43b-f1dddd4ea365/AEMT-Test-Plan_Public_final) (from 2024-07-01) |
+
+Files `seed/labs/ems-paramedic.ts` and `ems-aemt.ts`, checked by
+`lib/labs-ems.test.ts` like the EMT and EMR sets, plus an AEMT scope test
+(no decompression, intubation, cardioversion, pacing, benzodiazepines,
+antiarrhythmics, steroids, magnesium or TXA by the AEMT; the case names the
+paramedic instead). The Clinical Judgment unit's three cases in each course
+walk the test plan's six steps. Doses follow the NASEMSO Model Guidelines
+v3.0 and the AHA 2025 adult ALS guideline (read 2026-11-09). All 24 are
+`needs_expert_review`.
+
 ## Expert review before launch
 
 Every pilot lab -- and every generated one -- is stored as

@@ -24,6 +24,7 @@ import { source, type SourceRef } from "../sources";
 import type { SeedLabSet } from "./types";
 import {
   ACS_FIELD_TRIAGE_2021,
+  AHA_2025_ADULT_ALS,
   AHA_2025_ADULT_BLS,
   AHA_2025_PEDIATRIC_BLS,
   NASEMSO_MODEL_GUIDELINES_V3,
@@ -407,6 +408,35 @@ export const VALUE_SOURCES: Record<string, ValueSources> = {
     "emr-precipitous-delivery": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
     "emr-handoff-to-crew": { none: CASE_DATA },
     "emr-injured-child-no-parent": [NASEMSO_MODEL_GUIDELINES_V3],
+  },
+  // REQ-182: NREMT Paramedic and AEMT, sources as for NREMTEMT.
+  NREMTPARAMEDIC: {
+    "medic-flash-pulmonary-edema": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-capnography-four-waveforms": [NASEMSO_MODEL_GUIDELINES_V3, AHA_2025_ADULT_ALS],
+    "medic-refractory-vf": [AHA_2025_ADULT_ALS, NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-symptomatic-bradycardia": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-tbi-motorcycle": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-status-epilepticus": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-eclampsia-seizure": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-polst-nursing-home": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-medication-error-report": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-unstable-svt": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-croup-at-night": [NASEMSO_MODEL_GUIDELINES_V3],
+    "medic-ams-differential": [NASEMSO_MODEL_GUIDELINES_V3],
+  },
+  NREMTAEMT: {
+    "aemt-sga-after-drowning": [NASEMSO_MODEL_GUIDELINES_V3, AHA_2025_ADULT_BLS, SCOPE_OF_PRACTICE_2019],
+    "aemt-asthma-nebs-cpap": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "aemt-arrest-io-epinephrine": [AHA_2025_ADULT_ALS, NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "aemt-nitro-or-not": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
+    "aemt-pelvic-fracture-shock": [NASEMSO_MODEL_GUIDELINES_V3, ACS_FIELD_TRIAGE_2021, SCOPE_OF_PRACTICE_2019],
+    "aemt-hypoglycemia-d10": [NASEMSO_MODEL_GUIDELINES_V3],
+    "aemt-anaphylaxis-hypotension": [NASEMSO_MODEL_GUIDELINES_V3],
+    "aemt-iv-naloxone-titration": [NASEMSO_MODEL_GUIDELINES_V3],
+    "aemt-intercept-handoff": { none: CASE_DATA },
+    "aemt-ams-fever-hypotension": [NASEMSO_MODEL_GUIDELINES_V3],
+    "aemt-ectopic-shock": [NASEMSO_MODEL_GUIDELINES_V3],
+    "aemt-tension-pneumo-intercept": [NASEMSO_MODEL_GUIDELINES_V3, SCOPE_OF_PRACTICE_2019],
   },
   NASMCPT: {
     "energy-systems-by-activity": [OPENSTAX_MUSCLE_ENERGY],

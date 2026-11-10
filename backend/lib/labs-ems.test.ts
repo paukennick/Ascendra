@@ -1,4 +1,4 @@
-// REQ-174: the NREMT EMS courses' tracks and authored labs. The generic
+// REQ-174 (EMT, EMR) and REQ-182 (Paramedic, AEMT): the NREMT EMS courses' tracks and authored labs. The generic
 // content, objective and slug checks run over every lab set in labs.test.ts;
 // this file adds the clinical framing, the adopted density (hybrid,
 // docs/labs.md "Density"), the dated value sources every EMS lab must carry,
@@ -36,6 +36,13 @@ describe("NREMT EMS courses (REQ-174)", () => {
         assert.ok(m, `${t.code}/${u.title}: rangeLabel`);
         assert.equal(u.weight, (Number(m![1]) + Number(m![2])) / 2, `${t.code}/${u.title}: weight is the range midpoint`);
       }
+    }
+  });
+
+  test("credential text fits its columns (credential_exams exam_revision and objectives_revision are varchar(100))", () => {
+    for (const t of EMS_TRACKS) {
+      assert.ok((t.credential?.examRevision ?? "").length <= 100, `${t.code}: examRevision`);
+      assert.ok((t.credential?.objectivesRevision ?? "").length <= 100, `${t.code}: objectivesRevision`);
     }
   });
 
@@ -126,5 +133,22 @@ describe("NREMT EMS courses (REQ-174)", () => {
     assert.doesNotMatch(text, /\b(I|we) (give|gives) (oral glucose|aspirin)\b/i);
     assert.doesNotMatch(text, /\b(I|we) transport\b/i);
     assert.match(text, /transporting crew|arriving (EMS )?crew|ambulance crew/i);
+  });
+
+  test("AEMT labs stay in AEMT scope: no decompression, intubation, cardioversion, pacing or benzodiazepines by the AEMT, and they name the paramedic when one is needed", () => {
+    if (!CODES.includes("NREMTAEMT")) return;
+    const text = allText("NREMTAEMT");
+    assert.doesNotMatch(text, /\b(I|we) (decompress|needle|intubate|cardiovert|pace)\b/i);
+    assert.doesNotMatch(text, /\b(I|we) give (midazolam|diazepam|lorazepam|amiodarone|magnesium|dexamethasone|TXA|tranexamic)\b/i);
+    assert.match(text, /isn't in my scope|not AEMT scope|outside AEMT scope|aren't ours|not ours to give/i);
+    assert.match(text, /paramedic/i);
+  });
+
+  test("Paramedic and AEMT courses carry a Clinical Judgment unit with at least three labs", () => {
+    for (const code of ["NREMTPARAMEDIC", "NREMTAEMT"].filter((c) => CODES.includes(c))) {
+      const unit = activeUnits(tracks.get(code)!).find((u) => u.title === "Clinical Judgment");
+      assert.ok(unit, code);
+      assert.ok(setFor(code).labs.filter((l) => unit!.objectives.includes(l.objective)).length >= 3, code);
+    }
   });
 });
