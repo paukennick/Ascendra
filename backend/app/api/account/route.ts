@@ -3,15 +3,17 @@ import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/li
 import { verifyPassword } from "@/lib/auth/passwords";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { REAUTH_EVENT, REAUTH_LIMIT } from "@/lib/auth/reauth";
+import { REAUTH_EVENT, REAUTH_LIMIT, checkReauth, reauthFailure } from "@/lib/auth/reauth";
 import { purgeUserAuthEvents } from "@/lib/auth/retention";
 
 export const dynamic = "force-dynamic";
 
 // DELETE /api/account — permanently deletes the caller's own account.
 // { password } is required when the account has one set (re-confirms
-// intent for a destructive action); OAuth-only accounts have no password
-// to check, so the valid access token is the only credential that exists.
+// intent for a destructive action). REQ-203 (FAIL-870): an account without a
+// password used to need nothing but the access token; it now confirms with
+// what it has -- a fresh Google sign-in (`googleIdToken`) or an authenticator
+// or backup code (`reauth`), lib/auth/reauth.ts.
 // Every user-owned table (tracks, mastery, attempts, error log, chat,
 // sessions, oauth links, tokens) references app_users with
 // `on delete cascade`, so deleting this one row removes all of it --
@@ -42,6 +44,10 @@ export async function DELETE(req: Request) {
       }
       const valid = await verifyPassword(password, row.password_hash);
       if (!valid) return badRequest("Password is incorrect.");
+    } else {
+      const body = await req.json().catch(() => ({}));
+      const proof = await checkReauth(authUser.id, body ?? {});
+      if (!proof.ok) return reauthFailure(proof);
     }
 
     await withTransaction(async (tx) => {

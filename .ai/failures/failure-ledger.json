@@ -8935,6 +8935,291 @@
       "prevention_rules": [],
       "prevention_notes": "SEND_BATCH and JOURNAL_MAX_COMMANDS are pinned to the server's SIM_LIMITS by a test that imports both",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-860",
+      "date": "2026-11-09",
+      "title": "A stolen access token could enroll the attacker's authenticator",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With MFA off, POST /api/auth/mfa/setup and /enable needed only an access token, so a thief could add their own authenticator and lock the owner out.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "Reauthentication was required only when mfa_enabled was already true; the first factor on an account was unprotected.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/mfa/setup/route.ts",
+        "backend/app/api/auth/mfa/enable/route.ts"
+      ],
+      "fix_summary": "setup requires checkReauth whenever the account has any proof method (hasReauthProof); enable refuses a pending secret that wasn't started with proof; enabling emails a security alert.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A route that adds or replaces a sign-in method asks for proof whenever the account has one (pre-completion checklist, Auth and abuse)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-861",
+      "date": "2026-11-09",
+      "title": "A stolen access token could link any Google identity",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /api/auth/oauth/google/link attached any verified Google identity with only an access token, no alert and no email match; that identity then signs in as the account.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The route authenticated the session but never asked the owner to confirm, and sent nothing to the account address.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/oauth/google/link/route.ts"
+      ],
+      "fix_summary": "checkReauth before the token is verified; a security alert naming the Google address after a new link. Requiring the Google address to equal the account address is left to the owner (product decision).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Same checklist line: adding a sign-in method needs proof and tells the owner",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-862",
+      "date": "2026-11-09",
+      "title": "The pending email-MFA code could be guessed without limit",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /api/auth/mfa/email/enable had no attempt limit on the 6-digit code, valid for 10 minutes.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The route compared the code and returned 401 with nothing counting or limiting misses.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/mfa/email/enable/route.ts"
+      ],
+      "fix_summary": "consumeRateLimit 5 per 10 minutes; the fifth wrong code clears the pending code; a success clears the count.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Any single-use code comparison sits behind consumeRateLimit and is dropped after its last try",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-863",
+      "date": "2026-11-09",
+      "title": "Backup-code regeneration allowed unlimited password guesses",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/auth/mfa/backup-codes checked the password with no rate limit.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "It called verifyPassword directly instead of spending the shared REAUTH_EVENT budget like change-password and unlock.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/mfa/backup-codes/route.ts"
+      ],
+      "fix_summary": "consumeRateLimit(REAUTH_EVENT) before verifyPassword; the wrong-password 401 carries reauthRequired.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every password or code check outside login spends the REAUTH_EVENT budget",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-864",
+      "date": "2026-11-09",
+      "title": "The eleventh correct unlock in 15 minutes was refused",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The app lock asks for the password on each return from the background; after 10 successful unlocks in 15 minutes the next correct one returned 429.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "checkReauth counted every attempt, right or wrong, against the 10-per-15-minute lockout meant for wrong guesses.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/lib/auth/reauth.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "An attempt is still counted while it is checked (concurrent guesses stay capped) and given back (refundRateLimit) when it proves correct; successes have their own 120-per-15-minutes ceiling (REAUTH_SUCCESS_EVENT).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A lockout budget counts failures; successes get a separate ceiling",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-865",
+      "date": "2026-11-09",
+      "title": "Two tabs refreshing together signed the learner out everywhere",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Two simultaneous cookie refreshes presented the same token; the loser looked like token theft and revoked the whole family.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "rotateRefreshToken treated any already-revoked token as reuse, with no allowance for a cross-tab race.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/lib/auth/tokens.ts"
+      ],
+      "fix_summary": "A token replayed within REFRESH_REUSE_GRACE_SECONDS (10) of its own rotation, while its family is live, gets its own live token (at most 6 per rotation, one guarded statement); later replays revoke the family as before. auth-races and session-cookie tests keep the family revoke outside the window.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts",
+        "backend/lib/auth-races.dbtest.ts",
+        "backend/lib/session-cookie.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Reuse detection tests must say which side of the grace window they exercise",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-866",
+      "date": "2026-11-09",
+      "title": "Logout with an expired access token returned 400 and the session stayed live",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /api/auth/logout with only a stale access token (the normal case after time away) answered 400 refreshToken is required, leaving the refresh family alive for up to 30 days.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The bearer path used requireUser, which refuses expired and version-stale tokens.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/logout/route.ts",
+        "backend/lib/auth/tokens.ts"
+      ],
+      "fix_summary": "verifyAccessTokenForLogout accepts a token this server signed, past expiry but no older than 30 days, and revokes its family scoped to its user.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Sign-out paths accept what a stale client holds (pre-completion checklist, Sessions)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-867",
+      "date": "2026-11-09",
+      "title": "Logout with an already-rotated refresh token left the successor live",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /api/auth/logout, and web DELETE /api/auth/refresh, with a token that had already rotated revoked only that spent token.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "revokeRefreshToken matched one token_hash instead of its family.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/lib/auth/tokens.ts"
+      ],
+      "fix_summary": "revokeRefreshToken revokes every live token in the presented token's family.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Revoke by family_id, never by one token",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-868",
+      "date": "2026-11-09",
+      "title": "A junk token in the body cleared a valid web session cookie",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "POST /api/auth/refresh from the web app with a bad refreshToken in the body answered 401 and cleared the good cookie.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The failure path cleared the cookie for any web 401, whichever credential failed.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/refresh/route.ts"
+      ],
+      "fix_summary": "The cookie is cleared only when the cookie itself failed or there was nothing to refresh with; a body that names a token leaves it alone.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Clear a credential only when that credential failed",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-869",
+      "date": "2026-11-09",
+      "title": "Credential writes ran as separate statements",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "change-password, mfa/enable, mfa/email/enable and backup-code regeneration issued several writes without a transaction, so a failure part-way left a changed password with live old sessions, MFA on with no backup codes, or a method with none.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The statements were independent queries.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts",
+        "backend/app/api/auth/mfa/enable/route.ts",
+        "backend/app/api/auth/mfa/email/enable/route.ts",
+        "backend/app/api/auth/mfa/backup-codes/route.ts"
+      ],
+      "fix_summary": "Each runs in withTransaction (endOtherSessions takes the transaction); the two enables claim the pending secret in the same update so a repeat enables once.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Writes that change a credential and end sessions share one transaction; tested by injecting a failure with a trigger",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-870",
+      "date": "2026-11-09",
+      "title": "A Google-only account could be deleted with only an access token",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "DELETE /api/account for an account without a password needed no proof.",
+      "how_detected": "pre-launch audit, reproduction test (2026-11-09)",
+      "root_cause": "The route's only confirmation was the password, skipped when none was set.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/account/route.ts",
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "Accounts without a password go through checkReauth (Google sign-in or a code); the app asks for it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts",
+        "mobile/src/lib/reauth.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Destructive actions confirm with whatever proof the account has",
+      "recurrence_of": ""
     }
   ]
 }

@@ -235,10 +235,13 @@ describe("finding 2: replacing or adding an authenticator when MFA is on needs a
   });
 
   test("a pending secret started before MFA was on can't be enabled once it is", async () => {
+    // REQ-203: setup asks the owner to confirm from the start, so a pending
+    // secret like this one is what an older build or a direct write leaves.
     const v = await mkUser();
     const s = await session(v);
-    const setup = await call(mfaSetup, { headers: s.auth });
+    const setup = await call(mfaSetup, { body: { reauth: v.pw }, headers: s.auth });
     assert.equal(setup.status, 200);
+    await query(`update app_users set totp_pending_reauth_at = null where id=$1`, [v.id]);
     await query(`update app_users set mfa_enabled = true, email_mfa_enabled = true where id=$1`, [v.id]);
     const en = await call(mfaEnable, { body: { code: await totpGenerate({ secret: setup.body.secret }) }, headers: s.auth });
     assert.equal(en.status, 401);

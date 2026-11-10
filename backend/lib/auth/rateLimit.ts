@@ -68,28 +68,39 @@ export async function consumeRateLimit(
   identifier: string,
   limit: { max: number; windowMinutes: number },
   opts: { userId?: string | null; ip?: string | null } = {}
-): Promise<void> {
+): Promise<string> {
   const id = identifier.toLowerCase();
   // REQ-118 (Audit 3 MEDIUM-8): count and record are one statement (the
   // insert only happens when the count is under the limit), so a call is
   // four round trips (begin, lock, count-and-record, commit) instead of six.
   // Still atomic: the lock is its own, earlier statement, so the counting
   // statement's snapshot is taken after the previous holder committed.
+  // REQ-203: returns the recorded event's id so a caller that learns the
+  // attempt was legitimate can give it back (refundRateLimit).
   const recorded = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`rate:${eventType}:${id}`]);
-    const row = await tx.queryOne<{ recorded: boolean }>(
+    const row = await tx.queryOne<{ id: string | null }>(
       `with c as (
          select count(*)::int as n from auth_events
           where event_type = $1 and identifier = $2 and created_at > now() - make_interval(mins => $3)
        ), ins as (
          insert into auth_events (event_type, identifier, user_id, ip)
          select $1, $2, $5::uuid, $6::varchar from c where c.n < $4::int
-         returning 1
+         returning id
        )
-       select exists (select 1 from ins) as recorded`,
+       select (select id::text from ins) as id`,
       [eventType, id, limit.windowMinutes, limit.max, opts.userId ?? null, opts.ip ?? null]
     );
-    return row?.recorded === true;
+    return row?.id ?? null;
   });
   if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+  return recorded;
+}
+
+// REQ-203 (FAIL-864): gives back one attempt that consumeRateLimit recorded.
+// Used when the attempt turned out to be correct, so a lockout counts wrong
+// guesses and not right answers. The attempt was already counted while it was
+// in flight, so concurrent guesses still can't exceed the limit.
+export async function refundRateLimit(eventId: string): Promise<void> {
+  await query(`delete from auth_events where id = $1`, [eventId]);
 }

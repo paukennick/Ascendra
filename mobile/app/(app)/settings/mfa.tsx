@@ -24,7 +24,8 @@ import { withBackgroundHold } from "@/lib/backgroundHold";
 import { backupCodesText, isShareDismissal, mfaLeaveGuard, type MfaView } from "@/lib/mfaLeaveGuard";
 import { installWebLeaveGuard } from "@/lib/webLeaveGuard";
 import { colors, radius } from "@/lib/theme";
-import { reauthPromptFor } from "@/lib/reauth";
+import { needsReauth, reauthFields, reauthPromptFor } from "@/lib/reauth";
+import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 
 type MfaMethod = "totp" | "email";
 
@@ -126,6 +127,7 @@ export default function MfaSettings() {
   // needs a current code, a backup code or the password.
   const [reauthSecret, setReauthSecret] = useState("");
   const hasPassword = !!user?.hasPassword;
+  const { clientId: googleClientId, signInAsync: googleSignInAsync } = useGoogleAuthRequest();
 
   // A denied clipboard (web permission, some browsers) used to reject
   // unhandled here (FAIL-069); the secret is on screen to type instead.
@@ -175,24 +177,24 @@ export default function MfaSettings() {
     router.back();
   }
 
-  async function startTotpSetup(reauth?: string) {
-    if (user?.mfaEnabled && reauth === undefined) {
+  // REQ-203 (FAIL-860): the server asks the learner to confirm it's them
+  // before an authenticator is added, whether or not two-factor is already
+  // on (any account with a password, a code or a Google link).
+  async function startTotpSetup(fields?: { reauth?: string; googleIdToken?: string }) {
+    if (!fields && needsReauth(user)) {
       setError(null);
       setReauthSecret("");
       setView("totp-reauth");
       return;
     }
-    if (reauth !== undefined && !reauth) {
+    if (fields && !fields.reauth && !fields.googleIdToken) {
       setError(reauthPromptFor(user).hint);
       return;
     }
     setError(null);
     setBusy(true);
     try {
-      const res = await api.post<{ secret: string; qrDataUrl: string }>(
-        "/api/auth/mfa/setup",
-        reauth !== undefined ? { reauth } : undefined
-      );
+      const res = await api.post<{ secret: string; qrDataUrl: string }>("/api/auth/mfa/setup", fields);
       setReauthSecret("");
       setManualSecret(res.secret);
       setQrDataUrl(res.qrDataUrl);
@@ -203,6 +205,23 @@ export default function MfaSettings() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // A Google-only account without two-factor confirms by signing in with
+  // Google again; the ID token goes to the server as the proof.
+  async function confirmWithGoogle() {
+    setError(null);
+    let idToken: string | null = null;
+    try {
+      idToken = await googleSignInAsync();
+    } catch {
+      idToken = null;
+    }
+    if (!idToken) {
+      setError("Google sign-in didn't finish. Try again.");
+      return;
+    }
+    await startTotpSetup(reauthFields(reauthPromptFor(user), idToken));
   }
 
   async function confirmTotpSetup() {
@@ -371,21 +390,43 @@ export default function MfaSettings() {
     return (
       <Screen>
         <H2>Confirm it's you</H2>
-        <Muted>Two-factor is already on, so adding an authenticator app needs one more check.</Muted>
+        <Muted>Adding an authenticator app changes how you sign in, so it needs one more check.</Muted>
         <Muted>{prompt.hint}</Muted>
         {error ? <ErrorBanner message={error} /> : null}
         <Card>
-          <TextField
-            label={prompt.kind === "secret" ? prompt.label : "Authenticator or backup code"}
-            value={reauthSecret}
-            onChangeText={setReauthSecret}
-            secureTextEntry={prompt.kind === "secret" && prompt.secure}
-            placeholder={prompt.kind === "secret" && prompt.secure ? "••••••••" : "123456"}
-            textContentType={prompt.kind === "secret" && prompt.secure ? "password" : "oneTimeCode"}
-            autoComplete={prompt.kind === "secret" && prompt.secure ? "current-password" : "one-time-code"}
-            icon="lock"
-          />
-          <Button label="Continue" icon="check-circle" onPress={() => startTotpSetup(reauthSecret)} loading={busy} />
+          {prompt.kind === "secret" ? (
+            <>
+              <TextField
+                label={prompt.label}
+                value={reauthSecret}
+                onChangeText={setReauthSecret}
+                secureTextEntry={prompt.secure}
+                placeholder={prompt.secure ? "••••••••" : "123456"}
+                textContentType={prompt.secure ? "password" : "oneTimeCode"}
+                autoComplete={prompt.secure ? "current-password" : "one-time-code"}
+                icon="lock"
+              />
+              <Button
+                label="Continue"
+                icon="check-circle"
+                onPress={() => startTotpSetup(reauthFields(prompt, reauthSecret))}
+                loading={busy}
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                label={prompt.label}
+                icon="check-circle"
+                onPress={confirmWithGoogle}
+                loading={busy}
+                disabled={!googleClientId}
+              />
+              {!googleClientId ? (
+                <Muted>Google sign-in isn't available here. Use the app on your phone to add an authenticator.</Muted>
+              ) : null}
+            </>
+          )}
         </Card>
         <Button
           label="Cancel"
