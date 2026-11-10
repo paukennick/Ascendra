@@ -88,6 +88,9 @@ export default function Settings() {
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
+        <Divider />
+        {/* REQ-197: exam change notices, exam countdown, weekly digest. */}
+        <ListRow icon="mail" label="Email" value="Exam notices and digest" onPress={() => router.push("/settings/emails")} />
       </Card>
 
       <SectionHeader label="Security" />

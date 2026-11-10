@@ -328,6 +328,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
   },
   {
+    // REQ-197: Settings > Email, the unsubscribe links, the daily
+    // /api/cron/service-emails run and the account export read these.
+    migration: "063_service_emails.sql",
+    what: "email_preferences and service_email_log (service email choices and the once-per-period send log)",
+    sql: `select to_regclass('public.email_preferences') is not null
+             and to_regclass('public.service_email_log') is not null
+             and to_regclass('public.service_email_log_once') is not null as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

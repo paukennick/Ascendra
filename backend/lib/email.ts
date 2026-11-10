@@ -23,7 +23,9 @@ export interface EmailPayload {
   to: string;
   subject: string;
   html: string;
+  text?: string;
   replyTo?: string;
+  headers?: Record<string, string>;
 }
 export interface EmailSendResult {
   error: { name: string; statusCode: number | null } | null;
@@ -224,4 +226,17 @@ export async function sendAiCeilingNotice(to: string, accountEmail: string, spen
       `<p>If this is unexpected, revoke the account's access in Settings &gt; Access (or <code>npm run access:grant -- --email ... --revoke</code>), and check <code>ai_calls</code>. ` +
       `The ceiling is <code>AI_UNRESTRICTED_DAILY_CEILING_USD</code>.</p>`,
   });
+}
+
+// REQ-197: the service emails (exam change notice, exam countdown, weekly
+// digest). lib/service-emails.ts renders them, checks the preference, the
+// verified address and the send log first, and passes the sender: EMAIL_FROM
+// for the two service notices, DIGEST_EMAIL_FROM for the digest (so it can
+// move to its own subdomain). `headers` carries List-Unsubscribe and
+// List-Unsubscribe-Post (RFC 8058 one-click).
+export async function sendServiceEmail(
+  kind: "exam_change" | "exam_countdown" | "weekly_digest",
+  payload: Omit<EmailPayload, "from"> & { from?: string }
+): Promise<void> {
+  await send(kind, { ...payload, from: payload.from ?? getFrom() });
 }

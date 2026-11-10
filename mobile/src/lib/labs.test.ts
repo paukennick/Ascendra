@@ -120,7 +120,9 @@ describe("lab drafts", () => {
     assert.equal(labDraftPayload({ parts: ["", " "], sentId: null, sentSig: null }), null);
     assert.ok(labDraftPayload({ parts: ["", ""], sentId: "id", sentSig: "s" }), "a sent id is kept so a resend replays");
     assert.equal(parseLabDraft("not json", 2), null);
-    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(LAB_PART_MAX + 10)] }), 1)!.parts[0].length, LAB_PART_MAX);
+    // REQ-197: kept whole past the send limit (canSubmit holds it back), bounded at 4x.
+    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(LAB_PART_MAX + 10)] }), 1)!.parts[0].length, LAB_PART_MAX + 10);
+    assert.equal(parseLabDraft(JSON.stringify({ parts: ["x".repeat(5 * LAB_PART_MAX)] }), 1)!.parts[0].length, 4 * LAB_PART_MAX);
   });
   test("the same answers (ignoring surrounding spaces) are the same submission; at least one part is needed", () => {
     assert.equal(answersSignature(0, [" a ", "b"]), answersSignature(0, ["a", "b "]));

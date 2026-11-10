@@ -126,7 +126,9 @@ drop table if exists
   placement_items, prerequisite_refreshers, review_items, review_log, review_schedule, review_session_items,
   review_sessions, study_plans, unit_check_items, terms_acceptances,
   -- REQ-166 (058): verified group discounts and the App Store offer-code pool
-  verified_discounts
+  verified_discounts,
+  -- REQ-197 (063): service email choices and the send log
+  email_preferences, service_email_log
   cascade;
 
 -- 4b. The two rollup views 033 redefined, back to master's definitions

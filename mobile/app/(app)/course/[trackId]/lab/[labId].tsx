@@ -6,6 +6,8 @@ import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField, VerdictBadge } from "@/components/ui";
 import { ReportProblem } from "@/components/ReportProblem";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthProblem } from "@/lib/dictation";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { useLabDraft } from "@/lib/useLabDraft";
@@ -257,6 +259,7 @@ function StepForm({
   return (
     <Card elevated>
       <StepHeader step={step} stepCount={stepCount} />
+      <DictationHint />
       {step.parts.map((label, i) => (
         <TextField
           key={i}
@@ -266,7 +269,7 @@ function StepForm({
           placeholder={kind === "build" ? "Write this part of your answer" : "Your decision and why"}
           multiline
           minHeight={kind === "build" ? 110 : 90}
-          maxLength={LAB_PART_MAX}
+          error={lengthProblem(draft.parts[i] ?? "", LAB_PART_MAX)}
           autoCapitalize="sentences"
         />
       ))}

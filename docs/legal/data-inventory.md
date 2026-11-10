@@ -28,6 +28,14 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `support_requests` | tickets, course requests, lesson reports (may name an objective and lesson step), coach-reply reports (quote the reply) | support and content fixes | while account open | deleted (cascade) | yes |
 | `track_acknowledgements` | which course disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate now) | while account open | deleted (cascade) | yes |
 | `legal_acceptances` | which Terms, Privacy and study-notice (REQ-165) versions were accepted, how and when | record of consent | while account open | deleted (cascade) | yes |
+| `email_preferences` (REQ-197, 063) | on/off for exam change notices, exam countdown, weekly digest | the learner's email choices | while account open | deleted (cascade) | yes |
+| `service_email_log` (REQ-197, 063) | which service email kind was sent for which period (exam change, exam date, ISO week), status, tries, times; no address, subject or body | sending each at most once | while account open | deleted (cascade) | yes |
+
+**Pending Privacy Policy change (REQ-197):** the two rows above, and the
+service emails they support, are not yet described in
+`mobile/src/content/legal.ts`, which still says email is account email
+only. The cron that sends them stays off (`SERVICE_EMAILS_ENABLED`) until
+that text is updated.
 
 Shared, not personal: `lesson_content`, `pbq_scenarios`, catalog and taxonomy
 tables, `content_review_findings`, `schema_migrations`.
@@ -50,7 +58,7 @@ No cookies, analytics, crash reporting or advertising identifiers.
 | Supabase | the whole database | hosting |
 | Vercel | all API traffic | hosting, United States (no region set in `vercel.json`, so Vercel's default US region; confirm in the project settings); request logs on Vercel's side |
 | Anthropic API | coach messages and history (`/api/chat`), written answers for grading (`/api/grade`), pre-lesson guesses (`guess-feedback`), scenario answers (`/api/pbq`); lesson generation sends only course and objective titles | commercial terms: not used for training; deleted within 30 days unless kept for usage-policy enforcement or law (privacy.claude.com, checked 2026-11-04) |
-| Resend | account email; support requests with the user's email as reply-to | |
+| Resend | account email; support requests with the user's email as reply-to; from REQ-197 (once switched on) the service emails: exam change notices, exam countdown with readiness and weakest objectives, opt-in weekly digest | |
 | Expo | app update requests from the mobile app | |
 | Google | sign-in, only if chosen | |
 

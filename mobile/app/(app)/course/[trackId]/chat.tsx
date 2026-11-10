@@ -13,6 +13,8 @@ import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReportCoachReply } from "@/components/ReportCoachReply";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthProblem } from "@/lib/dictation";
 
 export default function ChatScreen() {
   // REQ-084: `prefill` and `unitId` arrive from the "Ask the coach about
@@ -27,6 +29,9 @@ export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [input, setInput] = useState(prefill ?? "");
+  // REQ-197: no maxLength (it would cut dictated text off); over the limit
+  // the message waits, whole, until it is shortened.
+  const tooLong = lengthProblem(input, CHAT_DRAFT_MAX);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   // REQ-113 (Audit 3 mobile M7): a failed reply used to be added to the
@@ -70,7 +75,7 @@ export default function ChatScreen() {
   }, [load]);
 
   async function send() {
-    if (!input.trim()) return;
+    if (!input.trim() || lengthProblem(input, CHAT_DRAFT_MAX)) return;
     setSendError(null);
     const userMsg: ChatMessage = { role: "user", content: input };
     setMessages((prev) => [...(prev ?? []), userMsg]);
@@ -189,13 +194,16 @@ export default function ChatScreen() {
           />
         ) : null}
         {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
+        {tooLong ? <ErrorBanner message={tooLong} /> : null}
+        <View style={{ paddingHorizontal: spacing.md }}>
+          <DictationHint />
+        </View>
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
             accessibilityLabel="Message to the coach"
             multiline
             placeholder="Ask anything about this track..."
-            maxLength={CHAT_DRAFT_MAX}
             placeholderTextColor={colors.mutedDim}
             value={input}
             onChangeText={setInput}
@@ -207,7 +215,7 @@ export default function ChatScreen() {
               const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
               if (native.key === "Enter" && !native.shiftKey) {
                 e.preventDefault();
-                if (!busy && input.trim()) send();
+                if (!busy && input.trim() && !tooLong) send();
               }
             }}
           />
@@ -215,12 +223,12 @@ export default function ChatScreen() {
               a 48 dp touch target around the 36 dp circle. */}
           <Pressable
             onPress={send}
-            disabled={busy || !input.trim()}
+            disabled={busy || !input.trim() || !!tooLong}
             accessibilityRole="button"
             accessibilityLabel="Send message"
-            accessibilityState={{ disabled: busy || !input.trim(), busy }}
+            accessibilityState={{ disabled: busy || !input.trim() || !!tooLong, busy }}
             hitSlop={6}
-            style={[styles.sendButton, (busy || !input.trim()) && { opacity: 0.4 }]}
+            style={[styles.sendButton, (busy || !input.trim() || !!tooLong) && { opacity: 0.4 }]}
           >
             <Feather name="send" size={17} color={colors.accentText} />
           </Pressable>

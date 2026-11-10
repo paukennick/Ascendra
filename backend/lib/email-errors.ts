@@ -19,7 +19,11 @@ export type EmailKind =
   | "mfa_disable_confirmation"
   | "support_notification"
   | "security_alert"
-  | "ai_ceiling_notice";
+  | "ai_ceiling_notice"
+  // REQ-197: service emails (lib/service-emails.ts).
+  | "exam_change"
+  | "exam_countdown"
+  | "weekly_digest";
 
 export class EmailSendError extends Error {
   readonly kind: EmailKind;

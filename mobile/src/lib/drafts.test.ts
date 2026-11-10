@@ -65,7 +65,9 @@ describe("chat draft", () => {
   test("restored text is length-bounded and never blank", () => {
     assert.equal(chatDraftText("hi"), "hi");
     assert.equal(chatDraftText("   "), null);
-    assert.equal(chatDraftText("a".repeat(CHAT_DRAFT_MAX + 50))!.length, CHAT_DRAFT_MAX);
+    // REQ-197: over the send limit is kept whole (dictation); only a runaway entry is bounded.
+    assert.equal(chatDraftText("a".repeat(CHAT_DRAFT_MAX + 50))!.length, CHAT_DRAFT_MAX + 50);
+    assert.equal(chatDraftText("a".repeat(5 * CHAT_DRAFT_MAX))!.length, 4 * CHAT_DRAFT_MAX);
   });
 });
 
