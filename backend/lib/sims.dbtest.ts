@@ -74,6 +74,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `sim-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: reasoning is graded by the model, so it needs the notice
   return u;
 }
 const headers = (u: string, caps: string | null = CAPS) => ({
@@ -560,6 +561,7 @@ describe("finishing, the attempt and the debrief (docs/sims.md 9)", () => {
 describe("study notice and tiers", () => {
   test("a clinical sim needs the study notice to start or sync (REQ-165)", async () => {
     const u = await newUser();
+    await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
     await query(`update sims set safety_family = 'clinical' where id = $1`, [TAMP]);
     try {
       const s = await start(u, TAMP);

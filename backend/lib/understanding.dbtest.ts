@@ -6,6 +6,7 @@ process.env.CATALOG_REVIEW_AGENT_TOKEN ??= "review-agent-test-token";
 // (lib/item-quality.dbtest.ts); here the fake model answers only the
 // feature's own calls, so the gate is off, as it was before REQ-114.
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -54,6 +55,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `un-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({ authorization: `Bearer ${signAccessToken({ sub: u, email: `${u}@example.test` })}` });

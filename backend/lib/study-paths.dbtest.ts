@@ -6,6 +6,7 @@
 // does not depend on the seed having run first. The route handler is
 // called directly with a signed bearer token.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -41,6 +42,7 @@ before(async () => {
   }
   for (const [id, name] of [[alice, "alice"], [bob, "bob"]]) {
     await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [id, `${name}-path-${run}@example.test`]);
+  await recordStudyNoticeAcceptance(id); // REQ-205: model routes need the notice
   }
   // Alice's own course reuses a catalog code: it must not be placed on the path.
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'Alice DPT notes', 'graduate', $3)`, [

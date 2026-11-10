@@ -9,6 +9,7 @@
 //   UPDATE locks the row even when its WHERE skips the update).
 // FAIL-182: attempts of any kind counted as evidence.
 // FAIL-119: skipping 029b passed every status check.
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -81,6 +82,7 @@ async function setStale(objectiveId: string) {
 
 before(async () => {
   await query(`insert into app_users (id, email) values ($1, $2)`, [user, `rr-${run}@example.test`]);
+  await recordStudyNoticeAcceptance(user); // REQ-205: model routes need the notice
   await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'RR', 'certification', $3)`, [
     track,
     `RR-${run}`,

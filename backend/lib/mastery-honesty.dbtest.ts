@@ -5,6 +5,7 @@
 // (mastery-model, integration-rule, review-loop, coach-plan ...).
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 process.env.CHOICE_ORDER_SECRET ??= "test-only-choice-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -36,6 +37,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `mh-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const auth = (u: string) => ({
