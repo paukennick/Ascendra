@@ -40,12 +40,17 @@ export interface VisibleObjective {
   id: string;
   unit_id: string;
   track_id: string;
+  // REQ-195: the objective or its unit is retired (retired_at has passed).
+  // Still visible, so history and grading of past answers keep working, but
+  // the lesson routes do not teach it.
+  retired: boolean;
 }
 
 export async function visibleObjective(objectiveId: string, userId: string): Promise<VisibleObjective | null> {
   if (!isUuid(objectiveId)) return null;
   return queryOne<VisibleObjective>(
-    `select o.id, o.unit_id, cu.track_id
+    `select o.id, o.unit_id, cu.track_id,
+            not ((o.retired_at is null or o.retired_at > now()) and (cu.retired_at is null or cu.retired_at > now())) as retired
        from objectives o
        join course_units cu on cu.id = o.unit_id
        join subject_tracks st on st.id = cu.track_id

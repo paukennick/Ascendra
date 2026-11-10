@@ -431,6 +431,18 @@ export async function clearItem(ref: Pick<ItemRef, "kind" | "itemId">, note: str
   return !!r;
 }
 
+// REQ-196: a person checked a STAGED finding (re-check or sandbox job; never
+// pulled) and the item is fine. Recorded as 'cleared' so the jobs skip it
+// from now on; serving is unchanged (a cleared item is served).
+export async function clearStaged(ref: ItemRef, note: string): Promise<void> {
+  await query(
+    `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_at, resolved_note)
+     values ($1, $2, $3, $4, 'cleared', 'staged_review', now(), $5)
+     on conflict (item_kind, item_id) do nothing`,
+    [ref.kind, ref.itemId, ref.objectiveId, ref.question, note]
+  );
+}
+
 export async function itemStatus(kind: ItemKind, itemId: string): Promise<string | null> {
   const r = await queryOne<{ status: string }>(`select status from item_status where item_kind = $1 and item_id = $2`, [kind, itemId]);
   return r?.status ?? null;

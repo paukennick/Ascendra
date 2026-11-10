@@ -1,0 +1,56 @@
+# REQ-187: apply the 2026-11-09 content audit's lesson fixes in PRODUCTION,
+# through the app's own mechanisms (backend/lib/lesson-fixes.ts): wrong keys
+# are confirmed wrong (answers voided, mastery recomputed, lesson pulled and
+# regenerated on next visit), wrong text is corrected in place with dated
+# sources, and objectives with an authored lesson (REQ-195) get it. Every
+# replaced lesson's old content is logged in item_holdbacks. No SQL by hand.
+#
+# Manual only (Actions tab -> Lesson fixes -> Run workflow):
+#   lookup   read-only: each fix's objective id and whether the audited lesson
+#            is still stored
+#   dry-run  what would change; writes nothing (the default)
+#   apply    make the changes
+# Safe to re-run: fixed lessons no longer match their audited text and are
+# skipped. Connects exactly like migrate-production.yml: the
+# PROD_DATABASE_URL secret in the production-database environment. Logs ids
+# and outcomes only, never the URL. No model calls.
+name: Lesson fixes
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "lookup, dry-run or apply"
+        type: choice
+        options: [lookup, dry-run, apply]
+        default: dry-run
+concurrency:
+  group: lesson-fixes
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    environment: production-database
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      MODE: ${{ inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: test -n "$DATABASE_URL" || { echo "PROD_DATABASE_URL secret is not set"; exit 1; }
+      - run: npm ci
+      - name: Lesson fixes
+        run: |
+          case "$MODE" in
+            lookup) npm run lessons:fix -- lookup ;;
+            apply) npm run lessons:fix -- --apply ;;
+            *) npm run lessons:fix ;;
+          esac

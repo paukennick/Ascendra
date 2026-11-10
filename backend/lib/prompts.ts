@@ -127,6 +127,10 @@ export function domainFraming(ctx?: CoachContext): string {
   if (ctx.unitWeight != null && ctx.unitWeight > 0) {
     lines.push(`The current unit carries ${ctx.unitWeight}% of the exam's weight.`);
   }
+  // REQ-187 (R10): the dated facts the course is built on, from the seed
+  // (lib/current-facts.ts), so the model does not fall back on a remembered
+  // older or newer exam version, plan or year.
+  if (ctx.currentFacts) lines.push(ctx.currentFacts);
   return lines.length ? `\n\n${lines.join("\n")}` : "";
 }
 
@@ -459,6 +463,8 @@ export function lessonIntroPrompt(params: {
   objectiveTitle: string;
   avoid?: LessonAvoid;
   ctx?: CoachContext;
+  // REQ-187 (P8): on the one retry of held-back teaching text, what to avoid.
+  steer?: string;
 }): { system: SystemPrompt; user: string } {
   const system = systemWithRules(
     `You are generating the guess-and-teach half of cached lesson content for ONE learning objective, to
@@ -470,7 +476,7 @@ straight explanation.`,
 
   const user = `Course/track: ${params.trackTitle}
 Unit: ${params.unitTitle}
-Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}
+Objective: ${params.objectiveTitle}${avoidPreviousBlock(params.avoid)}${params.steer ? `\n\n${params.steer}` : ""}
 
 The teaching is shown as four short cards the learner moves through one at a time on a phone, so
 keep each card short and self-contained. Together they must still define every named term, say why it
@@ -577,6 +583,20 @@ const FEEDBACK_RULES =
   "specific misconception behind it and why it fails in this case. For the right option, say why it is right. One " +
   "short sentence each; never just 'incorrect'.";
 
+export const verificationSchema = z
+  .object({
+    language: z.enum(["python", "javascript"]),
+    code: z
+      .string()
+      .describe("A short self-contained program that recomputes the soloCheck answer and prints ONE line: the answer. Python may import the standard library and sympy; JavaScript uses no imports. No network, files or input."),
+    expected: z.string().describe("Exactly what the program prints for the correct answer, matching the correct choice."),
+  })
+  .nullable()
+  .describe("Only when asked for in the request and the soloCheck answer is a computation (a value, count, complexity or program output); null otherwise.")
+  // Required in the schema the API enforces; a stored or mocked output
+  // without it parses as null.
+  .default(null);
+
 export const lessonPracticeSchema = z.object({
   fadeProblem: z
     .string()
@@ -615,6 +635,10 @@ export const lessonPracticeSchema = z.object({
     .array(z.string())
     .length(4)
     .describe("Same as fadeOptionReasons, one short explanation per soloChoices entry, same order."),
+  // REQ-187 (R4/P7): verify by execution. Only asked for on academic and
+  // developer courses (lib/verify-execution.ts wantsVerification); null
+  // otherwise, and whenever a key is not a computation.
+  soloVerification: verificationSchema,
   ...uncertaintySchemaFields,
 });
 // The option reasons are optional in the type (the schema still requires
@@ -622,10 +646,12 @@ export const lessonPracticeSchema = z.object({
 // and saveLesson stores null rather than a list that doesn't match the choices.
 export type LessonPracticeContent = Omit<
   z.infer<typeof lessonPracticeSchema>,
-  "fadeOptionReasons" | "soloOptionReasons" | "confidence" | "uncertainClaims"
+  "fadeOptionReasons" | "soloOptionReasons" | "confidence" | "uncertainClaims" | "soloVerification"
 > & {
   fadeOptionReasons?: string[];
   soloOptionReasons?: string[];
+  // REQ-187: checked before storing, never stored (lib/verify-execution.ts).
+  soloVerification?: z.infer<typeof verificationSchema>;
   confidence?: "high" | "medium" | "low";
   uncertainClaims?: string[];
 };
@@ -640,6 +666,8 @@ export function lessonPracticePrompt(params: {
   ctx?: CoachContext;
   // REQ-114: on the one retry of a held-back practice half, what to avoid.
   steer?: string;
+  // REQ-187: ask for a soloVerification program (academic and dev courses).
+  verify?: boolean;
 }): { system: SystemPrompt; user: string } {
   const system = systemWithRules(
     `You are generating the practice half of cached lesson content for ONE learning objective, to be
@@ -684,6 +712,7 @@ Produce ONLY a JSON object with exactly these fields, no prose outside the JSON,
   "soloWhy": "one short sentence",
   "fadeOptionReasons": ["exactly 4 entries, ONE short sentence each, same order as fadeChoices: why the correct one is right; for each wrong one, the misconception it reflects and why it fails"],
   "soloOptionReasons": ["same shape as fadeOptionReasons, for soloChoices"],
+  "soloVerification": ${params.verify ? `{"language": "python" | "javascript", "code": "a short program that recomputes the soloCheck answer and prints only that answer", "expected": "exactly what it prints"} when the soloCheck answer is a computation (a value, count, complexity or program output); otherwise null` : "null"},
   ${UNCERTAINTY_JSON}
 }`;
 

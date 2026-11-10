@@ -103,7 +103,9 @@ describe("M1 + L1: the shared multi-part grader (PBQ and unit check)", () => {
 describe("M2 + L2: content validator (FAIL-297, FAIL-306)", () => {
   const good = {
     fadeProblem: "Fill in: SHA-256 output is ___ bits.", fadeChoices: ["256", "160", "128", "512"], fadeCorrectIndex: 0, fadeWhy: "The name says it.",
-    soloCheck: "Which property stops two inputs sharing a digest?", soloChoices: ["Collision resistance", "Avalanche", "Salting", "Padding"],
+    soloCheck: "Which property stops two inputs sharing a digest?", // REQ-187: options parallel in length (the distractor lint refuses a key
+    // much longer than the rest; it was "Collision resistance" vs "Salting").
+    soloChoices: ["Collision resistance", "Avalanche effect", "Salt uniqueness", "Length padding"],
     soloCorrectIndex: 0, soloWhy: "That is its meaning.",
     fadeOptionReasons: ["a", "b", "c", "d"], soloOptionReasons: ["a", "b", "c", "d"],
   };

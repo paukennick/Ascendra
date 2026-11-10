@@ -48,6 +48,9 @@ export type AiPurpose =
   // generation batch) and the one automated re-check of a flagged item.
   | "fact_check"
   | "item_recheck"
+  // REQ-187: did the coach agree in chat that a graded answer was marked
+  // wrongly? (lib/chat-dispute.ts; only on a dispute message.)
+  | "chat_dispute"
   // REQ-123: verifiable labs -- one grading call per lab step answered, and
   // the generator's batch writes plus its fact-check (scripts/generate-labs.ts).
   | "lab_step_grade"
@@ -64,7 +67,9 @@ export type AiPurpose =
   | "eval_explain_back"
   | "eval_lab"
   | "eval_generation"
-  | "eval_cache";
+  | "eval_cache"
+  // REQ-196: the fact-checker eval (scripts/factcheck-eval.ts).
+  | "eval_factcheck";
 
 export interface AiCallMeta {
   purpose: AiPurpose;

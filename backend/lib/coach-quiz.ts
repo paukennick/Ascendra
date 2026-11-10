@@ -3,7 +3,7 @@ import { factCheckGate } from "@/lib/fact-check";
 import { recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { generateValid, InvalidContentError, quizItemProblems } from "@/lib/content-validator";
+import { fixFor, generateValid, InvalidContentError, quizItemProblems, shuffleChoices } from "@/lib/content-validator";
 import { coachQuizPrompt, coachQuizSchema, type CoachQuizItem } from "@/lib/prompts";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -211,9 +211,11 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     ctx: ctx ?? undefined,
   });
   // Audit 3 M2: checked before it is stored and shared; regenerated once.
-  return generateValid("quiz question", () => callClaudeStructured({
+  // REQ-187: the retry is told what the distractor lint found, and the
+  // stored answer position is shuffled (9 of 14 audited keys were option A).
+  const made = await generateValid("quiz question", (_attempt, previous) => callClaudeStructured({
     system,
-    messages: [{ role: "user", content: user }],
+    messages: [{ role: "user", content: previous.length ? `${user}\n\n${fixFor(previous)}` : user }],
     schema: coachQuizSchema,
     maxTokens: 900,
     model: getFastModel(),
@@ -222,6 +224,8 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     purpose: "coach_quiz",
     userId,
   }), quizItemProblems);
+  const shuffled = shuffleChoices(made.choices, made.correctIndex);
+  return { ...made, choices: shuffled.choices, correctIndex: shuffled.correctIndex };
 };
 
 export const QUIZ_HELD_MESSAGE =
