@@ -90,7 +90,7 @@ export default function Home() {
   const review = homeReviewCard(reviewToday);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
       <Stack.Screen
         options={{
           headerLeft: () => <IconButton icon="menu" accessibilityLabel="Open menu" onPress={() => setSidebarOpen(true)} size={34} />,

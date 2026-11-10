@@ -32,6 +32,10 @@ import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
 import { capsHeaders } from "@/sim/runtime/caps.ts";
 import { readinessLockedLine } from "@/lib/billing";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
+import { HOME } from "@/lib/goBack";
+import { useGoBack } from "@/lib/useGoBack";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -45,6 +49,8 @@ const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label
 export default function CourseDashboard() {
   const { trackId } = useLocalSearchParams<{ trackId: string }>();
   const router = useRouter();
+  const goBack = useGoBack(HOME);
+  const [notFound, setNotFound] = useState(false);
   const [track, setTrack] = useState<Track | null>(null);
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [readinessData, setReadinessData] = useState<CourseReadiness | null>(null);
@@ -92,6 +98,7 @@ export default function CourseDashboard() {
 
   const load = useCallback(() => {
     setError(null);
+    setNotFound(false);
     api
       .get<{ track: Track; units: Unit[]; readiness?: CourseReadiness; readinessLocked?: { message: string } | null; exam?: { providerName?: string | null; credentialName?: string | null } | null }>(
         `/api/courses/${trackId}`
@@ -103,7 +110,10 @@ export default function CourseDashboard() {
         setReadinessLocked(res.readinessLocked ? readinessLockedLine(res.readinessLocked) : null); // REQ-122 / REQ-124
         setExam(res.exam ?? null);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        setError(err.message);
+        setNotFound(isNotFound(err));
+      });
     // REQ-165: no per-course disclaimer any more. The one study notice is
     // asked at launch (app/(app)/notice.tsx) and the server requires it
     // before teaching a clinical course.
@@ -143,14 +153,14 @@ export default function CourseDashboard() {
           title: track?.title ?? "Course",
           headerLeft: () => (
             <View style={{ flexDirection: "row" }}>
-              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={() => router.back()} size={34} />
+              <IconButton icon="chevron-left" accessibilityLabel="Back" onPress={goBack} size={34} />
               <IconButton icon="menu" accessibilityLabel="Open course menu" onPress={() => setSidebarOpen(true)} size={34} />
             </View>
           ),
         }}
       />
       <Sidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} trackId={trackId} track={track} units={units} />
-      {error ? <ErrorBanner message={error} onRetry={load} /> : null}
+      {error ? <LoadError message={error} notFound={notFound} onRetry={load} /> : null}
       {!track && !error ? <Loading label="Loading course..." /> : null}
 
       {track ? (

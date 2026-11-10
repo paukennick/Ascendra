@@ -10747,6 +10747,576 @@
       ],
       "prevention_notes": "A test that needs 'any row' from seeded data picks it with the property it relies on, not the first by random id",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-920",
+      "date": "2026-11-09",
+      "title": "The app lock did not block keyboard or screen-reader use on web",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With the lock showing, Tab and Enter still reached and activated controls under it (an Enter on a focused Mastery button navigated away) and a screen reader still read the whole app",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The lock was an absolutely positioned overlay drawn over mounted screens; nothing made the screens underneath unreachable, focus stayed where it was, and nothing kept Tab inside the lock",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/_layout.tsx",
+        "mobile/src/components/AppLock.tsx"
+      ],
+      "fix_summary": "App content is wrapped and set inert (web) and hidden from assistive tech (native equivalents) while locked; the lock is a labelled modal dialog, takes focus when it opens or switches mode, wraps Tab and Shift+Tab, and returns focus on unlock",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/autoLock.test.ts::the screens under the lock are inert and hidden from assistive tech",
+        "mobile/src/lib/autoLock.test.ts::the lock takes focus",
+        "traps Tab",
+        "and returns focus on unlock"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-921",
+      "date": "2026-11-09",
+      "title": "Back buttons did nothing after a reload or deep link",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Back to the course / Back to Review / Not now and the course header Back did nothing when the page had been reloaded or opened from a link",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "Each called router.back(), which has no screen to return to when the stack holds one route",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/goBack.ts",
+        "mobile/src/lib/useGoBack.ts"
+      ],
+      "fix_summary": "goBackOr / useGoBack: back when possible, else replace with the screen's parent; applied to all 14 call sites",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-921: Back after a reload or deep link",
+        "mobile/src/lib/f5WebA11y.test.ts::every Back goes through the fallback helper; none calls router.back() directly"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-922",
+      "date": "2026-11-09",
+      "title": "Signed-in screens sent requests before the session was restored on reload",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Reloading /account/sessions (and any signed-in screen) showed an error: its request left before the refresh cookie had been exchanged, so it was a 401 the client never retried for /api/auth/*",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The (app) navigator mounted every matching screen immediately while auth status was still \"loading\" (or the launch lock was up)",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/(app)/_layout.tsx"
+      ],
+      "fix_summary": "The (app) layout renders a loading view until status is signedIn/signedOut; screens mount only once the session is known",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::signed-in screens wait for the session before they mount"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-923",
+      "date": "2026-11-09",
+      "title": "The sign-up Terms checkbox was an 18 px icon with its links inside the toggle",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The checkbox was 18 px, a tap on the Terms or Privacy link also toggled it, and axe reported a nested-interactive and aria-required-attr fault",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The whole row was one Pressable with role checkbox and the links were Text children of it",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/app/(auth)/register.tsx"
+      ],
+      "fix_summary": "A reusable Checkbox in ui.tsx: a 48 dp control with role, name and checked state, wording beside it with real links",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::the register Terms checkbox is its own control and the links are outside it"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-924",
+      "date": "2026-11-09",
+      "title": "Enter did not submit login, sign-up, reset, MFA or the lock",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Pressing Enter in a form field did nothing on web",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "TextField did not pass onSubmitEditing or an enter-key hint through to the input",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/app/(auth)"
+      ],
+      "fix_summary": "TextField takes onSubmitEditing and returnKeyType (as enterKeyHint); wired on the five forms, each ignoring a second Enter while sending",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::Enter submits login",
+        "register",
+        "reset",
+        "MFA and the lock"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-925",
+      "date": "2026-11-09",
+      "title": "Headings had no level and screens had no main landmark",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "H1/H2/H3 were plain text; axe reported the region rule on every page (296 nodes)",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "No role or level on headings and no landmark around screen content",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "Headings get role heading and aria-level; Screen is the main landmark (and the chat view); legal pages are focusable scroll regions",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::headings carry a role and a level",
+        "and the screen is the main landmark"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-926",
+      "date": "2026-11-09",
+      "title": "A missing course offered a Retry that could never succeed",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Opening a course that does not exist showed \"That couldn't be found\" with a Retry button",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "ErrorBanner always offered Retry for a failed load",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/LoadError.tsx",
+        "mobile/src/lib/notFound.ts"
+      ],
+      "fix_summary": "LoadError shows \"Go to my courses\" for a 404 (course, unit check, explain, lab, sim)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-926: a missing thing offers a way out",
+        "not Retry"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-927",
+      "date": "2026-11-09",
+      "title": "Every web page was titled \"Ascendra\"",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The tab, history and screen-reader page title never changed",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "expo-router turns the automatic document title off and nothing set it",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/routeTitles.ts",
+        "mobile/app/_layout.tsx"
+      ],
+      "fix_summary": "titleForPath maps every route to a title; the root layout sets document.title on web",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-927: every page has a title"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-928",
+      "date": "2026-11-09",
+      "title": "The current lock-after choice was shown by colour only",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The ChoiceSheet marked the current option only with the primary colour",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "ChoiceOption had no selected state",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/app/(app)/settings.tsx"
+      ],
+      "fix_summary": "ChoiceOption.selected: a check mark and the selected state",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-929",
+      "date": "2026-11-09",
+      "title": "Verdicts, coach replies and the resend notice were silent to a screen reader",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A graded answer, a new coach reply and \"a new link is on its way\" appeared without being announced",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The content was inserted without a live region that already existed",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "LiveAnnouncement: a persistent polite live region on web, announceForAccessibility on a phone",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-930",
+      "date": "2026-11-09",
+      "title": "Avatar, name, Mastery rows, biometric switch, spinners and the two \"All\" chips lacked roles or names",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Those controls were unnamed or ambiguous to assistive tech",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "Pressables and the Switch had no role or label; two chips both read \"All\"",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/explore.tsx"
+      ],
+      "fix_summary": "Roles and labels added; spinners named or hidden; the two groups labelled",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-931",
+      "date": "2026-11-09",
+      "title": "The web idle sign-out warning never appeared",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "No warning was shown before the 30-minute sign-out",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The warning was only computed while unlocked, but the lock engages minutes before the 30-minute limit",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/components/AppLock.tsx"
+      ],
+      "fix_summary": "The countdown is computed while locked too; the lock shows a once-announced warning and the banner shows only while unlocked",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-932",
+      "date": "2026-11-09",
+      "title": "\"Log out of all devices\" acted on one tap",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "One tap ended every session, this device included",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The row called logoutAll directly",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/(app)/account.tsx"
+      ],
+      "fix_summary": "A confirmation first",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-933",
+      "date": "2026-11-09",
+      "title": "The favourite star sat inside a pressable course card",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "axe reported 43 nested-interactive nodes on Explore; a screen reader could not reach the star",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "CourseCard was a pressable Card containing FavoriteButton",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/CourseCard.tsx"
+      ],
+      "fix_summary": "The card is a plain surface; the title area is the button, the star its sibling",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-928..933",
+        "938: roles",
+        "labels",
+        "wording and structure (static)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-934",
+      "date": "2026-11-09",
+      "title": "The email and the MFA challenge token travelled in the URL",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "verify-email-pending?email=... and mfa-challenge?challengeToken=... put them in the address bar and history",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "They were passed as route params",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/handoff.ts",
+        "mobile/app/(auth)"
+      ],
+      "fix_summary": "Handed over in memory (src/lib/handoff.ts); a reload returns the challenge to sign-in and drops the resend button",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-934: the email and challenge token stay out of the URL"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-935",
+      "date": "2026-11-09",
+      "title": "The reminders row always said \"Off\"",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Settings showed \"Off unless you turn them on\" whatever was saved",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "A fixed string",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/reminders.ts",
+        "mobile/app/(app)/settings.tsx"
+      ],
+      "fix_summary": "reminderRowValue shows the saved state",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-935: the reminders row shows the saved state"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-936",
+      "date": "2026-11-09",
+      "title": "Raw ids in headers and history chips",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The header read \"settings/discount\" and the history chips read \"unitcheck\" and \"labtask\"",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "No navigator entry for several routes; stored ids shown as labels",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/(app)/_layout.tsx",
+        "mobile/src/lib/historyKinds.ts"
+      ],
+      "fix_summary": "Entries added; historyKindLabel",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-936: history shows words",
+        "not stored ids"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-937",
+      "date": "2026-11-09",
+      "title": "The \"Suggested\" badge was 4.05:1",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "axe color-contrast on the course plan option",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "The badge assumed it sat on a card; it sits on the accent-tinted option",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/CoursePlanPanel.tsx"
+      ],
+      "fix_summary": "Badge takes the surface it sits on",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-937: the 'Suggested' badge reaches 4.5:1 on the plan option it sits on"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-938",
+      "date": "2026-11-09",
+      "title": "Resend copy, \"--\" in button labels, mixed sign-out wording, full-width desktop content",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "\"Older links still work for 24 hours\" (each link works 24 hours from when it was sent), \"--\" in three button labels, \"Log out\" beside \"Sign out\", content stretched across a 1280 px window",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "Copy written separately from the server rule and from each other",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/verifyEmailPending.ts",
+        "mobile/src/lib/studyNotice.ts",
+        "mobile/src/components/ui.tsx"
+      ],
+      "fix_summary": "Copy corrected, labels reworded, one \"Sign out\", content capped at 720 px",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-938: the resend message says what is true"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-939",
+      "date": "2026-11-09",
+      "title": "The dispute text and the lesson guess were lost on reload",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Text typed into \"Dispute or ask about this verdict\" or the guess box vanished with the page",
+      "how_detected": "pre-launch audit of the web screens (accessibility and keyboard pass)",
+      "root_cause": "Both lived only in React state",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/src/lib/drafts.ts",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx"
+      ],
+      "fix_summary": "Both are kept on the device with useStoredDraft, under keys the logout sweep removes",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts::FAIL-939: typed text survives a reload and is swept at sign-out"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Web screens and accessibility item in the pre-completion checklist; static wiring tests in mobile/src/lib/f5WebA11y.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-895",
+      "date": "2026-11-10",
+      "title": "Google sign-in with two-factor on would have stopped at a blank challenge screen after F4 and F5 were merged",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Not shipped. With both branches merged as written, a Google account with two-factor on was sent to /mfa-challenge with the challenge token in the URL, and that screen now reads only the in-memory handoff, so it had no token and sent the learner back to sign-in",
+      "how_detected": "B15 merge: reading both sides of mobile/app/(auth)/login.tsx",
+      "root_cause": "F4 added finishGoogle (the age-confirmation retry) while /mfa-challenge still read URL params. F5 moved the screen to a handoff set by setMfaHandoff, and updated only the call it knew of (the first Google call). The two edits sat in one hunk, so the text conflict was the only warning",
+      "requirement": "REQ-206",
+      "affected": [
+        "mobile/app/(auth)/login.tsx"
+      ],
+      "fix_summary": "finishGoogle builds the handoff with mfaHandoffFrom and setMfaHandoff, exactly as password sign-in does; F4's age-confirmation flow is unchanged",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/legalPrivacy.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A static test pins that the Google path fills the handoff the MFA screen reads and passes no challenge token in the URL",
+      "recurrence_of": ""
     }
   ]
 }

@@ -7352,6 +7352,45 @@
         "No retention period is set for the support inbox or for billing_events",
         "B14 (2026-11-10): on a gated course (nursing, PT, fitness) a missing study notice is answered by requireAcknowledgementForObjective with the same words but no code field; only the other model routes send code study_notice_required. Not changed"
       ]
+    },
+    {
+      "id": "REQ-206",
+      "category": "fix",
+      "title": "Web screens and accessibility: the lock blocks keyboard and screen readers, Back always works, forms submit on Enter",
+      "description": "Batch F5 of the pre-launch audit fixes. The app lock makes the screens under it inert and hidden from assistive tech, takes focus and traps Tab. Back buttons fall back to a parent screen after a reload or deep link, and a missing course offers a way out instead of Retry. Signed-in screens wait for the session. Sign-up has its own accessible Checkbox. Enter submits login, sign-up, reset, MFA and the lock. Headings carry levels, pages have titles and a main landmark, verdicts and coach replies are announced, the course card has no button inside a button, and several labels, copy lines and lost-state cases are fixed. Keyboard Tab order on the web screens is covered by a repeatable Playwright script (mobile/e2e/tab-order.e2e.mjs). Dark-only theming is unchanged.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app",
+        "mobile/src/components",
+        "mobile/src/lib",
+        "mobile/src/auth/AuthContext.tsx",
+        "CHANGELOG.md",
+        ".ai/failures"
+      ],
+      "acceptance_criteria": [
+        "Tab never leaves the lock and Enter on a control under it does nothing",
+        "Back on a fresh load goes to the parent screen",
+        "A reload on /account/sessions sends no request before the session is restored",
+        "Terms checkbox is at least 48 dp with role checkbox and its links outside it",
+        "Enter submits login/register/reset/MFA/lock",
+        "axe violations on the audited pages do not rise and the region rule falls"
+      ],
+      "validation_required": [
+        "typecheck",
+        "test",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "No migration. Header Back button is still absent after a reload on screens that rely on the stack header; in-page Back buttons are fixed. verify-email and MFA screens lose their email/token after a reload by design (src/lib/handoff.ts). Live announcements for the post-exam review list (ExamQuestion",
+        "feedback) are not added: static review lists",
+        "not live updates.",
+        "Keyboard Tab order was checked on every form and interactive web screen with mobile/e2e/tab-order.e2e.mjs (31 screens and sheets: order follows the page, visible focus, no trap outside modals, nothing hidden or off screen receives focus, no clickable element the keyboard cannot reach). It found no Tab-order defect in the F5 build or in the batch-9 build, so no new FAIL entry was needed and none was free (FAIL-920..939 is fully used). The sim screen was not reached (no openable sim in the seed data); model-dependent screens were audited in start, empty or mocked states. Run it by hand before a release: see mobile/e2e/README.md.",
+        "B15 (2026-11-10): AgeCheckbox (REQ-205) is a thin wrapper over the shared Checkbox; the Tab-order script (scripts) needs a web export and was not run in this release assembly"
+      ]
     }
   ]
 }

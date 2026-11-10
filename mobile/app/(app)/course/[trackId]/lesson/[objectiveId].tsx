@@ -18,10 +18,12 @@ import {
   Card,
   ErrorBanner,
   H2,
+  LiveAnnouncement,
   Loading,
   Muted,
   Screen,
   SectionHeader,
+  VERDICT_LABEL,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, masteryColor, masteryIcon, radius, spacing } from "@/lib/theme";
@@ -84,6 +86,8 @@ import {
   type LearnerHistory,
   type TeachCards as TeachCardsData,
 } from "@/lib/lessonExperience";
+import { useStoredDraft } from "@/lib/useStoredDraft";
+import { followUpDraftKey, guessDraftKey } from "@/lib/drafts";
 
 // REQ-101 (FAIL-093): device copies once written under "anon" are removed
 // the first time a lesson opens in this app run.
@@ -117,6 +121,16 @@ export default function LessonFlow() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("guess");
   const [guess, setGuess] = useState("");
+  // REQ-206 (FAIL-939): the guess box survives a reload (see guessDraftKey).
+  useStoredDraft(
+    user && objectiveId ? guessDraftKey(user.id, objectiveId) : null,
+    step === "guess" && guess.trim() ? guess : null,
+    (stored) => {
+      // Only while still at the guess: a guess restored into a lesson already
+      // past it would count as one the learner made.
+      if (stored && step === "guess") setGuess((current) => current || stored.slice(0, OPEN_ANSWER_MAX));
+    }
+  );
   const [confidence, setConfidence] = useState<number | null>(null);
   // Feedback on the guess itself, generated once it's submitted (never for
   // "I don't know -- just teach me", since there's nothing to compare then).
@@ -1116,6 +1130,15 @@ function CheckStep({
   const setOpenAnswer = (t: string) => update({ openAnswer: t });
   const [followUp, setFollowUp] = useState("");
   const [followUpSent, setFollowUpSent] = useState(false);
+  // REQ-206 (FAIL-939): kept on the device until sent.
+  const { user: followUpUser } = useAuth();
+  useStoredDraft(
+    followUpUser ? followUpDraftKey(followUpUser.id, objectiveId, kind) : null,
+    followUp.trim() ? followUp : null,
+    (stored) => {
+      if (stored) setFollowUp((current) => current || stored.slice(0, OPEN_ANSWER_MAX));
+    }
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // A failed submit leaves the answer as it was and offers "Retry", which
@@ -1367,6 +1390,7 @@ function CheckStep({
         </>
       )}
 
+      <LiveAnnouncement message={result ? `${VERDICT_LABEL[result.verdict] ?? result.verdict}. ${result.feedback}` : null} />
       {result && (
         <View style={{ gap: 8 }}>
           {/* REQ-133: the options stay on screen after grading so the learner

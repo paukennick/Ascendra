@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen, TextField, VerdictBadge } from "@/components/ui";
@@ -28,6 +28,9 @@ import {
   type LabView,
   type PartRowState,
 } from "@/lib/labs";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-123: one lab. A build lab is one step with an answer field per rubric
 // part; a case lab is a stepper that reveals each step's new information
@@ -64,8 +67,9 @@ const PART_COLOR: Record<PartRowState, string> = {
 };
 
 export default function LabScreen() {
-  const router = useRouter();
-  const { labId, title } = useLocalSearchParams<{ trackId: string; labId: string; title?: string }>();
+  const { trackId, labId, title } = useLocalSearchParams<{ trackId: string; labId: string; title?: string }>();
+  const goBack = useGoBack(`/course/${encodeURIComponent(trackId)}/labs`);
+  const [notFound, setNotFound] = useState(false);
   const [view, setView] = useState<LabView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -73,10 +77,14 @@ export default function LabScreen() {
 
   const load = useCallback(() => {
     setLoadError(null);
+    setNotFound(false);
     api
       .get<LabView>(`/api/labs/${labId}`)
       .then(setView)
-      .catch((err) => setLoadError(friendlyError(err)));
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      });
   }, [labId]);
   useEffect(load, [load]);
 
@@ -120,7 +128,7 @@ export default function LabScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: lab?.kind === "case" ? "Case lab" : lab ? "Build lab" : title ?? "Lab" }} />
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {!view && !loadError ? <Loading label="Opening the lab..." /> : null}
 
       {lab ? (
@@ -188,7 +196,7 @@ export default function LabScreen() {
               </View>
               {startError ? <ErrorBanner message={startError} onRetry={() => start(true)} /> : null}
               <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-                <Button label="Back to labs" fullWidth={false} onPress={() => router.back()} />
+                <Button label="Back to labs" fullWidth={false} onPress={goBack} />
                 <Button
                   label="Try it again"
                   accessibilityLabel="Try this lab again. It counts lightly, because you've seen the model answers."

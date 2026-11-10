@@ -9,12 +9,14 @@ import { createLatestRequest } from "@/lib/latestRequest";
 import { spacing } from "@/lib/theme";
 import { whenLabel } from "@/lib/time";
 
-const KINDS = ["all", "lesson", "review", "pbq", "unitcheck", "quiz", "lab", "labtask"] as const;
-
+import { HISTORY_KINDS as KINDS, historyKindLabel } from "@/lib/historyKinds";
+import { courseHome } from "@/lib/goBack";
+import { useGoBack } from "@/lib/useGoBack";
 
 export default function HistoryScreen() {
   const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const router = useRouter();
+  const goBack = useGoBack(courseHome(trackId));
   const [attempts, setAttempts] = useState<Attempt[] | null>(null);
   const [kind, setKind] = useState<typeof KINDS[number]>("all");
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export default function HistoryScreen() {
       {trackTitle ? <Muted>{trackTitle}</Muted> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
         {KINDS.map((k) => (
-          <Chip key={k} label={k} active={k === kind} onPress={() => setKind(k)} />
+          <Chip key={k} label={historyKindLabel(k)} active={k === kind} onPress={() => setKind(k)} />
         ))}
       </ScrollView>
 
@@ -74,7 +76,7 @@ export default function HistoryScreen() {
         >
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Muted>
-              {a.kind}
+              {historyKindLabel(a.kind)}
               {a.stage ? ` / ${a.stage}` : ""} · {a.format} · {whenLabel(a.created_at)}
             </Muted>
             <VerdictBadge verdict={a.verdict ?? "ungraded"} />
@@ -92,7 +94,7 @@ export default function HistoryScreen() {
             icon="clock"
             title={HISTORY_EMPTY.title}
             message={HISTORY_EMPTY.message}
-            action={{ label: HISTORY_EMPTY.action!.label, icon: "arrow-left", onPress: () => router.back() }}
+            action={{ label: HISTORY_EMPTY.action!.label, icon: "arrow-left", onPress: goBack }}
           />
         </Card>
       ) : null}

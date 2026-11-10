@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Switch, View } from "react-native";
 import Constants from "expo-constants";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
 import { Alert } from "@/lib/alert";
@@ -12,6 +12,8 @@ import { planSummary } from "@/lib/billing";
 import { accessPlanLine, parseAccess, showAccessSettings } from "@/lib/access";
 import { useDiscounts } from "@/billing/useDiscounts";
 import { settingsRowValue } from "@/lib/discounts";
+import { reminderRowValue, type ReminderPrefs } from "@/lib/reminders";
+import { loadReminderPrefs, remindersSupported } from "@/lib/reminderScheduler";
 
 export default function Settings() {
   const router = useRouter();
@@ -22,6 +24,21 @@ export default function Settings() {
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
+  // REQ-206: the row used to say "Off unless you turn them on" whatever was saved.
+  const [reminders, setReminders] = useState<ReminderPrefs | null>(null);
+  const userId = user?.id;
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId || !remindersSupported) return;
+      let live = true;
+      loadReminderPrefs(userId)
+        .then((p) => live && setReminders(p))
+        .catch(() => undefined);
+      return () => {
+        live = false;
+      };
+    }, [userId])
+  );
 
   async function toggleBiometric(next: boolean) {
     setBiometricBusy(true);
@@ -92,7 +109,7 @@ export default function Settings() {
       <SectionHeader label="Study" />
       <Card style={{ gap: 0 }}>
         <ListRow icon="target" label="Study profile" value="Your goal, exams and study time" onPress={() => router.push("/settings/study-profile")} />
-        <ListRow icon="bell" label="Study reminders" value="Off unless you turn them on" onPress={() => router.push("/settings/reminders")} />
+        <ListRow icon="bell" label="Study reminders" value={reminderRowValue(reminders, remindersSupported)} onPress={() => router.push("/settings/reminders")} />
         <Divider />
         {/* REQ-197: exam change notices, exam countdown, weekly digest. */}
         <ListRow icon="mail" label="Email" value="Exam notices and digest" onPress={() => router.push("/settings/emails")} />
@@ -117,12 +134,15 @@ export default function Settings() {
               label={`Use ${biometricLabel}`}
               right={
                 biometricBusy ? (
-                  <ActivityIndicator size="small" color={colors.accent} />
+                  <ActivityIndicator size="small" color={colors.accent} accessibilityLabel={`Updating ${biometricLabel}`} />
                 ) : (
                   <Switch
                     value={biometricEnabled}
                     onValueChange={toggleBiometric}
                     trackColor={{ true: colors.accent, false: colors.border }}
+                    accessibilityRole="switch"
+                    accessibilityLabel={`Use ${biometricLabel}`}
+                    accessibilityState={{ checked: biometricEnabled }}
                   />
                 )
               }
@@ -142,6 +162,7 @@ export default function Settings() {
         options={LOCK_AFTER_OPTIONS.map((o) => ({
           label: lockAfterLabel(o),
           variant: o === lockAfter ? "primary" : "ghost",
+          selected: o === lockAfter,
           onPress: () => void setLockAfter(o),
         }))}
         onCancel={() => setLockSheet(false)}

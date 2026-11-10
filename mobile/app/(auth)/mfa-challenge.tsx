@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { api, ApiError } from "@/api/client";
+import { clearMfaHandoff, getMfaHandoff } from "@/lib/handoff";
 
 export default function MfaChallenge() {
   const router = useRouter();
   const { completeMfaLogin } = useAuth();
-  const { challengeToken, totp, email } = useLocalSearchParams<{ challengeToken: string; totp?: string; email?: string }>();
-  const hasTotp = totp === "1";
-  const hasEmail = email === "1";
+  // REQ-206: the challenge token is handed over in memory (src/lib/handoff.ts),
+  // not in the URL. After a reload it is gone: back to sign-in.
+  const handoff = useRef(getMfaHandoff()).current;
+  const challengeToken = handoff?.challengeToken ?? "";
+  const hasTotp = !!handoff?.totp;
+  const hasEmail = !!handoff?.email;
+  useEffect(() => {
+    if (!handoff) router.replace("/login");
+  }, [handoff, router]);
 
   const [code, setCode] = useState("");
   const [useBackupCode, setUseBackupCode] = useState(false);
@@ -22,6 +29,7 @@ export default function MfaChallenge() {
   const [submitting, setSubmitting] = useState(false);
 
   async function sendEmailCode() {
+    if (!challengeToken) return; // reloaded: the effect above is already going back to sign-in
     setEmailCodeState("sending");
     setError(null);
     try {
@@ -43,6 +51,7 @@ export default function MfaChallenge() {
   }, [activeMethod]);
 
   const onSubmit = async () => {
+    if (submitting) return;
     setError(null);
     if (!code.trim()) {
       setError(useBackupCode ? "Enter a backup code." : "Enter the 6-digit code.");
@@ -51,6 +60,7 @@ export default function MfaChallenge() {
     setSubmitting(true);
     try {
       await completeMfaLogin(challengeToken, code.trim());
+      clearMfaHandoff();
       // Root layout's redirect effect handles navigation into the app once signed in.
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
@@ -83,6 +93,8 @@ export default function MfaChallenge() {
           textContentType={useBackupCode ? undefined : "oneTimeCode"}
           maxLength={useBackupCode ? 9 : 6}
           icon="shield"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <Button label="Verify" onPress={onSubmit} loading={submitting} icon="check-circle" />
       </Card>

@@ -74,8 +74,8 @@ export function sectionsFor(page: NoticePage): readonly NoticeSection[] {
   return STUDY_NOTICE_SECTIONS.filter((s) => (s.heading === AI_DATA_HEADING) === (page === "data"));
 }
 
-export const STUDY_NOTICE_CONTINUE_LABEL = "I understand -- next";
-export const STUDY_NOTICE_ACCEPT_LABEL = "I agree -- continue";
+export const STUDY_NOTICE_CONTINUE_LABEL = "I understand, next";
+export const STUDY_NOTICE_ACCEPT_LABEL = "I agree and continue";
 
 // Requests that send text the learner wrote to the AI provider (Privacy
 // Policy section 5, "Features that send what you type"). POST only.

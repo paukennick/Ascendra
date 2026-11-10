@@ -8,6 +8,8 @@ import { Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, ProgressBar, S
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { placementProgress } from "@/lib/studyPlan";
 import { friendlyError } from "@/lib/errorMessage";
+import { useGoBack } from "@/lib/useGoBack";
+import { courseHome } from "@/lib/goBack";
 
 // REQ-110: the optional placement check. Questions come from lessons already
 // written for this course (no AI call). Answers are not marked right or wrong
@@ -19,6 +21,7 @@ const LETTERS = ["A", "B", "C", "D", "E", "F"];
 export default function PlacementScreen() {
   const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const router = useRouter();
+  const goBack = useGoBack(courseHome(trackId));
   const [view, setView] = useState<PlacementView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -95,7 +98,7 @@ export default function PlacementScreen() {
           ) : (
             <Muted>This course doesn't have enough lessons ready for a placement check yet. Start with the first lesson instead.</Muted>
           )}
-          <Button label="Not now" variant="link" onPress={() => router.back()} />
+          <Button label="Not now" variant="link" onPress={goBack} />
         </Card>
       ) : null}
 
@@ -140,7 +143,7 @@ export default function PlacementScreen() {
             variant="link"
             // L5: only leaves once the server has recorded it; a failure stays
             // here with the error showing.
-            onPress={() => post({ action: "skip" }).then((ok) => ok && router.back())}
+            onPress={() => post({ action: "skip" }).then((ok) => ok && goBack())}
           />
         </Card>
       ) : null}
@@ -154,7 +157,7 @@ export default function PlacementScreen() {
             icon="calendar"
             onPress={() => router.replace({ pathname: `/course/${trackId}/plan`, params: { trackTitle } })}
           />
-          <Button label="Back to the course" variant="ghost" onPress={() => router.back()} />
+          <Button label="Back to the course" variant="ghost" onPress={goBack} />
         </Card>
       ) : null}
     </Screen>

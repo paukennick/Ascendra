@@ -40,12 +40,16 @@ describe("I am 16 or older (FAIL-906)", () => {
     assert.equal(isAgeConfirmationRequired(new Error("x")), false);
     assert.equal(isAgeConfirmationRequired(null), false);
   });
-  test("the checkbox is accessible: a checkbox role, a label, a checked state, a 44-point target", () => {
+  test("the checkbox is accessible: it is the shared Checkbox (REQ-206): a checkbox role, a label, a checked state, a 44-point target", () => {
     const box = read("src", "components", "AgeCheckbox.tsx");
-    assert.match(box, /accessibilityRole="checkbox"/);
-    assert.match(box, /accessibilityLabel=\{AGE_CONFIRMATION_LABEL\}/);
-    assert.match(box, /accessibilityState=\{\{ checked \}\}/);
-    assert.match(box, /minHeight: 44/);
+    assert.match(box, /<Checkbox checked=\{checked\} onChange=\{\(\) => onToggle\(\)\} label=\{AGE_CONFIRMATION_LABEL\}/);
+    const ui = read("src", "components", "ui.tsx");
+    const shared = ui.slice(ui.indexOf("export function Checkbox"), ui.indexOf("function colorForPercent"));
+    assert.match(shared, /accessibilityRole="checkbox"/);
+    assert.match(shared, /accessibilityLabel=\{label\}/);
+    assert.match(shared, /accessibilityState=\{\{ checked \}\}/);
+    assert.ok(Number(/MIN_TOUCH = (\d+)/.exec(ui)?.[1]) >= 44, "the shared target is at least 44 points");
+    assert.match(ui, /checkboxHit: \{ width: MIN_TOUCH, height: MIN_TOUCH/);
   });
   test("email sign-up asks, refuses without it, and sends it", () => {
     const reg = read("app", "(auth)", "register.tsx");
@@ -63,6 +67,19 @@ describe("I am 16 or older (FAIL-906)", () => {
     assert.match(login, /<AgeCheckbox checked=\{ageOk\}/);
     assert.match(login, /finishGoogle\(googleToken, true\)/);
     assert.match(login, /ageCheckError\(ageOk\)/);
+  });
+  test("Google sign-in hands its MFA challenge over in memory, like password sign-in (FAIL-895)", () => {
+    // finishGoogle (REQ-205) was written while /mfa-challenge still read its token from the URL;
+    // REQ-206 moved that screen to the in-memory handoff, which a URL-param push never fills.
+    const login = read("app", "(auth)", "login.tsx");
+    const fn = login.slice(login.indexOf("const finishGoogle"), login.indexOf("const onGooglePress"));
+    assert.match(fn, /mfaHandoffFrom\(result\)/);
+    assert.match(fn, /setMfaHandoff\(mfa\)/);
+    assert.doesNotMatch(fn, /challengeToken:/);
+    assert.doesNotMatch(login, /params:\s*\{\s*challengeToken/);
+    const challenge = read("app", "(auth)", "mfa-challenge.tsx");
+    assert.match(challenge, /getMfaHandoff\(\)/);
+    assert.doesNotMatch(challenge, /useLocalSearchParams/);
   });
   test("no date of birth is asked for anywhere in sign-up", () => {
     for (const f of [["app", "(auth)", "register.tsx"], ["app", "(auth)", "login.tsx"], ["src", "components", "AgeCheckbox.tsx"]]) {

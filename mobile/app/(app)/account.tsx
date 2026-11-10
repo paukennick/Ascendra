@@ -229,6 +229,14 @@ export default function Account() {
     }
   }
 
+  // REQ-206: one tap used to end every session, this device's included.
+  function confirmLogoutAll() {
+    Alert.alert("Sign out of all devices?", "This ends every session, including this one. You'll need to sign in again everywhere.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign out everywhere", style: "destructive", onPress: () => void logoutAll() },
+    ]);
+  }
+
   // REQ-203 (FAIL-870): every account confirms before deleting. A password
   // account types its password (as before); a Google-only account types a
   // code if it has two-factor, or signs in with Google again.
@@ -266,11 +274,18 @@ export default function Account() {
   return (
     <Screen>
       <Card style={{ alignItems: "center", gap: 4, paddingVertical: 24 }}>
-        <Pressable onPress={editAvatar} disabled={avatarBusy} style={{ position: "relative" }}>
+        <Pressable
+          onPress={editAvatar}
+          disabled={avatarBusy}
+          style={{ position: "relative" }}
+          accessibilityRole="button"
+          accessibilityLabel="Change profile photo"
+          accessibilityState={{ disabled: avatarBusy, busy: avatarBusy }}
+        >
           <Avatar name={user?.displayName ?? user?.email} imageUri={user?.avatarDataUrl} size={72} />
           <View style={styles.avatarBadge}>
             {avatarBusy ? (
-              <ActivityIndicator size="small" color={colors.accentText} />
+              <ActivityIndicator size="small" color={colors.accentText} aria-hidden />
             ) : (
               <Feather name="camera" size={13} color={colors.accentText} />
             )}
@@ -311,7 +326,9 @@ export default function Account() {
               setNameError(null);
               setEditingName(true);
             }}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8, minHeight: 48 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Display name: ${user?.displayName ?? "not set"}. Edit`}
           >
             <H2>{user?.displayName ?? "Signed in"}</H2>
             <Feather name="edit-2" size={14} color={colors.mutedDim} />
@@ -400,9 +417,9 @@ export default function Account() {
 
       <SectionHeader label="Session" />
       <Card style={{ gap: 0 }}>
-        <ListRow icon="log-out" label="Log out" onPress={() => logout()} />
+        <ListRow icon="log-out" label="Sign out" onPress={() => logout()} />
         <Divider />
-        <ListRow icon="shield-off" label="Log out of all devices" onPress={() => logoutAll()} danger />
+        <ListRow icon="shield-off" label="Sign out of all devices" onPress={confirmLogoutAll} danger />
       </Card>
 
       <SectionHeader label="Danger zone" />

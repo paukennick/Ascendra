@@ -10,6 +10,8 @@ import type { QuizTurn } from "@/types/plan";
 import { Body, Button, Card, EmptyState, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import { quizTriesLine } from "@/lib/studyPlan";
+import { useGoBack } from "@/lib/useGoBack";
+import { courseHome } from "@/lib/goBack";
 
 // REQ-110 (research #8): "Quiz me on my weak spots". The coach picks one of
 // the learner's weakest objectives and asks; a miss earns a hint and another
@@ -22,6 +24,7 @@ const LETTERS = ["A", "B", "C", "D"];
 export default function QuizScreen() {
   const { trackId, trackTitle } = useLocalSearchParams<{ trackId: string; trackTitle?: string }>();
   const router = useRouter();
+  const goBack = useGoBack(courseHome(trackId));
   const [turn, setTurn] = useState<QuizTurn | null>(null);
   const [empty, setEmpty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -96,7 +99,7 @@ export default function QuizScreen() {
             title="No weak spots to quiz yet"
             message="Answer a few lesson questions first. Once there's something to strengthen, the coach will quiz you on it."
           />
-          <Button label="Back to the course" variant="ghost" onPress={() => router.back()} />
+          <Button label="Back to the course" variant="ghost" onPress={goBack} />
         </Card>
       ) : null}
 

@@ -34,7 +34,7 @@ export default function ReviewCoverageScreen() {
   const items = useMemo(() => (rows ? coverageRows(rows) : []), [rows]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }} role="main">
       <Stack.Screen options={{ title: "Terms you know" }} />
       <FlatList
         data={items}

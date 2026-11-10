@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/reviewSession";
 import { friendlyError } from "@/lib/errorMessage";
 import { useAnswerDraft } from "@/lib/useAnswerDraft";
+import { useGoBack } from "@/lib/useGoBack";
 
 // REQ-108: Today's review, one question at a time. Each question is new
 // (written for the objective, not the lesson's own Guided/Solo item) and is
@@ -25,7 +26,7 @@ import { useAnswerDraft } from "@/lib/useAnswerDraft";
 // answer after it does not count as recall. "Stop for today" is on every
 // screen: what is left stays due, nothing is lost.
 export default function ReviewSessionScreen() {
-  const router = useRouter();
+  const goBack = useGoBack("/review");
   const { trackId } = useLocalSearchParams<{ trackId?: string }>();
   const [session, setSession] = useState<ReviewSession | null>(null);
   const [unavailable, setUnavailable] = useState(0);
@@ -101,7 +102,7 @@ export default function ReviewSessionScreen() {
       // Best effort: the session closes at the end of the day anyway.
       await api.patch(`/api/review/sessions/${session.id}`, { action: "finish" }).catch(() => undefined);
     }
-    router.back();
+    goBack();
   }
 
   async function revealChoices() {
@@ -177,7 +178,7 @@ export default function ReviewSessionScreen() {
           <EmptyState icon="check-circle" title="Nothing to review right now" message="Come back when something is due." />
         </Card>
         ) : null}
-        <Button label="Back to Review" variant="ghost" onPress={() => router.back()} />
+        <Button label="Back to Review" variant="ghost" onPress={goBack} />
       </Screen>
     );
   }
@@ -205,7 +206,7 @@ export default function ReviewSessionScreen() {
         <Card elevated>
           <H2>Done for today</H2>
           <Body>{sessionDoneLabel(session.items)}</Body>
-          <Button label="Back to Review" onPress={() => router.back()} />
+          <Button label="Back to Review" onPress={goBack} />
         </Card>
       ) : (
         <Card elevated>
