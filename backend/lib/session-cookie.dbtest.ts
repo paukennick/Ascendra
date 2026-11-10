@@ -92,6 +92,11 @@ async function mkUser(opts: { totp?: string } = {}) {
   return { id, email };
 }
 const signIn = (email: string, headers: Record<string, string>) => call(login, { body: { email, password: PW }, headers });
+// REQ-203: a replay within REFRESH_REUSE_GRACE_SECONDS of the rotation is a
+// cross-tab race and is forgiven; these tests are about theft, so they let the
+// window pass first.
+const pastGraceWindow = (userId: string) =>
+  query(`update refresh_tokens set revoked_at = revoked_at - interval '1 minute' where user_id = $1 and revoked_at is not null`, [userId]);
 const liveTokens = async (userId: string) =>
   Number((await queryOne<{ n: string }>(`select count(*) n from refresh_tokens where user_id=$1 and revoked_at is null`, [userId]))!.n);
 
@@ -107,6 +112,7 @@ describe("native flows are unchanged", () => {
     assert.equal(typeof r.body.refreshToken, "string");
     assert.notEqual(r.body.refreshToken, s.body.refreshToken);
     assert.deepEqual(r.cookies, []);
+    await pastGraceWindow(u.id);
     assert.equal((await call(refresh, { body: { refreshToken: s.body.refreshToken }, headers: NATIVE })).status, 401);
     assert.equal((await call(refresh, { body: { refreshToken: r.body.refreshToken }, headers: NATIVE })).status, 401, "family revoked");
   });
@@ -187,6 +193,7 @@ describe("web: the refresh token is an httpOnly cookie, rotated on use", () => {
     assert.ok(second && second !== first);
     const r2 = await call(refresh, { headers: withCookie(second) });
     assert.equal(r2.status, 200);
+    await pastGraceWindow(u.id);
     const replay = await call(refresh, { headers: withCookie(first) });
     assert.equal(replay.status, 401);
     assert.equal(cookieValue(replay), "", "a refused cookie is cleared");
@@ -267,9 +274,10 @@ describe("migration: a web tab holding an old sessionStorage token", () => {
     assert.ok(cookie);
     assert.equal((await call(refresh, { headers: withCookie(cookie) })).status, 200, "the cookie now carries the session");
   });
-  test("an old token that no longer works answers 401 and clears the cookie (the app falls back to sign-in)", async () => {
+  test("an old token that no longer works answers 401 (the app falls back to sign-in) and leaves any cookie alone", async () => {
     const r = await call(refresh, { body: { refreshToken: "not-a-real-token" }, headers: WEB });
     assert.equal(r.status, 401);
-    assert.equal(cookieValue(r), "");
+    // REQ-203 (FAIL-868): only a cookie that itself failed is cleared.
+    assert.deepEqual(r.cookies, []);
   });
 });

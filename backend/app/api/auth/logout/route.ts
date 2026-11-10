@@ -1,6 +1,7 @@
 import { ok, badRequest, serverError, readJson } from "@/lib/http";
-import { revokeRefreshFamily, revokeRefreshToken } from "@/lib/auth/tokens";
-import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { revokeRefreshFamily, revokeRefreshToken, verifyAccessTokenForLogout } from "@/lib/auth/tokens";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,14 @@ export const dynamic = "force-dynamic";
 // family) that token belongs to. The second is how the app signs out when it
 // holds no readable refresh token: biometric unlock seals it behind the OS
 // prompt. (The web app's cookie session ends at DELETE /api/auth/refresh.)
+//
+// REQ-203 (FAIL-866, FAIL-867): a refresh token that has already rotated
+// ends its whole session, not just itself, so the live successor can't
+// outlast the sign-out. The bearer form accepts a token that is validly
+// signed but past its 15 minutes: the app signs out after time away, when the
+// token is always stale, and it used to be refused with a 400 while the
+// session stayed live. The token only names the session to end; nothing is
+// granted by it, so it needs no live-account check.
 export async function POST(req: Request) {
   try {
     const text = await req.text();
@@ -19,16 +28,12 @@ export async function POST(req: Request) {
       await revokeRefreshToken(refreshToken);
       return ok({ success: true });
     }
-    if (refreshToken === undefined && req.headers.get("authorization")) {
-      try {
-        const user = await requireUser(req);
-        if (user.familyId) {
-          await revokeRefreshFamily(user.id, user.familyId);
-          return ok({ success: true });
-        }
-      } catch (err) {
-        if (!(err instanceof AuthError)) throw err;
-        // An access token that no longer works names no session we can end.
+    const header = req.headers.get("authorization");
+    if (refreshToken === undefined && header?.startsWith("Bearer ")) {
+      const named = verifyAccessTokenForLogout(header.slice("Bearer ".length).trim());
+      if (named?.fam && UUID.test(named.sub) && UUID.test(named.fam)) {
+        await revokeRefreshFamily(named.sub.toLowerCase(), named.fam);
+        return ok({ success: true });
       }
     }
     return badRequest("refreshToken is required");

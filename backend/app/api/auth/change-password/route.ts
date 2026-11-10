@@ -1,4 +1,4 @@
-import { query, queryOne } from "@/lib/db";
+import { queryOne, withTransaction } from "@/lib/db";
 import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { hashPassword, verifyPassword } from "@/lib/auth/passwords";
 import { endOtherSessions } from "@/lib/auth/sessionControl";
@@ -46,11 +46,17 @@ export async function POST(req: Request) {
     if (!valid) return badRequest("Current password is incorrect.");
 
     const newHash = await hashPassword(newPassword);
-    await query("update app_users set password_hash = $1 where id = $2", [newHash, authUser.id]);
+    // REQ-203 (FAIL-869): the new hash, the revoked sessions and the version
+    // bump are one transaction. Done separately, a failure after the first
+    // statement left the new password set while the old sessions (and any
+    // stolen token) stayed live.
     // REQ-116: every other session and every access token already issued
     // end now (token_version); this device keeps its session and gets a
     // fresh access token.
-    const accessToken = await endOtherSessions(authUser);
+    const accessToken = await withTransaction(async (tx) => {
+      await tx.query("update app_users set password_hash = $1 where id = $2", [newHash, authUser.id]);
+      return endOtherSessions(authUser, tx);
+    });
 
     await sendSecurityAlertEmail(
       authUser.email,
