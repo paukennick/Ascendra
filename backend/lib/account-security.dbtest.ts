@@ -20,7 +20,7 @@ import { encrypt } from "./auth/crypto";
 import { signAccessToken, createRefreshToken, rotateRefreshToken, RefreshTokenError } from "./auth/tokens";
 import { __setGoogleVerifierForTest } from "./auth/oauth";
 import { generateBackupCodes, hashEmailCode } from "./auth/mfa";
-import { REAUTH_LIMIT, REAUTH_SUCCESS_EVENT, REAUTH_SUCCESS_LIMIT } from "./auth/reauth";
+import { REAUTH_LIMIT } from "./auth/reauth";
 import { REFRESH_COOKIE } from "./auth/refreshCookie";
 import { POST as mfaSetup } from "../app/api/auth/mfa/setup/route";
 import { POST as mfaEnable } from "../app/api/auth/mfa/enable/route";
@@ -34,6 +34,10 @@ import { POST as refresh, DELETE as endWebSession } from "../app/api/auth/refres
 import { POST as login } from "../app/api/auth/login/route";
 import { DELETE as deleteAccount } from "../app/api/account/route";
 
+// Spelled out, not imported, so this test also runs (and fails) on a tree
+// that predates the success ceiling.
+const REAUTH_SUCCESS_EVENT = "reauth_success";
+const REAUTH_SUCCESS_LIMIT = { max: 120 };
 const testPw = (s: string) => s;
 const PW = testPw("Correct-Horse-203");
 const SEED = "JBSWY3DPEHPK3PXP".repeat(2);
@@ -425,8 +429,8 @@ describe("FAIL-866: sign-out with an expired access token ends the session", () 
     const u = await mkUser();
     const a = await session(u);
     const bad = [
-      expired(u, a.familyId, { secret: "some-other-secret" }),
-      jwt.sign({ sub: u.id, fam: a.familyId }, "x", { algorithm: "HS256" }),
+      expired(u, a.familyId, { secret: testPw("some-other-signing-key") }),
+      jwt.sign({ sub: u.id, fam: a.familyId }, testPw("x"), { algorithm: "HS256" }),
       expired(u, a.familyId, { ageSeconds: 31 * 24 * 3600 }),
       "junk",
     ];

@@ -4,7 +4,7 @@ import { verifyPassword } from "./passwords";
 import { verifyTotpCode, verifyBackupCode } from "./mfa";
 import { decrypt } from "./crypto";
 import { verifyGoogleIdToken } from "./oauth";
-import { consumeRateLimit, refundRateLimit, checkRateLimit, recordAuthEvent, RateLimitError } from "./rateLimit";
+import { consumeRateLimit, refundRateLimit, RateLimitError } from "./rateLimit";
 
 // REQ-116 (audit 3, findings 1 and 2): "confirm it's you" before an action
 // that could hand the account to someone holding only a stolen access token
@@ -106,12 +106,6 @@ export async function checkReauth(userId: string, input: ReauthInput): Promise<R
   if (secret.length > 1024) return fail(400, "That confirmation is too long.");
 
   const tooMany = () => fail(429, "Too many tries. For your security, wait 15 minutes and try again.");
-  try {
-    await checkRateLimit(REAUTH_SUCCESS_EVENT, userId, REAUTH_SUCCESS_LIMIT);
-  } catch (err) {
-    if (err instanceof RateLimitError) return tooMany();
-    throw err;
-  }
   let attemptId: string;
   try {
     attemptId = await consumeRateLimit(REAUTH_EVENT, userId, REAUTH_LIMIT, { userId });
@@ -122,8 +116,15 @@ export async function checkReauth(userId: string, input: ReauthInput): Promise<R
 
   const result = await verifyProof(userId, user, methods, secret, googleIdToken, fail);
   if (result.ok) {
+    // The correct answer comes off the wrong-guess budget and counts against
+    // the generous success ceiling instead (atomic, like every other limit).
     await refundRateLimit(attemptId);
-    await recordAuthEvent(REAUTH_SUCCESS_EVENT, userId, { userId });
+    try {
+      await consumeRateLimit(REAUTH_SUCCESS_EVENT, userId, REAUTH_SUCCESS_LIMIT, { userId });
+    } catch (err) {
+      if (err instanceof RateLimitError) return tooMany();
+      throw err;
+    }
   }
   return result;
 }
