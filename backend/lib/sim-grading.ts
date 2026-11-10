@@ -1,5 +1,6 @@
 import { gradeLabStep, claudeLabStepModel, type LabRubricPart, type LabSafetyFamily, type LabStepGraded, type LabStepModel } from "@/lib/lab-grading";
 import type { CoachContext } from "@/lib/coach-context";
+import { UserFacingError } from "@/lib/http";
 
 // REQ-190 (docs/sims.md 10): grading one written-reasoning moment of a sim.
 // It reuses the lab per-part grader unchanged: the moment's parts are the
@@ -21,7 +22,8 @@ export interface SimReasoningInput {
   answer: string;
   family: LabSafetyFamily;
   ctx?: CoachContext;
-  userId?: string;
+  // REQ-202: required, so the grader runs under this learner's spend gate.
+  userId: string;
 }
 
 // The model is called at most this many times for one submission; after
@@ -52,6 +54,9 @@ export async function gradeSimReasoning(
       return { graded: await gradeLabStep(params, model), failed: false };
     } catch (err) {
       lastErr = err;
+      // REQ-202: a refused spend (budget reached, or the check could not run)
+      // will be refused again; do not try twice more.
+      if (err instanceof UserFacingError) break;
     }
   }
   void lastErr;

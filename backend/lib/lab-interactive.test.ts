@@ -341,6 +341,7 @@ describe("mixed steps in gradeLabStep", () => {
     stepIndex: 0,
     stepCount: 1,
     family: "general" as const,
+    userId: null,
   };
   const noModel: LabStepModel = async () => {
     throw new Error("the model must not be called");

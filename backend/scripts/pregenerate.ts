@@ -89,7 +89,7 @@ async function submit(ids: string[]) {
     const intro = lessonIntroPrompt(base);
     const practice = lessonPracticePrompt(base);
     const ridIds = requestIds(id);
-    const common = { model, effort: "medium" as const, thinking: "off" as const, purpose: "lesson_intro" as const };
+    const common = { model, effort: "medium" as const, thinking: "off" as const, purpose: "lesson_intro" as const, userId: null };
     requests.push({
       custom_id: ridIds.intro,
       params: buildRequest(

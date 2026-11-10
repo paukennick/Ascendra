@@ -90,11 +90,11 @@ describe("M1 + L1: the shared multi-part grader (PBQ and unit check)", () => {
         },
       },
     });
-    const g = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: "I would choose AES because it is fast", purpose: "unitcheck_grade" });
+    const g = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: "I would choose AES because it is fast", purpose: "unitcheck_grade", userId: null });
     assert.equal(g.verdict, "partial");
     assert.equal(sent[0].max_tokens, PBQ_GRADE_MAX_TOKENS);
     assert.deepEqual(g.partScores?.map((p) => p.score), ["met", "missed"]);
-    const t = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: ".", purpose: "unitcheck_grade" });
+    const t = await gradePbqAnswer({ scenario: "1) choose 2) justify", subParts: ["choose", "justify"], answer: ".", purpose: "unitcheck_grade", userId: null });
     assert.equal(t.verdict, "incorrect");
     assert.equal(sent.length, 1, "no call for a trivial answer");
   });

@@ -134,6 +134,7 @@ const stepParams = (answers: string[]) => ({
   parts: BUILD.rubric[0].parts,
   answers,
   family: "general" as const,
+  userId: null,
 });
 
 describe("lab step grading (model mocked)", () => {

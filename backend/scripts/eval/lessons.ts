@@ -172,7 +172,7 @@ async function main() {
         maxTokens: 3000,
         model: args.judge,
         effort: "high",
-        purpose: "eval_judge",
+        purpose: "eval_judge", userId: null,
       });
     },
     async solve(obj, lesson) {
@@ -190,7 +190,7 @@ async function main() {
         maxTokens: 2000,
         model: args.judge,
         effort: "high",
-        purpose: "eval_judge",
+        purpose: "eval_judge", userId: null,
       });
     },
     onProgress(done, total, rec) {

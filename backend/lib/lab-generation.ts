@@ -170,6 +170,8 @@ export const modelLabChecker: LabChecker = async (lab, meta) => {
     effort: "high",
     thinking: "off",
     purpose: "lab_fact_check",
+    // Run by scripts/generate-labs.ts (an operator), never for a learner.
+    userId: null,
   });
 };
 

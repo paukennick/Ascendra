@@ -164,7 +164,7 @@ describe("defaults", () => {
 });
 
 describe("buildRequest", () => {
-  const base = { messages: [{ role: "user" as const, content: "hi" }], purpose: "chat" as const };
+  const base = { messages: [{ role: "user" as const, content: "hi" }], purpose: "chat" as const, userId: null };
 
   test("never contains temperature, top_p or top_k, for any family", () => {
     for (const model of [SONNET, HAIKU, "claude-opus-5-5", "claude-sonnet-4-5", "claude-haiku-4-5-20251001", "x"]) {
