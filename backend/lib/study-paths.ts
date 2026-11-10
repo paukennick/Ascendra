@@ -90,9 +90,16 @@ export async function coursePaths(trackId: string, paths: readonly SeedStudyPath
   );
   if (!row?.code || row.user_id !== null) return [];
   if (!pathsContaining(row.code, paths).length) return [];
+  // REQ-194 (migration 065): a hidden catalog course (hidden_at passed) is
+  // never recommended as a step before or after; it drops out like a course
+  // that is not seeded. The course being viewed is kept even when hidden --
+  // the route already checked the caller can see it (they studied it) -- so
+  // its own path still shows.
   const rows = await query<{ id: string; code: string; title: string }>(
-    `select id, code, title from subject_tracks where user_id is null and code = any($1::text[])`,
-    [pathCodes(paths)]
+    `select id, code, title from subject_tracks
+      where user_id is null and code = any($1::text[])
+        and (hidden_at is null or hidden_at > now() or id = $2)`,
+    [pathCodes(paths), trackId]
   );
   return buildCoursePaths(row.code, new Map(rows.map((r) => [r.code, { id: r.id, title: r.title }])), paths);
 }

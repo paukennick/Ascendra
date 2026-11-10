@@ -15,6 +15,7 @@ import { signAccessToken } from "./auth/tokens";
 import { seedTrack } from "../supabase/seed/seed-lib";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
 import { coursePaths } from "./study-paths";
+import type { SeedStudyPath } from "../supabase/seed/paths";
 import { GET as pathGet } from "../app/api/courses/[id]/path/route";
 
 const run = Date.now().toString(36);
@@ -97,6 +98,43 @@ describe("GET /api/courses/:id/path (REQ-198)", () => {
     assert.equal((await call(bob, "not-a-uuid")).status, 404);
     const res = await pathGet(new Request(`http://t/api/courses/${ids.DPT}/path`), { params: Promise.resolve({ id: ids.DPT }) });
     assert.equal(res.status, 401);
+  });
+
+  // Integration of REQ-198 with REQ-194: a hidden catalog course is never a
+  // recommended step. A temporary catalog course and a test path keep this
+  // away from the seeded PT rows other tests read.
+  test("a hidden catalog course is skipped as a step; viewed itself, its path still shows", async () => {
+    const hiddenId = randomUUID();
+    const hiddenCode = `HIDDENPATH${run}`.toUpperCase();
+    await query(
+      `insert into subject_tracks (id, code, title, track_type, user_id, hidden_at) values ($1, $2, 'Hidden path course', 'graduate', null, now() - interval '1 day')`,
+      [hiddenId, hiddenCode]
+    );
+    const testPaths: SeedStudyPath[] = [
+      {
+        slug: "hidden-test",
+        title: "Hidden test path",
+        audience: "test",
+        steps: [
+          { trackCode: "PTPREREQ", when: "first", why: "w" },
+          { trackCode: "DPT", when: "then", why: "w" },
+          { trackCode: hiddenCode, when: "last", why: "w" },
+        ],
+      },
+    ];
+    try {
+      const [p] = await coursePaths(ids.DPT, testPaths);
+      assert.deepEqual(p.steps.map((s) => s.trackId), [ids.PTPREREQ, ids.DPT], "the hidden course is not a step");
+      assert.equal(p.after, null, "nothing recommended after DPT on this path");
+      const [own] = await coursePaths(hiddenId, testPaths);
+      assert.ok(own, "a hidden course still shows its own path");
+      assert.equal(own.before?.trackId, ids.DPT);
+      await query(`update subject_tracks set hidden_at = now() + interval '1 day' where id = $1`, [hiddenId]);
+      const [later] = await coursePaths(ids.DPT, testPaths);
+      assert.equal(later.after?.trackId, hiddenId, "a future hidden_at is still listed");
+    } finally {
+      await query(`delete from subject_tracks where id = $1`, [hiddenId]);
+    }
   });
 
   test("seeding twice leaves one catalog row per path course", async () => {
