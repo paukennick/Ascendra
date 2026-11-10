@@ -1,21 +1,18 @@
+const { buildHeaders } = require("./security-headers");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // REQ-207: /api/health compares the migration files this build ships with
+  // the schema_migrations ledger, so the .sql files must be in that function's
+  // bundle (Vercel only copies what it traces).
+  outputFileTracingIncludes: {
+    "/api/health": ["./supabase/migrations/*.sql"],
+  },
   async headers() {
-    // This backend is API-only plus a couple of thin auth pages (reset-password,
-    // verify-email) -- no third-party scripts or embeds anywhere, so a strict
-    // baseline costs nothing. CORS itself is handled separately in proxy.ts.
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-        ],
-      },
-    ];
+    // Security headers and the Content-Security-Policy are in
+    // security-headers.js. CORS itself is handled separately in proxy.ts.
+    return buildHeaders();
   },
 };
 

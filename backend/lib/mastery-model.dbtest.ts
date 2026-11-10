@@ -538,6 +538,9 @@ describe("031 keeps 029's guarantees", () => {
       await c.query(`create or replace function mastery_from_attempts(p_user uuid, p_objective uuid)
         returns table (status mastery_status, score int, evidence text) language sql stable as $$
           select d.status, d.score, d.evidence from mastery_detail(p_user, p_objective) d $$`);
+      // CREATE OR REPLACE drops the function's search_path (071's probe notices:
+      // a migration that restates a function ends with app_runtime_sync()).
+      await c.query(`select app_runtime_sync()`);
       const s = await checkSchema(run);
       assert.deepEqual(migrationsToApply(s), ["031_weighted_mastery.sql"], JSON.stringify(s.missing));
     } finally {

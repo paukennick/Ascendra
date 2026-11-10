@@ -10,7 +10,12 @@ export async function register() {
 // REQ-118: errors Next.js itself catches (outside our route handlers'
 // serverError) go to the same error tracker; a no-op without a DSN. Only the
 // route path is passed on, never headers or the body.
+//
+// FAIL-945: the send is awaited. Next's docs for onRequestError say async work
+// in it must be awaited, and Next keeps the invocation alive for the hook, so
+// the report is not lost to a frozen function. (reportError() is the
+// after()-based path for code inside a route handler.)
 export const onRequestError: Instrumentation.onRequestError = async (err, request) => {
-  const { reportError } = await import("./lib/error-tracker");
-  reportError(err, { route: request.path });
+  const { sendErrorReport } = await import("./lib/error-tracker");
+  await sendErrorReport(err, { route: request.path });
 };

@@ -1,4 +1,5 @@
 import { reportError } from "@/lib/error-tracker";
+import { describeError } from "@/lib/error-summary";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isTransientModelFailure, MODEL_UNAVAILABLE } from "@/lib/ai-calls";
@@ -107,7 +108,9 @@ export function serverError(err: unknown) {
     return NextResponse.json({ error: MODEL_UNAVAILABLE, requestId, retryable: true }, { status: 503 });
   }
   // eslint-disable-next-line no-console
-  console.error(`[request ${requestId}]`, err);
+  // FAIL-946: name, code and a short masked message only -- never the error
+  // object, whose Postgres `detail` can hold a learner's e-mail address.
+  console.error(`[request ${requestId}] ${describeError(err)}`);
   // REQ-118: and to the error tracker when one is configured (no-op otherwise).
   reportError(err, { requestId });
   return NextResponse.json({ error: GENERIC_SERVER_ERROR, requestId }, { status: 500 });

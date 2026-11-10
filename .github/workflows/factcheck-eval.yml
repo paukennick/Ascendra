@@ -64,10 +64,10 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - name: Check the API key secret is set
@@ -88,7 +88,7 @@ jobs:
         if: inputs.exec
         run: |
           docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
-          docker pull node:22-slim
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
           npm run test:sandbox
       - name: Run the eval (the estimate prints first)
         env:
@@ -109,7 +109,7 @@ jobs:
           if [ -f eval-results/factcheck/summary.md ]; then cat eval-results/factcheck/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: factcheck-eval-results
           path: backend/eval-results/factcheck/

@@ -45,7 +45,7 @@ export const DEFAULT_SANDBOX: SandboxConfig = {
   // Built by the workflow from backend/sandbox/python.Dockerfile (standard
   // library + SymPy, pinned). Falls back to the plain image name locally.
   pythonImage: process.env.SANDBOX_PYTHON_IMAGE || "ascendra-sandbox-python:1",
-  nodeImage: process.env.SANDBOX_NODE_IMAGE || "node:22-slim",
+  nodeImage: process.env.SANDBOX_NODE_IMAGE || "node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
   memoryMb: 256,
   cpus: 1,
   pids: 64,

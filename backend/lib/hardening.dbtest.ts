@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import crypto, { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { query, queryOne, withTransaction, closePool } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { consumeRateLimit, RateLimitError } from "./auth/rateLimit";
 import { createLoginChallenge } from "./auth/mfaChallenge";
@@ -111,6 +112,7 @@ after(async () => {
   await query(`delete from auth_events where identifier like $1`, [`hd-${run}-%`]);
   await query(`delete from app_users where id = any($1::uuid[])`, [users]);
   await closePool();
+  await closeOwner();
 });
 
 // ---------------------------------------------------------------- item 1/2
@@ -125,13 +127,31 @@ describe("errors and /api/health", () => {
   });
 
   test("health answers 200 with the current schema, including under a burst of hits", async () => {
-    const first = await healthGet();
+    const first = await healthGet(new Request("http://localhost/api/health"));
     assert.equal(first.status, 200);
     // REQ-118: may also carry `warnings` (e.g. jit on in a stock Postgres).
     const body = await first.json();
     assert.equal(body.status, "ok");
     assert.equal(body.schema, "current");
-    const many = await Promise.all(Array.from({ length: 25 }, () => healthGet()));
+    // REQ-207 (FAIL-949): the public answer is a status word, the schema state
+    // and the commit; every shipped migration is in the ledger on this database.
+    assert.deepEqual(Object.keys(body).sort(), ["commit", "schema", "status"]);
+    const detail = await (async () => {
+      const prev = process.env.CRON_SECRET;
+      process.env.CRON_SECRET = "health-test-secret";
+      try {
+        const r = await healthGet(new Request("http://localhost/api/health", { headers: { authorization: "Bearer health-test-secret" } }));
+        const wrong = await healthGet(new Request("http://localhost/api/health", { headers: { authorization: "Bearer nope" } }));
+        return { status: r.status, body: await r.json(), wrong: await wrong.json() };
+      } finally {
+        if (prev === undefined) delete process.env.CRON_SECRET;
+        else process.env.CRON_SECRET = prev;
+      }
+    })();
+    assert.equal(detail.status, 200);
+    assert.equal(detail.body.email, "ok");
+    assert.deepEqual(Object.keys(detail.wrong).sort(), ["commit", "schema", "status"], "a wrong token gets the public view");
+    const many = await Promise.all(Array.from({ length: 25 }, () => healthGet(new Request("http://localhost/api/health"))));
     assert.ok(many.every((r) => r.status === 200));
   });
 });
@@ -395,10 +415,10 @@ describe("idempotency ids are bound to the submission", () => {
     const u = await makeUser("chat-replay");
     const { track } = await makeCourse(u.id, 0);
     const slow = `SLOW-${run}`;
-    await query(`create or replace function hd_slow_insert() returns trigger language plpgsql as $$
+    await ownerQuery(`create or replace function hd_slow_insert() returns trigger language plpgsql as $$
       begin if new.content = '${slow}' then perform pg_sleep(0.6); end if; return new; end $$`);
-    await query(`drop trigger if exists hd_slow on chat_messages`);
-    await query(`create trigger hd_slow before insert on chat_messages for each row execute function hd_slow_insert()`);
+    await ownerQuery(`drop trigger if exists hd_slow on chat_messages`);
+    await ownerQuery(`create trigger hd_slow before insert on chat_messages for each row execute function hd_slow_insert()`);
     try {
       const id1 = `hd-${run}-c1`;
       const id2 = `hd-${run}-c2`;
@@ -407,8 +427,8 @@ describe("idempotency ids are bound to the submission", () => {
       await saveChatTurn({ userId: u.id, trackId: track, message: "fast", reply: "REPLY-TO-2", clientMessageId: id2 });
       await first;
     } finally {
-      await query(`drop trigger if exists hd_slow on chat_messages`);
-      await query(`drop function if exists hd_slow_insert()`);
+      await ownerQuery(`drop trigger if exists hd_slow on chat_messages`);
+      await ownerQuery(`drop function if exists hd_slow_insert()`);
     }
     assert.equal(await findChatReply(u.id, `hd-${run}-c1`), "REPLY-TO-1");
     assert.equal(await findChatReply(u.id, `hd-${run}-c2`), "REPLY-TO-2");

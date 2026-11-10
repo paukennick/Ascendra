@@ -36,7 +36,10 @@
   is wired and tested on the merged tree, through the real call paths, not only
   stubbed (FAIL-964); every caller that special-cases one refusal class handles
   the new one the gate can now raise (FAIL-965); a purpose, option or map one
-  branch made required is satisfied by every call site the other added (FAIL-966); and a
+  branch made required is satisfied by every call site the other added (FAIL-966); a
+  migration that adds roles, grants or other things a database dump does not
+  hold names the step that restores them, and the restore drill runs it
+  (FAIL-897); and a
   field one branch reads as "who is charged" and another as "whose scope" is
   split, not shared (FAIL-967); and when one branch changes how a screen is
   entered (REQ-206: the MFA and verify-email handoffs), every caller another
@@ -180,6 +183,22 @@
   (Tab order, focus ring, traps, hidden focus; see mobile/e2e/README.md). A
   result that appears without moving focus goes through `LiveAnnouncement`. A signed-in screen
   never sends a request before the session is restored.
+- Database roles and exposure (REQ-207, FAIL-940..956): a migration that adds
+  a table, view, sequence or function, or restates a function with CREATE OR
+  REPLACE (which drops its `search_path`), ends with `select
+  app_runtime_sync();` so the least-privilege `app_runtime` role and the
+  hardened functions stay complete (lib/app-runtime.dbtest.ts fails CI
+  otherwise); `npm run test:db` also passes as `app_runtime`
+  (scripts/ci/db-tests-as-runtime.sh), with owner-only steps going through
+  lib/test-owner.ts. Nothing logs a whole error object (`describeError`,
+  lib/error-summary.ts: Postgres `detail` can hold an e-mail address). A new
+  public route says what its unauthenticated answer reveals. A new workflow
+  declares top-level `permissions`, runs on Node 24, and pins third-party
+  actions (lib/workflow-hardening.test.ts). A new page rendered by Next is
+  added to security-headers.js. No session-level state in app code (session
+  SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
+  production connects through a transaction pooler
+  (docs/ops/2026-11-10-transaction-pooler-session-state.md).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.
