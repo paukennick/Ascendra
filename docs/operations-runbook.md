@@ -214,6 +214,18 @@ now also verifies the address. Do not hand-verify accounts in production.
   person; resolve each entry there or through `npm run items`
   ([content-review.md](content-review.md)). The daily cron
   `/api/cron/content-signals` (10:40 UTC, `CRON_SECRET`) fills it.
+- **Service emails** (REQ-197): the daily cron `/api/cron/service-emails`
+  (16:10 UTC, `CRON_SECRET`) sends exam change notices, the 14- and 3-day
+  exam countdown and the opt-in weekly digest, each at most once per learner
+  and period (`service_email_log`). Off until `SERVICE_EMAILS_ENABLED=true`
+  (switch on with the Privacy Policy update). Batches of
+  `SERVICE_EMAIL_BATCH` (default 25) with a 0.6 s gap, at most 3 service
+  mails per address a day; the rest wait for the next run. The digest is
+  refused (reported as `refused` in the cron response) until
+  `MAIL_POSTAL_ADDRESS` and `DIGEST_EMAIL_FROM` are set. Failed sends show
+  as `status = 'failed'` and are retried up to 3 tries; a new exam change is
+  added to `backend/lib/exam-changes.ts` (its test checks the dates against
+  the seed).
 - **Source currency** (REQ-142): `npm run currency:report` lists exam
   outlines and lab sources overdue or due within 60 days
   ([source-reliability-standard.md](source-reliability-standard.md)).

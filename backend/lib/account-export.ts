@@ -112,6 +112,11 @@ export const EXPORT_SECTIONS = {
   labRunSteps: "select * from lab_run_steps where user_id = $1 order by created_at asc, run_id asc, step_index asc",
   // REQ-125 (migration 051): when the learner accepted the clinical or
   // fitness lab disclaimer, and which version.
+  // REQ-197 (migration 063): the learner's email choices, and which service
+  // emails were sent when (no address or content is stored).
+  emailPreferences: "select exam_changes, exam_countdown, weekly_digest, updated_at from email_preferences where user_id = $1 order by user_id asc",
+  serviceEmails:
+    "select kind, period_key, status, attempts, created_at, sent_at from service_email_log where user_id = $1 order by created_at asc, id asc",
   labDisclaimerAcknowledgements:
     "select family, version, acknowledged_at from lab_disclaimer_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
   // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with

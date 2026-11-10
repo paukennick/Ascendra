@@ -6745,6 +6745,67 @@
         "SUPERSEDES the note 'The manifest is public so the user count is visible': since 2026-11-10 the manifest is encrypted (manifest.json.age); the artifact's only plaintext is checksums.json (format and two sha256 values). Backups made before that change (format 1) keep a plaintext manifest.json until they expire in 30 days and cannot be drilled by the current restore-drill.sh.",
         "OPEN, owner decision: the privacy policy does not yet disclose the 30-day encrypted backups at GitHub (GitHub as processor; a deleted account stays in backups up to 30 days). Bumping the Privacy version makes every existing account pass the blocking /agree screen at next launch, and builds already installed cannot show the new text without a store release (no OTA). Draft text kept outside the repo; not committed."
       ]
+    },
+    {
+      "id": "REQ-197",
+      "category": "product/engagement",
+      "title": "Smart study reminders, service emails, dictation tip, next store build plan",
+      "description": "Nick-approved 2026-11-09. (1) Local study reminders built from GET /api/reminders/plan: one topic a day ranked Needs review, then days overdue x exam weight, then lapses (fixed_v1 ladder; DuePriority interface for FSRS later); title '<course>: <topic>' <=40, body 'Due for review · N questions, ~M min[ · exam in D days]' <=60; never 'fading' or a percentage; skip days with nothing due; at most one a day within quiet hours; device-only 'Show topic on lock screen' (default on). Web has none and says so. (2) Exam change notice, exam countdown (14 and 3 days, readiness or 'unconfirmed', 3 weakest), opt-in weekly digest (List-Unsubscribe one-click; refuses without MAIL_POSTAL_ADDRESS and DIGEST_EMAIL_FROM) via Resend; per-kind preference, signed unsubscribe, verified addresses only, idempotent per user/kind/period; daily Vercel cron with CRON_SECRET, small batches; dark until SERVICE_EMAILS_ENABLED=true with the Privacy Policy update. (3) Migration 063 email_preferences and service_email_log. (4) No guilt or marketing copy, tested. (5) One-time keyboard dictation tip on lab, explain-back and coach fields (iOS/Android); fields no longer truncate. (6) docs/next-store-build-plan.md.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/reminder-plan.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/service-emails.ts",
+        "backend/lib/service-email-copy.ts",
+        "backend/lib/exam-changes.ts",
+        "backend/lib/email.ts",
+        "backend/lib/email-errors.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/reminders",
+        "backend/app/api/account/email-preferences",
+        "backend/app/api/email/unsubscribe",
+        "backend/app/api/cron/service-emails",
+        "backend/app/unsubscribe",
+        "backend/supabase/migrations/063_service_emails.sql",
+        "backend/vercel.json",
+        "mobile/src/lib/reminders.ts",
+        "mobile/src/lib/reminderScheduler.ts",
+        "mobile/src/lib/emailPrefs.ts",
+        "mobile/src/lib/dictation.ts",
+        "mobile/src/components/DictationHint.tsx",
+        "mobile/app/(app)/settings",
+        "docs/next-store-build-plan.md"
+      ],
+      "acceptance_criteria": [
+        "Reminder title <=40 and body <=60 chars with no fading or percentage",
+        "No reminder on a day with nothing due and at most one a day",
+        "Lock-screen off shows generic text",
+        "Each service email at most once per user kind and period",
+        "Never sent to unverified addresses or opted-out kinds",
+        "Digest refuses without postal address and sender",
+        "Copy test rejects streak guilt and marketing",
+        "Dictated text is never truncated"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db on fresh Postgres 16",
+        "mobile npm test",
+        "both typechecks",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "docs/operations-runbook.md",
+        "docs/legal/data-inventory.md",
+        "backend/.env.example",
+        "docs/next-store-build-plan.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy must be updated before SERVICE_EMAILS_ENABLED is turned on",
+        "Migration numbers 060-062 belong to other branches"
+      ]
     }
   ]
 }

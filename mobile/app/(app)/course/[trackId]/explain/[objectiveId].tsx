@@ -8,6 +8,8 @@ import { friendlyError } from "@/lib/errorMessage";
 import { useAnswerDraft } from "@/lib/useAnswerDraft";
 import { Body, Button, Card, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
 import { MisconceptionNote, RefresherOffer } from "@/components/Understanding";
+import { DictationHint } from "@/components/DictationHint";
+import { lengthCounter, lengthProblem } from "@/lib/dictation";
 import { colors, radius, spacing } from "@/lib/theme";
 import {
   EXPLAIN_MIN_WORDS,
@@ -38,6 +40,10 @@ interface Result {
   diagnosis: Diagnosis | null;
   assistReason: string | null;
 }
+
+// The server's cap (app/api/objectives/[id]/explain-back MAX_ANSWER). Not a
+// maxLength: REQ-197 keeps dictated text whole and holds the send instead.
+const EXPLAIN_MAX_CHARS = 4000;
 
 export default function ExplainBackScreen() {
   const { trackId, objectiveId, objectiveTitle } = useLocalSearchParams<{
@@ -108,6 +114,7 @@ export default function ExplainBackScreen() {
           </Card>
           {!result ? (
             <Card>
+              <DictationHint />
               <TextInput
                 multiline
                 accessibilityLabel="Your explanation"
@@ -115,7 +122,6 @@ export default function ExplainBackScreen() {
                 placeholderTextColor={colors.mutedDim}
                 value={answer}
                 onChangeText={setAnswer}
-                maxLength={4000}
                 style={{
                   borderWidth: 1,
                   borderColor: colors.inputBorder,
@@ -131,11 +137,16 @@ export default function ExplainBackScreen() {
               {words > 0 && words < EXPLAIN_MIN_WORDS ? (
                 <Muted>A few sentences is plenty — keep going.</Muted>
               ) : null}
+              {lengthProblem(answer, EXPLAIN_MAX_CHARS) ? (
+                <ErrorBanner message={lengthProblem(answer, EXPLAIN_MAX_CHARS)!} />
+              ) : lengthCounter(answer, EXPLAIN_MAX_CHARS) ? (
+                <Muted style={{ textAlign: "right" }}>{lengthCounter(answer, EXPLAIN_MAX_CHARS)}</Muted>
+              ) : null}
               <Button
                 label="Check my explanation"
                 icon="send"
                 loading={busy}
-                disabled={busy || words < EXPLAIN_MIN_WORDS}
+                disabled={busy || words < EXPLAIN_MIN_WORDS || answer.length > EXPLAIN_MAX_CHARS}
                 onPress={submit}
               />
             </Card>
