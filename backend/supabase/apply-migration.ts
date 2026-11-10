@@ -17,6 +17,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 import "./seed/env-local";
+import { sslOption } from "../lib/db-connection";
 import { checkSchema, formatMasteryDrift, masteryDrift, migrationsToApply } from "../lib/schema-status";
 import { BACKUPS_SQL, formatBackups, formatJit, type BackupRow } from "../lib/maintenance";
 
@@ -28,7 +29,7 @@ async function main() {
   const arg = process.argv[2];
   if (!arg) throw new Error("Pass a migration filename, --all, or --status.");
 
-  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: sslOption() });
   try {
     // --status must not write anything, so it only reads the ledger if one
     // already exists; applying creates it.

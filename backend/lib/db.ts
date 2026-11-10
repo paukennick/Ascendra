@@ -1,4 +1,9 @@
 import { Pool, types, type QueryResultRow } from "pg";
+import { sslOption, startupStatementTimeoutMs } from "./db-connection";
+
+// REQ-207: TLS and the startup statement_timeout live in db-connection.ts so
+// the migration runner and the seed share them.
+export { sslOption };
 
 // REQ-128: pg hands back count() (bigint) and numeric columns as strings.
 // Every one in this schema is a small count or a weight/percentage (the
@@ -7,12 +12,6 @@ import { Pool, types, type QueryResultRow } from "pg";
 // true -- which marked a 9-of-10 unit complete and skipped it.
 types.setTypeParser(types.builtins.INT8, (v) => Number(v));
 types.setTypeParser(types.builtins.NUMERIC, (v) => Number(v));
-
-// TLS is on for every hosted database (Supabase). CI's throwaway Postgres
-// service has no TLS, so PGSSLMODE=disable turns it off there only.
-export function sslOption(): false | { rejectUnauthorized: false } {
-  return process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false };
-}
 
 // Single shared pg Pool across warm serverless invocations. Vercel + Supabase's
 // pooled ("Transaction mode", port 6543) connection string is the intended target,
@@ -55,6 +54,9 @@ function getPool(): Pool {
     pool = new Pool({
       connectionString,
       ssl: sslOption(),
+      // FAIL-943: a server-side limit for plain query() (see db-connection.ts
+      // for when it is sent and what covers a transaction-mode pooler).
+      statement_timeout: startupStatementTimeoutMs(connectionString),
       max: 5,
       idleTimeoutMillis: 10_000,
       // REQ-135: none of these were set, so a stalled database or a full

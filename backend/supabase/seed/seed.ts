@@ -23,6 +23,7 @@
 
 import { Pool } from "pg";
 import "./env-local"; // must run before ./data so DEFAULT_USER_EMAIL is already set
+import { sslOption } from "../../lib/db-connection";
 import { SEED_USER_EMAIL } from "./data";
 import { CATALOG_TRACKS } from "./catalog";
 import { seedLabs, seedTrack } from "./seed-lib";
@@ -34,7 +35,7 @@ async function main() {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set (set it in backend/.env.local or the environment).");
   }
-  const pool = new Pool({ connectionString, ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString, ssl: sslOption() });
 
   try {
     // REQ-102: the seed writes retired_at (migration 033). Fail with the fix
