@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { callCostUsd } from "@/lib/ai-pricing";
+import { PREGEN_PURPOSE_PREFIX } from "@/lib/ai-calls";
 import { UserFacingError } from "@/lib/http";
 import { isUnrestricted, noteCeilingReached } from "@/lib/account-access";
 import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-access-config";
@@ -53,8 +54,16 @@ export async function spendSinceUsd(userId: string, since: Date): Promise<number
 // REQ-201: every model call since a given time, whoever caused it (learners,
 // shared lesson generation, re-checks, crons) -- the global daily AI ceiling
 // (lib/ai-access.ts). Uses the ai_calls (created_at) index from migration 028.
+//
+// REQ-208: shared-lesson pre-generation (purposes `pregen`, `pregen_fact_check`)
+// is NOT in this sum. It is a planned, owner-started job with its own hard
+// cap (the run's max_usd and a dedicated Console workspace with a spend
+// limit), and a $50 run would otherwise reach a $5 daily ceiling at once and
+// pause chat and lesson regeneration for learners for the rest of the UTC
+// day. The ceiling exists to stop runaway learner-driven spend. The rows are
+// still in ai_calls, so a query over the table sees them.
 export async function globalSpendSinceUsd(since: Date): Promise<number> {
-  return spendWhereUsd(`created_at >= $1`, [since.toISOString()]);
+  return spendWhereUsd(`created_at >= $1 and purpose not like $2`, [since.toISOString(), `${PREGEN_PURPOSE_PREFIX}%`]);
 }
 
 async function spendWhereUsd(where: string, params: unknown[]): Promise<number> {

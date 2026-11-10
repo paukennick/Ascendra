@@ -69,7 +69,18 @@ export type AiPurpose =
   | "eval_generation"
   | "eval_cache"
   // REQ-196: the fact-checker eval (scripts/factcheck-eval.ts).
-  | "eval_factcheck";
+  | "eval_factcheck"
+  // REQ-208: shared-lesson pre-generation (scripts/pregenerate.ts, run by the
+  // "Pre-generate lessons" workflow). `pregen` is one row per batch request,
+  // from the usage the Batches API returns; `pregen_fact_check` is the
+  // fact-check call made while saving. Neither counts toward the global
+  // daily AI ceiling (lib/ai-budget.ts globalSpendSinceUsd; see PREGEN_PURPOSE_PREFIX).
+  | "pregen"
+  | "pregen_fact_check";
+
+// REQ-208: the prefix every pre-generation purpose starts with, so the global
+// ceiling's sum can leave them out with one predicate.
+export const PREGEN_PURPOSE_PREFIX = "pregen";
 
 export interface AiCallMeta {
   purpose: AiPurpose;
@@ -184,6 +195,14 @@ async function insertAiCall(r: AiCallRecord): Promise<void> {
 
 let sink: AiCallSink = insertAiCall;
 
+// REQ-208: writes started outside a request are not awaited by the model
+// call, so a script that closes the pool right after its last call could lose
+// the row. flushAiCallLog() lets it wait for them.
+const inFlight = new Set<Promise<unknown>>();
+export async function flushAiCallLog(): Promise<void> {
+  while (inFlight.size) await Promise.allSettled([...inFlight]);
+}
+
 // Test seam: replace where records go (null restores the database insert).
 export function setAiCallSink(next: AiCallSink | null): void {
   sink = next ?? insertAiCall;
@@ -214,7 +233,11 @@ export function logAiCall(record: AiCallRecord): void {
       return Promise.resolve();
     }
   };
-  if (!scheduleAfterResponse(write)) void write();
+  if (!scheduleAfterResponse(write)) {
+    const p = write();
+    inFlight.add(p);
+    void p.finally(() => inFlight.delete(p));
+  }
 }
 
 // after() when there is a request to attach to; false when there is not.

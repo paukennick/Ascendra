@@ -1,193 +1,102 @@
-// REQ-132: pre-generate shared catalog lessons through the Message Batches
-// API (50% off), so a learner's first visit to an objective is a cache hit
-// instead of a 13-20 second wait.
+// REQ-132 / REQ-208: pre-generate shared catalog lessons through the Message
+// Batches API (50% off), so a learner's first visit to an objective is a cache
+// hit instead of a 13-20 second wait.
 //
-// Nothing here runs on its own and nothing spends money unless asked:
+// Nothing here runs on its own and nothing spends money unless asked. In
+// production it runs from the "Pre-generate lessons" workflow
+// (.github/workflows/pregenerate.yml); nobody handles the key or the database
+// URL. The logic is in lib/pregen.ts.
 //
-//   npm run pregen                          # estimate only (the default): how many
-//                                           # objectives lack a lesson, and the cost
-//   npm run pregen -- --tracks SY0-701,SAA-C03 --limit 200   # narrow the estimate
-//   npm run pregen -- --submit [same filters]                # create the batch
-//   npm run pregen -- --collect <batch id>                   # check it; when it has
-//                                                            # ended, save the lessons
+//   npm run pregen                                   # estimate (the default), every track
+//   npm run pregen -- --tracks DPT,PTPREREQ,CCRNADULT --max-usd 50
+//                                                    # estimate in PRIORITY order with the
+//                                                    # budget cutoff
+//   npm run pregen -- --submit --tracks ... --max-usd 50        # create the intro batch
+//   npm run pregen -- --submit ... --dry-run         # build every request, send nothing
+//   npm run pregen -- --collect <batch> --tracks ... --max-usd 50
+//        an ENDED intro batch -> checks the teaching texts, starts the practice batch
+//   npm run pregen -- --collect <practice batch> --intro-batch <intro batch> --tracks ... --max-usd 50
+//        an ENDED practice batch -> fact-check, save, report the actual cost
+//   --summary <file>   write a counts-only JSON summary (the workflow's artifact)
+//   --limit N          at most N objectives
+//   --allow-concurrent skip the "a batch is already running" refusal
 //
-// Saving is insert-if-absent into lesson_content (lib/lesson-store saveLesson,
-// shared scope): it never replaces a lesson a learner may already have seen,
-// and never touches anyone's per-learner override.
+// --tracks is a priority order: lessons are made track by track in the order
+// given, unit by unit, and the cap (--max-usd, an UPPER BOUND on the cost)
+// cuts off whole units from the end. Saving is insert-if-absent: it never
+// replaces a lesson (or a pulled/voided/fixed one) or a learner's override.
 //
-// Requests are built by the same code the app uses (lessonIntroPrompt /
-// lessonPracticePrompt + buildRequest), so a pre-generated lesson is made
-// exactly as an on-demand one would be.
+// Key: ANTHROPIC_PREGEN_API_KEY, a key from a dedicated Console workspace
+// with its own spend limit. Never the app's key: in GitHub Actions nothing
+// else is accepted; locally ANTHROPIC_API_KEY (backend/.env.local) works.
+// Prints counts, the estimate and batch ids only -- never prompts or content.
 
 import "../supabase/seed/env-local";
-import { writeFileSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { writeFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { query, closePool } from "../lib/db";
-import { isActive } from "../lib/progress-sql";
-import { buildRequest, getModel } from "../lib/anthropic";
-import { lessonIntroPrompt, lessonPracticePrompt, lessonIntroSchema, lessonPracticeSchema, introFromModel } from "../lib/prompts";
-import { loadObjective } from "../lib/lesson-generation";
-import { saveLesson } from "../lib/lesson-store";
-import { factCheckGate } from "../lib/fact-check";
-import { recordHoldback, uncertaintyOf } from "../lib/item-quality";
-import { lessonIntroProblems, lessonPracticeProblems } from "../lib/content-validator";
-import {
-  estimateCost,
-  pairBatchResults,
-  requestIds,
-  parseArgs,
-  type BatchResultLine,
-} from "./pregenerate-lib";
+import { closePool } from "../lib/db";
+import { flushAiCallLog } from "../lib/ai-calls";
+import { collectRun, estimateRun, submitRun, type BatchInfo, type BatchesClient, type Summary } from "../lib/pregen";
+import { parseArgs } from "./pregenerate-lib";
 
-async function missingObjectives(tracks: string[], limit: number | null): Promise<string[]> {
-  const rows = await query<{ id: string }>(
-    `select o.id
-       from objectives o
-       join course_units cu on cu.id = o.unit_id
-       join subject_tracks st on st.id = cu.track_id
-      where st.user_id is null
-        and ${isActive("cu")} and ${isActive("o")}
-        and not exists (select 1 from lesson_content lc where lc.objective_id = o.id)
-        and ($1::text[] is null or st.code = any($1::text[]))
-      order by st.code, cu.sort_order, o.sort_order
-      ${limit ? "limit " + Math.floor(limit) : ""}`,
-    [tracks.length ? tracks : null]
-  );
-  return rows.map((r) => r.id);
+function apiKey(): string {
+  const dedicated = process.env.ANTHROPIC_PREGEN_API_KEY;
+  if (dedicated) return dedicated;
+  if (process.env.GITHUB_ACTIONS === "true") {
+    throw new Error("ANTHROPIC_PREGEN_API_KEY is not set. In GitHub Actions pre-generation never falls back to another key.");
+  }
+  const local = process.env.ANTHROPIC_API_KEY;
+  if (!local) throw new Error("No key: set ANTHROPIC_PREGEN_API_KEY (or ANTHROPIC_API_KEY in backend/.env.local for a local run).");
+  return local;
 }
 
+let real: Anthropic | null = null;
 function client(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set (backend/.env.local). Needed for --submit and --collect.");
-  return new Anthropic({ apiKey });
+  if (!real) {
+    const key = apiKey();
+    // The live fact-check (lib/anthropic.ts) reads ANTHROPIC_API_KEY: point it
+    // at the same dedicated key, so every call of the run is in one workspace.
+    process.env.ANTHROPIC_API_KEY = key;
+    real = new Anthropic({ apiKey: key });
+  }
+  return real;
 }
 
-async function estimate(ids: string[]) {
-  const e = estimateCost(ids.length);
-  console.log(`Objectives in the shared catalog without a lesson: ${ids.length}`);
-  console.log(`Model: ${getModel()} via the Batch API (2 requests per lesson)`);
-  console.log(
-    `Estimated cost: about $${e.totalUsd.toFixed(2)} ` +
-      `(~$${e.perLessonUsd.toFixed(4)} per lesson; see the pricing note in pregenerate-lib.ts)`
-  );
-  console.log(`Nothing was sent. Add --submit to create the batch.`);
-}
-
-async function submit(ids: string[]) {
-  if (!ids.length) {
-    console.log("Every shared objective already has a lesson. Nothing to submit.");
-    return;
-  }
-  const model = getModel();
-  const requests: { custom_id: string; params: Record<string, unknown> }[] = [];
-  for (const id of ids) {
-    const obj = await loadObjective(id);
-    if (!obj) continue;
-    const base = { trackTitle: obj.track_title, unitTitle: obj.unit_title, objectiveTitle: obj.title, ctx: obj.ctx ?? undefined };
-    const intro = lessonIntroPrompt(base);
-    const practice = lessonPracticePrompt(base);
-    const ridIds = requestIds(id);
-    const common = { model, effort: "medium" as const, thinking: "off" as const, purpose: "lesson_intro" as const };
-    requests.push({
-      custom_id: ridIds.intro,
-      params: buildRequest(
-        { ...common, system: intro.system, messages: [{ role: "user", content: intro.user }], maxTokens: 4000 },
-        zodOutputFormat(lessonIntroSchema)
-      ),
-    });
-    requests.push({
-      custom_id: ridIds.practice,
-      params: buildRequest(
-        { ...common, purpose: "lesson_practice", system: practice.system, messages: [{ role: "user", content: practice.user }], maxTokens: 6000 },
-        zodOutputFormat(lessonPracticeSchema)
-      ),
-    });
-  }
-  // JSON round-trip drops the zod helper's functions; the API takes plain JSON.
-  const batch = await client().messages.batches.create({ requests: JSON.parse(JSON.stringify(requests)) });
-  const dir = join(__dirname, "..", "pregen-state");
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, `${batch.id}.json`), JSON.stringify({ id: batch.id, model, objectives: ids.length, createdAt: new Date().toISOString() }, null, 2));
-  console.log(`Submitted batch ${batch.id}: ${ids.length} lessons, ${requests.length} requests.`);
-  console.log(`Most batches finish within an hour. Then run: npm run pregen -- --collect ${batch.id}`);
-}
-
-async function collect(batchId: string) {
-  const c = client();
-  const batch = await c.messages.batches.retrieve(batchId);
-  console.log(`Batch ${batchId}: ${batch.processing_status}`, batch.request_counts);
-  if (batch.processing_status !== "ended") {
-    console.log("Not finished yet. Run --collect again later.");
-    return;
-  }
-  const lines: BatchResultLine[] = [];
-  for await (const r of await c.messages.batches.results(batchId)) lines.push(r as unknown as BatchResultLine);
-  const { lessons, failed } = pairBatchResults(lines, lessonIntroSchema, lessonPracticeSchema);
-  const model = getModel();
-  let saved = 0;
-  let kept = 0;
-  let held = 0;
-  for (const l of lessons) {
-    // REQ-106: the batch returns cards; the flat teach text is derived.
-    const intro = introFromModel(l.intro);
-    // Audit 3 M2: a lesson that fails the content check is not stored; the
-    // app generates (and checks) it on first visit instead.
-    const problems = [...lessonIntroProblems(intro), ...lessonPracticeProblems(l.practice)];
-    if (problems.length) {
-      failed.push({ objectiveId: l.objectiveId, reason: `content check: ${problems.slice(0, 3).join(" ")}` });
-      continue;
-    }
-    // REQ-114: the same hold-back and fact-check as an on-demand shared
-    // lesson. A held lesson is not saved; the app generates it on first
-    // visit (with its one retry).
-    const unsure = uncertaintyOf(l.practice);
-    const gate = unsure
-      ? null
-      : await factCheckGate(
-          [
-            { key: "fade", objectiveTitle: l.objectiveId, question: l.practice.fadeProblem, format: "single", options: l.practice.fadeChoices, expected: [l.practice.fadeCorrectIndex] },
-            { key: "solo", objectiveTitle: l.objectiveId, question: l.practice.soloCheck, format: "single", options: l.practice.soloChoices, expected: [l.practice.soloCorrectIndex] },
-          ],
-          {}
-        );
-    const disputed = gate ? [...gate.verdicts.values()].filter((v) => !v.publish) : [];
-    if (unsure || gate?.error || disputed.length) {
-      held++;
-      await recordHoldback({
-        kind: "lesson",
-        objectiveId: l.objectiveId,
-        reason: unsure ? "uncertain" : gate?.error ? "fact_check_error" : "fact_check",
-        claims: unsure ?? (gate?.error ? [gate.error] : disputed.flatMap((v) => v.unsupportedClaims)),
-        content: l.practice,
-        model,
-      });
-      continue;
-    }
-    const before = await query(`select 1 from lesson_content where objective_id = $1`, [l.objectiveId]);
-    await saveLesson({ kind: "shared" }, l.objectiveId, { ...intro, ...l.practice }, model);
-    if (before.length) kept++;
-    else saved++;
-  }
-  console.log(`Saved ${saved} new lessons; ${kept} already had one and were left alone; ${held} held back for review; ${failed.length} failed.`);
-  for (const f of failed.slice(0, 20)) console.log(`  failed ${f.objectiveId}: ${f.reason}`);
-  if (failed.length) console.log("Failed objectives are simply still missing; the app generates them on first visit, or re-run --submit.");
-}
+// Created lazily: an estimate or a --dry-run submit never needs a key.
+const batches: BatchesClient = {
+  create: (p) => client().messages.batches.create(JSON.parse(JSON.stringify(p))) as unknown as Promise<{ id: string }>,
+  retrieve: (id) => client().messages.batches.retrieve(id) as unknown as Promise<BatchInfo>,
+  results: (id) => client().messages.batches.results(id) as unknown as Promise<AsyncIterable<unknown>>,
+  list: (p) => client().messages.batches.list(p) as unknown as AsyncIterable<never>,
+};
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const ctx = { batches, log: (m: string) => console.log(m) };
+  let summary: Summary;
   try {
-    if (args.mode === "collect") return await collect(args.batchId!);
-    const ids = await missingObjectives(args.tracks, args.limit);
-    if (args.mode === "submit") return await submit(ids);
-    return await estimate(ids);
+    if (args.mode === "collect") {
+      summary = await collectRun(
+        { batchId: args.batchId!, introBatchId: args.introBatchId, tracks: args.tracks, maxUsd: args.maxUsd, dryRun: args.dryRun, allowConcurrent: args.allowConcurrent },
+        ctx
+      );
+    } else if (args.mode === "submit") {
+      summary = await submitRun(
+        { tracks: args.tracks, limit: args.limit, maxUsd: args.maxUsd!, dryRun: args.dryRun, allowConcurrent: args.allowConcurrent },
+        ctx
+      );
+    } else {
+      summary = await estimateRun({ tracks: args.tracks, limit: args.limit, maxUsd: args.maxUsd }, ctx);
+    }
+    if (args.summaryPath) writeFileSync(args.summaryPath, JSON.stringify({ ...summary, finishedAt: new Date().toISOString() }, null, 2));
   } finally {
+    await flushAiCallLog();
     await closePool();
   }
 }
 
 main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
+  // The message only: never a request or a response body.
+  console.error(err instanceof Error ? err.message.slice(0, 500) : "pregenerate failed");
   process.exit(1);
 });

@@ -1,0 +1,145 @@
+# REQ-208: pre-generate the shared catalog lessons for the launch courses in
+# PRODUCTION, through the Message Batches API (50% off), so a learner's first
+# visit to an objective is a cache hit. Nobody handles the API key or the
+# database URL: both are secrets of the production-database environment.
+# Runbook: docs/operations-runbook.md, "Pre-generating lessons".
+#
+# Manual only (Actions tab -> Pre-generate lessons -> Run workflow):
+#   estimate  no model call, no write: per-track lesson count and the UPPER-BOUND
+#             cost, and where max_usd would cut off (the default)
+#   submit    creates the intro batch for `tracks` (in priority order, whole
+#             units, never past max_usd). Refuses if max_usd is blank.
+#   collect   batch_id = the batch to collect. An ended INTRO batch checks the
+#             teaching texts and starts the practice batch; an ended PRACTICE
+#             batch (also give intro_batch_id) fact-checks and saves the
+#             lessons and reports the actual cost. Run it again until it
+#             says nothing is left.
+#
+# Keys. ANTHROPIC_PREGEN_API_KEY is a key from a dedicated Console workspace
+# ("pregen") with its own spend limit (the hard $50 stop, whatever the script
+# does). The app's key is never used: this job does not have it, and the
+# script refuses any other key in GitHub Actions.
+#
+# Output. The log has counts, the estimate and batch ids only, never prompts,
+# lesson text or claims. A small JSON summary of the same is uploaded as the
+# `pregen-summary` artifact.
+name: Pre-generate lessons
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "estimate (no calls, no writes) | submit (creates the intro batch) | collect (a finished batch)"
+        type: choice
+        options: [estimate, submit, collect]
+        default: estimate
+      tracks:
+        description: "Track codes in PRIORITY order, comma-separated (blank: every track, estimate only)"
+        type: string
+        default: DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA
+      limit:
+        description: "At most this many objectives (blank: no limit)"
+        type: string
+        default: ""
+      batch_id:
+        description: "collect: the batch to collect (msgbatch_...)"
+        type: string
+        default: ""
+      intro_batch_id:
+        description: "collect of a practice batch: the intro batch it was built from (msgbatch_...)"
+        type: string
+        default: ""
+      max_usd:
+        description: "Hard cap in USD on the UPPER-BOUND cost; required for submit and collect"
+        type: string
+        default: "50"
+concurrency:
+  group: pregenerate
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  pregenerate:
+    name: Pre-generate (${{ inputs.mode }})
+    runs-on: ubuntu-latest
+    environment: production-database
+    # A collect fact-checks each lesson one after another (about 15 seconds each).
+    timeout-minutes: 300
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the secrets and the inputs
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          ANTHROPIC_PREGEN_API_KEY: ${{ secrets.ANTHROPIC_PREGEN_API_KEY }}
+          MODE: ${{ inputs.mode }}
+          TRACKS: ${{ inputs.tracks }}
+          LIMIT: ${{ inputs.limit }}
+          BATCH_ID: ${{ inputs.batch_id }}
+          INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
+          MAX_USD: ${{ inputs.max_usd }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+          test -n "$PROD_DATABASE_URL" || fail "Add PROD_DATABASE_URL to the production-database environment."
+          test -n "$ANTHROPIC_PREGEN_API_KEY" || fail "Add ANTHROPIC_PREGEN_API_KEY to the production-database environment (a key from the Console workspace 'pregen' with a spend limit). Runbook: Pre-generating lessons."
+          echo "$MODE" | grep -Eq '^(estimate|submit|collect)$' || fail "mode must be estimate, submit or collect."
+          if [ -n "$TRACKS" ]; then echo "$TRACKS" | grep -Eq '^[A-Za-z0-9_-]+(,[A-Za-z0-9_-]+)*$' || fail "tracks must be comma-separated track codes."; fi
+          if [ -n "$LIMIT" ]; then echo "$LIMIT" | grep -Eq '^[1-9][0-9]*$' || fail "limit must be a positive whole number."; fi
+          if [ -n "$MAX_USD" ]; then echo "$MAX_USD" | grep -Eq '^[0-9]+(\.[0-9]+)?$' || fail "max_usd must be a dollar amount such as 50."; fi
+          if [ -n "$BATCH_ID" ]; then echo "$BATCH_ID" | grep -Eq '^msgbatch_[A-Za-z0-9]+$' || fail "batch_id must look like msgbatch_..."; fi
+          if [ -n "$INTRO_BATCH_ID" ]; then echo "$INTRO_BATCH_ID" | grep -Eq '^msgbatch_[A-Za-z0-9]+$' || fail "intro_batch_id must look like msgbatch_..."; fi
+          if [ "$MODE" = "submit" ]; then
+            test -n "$TRACKS" || fail "submit needs tracks (in priority order); it never submits the whole catalog."
+            test -n "$MAX_USD" || fail "submit needs max_usd."
+          fi
+          if [ "$MODE" = "collect" ]; then
+            test -n "$BATCH_ID" || fail "collect needs batch_id."
+            test -n "$MAX_USD" || fail "collect needs max_usd (the same cap as the submit)."
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Pre-generate
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          ANTHROPIC_PREGEN_API_KEY: ${{ secrets.ANTHROPIC_PREGEN_API_KEY }}
+          # Only if production pins a model (ANTHROPIC_MODEL in Vercel); blank = the app's default.
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          MODE: ${{ inputs.mode }}
+          TRACKS: ${{ inputs.tracks }}
+          LIMIT: ${{ inputs.limit }}
+          BATCH_ID: ${{ inputs.batch_id }}
+          INTRO_BATCH_ID: ${{ inputs.intro_batch_id }}
+          MAX_USD: ${{ inputs.max_usd }}
+          SUMMARY: ${{ runner.temp }}/pregen-summary.json
+        run: |
+          set -- --summary "$SUMMARY"
+          case "$MODE" in
+            submit) set -- "$@" --submit ;;
+            collect) set -- "$@" --collect "$BATCH_ID" ;;
+          esac
+          if [ -n "$TRACKS" ]; then set -- "$@" --tracks "$TRACKS"; fi
+          if [ -n "$LIMIT" ]; then set -- "$@" --limit "$LIMIT"; fi
+          if [ -n "$MAX_USD" ]; then set -- "$@" --max-usd "$MAX_USD"; fi
+          if [ -n "$INTRO_BATCH_ID" ]; then set -- "$@" --intro-batch "$INTRO_BATCH_ID"; fi
+          npm run --silent pregen -- "$@"
+      - name: Summary (counts only)
+        if: always()
+        env:
+          SUMMARY: ${{ runner.temp }}/pregen-summary.json
+        run: |
+          if [ -f "$SUMMARY" ]; then
+            { echo '### Pre-generation summary (counts only)'; echo '```json'; cat "$SUMMARY"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload the summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pregen-summary
+          path: ${{ runner.temp }}/pregen-summary.json
+          if-no-files-found: ignore
+          retention-days: 30

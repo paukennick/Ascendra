@@ -632,6 +632,13 @@ reused for 60 seconds per server instance. Unset, empty, `off` or 0: no
 ceiling (the code has no default). **Recommended production value: `5`**
 (Nick, 2026-11-09).
 
+Not in the sum (REQ-208): pre-generation (`ai_calls` purposes `pregen` and
+`pregen_fact_check`, docs/operations-runbook.md "Pre-generating lessons"). It is
+a planned, owner-started job with its own hard cap (the run's `max_usd` and a
+dedicated Console workspace with a spend limit), and a $50 run would otherwise
+pass a $5 ceiling at once and pause chat, regenerate and first-time shared
+lessons for learners for the rest of the UTC day. The rows stay in `ai_calls`.
+
 When the day's total reaches it, until midnight UTC:
 
 | Blocked (everyone except owners) | Only counted, never blocked |
