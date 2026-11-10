@@ -1,6 +1,7 @@
 import { queryOne } from "../db";
 import { signAccessToken, createRefreshToken, type RefreshTokenMeta } from "./tokens";
 import { sendSecurityAlertEmail } from "../email";
+import { emailFailureHandler } from "../email-errors";
 
 export interface SessionUser {
   id: string;
@@ -30,7 +31,7 @@ export async function completeLogin(user: SessionUser, meta: RefreshTokenMeta) {
         user.email,
         "New sign-in to your Ascendra account",
         "Your account was just signed in to from a device we haven't seen before."
-      ).catch(() => undefined);
+      ).catch(emailFailureHandler("auth/session"));
     }
   }
 

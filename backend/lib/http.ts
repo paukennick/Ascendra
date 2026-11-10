@@ -2,6 +2,11 @@ import { reportError } from "@/lib/error-tracker";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isTransientModelFailure, MODEL_UNAVAILABLE } from "@/lib/ai-calls";
+import { EmailSendError, logEmailFailure } from "@/lib/email-errors";
+
+// REQ-191: an authenticated action whose mail did not go out (a sign-in
+// code, an email-change confirmation) says so instead of "check your email".
+export const EMAIL_NOT_SENT = "We couldn't send the email just now. Try again in a few minutes.";
 
 export function ok(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -89,6 +94,10 @@ export function serverError(err: unknown) {
     // eslint-disable-next-line no-console
     console.error(`[request ${requestId}] client input refused by the database`, code);
     return NextResponse.json({ error: INVALID_INPUT, requestId }, { status: 400 });
+  }
+  if (err instanceof EmailSendError) {
+    logEmailFailure(`request ${requestId}`, err);
+    return NextResponse.json({ error: EMAIL_NOT_SENT, requestId, retryable: true }, { status: 503 });
   }
   if (isTransientModelFailure(err)) {
     // eslint-disable-next-line no-console

@@ -6,6 +6,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { REAUTH_EVENT, REAUTH_LIMIT } from "@/lib/auth/reauth";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sendSecurityAlertEmail } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
       authUser.email,
       "Your Ascendra password was changed",
       "Your account password was just changed. All other devices have been signed out."
-    ).catch(() => undefined);
+    ).catch(emailFailureHandler("auth/change-password"));
 
     return ok({ message: "Password changed. Other devices have been signed out.", ...(accessToken ? { accessToken } : {}) });
   } catch (err) {

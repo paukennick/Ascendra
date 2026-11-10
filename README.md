@@ -206,7 +206,7 @@ npm run build    # exports the Expo web app into public/, then builds Next.js
 npm start        # http://localhost:3000 serves the app and the API
 ```
 
-`GET /api/health` reports the database and lists any missing configuration. Without `ANTHROPIC_API_KEY`, everything that doesn't need a model works (catalog, courses, progress, practice exam setup, reading a lab), while lessons, grading and the coach return errors. Without `RESEND_API_KEY`, sign-up can't send its verification email; for a local-only test account you can mark it verified in your own database with `update app_users set email_verified_at = now() where email = '<address>';`.
+`GET /api/health` reports the database and lists any missing configuration. Without `ANTHROPIC_API_KEY`, everything that doesn't need a model works (catalog, courses, progress, practice exam setup, reading a lab), while lessons, grading and the coach return errors. Without `RESEND_API_KEY`, sign-up can't send its verification email (and in production `EMAIL_FROM` must be on a domain verified in Resend: see docs/operations-runbook.md, "Email sender"); for a local-only test account you can mark it verified in your own database with `update app_users set email_verified_at = now() where email = '<address>';`.
 
 ### 3. Run the native app
 

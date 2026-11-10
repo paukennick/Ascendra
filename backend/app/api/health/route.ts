@@ -1,6 +1,7 @@
 import { ok, serverError } from "@/lib/http";
 import { query } from "@/lib/db";
 import { healthCache } from "@/lib/health";
+import { emailSenderStatus, EMAIL_UNCONFIGURED_WARNING } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -18,18 +19,26 @@ export const dynamic = "force-dynamic";
 // unauthenticated route can't be used to load the database, and a
 // connection failure answers a generic 500 (lib/http.ts) instead of the
 // driver's message, which can name the database host or user.
+//
+// REQ-191: `email` reports whether production sends from a real sender
+// ("ok") or from Resend's test sender ("unconfigured": EMAIL_FROM unset or
+// @resend.dev), which reaches nobody but the Resend account owner. Like
+// jit, it is a warning on a 200 rather than a 503: production runs this
+// way today, and turning the keepalive red would not deliver any mail.
 export async function GET() {
+  const email = emailSenderStatus(process.env);
   const result = await healthCache.get((sql) => query<{ ok: boolean }>(sql));
   if (result.kind === "error") return serverError(result.error);
   if (result.kind === "schema_incomplete") {
     return ok(
-      { status: "schema_incomplete", applyMigrations: result.applyMigrations, missing: result.missing },
+      { status: "schema_incomplete", applyMigrations: result.applyMigrations, missing: result.missing, email },
       503
     );
   }
   // REQ-118: a deploy missing a required setting fails here (names only,
   // never values) instead of on a learner's first sign-in or grade.
-  if (result.kind === "misconfigured") return ok({ status: "misconfigured", env: result.env }, 503);
+  if (result.kind === "misconfigured") return ok({ status: "misconfigured", env: result.env, email }, 503);
   // Non-fatal findings (e.g. Postgres jit on) ride along on a 200.
-  return ok(result.warnings?.length ? { status: "ok", schema: "current", warnings: result.warnings } : { status: "ok", schema: "current" });
+  const warnings = [...(result.warnings ?? []), ...(email === "unconfigured" ? [EMAIL_UNCONFIGURED_WARNING] : [])];
+  return ok(warnings.length ? { status: "ok", schema: "current", email, warnings } : { status: "ok", schema: "current", email });
 }
