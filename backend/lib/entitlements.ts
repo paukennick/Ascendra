@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { spendSinceUsd } from "@/lib/ai-budget";
-import { accessFor, isUnrestricted } from "@/lib/account-access";
+import { accessFor, isOwner, isUnrestricted } from "@/lib/account-access";
+import { ownerEmails, ownerMonthlyCapUsd } from "@/lib/account-access-config";
 import {
   ALLOWANCE_DEFAULTS,
   ALLOWANCE_KINDS,
@@ -50,8 +51,11 @@ import {
 //
 // REQ-144: an owner or unrestricted account (lib/account-access.ts) is
 // treated as Pro by tierFor -- which has every feature and every course --
-// and has no allowance count and no monthly AI cap. With the switch off
-// these still return at once: everyone already has everything then.
+// and has no allowance count and no per-tier monthly AI cap. With the switch
+// off these still return at once: everyone already has everything then.
+// The one exception is an owner's monthly AI safety cap (Nick, 2026-11-09,
+// ownerMonthlyCapUsd, $35 by default), which applies with the switch on or
+// off: see aiAllowanceStatus.
 
 // Hours past period_end that a paid entitlement still counts, in case a
 // renewal's webhook arrives late. An EXPIRATION, refund or deletion event
@@ -381,12 +385,23 @@ export async function aiAllowanceStatus(
   tier?: Tier,
   env: NodeJS.ProcessEnv = process.env
 ): Promise<{ paused: boolean; resetsAt: string | null }> {
+  // Owners (OWNER_EMAILS): a monthly safety cap, billing switch on or off.
+  // The access read is skipped when no owner is configured, so other
+  // learners pay for it only on servers that have owners at all.
+  if (ownerEmails(env).size && (await isOwner(userId, env).catch(() => false))) {
+    return monthlyCapStatus(userId, ownerMonthlyCapUsd(env));
+  }
   if (!billingEnabled(env)) return { paused: false, resetsAt: null };
   const t = tier ?? (await tierFor(userId, env));
   const cap = monthlyAiCapUsd(t, env);
   if (cap === null) return { paused: false, resetsAt: null };
-  // REQ-144: no monthly cap; the daily safety ceiling (lib/ai-budget.ts) still applies.
+  // REQ-144: a granted unrestricted account has no monthly cap; the daily
+  // safety ceiling (lib/ai-budget.ts) still applies.
   if (await isUnrestricted(userId, env)) return { paused: false, resetsAt: null };
+  return monthlyCapStatus(userId, cap);
+}
+
+async function monthlyCapStatus(userId: string, cap: number): Promise<{ paused: boolean; resetsAt: string | null }> {
   const spent = await spendSinceUsd(userId, monthStartUtc()).catch(() => 0);
   return spent >= cap ? { paused: true, resetsAt: nextMonthStartUtc().toISOString() } : { paused: false, resetsAt: null };
 }
@@ -552,7 +567,8 @@ export async function billingSummary(userId: string, env: NodeJS.ProcessEnv = pr
       entitlement: null,
       freeCourse: null,
       allowances: [] as AllowanceStatus[],
-      aiPaused: { paused: false, resetsAt: null },
+      // An owner's monthly safety cap (aiAllowanceStatus); a grant has none.
+      aiPaused: access.level === "owner" ? await monthlyCapStatus(userId, ownerMonthlyCapUsd(env)) : { paused: false, resetsAt: null },
     };
   }
   const ent = await currentEntitlement(userId);
