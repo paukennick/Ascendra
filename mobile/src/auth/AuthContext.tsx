@@ -19,6 +19,14 @@ import {
 } from "@/lib/autoLock";
 import { localDataGuard, userLocalDataKeys } from "@/lib/localData";
 import { api, ApiError, isReauthRefusal, registerAuthHooks } from "@/api/client";
+import {
+  BIOMETRIC_SESSION_KEY,
+  launchStateFor,
+  logoutCalls,
+  planRefresh,
+  refreshTokenToKeep,
+  withRefreshLock,
+} from "@/lib/sessionStore";
 import { cancelStudyReminders } from "@/lib/reminderScheduler";
 import { TERMS_VERSION } from "@/lib/legal";
 import type { AuthUser } from "@/types";
@@ -55,6 +63,11 @@ const REFRESH_TOKEN_KEY = "ascendra_refresh_token";
 // plain copy anywhere that would make the gate skippable.
 const REFRESH_TOKEN_SECURE_KEY = "ascendra_refresh_token_secure";
 const BIOMETRIC_ENABLED_KEY = "ascendra_biometric_enabled";
+// REQ-192: the web app keeps no refresh token (an httpOnly cookie holds it,
+// src/lib/sessionStore.ts). REFRESH_TOKEN_KEY on web is only read to move
+// a token left in sessionStorage by an earlier version into the cookie.
+const IS_WEB = Platform.OS === "web";
+const SEAL_OPTIONS = { requireAuthentication: true, authenticationPrompt: "Unlock Ascendra" };
 
 // "locked" = a biometric-gated session exists on this device but hasn't been
 // unlocked yet this app launch.
@@ -111,6 +124,15 @@ export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
+}
+
+// REQ-192: true while the lock after time away covers the signed-in
+// screens. A React Native Modal is its own native window and draws above any
+// view, the lock overlay included, so every sheet hides while this is true
+// (src/components/SheetModal.tsx). False outside the provider.
+export function useLockCoversSheets(): boolean {
+  const ctx = useContext(AuthContext);
+  return !!ctx && ctx.status === "signedIn" && ctx.appLocked;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -213,6 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setBiometricEnabled(false);
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY).catch(() => undefined);
+    await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
   }, []);
 
   // Dedupes concurrent refresh attempts (e.g. several screens' requests all
@@ -221,32 +244,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // once per app launch.
   const refresh = useCallback(async (): Promise<boolean> => {
     if (inFlightRefresh.current) return inFlightRefresh.current;
-    const attempt = (async () => {
-      const storedRefreshToken = refreshTokenRef.current ?? (await secureStorage.getItem(REFRESH_TOKEN_KEY));
-      if (!storedRefreshToken) {
+    const attempt = withRefreshLock(async () => {
+      const storedRefreshToken =
+        IS_WEB || !refreshTokenRef.current ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
+      const plan = planRefresh({ web: IS_WEB, memoryToken: refreshTokenRef.current, storedToken: storedRefreshToken });
+      if (plan.kind === "none") {
         await clearAuth();
         return false;
       }
+      // REQ-192: an old web tab's token leaves storage before it is sent, so
+      // a failed exchange falls back to sign-in and is never tried again.
+      if (plan.kind === "body" && plan.migratingLegacy) await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
       try {
-        const res = await api.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", {
-          refreshToken: storedRefreshToken,
-        });
+        const res = await api.post<{ accessToken: string; refreshToken?: string }>(
+          "/api/auth/refresh",
+          plan.kind === "body" ? { refreshToken: plan.token } : undefined
+        );
         accessTokenRef.current = res.accessToken;
-        refreshTokenRef.current = res.refreshToken;
-        if (biometricEnabledRef.current) {
-          await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, res.refreshToken, {
-            requireAuthentication: true,
-            authenticationPrompt: "Unlock Ascendra",
-          });
-        } else {
-          await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
+        const keep = refreshTokenToKeep(IS_WEB, res);
+        refreshTokenRef.current = keep;
+        if (keep && biometricEnabledRef.current) {
+          await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
+          await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1").catch(() => undefined);
+        } else if (keep) {
+          await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
         }
         return true;
       } catch {
         await clearAuth();
         return false;
       }
-    })();
+    }, IS_WEB ? undefined : null);
     inFlightRefresh.current = attempt;
     try {
       return await attempt;
@@ -290,7 +318,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const biometricOn = (await secureStorage.getItem(BIOMETRIC_ENABLED_KEY)) === "1";
       biometricEnabledRef.current = biometricOn;
       setBiometricEnabled(biometricOn);
-      if (biometricOn) {
+      // REQ-192: after a logout the preference stays on but no sealed
+      // session is left, so the launch goes to sign-in, not the lock.
+      const sessionFlag = biometricOn ? await secureStorage.getItem(BIOMETRIC_SESSION_KEY).catch(() => null) : null;
+      if (launchStateFor(biometricOn, sessionFlag) === "locked") {
         setStatus("locked");
         return;
       }
@@ -318,10 +349,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Shared by login, Google sign-in, and the MFA challenge -- all three end
   // the same way once a real session comes back from the backend.
-  const applySession = useCallback(async (res: { accessToken: string; refreshToken: string; user: AuthUser }) => {
+  const applySession = useCallback(async (res: { accessToken: string; refreshToken?: string; user: AuthUser }) => {
     accessTokenRef.current = res.accessToken;
-    refreshTokenRef.current = res.refreshToken;
-    await secureStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
+    const keep = refreshTokenToKeep(IS_WEB, res);
+    refreshTokenRef.current = keep;
+    if (IS_WEB) {
+      // REQ-192: the cookie holds it; drop any token an older version left.
+      await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
+    } else if (keep && biometricEnabledRef.current) {
+      // Biometric unlock stayed on through the logout: seal the new session
+      // so the next launch locks instead of losing it.
+      // If sealing fails (a cancelled prompt), keep it like a plain sign-in;
+      // the "0" flag sends the next launch through the plain token.
+      try {
+        await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, keep, SEAL_OPTIONS);
+        await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
+        await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
+      } catch {
+        await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
+        await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
+      }
+    } else if (keep) {
+      await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
+    }
     // A sign-in just proved it's them.
     releaseLock();
     setUser(res.user);
@@ -338,7 +388,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [releaseLock]);
 
   type LoginResponse =
-    | { accessToken: string; refreshToken: string; user: AuthUser; mfaRequired?: undefined }
+    | { accessToken: string; refreshToken?: string; user: AuthUser; mfaRequired?: undefined }
     | { mfaRequired: true; challengeToken: string; mfaMethods: { totp: boolean; email: boolean } };
 
   const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
@@ -358,7 +408,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [applySession]);
 
   const completeMfaLogin = useCallback(async (challengeToken: string, code: string) => {
-    const res = await api.post<{ accessToken: string; refreshToken: string; user: AuthUser }>(
+    const res = await api.post<{ accessToken: string; refreshToken?: string; user: AuthUser }>(
       "/api/auth/mfa/verify",
       { challengeToken, code }
     );
@@ -386,30 +436,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // A plain "Log out" ends this session but leaves the device's own
-  // settings alone -- biometric unlock stays on, same as it would if the
-  // user had just changed their password, so logging back in doesn't also
-  // mean re-enabling it. (Contrast logoutAll below, and useFallbackSignIn,
-  // which are both an explicit choice to drop this device's enrollment.)
+  // settings alone -- biometric unlock stays on, so logging back in doesn't
+  // also mean re-enabling it. (Contrast logoutAll below, and
+  // useFallbackSignIn, which are both an explicit choice to drop this
+  // device's enrollment.)
   //
-  // With biometric unlock on, the token we would revoke here is the very
-  // one the biometric-gated store still holds -- revoking it leaves
-  // unlockWithBiometric replaying a dead token next time, which the server
-  // reads as theft and answers by revoking the whole token family, killing
-  // this device's other sessions too. So leave it live: it is already
-  // sealed behind the OS keystore and only opens to the user's own face.
-  // logoutAll is still the way to revoke for real.
+  // REQ-192: it always ends the session on the server too, on every
+  // platform. Before, with biometric unlock on, the session was left live
+  // for up to 30 days so the sealed copy of its token could unlock later.
+  // Now the sealed copy is deleted with it and the "sealed session" flag set
+  // to "0" (src/lib/sessionStore.ts), so the next launch goes to sign-in --
+  // nothing replays a revoked token, which the server would read as theft.
+  // Web ends the cookie session (DELETE /api/auth/refresh), which works
+  // after the access token has expired (the 30-minute idle sign-out).
   //
   // endSession is that sign-out on its own, without removing the device's
-  // drafts. (The native background sign-out that used it is replaced by the
-  // lock after time away, REQ-177.)
+  // drafts.
   const endSession = useCallback(async () => {
-    if (biometricEnabledRef.current) {
-      await clearAuth();
-      return;
+    const legacyWebToken = IS_WEB ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
+    const plainToken =
+      !IS_WEB && !refreshTokenRef.current ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
+    const calls = logoutCalls({
+      web: IS_WEB,
+      refreshToken: IS_WEB ? null : refreshTokenRef.current ?? plainToken,
+      legacyWebToken,
+      hasAccessToken: !!accessTokenRef.current,
+    });
+    for (const call of calls) {
+      await (call.method === "DELETE" ? api.delete(call.path) : api.post(call.path, "body" in call ? call.body : undefined)).catch(
+        () => undefined
+      );
     }
-    const storedRefreshToken = refreshTokenRef.current ?? (await secureStorage.getItem(REFRESH_TOKEN_KEY));
-    if (storedRefreshToken) {
-      await api.post("/api/auth/logout", { refreshToken: storedRefreshToken }).catch(() => undefined);
+    if (!IS_WEB && biometricEnabledRef.current) {
+      await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
+      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
     }
     await clearAuth();
   }, [clearAuth]);
@@ -543,12 +603,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const confirmed = await confirmBiometric("Confirm to enable biometric sign-in for Ascendra");
     if (!confirmed) return { ok: false, error: "Could not confirm biometrics." };
 
-    await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, refreshTokenRef.current, {
-      requireAuthentication: true,
-      authenticationPrompt: "Unlock Ascendra",
-    });
+    await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, refreshTokenRef.current, SEAL_OPTIONS);
     await secureStorage.deleteItem(REFRESH_TOKEN_KEY);
     await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1");
+    await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
     biometricEnabledRef.current = true;
     setBiometricEnabled(true);
     return { ok: true };
@@ -563,6 +621,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY);
+    await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
   }, []);

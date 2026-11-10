@@ -3,7 +3,7 @@
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
-import { APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
+import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -96,6 +96,14 @@ export function setAppIdentity(identity: AppIdentity): void {
   identityHeaders = appHeaders(identity);
 }
 
+// REQ-192: the web app's refresh token is an httpOnly cookie the server
+// sets on /api/auth/refresh (backend/lib/auth/refreshCookie.ts), so web
+// requests carry credentials (the Expo dev server is cross-origin; the
+// deployed app is same-origin). Native never sends cookies.
+export function isWebClient(): boolean {
+  return identityHeaders[APP_PLATFORM_HEADER] === "web";
+}
+
 // REQ-175: the server answers 426 { code: "update_required" } when this
 // build is below MIN_APP_VERSION. The root layout registers this to show the
 // "Update required" screen; the request still throws its ApiError.
@@ -173,6 +181,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   let text: string;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
+      ...(isWebClient() ? { credentials: "include" as const } : {}),
       ...options,
       signal: controller.signal,
       headers: {

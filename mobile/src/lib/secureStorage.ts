@@ -24,6 +24,11 @@ export interface SecureItemOptions {
 // AuthContext.tsx, which handles a tab left open but inactive.
 // `requireAuthentication` is silently ignored on web -- there's no
 // biometric gate to offer there.
+// REQ-192: the web refresh token no longer lives here (any injected script
+// could read sessionStorage); it is an httpOnly browser-session cookie with
+// the same "closed browser signs out" lifetime. On web this store only
+// holds what an older version left behind, read once to migrate it
+// (src/lib/sessionStore.ts).
 export const secureStorage = {
   async getItem(key: string, options?: SecureItemOptions): Promise<string | null> {
     if (Platform.OS === "web") return window.sessionStorage.getItem(key);
