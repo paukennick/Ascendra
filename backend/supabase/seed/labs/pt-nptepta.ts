@@ -227,7 +227,7 @@ export const NPTEPTA_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "At 10:20 his speech is suddenly slurred, the right side of his mouth droops, and his right arm drifts down when he holds both arms out.",
+          text: "At 10:20, in the middle of a sentence while you are walking with him, his speech suddenly becomes slurred, the right side of his mouth droops, and his right arm drifts down when he holds both arms out. He had been normal throughout the session until that moment.",
           ask: "What is happening and what do you do?",
           parts: [
             part(
@@ -237,8 +237,8 @@ export const NPTEPTA_LABS: SeedLabSet = {
             ),
             part(
               "Act",
-              "Stops the session, sits/lies him safely, activates emergency services (911 or the facility's emergency response) immediately, notifies the supervising PT, notes the time last known well (10:05/10:20), monitors vital signs and airway, and gives nothing by mouth.",
-              "Stop, get him seated or lying safely, call 911 / the emergency response now and notify the PT. Last known well about 10:20 (normal at 10:05). Stay with him, check vitals and breathing, nothing to eat or drink."
+              "Stops the session, sits/lies him safely, activates emergency services (911 or the facility's emergency response) immediately, notifies the supervising PT, notes the time last known well (10:20, a witnessed onset -- he was normal in front of the PTA until then), monitors vital signs and airway, and gives nothing by mouth.",
+              "Stop, get him seated or lying safely, call 911 / the emergency response now and notify the PT. Last known well 10:20 -- I saw it start, and he was normal right up to then. Stay with him, check vitals and breathing, nothing to eat or drink."
             ),
           ],
         },

@@ -7939,6 +7939,128 @@
       "prevention_notes": "Outline URLs are fetched when a track is re-verified."
     },
     {
+      "id": "FAIL-594",
+      "date": "2026-11-09",
+      "title": "CCRN DKA lab taught a superseded potassium threshold and anion-gap resolution",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "CCRNADULT/dka-case held insulin only below about 3.3 mEq/L potassium, used anion-gap closure as the sign DKA had resolved and added dextrose at about 200-250 mg/dL; the 2024 consensus says insulin waits for K above 3.5, resolution is ketones below 0.6 mmol/L with pH >=7.3 or bicarbonate >=18 (anion gap only when ketones can't be measured), dextrose below 250.",
+      "how_detected": "2026-11-09 content audit (findings-nursing C1, M1, m8)",
+      "root_cause": "The lab was written from long-standing (2009 ADA) values; the REQ-142 source pass found the disagreement but deliberately left the lab unchanged for a clinical reviewer, and no reviewer pass followed, so the wrong key stayed live.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/labs/ccrn.ts"
+      ],
+      "fix_summary": "Rubric and model answers rewritten to the 2024 consensus values, steps carry ketone and pH readings, header and value-source record re-dated 2026-11-09.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::CCRN dka-case follows the 2024 hyperglycemic crises consensus (FAIL-594)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test pins the consensus values; a source-pass disagreement should be fixed with the cited guideline in the same PR rather than parked for a reviewer who may never come.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-595",
+      "date": "2026-11-09",
+      "title": "Fitness examRevision longer than its varchar(100) column broke the seed",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "seed failed: value too long for type character varying(100) while seeding ACSMCPT after the examRevision text was reworded.",
+      "how_detected": "local npm run seed on fresh Postgres 16 during this task",
+      "root_cause": "credential text fields are bounded by migration 007 (exam_revision varchar(100)) but no unit test checked lengths, so only the DB seed caught it.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/tracks/fitness.ts"
+      ],
+      "fix_summary": "Shortened the ACSM, CSCS and NSCA-CPT examRevision strings; added a catalog test that every credential's examRevision and examCode fit 100 characters and credentialType 80.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The unit test now fails on any over-long credential field before seeding.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-596",
+      "date": "2026-11-09",
+      "title": "NCS ISNCSCI lab gave the motor zone of partial preservation as C7 instead of C8",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "ABPTSNCS/ncs-isncsci-classification keyed the motor ZPP at C7 although the C8 finger flexors are graded 1/5.",
+      "how_detected": "2026-11-09 content audit (findings-pt M1)",
+      "root_cause": "The motor ZPP was set to the motor level instead of the most caudal segment with any motor function; the arithmetic check covered levels but not ZPP.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/labs/pt-abpts-ncs.ts"
+      ],
+      "fix_summary": "Rubric and model answer now give the motor ZPP as C8 with the reason.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::NCS ISNCSCI lab records the motor zone of partial preservation at C8 (FAIL-596)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test pins C8.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-597",
+      "date": "2026-11-09",
+      "title": "Value-source test matched only NCLEX, CCRN and NASM, leaving 195 fitness and PT labs unsourced",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/labs.test.ts REQ-142 rule filtered /^(NCLEX|CCRN|NASM)/, so 48 fitness labs (ACE, ACSM, NCCPT, NSCA-CPT, CSCS) and 147 PT labs had no per-lab value sources and nothing failed.",
+      "how_detected": "2026-11-09 content audit (findings-fitness M4, findings-pt minor 10)",
+      "root_cause": "The REQ-142 test was written for the three pilot families and never widened as fitness and PT lab sets were added (REQ-147, REQ-149, REQ-151).",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/lib/labs.test.ts",
+        "backend/supabase/seed/labs/value-sources.ts"
+      ],
+      "fix_summary": "Widened the pattern to every fitness and PT track code, added an assertion that each named code is covered, and added value-source entries for all 195 labs from each lab file's header citations (DOIs confirmed via Crossref).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every clinical and fitness lab names what its values rest on",
+        "or why it names nothing (REQ-142)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The test lists the covered codes explicitly and fails if a named code drops out; docs/source-reliability-standard.md now names every family.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-598",
+      "date": "2026-11-09",
+      "title": "Objectives and track metadata taught outdated or wrong clinical and exam facts",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Nursing objectives said VT is more than three PVCs, clozapine is under an FDA REMS (ended 2025-06-13), graham crackers for hypoglycaemia; PT objectives said febrile neutropenia is ANC below 1500 and SpO2 targets 92-98%; NSCA CSCS and NSCA-CPT tracks were dated 2026-07-01 instead of 2025-07-01.",
+      "how_detected": "2026-11-09 content audit (findings-nursing M2, M3, m2; findings-pt M3, M5; findings-fitness M1, M2)",
+      "root_cause": "Objectives were written from textbooks or a single StatPearls chapter without a current Tier 1 check, and the NSCA handbook's edition date was taken for the outline's effective date.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/fitness.ts"
+      ],
+      "fix_summary": "Reworded in place (sort order kept, so mastery is kept), with dated sources in each track header; NSCA dates set to 2025-07-01 from NSCA's 2025 JTA summaries.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::objectives carry the corrected clinical facts (FAIL-598)",
+        "backend/lib/labs.test.ts::NSCA CSCS and NSCA-CPT outlines are dated July 1",
+        "2025 (FAIL-598)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression tests pin the corrected text and dates; numeric objectives need a Tier 1 source per docs/source-reliability-standard.md.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-670",
       "date": "2026-11-09",
       "title": "Email link scanners spent verification links on GET; set_password links cleared the password for the scanner",

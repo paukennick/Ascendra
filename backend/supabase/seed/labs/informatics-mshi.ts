@@ -25,7 +25,9 @@ import { source } from "../sources";
 // fewer -- in 164.408; media notice above 500 residents of a State in
 // 164.406; business-associate notice within 60 days in 164.410); 45 CFR
 // Part 171 for the information-blocking exceptions named in the track
-// (recorded 2026-10-31 and confirmed by the track's HTI-5 note); HL7 FHIR
+// (recorded 2026-10-31 and confirmed by the track's HTI-5 note; the fees
+// exception's excluded fees, 171.302(b)(1)-(4), re-read 2026-11-09 on
+// Cornell LII's copy of the CFR because eCFR was not reachable); HL7 FHIR
 // (R5 is the current published release; R4 is what US Core and US rules
 // use, so the FHIR lab stays on R4-compatible resource content) and the HL7
 // v2 product brief; HealthIT.gov SAFER Guides; AHRQ's workflow toolkit for
@@ -244,8 +246,8 @@ export const MSHI_LABS: SeedLabSet = {
             ),
             part(
               "The vendor's export quote",
-              "Weighs the fees and manner exceptions: fees must be reasonably related to costs and non-discriminatory, and the fees exception does not cover charging a patient for electronic access via a standard API/export; a four-week delay and a $900 charge for a standard export of one patient's record is likely interference; the content-and-manner (manner) exception lets an actor negotiate an alternative manner only when it cannot fulfil the request in the manner requested. Advises escalating to the vendor with the rule in hand and documenting.",
-              "A standard export of one patient's record is exactly the access the rule protects. The fees exception allows cost-based, non-discriminatory charges for certain services, but it does not permit charging a patient for electronic access to their own information through the standard interface, and $900 for a routine export looks neither cost-based nor reasonable. The manner exception lets a vendor offer an alternative only when it genuinely cannot deliver in the manner requested -- a four-week turnaround for a standard FHIR export is hard to defend as infeasible. Put the request in writing citing the rule, ask for the export in the standard manner at a documented cost, and keep the correspondence; the practice can report an actor it believes is blocking."
+              "Weighs the fees and manner exceptions: fees must be based on objective criteria, uniformly applied and reasonably related to costs, and the fees exception (45 CFR 171.302(b)) does not cover a fee for an individual's electronic access, a fee to export EHI through certified export capability to provide patients their information or to switch health IT, or an export fee not agreed in writing when the technology was acquired; a four-week delay and a $900 charge for a standard export of one patient's record is likely interference; the content-and-manner (manner) exception lets an actor negotiate an alternative manner only when it cannot fulfil the request in the manner requested. Advises escalating to the vendor with the rule in hand and documenting.",
+              "A standard export of one patient's record is exactly the access the rule protects. The fees exception (45 CFR 171.302) allows cost-based charges applied uniformly, but it expressly excludes fees for a patient's own electronic access, fees for an export through the certified export capability to give patients their information, and export fees that weren't agreed in writing when we bought the system. Unless our contract set this fee, $900 for a routine export looks neither covered nor reasonable. The manner exception lets a vendor offer an alternative only when it genuinely cannot deliver in the manner requested -- a four-week turnaround for a standard FHIR export is hard to defend as infeasible. Put the request in writing citing the rule, ask for the export in the standard manner at a documented cost, and keep the correspondence; the practice can report an actor it believes is blocking."
             ),
           ],
         },

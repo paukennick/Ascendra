@@ -22,6 +22,13 @@
 // Both tracks set requiresAcknowledgement: physical therapy content acted
 // on in practice has patient-safety consequences, same as nursing.
 //
+// Corrected 2026-11-09 (content audit): each rangeLabel's denominator is the
+// scored-item total FSBPT's 2024 content outlines print ("TOTAL 180" for
+// NPTE-PT, "TOTAL 140" for NPTE-PTA, re-read that day), not the full form
+// with pretest items (225 and 180); the ranges and weights are unchanged.
+// The SpO2 objective now reads 94-98% (88-92% with a hypercapnia risk), per
+// the BTS 2017 emergency oxygen guideline.
+//
 // Deepened 2026-11-04 under docs/source-reliability-standard.md (adopted
 // 2026-10-31). New objectives sit at the END of existing units only, each
 // group after an "Added 2026-11-04" marker and each line with an inline
@@ -156,7 +163,7 @@
 //   Candidate Handbook prints Musculoskeletal as 45-54 items and the
 //   Interventions column total as 45-58, while the 2024 content-outline
 //   PDFs print 44-54 and 47-58. Both are FSBPT (Tier 1). The existing
-//   rangeLabel "45-54 of 225 items" and weight were left untouched
+//   rangeLabel "45-54" (then "of 225 items") and weight were left untouched
 //   (append-only); flagged for Nick.
 //   Decided 2026-11-06 (Nick): keep 45-54, because the 2025.02 handbook is
 //   newer than the 2024 outline.
@@ -258,7 +265,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
   units: [
     {
       title: "Musculoskeletal System",
-      rangeLabel: "45-54 of 225 items",
+      rangeLabel: "45-54 of 180 scored items",
       weight: 27,
       gate: "Given a musculoskeletal presentation, name the specific structure, special test, or intervention it calls for -- not a generic 'treat the joint' answer.",
       objectives: [
@@ -278,7 +285,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Neuromuscular and Nervous Systems",
-      rangeLabel: "39-48 of 225 items",
+      rangeLabel: "39-48 of 180 scored items",
       weight: 24,
       gate: "Given a neurological presentation, localize the lesion and name the specific intervention it calls for -- not a generic 'improve function' answer.",
       objectives: [
@@ -298,7 +305,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Cardiovascular and Pulmonary Systems",
-      rangeLabel: "22-27 of 225 items",
+      rangeLabel: "22-27 of 180 scored items",
       weight: 14,
       gate: "Given a patient's vital signs and history, determine whether it is safe to proceed with an intervention and what to modify -- not a generic 'monitor vitals' answer.",
       objectives: [
@@ -312,12 +319,12 @@ export const NPTE_PT_TRACK: SeedTrack = {
         "Run a 6-minute walk test on a flat 30 m course with a pulse oximeter, a dyspnea scale such as Borg, and emergency equipment such as a defibrillator within reach", // SP-6MWT
         "Set pulmonary rehabilitation endurance training by symptoms: dyspnea of about 4 to 6 on the Borg scale, or perceived exertion rated 12 to 14, marks moderate to high intensity", // SP-PULMREHAB
         "Choose airway clearance for mucus-heavy disease such as cystic fibrosis or COPD (postural drainage, percussion, vibration), and after surgery pair incentive spirometry with deep breathing, coughing and early mobilization", // SP-PDV; SP-IS
-        "Monitor SpO2 against the right target: about 92% to 98% for most patients, but 88% to 92% for chronic hypercapnic disease, where excess oxygen can harm", // SP-O2
+        "Monitor SpO2 against the right target: 94% to 98% for most patients, but 88% to 92% for those at risk of hypercapnic respiratory failure, where excess oxygen can harm", // SP-O2
       ],
     },
     {
       title: "Integumentary System",
-      rangeLabel: "8-11 of 225 items",
+      rangeLabel: "8-11 of 180 scored items",
       weight: 5,
       gate: "Given a wound presentation, classify it correctly and select the specific dressing or intervention it calls for -- not a generic 'clean and cover' answer.",
       objectives: [
@@ -332,7 +339,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "System Interactions",
-      rangeLabel: "8-10 of 225 items",
+      rangeLabel: "8-10 of 180 scored items",
       weight: 5,
       gate: "Given a patient with comorbid conditions across systems, determine how one system's status changes the plan for another -- not a generic 'treat each problem separately' answer.",
       objectives: [
@@ -346,7 +353,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Lymphatic System",
-      rangeLabel: "4-7 of 225 items",
+      rangeLabel: "4-7 of 180 scored items",
       weight: 3,
       gate: "Given a lymphedema presentation, select the specific stage-appropriate intervention it calls for -- not a generic 'reduce swelling' answer.",
       objectives: [
@@ -359,7 +366,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Safety and Protection",
-      rangeLabel: "5-7 of 225 items",
+      rangeLabel: "5-7 of 180 scored items",
       weight: 3,
       gate: "Given a patient-safety scenario, name the specific fall-prevention or infection-control step it calls for -- not a generic 'be careful' answer.",
       objectives: [
@@ -374,7 +381,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Equipment, Devices, and Technologies",
-      rangeLabel: "5-6 of 225 items",
+      rangeLabel: "5-6 of 180 scored items",
       weight: 3,
       gate: "Given a mobility or functional deficit, select the specific assistive device or orthosis it calls for -- not a generic 'give them a cane' answer.",
       objectives: [
@@ -387,7 +394,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Metabolic and Endocrine Systems",
-      rangeLabel: "4-6 of 225 items",
+      rangeLabel: "4-6 of 180 scored items",
       weight: 3,
       gate: "Given a metabolic or endocrine complication (e.g., hypoglycemia, diabetic neuropathy), determine the specific exercise modification it calls for.",
       objectives: [
@@ -400,7 +407,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Therapeutic Modalities",
-      rangeLabel: "4-6 of 225 items",
+      rangeLabel: "4-6 of 180 scored items",
       weight: 3,
       gate: "Given a tissue condition, select the specific modality and parameters it calls for -- not a generic 'apply heat or ice' answer.",
       objectives: [
@@ -414,7 +421,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Gastrointestinal System",
-      rangeLabel: "3-6 of 225 items",
+      rangeLabel: "3-6 of 180 scored items",
       weight: 3,
       gate: "Given a GI-related complaint during a PT session, determine whether it's benign or requires referral.",
       objectives: [
@@ -425,7 +432,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Professional Responsibilities",
-      rangeLabel: "4-5 of 225 items",
+      rangeLabel: "4-5 of 180 scored items",
       weight: 3,
       gate: "Given a professional or ethical scenario, apply the specific standard of practice or documentation requirement it calls for.",
       objectives: [
@@ -439,7 +446,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Genitourinary System",
-      rangeLabel: "2-5 of 225 items",
+      rangeLabel: "2-5 of 180 scored items",
       weight: 2,
       gate: "Given a genitourinary-related complaint, determine whether it's within PT scope or requires referral.",
       objectives: [
@@ -450,7 +457,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
     },
     {
       title: "Research and Evidence-Based Practice",
-      rangeLabel: "3-5 of 225 items",
+      rangeLabel: "3-5 of 180 scored items",
       weight: 2,
       gate: "Given a research study or outcome measure, interpret its validity/reliability and apply it to clinical decision-making -- not a generic 'evidence matters' answer.",
       objectives: [
@@ -513,7 +520,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
   units: [
     {
       title: "Musculoskeletal System",
-      rangeLabel: "31-40 of 180 items",
+      rangeLabel: "31-40 of 140 scored items",
       weight: 26,
       gate: "Given a musculoskeletal treatment session, apply the specific intervention or precaution a PTA carries out under the plan of care -- not a generic 'do the exercises' answer.",
       objectives: [
@@ -530,7 +537,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Neuromuscular and Nervous Systems",
-      rangeLabel: "27-35 of 180 items",
+      rangeLabel: "27-35 of 140 scored items",
       weight: 22,
       gate: "Given a neurological patient during a treatment session, apply the specific motor-learning technique or safety precaution it calls for.",
       objectives: [
@@ -546,7 +553,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Cardiovascular and Pulmonary Systems",
-      rangeLabel: "20-27 of 180 items",
+      rangeLabel: "20-27 of 140 scored items",
       weight: 17,
       gate: "Given a patient's vital signs during activity, determine whether to continue, modify, or stop the session -- not a generic 'watch the numbers' answer.",
       objectives: [
@@ -562,7 +569,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Equipment, Devices, and Technologies",
-      rangeLabel: "8-10 of 180 items",
+      rangeLabel: "8-10 of 140 scored items",
       weight: 6,
       gate: "Given a patient using an assistive device, apply the specific fitting-check or gait-training step it calls for.",
       objectives: [
@@ -575,7 +582,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Safety and Protection",
-      rangeLabel: "6-8 of 180 items",
+      rangeLabel: "6-8 of 140 scored items",
       weight: 5,
       gate: "Given a patient-safety scenario during a session, apply the specific fall-prevention or infection-control step it calls for.",
       objectives: [
@@ -588,7 +595,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Integumentary System",
-      rangeLabel: "3-8 of 180 items",
+      rangeLabel: "3-8 of 140 scored items",
       weight: 4,
       gate: "Given a wound-care task delegated by a PT, apply the specific dressing or precaution it calls for.",
       objectives: [
@@ -601,7 +608,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Metabolic and Endocrine Systems",
-      rangeLabel: "4-6 of 180 items",
+      rangeLabel: "4-6 of 140 scored items",
       weight: 4,
       gate: "Given a metabolic complication during activity (e.g., hypoglycemia), apply the specific response it calls for.",
       objectives: [
@@ -612,7 +619,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Therapeutic Modalities",
-      rangeLabel: "5-7 of 180 items",
+      rangeLabel: "5-7 of 140 scored items",
       weight: 4,
       gate: "Given a modality ordered by a PT, apply the specific parameters and precautions it calls for -- not a generic 'apply heat or ice' answer.",
       objectives: [
@@ -625,7 +632,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "System Interactions",
-      rangeLabel: "5-7 of 180 items",
+      rangeLabel: "5-7 of 140 scored items",
       weight: 4,
       gate: "Given a patient with comorbid conditions, recognize when a change in one system requires modifying the current session.",
       objectives: [
@@ -636,7 +643,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Lymphatic System",
-      rangeLabel: "2-6 of 180 items",
+      rangeLabel: "2-6 of 140 scored items",
       weight: 3,
       gate: "Given a lymphedema patient's session, apply the specific compression or positioning precaution it calls for.",
       objectives: [
@@ -647,7 +654,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Professional Responsibilities",
-      rangeLabel: "2-4 of 180 items",
+      rangeLabel: "2-4 of 140 scored items",
       weight: 2,
       gate: "Given a professional or supervisory scenario, apply the specific scope-of-practice or documentation requirement it calls for.",
       objectives: [
@@ -661,7 +668,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Gastrointestinal System",
-      rangeLabel: "0-4 of 180 items",
+      rangeLabel: "0-4 of 140 scored items",
       weight: 1,
       gate: "Given a GI-related complaint during a session, determine whether to continue treatment or notify the supervising PT.",
       objectives: [
@@ -672,7 +679,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Genitourinary System",
-      rangeLabel: "0-4 of 180 items",
+      rangeLabel: "0-4 of 140 scored items",
       weight: 1,
       gate: "Given a genitourinary-related complaint during a session, determine whether to continue treatment or notify the supervising PT.",
       objectives: [
@@ -683,7 +690,7 @@ export const NPTE_PTA_TRACK: SeedTrack = {
     },
     {
       title: "Research and Evidence-Based Practice",
-      rangeLabel: "1-3 of 180 items",
+      rangeLabel: "1-3 of 140 scored items",
       weight: 1,
       gate: "Given an outcome measure used in a session, apply it and interpret the result correctly.",
       objectives: [

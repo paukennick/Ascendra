@@ -283,8 +283,8 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             ),
             part(
               "Patient B",
-              "Calculates 68 / 148 = about 0.46 (noting the absent posterior tibial signal), interprets as severe arterial insufficiency with an ABI below 0.5 -- a poor-healing and limb-threat sign; next step: no compression at all, urgent vascular referral, protect the foot, no aggressive debridement.",
-              "ABI = 68 / 148 = 0.46, and the posterior tibial signal cannot even be found. Under 0.5 means severe ischemia with poor healing potential and a threat to the limb. No compression, no sharp debridement of a dry ischemic wound, protect the foot from pressure and trauma, and an urgent vascular surgery referral today."
+              "Calculates 68 / 148 = about 0.46 (noting the absent posterior tibial signal), interprets as significant arterial insufficiency: an ABI below 0.5 is the line for withholding compression and a poor-healing sign, and with the missing signal the limb may be threatened (common bands call 0.40 or below severe); next step: no compression at all, urgent vascular referral, protect the foot, no aggressive debridement.",
+              "ABI = 68 / 148 = 0.46, and the posterior tibial signal cannot even be found. Under 0.5 is the point where compression is withheld and healing is poor, and with a missing pulse signal the limb may be threatened, even though it sits just above the 0.40 that usually marks severe disease. No compression, no sharp debridement of a dry ischemic wound, protect the foot from pressure and trauma, and an urgent vascular surgery referral today."
             ),
             part(
               "Patient C",

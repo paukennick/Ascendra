@@ -201,7 +201,7 @@ export const ABPTSSCS_LABS: SeedLabSet = {
     },
     {
       slug: "scs-bone-stress-site-triage",
-      objective: "Recognize stress fractures as overload injuries, about 20% of sports medicine injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high",
+      objective: "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high",
       kind: "case",
       title: "Groin pain in a marathoner: low risk or high risk?",
       brief:
