@@ -9,6 +9,7 @@ import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
+import { ageConfirmationRequired, isAgeConfirmed, MINIMUM_AGE } from "@/lib/age-confirmation";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,11 @@ interface UserRow {
   email_mfa_enabled: boolean;
 }
 
-// POST /api/auth/oauth/google — { idToken, deviceLabel?, acceptedTermsVersion? }. The mobile app
+// POST /api/auth/oauth/google — { idToken, deviceLabel?, acceptedTermsVersion?, ageConfirmed? }.
+// REQ-205: a NEW account needs ageConfirmed: true ("I am 16 or older"); without
+// it nothing is created and the answer is 400 { code: "age_confirmation_required" },
+// which the app turns into the confirmation and a retry. Signing in to an
+// existing or linked account never asks. The mobile app
 // gets idToken client-side via Expo AuthSession's Google provider; this
 // route only ever trusts a *verified* token, never client-supplied claims.
 //
@@ -98,12 +103,13 @@ export async function POST(req: Request) {
           });
         }
       } else {
+        if (!isAgeConfirmed(body)) return ageConfirmationRequired();
         // REQ-140: a new account has seen every release note so far.
         const created = await queryOne<UserRow>(
-          `insert into app_users (email, display_name, email_verified_at, whats_new_seen_id)
-           values ($1, $2, now(), $3)
+          `insert into app_users (email, display_name, email_verified_at, whats_new_seen_id, age_confirmed_at, age_confirmed_min)
+           values ($1, $2, now(), $3, now(), $4)
            returning id, email, display_name, mfa_enabled, totp_secret_enc, email_mfa_enabled`,
-          [normalizedEmail, identity.name, LATEST_RELEASE_NOTE_ID]
+          [normalizedEmail, identity.name, LATEST_RELEASE_NOTE_ID, MINIMUM_AGE]
         );
         if (!created) throw new Error("Failed to create account.");
         user = created;

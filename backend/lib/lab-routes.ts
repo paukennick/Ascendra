@@ -88,8 +88,9 @@ export async function submitLab(
   if (!lab) throw new LabError(404, "Lab not found");
   await requireAcknowledgementForObjective(lab.objective_id, userId);
   // REQ-165: a clinical or fitness lab needs the study notice (403 until
-  // then), checked here and not only in the app.
-  if (lab.safety_family !== "general") await requireStudyNotice(userId);
+  // then), checked here and not only in the app. REQ-205 (FAIL-907): every
+  // lab does, because every lab step sends the learner's answers to the model.
+  await requireStudyNotice(userId);
   const step = b.step as number;
   if (step >= lab.steps.length) throw new LabError(400, `This lab has ${lab.steps.length} step${lab.steps.length === 1 ? "" : "s"}`);
   const parts = lab.rubric[step]?.parts ?? [];

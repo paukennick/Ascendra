@@ -343,11 +343,13 @@ describe("labs under the study notice (REQ-165)", () => {
       assert.doesNotMatch(src, /lab-disclaimer|labDisclaimer\(|disclaimer:/, f);
     }
   });
-  test("clinical and fitness lab starts and grading require the study notice", () => {
+  test("clinical and fitness lab starts require the study notice; every lab step's grading does (REQ-205)", () => {
     const here = join(__dirname);
-    for (const f of ["lab-routes.ts", "../app/api/labs/[id]/runs/route.ts"]) {
-      assert.match(readFileSync(join(here, f), "utf8"), /safety_family !== "general"\) await requireStudyNotice\(/, f);
-    }
+    assert.match(readFileSync(join(here, "../app/api/labs/[id]/runs/route.ts"), "utf8"), /safety_family !== "general"\) await requireStudyNotice\(/);
+    // FAIL-907: grading sends the learner's answers to the model, whatever the lab's family.
+    const routes = readFileSync(join(here, "lab-routes.ts"), "utf8");
+    assert.match(routes, /\n  await requireStudyNotice\(userId\);/);
+    assert.doesNotMatch(routes, /safety_family !== "general"\) await requireStudyNotice/);
   });
   test("the inline SQL check names the current version", () => {
     assert.ok(studyNoticeAcceptedSql("$1").includes(`'${STUDY_NOTICE_VERSION}'`));

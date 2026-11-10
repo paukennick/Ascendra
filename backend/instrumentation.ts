@@ -3,8 +3,8 @@ import type { Instrumentation } from "next";
 // hook). REQ-116: a production server with a placeholder secret refuses to
 // start rather than serve requests signed with a key published in this repo.
 export async function register() {
-  const { assertNoPlaceholderSecrets } = await import("./lib/env-check");
-  assertNoPlaceholderSecrets();
+  const { assertSafeProductionConfig } = await import("./lib/env-check");
+  assertSafeProductionConfig();
 }
 
 // REQ-118: errors Next.js itself catches (outside our route handlers'

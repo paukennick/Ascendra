@@ -58,7 +58,7 @@ export interface LegalDoc {
 // LLC is formed.
 export const OWNER = {
   operator: "Nicholas Pauken",
-  contactEmail: "support@mail.ascendra-learn.com",
+  contactEmail: "support@ascendra-learn.com",
   governingLaw: "the State of Washington, USA",
   minimumAge: "16",
 };

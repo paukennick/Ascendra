@@ -143,6 +143,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at') as ok`,
   },
   {
+    // REQ-205: sign-up writes it; the account export reads it.
+    migration: "070_age_confirmation.sql",
+    what: "app_users.age_confirmed_at and age_confirmed_min (16+ confirmation at sign-up, account export)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'age_confirmed_at')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'age_confirmed_min') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, Share, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Share, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
@@ -22,7 +22,7 @@ import { Alert } from "@/lib/alert";
 import { withBackgroundHold } from "@/lib/backgroundHold";
 import { isShareDismissal } from "@/lib/mfaLeaveGuard";
 import { colors } from "@/lib/theme";
-import { fetchFullExport } from "@/lib/accountExport";
+import { browserDownloadEnv, downloadJson, exportFileName, fetchFullExport } from "@/lib/accountExport";
 
 import { useAuth } from "@/auth/AuthContext";
 
@@ -184,6 +184,11 @@ export default function Account() {
       const data = await fetchFullExport((path) =>
         api.get<Record<string, unknown>>(path, { timeoutMs: LARGE_REQUEST_TIMEOUT_MS })
       );
+      if (Platform.OS === "web") {
+        // REQ-205: a file download, not the share sheet.
+        downloadJson(data, exportFileName(), browserDownloadEnv());
+        return;
+      }
       await withBackgroundHold(() =>
         Share.share({ message: JSON.stringify(data, null, 2), title: "Ascendra data export" })
       );
