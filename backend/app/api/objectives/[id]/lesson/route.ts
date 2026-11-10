@@ -21,12 +21,13 @@ import {
   introToLesson,
   GENERATE_LIMIT,
   GENERATE_RATE_EVENT,
+  type GenerationHandle,
 } from "@/lib/lesson-generation";
 import { learnerHistoryFor } from "@/lib/lesson-experience";
 import { tryItFields, tryItLab } from "@/lib/lab-attempts";
 import { SHARED } from "@/lib/lesson-store";
 import { isHintAwareClient } from "@/lib/client-protocol";
-import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
+import { consumeAllowance, requireAiAllowance, requireCourseAccessForObjective, requireFeature } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -205,23 +206,34 @@ export async function POST(
       throw err;
     }
 
-    // The use is given back if the regenerate fails before its first half.
-    const { handle, intro } = await withAllowance(
-      user.id,
-      "regeneration",
-      async () => {
-        const h = await startRegeneration(user.id, id, objRow);
-        return { handle: h, intro: await h.introPromise };
-      },
-      tier
-    );
+    // FAIL-888: the week's use is given back whenever nothing was stored, not
+    // only when the first half fails. The practice half runs after this
+    // response (and can be held back by the accuracy checks), and a learner
+    // charged for a regenerate that produced no lesson had spent a use on
+    // nothing.
+    const use = await consumeAllowance(user.id, "regeneration", tier);
+    let handle: GenerationHandle;
+    let intro: Awaited<GenerationHandle["introPromise"]>;
+    try {
+      handle = await startRegeneration(user.id, id, objRow);
+      intro = await handle.introPromise;
+    } catch (err) {
+      await use.release();
+      throw err;
+    }
     // null: this learner's regenerate is already running on another
     // instance; hand back its finished result.
     if (!intro) {
-      const generated = await handle.fullPromise;
+      let generated;
+      try {
+        generated = await handle.fullPromise;
+      } catch (err) {
+        await use.release();
+        throw err;
+      }
       return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false });
     }
-    after(() => handle.fullPromise.catch(() => {}));
+    after(() => handle.fullPromise.then(() => undefined, () => use.release()));
 
     return ok({
       lesson: introToLesson(intro),

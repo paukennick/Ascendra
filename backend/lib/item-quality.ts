@@ -98,6 +98,10 @@ export interface HoldbackInput {
   claims: string[];
   content: unknown;
   model?: string | null;
+  // FAIL-882 (migration 069): set when the generation was one learner's own
+  // regenerate, so its refusal cools down for that learner only. Absent for
+  // a shared generation.
+  scopeUserId?: string | null;
 }
 
 // Logs content that was not published. Never throws: a failed log must not
@@ -106,8 +110,10 @@ export async function recordHoldback(h: HoldbackInput): Promise<void> {
   // eslint-disable-next-line no-console
   console.warn(`[item-quality] held back ${h.kind} (${h.reason}): ${h.claims.slice(0, 3).join("; ") || "-"}`);
   await query(
-    `insert into item_holdbacks (item_kind, objective_id, unit_id, track_id, reason, claims, content, model)
-     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    // scope_user_id (069) is named only when set, so a shared holdback is
+    // logged on a database that has not applied 069 yet.
+    `insert into item_holdbacks (item_kind, objective_id, unit_id, track_id, reason, claims, content, model${h.scopeUserId ? ", scope_user_id" : ""})
+     values ($1, $2, $3, $4, $5, $6, $7, $8${h.scopeUserId ? ", $9" : ""})`,
     [
       h.kind,
       h.objectiveId ?? null,
@@ -117,6 +123,7 @@ export async function recordHoldback(h: HoldbackInput): Promise<void> {
       JSON.stringify(h.claims),
       JSON.stringify(h.content ?? null),
       h.model ?? null,
+      ...(h.scopeUserId ? [h.scopeUserId] : []),
     ]
   ).catch((err) => {
     // eslint-disable-next-line no-console

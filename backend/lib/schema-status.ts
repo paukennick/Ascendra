@@ -403,6 +403,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where table_schema = 'public' and table_name = 'item_flags' and column_name = 'context') as ok`,
   },
   {
+    // REQ-204 (FAIL-882, FAIL-890): the holdback cooldown is per learner
+    // (item_holdbacks.scope_user_id), and the review enrolment trigger leaves
+    // retired objectives out.
+    migration: "069_learning_data_f3.sql",
+    what: "item_holdbacks.scope_user_id (per-learner holdback cooldown) and review_schedule_enrol() skipping retired objectives",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'item_holdbacks' and column_name = 'scope_user_id')
+             and exists(select 1 from pg_proc where proname = 'review_schedule_enrol' and prosrc like '%retired_at%') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

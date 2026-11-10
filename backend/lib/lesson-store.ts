@@ -258,6 +258,13 @@ export async function isClaimLive(objectiveId: string, scope: LessonScope): Prom
 // The learner's saved place in the old lesson. Its lesson_key no longer
 // matches once they regenerate, so the app would discard it anyway; deleting
 // it keeps the account copy honest. Only ever the caller's own row.
-export async function clearLessonProgress(userId: string, objectiveId: string): Promise<void> {
-  await query(`delete from lesson_progress where user_id = $1 and objective_id = $2`, [userId, objectiveId]);
+// FAIL-887: `savedBefore` (a database timestamp taken when the regenerate
+// started) leaves a position saved since then alone, so a learner who has
+// already started the NEW lesson from its teaching text does not lose that
+// place when the practice half finishes.
+export async function clearLessonProgress(userId: string, objectiveId: string, savedBefore?: Date): Promise<void> {
+  await query(
+    `delete from lesson_progress where user_id = $1 and objective_id = $2 and ($3::timestamptz is null or updated_at < $3::timestamptz)`,
+    [userId, objectiveId, savedBefore ?? null]
+  );
 }
