@@ -1,6 +1,6 @@
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleTrack } from "@/lib/visibility";
+import { startableTrack, visibleTrack } from "@/lib/visibility";
 import { buildStudyPlan, keptSummary, sessionChoices } from "@/lib/study-plan";
 import { loadPlanInput, planSettings, resolveToday, savePlanSettings, validateSettings } from "@/lib/study-plan-store";
 import { placementView } from "@/lib/placement";
@@ -49,7 +49,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const body = await req.json().catch(() => null);
     const user = await requireUser(req);
-    if (!(await visibleTrack(id, user.id))) return notFound("Track not found");
+    // REQ-194: setting a plan starts a course, so not on a hidden one the
+    // caller never studied (GET stays on visibleTrack).
+    if (!(await startableTrack(id, user.id))) return notFound("Track not found");
     const today = resolveToday(body?.today);
     const v = validateSettings(body, today);
     if (!v.ok) return badRequest(v.error);

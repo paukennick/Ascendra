@@ -208,6 +208,8 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     track.requiresAcknowledgement ?? false,
     track.disclaimerKey ?? null,
     track.disclaimerVersion ?? 1,
+    // REQ-194 (065): assigned outright, so deleting hiddenAt un-hides.
+    track.hiddenAt ?? null,
   ];
 
   // Shared row first; failing that, the legacy owner's private copy, which
@@ -240,20 +242,22 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
               requires_acknowledgement = $11,
               disclaimer_key = $12,
               disclaimer_version = $13,
+              hidden_at = $14::timestamptz,
               user_id = null
         where id = $4`,
       [track.title, track.description, track.trackType, trackId, ...alignment]
     );
     const adopted = existing.rows[0].user_id ? " (adopted into shared catalog)" : "";
-    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated)${adopted}`);
+    const hidden = track.hiddenAt ? ` (hidden from the catalog since ${track.hiddenAt})` : "";
+    console.log(`subject_tracks: ${track.code} already exists -> ${trackId} (updated)${adopted}${hidden}`);
   } else {
     const res = await pool.query(
       `insert into subject_tracks
          (user_id, code, title, description, track_type,
           subcategory_id, freshness_model, credential_exam_id,
           source_url, source_verified_at, content_review_due_at,
-          requires_acknowledgement, disclaimer_key, disclaimer_version)
-       values (null,$1,$2,$3,$4,$5,$6::content_freshness_model,$7,$8,$9::timestamptz,$10::timestamptz,$11,$12,$13)
+          requires_acknowledgement, disclaimer_key, disclaimer_version, hidden_at)
+       values (null,$1,$2,$3,$4,$5,$6::content_freshness_model,$7,$8,$9::timestamptz,$10::timestamptz,$11,$12,$13,$14::timestamptz)
        returning id`,
       [track.code, track.title, track.description, track.trackType, ...alignment]
     );

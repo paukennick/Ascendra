@@ -5847,8 +5847,8 @@
     {
       "id": "REQ-194",
       "category": "content",
-      "title": "Retitle 85 exam-prep courses so no exam body's mark is used as our product name",
-      "description": "Nick (2026-11-09): rename titles that could infringe; every title must still say which exam it prepares for. Following REQ-097 (CompTIA) and REQ-174 (NREMT), the 85 '<mark> Coach' titles for AWS, Microsoft, Google Cloud, PMI, NCSBN, AACN, FSBPT, ABPTS, the Linux Foundation/CNCF, Docker, Red Hat, NASM, ACE, ACSM, NSCA and ISSA/NCCPT become 'Prep for the <official exam name> Exam'. Each body's own trademark guidelines were read on 2026-11-09 (URLs in CHANGELOG). Symbols follow the owner where its guidelines ask (PMI as pmi.org/certifications shows them; Linux Foundation registered marks; NSCA; Red Hat). A notice line is appended to descriptions where the body asks for one (Microsoft, PMI, Linux Foundation, Docker, Red Hat). Red Hat: no EX course numbers in title or description and Red Hat not the leading word. Docker: the Docker mark kept out of the title. Codes, units and objective order unchanged. Not reviewed by a lawyer.",
+      "title": "Retitle 85 exam-prep courses so no exam body's mark is used as our product name; hide the Red Hat and Docker courses",
+      "description": "Nick (2026-11-09): rename titles that could infringe; every title must still say which exam it prepares for. Following REQ-097 (CompTIA) and REQ-174 (NREMT), the 85 '<mark> Coach' titles for AWS, Microsoft, Google Cloud, PMI, NCSBN, AACN, FSBPT, ABPTS, the Linux Foundation/CNCF, Docker, Red Hat, NASM, ACE, ACSM, NSCA and ISSA/NCCPT become 'Prep for the <official exam name> Exam'. Each body's own trademark guidelines were read on 2026-11-09 (URLs in CHANGELOG). Symbols follow the owner where its guidelines ask (PMI as pmi.org/certifications shows them; Linux Foundation registered marks; NSCA; Red Hat). A notice line is appended to descriptions where the body asks for one (Microsoft, PMI, Linux Foundation, Docker, Red Hat). Red Hat: no EX course numbers in title or description and Red Hat not the leading word. Docker: the Docker mark kept out of the title. Codes, units and objective order unchanged. Not reviewed by a lawyer. Follow-up (Nick, 2026-11-09): EX188 and EX280 (Red Hat) and DCA (Docker) are hidden from the catalog, not deleted. Red Hat's guidelines (https://www.redhat.com/en/about/trademark-guidelines-and-policies, read 2026-11-09) say certification training needs a Red Hat certified training partner and bar its course numbers, which are these courses' codes; Docker's (https://www.docker.com/legal/trademark-guidelines/, read 2026-11-09) keep the Docker mark out of program titles. Migration 065 adds nullable subject_tracks.hidden_at (no backfill); the seed sets and clears it from each track's hiddenAt. A hidden course is left out of GET /api/courses (listedOrStarted), which every course search in the app filters on the device, and can't be newly started (startableTrack: free-course pick, new study session, first-run pick, setting a plan). Learners with activity on it (study session, answer, mastery, lesson progress, study plan or free-course pick) keep it listed and keep full access; study routes stay on visibleTrack. Content is kept so it can come back.",
       "priority": "medium",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -5867,13 +5867,32 @@
         "backend/supabase/seed/tracks/redhat-openshift.ts",
         "backend/supabase/seed/tracks/fitness.ts",
         "backend/lib/catalog-trademarks.test.ts",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "backend/supabase/migrations/065_track_hidden_at.sql",
+        "backend/lib/progress-sql.ts",
+        "backend/lib/visibility.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/app/api/courses/[id]/plan/route.ts",
+        "backend/app/api/sessions/route.ts",
+        "backend/app/api/onboarding/first-run/route.ts",
+        "backend/app/api/billing/free-course/route.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/seed.ts",
+        "backend/lib/catalog-hidden.dbtest.ts",
+        "docs/deploy-runbook-integration.md"
       ],
       "acceptance_criteria": [
         "No covered course is titled '<mark> Coach'; every covered title reads 'Prep for the ... Exam' and names the exam",
         "Notice lines present where the body's guidelines ask",
         "Track codes and unit and objective order unchanged so the seed updates rows in place",
-        "Only degree and skill courses keep a Coach title (test-enforced)"
+        "Only degree and skill courses keep a Coach title (test-enforced)",
+        "EX188, EX280 and DCA (and no other course) are hidden by the seed; their units, objectives and labs are still seeded",
+        "A hidden course is not in GET /api/courses for a learner with no activity on it, so app search can't find it",
+        "Free-course pick, new study session, first-run pick and setting a plan on a hidden course return 404 for a learner with no activity on it",
+        "A learner with a study session, answer, mastery or free-course pick on a hidden course still sees it listed and can open and study it",
+        "Migration 065 is idempotent, has rollback notes and a /api/health schema probe"
       ],
       "validation_required": [
         "backend typecheck",
@@ -5883,14 +5902,17 @@
         "omni gate"
       ],
       "documentation_required": [
-        "changelog"
+        "changelog",
+        "deploy runbook migration tables"
       ],
       "risk_notes": [
         "Not reviewed by a lawyer",
-        "Red Hat's guidelines say certification training needs a Red Hat training partnership and bar EX course numbers; the EX188 and EX280 track codes still show on the course card and in exam fields",
         "Docker's guidelines keep the Docker mark out of program titles so the DCA title says 'Mirantis DCA' - Nick to confirm it is clear enough",
         "NASM and ACE terms say their marks need written permission for any use; descriptive use relies on nominative fair use",
-        "Live titles change only on the next npm run seed"
+        "Live titles change only on the next npm run seed",
+        "Red Hat and Docker courses hidden rather than deleted: learners with activity on them keep access, so the courses stay reachable for them",
+        "Study routes keep visibleTrack by design: a learner who knows a hidden course's id can still open it and answer, which then counts as activity and lists it for them",
+        "Apply migration 065 before deploying the backend, then npm run seed; until the seed runs nothing is hidden"
       ]
     }
   ]

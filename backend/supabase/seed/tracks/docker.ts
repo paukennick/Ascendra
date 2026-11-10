@@ -25,8 +25,16 @@ import type { SeedTrack } from "../data";
 const VERIFIED_AT = "2026-11-08T00:00:00Z";
 const DCA_GUIDE = "https://a.storyblok.com/f/146871/x/2001ce939c/docker-study-guide_v1-5-jan-2025.pdf";
 
+// REQ-194 (Nick, 2026-11-09): hidden from the catalog, not deleted. Docker's
+// guidelines (docker.com/legal/trademark-guidelines, read 2026-11-09) keep
+// the Docker mark out of the title of a program, and a DCA course can't say
+// what it prepares for without it. Learners who already studied it keep
+// it. Remove hiddenAt and re-seed to restore.
 export const DCA_TRACK: SeedTrack = {
   code: "DCA",
+  hiddenAt: "2026-11-09T00:00:00Z",
+  hiddenReason:
+    "Docker trademark guidelines: the Docker mark may not be used in the title of a program (https://www.docker.com/legal/trademark-guidelines/, read 2026-11-09).",
   title: "Prep for the Mirantis DCA Exam",
   description:
     "DCA: Mirantis's Docker credential. Swarm orchestration and stacks, Dockerfiles, images and registries, engine installation and configuration, container networking, engine and swarm security with content trust, and storage and volumes -- plus the Kubernetes basics the 2025 study guide added. Independently developed exam prep; not affiliated with or endorsed by Docker, Inc. or Mirantis. Docker is a trademark or registered trademark of Docker, Inc. in the United States and/or other countries.",

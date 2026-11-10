@@ -1,7 +1,7 @@
 import { query } from "@/lib/db";
 import { ok, badRequest, notFound, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleTrack, isUuid } from "@/lib/visibility";
+import { startableTrack, isUuid } from "@/lib/visibility";
 import { textField } from "@/lib/text-input";
 import { startOrTouchSession } from "@/lib/study-sessions";
 
@@ -42,7 +42,8 @@ export async function POST(req: Request) {
     if (!trackId || typeof trackId !== "string") return badRequest("trackId is required");
     const user = await requireUser(req);
     // REQ-129: a session can only be logged against a track the caller can see.
-    const track = await visibleTrack(trackId, user.id);
+    // REQ-194: and not on a hidden course the caller never studied.
+    const track = await startableTrack(trackId, user.id);
     if (!track) return notFound("Track not found");
     // REQ-135: the canonical (lowercase) id, however the client spelled it.
     const { session, created } = await startOrTouchSession(user.id, track.id);

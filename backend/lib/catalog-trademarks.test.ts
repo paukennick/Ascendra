@@ -99,3 +99,27 @@ describe("catalog titles and exam bodies' trademarks (REQ-194)", () => {
       assert.match(byCode.get(code)!.title, /®/, code);
   });
 });
+
+// REQ-194 (Nick, 2026-11-09; migration 065): the Red Hat and Docker courses
+// are hidden from the catalog, not deleted, so they can come back if the
+// owners agree. Nothing else is hidden by accident.
+describe("hidden courses", () => {
+  test("exactly EX188, EX280 and DCA are hidden, each with its reason and guideline URL", () => {
+    const hidden = CATALOG_TRACKS.filter((t) => t.hiddenAt).map((t) => t.code).sort();
+    assert.deepEqual(hidden, ["DCA", "EX188", "EX280"]);
+    for (const code of ["EX188", "EX280"]) {
+      const t = byCode.get(code)!;
+      assert.ok(!Number.isNaN(Date.parse(t.hiddenAt!)), code);
+      assert.match(t.hiddenReason ?? "", /https:\/\/www\.redhat\.com\/en\/about\/trademark-guidelines-and-policies/, code);
+    }
+    assert.match(byCode.get("DCA")!.hiddenReason ?? "", /https:\/\/www\.docker\.com\/legal\/trademark-guidelines/);
+  });
+
+  test("their content is kept: units and objectives are still seeded", () => {
+    for (const code of ["EX188", "EX280", "DCA"]) {
+      const t = byCode.get(code)!;
+      assert.ok(t.units.length > 0, code);
+      assert.ok(t.units.every((u) => u.objectives.length > 0), code);
+    }
+  });
+});

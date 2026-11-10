@@ -39,11 +39,23 @@ const RH_FORMAT_NOTE =
 const RH_PASS_NOTE =
   "Red Hat reports a total score and does not publish a pass mark or per-domain weights on the exam page; the unit weights in this course are the course's own allocation by objective count.";
 
+// REQ-194 (Nick, 2026-11-09): both courses are hidden from the catalog, not
+// deleted. Red Hat's guidelines (redhat.com/en/about/trademark-guidelines-
+// and-policies, read 2026-11-09) say certification training and exams may
+// only be offered by a Red Hat certified training partner, and bar using its
+// course numbers (EX188, EX280 are also these tracks' codes). Learners who
+// already studied a course keep it. Remove hiddenAt and re-seed to restore.
+const RH_HIDDEN_AT = "2026-11-09T00:00:00Z";
+const RH_HIDDEN_REASON =
+  "Red Hat trademark guidelines: certification training needs a Red Hat training partnership; EX course numbers may not be used (https://www.redhat.com/en/about/trademark-guidelines-and-policies, read 2026-11-09).";
+
 const EX188_URL = "https://www.redhat.com/en/services/training/ex188-red-hat-certified-specialist-containers-exam";
 const EX280_URL = "https://www.redhat.com/en/services/training/red-hat-certified-openshift-administrator-exam";
 
 export const EX188_TRACK: SeedTrack = {
   code: "EX188",
+  hiddenAt: RH_HIDDEN_AT,
+  hiddenReason: RH_HIDDEN_REASON,
   title: "Prep for the Red Hat® Certified Developer in Cloud-native Applications Exam",
   description:
     "Red Hat's hands-on Podman exam. Build images from Containerfiles, manage images and registries, run and inspect containers locally, run multi-container applications with pods and Compose-style definitions, and troubleshoot containerized applications -- on RHEL 10 with Podman v5, the versions the exam is based on. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and RHEL trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and RHEL are trademarks of Red Hat, LLC, registered in the United States and other countries.",
@@ -139,6 +151,8 @@ export const EX188_TRACK: SeedTrack = {
 
 export const EX280_TRACK: SeedTrack = {
   code: "EX280",
+  hiddenAt: RH_HIDDEN_AT,
+  hiddenReason: RH_HIDDEN_REASON,
   title: "Prep for the Red Hat® Certified System Administrator in OpenShift Exam",
   description:
     "Red Hat's hands-on OpenShift administration exam on OpenShift Container Platform 4.22. Manage the cluster from the console and oc, work declaratively with manifests, Kustomize, Helm and templates, configure HTPasswd authentication and RBAC, secure routes and networking, enable developer self-service with quotas and templates, manage operators, and secure applications with service accounts, security context constraints, secrets, jobs and cron jobs. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and OpenShift trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and OpenShift are trademarks of Red Hat, LLC, registered in the United States and other countries.",

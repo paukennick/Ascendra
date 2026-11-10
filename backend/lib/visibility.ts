@@ -9,6 +9,7 @@
 // private id exists.
 
 import { queryOne } from "@/lib/db";
+import { listedOrStarted } from "@/lib/progress-sql";
 
 // An id that isn't a UUID can't match any row; asking Postgres anyway raises
 // "invalid input syntax for type uuid" and surfaces as a 500. Treat it as
@@ -69,6 +70,21 @@ export async function visibleTrack(trackId: string, userId: string): Promise<{ i
   if (!isUuid(trackId)) return null;
   return queryOne<{ id: string; title: string }>(
     `select id, title from subject_tracks where id = $1 and (user_id is null or user_id = $2)`,
+    [trackId, userId]
+  );
+}
+
+// REQ-194: may this caller START this course -- pick it, open a session on
+// it, choose it at first run, plan it? Visible, and either listed or already
+// studied by the caller (listedOrStarted). A hidden course the caller never
+// studied answers null (404, as for any course they can't see). Only the
+// start routes use this; the study routes keep visibleTrack so a learner
+// part-way through a hidden course keeps full access.
+export async function startableTrack(trackId: string, userId: string): Promise<{ id: string; title: string } | null> {
+  if (!isUuid(trackId)) return null;
+  return queryOne<{ id: string; title: string }>(
+    `select st.id, st.title from subject_tracks st
+      where st.id = $1 and (st.user_id is null or st.user_id = $2) and ${listedOrStarted("$2")}`,
     [trackId, userId]
   );
 }
