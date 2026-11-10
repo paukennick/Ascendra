@@ -383,7 +383,7 @@ without `tracks` and `max_usd`.
 **Where the spend shows.** Each batch's usage is one `ai_calls` row, purpose
 `pregen`, dated when the batch ended (collecting it twice does not count it
 twice); the live fact-checks are purpose `pregen_fact_check`. Neither counts
-toward `AI_GLOBAL_DAILY_CEILING_USD` (docs/billing.md): a $50 run would reach the
+toward `AI_GLOBAL_DAILY_CEILING_USD` (docs/billing.md): a run this size would reach the
 recommended $5 ceiling at once and pause chat and regenerate for learners. The
 rows are in `ai_calls`, so any total over the table includes them; the app's
 price table prices tokens at list price, so such a total shows a batch at twice
@@ -392,7 +392,7 @@ its real cost. The real cost is what collect prints and the artifact holds.
 ### Steps
 
 **(a) One-time setup (Nick).** In the Claude Console create a workspace named
-**pregen** with a **$50 spend limit**, and create an API key in it. In
+**pregen** with a **$110 spend limit**, and create an API key in it. In
 GitHub: repository Settings -> Environments -> **production-database** -> add
 the secret **`ANTHROPIC_PREGEN_API_KEY`** with that key. It is a separate secret
 from the app's key, which this job never has; in GitHub Actions the script
@@ -403,13 +403,24 @@ workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
 
 **(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
 `estimate`. `tracks` defaults to the launch set in priority order:
-`DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 50. Read the log:
+`DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
+batch-10 seed this is 845 lessons and an upper bound of $100.23 (DPT 110,
+PTPREREQ 95, CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 36, CNA 127), so the
+whole set fits with $9.77 to spare. Read the log:
 lessons and upper-bound cost per track and the line "Cut off at ...". Change
 the order or drop courses until the cutoff is where you want it. No model call,
 no write.
 
+**(b2) Trial first.** Before the full run, spend a few dollars to prove the
+whole path on real API responses (the request shapes are untested against the
+live API). Run `submit` with the same `tracks`, **`limit` 25 and `max_usd` 5**
+(25 lessons are about $3 at the upper bound), then collect both stages as in
+(d). Check the counts and the Console usage page (e). Then run **estimate
+again**: the 25 saved lessons drop out, and the new total and cutoff are what
+the full submit will use. Only then run (c) without `limit`.
+
 **(c) Submit.** Mode `submit`, the agreed `tracks` (priority order) and
-`max_usd`. The log prints the intro batch id (`msgbatch_...`). Most batches
+`max_usd` (110), no `limit`. The log prints the intro batch id (`msgbatch_...`). Most batches
 finish within an hour.
 
 **(d) Collect, until it ends.** Mode `collect`, `batch_id` = the intro batch id,
@@ -421,7 +432,7 @@ already had one, held back, failed) and the actual cost. Run each collect once
 per ended batch: a repeat of the first starts nothing (the workflow refuses
 when a newer batch exists), and a repeat of the second only re-checks lessons
 still unsaved. To cover what was cut off, go back to (b): saved lessons drop out
-of the estimate, so use `max_usd` = $50 minus what has been spent.
+of the estimate, so use `max_usd` = $110 minus what has been spent.
 
 **(e) Check.** The job summary and the `pregen-summary` artifact hold counts
 only. Then: `npm run items -- list` shows lessons held back for review;
@@ -433,7 +444,7 @@ not a problem: they are simply still missing and are made on first visit.
 
 The log never contains prompts, lesson text or claims (the held-back claims are in
 `item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
---tracks ... --max-usd 50 --dry-run` builds every request and sends nothing.
+--tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
 
 ## CI
 

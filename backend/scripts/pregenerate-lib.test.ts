@@ -225,7 +225,7 @@ describe("the workflow (REQ-208)", () => {
   test("the inputs the runbook names", () => {
     for (const input of ["mode", "tracks", "limit", "batch_id", "max_usd"]) assert.match(code, new RegExp(`^      ${input}:`, "m"), input);
     assert.match(code, /options: \[estimate, submit, collect\]/);
-    assert.match(code, /max_usd:[\s\S]*?default: "50"/);
+    assert.match(code, /max_usd:[\s\S]*?default: "110"/);
   });
 
   test("refuses to start when either secret is missing", () => {

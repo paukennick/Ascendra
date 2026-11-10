@@ -8,14 +8,14 @@
 // URL. The logic is in lib/pregen.ts.
 //
 //   npm run pregen                                   # estimate (the default), every track
-//   npm run pregen -- --tracks DPT,PTPREREQ,CCRNADULT --max-usd 50
+//   npm run pregen -- --tracks DPT,PTPREREQ,CCRNADULT --max-usd 110
 //                                                    # estimate in PRIORITY order with the
 //                                                    # budget cutoff
-//   npm run pregen -- --submit --tracks ... --max-usd 50        # create the intro batch
+//   npm run pregen -- --submit --tracks ... --max-usd 110        # create the intro batch
 //   npm run pregen -- --submit ... --dry-run         # build every request, send nothing
-//   npm run pregen -- --collect <batch> --tracks ... --max-usd 50
+//   npm run pregen -- --collect <batch> --tracks ... --max-usd 110
 //        an ENDED intro batch -> checks the teaching texts, starts the practice batch
-//   npm run pregen -- --collect <practice batch> --intro-batch <intro batch> --tracks ... --max-usd 50
+//   npm run pregen -- --collect <practice batch> --intro-batch <intro batch> --tracks ... --max-usd 110
 //        an ENDED practice batch -> fact-check, save, report the actual cost
 //   --summary <file>   write a counts-only JSON summary (the workflow's artifact)
 //   --limit N          at most N objectives

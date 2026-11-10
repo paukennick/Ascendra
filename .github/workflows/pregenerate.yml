@@ -16,7 +16,7 @@
 #             says nothing is left.
 #
 # Keys. ANTHROPIC_PREGEN_API_KEY is a key from a dedicated Console workspace
-# ("pregen") with its own spend limit (the hard $50 stop, whatever the script
+# ("pregen") with its own spend limit (the hard $110 stop, whatever the script
 # does). The app's key is never used: this job does not have it, and the
 # script refuses any other key in GitHub Actions.
 #
@@ -51,7 +51,7 @@ on:
       max_usd:
         description: "Hard cap in USD on the UPPER-BOUND cost; required for submit and collect"
         type: string
-        default: "50"
+        default: "110"
 concurrency:
   group: pregenerate
   cancel-in-progress: false
@@ -86,7 +86,7 @@ jobs:
           echo "$MODE" | grep -Eq '^(estimate|submit|collect)$' || fail "mode must be estimate, submit or collect."
           if [ -n "$TRACKS" ]; then echo "$TRACKS" | grep -Eq '^[A-Za-z0-9_-]+(,[A-Za-z0-9_-]+)*$' || fail "tracks must be comma-separated track codes."; fi
           if [ -n "$LIMIT" ]; then echo "$LIMIT" | grep -Eq '^[1-9][0-9]*$' || fail "limit must be a positive whole number."; fi
-          if [ -n "$MAX_USD" ]; then echo "$MAX_USD" | grep -Eq '^[0-9]+(\.[0-9]+)?$' || fail "max_usd must be a dollar amount such as 50."; fi
+          if [ -n "$MAX_USD" ]; then echo "$MAX_USD" | grep -Eq '^[0-9]+(\.[0-9]+)?$' || fail "max_usd must be a dollar amount such as 110."; fi
           if [ -n "$BATCH_ID" ]; then echo "$BATCH_ID" | grep -Eq '^msgbatch_[A-Za-z0-9]+$' || fail "batch_id must look like msgbatch_..."; fi
           if [ -n "$INTRO_BATCH_ID" ]; then echo "$INTRO_BATCH_ID" | grep -Eq '^msgbatch_[A-Za-z0-9]+$' || fail "intro_batch_id must look like msgbatch_..."; fi
           if [ "$MODE" = "submit" ]; then
