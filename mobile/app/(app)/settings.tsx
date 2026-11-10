@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { ActivityIndicator, Switch, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { Card, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
 import { Alert } from "@/lib/alert";
 import { colors } from "@/lib/theme";
 import { useAuth } from "@/auth/AuthContext";
@@ -14,7 +15,9 @@ import { settingsRowValue } from "@/lib/discounts";
 
 export default function Settings() {
   const router = useRouter();
-  const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric } = useAuth();
+  const { user, biometricAvailable, biometricEnabled, biometricLabel, enableBiometric, disableBiometric, lockAfter, setLockAfter } =
+    useAuth();
+  const [lockSheet, setLockSheet] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
@@ -98,6 +101,9 @@ export default function Settings() {
           value={user?.mfaEnabled ? "Enabled" : "Disabled"}
           onPress={() => router.push("/settings/mfa")}
         />
+        {/* REQ-177: how long away before Ascendra locks. */}
+        <Divider />
+        <ListRow icon="lock" label="Lock Ascendra" value={lockAfterLabel(lockAfter)} onPress={() => setLockSheet(true)} />
         {biometricAvailable ? (
           <>
             <Divider />
@@ -119,6 +125,22 @@ export default function Settings() {
           </>
         ) : null}
       </Card>
+
+      <ChoiceSheet
+        visible={lockSheet}
+        title="Lock Ascendra"
+        message={
+          biometricEnabled
+            ? `After you've been away this long, unlock with ${biometricLabel} or your device passcode.`
+            : "After you've been away this long, enter your password to carry on. Your work stays where you left it."
+        }
+        options={LOCK_AFTER_OPTIONS.map((o) => ({
+          label: lockAfterLabel(o),
+          variant: o === lockAfter ? "primary" : "ghost",
+          onPress: () => void setLockAfter(o),
+        }))}
+        onCancel={() => setLockSheet(false)}
+      />
 
       <SectionHeader label="About" />
       <Card>

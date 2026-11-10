@@ -1,7 +1,7 @@
 // REQ-175: first, so the API client knows this build before any request.
 import "@/updates/appIdentity";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { AppState, Platform, Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -25,9 +25,13 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
 import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { AppLock, PrivacyCover } from "@/components/AppLock";
 import { UpdateRequired } from "@/components/UpdateRequired";
 import { registerUpdateRequiredHook } from "@/api/client";
 import type { UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
+import { AUTO_RELOAD_KEY, autoReloadMarker, mayAutoReload } from "@/lib/webVersion";
+
+const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
@@ -78,7 +82,15 @@ function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
 }
 
 function RootNavigator() {
-  const { status, webIdleWarningSecondsLeft } = useAuth();
+  const { status, webIdleWarningSecondsLeft, appLocked } = useAuth();
+  // REQ-177: native -- hide the screen while the app is not in front, for
+  // the app switcher's snapshot.
+  const [inFront, setInFront] = useState(true);
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const sub = AppState.addEventListener("change", (next) => setInFront(next === "active"));
+    return () => sub.remove();
+  }, []);
   const { gate } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
@@ -89,6 +101,29 @@ function RootNavigator() {
     registerUpdateRequiredHook(setUpdateRequired);
     return () => registerUpdateRequiredHook(null);
   }, []);
+
+  // REQ-177: web -- the server says this bundle is too old. Reload at once
+  // to fetch the current one, unless the screen holds work in progress (then
+  // the Update required screen asks), and at most once per bundle per 10
+  // minutes so a server that keeps refusing can't loop the tab.
+  useEffect(() => {
+    if (!updateRequired || Platform.OS !== "web" || typeof window === "undefined") return;
+    let marker: string | null = null;
+    try {
+      marker = window.sessionStorage.getItem(AUTO_RELOAD_KEY);
+    } catch {
+      /* storage blocked: treat as never reloaded */
+    }
+    const now = Date.now();
+    const pathname = window.location.pathname;
+    if (!mayAutoReload({ pathname, buildId: WEB_BUILD_ID || null, marker, now })) return;
+    try {
+      window.sessionStorage.setItem(AUTO_RELOAD_KEY, autoReloadMarker(WEB_BUILD_ID || null, now));
+    } catch {
+      return; // can't record it, so don't risk a loop
+    }
+    window.location.reload();
+  }, [updateRequired]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -127,9 +162,12 @@ function RootNavigator() {
       {Platform.OS === "web" ? <AlertHost /> : null}
       {/* Sits below the idle warning in priority: that one is about to take
           something away from the user, this one is only an offer. */}
-      {updateReady && webIdleWarningSecondsLeft === null ? (
+      {updateReady && webIdleWarningSecondsLeft === null && !appLocked ? (
         <UpdateBanner onApply={applyUpdate} onDismiss={dismiss} />
       ) : null}
+      {/* REQ-177: the lock after time away covers the screens, which stay mounted. */}
+      {status === "signedIn" && appLocked ? <AppLock /> : null}
+      {status === "signedIn" && !inFront ? <PrivacyCover /> : null}
       {updateRequired ? <UpdateRequired info={updateRequired} /> : null}
     </>
   );

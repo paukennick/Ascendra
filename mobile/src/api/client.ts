@@ -227,6 +227,10 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   return data as T;
 }
 
+export function isReauthRefusal(data: unknown): boolean {
+  return !!data && typeof data === "object" && (data as { reauthRequired?: unknown }).reauthRequired === true;
+}
+
 // One silent refresh-and-retry on a 401, never for /api/auth/* itself
 // (a 401 from login is just "wrong password", not "needs a refresh", and
 // retrying refresh's own 401 would recurse). A timeout is never retried
@@ -244,8 +248,17 @@ async function request<T>(
   try {
     return await rawRequest<T>(path, options, timeoutMs);
   } catch (err) {
+    // REQ-177: a 401 that says "confirm it's you" (wrong password or code,
+    // lib/auth/reauth.ts) is about what was typed, not the session. Refreshing
+    // and resending it spent a second try from the 10-per-15-minutes budget
+    // and rotated the refresh token for nothing.
     const canRetry =
-      err instanceof ApiError && err.status === 401 && !alreadyRetried && refreshAccessToken && !path.startsWith("/api/auth/");
+      err instanceof ApiError &&
+      err.status === 401 &&
+      !isReauthRefusal(err.data) &&
+      !alreadyRetried &&
+      refreshAccessToken &&
+      !path.startsWith("/api/auth/");
     if (canRetry) {
       const refreshed = await refreshAccessToken!();
       if (refreshed) {
