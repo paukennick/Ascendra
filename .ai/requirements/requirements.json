@@ -5930,6 +5930,40 @@
         "CHANGELOG.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-176",
+      "category": "Mobile release infrastructure",
+      "title": "OTA update workflow that publishes only to builds whose runtime fingerprint matches",
+      "description": "Add .github/workflows/eas-update.yml (workflow_dispatch with channel, message and dry_run inputs; also push to ops/eas-update). It runs expo-doctor, computes the Android and iOS runtime fingerprints, lists finished EAS builds and recent update groups, and writes to the job summary whether each platform's runtime matches a finished build on the target channel. Dry run reports only. Otherwise it exports the bundle with the matching build profile's eas.json env, checks it contains the production API URL and no private-network URL, and runs eas update --skip-bundler for matching platforms only; when nothing matches it publishes nothing and shows the fingerprint diff against the newest build. Decision logic in .github/scripts/eas-ota.mjs with node:test tests. Never runs eas build or eas submit.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        ".github/workflows/eas-update.yml",
+        ".github/scripts/eas-ota.mjs",
+        ".github/scripts/eas-ota.test.mjs",
+        "docs/deploy-runbook-mastery.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A dry run reports the token check the builds with platform profile channel runtime and date and a per-platform MATCH or NO MATCH verdict",
+        "A non-dry run publishes only platforms with a finished build on the channel whose runtime equals the local fingerprint and only from master's tip",
+        "The bundle is checked for the eas.json EXPO_PUBLIC_API_URL and for private-network URLs before upload",
+        "No step prints EXPO_TOKEN and the workflow never runs eas build or eas submit"
+      ],
+      "validation_required": [
+        "test",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "deployment"
+      ],
+      "risk_notes": [
+        "The fingerprint is computed from a clean CI checkout; a build made from a dev machine with uncommitted native-input changes (for example the old mobile/.gitignore CRLF diff noted in REQ-058) can differ for that reason alone and the diff shows it",
+        "eas update:list and the build list are capped at 10 and 50 entries",
+        "Push-trigger publishing relies on the [ota:publish] marker in the head commit message"
+      ]
     }
   ]
 }

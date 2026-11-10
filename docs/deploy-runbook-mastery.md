@@ -68,8 +68,13 @@ connection.
    editor wraps what it runs, which may break the `CALL`'s internal commits;
    use psql.)
 
-5. **Publish the app update.** `cd mobile && npx eas update --channel production`
-   (OTA). The app's `runtimeVersion` policy is `fingerprint`: if this release
+5. **Publish the app update.** Run the "EAS update (OTA)" GitHub workflow
+   (REQ-176): first with `dry_run` on, which reports per platform whether a
+   finished build on the channel has this commit's runtime fingerprint, then
+   with it off to publish to the platforms that match. By hand it is
+   `cd mobile && npx eas update --channel production --environment production`
+   with the `eas.json` build env exported first (`eas update` does not read it).
+   The app's `runtimeVersion` policy is `fingerprint`: if this release
    changed native code or native dependencies, the OTA will not reach existing
    installs and a store build is needed instead (`npx eas build`). The new app
    needs the new backend (an old backend answers 400 to every grade from it),
