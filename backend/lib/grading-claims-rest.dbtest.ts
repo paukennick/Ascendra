@@ -8,6 +8,7 @@
 process.env.AUTH_JWT_SECRET ??= "test-only-secret-claims";
 process.env.CHOICE_ORDER_SECRET ??= "choice-secret-claims";
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, before, after, describe } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -50,6 +51,7 @@ async function newUser() {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `claims-${run}-${users.length}@x.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   // Real graded lesson answers, so the unit check stays eligible when its
   // attempt recomputes the unit's mastery; then Guided, so explain-back opens.
   for (const o of objs) {

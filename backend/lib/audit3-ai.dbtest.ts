@@ -9,6 +9,7 @@ process.env.CHOICE_ORDER_SECRET ??= "test-only-choice-secret";
 // REQ-114: the fact-check gate has its own tests (lib/item-quality.dbtest.ts);
 // the fake model here answers only these features' own calls.
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -54,6 +55,7 @@ async function newUser(opts: { lesson?: boolean } = {}) {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1,$2)`, [u, `a3ai-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   if (opts.lesson) await query(`insert into lesson_progress (user_id, objective_id, step, lesson_key) values ($1,$2,'solo','k')`, [u, obj]);
   return u;
 }

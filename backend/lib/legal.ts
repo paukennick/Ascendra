@@ -1,4 +1,5 @@
 import { query, queryOne } from "@/lib/db";
+import { isLegacyClient } from "@/lib/client-version";
 
 // Which versions of the Terms of Service and Privacy Policy an account
 // accepted, how, and when. One table: legal_acceptances (migration 027,
@@ -11,16 +12,32 @@ import { query, queryOne } from "@/lib/db";
 // the meaning changes, not for a typo: every account that accepted an older
 // version is asked once, on its next launch, with one tap.
 export const LEGAL_VERSIONS = {
+  terms: "2026-11-10",
+  privacy: "2026-11-10",
+} as const;
+
+// REQ-175 / REQ-205: the generations of the text that installed builds still
+// carry. A build can only ever show the text it was built with, and no OTA is
+// possible (EXPO_TOKEN unset), so each generation can be accepted by the
+// builds that carry it, and is recorded exactly as sent -- never as the
+// current version. Which generation a request belongs to is read from its
+// headers (legalContext below):
+//   - PREVIOUS_LEGAL_VERSIONS: the version right before the current one. A
+//     build that sends X-Ascendra-Legal: <this> may accept it. When
+//     LEGAL_VERSIONS is bumped, move its old values here.
+//   - UNDECLARED_LEGAL_VERSIONS: builds that send X-Ascendra-App but not
+//     X-Ascendra-Legal (REQ-175 up to REQ-205). Frozen: never change it.
+//   - LEGACY_LEGAL_VERSIONS: builds that send neither header (before
+//     REQ-175; "legacy clients"). Frozen: never change it.
+export const PREVIOUS_LEGAL_VERSIONS = {
   terms: "2026-11-09",
   privacy: "2026-11-09",
 } as const;
-
-// REQ-175: the versions immediately before LEGAL_VERSIONS. App builds that
-// predate the X-Ascendra-App header (lib/client-version.ts, "legacy
-// clients") carry this text and send this version, so for them it can be
-// accepted and is recorded exactly as sent -- never as the current version.
-// When LEGAL_VERSIONS is bumped, move its old values here.
-export const PREVIOUS_LEGAL_VERSIONS = {
+export const UNDECLARED_LEGAL_VERSIONS = {
+  terms: "2026-11-09",
+  privacy: "2026-11-09",
+} as const;
+export const LEGACY_LEGAL_VERSIONS = {
   terms: "2026-11-07",
   privacy: "2026-11-07",
 } as const;
@@ -35,16 +52,56 @@ export const LEGAL_DOCUMENTS = Object.keys(LEGAL_VERSIONS) as LegalDocument[];
 export const CURRENT_TERMS_VERSION: string = [...Object.values(LEGAL_VERSIONS)].sort().at(-1)!;
 export const PREVIOUS_TERMS_VERSION: string = [...Object.values(PREVIOUS_LEGAL_VERSIONS)].sort().at(-1)!;
 
-// REQ-175: who is agreeing. `legacy` is true only for a request without the
-// app-version header (lib/client-version.ts isLegacyClient).
+// Request header a build sends with the legal version its text carries
+// (mobile/src/lib/legal.ts TERMS_VERSION). Added by REQ-205, because the
+// X-Ascendra-App header says nothing about which text a build shows.
+export const LEGAL_VERSION_HEADER = "X-Ascendra-Legal";
+
+// REQ-175 / REQ-205: who is agreeing. `legacy` is true only for a request
+// without the app-version header (lib/client-version.ts isLegacyClient).
+// `declared` is the X-Ascendra-Legal value; null when the header is absent.
 export interface ClientContext {
   legacy: boolean;
+  declared?: string | null;
 }
-const HEADERED: ClientContext = { legacy: false };
+// A client that shows the current text: the default, and what the current app sends.
+export const CURRENT_CLIENT: ClientContext = { legacy: false, declared: CURRENT_TERMS_VERSION };
+const HEADERED = CURRENT_CLIENT;
+
+export function legalContext(req: Request | { headers: Headers }): ClientContext {
+  return { legacy: isLegacyClient(req), declared: req.headers.get(LEGAL_VERSION_HEADER) };
+}
+
+interface Generation {
+  version: string;
+  docs: Record<LegalDocument, string>;
+}
+const single = (docs: Record<LegalDocument, string>) => [...Object.values(docs)].sort().at(-1)!;
+const gen = (docs: Record<LegalDocument, string>): Generation => ({ version: single(docs), docs: { ...docs } });
+const CURRENT_GEN = gen(LEGAL_VERSIONS);
+const PREVIOUS_GEN = gen(PREVIOUS_LEGAL_VERSIONS);
+const UNDECLARED_GEN = gen(UNDECLARED_LEGAL_VERSIONS);
+const LEGACY_GEN = gen(LEGACY_LEGAL_VERSIONS);
+
+// The generations this client may accept, newest first. Only an ABSENT
+// header widens what is accepted: a garbled or unknown X-Ascendra-Legal
+// gets the current version and nothing else, so it can never widen it.
+function acceptableGenerations(ctx: ClientContext): Generation[] {
+  const out: Generation[] = [CURRENT_GEN];
+  const declared = ctx.declared;
+  if (typeof declared === "string") {
+    if (declared === PREVIOUS_GEN.version) out.push(PREVIOUS_GEN);
+  } else if (ctx.legacy) {
+    out.push(PREVIOUS_GEN, UNDECLARED_GEN, LEGACY_GEN);
+  } else {
+    out.push(UNDECLARED_GEN);
+  }
+  return out.filter((g, i) => out.findIndex((x) => x.version === g.version) === i);
+}
 
 // The single-string versions this client may accept.
 export function acceptableTermsVersions(ctx: ClientContext = HEADERED): string[] {
-  return ctx.legacy ? [CURRENT_TERMS_VERSION, PREVIOUS_TERMS_VERSION] : [CURRENT_TERMS_VERSION];
+  return acceptableGenerations(ctx).map((g) => g.version);
 }
 
 export function isAcceptableTermsVersion(v: unknown, ctx: ClientContext = HEADERED): v is string {
@@ -53,11 +110,13 @@ export function isAcceptableTermsVersion(v: unknown, ctx: ClientContext = HEADER
 
 // The per-document versions a single-string version stands for.
 function versionsFor(version: string): Record<LegalDocument, string> {
-  return version === CURRENT_TERMS_VERSION ? { ...LEGAL_VERSIONS } : { ...PREVIOUS_LEGAL_VERSIONS };
+  const g = [CURRENT_GEN, PREVIOUS_GEN, UNDECLARED_GEN, LEGACY_GEN].find((x) => x.version === version);
+  if (!g) throw new Error(`not a known terms version: ${version}`);
+  return { ...g.docs };
 }
 
 function acceptableDocVersions(doc: LegalDocument, ctx: ClientContext): string[] {
-  return ctx.legacy ? [LEGAL_VERSIONS[doc], PREVIOUS_LEGAL_VERSIONS[doc]] : [LEGAL_VERSIONS[doc]];
+  return [...new Set(acceptableGenerations(ctx).map((g) => g.docs[doc]))];
 }
 
 export type TermsSource = "register" | "google_signup" | "prompt";
@@ -92,15 +151,15 @@ export function acceptedDocumentVersions(
 // The version a sign-up request agreed to, in either client form:
 // `acceptedTermsVersion` (REQ-119) or `termsVersion` + `privacyVersion`
 // (REQ-093). Undefined when neither was sent or either is out of date.
-// REQ-175: a legacy client's matching previous pair stands for the
-// previous single-string version.
+// REQ-175: an older build's matching pair stands for its generation's
+// single-string version.
 export function signupAcceptedVersion(body: unknown, ctx: ClientContext = HEADERED): string | undefined {
   const b = body as { acceptedTermsVersion?: unknown } | null;
   if (typeof b?.acceptedTermsVersion === "string") return b.acceptedTermsVersion;
   if (acceptsCurrentVersions(body)) return CURRENT_TERMS_VERSION;
   const docs = acceptedDocumentVersions(body, ctx);
-  if (docs && LEGAL_DOCUMENTS.every((d) => docs[d] === PREVIOUS_LEGAL_VERSIONS[d])) return PREVIOUS_TERMS_VERSION;
-  return undefined;
+  if (!docs) return undefined;
+  return acceptableGenerations(ctx).find((g) => LEGAL_DOCUMENTS.every((d) => docs[d] === g.docs[d]))?.version;
 }
 
 // Records acceptance of the given documents, at their current versions

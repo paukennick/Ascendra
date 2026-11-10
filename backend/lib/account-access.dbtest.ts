@@ -13,6 +13,7 @@
 //      pending grant applied on verification, expiry, revoke, audit rows,
 //      the export, and the CLI.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -78,6 +79,7 @@ async function newUser(opts: { email?: string; verified?: boolean; name?: string
     opts.name ?? null,
     opts.verified === false ? null : new Date(),
   ]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const emailOf = async (u: string) => (await queryOne<{ email: string }>(`select email from app_users where id = $1`, [u]))!.email;
@@ -298,11 +300,13 @@ describe("unrestricted lifts the plan gates", () => {
 
   test("not lifted: the course disclaimer acknowledgement and the chat rate limit", async () => {
     const u = await unrestrictedUser();
+    await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
     assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgement still required");
     await query(
       `insert into auth_events (event_type, identifier, user_id) select 'chat_message', $1, $2::uuid from generate_series(1, 30)`,
       [u, u]
     );
+    await recordStudyNoticeAcceptance(u); // the notice check (403) comes before the rate limit (429)
     assert.equal((await chat(u)).status, 429, "30 messages in 10 minutes is still the limit");
     assert.equal(modelCalls, 0);
   });

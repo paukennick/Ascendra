@@ -12,6 +12,7 @@
 //      category, clinical included, no payment, no upgrade prompt, capped at
 //      all-access plus the clinical add-on.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -60,6 +61,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `intake-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 const rc = (event: Record<string, unknown>) =>
@@ -336,10 +338,12 @@ describe("REQ-144 unrestricted access under category pricing", () => {
     const ownerAcct = randomUUID();
     users.push(ownerAcct);
     await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [ownerAcct, ownerEmail]);
+  await recordStudyNoticeAcceptance(ownerAcct); // REQ-205: model routes need the notice
     const u = randomUUID();
     users.push(u);
     const email = `granted-${run}@example.test`;
     await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [u, email]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
     // Granted the way the owner does it in Settings > Access.
     await json(await call(grantsPost, "/api/access/grants", ownerAcct, "POST", { email }));
     assert.equal((await queryOne(`select 1 from entitlements where user_id = $1`, [u])), null, "no payment, no plan row");

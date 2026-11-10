@@ -10305,6 +10305,448 @@
       ],
       "prevention_notes": "The dbtest starts a shared generation as a learner with held-back teaching text and with a held-back practice half, checks the stored scope and that the next learner makes no model call",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-900",
+      "date": "2026-11-09",
+      "title": "Account deletion promised nothing stays, but report notes and review-queue copies did",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The delete page and policy said nothing about you stays in the database after deletion. item_flags.user_id is on delete set null, so a deleted learner's note (up to 500 characters) stayed in the row, and content_review_queue.evidence.recentNotes held copies of up to three notes.",
+      "how_detected": "audit (2026-11-09 pre-launch audit, privacy reviewers)",
+      "root_cause": "Only the app_users cascade was relied on. item_flags and the queue keep rows without a user link, and nobody checked what text those rows hold; the queue copies the notes at detection time, so deleting the flag row alone would not have removed them.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/app/api/account/route.ts",
+        "backend/lib/report-notes.ts",
+        "backend/lib/content-review-queue.ts"
+      ],
+      "fix_summary": "DELETE /api/account now collects the learner's notes (item_flags.note and content-report bodies), removes each from every queue row's recentNotes, and clears item_flags.note in the same transaction; the policy, delete page and inventory list what stays.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::account deletion leaves no note anywhere",
+        "and AI counts are purged at 12 months (FAIL-900",
+        "FAIL-911)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-901",
+      "date": "2026-11-09",
+      "title": "The 2026-11-10 legal bump would have trapped installed builds in a loop",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "With the combined bump, an installed build that sends X-Ascendra-App and the 2026-11-09 versions was refused (400) or, if the previous version were accepted for it, never asked again after updating.",
+      "how_detected": "design review before the bump (FAIL-560 read first)",
+      "root_cause": "The server told builds apart only by the presence of X-Ascendra-App, so it could not tell an installed 2026-11-09 build (no OTA is possible, EXPO_TOKEN unset) from an updated one: accepting the old version for both would have skipped the one forced re-accept, refusing it looped the old build (the shape of FAIL-560).",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/legal.ts",
+        "backend/lib/client-version.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/proxy.ts"
+      ],
+      "fix_summary": "Builds now send X-Ascendra-Legal with the text they carry. Three generations (no header, X-Ascendra-App only, declared) each accept their own version, recorded as sent; a declaring build must accept the current one. PREVIOUS/UNDECLARED/LEGACY_LEGAL_VERSIONS added.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legacy-terms.dbtest.ts::an installed 2026-11-09 build (X-Ascendra-App",
+        "no X-Ascendra-Legal) accepts its text: no 400",
+        "no loop",
+        "recorded as sent",
+        "backend/lib/client-version.test.ts::what each kind of client may accept: legacy all",
+        "an undeclared headered build 11-09",
+        "a current build only the current"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-902",
+      "date": "2026-11-09",
+      "title": "The Privacy Policy omitted the encrypted database backups, GitHub and the in-database release backups",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A deleted account stays in nightly backups for 30 days and in backup_release_* copies for up to 37 days, and GitHub stores the backups; the policy said copies elsewhere were only the AI provider and the support inbox.",
+      "how_detected": "audit",
+      "root_cause": "REQ-200 and REQ-168 shipped the backup jobs without a policy change; nothing tied the workflows' retention to the policy text.",
+      "requirement": "REQ-205",
+      "affected": [
+        "mobile/src/content/legal.ts",
+        ".github/workflows/db-backup.yml",
+        ".github/workflows/backup-housekeeping.yml"
+      ],
+      "fix_summary": "Privacy sections 4 and 6 name GitHub, the 30-day encrypted nightly backups and the in-database copies (30 days plus the weekly clean-up: at most 37); the restore rule is stated.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.test.ts::GitHub",
+        "the 30-day encrypted backups and the in-database copies (at most 37 days)",
+        "backend/lib/legal-privacy-f4.test.ts::the release-backup period matches the housekeeping workflow"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-903",
+      "date": "2026-11-09",
+      "title": "The policy and delete page made claims the system does not keep (no crash reporting, nothing stays)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Section 2 said no crash-reporting trackers while an error tracker (Sentry) is about to be enabled; the delete page said nothing stays in the database after deletion although AI counts and unlinked reports do.",
+      "how_detected": "audit",
+      "root_cause": "Text was written once and not re-checked against lib/error-tracker.ts or the tables with on delete set null.",
+      "requirement": "REQ-205",
+      "affected": [
+        "mobile/src/content/legal.ts",
+        "backend/app/delete-account/page.tsx"
+      ],
+      "fix_summary": "Sentry is a processor (conditional on ERROR_TRACKER_DSN in the inventory); sections 5 and 6 and the delete page list exactly what is kept and for how long.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.test.ts::Sentry is a processor",
+        "and the no-crash-reporting claim is gone",
+        "backend/lib/legal-privacy-f4.test.ts::the delete page and the policy say the same kept items"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-904",
+      "date": "2026-11-09",
+      "title": "The export included sign-in events of an earlier holder of the same address",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "signInEvents matched user_id = $1 OR identifier = the account's email with no date bound, so events logged for the address before this account existed were exported to its owner.",
+      "how_detected": "audit",
+      "root_cause": "Events before sign-in carry only the address, and an address can be freed and registered again within the 90-day retention; the query treated the address as proof of identity.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "Address-matched events must have user_id null and created_at >= the account's created_at.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::sign-in events by address only since the account was created; the avatar is in the profile"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-905",
+      "date": "2026-11-09",
+      "title": "Export my data on the web gave a share sheet, not a file, and left out the profile photo",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "On a desktop browser Share.share did nothing useful; the export had no avatar although the policy lists the photo as collected.",
+      "how_detected": "audit",
+      "root_cause": "The export screen assumed a phone; the profile query selected only text columns.",
+      "requirement": "REQ-205",
+      "affected": [
+        "mobile/app/(app)/account.tsx",
+        "mobile/src/lib/accountExport.ts",
+        "backend/lib/account-export.ts"
+      ],
+      "fix_summary": "Web builds a Blob, an object URL and a clicked link; the profile section carries avatar_data_url (base64, newline-free) and the age confirmation.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/legalPrivacy.test.ts::a Blob of the JSON",
+        "an object URL",
+        "a hidden link that is clicked",
+        "then cleaned up",
+        "backend/lib/legal-privacy-f4.dbtest.ts::sign-in events by address only since the account was created; the avatar is in the profile"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-906",
+      "date": "2026-11-09",
+      "title": "No minimum-age gate although the Terms set an age",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Anyone could create an account by email or Google without confirming an age; the age in the Terms and Privacy was a placeholder.",
+      "how_detected": "audit",
+      "root_cause": "The age was an owner decision left open, and the sign-up routes had no field for it.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/lib/age-confirmation.ts",
+        "backend/supabase/migrations/070_age_confirmation.sql",
+        "mobile/app/(auth)/register.tsx",
+        "mobile/app/(auth)/login.tsx"
+      ],
+      "fix_summary": "Both sign-up paths require ageConfirmed === true (400 age_confirmation_required, nothing created), record age_confirmed_at/min on app_users, and the app asks with an accessible checkbox. No date of birth.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::email sign-up: refused without the confirmation",
+        "nothing created; recorded with it",
+        "backend/lib/legal-privacy-f4.dbtest.ts::first-time Google sign-up: 400 and nothing created without it; created and recorded with it",
+        "mobile/src/lib/legalPrivacy.test.ts::the checkbox is accessible: a checkbox role",
+        "a label",
+        "a checked state",
+        "a 44-point target"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-907",
+      "date": "2026-11-09",
+      "title": "Routes that send learner text to the model checked the study notice only for clinical courses",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Chat, grade, pbq, guess-feedback, explain-back, lab report and submit, written review answers, unit check and sim reasoning sent a learner's words to Anthropic without the notice that says so having been accepted, unless the course or lab was clinical.",
+      "how_detected": "audit",
+      "root_cause": "requireAcknowledgementFor* gated only requires_acknowledgement tracks, and lab submit skipped the notice for general labs; the notice was enforced by the app's launch gate only.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/app/api/units/[id]/check/route.ts",
+        "backend/app/api/sims/runs/[runId]/reasoning/route.ts"
+      ],
+      "fix_summary": "requireStudyNotice runs right after requireUser in each route (written answers only on grade and review); 403 study_notice_required.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::a learner who has not accepted the notice gets 403 study_notice_required before anything is sent",
+        "backend/lib/legal-privacy-f4.dbtest.ts::a multiple-choice answer",
+        "which sends no text",
+        "is not held up by the notice"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-908",
+      "date": "2026-11-09",
+      "title": "The data inventory listed about 20 of the 100 tables",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "docs/legal/data-inventory.md, the source for the policy, omitted most per-learner tables and said nothing about what survives deletion.",
+      "how_detected": "audit",
+      "root_cause": "It was written at REQ-093 and edited by hand ever since; nothing compared it with the schema.",
+      "requirement": "REQ-205",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Rebuilt from the table list with a Kept after deletion column; a DB test fails when a table with a user_id is not named.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::each table with a user_id or a key into app_users is named in docs/legal/data-inventory.md"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-909",
+      "date": "2026-11-09",
+      "title": "Legal pages and the public delete page shipped bracketed placeholders and a draft banner",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Operator, contact, governing law, minimum age and the AI-count retention rendered as [bracketed] text; every page said Draft for legal review; the delete-account page fell back to a placeholder address.",
+      "how_detected": "audit",
+      "root_cause": "Owner decisions were open; placeholders were visible on purpose, and nothing stopped them reaching a release.",
+      "requirement": "REQ-205",
+      "affected": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/components/LegalPage.tsx",
+        "backend/app/delete-account/page.tsx",
+        "backend/lib/support-contact.ts"
+      ],
+      "fix_summary": "Nick's decisions filled in; the banner and status field are gone; the contact address is one constant plus SUPPORT_EMAIL and never a placeholder; tests fail on any bracketed placeholder.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.test.ts::no bracketed placeholder is left",
+        "and no draft banner",
+        "mobile/src/lib/legalPrivacy.test.ts::no placeholder",
+        "no draft banner; Nick's decisions are filled in"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-910",
+      "date": "2026-11-09",
+      "title": "The support address had no mailbox behind it, and nothing verified inbound mail",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The policy told people to write to an address that did not exist; there was no way to receive it.",
+      "how_detected": "audit",
+      "root_cause": "The contact was a placeholder, and no inbound path existed.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/app/api/inbound/email/route.ts",
+        "backend/lib/inbound-email.ts",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Resend Inbound webhook: Svix signature, five-minute window, size cap, rate limit, fail closed without secret, key or forward address, plain-text forward to SUPPORT_FORWARD_TO, no bodies logged; runbook for Nick.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.test.ts::a correctly signed recent body verifies",
+        "backend/lib/legal-privacy-f4.test.ts::the route answers 503 without a signing secret",
+        "API key or forward address",
+        "and sends nothing",
+        "backend/lib/legal-privacy-f4.dbtest.ts::an unsigned",
+        "wrongly signed or replayed-late request sends nothing and touches no budget"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-911",
+      "date": "2026-11-09",
+      "title": "AI request counts were kept for ever, with the retention period left as a placeholder",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "ai_calls was never purged and survives deletion unlinked; the policy said the period was to be confirmed.",
+      "how_detected": "audit",
+      "root_cause": "The table was built for cost reporting with no retention job.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/retention.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "fix_summary": "RETENTION.aiCallsMonths = 12 (Nick), purged daily by purgeExpired; policy and delete page state it; a test ties the policy number to the constant.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts::account deletion leaves no note anywhere",
+        "and AI counts are purged at 12 months (FAIL-900",
+        "FAIL-911)",
+        "backend/lib/legal-privacy-f4.test.ts::the AI count retention in the text is the one the purge uses"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-912",
+      "date": "2026-11-09",
+      "title": "AI_PROVIDER=local was accepted in production",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Setting AI_PROVIDER=local in Vercel would route learners' text to a self-hosted model the policy does not name; nothing refused it.",
+      "how_detected": "audit",
+      "root_cause": "The local provider was guarded only by a comment.",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/env-check.ts",
+        "backend/instrumentation.ts"
+      ],
+      "fix_summary": "The server refuses to start in production with AI_PROVIDER=local (any case or padding).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.test.ts::refused in production",
+        "however it is written"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pre-completion checklist: Legal and privacy text (REQ-205) and the legal-version rule; DB tests tie the inventory, the retention periods and the policy to the code.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-968",
+      "date": "2026-11-10",
+      "title": "Tests from batch 10 and F3 called model routes as learners who had not accepted the study notice",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After F4 was merged, ai-access.dbtest.ts (several tests) and retired-objectives.dbtest.ts failed with 403 study_notice_required where they expected 200 or a 404/429",
+      "how_detected": "B14 merge: npm run test:db (12 failures)",
+      "root_cause": "REQ-205 makes the study notice a precondition of every route that sends learner text and updated the fixtures it knew about (30 files). Batch 10 and F3 wrote new fixtures on branches without that guard, so their users never accepted it",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/ai-access.dbtest.ts",
+        "backend/lib/retired-objectives.dbtest.ts"
+      ],
+      "fix_summary": "Both fixtures record the acceptance for their learners (recordStudyNoticeAcceptance), as F4 did for its own; the tests were updated, not weakened (FAIL-232)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-access.dbtest.ts",
+        "backend/lib/retired-objectives.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A new dbtest whose users call a model route accepts the study notice in its user helper; the study-notice route list test (legal-privacy-f4.dbtest.ts) covers the routes themselves",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-969",
+      "date": "2026-11-10",
+      "title": "The study-notice test failed when its random first lab was on a gated course",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "legal-privacy-f4.dbtest.ts, 'a learner who has not accepted the notice gets 403 study_notice_required', failed on 'lab submit' with an undefined code in about one run in five, whatever else ran before it",
+      "how_detected": "B14 merge: one failure in the full test:db run that passed on rerun; reproduced about one run in five",
+      "root_cause": "The test took the first lab by random UUID. Lab submit runs requireAcknowledgementForObjective before requireStudyNotice; on a nursing, PT or fitness course that guard answers first with the same words and no code, so the assertion on body.code failed depending on the seed's random ids. Not a leak from an earlier test: the files run in separate processes and the database is unchanged by them",
+      "requirement": "REQ-205",
+      "affected": [
+        "backend/lib/legal-privacy-f4.dbtest.ts"
+      ],
+      "fix_summary": "The test picks its lab from an ungated course; 12 reruns on a twice-seeded database all pass",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/legal-privacy-f4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A test that needs 'any row' from seeded data picks it with the property it relies on, not the first by random id",
+      "recurrence_of": ""
     }
   ]
 }

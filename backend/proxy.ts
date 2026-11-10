@@ -31,7 +31,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     // REQ-146: X-Ascendra-Client is the app protocol (lib/client-protocol.ts).
     // REQ-175: X-Ascendra-App / -Platform are the app build (lib/client-version.ts).
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Ascendra-Client, X-Ascendra-App, X-Ascendra-Platform",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Ascendra-Client, X-Ascendra-App, X-Ascendra-Platform, X-Ascendra-Legal",
     Vary: "Origin",
   };
   if (origin && allowedOrigins.includes(origin)) {

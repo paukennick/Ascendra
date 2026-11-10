@@ -329,11 +329,11 @@ describe("finding 8: pre-registration squatting", () => {
   test("the owner's sign-up sends a set-password link; following it removes the squatter's password", async () => {
     const victimEmail = `victim-${run}@gmail.test`;
     emails.push(victimEmail);
-    const r = await call(register, { body: { email: victimEmail, password: testPw("Attacker-Pw-123") }, headers: { "x-forwarded-for": "7.7.7.7" } });
+    const r = await call(register, { body: { email: victimEmail, password: testPw("Attacker-Pw-123"), ageConfirmed: true }, headers: { "x-forwarded-for": "7.7.7.7" } });
     assert.equal(r.status, 201);
     created.push((await queryOne<{ id: string }>(`select id from app_users where email=$1`, [victimEmail]))!.id);
     const squatterLink = tokenIn(lastMail(victimEmail)!.html, "verify-email");
-    const again = await call(register, { body: { email: victimEmail, password: testPw("Victim-Pw-12345") }, headers: { "x-forwarded-for": "6.6.6.6" } });
+    const again = await call(register, { body: { email: victimEmail, password: testPw("Victim-Pw-12345"), ageConfirmed: true }, headers: { "x-forwarded-for": "6.6.6.6" } });
     assert.equal(again.status, 201, "same answer as a fresh registration (no enumeration)");
     assert.match(lastMail(victimEmail)!.subject, /Finish setting up/);
     // The owner follows the FIRST mail (sent at the squatter's sign-up): it was flagged too.
@@ -347,7 +347,7 @@ describe("finding 8: pre-registration squatting", () => {
   test("an ordinary first registration still verifies without touching the password", async () => {
     const email = `plain-${run}@x.test`;
     emails.push(email);
-    assert.equal((await call(register, { body: { email, password: testPw("Plain-Pass-123") }, headers: { "x-forwarded-for": "5.5.5.1" } })).status, 201);
+    assert.equal((await call(register, { body: { email, password: testPw("Plain-Pass-123"), ageConfirmed: true }, headers: { "x-forwarded-for": "5.5.5.1" } })).status, 201);
     created.push((await queryOne<{ id: string }>(`select id from app_users where email=$1`, [email]))!.id);
     const v = await verifyEmailToken(tokenIn(lastMail(email)!.html, "verify-email"));
     assert.equal(v.setPasswordUrl, undefined);
@@ -358,7 +358,7 @@ describe("finding 8: pre-registration squatting", () => {
     const u = await mkUser({ verified: false });
     const sub = `g-${randomUUID()}`;
     __setGoogleVerifierForTest(async () => ({ providerAccountId: sub, email: u.email, emailVerified: true, name: null, issuedAt: Math.floor(Date.now() / 1000) }));
-    const r = await call(googleSignIn, { body: { idToken: "stub" } });
+    const r = await call(googleSignIn, { body: { idToken: "stub", ageConfirmed: true } });
     __setGoogleVerifierForTest(null);
     assert.equal(r.status, 200);
     const row = await queryOne<{ password_hash: string | null; email_verified_at: string | null }>(

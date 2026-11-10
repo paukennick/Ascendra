@@ -7,16 +7,21 @@ import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
 import { logEmailFailure } from "@/lib/email-errors";
-import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
-import { isLegacyClient } from "@/lib/client-version";
+import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
+import { ageConfirmationRequired, isAgeConfirmed, MINIMUM_AGE } from "@/lib/age-confirmation";
 
 export const dynamic = "force-dynamic";
 
 const TOKEN_TTL_HOURS = 24;
 const CREATED_MESSAGE = "Account created. Check your email to verify it before logging in.";
 
-// POST /api/auth/register — { email, password, displayName?, acceptedTermsVersion? }
+// POST /api/auth/register — { email, password, displayName?, acceptedTermsVersion?, ageConfirmed }
+//
+// REQ-205: ageConfirmed must be the boolean true ("I am 16 or older"), for
+// every request, whether or not the address already has an account -- so the
+// answer still tells nobody which addresses exist. It is recorded on the new
+// account.
 //
 // REQ-116 (audit 3, finding 8 and a low): every outcome answers the same
 // 201 and message, so registration no longer tells anyone which addresses
@@ -41,7 +46,7 @@ export async function POST(req: Request) {
     // the Terms and Privacy versions separately (termsVersion,
     // privacyVersion). Either, when current, records both documents.
     // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
-    const termsCtx = { legacy: isLegacyClient(req) };
+    const termsCtx = legalContext(req);
     const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");
@@ -57,6 +62,7 @@ export async function POST(req: Request) {
     if (displayName !== undefined && displayName !== null && (typeof displayName !== "string" || displayName.length > 100)) {
       return badRequest("displayName must be at most 100 characters");
     }
+    if (!isAgeConfirmed(body)) return ageConfirmationRequired();
     const ip = getClientIp(req);
 
     try {
@@ -98,9 +104,10 @@ export async function POST(req: Request) {
     // REQ-140: a new account has seen every release note so far, so "What's
     // new" never interrupts its first run.
     const userRow = await queryOne<{ id: string }>(
-      `insert into app_users (email, display_name, password_hash, whats_new_seen_id) values ($1, $2, $3, $4)
+      `insert into app_users (email, display_name, password_hash, whats_new_seen_id, age_confirmed_at, age_confirmed_min)
+       values ($1, $2, $3, $4, now(), $5)
        on conflict (email) do nothing returning id`,
-      [normalizedEmail, displayName ?? null, passwordHash, LATEST_RELEASE_NOTE_ID]
+      [normalizedEmail, displayName ?? null, passwordHash, LATEST_RELEASE_NOTE_ID, MINIMUM_AGE]
     );
     // Lost a race with another registration of the same address: answer
     // the same way as above, without mail.

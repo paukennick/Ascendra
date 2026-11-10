@@ -1,5 +1,6 @@
 import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
+import { requireStudyNotice } from "@/lib/study-notice";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -85,6 +86,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
+    // REQ-205 (FAIL-907): this route sends what the learner wrote to the model, so
+    // the study notice that says so must have been accepted -- checked here, not
+    // only in the app.
+    await requireStudyNotice(user.id);
     const objective = await taughtObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);

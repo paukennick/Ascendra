@@ -12,6 +12,7 @@
 process.env.AUTH_JWT_SECRET ??= "test-only-secret-replay";
 process.env.CHOICE_ORDER_SECRET ??= "choice-secret-replay";
 process.env.ITEM_FACT_CHECK = "off";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, before, after, describe } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -55,6 +56,7 @@ async function newUser() {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email) values ($1, $2)`, [u, `replay-${run}-${users.length}@x.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   // Every objective studied, so the unit check is open.
   for (const o of objs) {
     await recordAttemptAndUpdateMastery({ userId: u, unitId: unit, objectiveId: o, kind: "lesson", stage: "solo", format: "open", question: `q-${o}`, answer: "a", verdict: "correct" });

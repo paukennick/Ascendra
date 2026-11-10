@@ -123,7 +123,10 @@ nothing. To turn it on:
    5 minutes".
 
 What is sent: error type, message (500 chars), stack, request id, route,
-environment. Never request bodies, headers, tokens or learner ids. The
+environment. Never request bodies, headers, tokens or learner ids. Sentry is
+named as a processor in the Privacy Policy (REQ-205), which is correct once
+this is on; in Sentry set the project's data retention to what you want to
+stand behind, since the policy only says it follows Sentry's own schedule. The
 transport is a plain `fetch` to Sentry's store endpoint; replacing it with
 `@sentry/nextjs` later changes only that file. Errors a route does not catch
 reach Next's `onRequestError` hook in `instrumentation.ts`, which passes them
@@ -185,6 +188,69 @@ account says "Your email is already verified. You can log in."
 mail can use "Resend verification email" (on the "Check your email" screen,
 also shown when login answers 403), or "Forgot password": a completed reset
 now also verifies the address. Do not hand-verify accounts in production.
+
+## Support inbox (REQ-205)
+
+People are told to write to one address (the Privacy Policy, Terms and the
+delete-account page): `SUPPORT_EMAIL` if set, else `support@ascendra-learn.com`
+(`lib/support-contact.ts`, and `OWNER.contactEmail` in
+`mobile/src/content/legal.ts`; a test fails if the two differ). Nick has not
+confirmed the address. To change it: edit both constants, or set
+`SUPPORT_EMAIL` in Vercel (the pages on the web follow the variable; the
+app's text follows the constant, so edit both for a lasting change).
+
+How mail reaches Nick: Resend receives it for the domain, calls
+`POST /api/inbound/email` with an `email.received` webhook, and the route
+checks the signature, fetches the message through Resend's API and forwards it
+to `SUPPORT_FORWARD_TO` as plain text. The sender's own HTML is not passed on
+and attachments are only listed by name. The forward comes `From:`
+`EMAIL_FROM` with `Reply-To:` the original sender, so replying in Gmail answers
+the learner. Nothing from a message is written to the logs.
+
+The root domain `ascendra-learn.com` already has its MX record pointing at
+Resend (`receive.forge.rmta.net`), so receiving goes on the root domain. No
+`mail.` subdomain is needed.
+
+**One-time setup (Nick):**
+
+1. Receiving is already ON for `ascendra-learn.com` in Resend (Nick turned it
+   on 2026-11-09; Domains -> `ascendra-learn.com` -> Receiving shows it
+   verified). Nothing to do here unless it is ever turned off.
+2. Resend dashboard -> Webhooks -> Add Webhook. URL:
+   `https://<the production domain>/api/inbound/email`. Event: `email.received`
+   only. Click Add, then open the webhook and copy its **Signing Secret**
+   (`whsec_...`).
+3. In Vercel -> Project Settings -> Environment Variables (Production), set:
+   - `RESEND_WEBHOOK_SECRET` = the signing secret;
+   - `SUPPORT_FORWARD_TO` = the mailbox that should receive support mail (your
+     Gmail address). It must not be an `@ascendra-learn.com` address (that
+     would loop; the route refuses it);
+   - `RESEND_API_KEY` must already be set, and be a key that can read received
+     email (a "Full access" key; a sending-only key is refused with 401/403);
+   - optional: `SUPPORT_EMAIL` to point the delete-account page and support
+     ticket notifications at the same address.
+   Redeploy.
+4. Test: send an email to the support address from another account. It should
+   arrive in `SUPPORT_FORWARD_TO` within a minute, subject `[Support] ...`.
+   In Resend -> Webhooks -> the webhook -> Logs, the delivery should be 200.
+
+**Troubleshooting.** The route answers: 503 when `RESEND_WEBHOOK_SECRET`,
+`RESEND_API_KEY` or `SUPPORT_FORWARD_TO` is missing or the forward address is on
+the support address's domain (nothing is forwarded; the message stays in
+Resend's Emails -> Receiving tab); 401 when the signature is wrong (wrong
+secret, or the secret was rotated); 429 above 120 messages an hour; 502 when
+Resend's API or the forward failed. Resend retries 429/502/503 for a while. A
+log line `inbound email <id>: fetch failed (401)` means the API key cannot read
+received mail.
+
+**Where else mail goes.** Support tickets and course requests made in the app
+are emailed to `SUPPORT_EMAIL` (`lib/email.ts`), falling back to `EMAIL_FROM`
+when unset. If `SUPPORT_EMAIL` is the support address, those notifications also
+pass through this route.
+
+**Where received mail is kept.** Resend keeps received messages under its own
+schedule and in `SUPPORT_FORWARD_TO`'s mailbox until deleted. There is no fixed
+retention period (the Privacy Policy says so); decide one if you want one.
 
 ## Caches and their limits
 

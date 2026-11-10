@@ -47,3 +47,22 @@ export function assertNoPlaceholderSecrets(env: Record<string, string | undefine
     );
   }
 }
+
+// REQ-205 (FAIL-912): AI_PROVIDER=local sends every model request to a
+// self-hosted Ollama (lib/anthropic.ts) instead of Anthropic. It exists for
+// local iteration only. In production it would route learners' text to an
+// unmanaged host the Privacy Policy does not name, so the server refuses to
+// start with it set (any capitalisation, any padding).
+export function localProviderInProduction(env: Record<string, string | undefined> = process.env): boolean {
+  return env.NODE_ENV === "production" && (env.AI_PROVIDER ?? "").trim().toLowerCase() === "local";
+}
+
+export function assertSafeProductionConfig(env: Record<string, string | undefined> = process.env): void {
+  assertNoPlaceholderSecrets(env);
+  if (localProviderInProduction(env)) {
+    throw new Error(
+      "Refusing to start: AI_PROVIDER=local is for local development only and would send learners' text to a self-hosted model. " +
+        "Remove AI_PROVIDER from the production environment variables."
+    );
+  }
+}

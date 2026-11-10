@@ -5,6 +5,8 @@ import { useAuth } from "@/auth/AuthContext";
 import { ApiError } from "@/api/client";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 import { Text } from "react-native";
+import { ageCheckError, isAgeConfirmationRequired } from "@/lib/ageConfirmation";
+import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { colors } from "@/lib/theme";
 
 export default function Login() {
@@ -16,6 +18,11 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [biometricSubmitting, setBiometricSubmitting] = useState(false);
+  // REQ-205: a first-time Google sign-up needs "I am 16 or older". The server
+  // says so (and creates nothing); the Google sign-in is kept here and sent
+  // again with the confirmation.
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [ageOk, setAgeOk] = useState(false);
   const { clientId, request, signInAsync } = useGoogleAuthRequest();
 
   const onBiometricPress = async () => {
@@ -55,23 +62,51 @@ export default function Login() {
     }
   };
 
+  const finishGoogle = async (idToken: string, ageConfirmed: boolean) => {
+    const result = await loginWithGoogle(idToken, ageConfirmed);
+    setGoogleToken(null);
+    if (result.mfaRequired && result.challengeToken) {
+      router.push({
+        pathname: "/mfa-challenge",
+        params: {
+          challengeToken: result.challengeToken,
+          totp: result.mfaMethods?.totp ? "1" : "0",
+          email: result.mfaMethods?.email ? "1" : "0",
+        },
+      });
+    }
+  };
+
   const onGooglePress = async () => {
     setError(null);
     setGoogleSubmitting(true);
     try {
       const idToken = await signInAsync();
       if (!idToken) return;
-      const result = await loginWithGoogle(idToken);
-      if (result.mfaRequired && result.challengeToken) {
-        router.push({
-          pathname: "/mfa-challenge",
-          params: {
-            challengeToken: result.challengeToken,
-            totp: result.mfaMethods?.totp ? "1" : "0",
-            email: result.mfaMethods?.email ? "1" : "0",
-          },
-        });
+      try {
+        await finishGoogle(idToken, false);
+      } catch (err) {
+        if (!isAgeConfirmationRequired(err)) throw err;
+        setGoogleToken(idToken);
+        setAgeOk(false);
       }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  };
+
+  const onGoogleAgeContinue = async () => {
+    setError(null);
+    const ageError = ageCheckError(ageOk);
+    if (ageError || !googleToken) {
+      setError(ageError ?? "Google sign-in failed. Try again.");
+      return;
+    }
+    setGoogleSubmitting(true);
+    try {
+      await finishGoogle(googleToken, true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
     } finally {
@@ -137,6 +172,15 @@ export default function Login() {
               disabled={!request}
               onPress={onGooglePress}
             />
+            {googleToken ? (
+              <>
+                <Muted style={{ fontSize: 13 }}>
+                  This Google account doesn&apos;t have an Ascendra account yet. To create one, confirm your age.
+                </Muted>
+                <AgeCheckbox checked={ageOk} onToggle={() => setAgeOk((v) => !v)} />
+                <Button label="Create account with Google" icon="user-plus" loading={googleSubmitting} onPress={onGoogleAgeContinue} />
+              </>
+            ) : null}
             {/* REQ-119 (H5): Google sign-up used to create an account without
                 the Terms ever being shown. A new account made here records
                 this agreement (version and time). */}

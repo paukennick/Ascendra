@@ -34,3 +34,59 @@ export async function fetchFullExport(get: Get): Promise<Record<string, unknown>
   }
   return out;
 }
+
+// REQ-205 (FAIL-905): on the web, "Export my data" gave the browser's share
+// sheet (or nothing, on a desktop browser). It now downloads a JSON file: a
+// Blob, an object URL and a temporary link that is clicked. The browser
+// pieces are passed in so this can be tested without a browser.
+export interface DownloadAnchor {
+  href: string;
+  download: string;
+  style?: { display: string };
+  click(): void;
+}
+export interface DownloadEnv {
+  makeBlob(text: string, type: string): unknown;
+  createObjectURL(blob: unknown): string;
+  revokeObjectURL(url: string): void;
+  createAnchor(): DownloadAnchor;
+  append(a: DownloadAnchor): void;
+  remove(a: DownloadAnchor): void;
+  defer(fn: () => void): void;
+}
+
+export function exportFileName(now: Date = new Date()): string {
+  return `ascendra-data-export-${now.toISOString().slice(0, 10)}.json`;
+}
+
+export function downloadJson(data: unknown, fileName: string, env: DownloadEnv): void {
+  const url = env.createObjectURL(env.makeBlob(JSON.stringify(data, null, 2), "application/json"));
+  const a = env.createAnchor();
+  a.href = url;
+  a.download = fileName;
+  if (a.style) a.style.display = "none";
+  env.append(a);
+  a.click();
+  env.remove(a);
+  // Revoked a moment later: some browsers start the download after click().
+  env.defer(() => env.revokeObjectURL(url));
+}
+
+// The real browser's pieces. Only called on the web.
+export function browserDownloadEnv(): DownloadEnv {
+  const g = globalThis as unknown as {
+    Blob: new (parts: string[], o: { type: string }) => unknown;
+    URL: { createObjectURL(b: unknown): string; revokeObjectURL(u: string): void };
+    document: { createElement(t: string): DownloadAnchor; body: { appendChild(n: unknown): void; removeChild(n: unknown): void } };
+    setTimeout(fn: () => void, ms: number): unknown;
+  };
+  return {
+    makeBlob: (text, type) => new g.Blob([text], { type }),
+    createObjectURL: (b) => g.URL.createObjectURL(b),
+    revokeObjectURL: (u) => g.URL.revokeObjectURL(u),
+    createAnchor: () => g.document.createElement("a"),
+    append: (a) => g.document.body.appendChild(a),
+    remove: (a) => g.document.body.removeChild(a),
+    defer: (fn) => void g.setTimeout(fn, 1000),
+  };
+}

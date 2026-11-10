@@ -29,6 +29,7 @@ import {
 } from "@/lib/sessionStore";
 import { cancelStudyReminders } from "@/lib/reminderScheduler";
 import { TERMS_VERSION } from "@/lib/legal";
+import { ageField } from "@/lib/ageConfirmation";
 import type { AuthUser } from "@/types";
 
 // Removes one user's drafts, PBQ progress and lesson positions from the
@@ -85,11 +86,11 @@ interface AuthContextValue {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<LoginResult>;
   // REQ-119: acceptedTermsVersion is sent only by a form whose "I agree" was ticked.
-  register: (email: string, password: string, displayName?: string, acceptedTermsVersion?: string) => Promise<void>;
+  register: (email: string, password: string, displayName?: string, acceptedTermsVersion?: string, ageConfirmed?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
   completeMfaLogin: (challengeToken: string, code: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<LoginResult>;
+  loginWithGoogle: (idToken: string, ageConfirmed?: boolean) => Promise<LoginResult>;
   refreshUser: () => Promise<void>;
   // Biometric session unlock -- see src/lib/biometric.ts for what this is
   // (and isn't: Ascendra never receives raw biometric data, only a pass/fail
@@ -415,10 +416,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await applySession(res);
   }, [applySession]);
 
-  const loginWithGoogle = useCallback(async (idToken: string): Promise<LoginResult> => {
+  const loginWithGoogle = useCallback(async (idToken: string, ageConfirmed = false): Promise<LoginResult> => {
     // REQ-119: the Google button sits above "By continuing you agree to the
     // Terms and Privacy Policy"; the server records it only for a new account.
-    const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken, acceptedTermsVersion: TERMS_VERSION });
+    const res = await api.post<LoginResponse>("/api/auth/oauth/google", { idToken, acceptedTermsVersion: TERMS_VERSION, ...ageField(ageConfirmed) });
     if (res.mfaRequired) {
       return { mfaRequired: true, challengeToken: res.challengeToken, mfaMethods: res.mfaMethods };
     }
@@ -431,8 +432,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   }, []);
 
-  const register = useCallback(async (email: string, password: string, displayName?: string, acceptedTermsVersion?: string) => {
-    await api.post("/api/auth/register", { email, password, displayName, acceptedTermsVersion });
+  const register = useCallback(async (email: string, password: string, displayName?: string, acceptedTermsVersion?: string, ageConfirmed = false) => {
+    await api.post("/api/auth/register", { email, password, displayName, acceptedTermsVersion, ...ageField(ageConfirmed) });
   }, []);
 
   // A plain "Log out" ends this session but leaves the device's own

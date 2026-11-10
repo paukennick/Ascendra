@@ -2,6 +2,7 @@
 // (migration 027c) against a real Postgres. The model is replaced by a fake
 // generator, so nothing here calls Anthropic. Run with:
 //   DATABASE_URL=... PGSSLMODE=disable npm run test:db
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -91,6 +92,7 @@ const fast = { pollMs: 20, waitMs: 5000 };
 before(async () => {
   for (const [id, email] of [[userA, `regen-a-${run}@example.test`], [userB, `regen-b-${run}@example.test`]]) {
     await query(`insert into app_users (id, email) values ($1, $2)`, [id, email]);
+  await recordStudyNoticeAcceptance(id); // REQ-205: model routes need the notice
   }
   await query(
     `insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'Regen track', 'certification', $3)`,

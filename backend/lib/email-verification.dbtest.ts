@@ -154,7 +154,7 @@ const openTokens = async (id: string) =>
 
 async function signUp(prefix: string, password = testPw("Learner-Pass-191")) {
   const email = await newEmail(prefix);
-  const r = await call(register, { email, password: testPw(password) });
+  const r = await call(register, { email, password: testPw(password), ageConfirmed: true });
   assert.equal(r.status, 201);
   const id = await track(email);
   return { email, id, password, link: tokenIn(lastMail(email)!.html, "verify-email") };
@@ -273,7 +273,7 @@ describe("forgot password then reset then log in (FAIL-673)", () => {
   test("an unverified account that reset its password can't have it cleared by an old set_password link", async () => {
     const u = await signUp("reset-sp");
     // A second registration flags the account's links as set_password (REQ-116).
-    await call(register, { email: u.email, password: testPw("Someone-Else-99") });
+    await call(register, { email: u.email, password: testPw("Someone-Else-99"), ageConfirmed: true });
     const setPwLink = tokenIn(lastMail(u.email)!.html, "verify-email");
     await resetVia(u.email, "Owner-Chosen-Pw-3");
     assert.equal(paramsOf(await post(confirmVerifyEmail, setPwLink)).result, "already_verified");
@@ -286,7 +286,7 @@ describe("REQ-116 set_password (squatting) path scanner-safe (FAIL-670)", () => 
   test("scanner GET changes nothing; the owner's POST clears the squatter's password and shows the reset link", async () => {
     const squat = await signUp("squat", "Squatter-Pw-123");
     const hashBefore = (await userRow(squat.id))!.password_hash;
-    await call(register, { email: squat.email, password: testPw("Owner-Pw-12345") });
+    await call(register, { email: squat.email, password: testPw("Owner-Pw-12345"), ageConfirmed: true });
     assert.match(lastMail(squat.email)!.subject, /Finish setting up/);
     const link = tokenIn(lastMail(squat.email)!.html, "verify-email");
 
@@ -405,7 +405,7 @@ describe("Resend errors surface as EmailSendError (FAIL-674)", () => {
   test("register keeps its generic 201 and logs one structured line with no address or token", async () => {
     const email = await newEmail("fail-reg");
     failNext = { name: "validation_error", statusCode: 403 };
-    const r = await call(register, { email, password: testPw("Learner-Pass-191") });
+    const r = await call(register, { email, password: testPw("Learner-Pass-191"), ageConfirmed: true });
     await track(email);
     assert.equal(r.status, 201);
     assert.match(r.body.message, /Check your email/);

@@ -7288,6 +7288,70 @@
         "a retitled objective's generated content is regenerated on the next visit (model cost)",
         "B13 (2026-11-10): placement applies lessonServableSql (FAIL-894); shared holdback scope split from the learner charged (FAIL-967). Other lesson_content readers not audited: exam-items.ts, review-store.ts"
       ]
+    },
+    {
+      "id": "REQ-205",
+      "category": "legal",
+      "title": "Legal and privacy batch F4: owner decisions, honest retention, 16+, consent on every model route, support inbox",
+      "description": "Nick 2026-11-09. Fill the legal text (operator Nicholas Pauken, State of Washington, 16+, support address default support@ascendra-learn.com in one constant plus SUPPORT_EMAIL, AI request counts 12 months) and drop the draft banner. Disclose GitHub, the 30-day encrypted backups, the in-database backup_release copies (30 days, at most 37) and Sentry; rebuild the data inventory from the real tables with a kept-after-deletion column. One combined legal version bump to 2026-11-10 without trapping installed builds (X-Ascendra-Legal header, three client generations). A neutral I-am-16-or-older confirmation on email and first-time Google sign-up, enforced and recorded server-side (migration 070, no date of birth). Account deletion erases report notes and their review-queue copies; ai_calls purged after 12 months. Export: sign-in events scoped since account creation, the avatar, a JSON file download on web. requireStudyNotice on every route that sends learner text to the model. AI_PROVIDER=local refused in production. A signed, rate-limited Resend inbound webhook forwards support mail to SUPPORT_FORWARD_TO.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/src/content/legal.ts",
+        "mobile/src/lib/legal.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/support-contact.ts",
+        "backend/lib/age-confirmation.ts",
+        "backend/lib/report-notes.ts",
+        "backend/lib/retention.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/inbound-email.ts",
+        "backend/lib/env-check.ts",
+        "backend/app/api/account/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/delete-account/page.tsx",
+        "the learner-text POST routes",
+        "backend/supabase/migrations/070_age_confirmation.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(auth)",
+        "mobile/app/(app)/account.tsx",
+        "docs/legal/data-inventory.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "No bracketed placeholder or draft banner in any legal page; the delete-account page never falls back to a placeholder",
+        "An installed build that sends X-Ascendra-App and the 2026-11-09 versions can accept without a 400 or a loop; an updated app is asked once",
+        "Sign-up without ageConfirmed true is refused and creates nothing on both paths; the confirmation is recorded",
+        "After DELETE /api/account no item_flags note or review-queue copy remains anywhere",
+        "ai_calls older than 12 months is purged",
+        "Export sign-in events are limited to this account and include the avatar; web export downloads a JSON file",
+        "Each model route returns 403 study_notice_required until the notice is accepted",
+        "AI_PROVIDER=local stops production startup",
+        "The inbound webhook verifies the Svix signature and fails closed without secret key or forward address",
+        "The inventory names every table with a user_id"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "data_validation",
+        "security_review",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "data_model",
+        "deployment"
+      ],
+      "risk_notes": [
+        "Installed builds cannot be updated by OTA (EXPO_TOKEN unset) so they keep the 2026-11-09 text and cannot create accounts until a store release",
+        "Contact address is a proposed default Nick has not confirmed",
+        "Legal text has had no lawyer review",
+        "No retention period is set for the support inbox or for billing_events",
+        "B14 (2026-11-10): on a gated course (nursing, PT, fitness) a missing study notice is answered by requireAcknowledgementForObjective with the same words but no code field; only the other model routes send code study_notice_required. Not changed"
+      ]
     }
   ]
 }

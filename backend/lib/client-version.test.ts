@@ -15,7 +15,16 @@ import {
   storeUrlFor,
   updateRequiredBody,
 } from "./client-version";
-import { acceptableTermsVersions, CURRENT_TERMS_VERSION, PREVIOUS_TERMS_VERSION, isAcceptableTermsVersion } from "./legal";
+import {
+  acceptableTermsVersions,
+  CURRENT_TERMS_VERSION,
+  PREVIOUS_TERMS_VERSION,
+  UNDECLARED_LEGAL_VERSIONS,
+  LEGACY_LEGAL_VERSIONS,
+  LEGAL_VERSION_HEADER,
+  isAcceptableTermsVersion,
+  legalContext,
+} from "./legal";
 import { allowedOriginsFor } from "../proxy";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -48,12 +57,36 @@ test("legacy means the header is absent; an unreadable header is not legacy", ()
   });
 });
 
-test("legacy clients may accept the previous Terms version; headered clients only the current one", () => {
-  assert.deepEqual(acceptableTermsVersions({ legacy: false }), [CURRENT_TERMS_VERSION]);
-  assert.deepEqual(acceptableTermsVersions({ legacy: true }), [CURRENT_TERMS_VERSION, PREVIOUS_TERMS_VERSION]);
-  assert.equal(isAcceptableTermsVersion(PREVIOUS_TERMS_VERSION, { legacy: false }), false);
-  assert.equal(isAcceptableTermsVersion(PREVIOUS_TERMS_VERSION, { legacy: true }), true);
+// REQ-175 / REQ-205: which text a request may accept depends on its headers.
+test("what each kind of client may accept: legacy all, an undeclared headered build 11-09, a current build only the current", () => {
+  const cur = CURRENT_TERMS_VERSION;
+  const undeclared = UNDECLARED_LEGAL_VERSIONS.terms;
+  const legacyOnly = LEGACY_LEGAL_VERSIONS.terms;
+  // no X-Ascendra-App: every generation still in the field
+  assert.deepEqual(acceptableTermsVersions({ legacy: true }), [cur, PREVIOUS_TERMS_VERSION, legacyOnly].filter((v, i, a) => a.indexOf(v) === i));
+  // X-Ascendra-App without X-Ascendra-Legal (builds from REQ-175 to REQ-205)
+  assert.deepEqual(acceptableTermsVersions({ legacy: false }), [cur, undeclared]);
+  assert.equal(isAcceptableTermsVersion(undeclared, { legacy: false }), true, "no 400 loop for an installed headered build");
+  assert.equal(isAcceptableTermsVersion(legacyOnly, { legacy: false }), false);
+  // a build declaring the current text
+  assert.deepEqual(acceptableTermsVersions({ legacy: false, declared: cur }), [cur]);
+  assert.equal(isAcceptableTermsVersion(undeclared, { legacy: false, declared: cur }), false);
+  // a garbled or unknown declaration never widens what is accepted
+  for (const declared of ["garbage", "", "2020-01-01", legacyOnly]) {
+    assert.deepEqual(acceptableTermsVersions({ legacy: false, declared }), [cur], declared);
+    assert.deepEqual(acceptableTermsVersions({ legacy: true, declared }), [cur], declared);
+  }
   assert.equal(isAcceptableTermsVersion("2020-01-01", { legacy: true }), false);
+});
+
+test("legalContext reads the two headers", () => {
+  const r = (h: Record<string, string>) => new Request("http://t/x", { headers: h });
+  assert.deepEqual(legalContext(r({})), { legacy: true, declared: null });
+  assert.deepEqual(legalContext(r({ [APP_VERSION_HEADER]: "2.0.0+web" })), { legacy: false, declared: null });
+  assert.deepEqual(legalContext(r({ [APP_VERSION_HEADER]: "2.0.0+web", [LEGAL_VERSION_HEADER]: CURRENT_TERMS_VERSION })), {
+    legacy: false,
+    declared: CURRENT_TERMS_VERSION,
+  });
 });
 
 test("MIN_APP_VERSION: unset or unreadable means no minimum", () => {
@@ -88,6 +121,6 @@ test("the 426 body names the code, the minimum and only a real store link", () =
 test("proxy allows the new headers cross-origin and answers 426 before routes (static)", () => {
   assert.ok(allowedOriginsFor({}).length > 0);
   const src = readFileSync(join(__dirname, "..", "proxy.ts"), "utf8");
-  assert.match(src, /X-Ascendra-App, X-Ascendra-Platform/);
+  assert.match(src, /X-Ascendra-App, X-Ascendra-Platform, X-Ascendra-Legal/);
   assert.match(src, /status: 426/);
 });

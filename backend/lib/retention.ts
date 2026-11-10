@@ -3,7 +3,9 @@
 // both together (lib/retention.test.ts pins the numbers).
 //
 // Nothing here touches study data, chats or support requests: those are kept
-// while the account is open and removed when it is deleted.
+// while the account is open and removed when it is deleted. The one table
+// that is purged whether or not its learner still exists is ai_calls
+// (REQ-205): counts only, no text.
 import { query } from "@/lib/db";
 
 export const RETENTION = {
@@ -21,6 +23,12 @@ export const RETENTION = {
   // cancel the change and sign out every device. At 7 days the link stopped
   // working a week after the request expired.
   emailChangeDays: 30,
+  // REQ-205 (Nick, 2026-11-09): the AI request counts (ai_calls: feature,
+  // tokens, latency, ok; no text). Account deletion keeps them with user_id
+  // set null; this is how long any of them is kept. The Privacy Policy
+  // (mobile/src/content/legal.ts AI_COUNTS_MONTHS) and the delete-account
+  // page state it.
+  aiCallsMonths: 12,
 } as const;
 
 export interface PurgeResult {
@@ -54,6 +62,11 @@ export async function purgeExpired(): Promise<PurgeResult> {
   }
   await run("email_change_tokens", `delete from email_change_tokens where expires_at < now() - ($1 || ' days')::interval`, [
     String(RETENTION.emailChangeDays),
+  ]);
+  // ai_calls has an index on created_at (migration 028), so this is a range
+  // delete; each day it removes about one day of rows.
+  await run("ai_calls", `delete from ai_calls where created_at < now() - ($1 || ' months')::interval`, [
+    String(RETENTION.aiCallsMonths),
   ]);
   return out;
 }

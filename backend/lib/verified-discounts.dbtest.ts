@@ -13,6 +13,7 @@
 //      idempotent, expired codes skipped, empty pool 409, no verification 403.
 //   5. Removing verifications, the account export, and account deletion.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
+import { recordStudyNoticeAcceptance } from "./study-notice";
 import { test, describe, before, after, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -88,6 +89,7 @@ async function newUser(): Promise<string> {
   const u = randomUUID();
   users.push(u);
   await query(`insert into app_users (id, email, email_verified_at) values ($1, $2, now())`, [u, `disc-${run}-${users.length}@example.test`]);
+  await recordStudyNoticeAcceptance(u); // REQ-205: model routes need the notice
   return u;
 }
 // Start a verification through the route and follow the provider back.
