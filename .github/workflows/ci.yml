@@ -213,6 +213,46 @@ jobs:
       - run: bash scripts/rehearse-production-migration.sh
         working-directory: backend
 
+  # REQ-200: the nightly backup (db-backup.yml) and its restore drill, end to
+  # end on throwaway local databases with a throwaway age keypair: dump ->
+  # encrypt -> decrypt -> restore -> table and row counts match the manifest
+  # -> migrate --status current; plus the refusals (no secret, no recipient,
+  # a private key as recipient, a too-small dump, a wrong key, a changed file,
+  # a count mismatch). Under a minute.
+  backup-drill:
+    name: Database (nightly backup and restore drill)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17  # production runs Postgres 17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+      PGSSLMODE: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Install age and the PostgreSQL 17 client (as db-backup.yml does)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q age jq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - run: bash scripts/ci/backup-drill-test.sh
+        working-directory: backend
+
   mobile:
     name: Mobile (typecheck, audit)
     runs-on: ubuntu-latest
