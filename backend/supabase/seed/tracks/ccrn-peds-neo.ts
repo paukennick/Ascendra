@@ -337,7 +337,7 @@ const NEO_PROFESSIONAL_EXTRA: string[] = [
 export const CCRN_PEDIATRIC_TRACK: SeedTrack = {
   ...COMMON,
   code: "CCRNPEDS",
-  title: "CCRN (Pediatric) Critical Care Coach",
+  title: "Prep for the CCRN (Pediatric) Exam",
   description:
     "AACN's direct-care certification for nurses caring for acutely and critically ill children, on the test plan in force from November 2025: five clinical-judgment categories weighted as AACN weights them, plus the Synergy Model's professional caring and ethical practice.",
   credential: {
@@ -531,7 +531,7 @@ export const CCRN_PEDIATRIC_TRACK: SeedTrack = {
 export const CCRN_NEONATAL_TRACK: SeedTrack = {
   ...COMMON,
   code: "CCRNNEO",
-  title: "CCRN (Neonatal) Critical Care Coach",
+  title: "Prep for the CCRN (Neonatal) Exam",
   description:
     "AACN's direct-care certification for nurses caring for acutely and critically ill neonates, on the test plan in force from November 12, 2025: five clinical-judgment categories weighted as AACN weights them, plus the Synergy Model's professional caring and ethical practice.",
   credential: {

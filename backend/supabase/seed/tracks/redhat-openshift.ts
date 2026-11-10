@@ -44,9 +44,9 @@ const EX280_URL = "https://www.redhat.com/en/services/training/red-hat-certified
 
 export const EX188_TRACK: SeedTrack = {
   code: "EX188",
-  title: "Red Hat Certified Developer in Cloud-native Applications (EX188) Coach",
+  title: "Prep for the Red Hat® Certified Developer in Cloud-native Applications Exam",
   description:
-    "EX188: Red Hat's hands-on Podman exam. Build images from Containerfiles, manage images and registries, run and inspect containers locally, run multi-container applications with pods and Compose-style definitions, and troubleshoot containerized applications -- on RHEL 10 with Podman v5, the versions the exam is based on.",
+    "Red Hat's hands-on Podman exam. Build images from Containerfiles, manage images and registries, run and inspect containers locally, run multi-container applications with pods and Compose-style definitions, and troubleshoot containerized applications -- on RHEL 10 with Podman v5, the versions the exam is based on. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and RHEL trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and RHEL are trademarks of Red Hat, LLC, registered in the United States and other countries.",
   trackType: "certification",
   subcategorySlug: "red-hat-openshift",
   freshnessModel: "certification_aligned",
@@ -139,9 +139,9 @@ export const EX188_TRACK: SeedTrack = {
 
 export const EX280_TRACK: SeedTrack = {
   code: "EX280",
-  title: "Red Hat Certified System Administrator in OpenShift (EX280) Coach",
+  title: "Prep for the Red Hat® Certified System Administrator in OpenShift Exam",
   description:
-    "EX280: Red Hat's hands-on OpenShift administration exam on OpenShift Container Platform 4.22. Manage the cluster from the console and oc, work declaratively with manifests, Kustomize, Helm and templates, configure HTPasswd authentication and RBAC, secure routes and networking, enable developer self-service with quotas and templates, manage operators, and secure applications with service accounts, security context constraints, secrets, jobs and cron jobs.",
+    "Red Hat's hands-on OpenShift administration exam on OpenShift Container Platform 4.22. Manage the cluster from the console and oc, work declaratively with manifests, Kustomize, Helm and templates, configure HTPasswd authentication and RBAC, secure routes and networking, enable developer self-service with quotas and templates, manage operators, and secure applications with service accounts, security context constraints, secrets, jobs and cron jobs. Ascendra has no affiliation with Red Hat, LLC. The Red Hat and OpenShift trademarks are used for identification purposes only and are not intended to indicate affiliation with or approval by Red Hat. Red Hat and OpenShift are trademarks of Red Hat, LLC, registered in the United States and other countries.",
   trackType: "certification",
   subcategorySlug: "red-hat-openshift",
   freshnessModel: "certification_aligned",

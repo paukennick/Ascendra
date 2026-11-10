@@ -53,9 +53,9 @@ const CURRICULUM = "https://github.com/cncf/curriculum/blob/0a8cc08a502710a894e5
 // ---------------------------------------------------------------------------
 export const CKA_TRACK: SeedTrack = {
   code: "CKA",
-  title: "Certified Kubernetes Administrator (CKA) Coach",
+  title: "Prep for the Certified Kubernetes Administrator® (CKA) Exam",
   description:
-    "CKA: the hands-on administrator exam. Build and upgrade kubeadm clusters, run RBAC, scheduling, Services, Gateway API and Ingress, storage, and above all troubleshoot broken nodes, components and networking at the kubectl prompt under time pressure.",
+    "CKA: the hands-on administrator exam. Build and upgrade kubeadm clusters, run RBAC, scheduling, Services, Gateway API and Ingress, storage, and above all troubleshoot broken nodes, components and networking at the kubectl prompt under time pressure. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Administrator is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -168,9 +168,9 @@ export const CKA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CKAD_TRACK: SeedTrack = {
   code: "CKAD",
-  title: "Certified Kubernetes Application Developer (CKAD) Coach",
+  title: "Prep for the Certified Kubernetes Application Developer® (CKAD) Exam",
   description:
-    "CKAD: the hands-on developer exam. Design and build container images and multi-container Pods, ship them with Deployments, Helm and Kustomize, make them observable with probes and logs, configure and secure them with ConfigMaps, Secrets, SecurityContexts and quotas, and expose them with Services, Ingress and NetworkPolicies, all at the kubectl prompt.",
+    "CKAD: the hands-on developer exam. Design and build container images and multi-container Pods, ship them with Deployments, Helm and Kustomize, make them observable with probes and logs, configure and secure them with ConfigMaps, Secrets, SecurityContexts and quotas, and expose them with Services, Ingress and NetworkPolicies, all at the kubectl prompt. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Application Developer is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -279,9 +279,9 @@ export const CKAD_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const KCNA_TRACK: SeedTrack = {
   code: "KCNA",
-  title: "Kubernetes and Cloud Native Associate (KCNA) Coach",
+  title: "Prep for the Kubernetes® and Cloud Native Associate (KCNA) Exam",
   description:
-    "KCNA: the entry-level, multiple-choice credential for the Kubernetes and cloud native ecosystem. Kubernetes core objects, administration, scheduling and containers; orchestration across networking, security, troubleshooting and storage; how applications are delivered with CI/CD, GitOps and Helm; and the architecture, observability and community of cloud native computing.",
+    "KCNA: the entry-level, multiple-choice credential for the Kubernetes and cloud native ecosystem. Kubernetes core objects, administration, scheduling and containers; orchestration across networking, security, troubleshooting and storage; how applications are delivered with CI/CD, GitOps and Helm; and the architecture, observability and community of cloud native computing. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Kubernetes is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -379,9 +379,9 @@ export const KCNA_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const CKS_TRACK: SeedTrack = {
   code: "CKS",
-  title: "Certified Kubernetes Security Specialist (CKS) Coach",
+  title: "Prep for the Certified Kubernetes Security Specialist® (CKS) Exam",
   description:
-    "CKS: the hands-on security exam for people who already hold the CKA. Harden the cluster from the CIS benchmark up: RBAC and ServiceAccounts, API access, kernel hardening with AppArmor and seccomp, Pod Security Standards, sandboxed runtimes and mTLS, a verified and signed supply chain, and runtime detection, audit logs and incident investigation.",
+    "CKS: the hands-on security exam for people who already hold the CKA. Harden the cluster from the CIS benchmark up: RBAC and ServiceAccounts, API access, kernel hardening with AppArmor and seccomp, Pod Security Standards, sandboxed runtimes and mTLS, a verified and signed supply chain, and runtime detection, audit logs and incident investigation. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Certified Kubernetes Security Specialist is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -493,9 +493,9 @@ export const CKS_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const KCSA_TRACK: SeedTrack = {
   code: "KCSA",
-  title: "Kubernetes and Cloud Native Security Associate (KCSA) Coach",
+  title: "Prep for the Kubernetes® and Cloud Native Security Associate (KCSA) Exam",
   description:
-    "KCSA: the entry-level, multiple-choice security credential. The 4Cs of cloud native security, what each Kubernetes component exposes and how to lock it down, Pod Security Standards, authentication and authorization, Secrets, NetworkPolicy and audit logging, the Kubernetes threat model, platform security from supply chain to service mesh, and the compliance and threat-modelling frameworks teams work to.",
+    "KCSA: the entry-level, multiple-choice security credential. The 4Cs of cloud native security, what each Kubernetes component exposes and how to lock it down, Pod Security Standards, authentication and authorization, Secrets, NetworkPolicy and audit logging, the Kubernetes threat model, platform security from supply chain to service mesh, and the compliance and threat-modelling frameworks teams work to. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Kubernetes is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",

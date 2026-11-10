@@ -204,7 +204,7 @@ const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 // ---------------------------------------------------------------------------
 export const NCLEX_RN_TRACK: SeedTrack = {
   code: "NCLEXRN",
-  title: "NCLEX-RN Coach",
+  title: "Prep for the NCLEX-RN Exam",
   description:
     "The registered nurse licensure examination, built on the 2026 NCSBN test plan: the four Client Needs categories and their eight subcategories, weighted as the exam weights them, with clinical judgment treated as the thing being tested rather than a topic to revise.",
   trackType: "certification",
@@ -790,7 +790,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NCLEX_PN_TRACK: SeedTrack = {
   code: "NCLEXPN",
-  title: "NCLEX-PN Coach",
+  title: "Prep for the NCLEX-PN Exam",
   description:
     "The practical and vocational nurse licensure examination, built on the 2026 NCSBN test plan. Weighted as the exam weights it, and scoped as the licence is scoped -- what the PN collects, reports and contributes, rather than what the RN decides.",
   trackType: "certification",

@@ -5843,6 +5843,55 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-194",
+      "category": "content",
+      "title": "Retitle 85 exam-prep courses so no exam body's mark is used as our product name",
+      "description": "Nick (2026-11-09): rename titles that could infringe; every title must still say which exam it prepares for. Following REQ-097 (CompTIA) and REQ-174 (NREMT), the 85 '<mark> Coach' titles for AWS, Microsoft, Google Cloud, PMI, NCSBN, AACN, FSBPT, ABPTS, the Linux Foundation/CNCF, Docker, Red Hat, NASM, ACE, ACSM, NSCA and ISSA/NCCPT become 'Prep for the <official exam name> Exam'. Each body's own trademark guidelines were read on 2026-11-09 (URLs in CHANGELOG). Symbols follow the owner where its guidelines ask (PMI as pmi.org/certifications shows them; Linux Foundation registered marks; NSCA; Red Hat). A notice line is appended to descriptions where the body asks for one (Microsoft, PMI, Linux Foundation, Docker, Red Hat). Red Hat: no EX course numbers in title or description and Red Hat not the leading word. Docker: the Docker mark kept out of the title. Codes, units and objective order unchanged. Not reviewed by a lawyer.",
+      "priority": "medium",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/aws.ts",
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/tracks/pm.ts",
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/ccrn.ts",
+        "backend/supabase/seed/tracks/ccrn-peds-neo.ts",
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/tracks/cncf-ecosystem.ts",
+        "backend/supabase/seed/tracks/docker.ts",
+        "backend/supabase/seed/tracks/redhat-openshift.ts",
+        "backend/supabase/seed/tracks/fitness.ts",
+        "backend/lib/catalog-trademarks.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "No covered course is titled '<mark> Coach'; every covered title reads 'Prep for the ... Exam' and names the exam",
+        "Notice lines present where the body's guidelines ask",
+        "Track codes and unit and objective order unchanged so the seed updates rows in place",
+        "Only degree and skill courses keep a Coach title (test-enforced)"
+      ],
+      "validation_required": [
+        "backend typecheck",
+        "backend tests",
+        "mobile tests",
+        "DB tests on fresh Postgres 16 with all migrations and the seed run twice",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Not reviewed by a lawyer",
+        "Red Hat's guidelines say certification training needs a Red Hat training partnership and bar EX course numbers; the EX188 and EX280 track codes still show on the course card and in exam fields",
+        "Docker's guidelines keep the Docker mark out of program titles so the DCA title says 'Mirantis DCA' - Nick to confirm it is clear enough",
+        "NASM and ACE terms say their marks need written permission for any use; descriptive use relies on nominative fair use",
+        "Live titles change only on the next npm run seed"
+      ]
     }
   ]
 }

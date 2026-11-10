@@ -27,9 +27,9 @@ const DCA_GUIDE = "https://a.storyblok.com/f/146871/x/2001ce939c/docker-study-gu
 
 export const DCA_TRACK: SeedTrack = {
   code: "DCA",
-  title: "Docker Certified Associate (DCA) Coach",
+  title: "Prep for the Mirantis DCA Exam",
   description:
-    "DCA: Mirantis's Docker credential. Swarm orchestration and stacks, Dockerfiles, images and registries, engine installation and configuration, container networking, engine and swarm security with content trust, and storage and volumes -- plus the Kubernetes basics the 2025 study guide added.",
+    "DCA: Mirantis's Docker credential. Swarm orchestration and stacks, Dockerfiles, images and registries, engine installation and configuration, container networking, engine and swarm security with content trust, and storage and volumes -- plus the Kubernetes basics the 2025 study guide added. Independently developed exam prep; not affiliated with or endorsed by Docker, Inc. or Mirantis. Docker is a trademark or registered trademark of Docker, Inc. in the United States and/or other countries.",
   trackType: "certification",
   subcategorySlug: "container-tooling",
   freshnessModel: "certification_aligned",

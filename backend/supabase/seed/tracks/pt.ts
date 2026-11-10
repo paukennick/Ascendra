@@ -223,7 +223,7 @@ const PT_DISCLAIMER_KEY = "pt-clinical-content";
 // ---------------------------------------------------------------------------
 export const NPTE_PT_TRACK: SeedTrack = {
   code: "NPTEPT",
-  title: "NPTE-PT Coach",
+  title: "Prep for the NPTE-PT Exam",
   description:
     "The physical therapist licensure examination, built on FSBPT's current NPTE-PT Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
   trackType: "certification",
@@ -478,7 +478,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NPTE_PTA_TRACK: SeedTrack = {
   code: "NPTEPTA",
-  title: "NPTE-PTA Coach",
+  title: "Prep for the NPTE-PTA Exam",
   description:
     "The physical therapist assistant licensure examination, built on FSBPT's current NPTE-PTA Test Content Outline: 14 body-system and non-system domains, weighted by the exam's own published item-count ranges.",
   trackType: "certification",
