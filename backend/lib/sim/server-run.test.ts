@@ -223,3 +223,19 @@ describe("results and grading context", () => {
     assert.doesNotMatch(board, /Monitor:/);
   });
 });
+
+describe("the board's topology bindings (REQ-190)", () => {
+  test("the TicketBurst board declares its zones, and a bad binding is a validation error", async () => {
+    const { validateScenario } = await import("./engine/v1/index.ts");
+    const doc = structuredClone(ticketburst.doc);
+    assert.ok(doc.screen.board && doc.screen.board.zones.length >= 8);
+    assert.deepEqual(validateScenario(doc), []);
+    doc.screen.board!.zones[0].items[0].when = "noSuchState";
+    doc.screen.board!.zones[1].items[0].label = "{alsoMissing}";
+    doc.screen.board!.zones.push({ ...doc.screen.board!.zones[2] });
+    const problems = validateScenario(doc).join("\n");
+    assert.match(problems, /screen\.board\.zones\[0\]\.items\[0\]\.when/);
+    assert.match(problems, /screen\.board\.zones\[1\]\.items\[0\]\.label/);
+    assert.match(problems, /duplicate zone id/);
+  });
+});

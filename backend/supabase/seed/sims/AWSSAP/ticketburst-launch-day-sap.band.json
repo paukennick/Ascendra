@@ -2695,6 +2695,238 @@
         }
       },
       "modelReasoning": "Inside us-east-1 every tier has a copy in two AZs, so the design survives whichever AZ fails. For the Region, a warm standby in us-west-2 with Route 53 health-checked failover takes traffic in about three minutes while it scales; an Aurora Global Database (or DynamoDB global tables) keeps the data within a second, so RPO 1 minute and RTO 10 minutes hold. Separate accounts under AWS Organizations with SCP guardrails stop a leaked deployment key from deleting backups or stopping CloudTrail, and a compliance-locked vault in the backup account keeps copies no one can delete. DMS with change data capture turns the order-history migration into a short read-only cutover. A pilot light is cheaper but needs tens of minutes; backup and restore needs hours and loses up to an hour of orders."
+    },
+    "screen": {
+      "board": {
+        "zones": [
+          {
+            "id": "edge",
+            "label": "Edge",
+            "spokenLabel": "Edge services",
+            "items": [
+              {
+                "label": "CloudFront",
+                "when": "cf"
+              },
+              {
+                "label": "Route 53",
+                "when": "r53"
+              },
+              {
+                "label": "AWS WAF",
+                "when": "waf"
+              }
+            ]
+          },
+          {
+            "id": "pubA",
+            "label": "Public subnet, AZ a",
+            "spokenLabel": "Public subnet in availability zone A",
+            "items": [
+              {
+                "label": "Application Load Balancer node",
+                "when": "alb"
+              },
+              {
+                "label": "NAT gateway",
+                "when": "natA"
+              }
+            ]
+          },
+          {
+            "id": "pubB",
+            "label": "Public subnet, AZ b",
+            "spokenLabel": "Public subnet in availability zone B",
+            "items": [
+              {
+                "label": "Application Load Balancer node",
+                "when": "alb"
+              },
+              {
+                "label": "NAT gateway",
+                "when": "natB"
+              }
+            ]
+          },
+          {
+            "id": "appA",
+            "label": "App subnet, AZ a",
+            "spokenLabel": "Application subnet in availability zone A",
+            "items": [
+              {
+                "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+                "when": "compute == \"asg\" and asgA"
+              },
+              {
+                "label": "EC2 instance (m6i.xlarge)",
+                "when": "compute == \"ec2\" and ec2A"
+              }
+            ]
+          },
+          {
+            "id": "appB",
+            "label": "App subnet, AZ b",
+            "spokenLabel": "Application subnet in availability zone B",
+            "items": [
+              {
+                "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+                "when": "compute == \"asg\" and asgB"
+              },
+              {
+                "label": "EC2 instance (m6i.xlarge)",
+                "when": "compute == \"ec2\" and ec2B"
+              }
+            ]
+          },
+          {
+            "id": "dataA",
+            "label": "Data subnet, AZ a",
+            "spokenLabel": "Data subnet in availability zone A",
+            "items": [
+              {
+                "label": "RDS MySQL Single-AZ",
+                "when": "db == \"rdsSingle\" and dbAz == \"a\""
+              },
+              {
+                "label": "RDS MySQL Multi-AZ primary",
+                "when": "db == \"rdsMulti\" and dbAz == \"a\""
+              },
+              {
+                "label": "RDS MySQL Multi-AZ standby",
+                "when": "db == \"rdsMulti\" and dbAz == \"b\""
+              },
+              {
+                "label": "Aurora MySQL writer",
+                "when": "db == \"aurora\" and dbAz == \"a\""
+              },
+              {
+                "label": "Aurora MySQL replica",
+                "when": "db == \"aurora\" and dbAz == \"b\""
+              },
+              {
+                "label": "ElastiCache Redis primary",
+                "when": "cache and cacheAz == \"a\""
+              },
+              {
+                "label": "ElastiCache Redis replica",
+                "when": "cache and cacheAz == \"b\""
+              }
+            ]
+          },
+          {
+            "id": "dataB",
+            "label": "Data subnet, AZ b",
+            "spokenLabel": "Data subnet in availability zone B",
+            "items": [
+              {
+                "label": "RDS MySQL Single-AZ",
+                "when": "db == \"rdsSingle\" and dbAz == \"b\""
+              },
+              {
+                "label": "RDS MySQL Multi-AZ primary",
+                "when": "db == \"rdsMulti\" and dbAz == \"b\""
+              },
+              {
+                "label": "RDS MySQL Multi-AZ standby",
+                "when": "db == \"rdsMulti\" and dbAz == \"a\""
+              },
+              {
+                "label": "Aurora MySQL writer",
+                "when": "db == \"aurora\" and dbAz == \"b\""
+              },
+              {
+                "label": "Aurora MySQL replica",
+                "when": "db == \"aurora\" and dbAz == \"a\""
+              },
+              {
+                "label": "ElastiCache Redis primary",
+                "when": "cache and cacheAz == \"b\""
+              },
+              {
+                "label": "ElastiCache Redis replica",
+                "when": "cache and cacheAz == \"a\""
+              }
+            ]
+          },
+          {
+            "id": "regional",
+            "label": "Regional (us-east-1)",
+            "spokenLabel": "Regional services in us-east-1",
+            "items": [
+              {
+                "label": "Lambda + API Gateway",
+                "when": "compute == \"lambda\""
+              },
+              {
+                "label": "DynamoDB on-demand",
+                "when": "db == \"dynamo\""
+              },
+              {
+                "label": "SQS queue",
+                "when": "sqs"
+              },
+              {
+                "label": "S3 bucket",
+                "when": "s3"
+              },
+              {
+                "label": "Automated backups + PITR",
+                "when": "backup"
+              },
+              {
+                "label": "Aurora Global Database",
+                "when": "db == \"aurora\" and dbGlobal"
+              },
+              {
+                "label": "DynamoDB global tables",
+                "when": "db == \"dynamo\" and dbGlobal"
+              },
+              {
+                "label": "AWS DMS (full load + CDC)",
+                "when": "dms"
+              }
+            ]
+          },
+          {
+            "id": "region2",
+            "label": "Second Region (us-west-2)",
+            "spokenLabel": "Second Region, us-west-2",
+            "items": [
+              {
+                "label": "Warm standby (ALB, ASG min 2, NAT per AZ)",
+                "when": "drMode == \"warm\""
+              },
+              {
+                "label": "Pilot light (AMIs and IaC)",
+                "when": "drMode == \"pilot\""
+              },
+              {
+                "label": "Aurora Global secondary",
+                "when": "db == \"aurora\" and dbGlobal"
+              },
+              {
+                "label": "DynamoDB global table replica",
+                "when": "db == \"dynamo\" and dbGlobal"
+              }
+            ]
+          },
+          {
+            "id": "org",
+            "label": "Organization",
+            "spokenLabel": "AWS Organization and accounts",
+            "items": [
+              {
+                "label": "Organizations + Control Tower guardrails",
+                "when": "org"
+              },
+              {
+                "label": "Locked backup vault (backup account, us-west-2)",
+                "when": "vault"
+              }
+            ]
+          }
+        ]
+      }
     }
   }
 }

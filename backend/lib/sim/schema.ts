@@ -177,6 +177,12 @@ export const screenSpecSchema = z.object({
       banner: z.array(z.object({ when: expr, text: template })).optional(),
     })
     .optional(),
+  board: z
+    .object({
+      zones: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), items: z.array(z.object({ label: template, when: expr })) })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
 });
 
 const criterionScoreSchema = z.enum(["met", "partial", "missed"]);

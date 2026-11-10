@@ -8,7 +8,204 @@
   "title": "TicketBurst launch day",
   "screen": {
     "type": "board",
-    "level": 3
+    "level": 3,
+    "board": {
+      "zones": [
+        {
+          "id": "edge",
+          "label": "Edge",
+          "spokenLabel": "Edge services",
+          "items": [
+            {
+              "label": "CloudFront",
+              "when": "cf"
+            },
+            {
+              "label": "Route 53",
+              "when": "r53"
+            },
+            {
+              "label": "AWS WAF",
+              "when": "waf"
+            }
+          ]
+        },
+        {
+          "id": "pubA",
+          "label": "Public subnet, AZ a",
+          "spokenLabel": "Public subnet in availability zone A",
+          "items": [
+            {
+              "label": "Application Load Balancer node",
+              "when": "alb"
+            },
+            {
+              "label": "NAT gateway",
+              "when": "natA"
+            }
+          ]
+        },
+        {
+          "id": "pubB",
+          "label": "Public subnet, AZ b",
+          "spokenLabel": "Public subnet in availability zone B",
+          "items": [
+            {
+              "label": "Application Load Balancer node",
+              "when": "alb"
+            },
+            {
+              "label": "NAT gateway",
+              "when": "natB"
+            }
+          ]
+        },
+        {
+          "id": "appA",
+          "label": "App subnet, AZ a",
+          "spokenLabel": "Application subnet in availability zone A",
+          "items": [
+            {
+              "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+              "when": "compute == \"asg\" and asgA"
+            },
+            {
+              "label": "EC2 instance (m6i.xlarge)",
+              "when": "compute == \"ec2\" and ec2A"
+            }
+          ]
+        },
+        {
+          "id": "appB",
+          "label": "App subnet, AZ b",
+          "spokenLabel": "Application subnet in availability zone B",
+          "items": [
+            {
+              "label": "Auto Scaling group ({asgSize}, min {asgMin|int}, max {asgMax|int})",
+              "when": "compute == \"asg\" and asgB"
+            },
+            {
+              "label": "EC2 instance (m6i.xlarge)",
+              "when": "compute == \"ec2\" and ec2B"
+            }
+          ]
+        },
+        {
+          "id": "dataA",
+          "label": "Data subnet, AZ a",
+          "spokenLabel": "Data subnet in availability zone A",
+          "items": [
+            {
+              "label": "RDS MySQL Single-AZ",
+              "when": "db == \"rdsSingle\" and dbAz == \"a\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ primary",
+              "when": "db == \"rdsMulti\" and dbAz == \"a\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ standby",
+              "when": "db == \"rdsMulti\" and dbAz == \"b\""
+            },
+            {
+              "label": "Aurora MySQL writer",
+              "when": "db == \"aurora\" and dbAz == \"a\""
+            },
+            {
+              "label": "Aurora MySQL replica",
+              "when": "db == \"aurora\" and dbAz == \"b\""
+            },
+            {
+              "label": "ElastiCache Redis primary",
+              "when": "cache and cacheAz == \"a\""
+            },
+            {
+              "label": "ElastiCache Redis replica",
+              "when": "cache and cacheAz == \"b\""
+            }
+          ]
+        },
+        {
+          "id": "dataB",
+          "label": "Data subnet, AZ b",
+          "spokenLabel": "Data subnet in availability zone B",
+          "items": [
+            {
+              "label": "RDS MySQL Single-AZ",
+              "when": "db == \"rdsSingle\" and dbAz == \"b\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ primary",
+              "when": "db == \"rdsMulti\" and dbAz == \"b\""
+            },
+            {
+              "label": "RDS MySQL Multi-AZ standby",
+              "when": "db == \"rdsMulti\" and dbAz == \"a\""
+            },
+            {
+              "label": "Aurora MySQL writer",
+              "when": "db == \"aurora\" and dbAz == \"b\""
+            },
+            {
+              "label": "Aurora MySQL replica",
+              "when": "db == \"aurora\" and dbAz == \"a\""
+            },
+            {
+              "label": "ElastiCache Redis primary",
+              "when": "cache and cacheAz == \"b\""
+            },
+            {
+              "label": "ElastiCache Redis replica",
+              "when": "cache and cacheAz == \"a\""
+            }
+          ]
+        },
+        {
+          "id": "regional",
+          "label": "Regional (us-east-1)",
+          "spokenLabel": "Regional services in us-east-1",
+          "items": [
+            {
+              "label": "Lambda + API Gateway",
+              "when": "compute == \"lambda\""
+            },
+            {
+              "label": "DynamoDB on-demand",
+              "when": "db == \"dynamo\""
+            },
+            {
+              "label": "SQS queue",
+              "when": "sqs"
+            },
+            {
+              "label": "S3 bucket",
+              "when": "s3"
+            },
+            {
+              "label": "Automated backups + PITR",
+              "when": "backup"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "cost",
+          "label": "Monthly cost",
+          "value": "{cost|usd}"
+        },
+        {
+          "id": "budget",
+          "label": "Budget",
+          "value": "{budget|usd}"
+        },
+        {
+          "id": "avail",
+          "label": "Availability today",
+          "value": "{avail|3dp}%"
+        }
+      ]
+    }
   },
   "objective": "Designing out single points of failure",
   "secondaryObjectives": [

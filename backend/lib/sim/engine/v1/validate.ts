@@ -1260,6 +1260,26 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       checkTemplate(b.text, root, WHERE_TICK, `screen.bedside.banner[${i}].text`, info, col);
     });
   }
+  // REQ-190: the board's topology bindings, checked like tile bindings.
+  if (s.board) {
+    const zoneIds = new Set<string>();
+    s.board.zones.forEach((z, i) => {
+      const path = `screen.board.zones[${i}]`;
+      if (zoneIds.has(z.id)) col.error(path, `duplicate zone id ${z.id}`);
+      zoneIds.add(z.id);
+      if (!z.spokenLabel) col.error(path, "needs a spokenLabel");
+      z.items.forEach((it, j) => {
+        checkOne(it.when, root, WHERE_TICK, `${path}.items[${j}].when`, info, col, "bool");
+        checkTemplate(it.label, root, WHERE_TICK, `${path}.items[${j}].label`, info, col);
+      });
+    });
+    const meterIds = new Set<string>();
+    (s.board.meters ?? []).forEach((m, i) => {
+      if (meterIds.has(m.id)) col.error(`screen.board.meters[${i}]`, `duplicate meter id ${m.id}`);
+      meterIds.add(m.id);
+      checkTemplate(m.value, root, WHERE_TICK, `screen.board.meters[${i}].value`, info, col);
+    });
+  }
 }
 
 // ---- interval arithmetic for the longest-skip bound (4.3) ----

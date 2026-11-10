@@ -7634,6 +7634,30 @@
       ],
       "prevention_notes": "Pre-completion checklist: bumping a legal or protocol version moves the old value to PREVIOUS_LEGAL_VERSIONS and is checked against the installed builds (legacy clients without X-Ascendra-App); a version gate never returns a raw validation string to the app",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-650",
+      "date": "2026-11-09",
+      "title": "Seeded sim documents named objectives that are not in their course catalogs",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed failed: sims: CCRNADULT has 0 active objectives titled 'Cardiac tamponade: recognising it in the post-operative patient and escalating to the surgeon'; the TicketBurst base also named three secondary objectives that are not AWSSAA titles",
+      "how_detected": "first seed of migration 062 on a fresh Postgres 16",
+      "root_cause": "Phase 1a ported the prototypes as engine-only documents and never seeded them, so nothing resolved a document's objective title against the catalog; the titles were written from the prototypes, not copied from the course",
+      "requirement": "REQ-190",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "backend/supabase/seed/sims/AWSSAA/ticketburst-launch-day.sim.json"
+      ],
+      "fix_summary": "Pointed tamponade at 'Care of the patient after cardiac surgery' (tamponade and hemodynamic monitoring as secondary) and the TicketBurst secondary objectives at AWSSAA titles; the seed refuses a title that does not match exactly one active objective",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/objectives.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every seeded sim document's objective and secondary objectives must be exact catalog titles; objectives.test.ts checks this without a database",
+      "recurrence_of": ""
     }
   ]
 }

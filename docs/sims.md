@@ -1,7 +1,9 @@
 # Sim labs (REQ-141): engine design, Phase 1
 
 **Status: design, revised after an independent architecture review
-(2026-11-07). Nothing in this document is built yet.** It is the plan for
+(2026-11-07). Phase 1a (the engine, three documents, bands and the code
+module) is built; Phase 1b's server and the first app screen are built in
+REQ-190 (section 22 says what was built and what is left).** It is the plan for
 Ascendra's interactive simulations ("sim labs"), written to be reviewed
 before any code. Nick's decisions are in section 19; section 21 maps every
 review finding to the change that resolves it.
@@ -39,6 +41,7 @@ engine and the practice-lab acknowledgement).
 19. Decisions
 20. Sims for every subject family
 21. Review resolution
+22. Phase 1b as built (REQ-190)
 
 ---
 
@@ -1768,7 +1771,8 @@ renderers and sees "Update the app".
 ## 6. Persistence
 
 Migration `<NNN>_sim_engine.sql`, numbered **the next free number at
-implementation time (currently 057)**: 055 is taken by PR #44
+implementation time** (built as `062_sim_engine.sql`, the number reserved
+for the sim engine; section 22 lists what it holds): 055 is taken by PR #44
 (`055_content_review_queue.sql`, REQ-142/143) and 056 by the
 unrestricted-access PR. No number is fixed in this design; below, "the
 sim migration" means that file. Additive only; follows 050's conventions
@@ -2031,7 +2035,14 @@ interface ScreenSpec {
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
   };
-  // board, dashboard, trainer, session, security, terminal, data: later phases (20)
+  // REQ-190: the architecture board's topology. Each zone lists the items
+  // whose `when` holds; meters are short read-outs. Display-only, validated
+  // like tile bindings (bool `when`, templates over tick-scope names).
+  board?: {
+    zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // dashboard, trainer, session, security, terminal, data: later phases (20)
 }
 ```
 
@@ -2385,7 +2396,8 @@ app reads it from the course payload. An open run's journal is kept on the
 device while sims are off (5.9).
 
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
-(default `bedside`). A renderer can be launched, or pulled after a bad
+(default `bedside,board` since REQ-190, because the first flagship is the
+TicketBurst board, 19.4 item 1). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3066,6 +3078,14 @@ rules below followed. Nick approved all of them.
   is called within 2 minutes (opening takes 5 minutes with the tray at the
   bedside, 10 without), which keeps "open within about 5 minutes" (STS 2017)
   reachable only with preparation.
+- **Phase 1b (section 22).** The tamponade sim counts toward "Care of the
+  patient after cardiac surgery" (the document's own objective title is not
+  in the CCRN catalog); `SIMS_RENDERERS` defaults to `bedside,board` so the
+  TicketBurst flagship is not off by default; the board's topology is a
+  declared `screen.board` binding (display-only) rather than renderer code;
+  sims have their own `sims` feature key (11.2); the start route returns
+  every accepted command and the app replays from tick 0 instead of a
+  checkpoint; the run starts with the clock paused until the learner runs it.
 
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
@@ -3274,3 +3294,86 @@ at implementation time (currently 057), and 050's `kind::text` lesson
 applies to it (6, 6.1, 9.5, 17). Per-sim learner signals plug into #44's
 `content_review_queue` through a `sim` entry in `ATTEMPT_SOURCES` in
 `lib/content-review-queue.ts`, which the signals job reads (6, 9.5, 17).
+
+## 22. Phase 1b as built (REQ-190)
+
+Nick ordered the app screen to ship with the code module (19.4 item 2), so
+REQ-190 builds Phase 1b's server and the first version of the Phase 1c
+screen together, for the tamponade case (CCRN, with the code module) and the
+TicketBurst launch day (SAA base and SAP band). `SIMS_ENABLED` stays off by
+default; with it off nothing here is visible.
+
+**Migration 062** (`backend/supabase/migrations/062_sim_engine.sql`):
+`sims`, `sim_versions`, `sim_reviews`, `sim_runs`, `sim_run_commands`,
+`sim_run_reasoning`; attempt kind `simtask` with `attempts.sim_id` (no
+foreign key) and `attempts_simtask_shape` comparing `kind::text`; the
+`sim_run` assessment type (family `simulation`, weight 1.5, application
+level, not unit-wide); RLS on every new table. Idempotent (a dbtest applies
+it a second time); rollback notes in its header and rows in
+`docs/deploy-runbook-integration.md`. The schema probe in
+`lib/schema-status.ts` checks the tables, the column, the enum value, the
+type and the check.
+
+**Routes** (`app/api/sims/**`, thin over `lib/sims.ts`; every one 404
+`sims_disabled` while the switch is off):
+
+| Route | What it does |
+|---|---|
+| `GET /api/sims?trackId=` / `unitId` / `objectiveId` | The list: state, last rating, access (full / sample / locked), `runnable`. No review status (19.4 item 5). |
+| `GET /api/sims/:id` | Brief, access, the open run, the latest finished run. |
+| `POST /api/sims/:id/runs { restart?, deviceId?, cachedHash? }` | Start or resume; takes the lease (epoch + 1). Returns the run (seed, epoch), the client document unless the cached hash matches, and **every accepted command** (the app replays from tick 0). 409 `app_update_required` when the app cannot run the served version. |
+| `POST /api/sims/runs/:runId/commands { leaseEpoch, commands[], tick?, stateHash? }` | The step route. Idempotent by seq (a changed resend is 409 `seq_conflict`), 409 `lease_lost`, `seq_gap`, `too_fast` (speed bound), 429 `sync_too_fast` (a heartbeat within 2 s), 413 `replay_budget`. Replays from the run's checkpoint; an illegal command is refused with its seq and the legal prefix is kept; a new checkpoint (Pre(k) at a command boundary, at least 300 ticks on) is stored; a client hash that differs from the server's at the same tick counts a desync. |
+| `POST /api/sims/runs/:runId/skip { leaseEpoch, seq, tick, timer?, instance? }` | Skip to a pending wait (the named one, else the soonest). The server builds the skip command to its own due tick, stores it and returns it; the app applies that command. |
+| `POST /api/sims/runs/:runId/reasoning { momentId, openedSeq, openedTick, answer, clientAttemptId }` | Grades one written-reasoning moment (10): only where the server's replay shows the moment open at `openedTick` with `openedSeq` the last command (else 409 `replay_behind`); replay by client id; one grade per moment; the lab grader, claim, rate limit and allowance; `grader_failed` after three failed model calls. |
+| `POST /api/sims/runs/:runId/finish { leaseEpoch, tick? }` | The submit route. Replays from tick 0 (advancing real time to `tick` when the ending came with no command), refuses 409 `not_ended`, scores, and records one `simtask` attempt for a terminal ending with the rating as verdict. A learner quit records nothing and marks the run abandoned. Idempotent. |
+| `GET /api/sims/runs/:runId/debrief` | The stored debrief. |
+
+The app sends its capabilities as `x-sim-caps:
+protocol=1;engine=1.0;renderers=bedside@3,board@3`. Access uses the `sims`
+feature key (Pro; one sample per course on Free and Plus). A clinical or
+fitness sim needs the study notice on every run route.
+
+**The app** (`mobile/app/(app)/course/[trackId]/sims.tsx` and
+`sim/[simId].tsx`, `mobile/src/sim/`): vitals tiles (bedside), the
+architecture topology from `screen.board` (8.2), waits as "Skip to" or
+"Advance to" buttons, the action groups with their parameter sheets
+(choices, forms, slot placement, typed commands), decision cards and the
+written-reasoning box (both stop the clock), the event log, and the
+debrief. The pure parts are tested under `node --test`
+(`src/sim/runtime/`): the frame clock (5.4), the announcement policy
+(13.2), the view model, the local session and the tap pad.
+
+**Compressions.** The tap pad measures the rate and the longest pause from
+tap timestamps on the app's monotonic clock and sends `cpr <rate> <pause>`
+as integers every 15 s while tapping and when the learner stops (19.4 item
+3). The non-tap alternative is the module's paced form, offered beside the
+pad and named on the pad when a screen reader is on; the run records which
+mode was used, so the two are scored and reported apart (4.8).
+
+**Objectives.** The seed resolves a document's objective by exact title in
+its course. The tamponade document's title was not in the CCRN catalog, so
+it now names "Care of the patient after cardiac surgery" (the case is a
+post-CABG tamponade managed by re-exploration, with the cardiac-surgery
+arrest protocol), with the CCRN tamponade and hemodynamic-monitoring
+objectives as secondary. The TicketBurst base's three secondary objectives
+now name AWSSAA catalog titles. `lib/sim/objectives.test.ts` pins this.
+
+**Not built yet** (what is left of Phase 1b and 1c):
+
+- `GET /api/sims/runs/:runId` and `POST .../lease` (resume and takeover go
+  through the start route, which takes the lease), and the
+  acknowledgement route (the study notice replaced it, REQ-165).
+- The `sim` item kind (Report a problem on a sim, voiding through
+  `confirmItemWrong`), `item-quality.ts`, `coach-guard.ts` and
+  `item-report.ts` cases, the `ATTEMPT_SOURCES` entry, the
+  `sim_version_daily` view, the stale-sources report, and the review CLI.
+- Offline play measurement beyond `offline_ticks`, the per-minute command
+  cap (a heartbeat is limited to one per 2 s; commands are limited per
+  request and per run), and the observability counters.
+- In the app: the write-ahead journal in device storage and the sweep
+  (`localDataOwner`), the protected `/sim` route for updates, the web idle
+  auto-pause, keep-awake, waveforms, the cached client document across app
+  launches, and the manual accessibility pass on devices (VoiceOver,
+  TalkBack, web at 400 px, 200% text). The run starts paused, leaving the
+  app pauses it, and a frame gap over 3 s pauses it.
+

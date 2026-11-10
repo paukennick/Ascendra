@@ -254,6 +254,15 @@ export interface ScreenSpec {
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
   };
+  // REQ-190: the architecture board's topology, display-only like the
+  // bedside tiles. Each zone (an edge, a subnet per AZ, a Region, an
+  // account) lists the items whose `when` holds on the current state;
+  // meters are short read-outs (cost, availability). The renderer evaluates
+  // the bindings; it never holds a rule of its own (docs/sims.md 3, 8.2).
+  board?: {
+    zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
 
 export type CriterionScore = "met" | "partial" | "missed";
