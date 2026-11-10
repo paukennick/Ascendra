@@ -145,7 +145,7 @@ export function orderingForCheck(steps: string[]): { options: string[]; expected
 export interface CheckMeta {
   ctx?: CoachContext;
   userId?: string | null;
-  purpose?: "fact_check" | "item_recheck" | "eval_factcheck";
+  purpose?: "fact_check" | "item_recheck" | "eval_factcheck" | "pregen_fact_check";
 }
 export type FactChecker = (items: CheckItem[], meta: CheckMeta) => Promise<CheckVerdict[]>;
 
@@ -185,7 +185,7 @@ export function makeModelFactChecker(variant?: Partial<CheckerVariant>): FactChe
       effort: variant?.effort ?? "medium",
       thinking: variant?.thinking ?? "default",
       purpose: meta.purpose ?? "fact_check",
-      userId: meta.userId ?? undefined,
+      userId: meta.userId ?? null,
     });
     return judgeFactCheck(items, out);
   };

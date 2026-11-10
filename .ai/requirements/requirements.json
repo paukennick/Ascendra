@@ -7124,6 +7124,94 @@
         "The 60 s per-instance cache lets spend pass the ceiling by about a minute of traffic",
         "granted left on after billing launch limits paying learners (health warning)"
       ]
+    },
+    {
+      "id": "REQ-202",
+      "category": "security",
+      "title": "AI spend gate: no account can make the server spend outside a cap",
+      "description": "Nick 2026-11-09 (pre-launch audit batch F1; the Anthropic credit is $218). One spend gate inside the shared model-call layer (lib/ai-calls.ts loggedCall, reached by callClaude and callClaudeStructured; lib/ai-spend-gate.ts, lib/ai-spend-ledger.ts): every call carrying a userId is held to that learner's daily pool before it is sent -- coach (AI_DAILY_BUDGET_USD, default 0.50) or grading (AI_DAILY_GRADING_BUDGET_USD, default 0.25, a pool of its own so a heavy grader keeps the coach) -- by reserving its worst-case cost under a per-learner advisory lock as an ai_calls row (error_code 'reserved') and settling that same row with the real usage; an unsettled reservation keeps counting for 24 hours. userId is a required CallOptions field (null only for operator scripts, listed). The check fails closed (503) when the database cannot answer, in the gate, requireAiBudget and requireAiAllowance. Structured calls use messages.create and parse locally so usage is recorded even when the answer does not parse. Sprint and mock generation looks before it starts (canAffordAiSpend) and draws from the bank only when the learner cannot afford it; GENERATION_RATE 40 to 12 an hour. A first (shared) lesson generation, lab questions, course insights and item re-checks are charged to the learner whose request started them; the lesson GET and prefetch rate goes from 20 per 10 minutes to 20 per hour; re-checks are capped at 10 started per learner per day. The Anthropic client gets a 90 s timeout and one retry; the AI routes export maxDuration (at most 300, the Hobby plan ceiling with Fluid compute). setGlobalCeilingCheck is the hook for the REQ-201 global daily ceiling. No migration (a reservation is an ai_calls row).",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/ai-spend-gate.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/anthropic.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/lesson-experience.ts",
+        "backend/app/api"
+      ],
+      "acceptance_criteria": [
+        "A test account at its cap starts 12 sprints and the model is called 0 times",
+        "25 concurrent calls at 0.49 of 0.50 never settle above the cap plus one call",
+        "A parse failure records non-zero usage",
+        "Every AI route and call site is enumerated from the source by a table-driven test that fails on a new one that bypasses the gate",
+        "The spend checks fail closed",
+        "The Anthropic client has a timeout and one retry and the AI routes export maxDuration"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db seeded twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md",
+        "backend/.env.example"
+      ],
+      "risk_notes": [
+        "A killed function leaves its estimate counting for 24 hours",
+        "The REQ-201 global ceiling must be wired into setGlobalCeilingCheck after the rebase",
+        "B11 (2026-11-10): the REQ-201 global ceiling is wired into the gate (FAIL-964): non-grading model calls pause at the ceiling, owners, the grading pool and pregen purposes pass; REQ-201's list of open AI paths no longer holds for the writers"
+      ]
+    },
+    {
+      "id": "REQ-208",
+      "category": "operations",
+      "title": "Pre-generate launch-course lessons from GitHub Actions with a hard budget",
+      "description": "Shared catalog lessons are pre-generated for the launch courses (DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS, CNA, Nick 2026-11-09) through the Message Batches API (50% off), run only by the manual 'Pre-generate lessons' workflow so nobody handles the API key or the database URL: workflow_dispatch only, contents: read, the production-database environment, PROD_DATABASE_URL plus a separate ANTHROPIC_PREGEN_API_KEY (a dedicated Console workspace with its own spend limit; never the app's key), refuses to start if either secret is missing, prints counts, the estimate and batch ids only, uploads a counts-only JSON artifact. Budget guard: --tracks is a priority order; the cap (--max-usd, default 110: the whole launch set, 845 lessons, is an upper bound of $100.23 on the batch-10 seed) is checked against an upper bound (every request at max_tokens with the Batches discount, plus the live fact-check at its max_tokens) and fills whole units in order, stopping at the first unit that does not fit; the estimate prints per-track counts and cost and where the cutoff falls; submit refuses when nothing fits, without tracks and max_usd, or while a batch is running. Flow matches the app's lesson pipeline: two batches so practice is written from the teaching text (FAIL-527 rule), verify-by-execution requested and queued (REQ-196), the app's own checkedIntro/checkedPractice (writer doubt, fact-check gate, holdbacks), shuffled answer position, retired/hidden/authored objectives left out, insert-if-absent so content fixes and learners' lessons are never overwritten. Spend lands in ai_calls as purpose pregen / pregen_fact_check and is excluded from AI_GLOBAL_DAILY_CEILING_USD so a run cannot pause learners. --dry-run builds every request and sends nothing. Runbook: Pre-generating lessons. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/fact-check.ts",
+        ".github/workflows/pregenerate.yml",
+        "docs/operations-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "Workflow is manual",
+        "read-only and refuses without both secrets",
+        "Submit never passes max_usd and cuts whole units in priority order",
+        "Collect saves only through the app's gates and never overwrites an existing lesson",
+        "Pregen spend is in ai_calls but outside the global ceiling",
+        "--dry-run sends nothing"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "runbook"
+      ],
+      "risk_notes": [
+        "Live API acceptance of the batch request shapes and the real cost per lesson are unverified (no key here): run estimate then a small submit first",
+        "The upper bound is about 2-3x the likely cost so a run may leave cap unspent",
+        "Fact-checks run one after another so a large collect takes hours",
+        "Cap raised to 110 (Nick via the lead, 2026-11-09): the pregen Console workspace limit is 110; the runbook starts with a trial of limit 25 and max_usd 5, then estimates again before the full submit."
+      ]
     }
   ]
 }

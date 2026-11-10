@@ -32,6 +32,11 @@
   (FAIL-510), and every study route the other branch added is checked
   against the gated-route list in docs/billing.md, the Free one-course
   check included (FAIL-511).
+- A hook one branch leaves for another (a no-op seam such as `setGlobalCeilingCheck`)
+  is wired and tested on the merged tree, through the real call paths, not only
+  stubbed (FAIL-964); every caller that special-cases one refusal class handles
+  the new one the gate can now raise (FAIL-965); a purpose, option or map one
+  branch made required is satisfied by every call site the other added (FAIL-966).
 - When two lines changed the same function, write down each side's rule and
   check both survived the merge, not only the text (REQ-139): the parallel
   lesson calls kept the speed and dropped "practice sees the teaching text"
@@ -64,6 +69,18 @@
   cached history, never in the system blocks; a model route answers a bad or
   empty model reply with a 503, not a 500; a new grader gets a runner in
   `scripts/eval/live.ts`.
+- Model spend (REQ-202, FAIL-840..847): a model call states its learner
+  (`userId` is required on `callClaude` / `callClaudeStructured`; `null` only
+  with a reason in lib/ai-spend-gate.test.ts) and is held to the spend gate
+  in the call layer (lib/ai-spend-gate.ts) -- never a per-route check
+  someone has to remember. Shared generation is charged to the learner whose
+  request started it. A new purpose gets a pool in lib/ai-spend-ledger.ts
+  (`PURPOSE_POOL`), a new route that can reach the model is added to
+  `MODEL_ROUTES` in lib/ai-spend-gate.test.ts, and one that runs a call in
+  the request exports `maxDuration` (at most 300, Hobby with Fluid compute).
+  A spend read never ends in `.catch(() => 0)` on an enforcing path: it fails
+  closed. Anything that loops over model calls looks at the budget first
+  (`canAffordAiSpend`).
 - A change to the mastery rule, readiness, the review schedule or the plan
   (REQ-117) is run through the persona simulation (crammer, spaced, guesser,
   hinter, struggler, returning, expert ...; Audit 3 teaching harness) before

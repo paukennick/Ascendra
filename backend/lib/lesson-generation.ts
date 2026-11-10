@@ -188,8 +188,12 @@ export interface LessonGenerator {
   queueExec?: (ref: ItemRef, snippet: VerifySnippet) => Promise<void>;
 }
 
-// Who a generation is for, for ai_calls. Only a regenerate is attributable to
-// one learner; the first (shared) generation serves everyone.
+// Who a generation is charged to, for ai_calls and the spend gate (REQ-202).
+// A regenerate is the learner's own. The first (shared) generation serves
+// everyone, but it is charged to the learner whose request started it
+// (GenerationOptions.triggeredBy): it used to carry no userId, so no budget
+// ever saw it and one account could walk the catalog's first generations for
+// free (audit finding 3).
 export interface GenerateMeta {
   userId?: string;
   // REQ-114: set on the one retry of a practice half that was held back --
@@ -235,7 +239,7 @@ export const claudeGenerator: LessonGenerator = {
         effort: "medium",
         thinking: "off",
         purpose: "lesson_intro",
-        userId: meta?.userId,
+        userId: meta?.userId ?? null,
       }));
     }, lessonIntroProblems);
   },
@@ -261,7 +265,7 @@ export const claudeGenerator: LessonGenerator = {
         effort: "medium",
         thinking: "off",
         purpose: "lesson_practice",
-        userId: meta?.userId,
+        userId: meta?.userId ?? null,
       });
     }, lessonPracticeProblems);
     return shufflePractice(made);
@@ -440,6 +444,10 @@ export interface GenerationHandle {
 
 export interface GenerationOptions {
   scope: LessonScope;
+  // REQ-202: the learner whose request starts a SHARED generation (the lesson
+  // GET or prefetch-next). Their spend gate applies to its model calls. A
+  // second learner who joins a generation already in flight is not charged.
+  triggeredBy?: string;
   avoid?: LessonAvoid;
   // Test seams; production uses the defaults.
   generator?: LessonGenerator;
@@ -559,7 +567,7 @@ async function runGeneration(
         // REQ-187: an objective whose lesson was just refused twice waits
         // out the cooldown instead of paying for the same refusal again.
         if (await recentlyHeldBack(objectiveId)) throw new ContentHeldBackError();
-        const meta: GenerateMeta = { userId: scope.kind === "user" ? scope.userId : undefined };
+        const meta: GenerateMeta = { userId: scope.kind === "user" ? scope.userId : opts.triggeredBy };
         // REQ-187 (P8): the teaching text is checked for the writer's own
         // doubt BEFORE the learner sees it (retried once, then held back).
         const intro = await checkedIntro(objectiveId, objRow, { gen, avoid, meta });
@@ -712,7 +720,11 @@ export async function readLessonForUser(
 // joining a generation already in flight, is free. A learner opening one
 // lesson every few minutes, with a prefetch each, stays well inside it.
 export const GENERATE_RATE_EVENT = "lesson_generate";
-export const GENERATE_LIMIT = { max: 20, windowMinutes: 10 };
+// REQ-202: 20 an hour, down from 20 every 10 minutes (2,880 first generations
+// a day). A learner opens a new objective a few minutes apart at the fastest,
+// and prefetch-next covers the one after, so 20 an hour is far above any real
+// use and an order of magnitude under what a walk through the catalog needs.
+export const GENERATE_LIMIT = { max: 20, windowMinutes: 60 };
 
 export const REGEN_RATE_EVENT = "lesson_regenerate";
 export const REGEN_LIMIT = { max: 5, windowMinutes: 10 };

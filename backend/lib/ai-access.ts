@@ -154,7 +154,13 @@ async function ceilingUserKind(userId: string, env: Env): Promise<AiUserKind> {
 export async function requireGlobalCeiling(userId: string, feature: "coach" | "regenerate", env: Env = process.env): Promise<void> {
   if (!(await globalCeilingReached(env))) return;
   if (ceilingVerdict(feature, await ceilingUserKind(userId, env), true) !== "paused") return;
-  throw new AiAccessError(GLOBAL_PAUSE_MESSAGE, 429, {
+  throw ceilingPausedError(feature, env);
+}
+
+// The 429 every paused answer carries (REQ-201), also thrown by the model-call
+// layer's global ceiling check (lib/ai-spend-gate.ts, REQ-202).
+export function ceilingPausedError(feature: "coach" | "regenerate", env: Env = process.env): AiAccessError {
+  return new AiAccessError(GLOBAL_PAUSE_MESSAGE, 429, {
     state: "paused",
     feature,
     mode: aiAccessMode(env),

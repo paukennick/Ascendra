@@ -89,6 +89,7 @@ async function main() {
       concurrency: args.concurrency,
       grade: (c) =>
         gradeFreeResponse({
+          userId: null,
           taughtText: c.taughtText,
           question: c.question,
           answer: c.answer,

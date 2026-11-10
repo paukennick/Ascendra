@@ -30,6 +30,10 @@ import { coachContextForUnit } from "@/lib/coach-context";
 import { withGradingClaim, GradingInProgressError } from "@/lib/grading-claims";
 import { requireFeature, requireFeatureToFinish } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (scenario generation or grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 180;
+
 export const dynamic = "force-dynamic";
 
 const HELD_SCENARIO_MESSAGE =

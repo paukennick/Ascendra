@@ -3,6 +3,10 @@ import { requireUser } from "@/lib/auth/requireUser";
 import { labRouteError, submitLab } from "@/lib/lab-routes";
 import { rendersInteractiveLabs } from "@/lib/client-protocol";
 
+// REQ-202: seconds this route may run (one grading call per lab step). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/labs/:id/submit -- REQ-123: grade one step of a lab run (a

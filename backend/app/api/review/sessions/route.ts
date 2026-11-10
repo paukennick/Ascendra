@@ -5,6 +5,10 @@ import { visibleTrack } from "@/lib/visibility";
 import { startSession } from "@/lib/review-service";
 import { optionalTrackId, reviewRouteError } from "@/lib/review-routes";
 
+// REQ-202: seconds this route may run (writing a review question). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/review/sessions { trackId? } -- REQ-108: start today's review, or

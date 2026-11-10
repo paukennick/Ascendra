@@ -21,6 +21,10 @@ import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
 import { globalCeilingReached } from "@/lib/ai-access";
 import { requireCourseAccessForObjective, UpgradeRequiredError } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (after() keeps the function alive for the whole generation). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
+
 // The objective immediately after this one in course order: same unit with
 // the next sort_order, or -- if this is the unit's last objective -- the
 // first objective of the next unit in the same track. Ordering entirely by
@@ -142,7 +146,7 @@ export async function POST(
     // Fully fire-and-forget: nobody is waiting on this response for actual
     // lesson content, so there's no reason to await the intro half inline
     // the way GET/POST do for a real visit.
-    const handle = ensureGeneration(nextId, objRow, { scope: SHARED });
+    const handle = ensureGeneration(nextId, objRow, { scope: SHARED, triggeredBy: user.id });
     after(() => handle.fullPromise.catch(() => {}));
 
     return ok({ nextObjectiveId: nextId, next, status: "started" });

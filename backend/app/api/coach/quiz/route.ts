@@ -6,6 +6,10 @@ import { visibleTrack } from "@/lib/visibility";
 import { nextQuizTurn } from "@/lib/coach-quiz";
 import { requireFeature } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (one fast-model question). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // REQ-110: limit on NEW quiz questions written by the model per learner. Reused

@@ -266,7 +266,7 @@ describe("Settings > Access: inviting a pilot group", () => {
 // ---------------------------------------------------------------------------
 
 describe("AI_GLOBAL_DAILY_CEILING_USD", () => {
-  test("at the ceiling: chat and regenerate pause for everyone but owners; grading, review-style calls and open AI keep working and still count", async () => {
+  test("at the ceiling: chat and regenerate pause for everyone but owners; grading (guess feedback and explain-back included) keeps working and still counts; the writers are stopped in lib/ai-spend-ceiling.dbtest.ts", async () => {
     process.env.AI_DAILY_BUDGET_USD = "off"; // the per-learner budget out of the way
     const u = await newUser();
     const g = await grantedUser();
@@ -288,7 +288,8 @@ describe("AI_GLOBAL_DAILY_CEILING_USD", () => {
     }
     assert.equal((await chat(ownerId)).status, 200, "owners are not paused");
 
-    // Grading never stops, and neither do the open AI calls (guess feedback).
+    // Grading never stops (guess feedback is in the grading pool). Calls that write
+    // or re-check content stop too since REQ-202: lib/ai-spend-ceiling.dbtest.ts.
     const spentBefore = await globalSpendTodayUsd();
     assert.equal((await gradeOpen(u)).status, 200);
     assert.equal((await explain(u)).status, 200);

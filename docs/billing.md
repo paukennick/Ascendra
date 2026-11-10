@@ -184,7 +184,8 @@ the sum of both caps; a held period and its new plan count once.
 `off` removes a cap. A verified discount never lowers it, and only one
 discount ever applies. Spend is summed from `ai_calls` for the calendar month (UTC).
 At the cap, **coach chat and lesson regenerate pause** with a kind message
-naming the day they open again. **Grading and review never stop.** Learners
+naming the day they open again. **Grading and review are not paused by the
+monthly cap** (they have the daily grading pool, below). Learners
 see allowances (messages a day, versions a week, mocks a month), never
 dollars. Unit tests (`lib/billing-config.test.ts`) check that no plan, at
 any length, goes negative for a learner who uses the AI right up to the
@@ -227,6 +228,68 @@ configurable per kind and tier: `BILLING_ALLOWANCE_<KIND>_<TIER>` with
 and `TIER` one of `FREE`, `PLUS`, `PRO` (a number, `0` for not included, or
 `none` for no count). Pro's coach is `BILLING_ALLOWANCE_COACH_MESSAGE_PRO`
 (default 60).
+
+### The AI spend gate (REQ-202)
+
+The monthly caps above only stop the coach and lesson regenerate. Until the
+2026-11-09 audit nothing else was capped: about 13 model routes (grading,
+labs, units, review, quiz, re-checks) ran with no check, a loop of sprints
+could start about 960 writer-plus-fact-check generations a day, and the first
+generation of a shared lesson was charged to nobody. Nick's Anthropic credit is
+finite, so one check now sits inside the model-call layer
+(`lib/ai-calls.ts` `loggedCall`, reached by every `callClaude` and
+`callClaudeStructured`) and applies to every account, Free included.
+
+- **Two daily pools per learner**, each a rolling 24 hours of `ai_calls`:
+  **coach** (everything that writes: chat and its guards, lesson text,
+  practice and exam items, labs, re-checks) at `AI_DAILY_BUDGET_USD`
+  (default $0.50), and **grading** (a learner's own answers: typed answers,
+  PBQs, lab steps, review and unit checks, explain-back, guess feedback) at
+  `AI_DAILY_GRADING_BUDGET_USD` (default $0.25). Grading has its own pool, so
+  a heavy legitimate grader keeps the coach and the reverse. `off` or `0`
+  removes a pool's cap. An owner or unrestricted account has the
+  REQ-144 ceiling over both pools instead.
+- **Reserve, then settle.** Before a call is sent its worst-case cost (the
+  prompt as an uncached write, plus `max_tokens` of answer) is reserved as an
+  `ai_calls` row (`error_code = 'reserved'`) under a per-learner advisory lock,
+  and refused if spend plus reservations plus this call would pass the cap.
+  When the call ends the same row is updated to the real usage. A function
+  killed in between leaves the estimate, which keeps counting for 24 hours.
+  No migration: a reservation is an ordinary `ai_calls` row.
+- **Fails closed.** If the database cannot say what was spent, the call is
+  refused with a 503 ("paused for a moment"), in the gate, in
+  `requireAiBudget` and in `requireAiAllowance`.
+- **Sprints and mocks** look at the coach budget before generating and, when
+  it cannot cover a generation, are built from the bank only (a sprint over
+  an empty bank answers 429 with the budget message). Generation is 12 an
+  hour (was 40).
+- **Who is charged.** A first (shared) lesson, lab questions and course
+  insights are charged to the learner whose request started them; the lesson
+  GET and prefetch rate is 20 an hour (was 20 per 10 minutes). A re-check is
+  charged to the reporter, who can start 10 a day.
+- **Every call states its learner.** `userId` is required on `callClaude`
+  and `callClaudeStructured` (`null` only for operator scripts), and
+  `lib/ai-spend-gate.test.ts` enumerates every call site and every route
+  that reaches one from the source, failing on a new one.
+- **The global daily ceiling** (`AI_GLOBAL_DAILY_CEILING_USD`, REQ-201) is
+  the gate's default `setGlobalCeilingCheck` hook in `lib/ai-spend-gate.ts`
+  (FAIL-964). It runs first for every call, with or without a learner, so the
+  ceiling covers every path above that writes or checks content. Owners, the
+  grading pool and `pregen*` purposes pass it (see the ceiling table below).
+
+Worst case per account, any rolling 24 hours: coach $0.50 plus grading $0.25
+= **$0.75** (settled spend can pass a pool's cap only by the amount a call's
+real cost exceeds its estimate, which is an upper bound). An owner or
+unrestricted account: the $20 ceiling.
+
+### Function duration
+
+The AI routes export `maxDuration` (60 to 300 seconds, never more). The plan
+is Hobby; Hobby with Fluid compute allows up to 300 s (without Fluid, 60 s,
+and a larger value fails the deploy). The Anthropic client times out an
+attempt at 90 s and retries once. Pro allows more, but nothing here needs it;
+the long routes are the lesson GET, prefetch-next and exam session creation
+(300 s).
 
 ### The free course
 
@@ -614,11 +677,12 @@ or price shown:
   count; given back if grading fails). Past it: 429 `{ aiAccess: { state:
   "graded_limit", feature: "written_grading", limit, used, resetsAt } }`.
 - Never counted: multiple choice, interactive labs, sim scoring, review.
-- Open (Nick, 2026-11-09, scope approved with REQ-201): shared catalog
-  lessons on first open, Quiz me, guess feedback, PBQ scenario writing, mock
-  and sprint exam items, review question writing, unit-check writing and item
-  re-checks. Every one is recorded in `ai_calls` and counts toward the global
-  ceiling's total.
+- Open to every learner in this mode (Nick, 2026-11-09, scope approved with
+  REQ-201): shared catalog lessons on first open, Quiz me, guess feedback, PBQ
+  scenario writing, mock and sprint exam items, review question writing,
+  unit-check writing and item re-checks. Every one is recorded in `ai_calls`
+  and counts toward the global ceiling's total; at the ceiling every one but
+  guess feedback (a grader) is paused, see below.
 
 `GET /api/auth/me` carries `ai: { mode, full }` when the mode is `granted`
 or `paid` (absent in `all`, so the default response is unchanged); the app
@@ -632,17 +696,25 @@ reused for 60 seconds per server instance. Unset, empty, `off` or 0: no
 ceiling (the code has no default). **Recommended production value: `5`**
 (Nick, 2026-11-09).
 
+Not in the sum (REQ-208): pre-generation (`ai_calls` purposes `pregen` and
+`pregen_fact_check`, docs/operations-runbook.md "Pre-generating lessons"). It is
+a planned, owner-started job with its own hard cap (the run's `max_usd` and a
+dedicated Console workspace with a spend limit), and a $50 run would otherwise
+pass a $5 ceiling at once and pause chat, regenerate and first-time shared
+lessons for learners for the rest of the UTC day. The rows stay in `ai_calls`.
+
 When the day's total reaches it, until midnight UTC:
 
 | Blocked (everyone except owners) | Only counted, never blocked |
 | --- | --- |
-| Coach chat: 429 `aiAccess.state: "paused"` | grade_open, explain-back, lab steps and report, sim reasoning, PBQ grading, unit-check grading |
-| Lesson regenerate: 429 `paused` | review (questions and grading) |
-| First generation of a shared lesson nobody has opened: 429 `preparing`, "This lesson is being prepared. Please try again later." (prefetch-next skips it) | Quiz me, guess feedback, PBQ scenarios, exam items, unit-check writing, item re-checks, lab questions, cron and catalog jobs |
+| Coach chat: 429 `aiAccess.state: "paused"` | grade_open, explain-back, guess feedback, lab steps and report, sim reasoning, PBQ grading, unit-check and review grading (the grading pool) |
+| Lesson regenerate: 429 `paused` | Pre-generation (`pregen`, `pregen_fact_check`): an operator script with its own budget, also left out of the sum |
+| First generation of a shared lesson nobody has opened: 429 `preparing`, "This lesson is being prepared. Please try again later." (prefetch-next skips it) | Lessons already generated, served as usual |
+| Every other model call, at the model-call layer (REQ-202, FAIL-964), as a 429 `paused`: Quiz me, PBQ scenarios, exam and sprint item generation (a sprint is built from the bank instead), review and unit-check question writing, item re-checks, lab questions and generation, fact-checks, cron and catalog jobs | |
 
-Already generated lessons are served as usual. The ceiling check is one
-exported function (`globalCeilingReached()` in `lib/ai-access.ts`), outside
-the model-call layer, for REQ-202 to call.
+Owners are never paused. The ceiling check is `globalCeilingReached()` in
+`lib/ai-access.ts`; the spend gate calls it (lazily imported) before any
+per-learner work, and refuses with `ceilingPausedError()`.
 
 Granted accounts are capped as REQ-144 says, not by the mode: with billing
 off they have the $20 daily safety ceiling (`AI_UNRESTRICTED_DAILY_CEILING_USD`)

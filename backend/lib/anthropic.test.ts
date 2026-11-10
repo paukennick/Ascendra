@@ -21,6 +21,7 @@ import {
   type Effort,
 } from "./anthropic";
 import { setAiCallSink, type AiCallRecord } from "./ai-calls";
+import { setSpendGateForTest } from "./ai-spend-gate";
 import { systemWithRules } from "./prompts";
 
 const SONNET = "claude-sonnet-5-5";
@@ -164,7 +165,7 @@ describe("defaults", () => {
 });
 
 describe("buildRequest", () => {
-  const base = { messages: [{ role: "user" as const, content: "hi" }], purpose: "chat" as const };
+  const base = { messages: [{ role: "user" as const, content: "hi" }], purpose: "chat" as const, userId: null };
 
   test("never contains temperature, top_p or top_k, for any family", () => {
     for (const model of [SONNET, HAIKU, "claude-opus-5-5", "claude-sonnet-4-5", "claude-haiku-4-5-20251001", "x"]) {
@@ -284,6 +285,9 @@ describe("call wrappers log every call and never throw because of logging", () =
   const logged: AiCallRecord[] = [];
   beforeEach(() => {
     logged.length = 0;
+    // No database in a unit test: the spend gate (lib/ai-spend-gate.test.ts,
+    // ai-spend-gate.dbtest.ts) is stood in for by one that lets the call through.
+    setSpendGateForTest({ reserve: async () => null });
     setAiCallSink(async (r) => {
       logged.push(r);
     });
@@ -291,6 +295,7 @@ describe("call wrappers log every call and never throw because of logging", () =
     delete process.env.AI_CALL_LOG;
   });
   afterEach(() => {
+    setSpendGateForTest(null);
     setAiCallSink(null);
     __setClientForTest(null);
   });
@@ -361,7 +366,7 @@ describe("call wrappers log every call and never throw because of logging", () =
 
   test("callClaudeStructured: returns parsed_output, sends the format with effort, logs success", async () => {
     const schema = z.object({ feedback: z.string() });
-    const f = fakeClient(() => ({ parsed_output: { feedback: "good" }, stop_reason: "end_turn", usage: USAGE }));
+    const f = fakeClient(() => ({ content: [{ type: "text", text: '{"feedback":"good"}' }], stop_reason: "end_turn", usage: USAGE }));
     __setClientForTest(f.client);
     const out = await callClaudeStructured({ ...chatOpts, schema, purpose: "guess_feedback" });
     assert.deepEqual(out, { feedback: "good" });
@@ -373,13 +378,32 @@ describe("call wrappers log every call and never throw because of logging", () =
     assert.equal(oc.format?.type, "json_schema");
   });
 
-  test("callClaudeStructured: null parsed_output is a logged failure", async () => {
+  test("callClaudeStructured: an answer with no text is a logged failure that keeps its usage", async () => {
     const schema = z.object({ feedback: z.string() });
-    __setClientForTest(fakeClient(() => ({ parsed_output: null, stop_reason: "max_tokens", usage: USAGE })).client);
-    await assert.rejects(callClaudeStructured({ ...chatOpts, schema }), /missing parsed_output/);
+    __setClientForTest(fakeClient(() => ({ content: [{ type: "thinking" }], stop_reason: "max_tokens", usage: USAGE })).client);
+    await assert.rejects(callClaudeStructured({ ...chatOpts, schema }), /no text to parse/);
     await flush();
     assert.equal(logged[0].ok, false);
     assert.equal(logged[0].errorCode, "no_parsed_output");
+    assert.equal(logged[0].outputTokens, 45);
+  });
+
+  // REQ-202 / FAIL-840: messages.parse threw before the usage reached the log,
+  // so a billed answer that failed to parse was recorded at $0.
+  test("callClaudeStructured: an answer that does not parse is logged with its real usage", async () => {
+    const schema = z.object({ feedback: z.string() });
+    for (const text of ['{"feedback": "cut off mid-str', '{"other": 1}', "not json at all"]) {
+      logged.length = 0;
+      __setClientForTest(fakeClient(() => ({ content: [{ type: "text", text }], stop_reason: "max_tokens", usage: USAGE })).client);
+      await assert.rejects(callClaudeStructured({ ...chatOpts, schema }), /did not parse/);
+      await flush();
+      assert.equal(logged.length, 1);
+      assert.equal(logged[0].ok, false);
+      assert.equal(logged[0].errorCode, "invalid_structured_output");
+      assert.equal(logged[0].inputTokens, 120, text);
+      assert.equal(logged[0].outputTokens, 45, text);
+      assert.equal(logged[0].cacheReadTokens, 600, text);
+    }
   });
 
   test("a sink that rejects, throws synchronously, or hangs never changes the result", async () => {

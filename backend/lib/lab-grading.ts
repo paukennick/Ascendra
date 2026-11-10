@@ -166,7 +166,7 @@ export interface LabStepGraded {
   trivial?: TrivialReason;
 }
 
-export type LabStepModel = (prompt: { system: SystemPrompt; user: string }, meta: { userId?: string }) => Promise<LabStepGradeOutput>;
+export type LabStepModel = (prompt: { system: SystemPrompt; user: string }, meta: { userId: string | null }) => Promise<LabStepGradeOutput>;
 
 export const claudeLabStepModel: LabStepModel = (prompt, meta) =>
   callClaudeStructured({
@@ -187,7 +187,7 @@ export function trivialParts(parts: LabRubricPart[], answers: string[], ask: str
 }
 
 export async function gradeLabStep(
-  params: Parameters<typeof gradeLabStepPrompt>[0] & { userId?: string },
+  params: Parameters<typeof gradeLabStepPrompt>[0] & { userId: string | null },
   model: LabStepModel = claudeLabStepModel
 ): Promise<LabStepGraded> {
   // REQ-189: rule-graded parts first. A part graded here never reaches the
@@ -230,7 +230,7 @@ export async function gradeLabStep(
 // Written parts: the model, with the trivial-answer rule and the
 // consistency check. Unchanged from REQ-123.
 async function gradeWrittenParts(
-  params: Parameters<typeof gradeLabStepPrompt>[0] & { userId?: string },
+  params: Parameters<typeof gradeLabStepPrompt>[0] & { userId: string | null },
   model: LabStepModel
 ): Promise<LabStepGraded> {
   const labels = params.parts.map((p) => p.label);

@@ -202,7 +202,7 @@ describe("flags and quarantine (H2)", () => {
     const broken: FactChecker = async () => {
       throw new Error("model down");
     };
-    assert.deepEqual(await recheckItem(examRef(id, objs[1]), broken), { ran: false, agreed: null, quarantined: false });
+    assert.deepEqual(await recheckItem(examRef(id, objs[1]), broken, null), { ran: false, agreed: null, quarantined: false });
     assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from item_flags where item_id = $1 and source = 'recheck'`, [id]))!.n, 0);
   });
 

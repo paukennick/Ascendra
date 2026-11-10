@@ -16,6 +16,10 @@ import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { consumeAllowance, requireFeature } from "@/lib/entitlements";
 import { LABS_FEATURE } from "@/lib/labs";
 
+// REQ-202: seconds this route may run (questions then grade). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/lab/report -- REQ-106 (research #7): grades a lab
@@ -75,7 +79,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       const ctx = await coachContextForObjective(id);
-      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined);
+      const questions = await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined, user.id);
       const answers = labAnswersFor(body?.answers, questions.length);
       if (typeof answers === "string") return badRequest(answers);
       // REQ-116: refused before the billed model call.

@@ -9044,6 +9044,535 @@
       ],
       "prevention_notes": "The FAIL-691 static test catches any raw Modal",
       "recurrence_of": "FAIL-691"
+    },
+    {
+      "id": "FAIL-840",
+      "date": "2026-11-09",
+      "title": "A billed model answer that failed to parse was recorded at zero cost",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "callClaudeStructured used messages.parse; a reply that was cut off or off-schema was logged in ai_calls with no tokens, so its cost never counted against any budget",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "messages.parse throws on an unparseable answer before the response (and its usage) reaches loggedCall, which reads usage from the returned value",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/anthropic.ts",
+        "backend/lib/ai-calls.ts"
+      ],
+      "fix_summary": "Structured calls use messages.create and parse the text locally inside loggedCall's check, so usage is recorded whether the check passes or not (error codes invalid_structured_output, no_parsed_output)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/anthropic.test.ts",
+        "backend/lib/ai-spend-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-841",
+      "date": "2026-11-09",
+      "title": "About 13 model routes had no per-learner spend check at all",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "Grade, pbq, lab steps and report, guess-feedback, explain-back, unit checks, review, coach quiz and item re-checks called the model with no requireAiBudget or requireAiAllowance, so a free account could spend without a cap",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The checks were per route and written for chat and regenerate; grading was exempted on the argument that it is cheap, and a new route copying a grading route inherited the exemption",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/ai-calls.ts",
+        "backend/lib/ai-spend-gate.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/anthropic.ts"
+      ],
+      "fix_summary": "One gate inside loggedCall for every call with a userId, two daily pools (coach, grading) so grading has its own allowance rather than an exemption; userId is a required CallOptions field so a new call site cannot omit it",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.test.ts",
+        "backend/lib/ai-spend-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-842",
+      "date": "2026-11-09",
+      "title": "A learner could start sprints that generated about 960 Sonnet batches a day",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "createSession checked only a count (40 an hour) before generating, and only mock exams called requireFeature, so a loop of sprints made about 960 writer calls plus fact-checks a day on a free account",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The cost of generation was bounded by a rate, never by money, and the budget check was never part of the session build",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "createSession looks at the budget first (canAffordAiSpend) and builds from the bank only when the learner cannot afford a generation; each call also reserves its own cost; GENERATION_RATE is 12 an hour",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.dbtest.ts",
+        "backend/lib/ai-spend-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-843",
+      "date": "2026-11-09",
+      "title": "The first shared lesson generation was charged to nobody, and could be started 2,880 times a day",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The first generation of a lesson passed userId undefined to the model, so no budget saw it; the GET and prefetch rate was 20 per 10 minutes",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The shared lesson serves everyone, so it was recorded with no learner; the same went for lab questions and course insights",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/lesson-experience.ts",
+        "backend/lib/understanding-ai.ts"
+      ],
+      "fix_summary": "GenerationOptions.triggeredBy charges it to the learner whose request started it; lab questions and insights take the triggering learner; the rate is 20 an hour",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.dbtest.ts",
+        "backend/lib/ai-spend-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-844",
+      "date": "2026-11-09",
+      "title": "Parallel requests overshot the daily AI budget",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "N requests sent at once each read spend under the cap and all went through, so a learner could spend N calls past the budget",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The check read the spend and reserved nothing; the cost was only recorded after the call returned",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/ai-spend-gate.ts"
+      ],
+      "fix_summary": "Before each call its worst-case cost is reserved as an ai_calls row under a per-learner advisory lock and settled in place with the real usage",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-845",
+      "date": "2026-11-09",
+      "title": "The spend checks failed open when the database errored",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A database error while reading spend counted as zero spend (ai-budget.ts, entitlements.ts monthly cap), so the cap disappeared while the database was failing",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The reads ended in .catch(() => 0), chosen so a logging problem would never block a learner, and applied to enforcement as well",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/ai-spend-gate.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/entitlements.ts"
+      ],
+      "fix_summary": "The gate, requireAiBudget and requireAiAllowance throw AiSpendUnavailableError (503) when the spend cannot be read; the plan summary display keeps the soft answer; only a missing ai_calls table counts as no spend",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-846",
+      "date": "2026-11-09",
+      "title": "Item re-checks were uncharged and uncapped",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Each report could start a Sonnet re-check with no userId, and a learner could send 480 reports a day",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "recheckItem was written as shared background work; the report rate limit bounded reports, not re-checks",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "The re-check is charged to the reporter and each learner may start 10 a day; past that the claim is given back and the report stands",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-847",
+      "date": "2026-11-09",
+      "title": "The Anthropic client had a 10-minute timeout and two retries, and AI routes had no maxDuration",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A hung request could hold a function and a connection for half an hour, and a flaky upstream triple a call's cost",
+      "how_detected": "pre-launch audit batch F1 (review of commit 00a3a70)",
+      "root_cause": "The SDK defaults were never set",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/anthropic.ts",
+        "backend/app/api"
+      ],
+      "fix_summary": "Client timeout 90 s with one retry; the AI routes export maxDuration (60 to 300, at most the Hobby plan ceiling with Fluid compute)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lib/ai-spend-gate.test.ts enumerates every model call site and route from the source and fails on a new one that bypasses the gate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-970",
+      "date": "2026-11-09",
+      "title": "Pre-generated practice questions were written without the teaching text",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A pre-generated lesson's practice half was requested in the same batch as its intro, so it never saw the teaching text; the questions could test or contradict something the learner was not taught.",
+      "how_detected": "REQ-208 pipeline comparison (docs/release-2026-11-07.md named it a follow-up)",
+      "root_cause": "REQ-139 (FAIL-527) changed the app to write teach first and practice from it, but the batch script still built both halves independently; nothing compared the two pipelines.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/scripts/pregenerate.ts",
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Two batches: collect of the ended intro batch checks the teaching text and builds the practice requests from it (lessonPracticePrompt teach), collect of the practice batch saves.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts",
+        "backend/scripts/pregenerate-lib.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Any generation path that exists beside the app's lesson route is compared with runGeneration (order, inputs, checks) in the same change; pre-completion checklist item on parallel generation entry points.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-971",
+      "date": "2026-11-09",
+      "title": "Pre-generation never asked for or queued a verification program",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Python, JavaScript and academic lessons made by the batch carried no soloVerification program and queued no exec check (REQ-196).",
+      "how_detected": "REQ-208 pipeline comparison",
+      "root_cause": "The request omitted verify: wantsVerification(ctx) and the save path did not call queueExecCheck.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "practiceParams passes verify for the course; saving goes through checkedPractice with queueExec, which queues the program and holds the half back if it cannot be queued.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Saving goes through the app's own checkedIntro/checkedPractice, so a gate added there applies here.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-972",
+      "date": "2026-11-09",
+      "title": "Pre-generation fact-check drifted from the app's gate",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The batch path fact-checked with no course context and the objective's id as its title, did not shuffle the stored answer position, and treated an item with no verdict as passing.",
+      "how_detected": "REQ-208 pipeline comparison",
+      "root_cause": "The gate was re-implemented inline in collect instead of calling the app's code; the inline copy filtered the verdict map's values, so a missing verdict was never seen.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Collect shuffles with shufflePractice, then runs checkedPractice (ctx, objective title, missing verdict fails, holdback rows) with a generator that refuses the app's one retry.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "No second copy of a gate: call checkedIntro/checkedPractice.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-973",
+      "date": "2026-11-09",
+      "title": "Hidden courses and authored objectives were not excluded from pre-generation",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A course hidden by REQ-194 hidden_at would be paid for, and an objective with an authored lesson would be generated although the app never generates it.",
+      "how_detected": "REQ-208 pipeline comparison",
+      "root_cause": "The selection query predates hidden_at (migration 065) and authored lessons (REQ-195) and was not updated with them.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "One selection (selectCandidates) filters shared tracks, hidden_at passed, retired unit or objective, any lesson row, authored; collect re-applies it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "After a visibility column or a never-generate rule is added, every reader of the table is checked (pre-completion checklist, FAIL-200).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-974",
+      "date": "2026-11-09",
+      "title": "Collecting a batch could overwrite a voided or corrected lesson and ignored later retirement",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "saveLesson replaces a shared lesson whose check was pulled, so a lesson voided by the lessons:fix workflow after submit would have been replaced by the batch's text; an objective retired after submit was still saved.",
+      "how_detected": "REQ-208 pipeline comparison",
+      "root_cause": "Collect trusted the objective list from submit time and relied on saveLesson, whose conflict rule is written for the app's regenerate, not for a bulk insert.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Collect re-selects eligible objectives, skips any with a lesson row of any kind, re-checks right before the write, and counts skipped.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A bulk writer states its overwrite rule and tests it against a pulled row.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-975",
+      "date": "2026-11-09",
+      "title": "Pre-generation skipped the check of the teaching text's own uncertainty",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Teaching text the writer flagged as uncertain (REQ-187 P8) could be stored; only the practice half was checked.",
+      "how_detected": "REQ-208 pipeline comparison",
+      "root_cause": "The batch script predates P8 and checked uncertaintyOf on the practice half only.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Stage 1 runs checkedIntro on every intro; an unsure one is logged as a lesson_intro holdback and not continued.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Same as FAIL-972.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-976",
+      "date": "2026-11-09",
+      "title": "Pre-generation spend was not in ai_calls and its log writes could be lost",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Batch usage was never written to ai_calls, so daily totals missed it; the live fact-check rows are written without being awaited and the script closed the pool right after, so rows could be lost.",
+      "how_detected": "REQ-208 review of cost attribution",
+      "root_cause": "Batch results were read for lessons only; ai_calls logging assumes a long-lived server. A first version of the new insert also failed on an untyped parameter and logged only a warning, caught by the test.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/ai-calls.ts",
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Batch usage is recorded once per batch and model as purpose pregen (idempotent, dated at batch end); fact-checks use purpose pregen_fact_check; flushAiCallLog() waits for pending writes before exit.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A script that calls the model awaits flushAiCallLog before closing the pool.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-977",
+      "date": "2026-11-09",
+      "title": "A pre-generation run would have counted toward the global daily AI ceiling",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A planned $50 run recorded in ai_calls would reach the recommended $5 AI_GLOBAL_DAILY_CEILING_USD at once and pause chat, regenerate and first-time shared lessons for every learner for the rest of the UTC day.",
+      "how_detected": "REQ-208 design review",
+      "root_cause": "The ceiling sums every ai_calls row; pregen is owner-started and has its own cap, which the sum cannot tell.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/ai-budget.ts"
+      ],
+      "fix_summary": "globalSpendSinceUsd leaves out purposes starting pregen; the rows stay in the table; documented in docs/billing.md.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new purpose that is not learner-driven says whether it counts toward the ceiling.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-978",
+      "date": "2026-11-09",
+      "title": "Pre-generation would have printed model text into the CI log",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "recordHoldback prints the first claims of a held-back item with console.warn; in a workflow log that is model-written content.",
+      "how_detected": "REQ-208 review of the workflow log",
+      "root_cause": "The warning was written for a server log; the workflow's rule is counts only.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/lib/item-quality.ts",
+        "backend/lib/pregen.ts"
+      ],
+      "fix_summary": "Collect suppresses [item-quality] warnings while it runs, prints failure causes as categories, and keeps the claims in item_holdbacks.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A job whose log is shared prints counts only; tests assert that planted claims and teaching text never appear.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-979",
+      "date": "2026-11-09",
+      "title": "Pre-generation had no spend cap, a typical-cost estimate and no guard against a second submit",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The estimate was a typical figure (about 2 cents a lesson, batch only, no fact-check), submit had no cap, could take the whole catalog, could run twice, and used ANTHROPIC_API_KEY (the app's) with a state file that cannot survive a CI runner.",
+      "how_detected": "REQ-208 requirements",
+      "root_cause": "The script was written to be run by hand by a developer who watches the bill.",
+      "requirement": "REQ-208",
+      "affected": [
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts"
+      ],
+      "fix_summary": "Upper-bound estimate (max_tokens, discount, fact-check), --max-usd with a whole-unit priority cutoff checked again on the built requests, tracks and cap required to submit, refusal while a batch runs, a dedicated key and no state file.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pregen.dbtest.ts",
+        "backend/scripts/pregenerate-lib.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Anything that spends money has a cap that is an upper bound and a test of the refusal.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-964",
+      "date": "2026-11-10",
+      "title": "The global daily AI ceiling did not stop most model paths after F1 and batch 10 were merged",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With AI_GLOBAL_DAILY_CEILING_USD reached, exam item generation, item re-checks, review writing, quiz questions, PBQ and unit-check writing, labs and shared lesson generation still reached the model; only chat, regenerate and a first lesson were stopped, by their routes",
+      "how_detected": "B11 merge of F1 onto batch 10: typecheck, then reading the hook F1 left for batch 10",
+      "root_cause": "F1 built the spend gate with a no-op setGlobalCeilingCheck hook for batch 10 to fill, and batch 10 was built on batch 9 without the gate. Neither branch contained the call from one to the other, so the merge was textually clean and the ceiling covered only the three routes that checked it themselves (REQ-201's own risk note listed the rest as open)",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/ai-spend-gate.ts",
+        "backend/lib/ai-access.ts"
+      ],
+      "fix_summary": "The gate's default hook is now the REQ-201 ceiling, lazily imported: every call that writes or checks content is refused with a 429 paused AiAccessError and no model request; owners, the grading pool (REQ-201: grading never stops) and purposes starting pregen (REQ-208) stay open; with no ceiling set it reads nothing",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-ceiling.test.ts",
+        "backend/lib/ai-spend-ceiling.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "ai-spend-ceiling.test.ts walks every AiPurpose, so a new purpose is either blocked or on the exempt list by its pool; the dbtest drives the real sprint, first-lesson, re-check and review calls through the real ceiling sum. The pre-completion checklist now names hooks one branch leaves for another",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-965",
+      "date": "2026-11-10",
+      "title": "A ceiling reached part-way through a sprint was reported as a failed generation",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "When the global ceiling was reached between the sprint's affordability check and its first generation call (the ceiling sum is cached 60 s), the learner got a 409 'couldn't be prepared just now' instead of the paused 429",
+      "how_detected": "B11 merge of F1 onto batch 10: typecheck, then reading the hook F1 left for batch 10",
+      "root_cause": "exam-sessions.ts treated only AiBudgetError as a spend refusal; the ceiling throws AiAccessError, a different class from the same gate, so it was counted as a real generation failure",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "Both refusal classes mean paused: the session is built from the bank, and with nothing in the bank the original AiAccessError is thrown",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-ceiling.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A refusal the gate can raise is handled by every caller that special-cases refusals (grep instanceof AiBudgetError when adding one); the dbtest pins the mid-sprint case",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-966",
+      "date": "2026-11-10",
+      "title": "Pre-generation (REQ-208) did not compile against the spend gate and broke its purpose-union test",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Typecheck failed on the merged tree: Record<AiPurpose, AiPool> lacked pregen and pregen_fact_check, and the request builders in lib/pregen.ts lacked the now-required userId. The union scanner in ai-spend-gate.test.ts then counted pregen twice",
+      "how_detected": "B11 merge of F1 onto batch 10: typecheck, then reading the hook F1 left for batch 10",
+      "root_cause": "REQ-208 added purposes and call sites on a base without REQ-202's required userId option and purpose-to-pool map; the scanner read the text up to the next interface and picked up REQ-208's PREGEN_PURPOSE_PREFIX constant that now sits between them",
+      "requirement": "REQ-202",
+      "affected": [
+        "backend/lib/ai-spend-ledger.ts",
+        "backend/lib/pregen.ts",
+        "backend/lib/ai-spend-gate.test.ts"
+      ],
+      "fix_summary": "Both pregen purposes are in the coach pool (never reserved: no learner), pre-generation passes userId null, and the scanner stops at the union's own semicolon",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/ai-spend-gate.test.ts",
+        "backend/lib/pregen.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "tsc fails on the merged tree for a missing pool and a missing userId; the scanner no longer depends on what follows the union",
+      "recurrence_of": ""
     }
   ]
 }

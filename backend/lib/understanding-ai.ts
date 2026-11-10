@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import { canAffordAiSpend } from "@/lib/ai-spend-gate";
+import { estimateCall } from "@/lib/ai-spend-ledger";
 import type { AiPurpose } from "@/lib/ai-calls";
 import type { CoachContext } from "@/lib/coach-context";
 import { reconciled, trivialAnswer, trivialGrade } from "@/lib/grade-consistency";
@@ -62,11 +64,26 @@ export function inBackground(work: () => Promise<unknown>): void {
 
 export type InsightState = "none" | "generating" | "ready" | "failed";
 
+// REQ-202: a rough price of one of these once-per-course generations (the
+// answer at its largest max_tokens, 8,000), for the look-before-claiming
+// below. The model call itself reserves its own exact worst case.
+function insightEstimateUsd(): number {
+  return estimateCall(getFastModel(), { max_tokens: 8000 }).usd;
+}
+
+// `userId` is the learner whose request starts the generation (or null from
+// a script): the work is charged to them (REQ-202). A learner who cannot
+// afford it does not take the claim, so the course's map is not marked
+// failed, or a learned card spent, by someone else's empty budget.
 async function runOnce(
   trackId: string,
   kind: InsightKind,
+  userId: string | null,
   work: (model: string) => Promise<void>
 ): Promise<InsightState> {
+  if (userId && !(await canAffordAiSpend(userId, kind === "prerequisites" ? "prereq_map" : "concept_sets", insightEstimateUsd()))) {
+    return insightStatus(trackId, kind);
+  }
   const token = randomUUID();
   if (!(await claimInsight(trackId, kind, token))) return insightStatus(trackId, kind);
   const model = getFastModel();
@@ -84,10 +101,10 @@ async function runOnce(
 
 // The course's comparison cards, generated on first need. Returns at once
 // with the current state when another request holds the claim.
-export async function ensureConceptSets(trackId: string): Promise<InsightState> {
+export async function ensureConceptSets(trackId: string, userId: string | null): Promise<InsightState> {
   const state = await insightStatus(trackId, "concept_sets");
   if (state === "ready") return state;
-  return runOnce(trackId, "concept_sets", async (model) => {
+  return runOnce(trackId, "concept_sets", userId, async (model) => {
     const objectives = await courseObjectives(trackId);
     if (objectives.length < 2) return;
     const track = await queryOne<{ title: string }>(`select title from subject_tracks where id = $1`, [trackId]);
@@ -106,6 +123,7 @@ export async function ensureConceptSets(trackId: string): Promise<InsightState> 
       effort: "medium",
       thinking: "off",
       purpose: "concept_sets",
+      userId,
     });
     const kept = await holdUncertainSets(trackId, out.sets as RawConceptSet[], model);
     const clean = cleanConceptSets(kept, objectives.map((o) => o.id), await existingSetKeys(trackId));
@@ -116,11 +134,14 @@ export async function ensureConceptSets(trackId: string): Promise<InsightState> 
 // Learned cards: at most `limit` per call, each (objective, idea) tried once
 // ever (learned_set_attempts), so the cost is bounded by distinct confusions
 // that 3+ learners share, not by traffic.
-export async function generateLearnedSets(trackId: string, limit = 1): Promise<number> {
+export async function generateLearnedSets(trackId: string, userId: string | null, limit = 1): Promise<number> {
   const candidates = await learnedSetCandidates(trackId);
   let made = 0;
   for (const c of candidates) {
     if (made >= limit) break;
+    // REQ-202: each (objective, idea) is tried once ever, so look before
+    // claiming one this learner cannot afford.
+    if (userId && !(await canAffordAiSpend(userId, "learned_set", insightEstimateUsd()))) break;
     if (!(await claimLearnedSet(trackId, c.objectiveId, c.confusedWith))) continue;
     made++;
     try {
@@ -142,6 +163,7 @@ export async function generateLearnedSets(trackId: string, limit = 1): Promise<n
         effort: "medium",
         thinking: "off",
         purpose: "learned_set",
+        userId,
       });
       // objectiveNumber 1 is this objective; any other number means "none".
       const kept = await holdUncertainSets(trackId, [out as RawConceptSet], model);
@@ -223,10 +245,10 @@ export async function gateConceptSets(
 }
 
 // The course's prerequisite map, generated on first need.
-export async function ensurePrerequisites(trackId: string): Promise<InsightState> {
+export async function ensurePrerequisites(trackId: string, userId: string | null): Promise<InsightState> {
   const state = await insightStatus(trackId, "prerequisites");
   if (state === "ready") return state;
-  return runOnce(trackId, "prerequisites", async (model) => {
+  return runOnce(trackId, "prerequisites", userId, async (model) => {
     const objectives = await courseObjectives(trackId);
     if (objectives.length < 2) return;
     const track = await queryOne<{ title: string }>(`select title from subject_tracks where id = $1`, [trackId]);
@@ -245,6 +267,7 @@ export async function ensurePrerequisites(trackId: string): Promise<InsightState
       effort: "medium",
       thinking: "off",
       purpose: "prereq_map",
+      userId,
     });
     // The prompt numbers objectives from 1.
     const edges = cleanPrerequisites(
