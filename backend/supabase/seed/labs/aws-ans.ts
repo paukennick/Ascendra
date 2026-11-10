@@ -82,8 +82,8 @@ export const AWSANS_LABS: SeedLabSet = {
             ),
             part(
               "Backup path",
-              "Adds AWS Site-to-Site VPN over the internet as the path of last resort, notes that a standard VPN tunnel carries up to about 1.25 Gbps (so the fallback is degraded, below the 1.8 Gbps peak) and that ECMP across tunnels on a transit gateway needs dynamic (BGP) routing, and places the analytics workload on it or on the same circuits as lower-priority traffic.",
-              "A Site-to-Site VPN connection as the last-resort path. Each standard tunnel is documented at up to 1.25 Gbps, so the fallback is a degraded mode that covers the 600 Mbps average but not the 1.8 Gbps peak; terminating on a transit gateway with BGP allows ECMP across several tunnels for more aggregate bandwidth. The analytics workload can ride the VPN during migration or share the circuits as lower-priority traffic."
+              "Adds AWS Site-to-Site VPN over the internet as the path of last resort, notes that a standard VPN tunnel carries up to 1.25 Gbps (so a standard-tunnel fallback is degraded, below the 1.8 Gbps peak), that a Large Bandwidth Tunnel (up to 5 Gbps, transit gateway or Cloud WAN attachments only) can carry the peak, and that ECMP across tunnels on a transit gateway needs dynamic (BGP) routing, and places the analytics workload on it or on the same circuits as lower-priority traffic.",
+              "A Site-to-Site VPN connection as the last-resort path. Each standard tunnel is documented at up to 1.25 Gbps, so with standard tunnels the fallback is a degraded mode that covers the 600 Mbps average but not the 1.8 Gbps peak. Two ways past that, both on a transit gateway: Large Bandwidth Tunnels (up to 5 Gbps each, available only on transit gateway or Cloud WAN attachments, with a fixed-IP customer gateway) carry the full peak on one tunnel, or BGP with ECMP aggregates several standard tunnels. The analytics workload can ride the VPN during migration or share the circuits as lower-priority traffic."
             ),
             part(
               "Failover control",

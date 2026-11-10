@@ -35,7 +35,6 @@ export const GCPNET_LABS: SeedLabSet = {
   trackCode: "GCPNET",
   sources: [
     source("https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf", "exam_outline", CHECKED),
-    source("https://cloud.google.com/learn/certification/guides/cloud-network-engineer", "exam_outline", CHECKED),
     ref("https://docs.cloud.google.com/network-connectivity/docs/interconnect/tutorials/dedicated-creating-9999-availability"),
     ref("https://docs.cloud.google.com/network-connectivity/docs/vpn/concepts/topologies"),
     ref("https://docs.cloud.google.com/nat/docs/ports-and-addresses"),
@@ -70,13 +69,13 @@ export const GCPNET_LABS: SeedLabSet = {
             ),
             part(
               "GKE primary and secondary ranges",
-              "Sizes a node (primary) range, a Pod secondary range and a Service secondary range per cluster that fit the stated growth, with the arithmetic (for example 200 nodes fit a /24; 6,000 Pods need more than a /20 at 4,096, so a /19 or larger; 1,500 Services fit a /21), and keeps them inside the supernet.",
-              "Per cluster: nodes /24 (256 addresses, room for 200 nodes plus reserved IPs); Pods /18 (16,384) -- 6,000 Pods exceed a /20's 4,096 and with the default per-node Pod CIDR a /18 leaves headroom for 200 nodes; Services /21 (2,048) for 1,500 Services. Example prod us-east4: nodes 10.128.0.0/24, Pods 10.129.0.0/18, Services 10.128.248.0/21."
+              "Sizes a node (primary) range, a Pod secondary range and a Service secondary range per cluster that fit the stated growth, with the arithmetic, and keeps them inside the supernet. Nodes: 200 fit a /24. Pods: GKE gives every node its own Pod block sized from max Pods per node (the default 110 takes a /24 per node; 32 or fewer takes a /26), so the Pod range must hold 200 such blocks: either max Pods per node set to 32 or fewer with a /18 or larger (/18 / /26 = 256 nodes, and 200 x 32 = 6,400 Pods covers 6,000), or the default 110 with a /16 (256 nodes). A /18 or /19 at the default 110 is wrong (64 or 32 nodes). Services: 1,500 fit a /21.",
+              "Per cluster: nodes /24 (256 addresses, room for 200 nodes plus reserved IPs). Pods: the Pod range is consumed one per-node block at a time, not one address per Pod. At the default 110 max Pods per node each node takes a /24, so a /18 holds only 64 nodes. Set max Pods per node to 32, so each node takes a /26 (64 addresses): a /18 (16,384) then holds 256 nodes, and 200 nodes x 32 = 6,400 Pods covers the 6,000 expected. (Keeping the default 110 instead needs a /16 per cluster for 256 nodes.) Services /21 (2,048) for 1,500 Services. Example prod us-east4: nodes 10.128.0.0/24, Pods 10.129.0.0/18 with max Pods per node 32, Services 10.128.248.0/21."
             ),
             part(
               "Managed services and conserving space",
               "Allocates a named range for private services access (Cloud SQL) inside the plan, and names at least one way to conserve RFC 1918 space if it runs short (non-RFC 1918 or privately used public ranges for Pods, which on premises must not route, or Private NAT), with its trade-off.",
-              "Private services access: allocate 10.143.0.0/16 to servicenetworking, advertised to on premises. If space runs short, Pods could move to a non-RFC 1918 range such as 100.64.0.0/10 -- but only if on premises never needs to reach Pods directly; otherwise use Private NAT for the overlapping traffic. Both trade simpler routing for more NAT or exceptions."
+              "Private services access: allocate 10.152.0.0/16 to servicenetworking -- outside the three regional /13s (10.128.0.0-10.151.255.255), so it cannot collide with a regional subnet -- and advertise it to on premises. If space runs short, Pods could move to a non-RFC 1918 range such as 100.64.0.0/10 -- but only if on premises never needs to reach Pods directly; otherwise use Private NAT for the overlapping traffic. Both trade simpler routing for more NAT or exceptions."
             ),
           ],
         },

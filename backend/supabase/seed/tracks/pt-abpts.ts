@@ -176,9 +176,10 @@
 //     The Cardiovascular & Pulmonary objective therefore names only pH
 //     7.35-7.45 and PaCO2 35-45 mm Hg, matching nursing.ts; no HCO3 or PaO2
 //     range appears.
-//   - Oxygen-saturation targets (92-98%, 88-92% in chronic hypercapnia) rest
-//     on the Oxygen Therapy chapter alone; no Tier 1 source was opened for
-//     them and none of the files on hand contradict them.
+//   - Oxygen-saturation targets: first written as 92-98% (88-92% in chronic
+//     hypercapnia) from the Oxygen Therapy chapter alone; corrected
+//     2026-11-09 to the BTS 2017 guideline's 94-98% (88-92% with a risk of
+//     hypercapnic respiratory failure), see the correction note below.
 //   - Exercise in pregnancy: the Pregnancy and Exercise chapter (2023) gives
 //     150 minutes a week; ACOG's own opinion was not opened. Kept as a
 //     StatPearls figure; no conflicting source on file.
@@ -197,6 +198,20 @@
 //
 // Inline tag key: Tier 1 tags as listed above; SP-xxx = StatPearls chapter
 // in the list below. Where an objective carries two tags, both were checked.
+//
+// Corrected 2026-11-09 (content audit; reworded in place, order unchanged):
+//   - febrile neutropenia: ANC below 500, or expected below 500 within
+//     48 hours (IDSA 2010, Freifeld et al., Clin Infect Dis 2011, DOI
+//     10.1093/cid/cir073; wording checked in the Johns Hopkins ABX Guide);
+//   - oxygen targets: 94-98%, or 88-92% with a risk of hypercapnic
+//     respiratory failure (BTS 2017 emergency oxygen guideline);
+//   - phase II cardiac rehab: up to 36 sessions (CMS billing article A53775:
+//     "generally a total of 36 sessions over a maximum of 36 weeks"),
+//     usually about 12 weeks at three a week;
+//   - relapsing-remitting MS: about 85% at diagnosis (MS International
+//     Federation, "Types of MS");
+//   - stress fractures: 0.7% to 20% of sports medicine clinic injuries
+//     (Fredericson et al., Top Magn Reson Imaging 2006;17:309).
 //
 // StatPearls chapters cited (tag, title, first author, update date,
 // literature-archive article ID):
@@ -675,7 +690,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
         "Know the incomplete spinal cord syndromes: central cord (the most common, arms weaker than legs), anterior cord from anterior spinal artery compromise, and Brown-Sequard hemisection with same-side weakness and opposite-side pain and temperature loss", // SP-SCI
         "Explain spasticity as a velocity-dependent rise in tone with exaggerated stretch reflexes from lost supraspinal inhibition, part of the upper motor neuron syndrome with a positive Babinski sign", // SP-SPAS
         "Recognize cerebellar dysfunction (ataxia, dysmetria, nystagmus, dysarthria, imbalance and gait disorder) and causes of bilateral involvement such as multiple sclerosis and posterior circulation stroke", // SP-CER
-        "Know relapsing-remitting multiple sclerosis is the first course in about 70% to 80% of patients, and that fatigue, spasticity, pain, bladder problems and depression are common symptom targets", // SP-MS
+        "Know relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and that fatigue, spasticity, pain, bladder problems and depression are common symptom targets", // SP-MS
       ],
     },
     {
@@ -852,9 +867,9 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
         "Risk-factor modification and self-management education",
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Screen for contraindications to exercise in cardiac rehab: unstable angina, acute decompensated heart failure, complex ventricular arrhythmias, severe pulmonary hypertension, intracavitary thrombus, severe or symptomatic aortic stenosis", // SP-CR
-        "Structure cardiac rehab by phase: phase I inpatient bedside mobility and education, phase II supervised outpatient care after cardiology clearance (usually 3 to 6 weeks, up to 12), phase III independent maintenance", // SP-CR
+        "Structure cardiac rehab by phase: phase I inpatient bedside mobility and education, phase II supervised outpatient care after cardiology clearance (up to 36 sessions, usually over about 12 weeks), phase III independent maintenance", // SP-CR
         "Build pulmonary rehab exercise from endurance, interval (for those who can't sustain continuous work) and resistance training, combining all three for the most benefit, and set oxygen by rest and exercise needs", // SP-PR
-        "Titrate supplemental oxygen to target saturations: about 92% to 98% for most patients, 88% to 92% for chronic hypercapnic conditions such as COPD", // SP-O2
+        "Titrate supplemental oxygen to target saturations: 94% to 98% for most patients, 88% to 92% for those at risk of hypercapnic respiratory failure, such as COPD", // SP-O2
         "Prevent and treat postoperative atelectasis (usually within 72 hours of general anesthesia) with deep breathing, early walking, incentive spirometry, an acapella device, chest physiotherapy and good pain control", // SP-ATEL
         "Protect the femoral insertion site for an intra-aortic balloon pump: don't flex the leg, and know walking isn't possible while a femoral device is in place", // SP-IABP
         "Include airway clearance in cystic fibrosis care, alongside nutrition and infection control, recognizing CFTR modulators now treat the underlying protein defect", // SP-CF
@@ -1061,7 +1076,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Use the SCAT6 for sideline concussion assessment (Child SCAT6 for ages 5 to 12), remembering that over 90% of concussions occur without loss of consciousness", // SP-CONC
         "After a head injury, send to emergency care for severe headache, seizures, focal deficits, loss of consciousness or worsening mental status, and consider cervical spine injury, intracranial bleeding and skull fracture", // SP-CONC
-        "Recognize stress fractures as overload injuries, about 20% of sports medicine injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high", // SP-SF
+        "Recognize stress fractures as overload injuries, 0.7% to 20% of sports medicine clinic injuries; flag high-risk sites (femoral neck, anterior tibia, tarsal navicular, talus, sesamoids, 5th metatarsal) where non-union risk is high", // SP-SF
         "Recognize medial tibial stress syndrome as repetitive-loading pain along the tibial border that sits at the early end of a continuum that can progress to tibial stress fracture", // SP-MTSS
         "Know that a fall in FEV1 of 10% or more after an exercise challenge confirms exercise-induced bronchoconstriction, graded mild, moderate or severe by the size of the fall", // SP-EIB
         "Recognize hamstring strain in sports with high-speed running such as sprinting, soccer and football, knowing every hamstring muscle crosses hip and knee except the short head of biceps femoris", // SP-HAM
@@ -1168,7 +1183,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
         // Added 2026-11-04: depth from ABPTS outlines, APTA guidelines and StatPearls (see source header above ABPTS_OCS_TRACK).
         "Treat new back pain in anyone with a cancer history as possible metastatic cord compression: back pain is the presenting symptom in 80 to 95%, often constant, worse at night and with coughing or sneezing", // SP-SCC
         "Escalate cord compression signs right away: bilateral leg symptoms, patchy weakness, multi-dermatome sensory loss, urinary retention or incontinence, fecal incontinence and gait change", // SP-SCC
-        "Recognize febrile neutropenia (temperature of 38.3 C once or 38 C sustained for an hour, with ANC below 1500) as an emergency; ANC below 500 is severe and below 100 profound", // SP-FN
+        "Recognize febrile neutropenia (temperature of 38.3 C once or 38 C sustained for an hour, with ANC below 500 or expected to fall below 500 within 48 hours) as an emergency; ANC below 100 is profound", // SP-FN
         "Know thrombocytopenia starts below 150,000/uL and the mild band (100,000-150,000) is usually symptom-free, while the link between count and bleeding risk is not settled", // SP-PLT
         "Investigate self-reported swelling, heaviness or numbness in anyone at risk of upper-quadrant lymphedema, and use the Norman Questionnaire or Morbidity Screening Tool if a questionnaire helps", // LYMDX-CPG
         "Use bioimpedance to catch early breast-cancer lymphedema (L-Dex over 10 above a preoperative baseline, or over 7.1 without one); use volume, not bioimpedance, once fibrosis sets in", // LYMDX-CPG

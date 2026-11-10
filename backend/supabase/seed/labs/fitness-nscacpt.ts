@@ -8,11 +8,13 @@ import { source } from "../sources";
 // evaluation and spotting across modalities, and safety and emergency
 // procedures.
 //
-// Outline: NSCA-CPT exam description (Client Consultation and Assessment 23%,
-// 32 items; Program Planning 29%, 41; Program Execution 36%, 50; Safety,
-// Emergency Procedures and Legal Issues 12%, 17; 140 scored + 15 unscored,
-// 25-35 video/image items), checked on nsca.com on 2026-11-07, with the
-// detailed content outline in the NSCA Certification Handbook (the seed
+// Outline: NSCA-CPT detailed content outline from the 2025 job task analysis,
+// "New Detailed Content Outline (DCO) Date Effective: July 1, 2025" (Client
+// Consultation and Assessment 32 items, about 23%; Program Planning 41, 29%;
+// Program Execution 50, 36%; Safety, Emergency Procedures and Legal Issues
+// 17, 12%; 140 scored), read in NSCA's JTA summary on 2026-11-09 -- it
+// replaces the nsca.com exam-description page, which the 2026-11-09 content
+// audit found stale -- and reproduced in the NSCA Certification Handbook (the seed
 // track's outline URL). Density ("hybrid"): 2/3/3/2 = 10.
 //
 // Values and where they were checked (2026-11-07):
@@ -43,7 +45,7 @@ export const NSCACPT_LABS: SeedLabSet = {
   // added, 2026-11-07, REQ-149), not re-checked in the REQ-142 pass. kind sets
   // the re-check: exam outlines and references 12 months, guidelines 6.
   sources: [
-    source("https://www.nsca.com/certification/nsca-cpt/nsca-cpt-exam-description", "exam_outline", "2026-11-07"),
+    source("https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certified-personal-trainer-job-task-analysis-summary-2025", "exam_outline", "2026-11-09"),
     source("https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf", "exam_outline", "2026-11-07"),
     source("https://dxpprod.nsca.com/contentassets/61d813865e264c6e852cadfe247eae52/nsca_training_load_chart.pdf", "reference", "2026-11-07"),
     source("https://www.hprc-online.org/articles/one-rep-max-for-strength", "reference", "2026-11-07"),

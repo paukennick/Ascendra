@@ -8,10 +8,11 @@ import { source } from "../sources";
 // Management 44%, Benefits Management 11%, Stakeholder Engagement 16%,
 // Governance 14%. pmi.org's PgMP page, read 2026-11-09, still offers the
 // exam (170 questions, 240 minutes) with the same weights and announces no
-// new ECO; the ECO PDF itself answered "not on allowlist" to this session.
-// (The page summary named the 11% domain "Business Alignment"; every other
-// source, including the track, names it Benefits Management, so the track
-// name is kept.)
+// new ECO. The ECO PDF (pgmp-exam-content-outline.pdf) was fetched and
+// re-read on 2026-11-09; its weights match. The PDF itself names domain III
+// two ways: "Benefits Management" in the contents and section heading,
+// "Benefits Alignment 11%" in the weights table. The track keeps Benefits
+// Management, the heading the tasks sit under.
 // Density ("hybrid"): 2 / 3 / 2 / 2 / 2 = 11 labs (7 build, 4 case).
 // Every number in a rubric is worked in its model answer.
 

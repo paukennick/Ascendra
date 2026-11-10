@@ -22,6 +22,8 @@ export const CKAD_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/", "exam_outline", "2026-11-07"),
     source("https://kubernetes.io/docs/concepts/security/pod-security-standards/", "reference", "2026-11-07"),
     source("https://kubernetes.io/docs/reference/using-api/deprecation-guide/", "reference", "2026-11-07"),
+    source("https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/", "reference", "2026-11-09"),
+    source("https://helm.sh/docs/helm/helm_upgrade/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 20%
@@ -83,8 +85,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "No overlap, bounded retries, bounded duration",
-              "concurrencyPolicy: Forbid on the CronJob; backoffLimit: 3 and activeDeadlineSeconds: 2700 on the jobTemplate.spec; explains Forbid skips a run while the previous is still active (Replace would kill it), backoffLimit counts failed Pods before the Job is marked failed, and activeDeadlineSeconds caps wall-clock time for the whole Job including retries.",
-              "  concurrencyPolicy: Forbid\n  jobTemplate:\n    spec:\n      backoffLimit: 3\n      activeDeadlineSeconds: 2700\nForbid: if the 02:30 run is still going at the next tick, the new run is skipped (Replace would terminate the running one; Allow would overlap). backoffLimit: 3 means up to three failed Pods and then the Job fails. activeDeadlineSeconds: 2700 (45 min) terminates the Job and its Pods when exceeded, and takes precedence over backoffLimit."
+              "concurrencyPolicy: Forbid on the CronJob; backoffLimit: 3 and activeDeadlineSeconds: 2700 on the jobTemplate.spec; explains Forbid skips a run while the previous is still active (Replace would kill it), backoffLimit is the number of retries before the Job is marked failed (with restartPolicy OnFailure, container restarts count too), and activeDeadlineSeconds caps wall-clock time for the whole Job including retries.",
+              "  concurrencyPolicy: Forbid\n  jobTemplate:\n    spec:\n      backoffLimit: 3\n      activeDeadlineSeconds: 2700\nForbid: if the 02:30 run is still going at the next tick, the new run is skipped (Replace would terminate the running one; Allow would overlap). backoffLimit: 3 allows three retries: the Job is marked failed at the fourth failure (with restartPolicy OnFailure, container restarts in a Pod count toward it as well). activeDeadlineSeconds: 2700 (45 min) terminates the Job and its Pods when exceeded, and takes precedence over backoffLimit."
             ),
             part(
               "History and the Pod template",
@@ -160,8 +162,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Upgrade keeping overrides",
-              "helm upgrade metrics wrenfield/metrics-stack --version 3.6.0 -n observability with --reuse-values (or re-supplying the values file) and --set retention=30d, ideally with --atomic or --wait so a failed upgrade rolls itself back; warns that without --reuse-values or -f the user-supplied values are dropped.",
-              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reuse-values --set retention=30d --atomic --timeout 5m\n--reuse-values carries forward storage.size and storage.className; plain helm upgrade resets everything to chart defaults, which would reprovision storage. --atomic waits for resources to be ready and rolls back automatically if they are not. Pinning --version avoids silently taking a newer chart later."
+              "helm upgrade metrics wrenfield/metrics-stack --version 3.6.0 -n observability with --reset-then-reuse-values (or re-supplying the values file with -f) and --set retention=30d, ideally with --atomic or --wait so a failed upgrade rolls itself back; warns that without one of these the user-supplied values are dropped, and that plain --reuse-values across a chart version also reuses the old chart's defaults, so keys new in 3.6.0 lose theirs.",
+              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reset-then-reuse-values --set retention=30d --atomic --timeout 5m\n--reset-then-reuse-values starts from 3.6.0's own defaults, then carries forward storage.size and storage.className; plain helm upgrade resets everything to chart defaults, which would reprovision storage. Plain --reuse-values is the wrong tool across a chart version: it reuses the last release's values including the old chart's defaults, so any key new in 3.6.0 loses its default. (helm get values metrics -o yaml > values.yaml, then -f values.yaml, is the equivalent on older Helm.) --atomic waits for resources to be ready and rolls back automatically if they are not. Pinning --version avoids silently taking a newer chart later."
             ),
           ],
         },
@@ -176,8 +178,8 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Redo correctly",
-              "Re-runs the upgrade with the retention expressed the way 3.6.0 expects (e.g. 720h, found from helm show values), --reuse-values and --atomic, then verifies with kubectl and helm status; optionally tests first with helm upgrade --dry-run or helm template.",
-              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reuse-values --set retention=720h --atomic --timeout 5m\nhelm -n observability status metrics\nkubectl -n observability logs metrics-server-0 | tail\nA --dry-run (or helm template ... | less) beforehand shows the rendered ConfigMap so the retention format can be checked before anything is applied."
+              "Re-runs the upgrade with the retention expressed the way 3.6.0 expects (e.g. 720h, found from helm show values), --reset-then-reuse-values and --atomic, then verifies with kubectl and helm status; optionally tests first with helm upgrade --dry-run or helm template.",
+              "helm -n observability upgrade metrics wrenfield/metrics-stack --version 3.6.0 \\\n  --reset-then-reuse-values --set retention=720h --atomic --timeout 5m\nhelm -n observability status metrics\nkubectl -n observability logs metrics-server-0 | tail\nA --dry-run (or helm template ... | less) beforehand shows the rendered ConfigMap so the retention format can be checked before anything is applied."
             ),
             part(
               "Retire cleanly",
@@ -304,7 +306,7 @@ export const CKAD_LABS: SeedLabSet = {
             part(
               "Seccomp",
               "seccompProfile type RuntimeDefault at Pod (or container) level; explains restricted requires a seccomp profile of RuntimeDefault or Localhost and that Unconfined is forbidden.",
-              "  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\nThe restricted profile requires seccompProfile.type to be RuntimeDefault or Localhost (Unconfined, or unset on older clusters, is rejected). RuntimeDefault applies the container runtime's default syscall allowlist, which almost all web apps run under without change."
+              "  securityContext:\n    seccompProfile:\n      type: RuntimeDefault\nThe restricted profile requires seccompProfile.type to be RuntimeDefault or Localhost (Unconfined is rejected, and so is leaving it unset: it must be set at Pod level or on every container). RuntimeDefault applies the container runtime's default syscall allowlist, which almost all web apps run under without change."
             ),
             part(
               "Container hardening",
@@ -448,7 +450,7 @@ export const CKAD_LABS: SeedLabSet = {
             part(
               "Plain HTTP",
               "States that with a tls section most controllers redirect HTTP to HTTPS by default for that host (nginx does), and names the controller annotation that makes it explicit (nginx.ingress.kubernetes.io/ssl-redirect: \"true\") while noting redirect behaviour is controller-specific, not part of the Ingress API.",
-              "The Ingress API itself only says 'terminate TLS for this host'; whether port 80 redirects is up to the controller. ingress-nginx redirects to HTTPS automatically when a host has TLS configured; adding the annotation nginx.ingress.kubernetes.io/ssl-redirect: \"true\" makes the intent explicit. Verify with curl -I http://online.harrowgate.example/ (expect 308) and curl -k https://.../api/health."
+              "The Ingress API itself only says 'terminate TLS for this host'; whether port 80 redirects is up to the controller. ingress-nginx redirects to HTTPS automatically when a host has TLS configured; adding the annotation nginx.ingress.kubernetes.io/ssl-redirect: \"true\" makes the intent explicit. Verify with curl -I http://online.harrowgate.example/ (expect 308) and curl -k https://.../api/health. (The community ingress-nginx controller was retired in March 2026 -- no further releases or security fixes -- so a new cluster would pick a maintained Ingress controller or Gateway API; the Ingress resource itself is unchanged.)"
             ),
           ],
         },

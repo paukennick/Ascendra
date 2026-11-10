@@ -26,6 +26,7 @@ export const PYTHON_LABS: SeedLabSet = {
     source("https://docs.python.org/3/reference/index.html", "reference", "2026-11-07"),
     source("https://docs.python.org/3/library/index.html", "reference", "2026-11-07"),
     source("https://docs.pytest.org/en/stable/", "reference", "2026-11-07"),
+    source("https://peps.python.org/pep-0779/", "reference", "2026-11-09"),
   ],
   labs: [
     {
@@ -315,8 +316,8 @@ export const PYTHON_LABS: SeedLabSet = {
             ),
             part(
               "Workload B (4 CPU-bound loops)",
-              "Multiprocessing (ProcessPoolExecutor), because pure-Python bytecode holds the GIL so threads cannot run it in parallel -- consistent with 0.33 s vs 0.35 s; notes the speedup is bounded by cores (2 here, so at most ~2x, and process start-up may eat it for short jobs) and that NumPy/C extensions that release the GIL change the picture.",
-              "ProcessPoolExecutor. The loop is pure Python, so each thread needs the GIL to execute bytecode and only one runs at a time -- the threaded run (0.35 s) was no faster than sequential (0.33 s). Separate processes each have their own interpreter and GIL, so they can use both cores; on this 2-core box the ceiling is about 2x, and for a 0.3 s job process start-up and pickling can cancel the gain, so measure. If the work moves into NumPy or a C extension that releases the GIL, threads become viable again."
+              "Multiprocessing (ProcessPoolExecutor), because pure-Python bytecode holds the GIL so threads cannot run it in parallel -- consistent with 0.33 s vs 0.35 s; notes the speedup is bounded by cores (2 here, so at most ~2x, and process start-up may eat it for short jobs) and that NumPy/C extensions that release the GIL, or the free-threaded build supported since Python 3.14, change the picture.",
+              "ProcessPoolExecutor. The loop is pure Python, so each thread needs the GIL to execute bytecode and only one runs at a time -- the threaded run (0.35 s) was no faster than sequential (0.33 s). Separate processes each have their own interpreter and GIL, so they can use both cores; on this 2-core box the ceiling is about 2x, and for a 0.3 s job process start-up and pickling can cancel the gain, so measure. If the work moves into NumPy or a C extension that releases the GIL, threads become viable again. One more option since Python 3.14: the free-threaded build (python3.14t, officially supported under PEP 779) has no GIL, so pure-Python threads can use both cores there. It is a separate build rather than the default, and some C extensions are not ready for it yet, so on the standard interpreter ProcessPoolExecutor is still the answer."
             ),
             part(
               "Workload C (5,000 idle connections)",

@@ -22,6 +22,7 @@ export const DCA_LABS: SeedLabSet = {
     source("https://store.mirantis.com/product/docker-certified-associate-dca/", "exam_outline", "2026-11-08"),
     source("https://docs.docker.com/engine/swarm/", "reference", "2026-11-08"),
     source("https://docs.docker.com/engine/security/trust/", "reference", "2026-11-08"),
+    source("https://www.docker.com/blog/retiring-docker-content-trust/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 25%
@@ -410,7 +411,7 @@ export const DCA_LABS: SeedLabSet = {
             part(
               "Signing and verifying",
               "docker trust sign registry.larkin.example/dispense:4.2.0 (which pushes and signs) or DOCKER_CONTENT_TRUST=1 docker push; docker trust inspect --pretty shows signers and the signed digest; explains the signature binds a tag to a digest so a repointed tag fails verification.",
-              "docker trust sign registry.larkin.example/dispense:4.2.0      # pushes the image and signs the tag -> digest mapping\ndocker trust inspect --pretty registry.larkin.example/dispense:4.2.0\n# Signatures for registry.larkin.example/dispense:4.2.0  SIGNED TAG 4.2.0  DIGEST sha256:...  SIGNERS larkin-release\nContent trust signs the mapping from tag to content digest. If anyone later pushes a different image as 4.2.0, the signed metadata no longer matches and a client with trust enabled refuses to pull it."
+              "docker trust sign registry.larkin.example/dispense:4.2.0      # pushes the image and signs the tag -> digest mapping\ndocker trust inspect --pretty registry.larkin.example/dispense:4.2.0\n# Signatures for registry.larkin.example/dispense:4.2.0  SIGNED TAG 4.2.0  DIGEST sha256:...  SIGNERS larkin-release\nContent trust signs the mapping from tag to content digest. If anyone later pushes a different image as 4.2.0, the signed metadata no longer matches and a client with trust enabled refuses to pull it. Know this for the exam, but note that Docker began retiring Content Trust in July 2025: the upstream Notary v1 code is no longer maintained, Docker Official Images stopped carrying DCT signatures (so with DOCKER_CONTENT_TRUST=1 their pulls fail), and Docker points new signing work to Sigstore (cosign) or Notation."
             ),
             part(
               "Enforcing on clients and the swarm",

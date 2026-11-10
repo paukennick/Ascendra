@@ -429,7 +429,7 @@ export const AWSSAP_LABS: SeedLabSet = {
             part(
               "Restoring when production is compromised",
               "Copies backups to a logically air-gapped vault (or a locked vault in a separate backup account with cross-account copy) so an attacker in production cannot touch them, and uses the vault's sharing (AWS RAM) so a clean recovery account can restore directly.",
-              "Add a copy rule to a logically air-gapped vault, which AWS Backup encrypts with an AWS owned key and isolates from the source account, and share that vault through AWS RAM with a dedicated recovery account. If production is compromised, the recovery team restores from the air-gapped vault into a clean account without ever needing credentials from the compromised one; a locked vault in a separate backup account with cross-account copies is the equivalent self-managed design."
+              "Add a copy rule to a logically air-gapped vault, which AWS Backup encrypts with an AWS owned key by default (a customer managed KMS key is optional), locks in compliance mode and isolates from the source account, and share that vault through AWS RAM with a dedicated recovery account. If production is compromised, the recovery team restores from the air-gapped vault into a clean account without ever needing credentials from the compromised one; a locked vault in a separate backup account with cross-account copies is the equivalent self-managed design."
             ),
           ],
         },
@@ -466,8 +466,8 @@ export const AWSSAP_LABS: SeedLabSet = {
           parts: [
             part(
               "Artifacts and quotas",
-              "Replicates ECR images to the recovery Region (ECR cross-Region replication) and pins task definitions to the local repository, and raises the recovery Region's quotas to full production capacity in advance, verified continuously (for example with Route 53 ARC readiness checks or a quota-monitoring alarm).",
-              "Turn on ECR cross-Region replication so every production image lands in the recovery Region's registry, and have task definitions reference the local repository. Request quota increases in the recovery Region to at least full production capacity now, not during an event, and keep a readiness check (Route 53 ARC readiness checks compare quotas and capacity between Regions) alarming if they diverge."
+              "Replicates ECR images to the recovery Region (ECR cross-Region replication) and pins task definitions to the local repository, and raises the recovery Region's quotas to full production capacity in advance, verified continuously (for example with ARC Region switch plan evaluation and its service quota checks, or a quota-monitoring alarm; ARC readiness checks are closed to new customers).",
+              "Turn on ECR cross-Region replication so every production image lands in the recovery Region's registry, and have task definitions reference the local repository. Request quota increases in the recovery Region to at least full production capacity now, not during an event, and keep that verified continuously: an ARC Region switch plan's evaluation runs several times an hour and warns if the recovery Region's ECS service cannot scale to the capacity failover needs, and its service quota checks compare the two Regions' quotas daily and can request the increase. (The older ARC readiness checks did a similar job but are closed to new customers.) Alarm on any warning."
             ),
             part(
               "Traffic switch and automation",

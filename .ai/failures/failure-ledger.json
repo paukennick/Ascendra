@@ -7636,6 +7636,601 @@
       "recurrence_of": ""
     },
     {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-581",
+      "title": "Security+ V7 objective swapped control types and control categories",
+      "severity": "high",
+      "symptom": "The SY0-701 unit 1 objective read 'Security control types (technical, managerial, operational, physical) and control functions (preventive, ...)', the reverse of CompTIA's terms; lessons generated from it teach the swap, which fails exam questions.",
+      "root_cause": "The objective was paraphrased from the outline from memory of the older 'types/functions' wording rather than quoted from SY0-701 1.1, and nothing compared objective wording against the outline's terms.",
+      "affected": [
+        "backend/supabase/seed/data.ts"
+      ],
+      "fix_summary": "Reworded in place (same sort order): 'Security control categories (technical, managerial, operational, physical) and control types (preventive, deterrent, detective, corrective, compensating, directive)'.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Security+ V7 names control categories and control types the SY0-701 way (FAIL-581)"
+      ],
+      "prevention_notes": "Terms of art in an objective are quoted from the outline, not paraphrased; the test pins the SY0-701 wording."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-582",
+      "title": "Network+ lab's test commands removed the default route",
+      "severity": "medium",
+      "symptom": "The model answer ran 'ip addr del 10.20.5.37/16' before 'ip addr add 10.20.5.37/24'; deleting the only address removes the default route, so the confirming ping to FS01 fails (reproduced in a network namespace).",
+      "root_cause": "Commands were written from reasoning, not run; the kernel drops routes whose source address disappears.",
+      "affected": [
+        "backend/supabase/seed/labs/comptia-networkplus.ts"
+      ],
+      "fix_summary": "Add the /24 first, then delete the /16, with the reason stated.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Network+ adds the /24 before deleting the /16 so the default route survives (FAIL-582)"
+      ],
+      "prevention_notes": "Command sequences in labs are run (a namespace or container is enough) before they become a key."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-583",
+      "title": "Linux+ archive script exited 0 and miscounted when gzip failed",
+      "severity": "medium",
+      "symptom": "With gzip failing, the model script printed 'archived 2 file(s)' and exited 0 (reproduced), although the brief requires a non-zero exit on any failure.",
+      "root_cause": "set -e does not fire for a command that fails on the left of && ('gzip ... && rm'), a well-known Bash exception the answer relied on without testing.",
+      "affected": [
+        "backend/supabase/seed/labs/comptia-linuxplus.ts"
+      ],
+      "fix_summary": "Explicit 'if ! gzip ...; then rm partial .gz; die; fi' before removing the original; the explanation and rubric say why set -e alone is not enough.",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Linux+ archive script stops with exit 1 and keeps the log when gzip fails (FAIL-583)"
+      ],
+      "prevention_notes": "The test extracts the model script and runs it against a failing gzip; scripts in model answers are executed, not read."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-584",
+      "title": "Security+ V8 CVSS key used E:Attacked for a published exploit",
+      "severity": "medium",
+      "symptom": "The brief said only that a working exploit had been published, which is E:P (POC) in CVSS v4.0 and scores 8.9 High, but the key gave E:A and 9.3 Critical.",
+      "root_cause": "Exploit Maturity values were taken as 'exploit exists = Attacked'; CVSS v4.0 reserves Attacked for reported attacks or exploit toolkits.",
+      "affected": [
+        "backend/supabase/seed/labs/security-secplusv8.ts"
+      ],
+      "fix_summary": "Brief now states exploitation in the wild has been reported, so E:A and 9.3 hold; the answer adds E:P 8.9 and E:U 8.1 (computed with the cvss library).",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::Security+ V8 CVSS lab: reported attacks justify E:A and the 9.3 key; a PoC alone is 8.9 (FAIL-584)"
+      ],
+      "prevention_notes": "CVSS scores in labs are computed from the full vector with a calculator, and the brief must state the facts each metric value rests on."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-184",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-585",
+      "title": "EPSS percentiles in two labs were far below real values",
+      "severity": "medium",
+      "symptom": "Security+ and CySA+ labs gave EPSS 0.93 as the 94th percentile, 0.6 as the 90th, 0.91 as the 93rd and 0.55 as the 88th; the FIRST API puts them near the 99th-99.8th.",
+      "root_cause": "Percentiles were invented to look plausible instead of read from the EPSS data; EPSS scores are heavily skewed.",
+      "affected": [
+        "backend/supabase/seed/labs/security-secplus.ts",
+        "backend/supabase/seed/labs/security-cysaplus.ts"
+      ],
+      "fix_summary": "Percentiles set from the FIRST EPSS API on 2026-11-09 (count of CVEs above each score over the total).",
+      "regression_tests": [
+        "backend/lib/labs-audit-comptia.test.ts::EPSS percentiles are realistic for the stated scores (FAIL-585)"
+      ],
+      "prevention_notes": "A derived figure (percentile, score) in a lab is computed from the source data, never estimated."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-586",
+      "title": "CLF course taught support plans AWS is discontinuing",
+      "severity": "high",
+      "symptom": "The CLF-C02 objective listed Developer, Business and Enterprise On-Ramp; the guide (revisions 2026-09-24 and 2026-10-29) lists Basic Support, Business Support+, Enterprise Support and Unified Operations, and AWS ends the old plans on 2027-01-01. Lessons generated from the objective taught the old plans.",
+      "root_cause": "The track was verified on 2026-09-18 and only exam codes were re-checked after; guide revisions within the same exam code were not tracked.",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "Objective reworded in place to the current guide; CLF re-compared domain by domain with the live guide.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::CLF-C02 support objective lists the current plans (FAIL-586)"
+      ],
+      "prevention_notes": "Re-check a guide's revision history, not only its exam code, when re-verifying a track."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-587",
+      "title": "SAP DR lab recommended ARC readiness checks, closed to new customers",
+      "severity": "medium",
+      "symptom": "The model answer kept recovery-Region quotas verified with Route 53 ARC readiness checks, which AWS has closed to new customers.",
+      "root_cause": "Service availability changes after authoring were not checked.",
+      "affected": [
+        "backend/supabase/seed/labs/aws-sap.ts"
+      ],
+      "fix_summary": "Uses ARC Region switch plan evaluation (capacity checks several times an hour) and its service quota checks (daily), as AWS recommends.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::SAP DR lab verifies the recovery Region with ARC Region switch plan evaluation, not readiness checks (FAIL-587)"
+      ],
+      "prevention_notes": "A recommended feature is checked for availability to new customers, not only for existence."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-588",
+      "title": "DEA throttling case numbers contradicted the key",
+      "severity": "medium",
+      "symptom": "The step implied about 9,000 writes per second against a 2,000 WCU table with 900 consumed, so table capacity, not only the hot partition the key blamed, would throttle.",
+      "root_cause": "The stream rate from an earlier step was reused for table writes without checking it against the table's capacity.",
+      "affected": [
+        "backend/supabase/seed/labs/aws-dea.ts"
+      ],
+      "fix_summary": "The consumer pre-aggregates to about 1,500 writes/s; 80% (about 1,200) hit one key, over the 1,000 WCU partition limit, while the table consumes about 1,300 of 2,000.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::DEA throttling step: the hot partition is over 1,000 WCU while the table is under its 2,000 (FAIL-588)"
+      ],
+      "prevention_notes": "Every number in a multi-step case is re-derived when a later step reuses it."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-589",
+      "title": "GKE Pod range key accepted a /19 for 200 nodes",
+      "severity": "high",
+      "symptom": "The GCP Network Engineer key said a /18 Pod range fits 200 nodes and accepted a /19; at the default 110 Pods per node each node takes a /24, so a /18 holds 64 nodes and a /19 32.",
+      "root_cause": "The range was sized by Pod count instead of GKE's per-node CIDR allocation.",
+      "affected": [
+        "backend/supabase/seed/labs/gcp-net.ts"
+      ],
+      "fix_summary": "Key requires max Pods per node 32 or fewer with a /18 (256 nodes, 6,400 Pods) or a /16 at the default 110, and rejects /18 or /19 at 110; the private services access range moved outside the regional /13s.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::GKE Pod range: a /19 or /18 at 110 Pods per node is rejected; max Pods 32 with a /18 or a /16 at 110 (FAIL-589)"
+      ],
+      "prevention_notes": "Address-plan keys are checked against the platform's allocation rule (GKE flexible Pod CIDR table) with the arithmetic shown."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-590",
+      "title": "AZ-104 and DP-300 objectives drifted from the study guides",
+      "severity": "medium",
+      "symptom": "AZ-104 taught 'encryption at host' where the guide says 'Configure Azure Disk Encryption'; DP-300 said 'VBS enclaves' where the 2026-10-27 guide says 'secure enclaves'.",
+      "root_cause": "Objectives were reworded toward current product advice instead of the guide's wording, and the DP-300 change was recorded as outdated without being applied.",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/labs/microsoft-az104.ts"
+      ],
+      "fix_summary": "Both objectives reworded in place to the guides; DP-300 re-compared with the live guide and marked current.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::AZ-104 and DP-300 objectives follow the live study guides (FAIL-590)"
+      ],
+      "prevention_notes": "An outline marked OUTDATED is fixed in the next content change to that course."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-591",
+      "title": "ACE impersonation lab omitted that Data Access audit logs must be on",
+      "severity": "medium",
+      "symptom": "The key said the audit log records GenerateAccessToken; IAM logs that only when Data Access audit logs are enabled, which they are not by default.",
+      "root_cause": "Default audit-log coverage was assumed.",
+      "affected": [
+        "backend/supabase/seed/labs/gcp-ace.ts"
+      ],
+      "fix_summary": "Criteria and answer state that IAM Data Access audit logs must be enabled first.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::ACE impersonation audit needs Data Access audit logs turned on (FAIL-591)"
+      ],
+      "prevention_notes": "A key that relies on a log names the log type and whether it is on by default."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-592",
+      "title": "GCP DevOps course would teach the retired outline from 2026-11-23",
+      "severity": "high",
+      "symptom": "Google's new Professional Cloud DevOps Engineer guide applies from 2026-11-23 (18/30/18/22/12, new agent, MCP and NCC topics); the course followed the old 20/25/18/25/12 guide.",
+      "root_cause": "REQ-142 recorded the change as a review due date but nothing re-authored the course.",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/gcp-devops.ts"
+      ],
+      "fix_summary": "New units from the new guide at sort_order 5-9; the old five retired from 2026-11-23T12:00Z (kept for history), effectiveDate 2026-11-23; 11 labs re-checked and pointed at the new objectives.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::GCP DevOps follows the guide live on 2026-11-23 and the old units retire after 2026-11-22 (FAIL-592)"
+      ],
+      "prevention_notes": "A known future outline change is re-authored with the retire-and-append pattern (as AWSSAP) before its date, not left as a review date."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-593",
+      "title": "Seven Google Cloud exam-guide links returned 404",
+      "severity": "low",
+      "symptom": "sourceUrl and officialObjectivesUrl for seven GCP tracks pointed at cloud.google.com/learn/certification/guides/<slug> pages that no longer exist.",
+      "root_cause": "Google moved those guides to PDFs linked from the certification pages; link health was not checked.",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/gcp-net.ts"
+      ],
+      "fix_summary": "Replaced with the live PDF links from each certification page (each returned 200 on 2026-11-09).",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::Google Cloud guide links point at live exam guides, not removed /guides/ pages (FAIL-593)"
+      ],
+      "prevention_notes": "Outline URLs are fetched when a track is re-verified."
+    },
+    {
+      "id": "FAIL-594",
+      "date": "2026-11-09",
+      "title": "CCRN DKA lab taught a superseded potassium threshold and anion-gap resolution",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "CCRNADULT/dka-case held insulin only below about 3.3 mEq/L potassium, used anion-gap closure as the sign DKA had resolved and added dextrose at about 200-250 mg/dL; the 2024 consensus says insulin waits for K above 3.5, resolution is ketones below 0.6 mmol/L with pH >=7.3 or bicarbonate >=18 (anion gap only when ketones can't be measured), dextrose below 250.",
+      "how_detected": "2026-11-09 content audit (findings-nursing C1, M1, m8)",
+      "root_cause": "The lab was written from long-standing (2009 ADA) values; the REQ-142 source pass found the disagreement but deliberately left the lab unchanged for a clinical reviewer, and no reviewer pass followed, so the wrong key stayed live.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/labs/ccrn.ts"
+      ],
+      "fix_summary": "Rubric and model answers rewritten to the 2024 consensus values, steps carry ketone and pH readings, header and value-source record re-dated 2026-11-09.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::CCRN dka-case follows the 2024 hyperglycemic crises consensus (FAIL-594)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test pins the consensus values; a source-pass disagreement should be fixed with the cited guideline in the same PR rather than parked for a reviewer who may never come.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-595",
+      "date": "2026-11-09",
+      "title": "Fitness examRevision longer than its varchar(100) column broke the seed",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "seed failed: value too long for type character varying(100) while seeding ACSMCPT after the examRevision text was reworded.",
+      "how_detected": "local npm run seed on fresh Postgres 16 during this task",
+      "root_cause": "credential text fields are bounded by migration 007 (exam_revision varchar(100)) but no unit test checked lengths, so only the DB seed caught it.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/tracks/fitness.ts"
+      ],
+      "fix_summary": "Shortened the ACSM, CSCS and NSCA-CPT examRevision strings; added a catalog test that every credential's examRevision and examCode fit 100 characters and credentialType 80.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/catalog-blueprints.test.ts::credential text fits its columns"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The unit test now fails on any over-long credential field before seeding.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-596",
+      "date": "2026-11-09",
+      "title": "NCS ISNCSCI lab gave the motor zone of partial preservation as C7 instead of C8",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "ABPTSNCS/ncs-isncsci-classification keyed the motor ZPP at C7 although the C8 finger flexors are graded 1/5.",
+      "how_detected": "2026-11-09 content audit (findings-pt M1)",
+      "root_cause": "The motor ZPP was set to the motor level instead of the most caudal segment with any motor function; the arithmetic check covered levels but not ZPP.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/labs/pt-abpts-ncs.ts"
+      ],
+      "fix_summary": "Rubric and model answer now give the motor ZPP as C8 with the reason.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::NCS ISNCSCI lab records the motor zone of partial preservation at C8 (FAIL-596)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test pins C8.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-597",
+      "date": "2026-11-09",
+      "title": "Value-source test matched only NCLEX, CCRN and NASM, leaving 195 fitness and PT labs unsourced",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/labs.test.ts REQ-142 rule filtered /^(NCLEX|CCRN|NASM)/, so 48 fitness labs (ACE, ACSM, NCCPT, NSCA-CPT, CSCS) and 147 PT labs had no per-lab value sources and nothing failed.",
+      "how_detected": "2026-11-09 content audit (findings-fitness M4, findings-pt minor 10)",
+      "root_cause": "The REQ-142 test was written for the three pilot families and never widened as fitness and PT lab sets were added (REQ-147, REQ-149, REQ-151).",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/lib/labs.test.ts",
+        "backend/supabase/seed/labs/value-sources.ts"
+      ],
+      "fix_summary": "Widened the pattern to every fitness and PT track code, added an assertion that each named code is covered, and added value-source entries for all 195 labs from each lab file's header citations (DOIs confirmed via Crossref).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::every clinical and fitness lab names what its values rest on",
+        "or why it names nothing (REQ-142)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The test lists the covered codes explicitly and fails if a named code drops out; docs/source-reliability-standard.md now names every family.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-598",
+      "date": "2026-11-09",
+      "title": "Objectives and track metadata taught outdated or wrong clinical and exam facts",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Nursing objectives said VT is more than three PVCs, clozapine is under an FDA REMS (ended 2025-06-13), graham crackers for hypoglycaemia; PT objectives said febrile neutropenia is ANC below 1500 and SpO2 targets 92-98%; NSCA CSCS and NSCA-CPT tracks were dated 2026-07-01 instead of 2025-07-01.",
+      "how_detected": "2026-11-09 content audit (findings-nursing M2, M3, m2; findings-pt M3, M5; findings-fitness M1, M2)",
+      "root_cause": "Objectives were written from textbooks or a single StatPearls chapter without a current Tier 1 check, and the NSCA handbook's edition date was taken for the outline's effective date.",
+      "requirement": "REQ-185",
+      "affected": [
+        "backend/supabase/seed/tracks/nursing.ts",
+        "backend/supabase/seed/tracks/pt-abpts.ts",
+        "backend/supabase/seed/tracks/pt.ts",
+        "backend/supabase/seed/tracks/fitness.ts"
+      ],
+      "fix_summary": "Reworded in place (sort order kept, so mastery is kept), with dated sources in each track header; NSCA dates set to 2025-07-01 from NSCA's 2025 JTA summaries.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts::objectives carry the corrected clinical facts (FAIL-598)",
+        "backend/lib/labs.test.ts::NSCA CSCS and NSCA-CPT outlines are dated July 1",
+        "2025 (FAIL-598)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression tests pin the corrected text and dates; numeric objectives need a Tier 1 source per docs/source-reliability-standard.md.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-601",
+      "date": "2026-11-09",
+      "title": "JavaScript lab's model-answer server crashed on a null body",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "POST /bookings with body null made the model-answer server throw on body.room and the Node process exited; its size guard also counted characters, so a 16 KB limit let up to 32 KB of UTF-8 through.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "JSON.parse accepts any JSON value and the answer read fields without checking for an object; the guard used string length on a decoded string.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/dev-javascript.ts"
+      ],
+      "fix_summary": "Reject a parsed value that is not a plain object with 422; collect Buffer chunks and count bytes; corrected the race-condition explanation (races need an await between read and write).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::JS validating endpoint (FAIL-601)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Model-answer code that a learner may copy is executed by a test, not only read.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-602",
+      "date": "2026-11-09",
+      "title": "CKA answer keys contradicted their own evidence and accepted removed etcdctl commands",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "stuck-rollout showed 4 of 6 old Pods with 25% maxUnavailable; pvc-pending showed the no-class event for a claim that names a class; crashloop-oomkilled said ConfigMap env is read only once; etcd-backup-restore accepted etcdctl snapshot status/restore, removed in etcd 3.6.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Scenario output was authored without simulating the controller arithmetic or reading the PV controller and etcd 3.6 release notes.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/k8s-cka.ts",
+        "backend/supabase/seed/tracks/kubernetes.ts"
+      ],
+      "fix_summary": "5 old Pods; the real ProvisioningFailed event for kubernetes.io/no-provisioner (pv_controller.go); env re-resolved on every container start with a consistent timeline; etcdutl only, etcd 3.7.0 shown.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::CKA, CKS answer keys (FAIL-602, FAIL-603)",
+        "backend/lib/labs-containers.test.ts::no removed API or retired tool is taught as current"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Authored cluster output must be what the controller would produce for the stated settings.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-603",
+      "date": "2026-11-09",
+      "title": "CKS lab's anonymous-auth fix would crash-loop the API server",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The kube-bench lab set --anonymous-auth=false and said health checks could be exempted through RBAC; the kubeadm API server's own probes call /livez and /readyz anonymously and would get 401.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Authentication rejects the request before RBAC runs; the structured authentication config (anonymous.conditions, stable since v1.34) was not used.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/k8s-cks.ts"
+      ],
+      "fix_summary": "--authentication-config with anonymous enabled only for /livez, /readyz and /healthz; also fixed the aescbc wording, the two-step key rotation order and the Falco terminal=0 inconsistency.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::CKA, CKS answer keys (FAIL-602, FAIL-603)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A hardening step on a control-plane flag is checked against that component's own probes before it is taught; the authentication docs are cited.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-604",
+      "date": "2026-11-09",
+      "title": "CNPE image gate let every image through; Kyverno labs taught deprecated fields",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The verifyImages condition read scanner.result.summary.criticalCount, which Trivy's cosign-vuln predicate does not have, defaulting to 0; KCA/CNPE used spec.validationFailureAction (deprecated since 1.13) and said kubectl scale is blocked by a Deployment rule.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Policy keys were written from memory, not from the Trivy predicate shape or the Kyverno 1.13 rule-level fields; the scale subresource is a separate kind.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/k8s-cnpe.ts",
+        "backend/supabase/seed/labs/k8s-kca.ts",
+        "backend/supabase/seed/tracks/cncf-ecosystem.ts"
+      ],
+      "fix_summary": "Count CRITICAL entries in scanner.result.Results[].Vulnerabilities; failureAction on each validate/verifyImages rule; scale needs Deployment/scale.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::CNCF project labs (FAIL-604, FAIL-605)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A gate with a default value must be tested with a failing input.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-605",
+      "date": "2026-11-09",
+      "title": "CNCF labs used invalid or retired configuration (Tekton, Crossplane v1, Cilium alpha APIs)",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Tekton pipeline left git-credentials undeclared and unbound (fails validation); CNPE/CNPA taught Crossplane v1 claims and crossplane beta trace; CCA used cilium.io/v2alpha1 for BGP/LB IPAM and omitted eni.enabled=true.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Labs were written against older project versions.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/k8s-cnpe.ts",
+        "backend/supabase/seed/labs/k8s-cnpa.ts",
+        "backend/supabase/seed/labs/k8s-cca.ts"
+      ],
+      "fix_summary": "Declared and bound the workspace; rewrote the Crossplane lab for v2 namespaced XRs, helm.m.crossplane.io and crossplane resource trace; cilium.io/v2 and eni.enabled=true.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::CNCF project labs (FAIL-604, FAIL-605)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "CNCF project labs cite the project's current docs with a dated source, and labs-containers.test.ts rejects cilium.io/v2alpha1 and crossplane beta trace.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-606",
+      "date": "2026-11-09",
+      "title": "PMI content: wrong CPMAI pattern, outdated PMP eligibility, impossible PfMP roadmap",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "CPMAI labelled segmentation 'pattern recognition'; the PMP track listed two eligibility paths instead of the 2026 outline's four; the PfMP model answer ran three streams on two teams and suggested finishing the broker app by month 12.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Pattern names were paraphrased rather than taken from the Seven Patterns; eligibility text predates the July 2026 ECO; the roadmap was not checked against its own capacity rule.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/pm-cpmai.ts",
+        "backend/supabase/seed/labs/pm-pfmp.ts",
+        "backend/supabase/seed/labs/pm-acp.ts",
+        "backend/supabase/seed/tracks/pm.ts"
+      ],
+      "fix_summary": "Canonical pattern names; four tiers (60/48/36/24 months); a two-team sequence finishing at month 21; CPMAI rate wording and ACP time-zone wording.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::Project management (FAIL-606)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Calculations and capacity rules in model answers are recomputed against the brief's own constraints; eligibility text is copied from the outline PDF of record.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-607",
+      "date": "2026-11-09",
+      "title": "MSCS keys: password parameters below OWASP minimum, heap answer missing its premise",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The password lab used scrypt N=2^14 and called bcrypt equally acceptable; the top-10 heap answer is wrong unless scores only increase, which the brief did not say.",
+      "how_detected": "Content accuracy audit, 2026-11-09 (lead's findings files)",
+      "root_cause": "Parameters came from older defaults; the data-structure premise was implicit.",
+      "requirement": "REQ-186",
+      "affected": [
+        "backend/supabase/seed/labs/academic-mscs.ts"
+      ],
+      "fix_summary": "Argon2id at m=19 MiB, t=2, p=1 and scrypt at N=2^17 with maxmem raised (both run); bcrypt as legacy; brief states scores only go up, answer says what to use otherwise.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts::Academic (FAIL-607)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Security parameters cite the current OWASP cheat sheet with a date; a model answer states every premise its correctness depends on in the brief.",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-670",
       "date": "2026-11-09",
       "title": "Email link scanners spent verification links on GET; set_password links cleared the password for the scanner",

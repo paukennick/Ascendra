@@ -269,7 +269,7 @@ export const ACSMCPT_LABS: SeedLabSet = {
       ],
     },
     // -----------------------------------------------------------------------
-    // Exercise leadership, client education and engagement (22%): 2
+    // Exercise leadership and client education (22%): 2
     // -----------------------------------------------------------------------
     {
       slug: "acsm-plateau-communication-case",

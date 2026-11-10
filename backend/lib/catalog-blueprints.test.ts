@@ -15,6 +15,20 @@ describe("catalog exam blueprints", () => {
     assert.deepEqual(missing, []);
   });
 
+  test("credential text fits its columns (migration 007: exam_code and exam_revision varchar(100), credential_type varchar(80))", () => {
+    // FAIL-595: a 104-character examRevision passed every unit test and only
+    // failed at seed time ("value too long for type character varying(100)").
+    const long: string[] = [];
+    for (const t of CATALOG_TRACKS) {
+      const c = t.credential;
+      if (!c) continue;
+      if ((c.examRevision ?? "").length > 100) long.push(`${t.code} examRevision ${c.examRevision!.length}`);
+      if ((c.examCode ?? "").length > 100) long.push(`${t.code} examCode`);
+      if ((c.credentialType ?? "").length > 80) long.push(`${t.code} credentialType`);
+    }
+    assert.deepEqual(long, []);
+  });
+
   test("every certification track's domain weights sum to 100%, unless the vendor prints otherwise and the seed says why", () => {
     const bad: string[] = [];
     for (const t of CATALOG_TRACKS) {

@@ -17,7 +17,11 @@ import { source } from "../sources";
 // fictional. Commands and API versions are the stable GA ones that do not
 // move between Kubernetes minors (apps/v1, rbac.authorization.k8s.io/v1,
 // networking.k8s.io/v1, storage.k8s.io/v1, gateway.networking.k8s.io/v1);
-// no version-specific flags. etcd is driven through etcdctl/etcdutl 3.5+.
+// no version-specific flags. etcd follows the 3.6+ split that v1.37's etcd
+// 3.7 keeps: etcdctl for online commands (snapshot save, endpoint health)
+// and etcdutl for offline ones (snapshot status, snapshot restore), which
+// etcd 3.6 removed from etcdctl (etcd.io, "Announcing etcd v3.6.0", read
+// 2026-11-09).
 // Every lab is needs_expert_review until a person checks it.
 
 export const CKA_LABS: SeedLabSet = {
@@ -27,6 +31,7 @@ export const CKA_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/", "exam_outline", "2026-11-07"),
     source("https://kubernetes.io/docs/reference/access-authn-authz/rbac/", "reference", "2026-11-07"),
     source("https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/", "reference", "2026-11-07"),
+    source("https://etcd.io/blog/2025/announcing-etcd-3.6/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 25%
@@ -76,7 +81,7 @@ export const CKA_LABS: SeedLabSet = {
     {
       slug: "etcd-backup-restore",
       objective:
-        "Back up and restore etcd with etcdctl snapshot save and snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
+        "Back up and restore etcd with etcdctl snapshot save and etcdutl snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
       kind: "case",
       title: "Take an etcd snapshot, then restore the cluster after a bad apply",
       brief:
@@ -84,7 +89,7 @@ export const CKA_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "On cp-1 you read the etcd static pod manifest:\n\n$ sudo grep -E 'listen-client-urls|cert-file|key-file|trusted-ca-file|data-dir' /etc/kubernetes/manifests/etcd.yaml\n    - --cert-file=/etc/kubernetes/pki/etcd/server.crt\n    - --data-dir=/var/lib/etcd\n    - --key-file=/etc/kubernetes/pki/etcd/server.key\n    - --listen-client-urls=https://127.0.0.1:2379,https://10.20.0.11:2379\n    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt\n\n$ etcdctl version\netcdctl version: 3.5.17\nAPI version: 3.5",
+          text: "On cp-1 you read the etcd static pod manifest:\n\n$ sudo grep -E 'listen-client-urls|cert-file|key-file|trusted-ca-file|data-dir' /etc/kubernetes/manifests/etcd.yaml\n    - --cert-file=/etc/kubernetes/pki/etcd/server.crt\n    - --data-dir=/var/lib/etcd\n    - --key-file=/etc/kubernetes/pki/etcd/server.key\n    - --listen-client-urls=https://127.0.0.1:2379,https://10.20.0.11:2379\n    - --trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt\n\n$ etcdctl version\netcdctl version: 3.7.0\nAPI version: 3.7",
           ask: "Write the command that takes the snapshot to /opt/backups/etcd-pre-change.db and the command that verifies it, and say what each flag is for.",
           parts: [
             part(
@@ -94,7 +99,7 @@ export const CKA_LABS: SeedLabSet = {
             ),
             part(
               "Verification",
-              "Checks the snapshot with etcdutl snapshot status <file> (or etcdctl snapshot status, deprecated but working) and reads back hash, revision, total keys and size; optionally also confirms the cluster is healthy with etcdctl endpoint health.",
+              "Checks the snapshot with etcdutl snapshot status <file> (etcdctl snapshot status was removed in etcd 3.6, so it is not accepted) and reads back hash, revision, total keys and size; optionally also confirms the cluster is healthy with etcdctl endpoint health.",
               "sudo etcdutl snapshot status /opt/backups/etcd-pre-change.db --write-out=table prints the hash, revision, total keys and total size; a non-trivial key count (thousands) confirms it holds the cluster state, not an empty file. etcdctl ... endpoint health confirms the member answered."
             ),
           ],
@@ -111,7 +116,7 @@ export const CKA_LABS: SeedLabSet = {
             part(
               "Restore to a new data directory",
               "Runs etcdutl snapshot restore <file> --data-dir=<new dir> (e.g. /var/lib/etcd-restored), not over the live /var/lib/etcd, explaining that restore creates a fresh member data directory. Does not delete the existing data directory until the restore is confirmed.",
-              "sudo etcdutl snapshot restore /opt/backups/etcd-pre-change.db --data-dir=/var/lib/etcd-restored\n\n(etcdctl snapshot restore still works but is deprecated in favour of etcdutl.) Restore writes a brand-new data directory for a single member; it refuses to write into a non-empty one. Keeping /var/lib/etcd in place until the cluster is confirmed healthy is the rollback path."
+              "sudo etcdutl snapshot restore /opt/backups/etcd-pre-change.db --data-dir=/var/lib/etcd-restored\n\n(etcdctl snapshot restore was removed in etcd 3.6; on this 3.7 cluster only etcdutl restores.) Restore writes a brand-new data directory for a single member; it refuses to write into a non-empty one. Keeping /var/lib/etcd in place until the cluster is confirmed healthy is the rollback path."
             ),
             part(
               "Point the static pod at the restored data",
@@ -139,13 +144,13 @@ export const CKA_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "$ kubectl -n tickets rollout status deploy/api\nWaiting for deployment \"api\" rollout to finish: 2 out of 6 new replicas have been updated...\n\n$ kubectl -n tickets get pods -l app=api\nNAME                   READY   STATUS             RESTARTS   AGE\napi-5c9d7f8b6-2xk9p    1/1     Running            0          3d\napi-5c9d7f8b6-7hq2m    1/1     Running            0          3d\napi-5c9d7f8b6-9zr4t    1/1     Running            0          3d\napi-5c9d7f8b6-fj6wn    1/1     Running            0          3d\napi-7b44d9c5f-k2v8d    0/1     ImagePullBackOff   0          4m\napi-7b44d9c5f-qp3ls    0/1     ImagePullBackOff   0          4m\n\n$ kubectl -n tickets describe pod api-7b44d9c5f-k2v8d | tail -4\n  Warning  Failed     2m (x4 over 4m)   kubelet  Failed to pull image \"registry.rowanlive.example/api:2.14.0\": rpc error: code = NotFound desc = failed to pull and unpack image \"registry.rowanlive.example/api:2.14.0\": not found\n  Warning  Failed     2m (x4 over 4m)   kubelet  Error: ErrImagePull\n  Normal   BackOff    1m (x6 over 4m)   kubelet  Back-off pulling image \"registry.rowanlive.example/api:2.14.0\"\n  Warning  Failed     1m (x6 over 4m)   kubelet  Error: ImagePullBackOff",
+          text: "$ kubectl -n tickets rollout status deploy/api\nWaiting for deployment \"api\" rollout to finish: 2 out of 6 new replicas have been updated...\n\n$ kubectl -n tickets get pods -l app=api\nNAME                   READY   STATUS             RESTARTS   AGE\napi-5c9d7f8b6-2xk9p    1/1     Running            0          3d\napi-5c9d7f8b6-7hq2m    1/1     Running            0          3d\napi-5c9d7f8b6-9zr4t    1/1     Running            0          3d\napi-5c9d7f8b6-fj6wn    1/1     Running            0          3d\napi-5c9d7f8b6-wd5bc    1/1     Running            0          3d\napi-7b44d9c5f-k2v8d    0/1     ImagePullBackOff   0          4m\napi-7b44d9c5f-qp3ls    0/1     ImagePullBackOff   0          4m\n\n$ kubectl -n tickets describe pod api-7b44d9c5f-k2v8d | tail -4\n  Warning  Failed     2m (x4 over 4m)   kubelet  Failed to pull image \"registry.rowanlive.example/api:2.14.0\": rpc error: code = NotFound desc = failed to pull and unpack image \"registry.rowanlive.example/api:2.14.0\": not found\n  Warning  Failed     2m (x4 over 4m)   kubelet  Error: ErrImagePull\n  Normal   BackOff    1m (x6 over 4m)   kubelet  Back-off pulling image \"registry.rowanlive.example/api:2.14.0\"\n  Warning  Failed     1m (x6 over 4m)   kubelet  Error: ImagePullBackOff",
           ask: "Explain what the cluster is doing and why users see errors, then write the fastest safe command to get all users back to a working version.",
           parts: [
             part(
               "Diagnosis",
-              "States that the new ReplicaSet's Pods cannot pull the image (the tag 2.14.0 does not exist in the registry, or the registry name is wrong) so they never become Ready, and that the Deployment's rolling strategy has already scaled the old ReplicaSet down to 4 of 6, which is why capacity is reduced and some users see errors.",
-              "The new ReplicaSet (api-7b44d9c5f) is stuck in ImagePullBackOff: the registry says the tag 2.14.0 is not found, so those Pods never pass readiness. Meanwhile the rolling update has already removed two old Pods (6 -> 4 running), so the Service has 4 healthy endpoints instead of 6 and is overloaded -- that is the user-facing error. The rollout waits forever because the new Pods will never be Ready."
+              "States that the new ReplicaSet's Pods cannot pull the image (the tag 2.14.0 does not exist in the registry, or the registry name is wrong) so they never become Ready, and that the Deployment's rolling strategy has already scaled the old ReplicaSet down to 5 of 6 (the most the default 25% maxUnavailable allows), which is why capacity is reduced and some users see errors.",
+              "The new ReplicaSet (api-7b44d9c5f) is stuck in ImagePullBackOff: the registry says the tag 2.14.0 is not found, so those Pods never pass readiness. Meanwhile the rolling update has already removed one old Pod (6 -> 5 running), so the Service has 5 healthy endpoints instead of 6 and, at peak load, is overloaded -- that is the user-facing error. It stops at 5 because maxUnavailable (25% of 6, rounded down to 1) forbids going lower while the new Pods are not Ready. The rollout waits forever because the new Pods will never be Ready."
             ),
             part(
               "Fastest safe recovery",
@@ -160,8 +165,8 @@ export const CKA_LABS: SeedLabSet = {
           parts: [
             part(
               "Strategy values",
-              "Sets maxUnavailable to 0 (never below 6 ready Pods) and maxSurge to 1 (at most one extra Pod at a time), as a patch or edit of spec.strategy.rollingUpdate; explains that with 25% on 6 replicas the controller rounds maxUnavailable down to 1 and maxSurge up to 2, which is exactly what allowed 4 running earlier.",
-              "kubectl -n tickets patch deploy api -p '{\"spec\":{\"strategy\":{\"rollingUpdate\":{\"maxSurge\":1,\"maxUnavailable\":0}}}}'\n\nWith 6 replicas, 25% maxUnavailable rounds down to 1 and 25% maxSurge rounds up to 2, so the controller may run 6-1=5 old at minimum and up to 8 total; in practice it created 2 new and killed 2 old. maxUnavailable: 0 forbids removing any old Pod until a new one is Ready; maxSurge: 1 means one new Pod at a time, so a broken image costs one Pod of scheduling, not serving capacity."
+              "Sets maxUnavailable to 0 (never below 6 ready Pods) and maxSurge to 1 (at most one extra Pod at a time), as a patch or edit of spec.strategy.rollingUpdate; explains that with 25% on 6 replicas the controller rounds maxUnavailable down to 1 and maxSurge up to 2, which is exactly why the broken rollout created 2 new Pods and left 5 old ones serving.",
+              "kubectl -n tickets patch deploy api -p '{\"spec\":{\"strategy\":{\"rollingUpdate\":{\"maxSurge\":1,\"maxUnavailable\":0}}}}'\n\nWith 6 replicas, 25% maxUnavailable rounds down to 1 and 25% maxSurge rounds up to 2, so the controller keeps at least 6-1=5 Pods available and runs up to 8 in total; that is why it created 2 new Pods and removed 1 old one (5 old + 2 new = 7 Pods). maxUnavailable: 0 forbids removing any old Pod until a new one is Ready; maxSurge: 1 means one new Pod at a time, so a broken image costs one Pod of scheduling, not serving capacity."
             ),
             part(
               "Release and record",
@@ -367,13 +372,13 @@ export const CKA_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "$ kubectl -n gradebook get pod,pvc\nNAME                           READY   STATUS    RESTARTS   AGE\npod/gradebook-7f6c9d5b8-m4xqz  0/1     Pending   0          20m\n\nNAME                                  STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE\npersistentvolumeclaim/gradebook-data  Pending                                      nfs-shared     20m\n\n$ kubectl -n gradebook describe pvc gradebook-data | tail -3\n  Type     Reason              Age                 From                         Message\n  ----     ------              ----                ----                         -------\n  Normal   FailedBinding       12s (x82 over 20m)  persistentvolume-controller  no persistent volumes available for this claim and no storage class is set\n\n$ kubectl -n gradebook get pvc gradebook-data -o jsonpath='{.spec.accessModes} {.spec.resources.requests.storage}'\n[\"ReadWriteMany\"] 20Gi\n\n$ kubectl get pv\nNAME        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   AGE\nnfs-pv-01   10Gi       RWX            Retain           Available           nfs-shared     90d\nnfs-pv-02   50Gi       RWO            Retain           Available           nfs-shared     90d\nnfs-pv-03   50Gi       RWX            Retain           Available           nfs-fast       90d\n\n$ kubectl get storageclass\nNAME         PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE\nnfs-shared   kubernetes.io/no-provisioner   Retain          Immediate           false                  90d\nnfs-fast     kubernetes.io/no-provisioner   Retain          Immediate           false                  90d",
+          text: "$ kubectl -n gradebook get pod,pvc\nNAME                           READY   STATUS    RESTARTS   AGE\npod/gradebook-7f6c9d5b8-m4xqz  0/1     Pending   0          20m\n\nNAME                                  STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE\npersistentvolumeclaim/gradebook-data  Pending                                      nfs-shared     20m\n\n$ kubectl -n gradebook describe pvc gradebook-data | tail -3\n  Type     Reason              Age                 From                         Message\n  ----     ------              ----                ----                         -------\n  Warning  ProvisioningFailed  12s (x82 over 20m)  persistentvolume-controller  no volume plugin matched name: kubernetes.io/no-provisioner\n\n$ kubectl -n gradebook get pvc gradebook-data -o jsonpath='{.spec.accessModes} {.spec.resources.requests.storage}'\n[\"ReadWriteMany\"] 20Gi\n\n$ kubectl get pv\nNAME        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   AGE\nnfs-pv-01   10Gi       RWX            Retain           Available           nfs-shared     90d\nnfs-pv-02   50Gi       RWO            Retain           Available           nfs-shared     90d\nnfs-pv-03   50Gi       RWX            Retain           Available           nfs-fast       90d\n\n$ kubectl get storageclass\nNAME         PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE\nnfs-shared   kubernetes.io/no-provisioner   Retain          Immediate           false                  90d\nnfs-fast     kubernetes.io/no-provisioner   Retain          Immediate           false                  90d",
           ask: "Explain exactly why the claim cannot bind to any of the three volumes, and give the smallest change that binds it.",
           parts: [
             part(
               "Why each PV is rejected",
-              "Walks the matching rules: nfs-pv-01 is too small (10Gi < 20Gi); nfs-pv-02 has the wrong access mode (RWO, claim wants RWX); nfs-pv-03 has the right size and mode but a different storageClassName (nfs-fast vs nfs-shared). Notes the message's 'no storage class is set' refers to the class having no provisioner (static binding only), not to the claim lacking a class.",
-              "Static binding needs a PV with capacity >= the request, an access mode that includes the claim's, and the same storageClassName. nfs-pv-01: 10Gi is under 20Gi. nfs-pv-02: 50Gi is fine but RWO does not satisfy RWX. nfs-pv-03: 50Gi RWX would bind, but its class is nfs-fast, not nfs-shared. The class nfs-shared has the no-provisioner provisioner, so nothing is created dynamically: it waits for a matching hand-made PV, which is what the event means."
+              "Walks the matching rules: nfs-pv-01 is too small (10Gi < 20Gi); nfs-pv-02 has the wrong access mode (RWO, claim wants RWX); nfs-pv-03 has the right size and mode but a different storageClassName (nfs-fast vs nfs-shared). Reads the ProvisioningFailed event correctly: with no matching PV the controller tries to provision through the class, and kubernetes.io/no-provisioner is not a plugin that can create volumes, so the class supports static binding only.",
+              "Static binding needs a PV with capacity >= the request, an access mode that includes the claim's, and the same storageClassName. nfs-pv-01: 10Gi is under 20Gi. nfs-pv-02: 50Gi is fine but RWO does not satisfy RWX. nfs-pv-03: 50Gi RWX would bind, but its class is nfs-fast, not nfs-shared. With no match, the controller asks the class nfs-shared to provision a volume; its provisioner is kubernetes.io/no-provisioner, which cannot create anything, hence 'no volume plugin matched name'. Nothing is created dynamically: the claim waits for a matching hand-made PV."
             ),
             part(
               "Smallest fix",
@@ -511,22 +516,22 @@ export const CKA_LABS: SeedLabSet = {
       kind: "case",
       title: "Work out why the report worker keeps restarting",
       brief:
-        "The fictional publisher Tidemark runs a Deployment report-worker (2 replicas) in namespace reports. Overnight both Pods started restarting and this morning the queue of unrendered reports is growing. The Deployment was last changed four days ago; a ConfigMap it reads was changed last night.",
+        "The fictional publisher Tidemark runs a Deployment report-worker (2 replicas) in namespace reports. Overnight one Pod started restarting, and this morning the queue of unrendered reports is growing. The Deployment was last changed four days ago. A few minutes ago an engineer edited a ConfigMap it reads, and the other Pod, replaced when its node was drained just after that edit, has not started since.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "$ kubectl -n reports get pods\nNAME                             READY   STATUS                       RESTARTS         AGE\nreport-worker-54f7c9d8b6-6lq2x   0/1     CreateContainerConfigError   0                9h\nreport-worker-54f7c9d8b6-vz8kp   0/1     CrashLoopBackOff             57 (2m ago)      4d\n\n$ kubectl -n reports describe pod report-worker-54f7c9d8b6-6lq2x | grep -A3 'Events' | tail -2\n  Warning  Failed     4m (x2600 over 9h)  kubelet  Error: couldn't find key RENDER_THREADS in ConfigMap reports/report-worker-config\n\n$ kubectl -n reports describe pod report-worker-54f7c9d8b6-vz8kp | grep -A8 'Last State'\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n      Started:      Sat, 07 Nov 2026 08:11:03 +0000\n      Finished:     Sat, 07 Nov 2026 08:12:51 +0000\n    Ready:          False\n    Restart Count:  57\n\n$ kubectl -n reports get pod report-worker-54f7c9d8b6-vz8kp -o jsonpath='{.spec.containers[0].resources}'\n{\"limits\":{\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"250m\",\"memory\":\"256Mi\"}}\n\n$ kubectl -n reports get cm report-worker-config -o jsonpath='{.data}'\n{\"RENDER_TREADS\":\"4\",\"QUEUE_URL\":\"amqp://queue.reports.svc:5672\"}",
+          text: "$ kubectl -n reports get pods\nNAME                             READY   STATUS                       RESTARTS         AGE\nreport-worker-54f7c9d8b6-6lq2x   0/1     CreateContainerConfigError   0                3m\nreport-worker-54f7c9d8b6-vz8kp   0/1     CrashLoopBackOff             57 (5m ago)      4d\n\n$ kubectl -n reports describe pod report-worker-54f7c9d8b6-6lq2x | grep -A3 'Events' | tail -2\n  Warning  Failed     10s (x14 over 3m)  kubelet  Error: couldn't find key RENDER_THREADS in ConfigMap reports/report-worker-config\n\n$ kubectl -n reports describe pod report-worker-54f7c9d8b6-vz8kp | grep -A8 'Last State'\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n      Started:      Sat, 07 Nov 2026 08:11:03 +0000\n      Finished:     Sat, 07 Nov 2026 08:12:51 +0000\n    Ready:          False\n    Restart Count:  57\n\n$ kubectl -n reports get pod report-worker-54f7c9d8b6-vz8kp -o jsonpath='{.spec.containers[0].resources}'\n{\"limits\":{\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"250m\",\"memory\":\"256Mi\"}}\n\n$ kubectl -n reports get cm report-worker-config -o jsonpath='{.data}'\n{\"RENDER_TREADS\":\"4\",\"QUEUE_URL\":\"amqp://queue.reports.svc:5672\"}",
           ask: "There are two different failures here. Explain each from the evidence, and fix the one that is purely a configuration mistake.",
           parts: [
             part(
               "CreateContainerConfigError",
-              "Explains the kubelet cannot build the container because the Pod's env references ConfigMap key RENDER_THREADS, which was misspelled RENDER_TREADS in last night's ConfigMap edit; the container never starts, so RESTARTS is 0.",
-              "CreateContainerConfigError happens before the container runs: the kubelet resolves env/volumes and fails. The event says key RENDER_THREADS is missing from report-worker-config, and the ConfigMap shows it was saved as RENDER_TREADS last night. The Pod was recreated 9 hours ago (after the edit) and has never started, hence 0 restarts."
+              "Explains the kubelet cannot build the container because the Pod's env references ConfigMap key RENDER_THREADS, which was misspelled RENDER_TREADS in the ConfigMap edit a few minutes ago; the container never starts, so RESTARTS is 0.",
+              "CreateContainerConfigError happens before the container runs: the kubelet resolves env/volumes and fails. The event says key RENDER_THREADS is missing from report-worker-config, and the ConfigMap shows it was saved as RENDER_TREADS. The Pod was created 3 minutes ago (after the edit) and has never started, hence 0 restarts."
             ),
             part(
               "Fix the ConfigMap",
-              "Corrects the key name in the ConfigMap (kubectl edit, or patch adding RENDER_THREADS and removing RENDER_TREADS) and notes that env from a ConfigMap is read at container start, so the kubelet's next retry (or deleting the Pod) picks it up; no Deployment change needed.",
-              "kubectl -n reports patch cm report-worker-config --type=json -p '[{\"op\":\"add\",\"path\":\"/data/RENDER_THREADS\",\"value\":\"4\"},{\"op\":\"remove\",\"path\":\"/data/RENDER_TREADS\"}]'\nThe kubelet retries container creation on its backoff and succeeds once the key exists; kubectl delete the Pod to skip the wait. Env vars from ConfigMaps are only read at container start, which is also why the OTHER Pod, created 4 days ago, never saw the typo."
+              "Corrects the key name in the ConfigMap (kubectl edit, or patch adding RENDER_THREADS and removing RENDER_TREADS) and notes that env from a ConfigMap is resolved every time the kubelet creates a container, including each restart of an existing Pod, so the kubelet's next retry (or deleting the Pod) picks it up, and the crash-looping Pod would hit the same error on its next restart if the key stayed wrong; no Deployment change needed.",
+              "kubectl -n reports patch cm report-worker-config --type=json -p '[{\"op\":\"add\",\"path\":\"/data/RENDER_THREADS\",\"value\":\"4\"},{\"op\":\"remove\",\"path\":\"/data/RENDER_TREADS\"}]'\nThe kubelet retries container creation on its backoff and succeeds once the key exists; kubectl delete the Pod to skip the wait. Env vars from a ConfigMap are resolved each time a container is created, including every restart (they never change inside a running container). The OOM Pod last started at 08:11, just before the edit, so it hasn't met the typo yet; its next restart, due within the 5-minute back-off, would fail with CreateContainerConfigError too. Fixing the key now protects both Pods."
             ),
             part(
               "OOMKilled",

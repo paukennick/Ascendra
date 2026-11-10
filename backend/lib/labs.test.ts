@@ -237,7 +237,14 @@ describe("authored pilot content (supabase/seed/labs)", () => {
     }
   });
   test("every clinical and fitness lab names what its values rest on, or why it names nothing (REQ-142)", () => {
-    for (const set of LAB_SETS.filter((s) => /^(NCLEX|CCRN|NASM)/.test(s.trackCode))) {
+    // Widened 2026-11-09 (content audit): the pattern used to stop at NASM, so
+    // the other fitness courses and every PT course had no per-lab sources and
+    // nothing failed.
+    const covered = /^(NCLEX|CCRN|NASM|ACECPT|ACSMCPT|NCCPTCPT|NSCACPT|NSCACSCS|ABPTS|DPT$|NPTEPT)/;
+    for (const code of ["ACECPT", "ACSMCPT", "NCCPTCPT", "NSCACPT", "NSCACSCS", "NASMCPT", "NPTEPT", "NPTEPTA", "DPT", "ABPTSCCS"]) {
+      assert.ok(LAB_SETS.some((s) => s.trackCode === code && covered.test(code)), `${code} is covered by the value-source rule`);
+    }
+    for (const set of LAB_SETS.filter((s) => covered.test(s.trackCode))) {
       for (const lab of set.labs) {
         const own = lab.sources ?? [];
         assert.ok(own.length > 0 || (lab.noValueSource ?? "").length > 20, `${set.trackCode}/${lab.slug}: cite a source or say why not`);
@@ -342,5 +349,48 @@ describe("labs under the study notice (REQ-165)", () => {
   test("the inline SQL check names the current version", () => {
     assert.ok(studyNoticeAcceptedSql("$1").includes(`'${STUDY_NOTICE_VERSION}'`));
     assert.match(studyNoticeAcceptedSql("$2"), /sn\.user_id = \$2 and sn\.document = 'study_notice'/);
+  });
+});
+
+// Content audit fixes, 2026-11-09. Each assertion pins a corrected value so
+// the old one cannot come back unnoticed.
+describe("content audit corrections (2026-11-09)", () => {
+  const labText = (code: string, slug: string) => {
+    const lab = LAB_SETS.find((s) => s.trackCode === code)?.labs.find((l) => l.slug === slug);
+    assert.ok(lab, `${code}/${slug}`);
+    return JSON.stringify(seedLabContent(lab!));
+  };
+  const objectives = (code: string) => {
+    const t = CATALOG_TRACKS.find((x) => x.code === code);
+    assert.ok(t, code);
+    return t!.units.flatMap((u) => u.objectives).join("\n");
+  };
+  test("CCRN dka-case follows the 2024 hyperglycemic crises consensus (FAIL-594)", () => {
+    const text = labText("CCRNADULT", "dka-case");
+    assert.match(text, /above 3\.5/);
+    assert.doesNotMatch(text, /3\.3/);
+    assert.match(text, /below 0\.6 mmol\/L/);
+    assert.match(text, /below 250/);
+    assert.doesNotMatch(text, /until the anion gap closes|anion gap closed/);
+  });
+  test("NCS ISNCSCI lab records the motor zone of partial preservation at C8 (FAIL-596)", () => {
+    const text = labText("ABPTSNCS", "ncs-isncsci-classification");
+    assert.match(text, /motor to C8/);
+    assert.doesNotMatch(text, /motor to C7|C7 motor\)/);
+  });
+  test("objectives carry the corrected clinical facts (FAIL-598)", () => {
+    const rn = objectives("NCLEXRN") + objectives("NCLEXPN") + objectives("LPNVN") + objectives("ADNRN") + objectives("BSNRN");
+    assert.doesNotMatch(rn, /more than three in a row/);
+    assert.doesNotMatch(rn, /under an FDA REMS programme that requires|under a REMS programme"/);
+    assert.doesNotMatch(rn, /graham crackers/);
+    const pt = CATALOG_TRACKS.filter((t) => /^(ABPTS|NPTE|DPT$)/.test(t.code)).map((t) => t.units.flatMap((u) => u.objectives).join("\n")).join("\n");
+    assert.doesNotMatch(pt, /ANC below 1500/);
+    assert.doesNotMatch(pt, /92% to 98%/);
+    assert.match(pt, /94% to 98%/);
+  });
+  test("NSCA CSCS and NSCA-CPT outlines are dated July 1, 2025 (FAIL-598)", () => {
+    for (const code of ["NSCACSCS", "NSCACPT"]) {
+      assert.equal(CATALOG_TRACKS.find((t) => t.code === code)?.credential?.effectiveDate, "2025-07-01", code);
+    }
   });
 });

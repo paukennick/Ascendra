@@ -23,6 +23,7 @@ export const CNPA_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/certified-cloud-native-platform-engineering-associate-cnpa/", "exam_outline", "2026-11-08"),
     source("https://tag-app-delivery.cncf.io/whitepapers/platforms/", "reference", "2026-11-08"),
     source("https://dora.dev/guides/dora-metrics-four-keys/", "reference", "2026-11-08"),
+    source("https://docs.crossplane.io/v2.2/whats-new/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 36%
@@ -57,8 +58,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Developer interface",
-              "Describes what a team member does: creates a service from a template in the portal, which scaffolds the repo, pipeline, config and catalog entry; views the service's deployments, docs, alerts and cost in one place; requests infrastructure (a database, a bucket) by committing a claim; and gets support through a defined channel with SLAs -- platform as a product with a roadmap and feedback loop.",
-              "A developer opens the portal, picks 'Go service' and fills in a form; the template creates the repository, pipeline, Kubernetes config, Argo CD Application and catalog-info.yaml. Within minutes the service builds, deploys to dev and appears in the catalog with its dashboards and runbook links. Needing a database, they commit a PostgreSQLInstance claim to their config repo and the platform provisions it and delivers connection details as a Secret. The portal shows deployments, alerts, cost and docs for their services. The platform team runs it as a product: a roadmap, office hours, a feedback channel and measured adoption."
+              "Describes what a team member does: creates a service from a template in the portal, which scaffolds the repo, pipeline, config and catalog entry; views the service's deployments, docs, alerts and cost in one place; requests infrastructure (a database, a bucket) by committing a short platform resource; and gets support through a defined channel with SLAs -- platform as a product with a roadmap and feedback loop.",
+              "A developer opens the portal, picks 'Go service' and fills in a form; the template creates the repository, pipeline, Kubernetes config, Argo CD Application and catalog-info.yaml. Within minutes the service builds, deploys to dev and appears in the catalog with its dashboards and runbook links. Needing a database, they commit a namespaced PostgreSQLInstance resource to their config repo and the platform provisions it and delivers connection details as a Secret. The portal shows deployments, alerts, cost and docs for their services. The platform team runs it as a product: a roadmap, office hours, a feedback channel and measured adoption."
             ),
           ],
         },
@@ -357,8 +358,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Versioning and fulfilment",
-              "Start at v1alpha1 with a conversion plan: serve v1beta1/v1 alongside, mark one storage version, use a conversion webhook or none if fields only add; fulfilment by a controller -- Crossplane Composition (the PostgresDatabase as a claim XRD composed of cloud resources) or a Kubernetes operator (CloudNativePG) driven by a thin controller; explains the controller reconciles spec to real resources and writes status.",
-              "Version the API like Kubernetes does: ship v1alpha1, learn, then add v1beta1 with both served and v1beta1 as the storage version; additive changes need no conversion webhook, renames do. Fulfilment: implement PostgresDatabase as a Crossplane claim -- an XRD plus a Composition that maps tier to a cloud database instance size, storage and backup settings and writes the connection Secret -- or, for in-cluster databases, a small controller that creates a CloudNativePG Cluster from the spec and mirrors its status. Either way the controller reconciles continuously: edit backupRetentionDays and the real backup policy follows."
+              "Start at v1alpha1 with a conversion plan: serve v1beta1/v1 alongside, mark one storage version, use a conversion webhook or none if fields only add; fulfilment by a controller -- Crossplane Composition (the PostgresDatabase as a namespaced composite resource defined by an XRD and composed of cloud resources) or a Kubernetes operator (CloudNativePG) driven by a thin controller; explains the controller reconciles spec to real resources and writes status.",
+              "Version the API like Kubernetes does: ship v1alpha1, learn, then add v1beta1 with both served and v1beta1 as the storage version; additive changes need no conversion webhook, renames do. Fulfilment: implement PostgresDatabase as a Crossplane v2 namespaced composite resource -- an XRD plus a Composition that maps tier to a cloud database instance size, storage and backup settings and composes the connection Secret (v2 XRs have no built-in connection details) -- or, for in-cluster databases, a small controller that creates a CloudNativePG Cluster from the spec and mirrors its status. Either way the controller reconciles continuously: edit backupRetentionDays and the real backup policy follows."
             ),
           ],
         },
@@ -374,7 +375,7 @@ export const CNPA_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Proposals:\n A. A CI pipeline watches the config repo for new MessageQueue manifests and runs Terraform to create the queue in the cloud, then kubectl-creates a Secret with credentials.\n B. Crossplane: an XRD MessageQueue with a Composition of the cloud provider's queue and IAM policy resources; the claim's connection details are written to a Secret automatically.\n C. A custom operator written in Go (controller-runtime) that reconciles MessageQueue resources by calling the cloud API directly and manages credentials.\n\nConstraints: the team has two engineers with Go experience; queues must be reconciled continuously (drift corrected); the cloud provider is one of the big three; the organisation already runs Crossplane for databases.",
+          text: "Proposals:\n A. A CI pipeline watches the config repo for new MessageQueue manifests and runs Terraform to create the queue in the cloud, then kubectl-creates a Secret with credentials.\n B. Crossplane: an XRD MessageQueue with a Composition of the cloud provider's queue and IAM policy resources; the Composition also composes a Secret with the connection details automatically.\n C. A custom operator written in Go (controller-runtime) that reconciles MessageQueue resources by calling the cloud API directly and manages credentials.\n\nConstraints: the team has two engineers with Go experience; queues must be reconciled continuously (drift corrected); the cloud provider is one of the big three; the organisation already runs Crossplane for databases.",
           ask: "Evaluate each proposal against the operator pattern -- continuous reconciliation, status, idempotency -- and the team's constraints, then recommend.",
           parts: [
             part(
@@ -384,8 +385,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "B: Crossplane",
-              "Crossplane's providers are operators for cloud APIs: the Composition turns a claim into managed resources that are continuously reconciled (drift corrected), with status conditions and connection Secrets built in, no code to write, and the organisation already operates it; limitations: compositions can be verbose and complex logic needs composition functions.",
-              "Proposal B uses an operator the organisation already runs. Crossplane's provider controllers reconcile every managed resource (the queue, the IAM policy) against the cloud continuously, repairing drift; the claim gets Ready/Synced conditions and a connection Secret in the tenant namespace by convention; the whole thing is YAML in Git, reviewed like any manifest. Costs: Composition YAML gets long, and anything beyond mapping fields (naming rules, conditional resources) needs composition functions; provider versions and cloud API changes need upkeep."
+              "Crossplane's providers are operators for cloud APIs: the Composition turns a tenant's namespaced composite resource into managed resources that are continuously reconciled (drift corrected), with status conditions built in and the connection Secret composed alongside, no code to write, and the organisation already operates it; limitations: compositions can be verbose and complex logic needs composition functions.",
+              "Proposal B uses an operator the organisation already runs. Crossplane's provider controllers reconcile every managed resource (the queue, the IAM policy) against the cloud continuously, repairing drift; the tenant's MessageQueue gets Ready/Synced conditions, and the Composition writes a connection Secret next to it in the tenant namespace; the whole thing is YAML in Git, reviewed like any manifest. Costs: Composition YAML gets long, and anything beyond mapping fields (naming rules, conditional resources) needs composition functions; provider versions and cloud API changes need upkeep."
             ),
             part(
               "C: custom operator",
@@ -395,7 +396,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "Recommendation",
               "B: build the MessageQueue XRD and Composition in Crossplane, reusing the organisation's existing platform; keep the API tenant-facing and thin; add a composition function only if needed; revisit C if an internal non-cloud system must be integrated.",
-              "Choose B. It satisfies continuous reconciliation, status and credential delivery out of the box, uses a system the team already operates and monitors, and keeps the platform's fulfilment layer uniform with the databases. Write the XRD for MessageQueue with the same conventions as PostgresDatabase (tier, retention, status conditions), compose the cloud queue plus its access policy, and expose connection details via the claim's writeConnectionSecretToRef. Reserve a custom operator for the day an internal system with no Crossplane provider needs the same self-service treatment."
+              "Choose B. It satisfies continuous reconciliation, status and credential delivery out of the box, uses a system the team already operates and monitors, and keeps the platform's fulfilment layer uniform with the databases. Write the XRD for MessageQueue with the same conventions as PostgresDatabase (tier, retention, status conditions), compose the cloud queue plus its access policy, and compose a connection Secret in the tenant's namespace (Crossplane v2 XRs have no claims and no writeConnectionSecretToRef). Reserve a custom operator for the day an internal system with no Crossplane provider needs the same self-service treatment."
             ),
           ],
         },
@@ -438,8 +439,8 @@ export const CNPA_LABS: SeedLabSet = {
             ),
             part(
               "Delivery mechanisms",
-              "A portal template (Backstage Software Template) for the guided path, a CLI for the same actions for people who prefer terminals and for automation, and abstractions as declarative resources (the PostgresDatabase or Ingress claim) for capabilities; explains that templates generate editable code rather than hiding it behind a black box.",
-              "Three doors into the same path: the portal form for discoverability and guidance; a platform CLI (platform svc new --lang go --team checkout) that calls the same template for people in terminals and for scripts; and platform CRDs for capabilities teams add later (a database claim, an ingress claim). Templates generate plain files into the team's repo -- the team can read and edit every line -- rather than a hidden service that owns the configuration."
+              "A portal template (Backstage Software Template) for the guided path, a CLI for the same actions for people who prefer terminals and for automation, and abstractions as declarative resources (the PostgresDatabase or Ingress resource) for capabilities; explains that templates generate editable code rather than hiding it behind a black box.",
+              "Three doors into the same path: the portal form for discoverability and guidance; a platform CLI (platform svc new --lang go --team checkout) that calls the same template for people in terminals and for scripts; and platform CRDs for capabilities teams add later (a database API, an ingress API). Templates generate plain files into the team's repo -- the team can read and edit every line -- rather than a hidden service that owns the configuration."
             ),
             part(
               "What teams keep",
@@ -486,7 +487,7 @@ export const CNPA_LABS: SeedLabSet = {
             part(
               "Platform services as entities",
               "Model platform capabilities as Resources and Systems owned by the platform team (Kafka clusters, SSO, API gateway, databases provisioned through the platform API) with their own docs, runbooks, SLOs and on-call links, and auto-create entities for resources provisioned via platform CRDs so a tenant's PostgresDatabase appears as a Resource owned by the tenant with a dependsOn from their Component.",
-              "Catalogue the platform: a System per platform capability (messaging, identity, edge) owned by the platform team, with Resource entities for each Kafka cluster, the SSO provider, the API gateway -- each carrying TechDocs, runbook links, SLO dashboards and the on-call channel. Then automate the long tail: an entity provider that turns every platform CRD instance (PostgresDatabase, MessageQueue claims) into a Resource owned by the requesting team, with dependsOn edges to the consuming Components. During an incident the catalog now answers 'what does this service depend on, who owns it, how do I reach them' -- which is the point of having one."
+              "Catalogue the platform: a System per platform capability (messaging, identity, edge) owned by the platform team, with Resource entities for each Kafka cluster, the SSO provider, the API gateway -- each carrying TechDocs, runbook links, SLO dashboards and the on-call channel. Then automate the long tail: an entity provider that turns every platform CRD instance (PostgresDatabase, MessageQueue) into a Resource owned by the requesting team, with dependsOn edges to the consuming Components. During an incident the catalog now answers 'what does this service depend on, who owns it, how do I reach them' -- which is the point of having one."
             ),
           ],
         },

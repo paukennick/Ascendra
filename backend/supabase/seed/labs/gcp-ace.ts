@@ -403,8 +403,8 @@ export const GCPACE_LABS: SeedLabSet = {
             ),
             part(
               "Traceability",
-              "Explains that Cloud Audit Logs record the token generation (who impersonated which account) and that actions performed with the impersonated token carry the service account as principal with Priya's identity visible in the delegation (first-party principal) information, so the change is attributable to her.",
-              "The audit log records the GenerateAccessToken call with Priya as the caller and deployer as the target, and the deployment entry shows deployer as the principal with the delegation chain pointing back to priya@wrenfield.example. Both halves together make the change hers."
+              "Explains that Cloud Audit Logs record the token generation (who impersonated which account) once IAM Data Access audit logs are enabled -- they are off by default -- and that actions performed with the impersonated token carry the service account as principal with Priya's identity visible in the delegation (first-party principal) information, so the change is attributable to her.",
+              "Turn on Data Access audit logs for IAM (the Service Account Credentials API) first: they are off by default, and without them the token generation is not logged. With them on, the audit log records the GenerateAccessToken call with Priya as the caller and deployer as the target, and the deployment entry shows deployer as the principal with the delegation chain pointing back to priya@wrenfield.example. Both halves together make the change hers."
             ),
             part(
               "Clean-up",

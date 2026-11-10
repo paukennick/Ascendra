@@ -1,5 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
-import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_PN_2026, SSC_2021 } from "./nursing-sources";
+import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_PN_2026, SSC_ADULT_2026 } from "./nursing-sources";
 
 // REQ-148: Practical Nursing (LPN/LVN) program course.
 //
@@ -16,14 +16,14 @@ import { ACOG_PB222, CDC_HAND_HYGIENE, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, NCSB
 //
 // Values quoted come from nursing-sources.ts, read 2026-11-07: ISMP "U" for
 // units and high-alert status of insulin; ACOG Practice Bulletin 222 for the
-// 140/90 mm Hg threshold in pregnancy; Surviving Sepsis Campaign 2021 for
-// antimicrobials within an hour (the PN's part is the specimen and the
+// 140/90 mm Hg threshold in pregnancy; Surviving Sepsis Campaign 2026 (same
+// value as 2021) for antimicrobials within an hour (the PN's part is the specimen and the
 // report, not the order). Every calculation gives its numbers and uses a
 // fictional drug. All needs_expert_review (docs/labs.md).
 
 export const LPNVN_LABS: SeedLabSet = {
   trackCode: "LPNVN",
-  sources: [NCSBN_PN_2026, NCSBN_ANA_DELEGATION, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, ACOG_PB222, SSC_2021, CDC_HAND_HYGIENE],
+  sources: [NCSBN_PN_2026, NCSBN_ANA_DELEGATION, ISMP_ABBREVIATIONS, ISMP_HIGH_ALERT, ACOG_PB222, SSC_ADULT_2026, CDC_HAND_HYGIENE],
   labs: [
     // ---- Foundations of practical nursing (2) ----
     {

@@ -18,10 +18,12 @@ import { source } from "../sources";
 // plan. CLI is shown in reference answers; the criteria accept the portal or
 // PowerShell equivalent, because the exam does.
 //
-// Two objectives in the seed track are NOT in the official guide
-// ("Configuring encryption at host for Azure virtual machines" -- the guide
-// says "Configure Azure Disk Encryption" -- and "Configuring soft delete for
-// blobs and containers"); no lab is placed on them (reported to the lead).
+// Two objectives in the seed track were NOT in the official guide. "Configuring
+// encryption at host" now reads "Configuring Azure Disk Encryption for virtual
+// machines", as the guide does (content audit fix, 2026-11-09). "Configuring
+// soft delete for blobs and containers" is still extra: objectives are matched
+// by sort order, so removing it would shift learners' mastery; it stays until
+// a per-objective retirement exists. No lab is placed on either.
 //
 // Sources behind the figures (learn.microsoft.com, checked 2026-11-07):
 //   built-in roles and their descriptions: /azure/role-based-access-control/built-in-roles

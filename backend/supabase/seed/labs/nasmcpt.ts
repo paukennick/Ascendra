@@ -9,7 +9,10 @@ import { source } from "../sources";
 // Behavioral Coaching 15%, Professional Development and Responsibility 10%)
 // and the Optimum Performance Training (OPT) model the exam is written
 // around.
-//   https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf
+//   https://www.nasm.org/content/dam/nasm/docs/nasmlibraries/pdf/cpt7-nasm-exam-blueprint.pdf
+//   (the old /docs/pdf/ link now lands on NASM's home page; this one is
+//   linked from NASM's exam-information page and was read 2026-11-09:
+//   "UPDATED: 2.10.2021", 2019 Job Analysis Study, 15/15/16/20/24/10%)
 //   NASM candidate handbook (seed credential officialObjectivesUrl)
 // Density ("hybrid"): 2/2/2/2/2/1 = 11.
 //
@@ -22,7 +25,7 @@ import { source } from "../sources";
 export const NASMCPT_LABS: SeedLabSet = {
   trackCode: "NASMCPT",
   sources: [
-    source("https://www.nasm.org/docs/pdf/cpt7-nasm-exam-blueprint.pdf", "exam_outline", "2026-11-07"),
+    source("https://www.nasm.org/content/dam/nasm/docs/nasmlibraries/pdf/cpt7-nasm-exam-blueprint.pdf", "exam_outline", "2026-11-09"),
     source("https://www.nasm.org/certified-personal-trainer/exam-information", "exam_outline", "2026-11-07"),
   ],
   labs: [
@@ -39,7 +42,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           text: "",
           ask: "Name the main energy system for each and what it means for rest between efforts.",
           parts: [
-            part("8-second sprints", "Names the ATP-PC (phosphagen) system as primary for maximal efforts of roughly 10 seconds or less.", "ATP-PC (phosphagen) system: it supplies maximal effort for about the first 10 seconds."),
+            part("8-second sprints", "Names the ATP-PC (phosphagen) system as primary for maximal efforts of up to about 15 seconds.", "ATP-PC (phosphagen) system: stored ATP and creatine phosphate supply maximal effort for about the first 15 seconds."),
             part("60-second intervals", "Names anaerobic glycolysis (the glycolytic system) as primary for hard efforts of roughly 30 seconds to 2 minutes.", "Anaerobic glycolysis: the main supplier for hard efforts lasting from about 30 seconds to 2 minutes."),
             part("40-minute jog", "Names the oxidative (aerobic) system as primary for sustained lower-intensity work.", "The oxidative (aerobic) system: long, steady, lower-intensity work."),
             part("Rest implication", "Explains that maximal short efforts need relatively long rest to restore phosphocreatine (around several minutes for full recovery), while aerobic work needs little or none.", "Maximal sprints need long rest between efforts so phosphocreatine can be restored (full recovery takes a few minutes); the steady jog needs no rest intervals."),

@@ -132,7 +132,7 @@ export const PMIACP_LABS: SeedLabSet = {
             part(
               "Communication strategy",
               "Sets a cadence that works across the time difference (for example a stand-up in the overlapping hours, async written updates) and a way to raise new blockers immediately.",
-              "Daily stand-up at the start of the office day, which is mid-afternoon for the remote members and inside both groups' working hours; a team channel where anyone flags a blocker immediately; written stand-up notes for anyone absent."
+              "Daily stand-up at the start of the office day (about 09:00 in the office, about 13:00, early afternoon, for the remote members four hours ahead), inside both groups' working hours; a team channel where anyone flags a blocker immediately; written stand-up notes for anyone absent."
             ),
             part(
               "Stakeholder visibility",

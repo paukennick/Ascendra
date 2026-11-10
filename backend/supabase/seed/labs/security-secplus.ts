@@ -125,7 +125,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       kind: "case",
       title: "Triage a suspected account compromise from logs",
       brief:
-        "You are a SOC analyst at Cobalt Ridge Credit Union (fictional), which uses a cloud identity provider for staff email. A member-services manager, j.alvarez, reports that colleagues received 'odd' emails apparently from her. You review logs to decide whether the account is compromised. The identity provider's sign-in log for the last day shows, from one external address (203.0.113.44) between 02:14 and 02:21 UTC, a single failed sign-in for each of 216 different staff usernames, then one successful sign-in to j.alvarez over a legacy IMAP connection with no multi-factor prompt. A later 08:03 UTC sign-in for j.alvarez came from the usual office address and passed a multi-factor push.",
+        "You are a SOC analyst at Cobalt Ridge Credit Union (fictional), which uses a cloud identity provider for staff email. A member-services manager, j.alvarez, reports that colleagues received 'odd' emails apparently from her. You review logs to decide whether the account is compromised. The identity provider's sign-in log for the last day shows, from one external address (203.0.113.44) between 02:14 and 02:21 UTC, a single failed sign-in for each of 216 different staff usernames, then one successful sign-in to j.alvarez over a legacy IMAP connection with no multi-factor prompt. The identity provider geolocates 203.0.113.44 to a city about 9,000 km from the branch. A later 08:03 UTC sign-in for j.alvarez came from the usual office address and passed a multi-factor push.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -140,7 +140,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             part(
               "Why that sign-in succeeded and what the indicators of compromise are",
               "Attributes the success to a reused/weak password reached over legacy IMAP that bypassed MFA, and lists IOCs: the external source address, the legacy-auth sign-in with no MFA, the impossible gap between the 02:21 and 08:03 sources.",
-              "The 02:21 sign-in used legacy IMAP authentication, which does not prompt for the push factor, so a guessed password was enough. IOCs so far: the external source 203.0.113.44, a legacy-auth session with mfa=none, and two sign-ins from very different locations hours apart (impossible travel for the same account)."
+              "The 02:21 sign-in used legacy IMAP authentication, which does not prompt for the push factor, so a guessed password was enough. IOCs so far: the external source 203.0.113.44, a legacy-auth session with mfa=none, and two sign-ins about 9,000 km apart less than six hours apart, faster than any flight (impossible travel for the same account)."
             ),
           ],
         },
@@ -319,7 +319,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Prioritise four scan findings with CVSS, EPSS and KEV",
       brief:
-        "You run vulnerability management at Fairwind Insurance (fictional). This week's authenticated scan returns four findings. The maintenance window is small, so you must rank them and justify the order using severity, real-world exploitation and asset context -- not CVSS alone.\n\n(1) Internet-facing VPN gateway: unauthenticated remote code execution. CVSS v4.0 9.3 Critical. EPSS 0.93 (94th percentile). Listed in CISA KEV.\n(2) Internal HR database server: SQL injection reachable only by an authenticated internal user. CVSS v4.0 8.6 High. EPSS 0.04. Not in KEV.\n(3) Office printers: an information-disclosure flaw leaking device config. CVSS v4.0 6.9 Medium. EPSS 0.01. Not in KEV.\n(4) Public marketing website (static, no customer data): reflected cross-site scripting. CVSS v4.0 6.9 Medium. EPSS 0.6 (90th percentile). Not in KEV.",
+        "You run vulnerability management at Fairwind Insurance (fictional). This week's authenticated scan returns four findings. The maintenance window is small, so you must rank them and justify the order using severity, real-world exploitation and asset context -- not CVSS alone.\n\n(1) Internet-facing VPN gateway: unauthenticated remote code execution. CVSS v4.0 9.3 Critical. EPSS 0.93 (99.8th percentile). Listed in CISA KEV.\n(2) Internal HR database server: SQL injection reachable only by an authenticated internal user. CVSS v4.0 8.6 High. EPSS 0.04. Not in KEV.\n(3) Office printers: an information-disclosure flaw leaking device config. CVSS v4.0 6.9 Medium. EPSS 0.01. Not in KEV.\n(4) Public marketing website (static, no customer data): reflected cross-site scripting. CVSS v4.0 6.9 Medium. EPSS 0.6 (99.1st percentile). Not in KEV.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

@@ -22,6 +22,8 @@ export const CAPA_LABS: SeedLabSet = {
     source("https://argo-workflows.readthedocs.io/en/latest/", "reference", "2026-11-08"),
     source("https://argo-cd.readthedocs.io/en/stable/", "reference", "2026-11-08"),
     source("https://argo-rollouts.readthedocs.io/en/stable/", "reference", "2026-11-08"),
+    source("https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/", "reference", "2026-11-09"),
+    source("https://argo-workflows.readthedocs.io/en/latest/enhanced-depends-logic/", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 36%
@@ -46,7 +48,7 @@ export const CAPA_LABS: SeedLabSet = {
             part(
               "Fan-out with withParam",
               "A process task with dependencies [fetch-regions] and withParam: \"{{tasks.fetch-regions.outputs.result}}\", passing {{item}} as an argument parameter to a container template running the processor; explains withParam expands a JSON list into parallel tasks, each with its own Pod.",
-              "      - name: process\n        dependencies: [fetch-regions]\n        template: processor\n        arguments:\n          parameters:\n          - {name: region, value: \"{{item}}\"}\n        withParam: \"{{tasks.fetch-regions.outputs.result}}\"\n  - name: processor\n    inputs:\n      parameters: [{name: region}]\n    container:\n      image: registry.caldera.example/processor:3.1\n      args: [\"--region\", \"{{inputs.parameters.region}}\"]\n    outputs:\n      artifacts:\n      - {name: result, path: /out/result.json}\nwithParam turns the JSON array into one task instance per element, run in parallel (bounded by spec.parallelism if set); withItems does the same for a static list."
+              "      - name: process\n        dependencies: [fetch-regions]\n        template: processor\n        arguments:\n          parameters:\n          - {name: region, value: \"{{item}}\"}\n        withParam: \"{{tasks.fetch-regions.outputs.result}}\"\n  - name: processor\n    inputs:\n      parameters: [{name: region}]\n    container:\n      image: registry.caldera.example/processor:3.1\n      args: [\"--region\", \"{{inputs.parameters.region}}\"]\n    outputs:\n      parameters:\n      - {name: summary, valueFrom: {path: /out/summary.json}}\n      artifacts:\n      - {name: result, path: /out/result.json}\nwithParam turns the JSON array into one task instance per element, run in parallel (bounded by spec.parallelism if set); withItems does the same for a static list."
             ),
             part(
               "Fan-in with aggregated outputs",
@@ -55,8 +57,8 @@ export const CAPA_LABS: SeedLabSet = {
             ),
             part(
               "Always-run notify",
-              "A notify task with dependencies on merge (or process) that uses a depends expression like depends: \"merge.Succeeded || merge.Failed || merge.Skipped\" (or an onExit exit handler at workflow level) so it runs regardless of outcome, with {{workflow.status}} available in an exit handler.",
-              "      - name: notify\n        depends: \"merge.Succeeded || merge.Failed || merge.Skipped || merge.Errored\"\n        template: notifier\nThe depends field (richer than dependencies) lets a task run on any terminal state of its upstream; plain dependencies only fire on success. Equivalent and often simpler: spec.onExit: notifier, an exit handler template that always runs when the workflow ends and can read {{workflow.status}} and {{workflow.failures}}."
+              "A notify task with dependencies on merge (or process) that uses a depends expression like depends: \"merge.Succeeded || merge.Failed || merge.Errored || merge.Skipped || merge.Omitted\" (or an onExit exit handler at workflow level) so it runs regardless of outcome, with {{workflow.status}} available in an exit handler.",
+              "      - name: notify\n        depends: \"merge.Succeeded || merge.Failed || merge.Errored || merge.Skipped || merge.Omitted\"\n        template: notifier\nThe depends field (richer than dependencies) lets a task run on any terminal state of its upstream; plain dependencies only fire on success. Skipped means merge's when was false; Omitted means merge never ran because its own dependency (process) failed -- the common failure case here, so leaving Omitted out would silence the alert exactly when a region fails. Equivalent and often simpler: spec.onExit: notifier, an exit handler template that always runs when the workflow ends and can read {{workflow.status}} and {{workflow.failures}}."
             ),
           ],
         },
@@ -249,7 +251,7 @@ export const CAPA_LABS: SeedLabSet = {
             part(
               "Helm chart from a repository with pinned version",
               "A source with repoURL pointing at the Helm repository (https://kubernetes.github.io/ingress-nginx), chart ingress-nginx and targetRevision set to the chart version; explains Argo CD runs helm template (not helm install) and applies the rendered manifests, so helm list shows nothing.",
-              "  sources:\n  - repoURL: https://kubernetes.github.io/ingress-nginx\n    chart: ingress-nginx\n    targetRevision: 4.11.2\n    helm:\n      releaseName: ingress-nginx\n      valueFiles:\n      - $values/infra/ingress-nginx/values.yaml\n      - $values/infra/ingress-nginx/values-prod.yaml\n      parameters:\n      - {name: controller.replicaCount, value: \"3\"}\nFor a Helm repository source, targetRevision is the chart version -- pin it. Argo CD renders the chart with helm template using the given values and parameters and applies the output; Helm's release storage is not used, so helm list is empty and rollbacks happen through Git."
+              "  sources:\n  - repoURL: https://kubernetes.github.io/ingress-nginx\n    chart: ingress-nginx\n    targetRevision: 4.11.2\n    helm:\n      releaseName: ingress-nginx\n      valueFiles:\n      - $values/infra/ingress-nginx/values.yaml\n      - $values/infra/ingress-nginx/values-prod.yaml\n      parameters:\n      - {name: controller.replicaCount, value: \"3\"}\nFor a Helm repository source, targetRevision is the chart version -- pin it. (ingress-nginx itself was retired in March 2026 -- no further releases or security fixes -- so the same pattern applies to whichever maintained controller or Gateway API implementation replaces it; it is used here as a familiar chart.) Argo CD renders the chart with helm template using the given values and parameters and applies the output; Helm's release storage is not used, so helm list is empty and rollbacks happen through Git."
             ),
             part(
               "Values from a different repo: the $values source",

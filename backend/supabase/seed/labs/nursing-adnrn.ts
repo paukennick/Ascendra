@@ -1,5 +1,5 @@
 import { CLINICAL_SAFETY, part, type SeedLabSet } from "./types";
-import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_RN_2026, NICHD_FHR, SCIRE_AD, SSC_2021 } from "./nursing-sources";
+import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION, NCSBN_RN_2026, NICHD_FHR, SCIRE_AD, SSC_ADULT_2026 } from "./nursing-sources";
 
 // REQ-148: Associate Degree Nursing (RN) program course.
 //
@@ -15,12 +15,12 @@ import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION,
 // "per order / per protocol" where facilities differ.
 //
 // Values quoted come from nursing-sources.ts, read 2026-11-07:
-//   - Sepsis: Surviving Sepsis Campaign 2021 (antimicrobials ideally within
-//     1 hour; at least 30 mL/kg crystalloid in 3 hours for hypoperfusion, a
+//   - Sepsis: Surviving Sepsis Campaign adult guidelines 2026, which kept
+//     the 2021 values (antimicrobials ideally within 1 hour; at least 30 mL/kg crystalloid in 3 hours for hypoperfusion, a
 //     suggestion; MAP 65 mm Hg; lactate).
 //   - DKA: the 2024 hyperglycemic crises consensus -- insulin postponed until
-//     potassium is above 3.5 mmol/L. (The CCRN Adult pilot lab still says
-//     "about 3.3"; reported to the lead, not changed here.)
+//     potassium is above 3.5 mmol/L (the CCRN Adult dka-case agrees since
+//     2026-11-09).
 //   - Fetal heart rate: NICHD definitions (baseline 110-160 bpm, moderate
 //     variability 6-25 bpm, Category III).
 //   - START triage (CHEMM, HHS): walking, breathing, respiratory rate over 30,
@@ -29,15 +29,16 @@ import { CHEMM_START, DKA_CONSENSUS_2024, ISMP_HIGH_ALERT, NCSBN_ANA_DELEGATION,
 //     Spinal Cord Medicine/PVA guidance (injury at T6 or above; overfull
 //     bladder or bowel the commonest trigger; sit upright, loosen clothing,
 //     recheck blood pressure every few minutes, find and remove the cause).
-// The stroke lab deliberately quotes no blood-pressure limit: the 2026
-// AHA/ASA stroke guideline's thresholds could not be read at the source, so
-// the rubric asks for "the limit the protocol sets".
+// The stroke lab deliberately quotes no blood-pressure limit; the rubric asks
+// for "the limit the protocol sets". The 2026 AHA/ASA thresholds (below
+// 185/110 mm Hg before IV thrombolysis) have since been read and are recorded
+// in value-sources.ts (AIS_2026, checked 2026-11-08).
 // Calculations use fictional drugs with every number given. All
 // needs_expert_review (docs/labs.md).
 
 export const ADNRN_LABS: SeedLabSet = {
   trackCode: "ADNRN",
-  sources: [NCSBN_RN_2026, NCSBN_ANA_DELEGATION, SSC_2021, DKA_CONSENSUS_2024, NICHD_FHR, CHEMM_START, ISMP_HIGH_ALERT, SCIRE_AD],
+  sources: [NCSBN_RN_2026, NCSBN_ANA_DELEGATION, SSC_ADULT_2026, DKA_CONSENSUS_2024, NICHD_FHR, CHEMM_START, ISMP_HIGH_ALERT, SCIRE_AD],
   labs: [
     // ---- Professional nursing foundations (2) ----
     {

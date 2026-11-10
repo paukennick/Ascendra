@@ -400,7 +400,7 @@ export const SERVERPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Work out the restore chain, RPO and RTO of a backup schedule",
       brief:
-        "Juniper Hill Accountants back up their 2 TB document server with a full backup every Sunday at 01:00 and an incremental backup every other night at 01:00. Backups land on a local backup appliance that can restore at about 200 MB/s. On a Thursday at 14:00 a ransomware infection encrypts the server and it must be rebuilt from backup. Management asks: exactly which backup sets are needed, how much work is lost, how long the restore will take, and whether the plan would survive the backup appliance itself being hit. They also ask how they would know any of this works before a real disaster.",
+        "Juniper Hill Accountants back up their 2 TB document server with a full backup every Sunday at 01:00 and an incremental backup at 01:00 on each of the other six nights (Monday to Saturday). Backups land on a local backup appliance that can restore at about 200 MB/s. On a Thursday at 14:00 a ransomware infection encrypts the server and it must be rebuilt from backup. Management asks: exactly which backup sets are needed, how much work is lost, how long the restore will take, and whether the plan would survive the backup appliance itself being hit. They also ask how they would know any of this works before a real disaster.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

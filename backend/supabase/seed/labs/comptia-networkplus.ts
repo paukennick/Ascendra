@@ -335,7 +335,7 @@ export const NETWORKPLUS_LABS: SeedLabSet = {
             part(
               "Testing the theory",
               "Proposes a reversible test: temporarily set the mask to /24 (or switch back to DHCP) and ping FS01 again; or ping another host outside 10.20.5.0/24 to confirm everything off-subnet fails the same way; if the test fails, re-establish a new theory or escalate.",
-              "Test without committing: ip addr del 10.20.5.37/16 dev eth0; ip addr add 10.20.5.37/24 dev eth0 (or set the adapter back to DHCP) and ping 10.20.30.15 again. A reply confirms the theory. A cross-check: ping any other off-subnet host (e.g. the DNS server) -- under /16 it should fail the same way. If FS01 still does not answer after the fix, the theory is wrong: look at the switch port's VLAN or escalate."
+              "Test without committing: ip addr add 10.20.5.37/24 dev eth0, then ip addr del 10.20.5.37/16 dev eth0 -- in that order, because deleting the /16 first removes the default route with it (or set the adapter back to DHCP) and ping 10.20.30.15 again. A reply confirms the theory. A cross-check: ping any other off-subnet host (e.g. the DNS server) -- under /16 it should fail the same way. If FS01 still does not answer after the fix, the theory is wrong: look at the switch port's VLAN or escalate."
             ),
           ],
         },

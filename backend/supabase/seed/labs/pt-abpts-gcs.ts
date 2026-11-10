@@ -36,7 +36,9 @@ import { source } from "../sources";
 //     doi:10.1111/j.1532-5415.2005.53221.x (cut-off 26).
 //   - Fried 2001 frailty phenotype, J Gerontol A
 //     doi:10.1093/gerona/56.3.m146 (3 or more of: unintentional weight loss,
-//     exhaustion, weakness, slow walking, low activity).
+//     exhaustion, weakness, slow walking, low activity; weakness is grip
+//     in the lowest 20% by sex and BMI -- for women 17 to 21 kg -- not the
+//     EWGSOP2 16 kg line).
 //   - Singer 2016, Sepsis-3, JAMA doi:10.1001/jama.2016.0287 (qSOFA: RR
 //     22/min or more, altered mentation, SBP 100 mm Hg or less; 2 or more).
 //   - Perera 2006, J Am Geriatr Soc doi:10.1111/j.1532-5415.2006.00701.x
@@ -347,8 +349,8 @@ export const ABPTSGCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Frailty and prognosis",
-              "Applies the Fried phenotype: unintentional weight loss, exhaustion, weakness (grip 14 kg, below the female cut-off) and slowness -- 3 or more criteria, so she is frail -- and explains that frailty after hip fracture predicts slower recovery, higher complication and institutionalisation risk, so expectations are set realistically but the plan is still active and progressive.",
-              "She meets at least four of the five Fried criteria -- unintentional weight loss, exhaustion, weak grip (14 kg is below 16 kg) and slowing -- so she is frail. Frailty means recovery after hip fracture is slower and riskier (complications, needing residential care), so I would tell her and her son honestly that regaining outdoor walking with an aid is possible but will take months of structured rehabilitation, with a realistic early goal of safe indoor mobility."
+              "Applies the Fried phenotype: unintentional weight loss, exhaustion, weakness (grip 14 kg, below Fried's BMI-adjusted female cut-offs of 17-21 kg) and slowness -- 3 or more criteria, so she is frail -- and explains that frailty after hip fracture predicts slower recovery, higher complication and institutionalisation risk, so expectations are set realistically but the plan is still active and progressive.",
+              "She meets at least four of the five Fried criteria -- unintentional weight loss, exhaustion, weak grip (14 kg is below Fried's cut-off for women, 17 to 21 kg depending on BMI) and slowing -- so she is frail. Frailty means recovery after hip fracture is slower and riskier (complications, needing residential care), so I would tell her and her son honestly that regaining outdoor walking with an aid is possible but will take months of structured rehabilitation, with a realistic early goal of safe indoor mobility."
             ),
             part(
               "Day-1 plan",

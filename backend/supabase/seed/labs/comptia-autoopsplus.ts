@@ -278,13 +278,13 @@ export const AUTOOPSPLUS_LABS: SeedLabSet = {
         },
         {
           text:
-            "Finally the job reads its settings file and aborts:\n\n$ python3 -c 'import json,sys; json.load(open(\"settings.json\"))'\nTraceback (most recent call last):\n  ...\njson.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 7 column 3 (char 142)\n\n$ sed -n 4,8p settings.json\n  \"region\": \"us-west-2\",\n  \"instances\": 3,\n  \"notify\": [\"ops@tamarind.example\"],\n  }\n}",
+            "Finally the job reads its settings file and aborts:\n\n$ python3 --version\nPython 3.12.3\n$ python3 -c 'import json,sys; json.load(open(\"settings.json\"))'\nTraceback (most recent call last):\n  ...\njson.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 7 column 3 (char 142)\n\n$ sed -n 4,8p settings.json\n  \"region\": \"us-west-2\",\n  \"instances\": 3,\n  \"notify\": [\"ops@tamarind.example\"],\n  }\n}",
           ask: "What is the syntax problem, how do you fix it, and how does the team stop hand-edited config files breaking the job?",
           parts: [
             part(
               "The syntax error",
               "Identifies a trailing comma after the last property (\"notify\": [...],) before the closing brace, which JSON does not allow (unlike many languages), at line 7; removes the comma; validates with jq . settings.json or python -m json.tool.",
-              "JSON does not permit a trailing comma after the last member of an object. Line 6 ends with a comma and line 7 is the closing brace, so the parser expected another \"property\": and found }. Delete the comma after the notify array. Validate: jq . settings.json (prints the document if valid, an error with the line if not) or python3 -m json.tool settings.json."
+              "JSON does not permit a trailing comma after the last member of an object. Line 6 ends with a comma and line 7 is the closing brace, so the parser expected another \"property\": and found }. (Python 3.13 and later name it directly: 'Illegal trailing comma before end of object', pointing at the comma on line 6.) Delete the comma after the notify array. Validate: jq . settings.json (prints the document if valid, an error with the line if not) or python3 -m json.tool settings.json."
             ),
             part(
               "Preventing config breakage",

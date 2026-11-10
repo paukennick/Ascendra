@@ -112,12 +112,12 @@ export const PFMP_LABS: SeedLabSet = {
             part(
               "Sequence",
               "Starts the regulatory upgrade and the CDP first (deadline and the key dependency), then pricing analytics and the claims portal after the CDP, with the broker app placed where capacity allows.",
-              "Months 1-6: regulatory upgrade (team 1) and CDP (team 2, through month 12). Months 7-14: broker app on team 1. Months 13-18: pricing analytics; months 13-21: claims portal (CDP data available from month 13)."
+              "Team 1: regulatory upgrade months 1-6 (inside the 10-month deadline), then broker app months 7-14, then pricing analytics months 15-20. Team 2: CDP months 1-12, then claims portal months 13-21 (CDP data available from month 13). Never more than two streams at once; everything is done by month 21."
             ),
             part(
               "Dependencies and capacity",
               "Shows the dependencies (portal and analytics on CDP) and respects the two-team limit, noting where the plan uses a third team or overlaps if it does.",
-              "Portal and analytics both wait for the CDP. Months 13-14 need three streams (broker app finishing, analytics, portal): either finish the broker app by month 12 if possible or start the portal in month 15."
+              "Portal and analytics both wait for the CDP. In months 13-14 team 1 is still on the broker app, so only one CDP-dependent program can start in month 13 (the portal, on team 2) and analytics waits for team 1 in month 15. The broker app can't finish by month 12: team 1 is on the regulatory upgrade until month 6 and the app takes 8 months."
             ),
             part(
               "Alignment",

@@ -84,8 +84,8 @@ export const GCPPCA_LABS: SeedLabSet = {
             ),
             part(
               "Nightly repricing batch and predictive ETA",
-              "Moves the batch to Dataflow (or a batch job on GKE/Cloud Run jobs) reading from BigQuery, with BigQuery as the analytical store for shipment history, and builds the ETA model on that history with Vertex AI / BigQuery ML served as a prediction endpoint called by the tracking service; ties to 'predictive ETA' and 'cost base'.",
-              "Land shipment history in BigQuery and run the 4-million-shipment repricing as a Dataflow batch (or a Cloud Run job) that scales for the hour it runs and costs nothing otherwise. Train the ETA model on that history (BigQuery ML or a custom model on Vertex AI) and expose it as a prediction endpoint the tracking service calls. This serves the ETA requirement and turns the nightly fixed cost into pay-per-run."
+              "Moves the batch to Dataflow (or a batch job on GKE/Cloud Run jobs) reading from BigQuery, with BigQuery as the analytical store for shipment history, and builds the ETA model on that history with Gemini Enterprise Agent Platform (formerly Vertex AI) / BigQuery ML served as a prediction endpoint called by the tracking service; ties to 'predictive ETA' and 'cost base'.",
+              "Land shipment history in BigQuery and run the 4-million-shipment repricing as a Dataflow batch (or a Cloud Run job) that scales for the hour it runs and costs nothing otherwise. Train the ETA model on that history (BigQuery ML or a custom model on Gemini Enterprise Agent Platform, formerly Vertex AI) and expose it as a prediction endpoint the tracking service calls. This serves the ETA requirement and turns the nightly fixed cost into pay-per-run."
             ),
             part(
               "Warehouse scanners during WAN outages",
