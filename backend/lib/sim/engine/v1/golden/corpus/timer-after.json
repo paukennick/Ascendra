@@ -1,0 +1,236 @@
+{
+  "id": "timer-after",
+  "spec": "5.3 Timers: an Expr `after` is sim seconds, ticks = max(1, ceil(seconds / dt)), capped at maxDuration/tick + 1; a Duration literal is exact ticks; dt is an integer",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "10s",
+      "maxDuration": "100s"
+    },
+    "params": {
+      "s": {
+        "value": 25,
+        "unit": "s",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "state": {},
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "go"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "go": {
+        "label": "go",
+        "group": "g",
+        "effects": [
+          {
+            "schedule": "a",
+            "after": "s"
+          },
+          {
+            "schedule": "b",
+            "after": "0 - 5"
+          },
+          {
+            "schedule": "c",
+            "after": "10000"
+          },
+          {
+            "schedule": "d",
+            "after": "30s"
+          },
+          {
+            "schedule": "e",
+            "after": "s / 10"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "a": {
+        "label": "a",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      },
+      "b": {
+        "label": "b",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      },
+      "c": {
+        "label": "c",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      },
+      "d": {
+        "label": "d",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      },
+      "e": {
+        "label": "e",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      }
+    },
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "go"
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 1,
+        "timers": [
+          [
+            "b",
+            2,
+            1
+          ],
+          [
+            "e",
+            5,
+            1
+          ],
+          [
+            "a",
+            1,
+            3
+          ],
+          [
+            "d",
+            4,
+            3
+          ],
+          [
+            "c",
+            3,
+            11
+          ]
+        ]
+      }
+    ]
+  }
+}

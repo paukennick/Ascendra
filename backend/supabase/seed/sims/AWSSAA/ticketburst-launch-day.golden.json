@@ -1,0 +1,1142 @@
+{
+  "slug": "ticketburst-launch-day",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "reference",
+      "title": "The reference design and the safe finance cuts",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsMulti",
+            "place.slot": "data-a"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "redis",
+            "place.slot": "data-b"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 17,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 19,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 20,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep"
+          },
+          "seq": 21,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "resilient": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met"
+        },
+        "kpis": {
+          "availability": 99.99537037037037,
+          "rto": 2,
+          "rpo": 0,
+          "cost": 1394,
+          "savings": 471
+        },
+        "stateHash": "f56bc92313c7e6ff"
+      },
+      "reasoning": {
+        "design": "met"
+      }
+    },
+    {
+      "id": "singleBox",
+      "title": "One EC2 instance, a Single-AZ database without backups, no CDN or NAT",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "ec2",
+            "place.slot": "app-a"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsSingle",
+            "place.slot": "data-a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 8,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 10,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 11,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "keep",
+            "ri": "keep",
+            "s3life": "keep",
+            "cfttl": "keep",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep"
+          },
+          "seq": 12,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "harm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 10,
+        "criteria": {
+          "resilient": "missed",
+          "performing": "missed",
+          "secure": "missed",
+          "cost": "partial"
+        },
+        "kpis": {
+          "availability": 99.45601851851852,
+          "rto": 80,
+          "rpo": 730,
+          "cost": 410,
+          "savings": 0
+        },
+        "stateHash": "531ff264efeaf971"
+      },
+      "reasoning": {
+        "design": "missed"
+      }
+    },
+    {
+      "id": "overbuilt",
+      "title": "Overbuilt: large instances, Aurora and a high minimum",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "6",
+            "mx": "12",
+            "size": "c6i.2xlarge"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "aurora",
+            "place.slot": "data-a"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "redis",
+            "place.slot": "data-b"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 16,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 18,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 19,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "cut",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep"
+          },
+          "seq": 20,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 70,
+        "criteria": {
+          "resilient": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "missed"
+        },
+        "kpis": {
+          "availability": 99.99768518518518,
+          "rto": 1,
+          "rpo": 0,
+          "cost": 2745,
+          "savings": 2133
+        },
+        "stateHash": "94774cd3a14ce83a"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "serverless",
+      "title": "Serverless: Lambda and DynamoDB",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "lambda",
+            "place.slot": "regional"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dynamo",
+            "place.slot": "regional"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 10,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 11,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 12,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 13,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "cut",
+            "sp": "cut",
+            "ri": "keep",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep"
+          },
+          "seq": 14,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "resilient": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met"
+        },
+        "kpis": {
+          "availability": 100,
+          "rto": 0,
+          "rpo": 0,
+          "cost": 1205,
+          "savings": 483
+        },
+        "stateHash": "ce518fbdecc6b6d2"
+      },
+      "reasoning": {
+        "design": "met"
+      }
+    },
+    {
+      "id": "luckyAzB",
+      "title": "Two AZs except the fleet and its only NAT, both in AZ b; no SQS or cache; finance drops WAF",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-b"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "b",
+            "mn": "2",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsMulti",
+            "place.slot": "data-b"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 13,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 14,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 15,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 16,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "keep",
+            "s3life": "keep",
+            "cfttl": "keep",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "cut",
+            "nobackup": "keep"
+          },
+          "seq": 17,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "resilient": "partial",
+          "performing": "partial",
+          "secure": "partial",
+          "cost": "partial"
+        },
+        "kpis": {
+          "availability": 99.97453703703704,
+          "rto": 2,
+          "rpo": 0,
+          "cost": 913,
+          "savings": 102
+        },
+        "stateHash": "7130f344b7d944a6"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "spikeShort",
+      "title": "ASG max too low for the spike, no backups",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "2",
+            "mx": "10",
+            "size": "m6i.large"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsMulti",
+            "place.slot": "data-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 2,
+          "to": 13,
+          "seq": 12,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 3,
+          "to": 23,
+          "seq": 13,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 4,
+          "to": 63,
+          "seq": 14,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 5,
+          "to": 91,
+          "seq": 15,
+          "tick": 63
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "keep",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "cut",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep"
+          },
+          "seq": 16,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "resilient": "partial",
+          "performing": "partial",
+          "secure": "partial",
+          "cost": "partial"
+        },
+        "kpis": {
+          "availability": 99.94907407407408,
+          "rto": 2,
+          "rpo": 0,
+          "cost": 831,
+          "savings": 420
+        },
+        "stateHash": "ccac6b06f778366b"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    }
+  ]
+}

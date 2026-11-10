@@ -1,0 +1,322 @@
+{
+  "id": "expressions",
+  "spec": "4.3: pow by repeated squaring and exp/ln; list index clamps like seq; map index by enum key; `in` over sets and lists; find returns an empty record whose fields read as zero; sortBy/take/groupCount order",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {
+      "peak": {
+        "value": {
+          "250": 0.05,
+          "500": 0.1
+        },
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      },
+      "curve": {
+        "value": [
+          1,
+          2,
+          3
+        ],
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "state": {
+      "a": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "b": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "c": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "d": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "e": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "f": {
+        "type": "bool",
+        "init": false
+      },
+      "g": {
+        "type": "bool",
+        "init": false
+      },
+      "reg": {
+        "type": "set",
+        "of": [
+          "R1",
+          "R2"
+        ],
+        "init": [
+          "R2"
+        ]
+      },
+      "recs": {
+        "type": "records",
+        "fields": {
+          "v": {
+            "type": "number"
+          },
+          "tag": {
+            "type": "string",
+            "max": 5
+          }
+        },
+        "max": 10,
+        "init": [
+          {
+            "v": 3,
+            "tag": "p"
+          },
+          {
+            "v": 1,
+            "tag": "q"
+          },
+          {
+            "v": 3,
+            "tag": "p"
+          }
+        ]
+      },
+      "top": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "emptyV": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      },
+      "grp": {
+        "type": "number",
+        "init": 0,
+        "min": -1000000000,
+        "max": 1000000000
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "go"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "go": {
+        "label": "go",
+        "group": "g",
+        "params": [
+          {
+            "id": "ml",
+            "kind": "choice",
+            "label": "ml",
+            "options": [
+              {
+                "value": "250",
+                "label": "250"
+              },
+              {
+                "value": "500",
+                "label": "500"
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "set": "a",
+            "to": "pow(0.6, 3)"
+          },
+          {
+            "set": "b",
+            "to": "pow(2, -2) + pow(0, 0)"
+          },
+          {
+            "set": "c",
+            "to": "seq(curve, 7) + curve[-3] + curve[1]"
+          },
+          {
+            "set": "d",
+            "to": "peak[ml] * 100 + num(ml)"
+          },
+          {
+            "set": "e",
+            "to": "round(pow(9, 0.5) * 1000)"
+          },
+          {
+            "set": "f",
+            "to": "'R2' in reg and not ('R1' in reg) and 2 in [1, 2]"
+          },
+          {
+            "set": "g",
+            "to": "find(recs, v > 100)._id == 0"
+          },
+          {
+            "set": "emptyV",
+            "to": "find(recs, v > 100).v"
+          },
+          {
+            "set": "top",
+            "to": "take(sortBy(recs, v, 'desc'), 1)[0].v * 10 + take(sortBy(recs, v, 'asc'), 1)[0]._id"
+          },
+          {
+            "set": "grp",
+            "to": "groupCount(recs, tag)[0].n"
+          }
+        ]
+      }
+    },
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "go",
+        "params": {
+          "ml": "500"
+        }
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 1,
+        "values": {
+          "a": 0.216,
+          "b": 1.25,
+          "c": 6,
+          "d": 510,
+          "e": 3000,
+          "f": true,
+          "g": true,
+          "emptyV": 0,
+          "top": 32,
+          "grp": 2
+        }
+      }
+    ]
+  }
+}

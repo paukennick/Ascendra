@@ -7,6 +7,14 @@
 //   npm run sim:cross-runtime -- write-expected   refresh fixture.expected.txt from Node
 //   npm run sim:cross-runtime -- hermes-script <fixture|native> <out.js>
 //   npm run sim:cross-runtime -- browsers         Chromium, Firefox, WebKit via Playwright
+//   npm run sim:cross-runtime -- engine-print     Node's run of the engine bundle (corpus + golden replays)
+//   npm run sim:cross-runtime -- engine-hermes-script <out.js>
+//
+// REQ-162: the engine bundle (lib/sim/cross-runtime/engine-bundle.ts) is
+// engine major 1 transpiled to one plain script with the v1 corpus and every
+// seeded document's golden paths. Node's output is computed in the same run,
+// never committed, so a corpus or golden change cannot leave a stale file;
+// the Node test (engine-bundle.test.ts) holds that output to the manifest.
 //
 // `browsers` imports Playwright from PLAYWRIGHT_MODULE (a path to its
 // package directory) so neither package.json has to depend on it; CI installs
@@ -20,6 +28,7 @@ import {
   runFixtureInNode,
   runNativeInNode,
 } from "../lib/sim/cross-runtime/fixture.ts";
+import { engineBundleSource, engineHermesScript, runEngineBundleInNode } from "../lib/sim/cross-runtime/engine-bundle.ts";
 
 function firstDifference(a: string, b: string): string {
   const al = a.split("\n");
@@ -37,6 +46,8 @@ async function browsers(): Promise<number> {
   const expected = readFileSync(EXPECTED_PATH, "utf8");
   const nodeNative = runNativeInNode();
   const source = fixtureSource();
+  const engineSource = engineBundleSource();
+  const engineExpected = runEngineBundleInNode(engineSource);
   let failed = 0;
   for (const name of ["chromium", "firefox", "webkit"] as const) {
     const browser = await pw[name].launch();
@@ -52,6 +63,15 @@ async function browsers(): Promise<number> {
       else {
         failed++;
         console.log(`FAIL ${label}: fixture differs from Node at ${firstDifference(got, expected)}`);
+      }
+      const enginePage = await browser.newPage();
+      await enginePage.setContent("<!doctype html><title>sim engine cross-runtime</title>");
+      await enginePage.addScriptTag({ content: engineSource });
+      const engineGot = `${await enginePage.evaluate("simCrossRuntimeEngine()")}\n`;
+      if (engineGot === engineExpected) console.log(`PASS ${label}: engine corpus and golden replays byte-identical to Node (${engineExpected.trim().split("\n").pop()})`);
+      else {
+        failed++;
+        console.log(`FAIL ${label}: engine bundle differs from Node at ${firstDifference(engineGot, engineExpected)}`);
       }
     } finally {
       await browser.close();
@@ -81,8 +101,17 @@ async function main(): Promise<number> {
     }
     case "browsers":
       return browsers();
+    case "engine-print":
+      process.stdout.write(runEngineBundleInNode());
+      return 0;
+    case "engine-hermes-script": {
+      const [out] = args;
+      if (!out) throw new Error("usage: engine-hermes-script <out.js>");
+      writeFileSync(out, engineHermesScript());
+      return 0;
+    }
     default:
-      console.error("usage: sim:cross-runtime -- print | print-native | write-expected | hermes-script <fixture|native> <out.js> | browsers");
+      console.error("usage: sim:cross-runtime -- print | print-native | write-expected | hermes-script <fixture|native> <out.js> | browsers | engine-print | engine-hermes-script <out.js>");
       return 2;
   }
 }

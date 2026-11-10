@@ -1,0 +1,215 @@
+{
+  "id": "triggers",
+  "spec": "5.3 Settle step 1: once fires the first time true; edge fires on each false->true; triggers run in document order and later ones see earlier writes",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "6s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      },
+      "onceN": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      },
+      "edgeN": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      },
+      "saw": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      }
+    },
+    "derived": {},
+    "processes": [
+      {
+        "id": "wave",
+        "update": {
+          "x": "tick == 1 or tick == 3 or tick == 5 ? 5 : 0"
+        }
+      }
+    ],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {},
+    "timers": {},
+    "triggers": [
+      {
+        "id": "o",
+        "when": "x >= 5",
+        "mode": "once",
+        "effects": [
+          {
+            "add": "onceN",
+            "by": "1"
+          },
+          {
+            "set": "saw",
+            "to": "1"
+          }
+        ]
+      },
+      {
+        "id": "e",
+        "when": "x >= 5",
+        "mode": "edge",
+        "effects": [
+          {
+            "add": "edgeN",
+            "by": "1"
+          }
+        ]
+      },
+      {
+        "id": "later",
+        "when": "saw == 1",
+        "mode": "once",
+        "effects": [
+          {
+            "add": "saw",
+            "by": "1"
+          }
+        ]
+      }
+    ],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "advance": 6
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 1,
+        "values": {
+          "onceN": 1,
+          "edgeN": 1,
+          "saw": 2
+        }
+      },
+      {
+        "tick": 2,
+        "values": {
+          "onceN": 1,
+          "edgeN": 1
+        }
+      },
+      {
+        "tick": 3,
+        "values": {
+          "onceN": 1,
+          "edgeN": 2
+        }
+      },
+      {
+        "tick": 5,
+        "values": {
+          "onceN": 1,
+          "edgeN": 3
+        }
+      }
+    ]
+  }
+}

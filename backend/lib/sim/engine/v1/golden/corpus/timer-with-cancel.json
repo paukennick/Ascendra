@@ -1,0 +1,259 @@
+{
+  "id": "timer-with-cancel",
+  "spec": "4.1, 4.3, 5.3: schedule `with` is evaluated once at scheduling and read as timer.with.<field> when the instance fires; cancel ... where removes only the instances for which the predicate is true, checked in instance-id order",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "5s"
+    },
+    "params": {},
+    "state": {
+      "n": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "got": {
+        "type": "set",
+        "of": [
+          "x",
+          "y",
+          "z"
+        ],
+        "init": []
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "go",
+          "cut"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "go": {
+        "label": "go",
+        "group": "g",
+        "effects": [
+          {
+            "set": "n",
+            "to": "7"
+          },
+          {
+            "schedule": "t",
+            "after": "2s",
+            "with": {
+              "tag": "'x'",
+              "k": "n"
+            }
+          },
+          {
+            "set": "n",
+            "to": "9"
+          },
+          {
+            "schedule": "t",
+            "after": "2s",
+            "with": {
+              "tag": "'y'",
+              "k": "n"
+            }
+          },
+          {
+            "schedule": "t",
+            "after": "2s",
+            "with": {
+              "tag": "'z'",
+              "k": "n + 1"
+            }
+          }
+        ]
+      },
+      "cut": {
+        "label": "cut",
+        "group": "g",
+        "effects": [
+          {
+            "cancel": "t",
+            "where": "timer.with.k == 9"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "t": {
+        "label": "t {timer.with.tag}",
+        "instances": "many",
+        "with": {
+          "tag": {
+            "type": "enum",
+            "values": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "k": {
+            "type": "number"
+          }
+        },
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "push": "got",
+            "value": "timer.with.tag"
+          },
+          {
+            "set": "n",
+            "to": "timer.with.k"
+          }
+        ]
+      }
+    },
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "go"
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "cut"
+      }
+    },
+    {
+      "advance": 2
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 2,
+        "timers": [
+          [
+            "t",
+            1,
+            2
+          ],
+          [
+            "t",
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "tick": 2,
+        "values": {
+          "got": [
+            "x",
+            "z"
+          ],
+          "n": 10
+        },
+        "timers": []
+      }
+    ]
+  }
+}

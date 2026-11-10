@@ -1,0 +1,289 @@
+{
+  "id": "timer-instances",
+  "spec": "5.3 Timers: instances get run-unique ids; `one` replaces a pending instance, `many` coexist; instances due the same tick fire in id order; a timer's effects read timer.id",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "5s"
+    },
+    "params": {},
+    "state": {
+      "fired": {
+        "type": "records",
+        "fields": {
+          "id": {
+            "type": "number"
+          },
+          "who": {
+            "type": "string",
+            "max": 10
+          }
+        },
+        "max": 20,
+        "init": []
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "a",
+          "b"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "a": {
+        "label": "a",
+        "group": "g",
+        "effects": [
+          {
+            "schedule": "single",
+            "after": "3s"
+          },
+          {
+            "schedule": "single",
+            "after": "2s"
+          }
+        ]
+      },
+      "b": {
+        "label": "b",
+        "group": "g",
+        "effects": [
+          {
+            "schedule": "multi",
+            "after": "2s"
+          },
+          {
+            "schedule": "multi",
+            "after": "2s"
+          },
+          {
+            "schedule": "multi",
+            "after": "1s"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "single": {
+        "label": "single",
+        "instances": "one",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "push": "fired",
+            "value": {
+              "id": "timer.id",
+              "who": "'s'"
+            }
+          }
+        ]
+      },
+      "multi": {
+        "label": "multi",
+        "instances": "many",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": [
+          {
+            "push": "fired",
+            "value": {
+              "id": "timer.id",
+              "who": "'m'"
+            }
+          }
+        ]
+      }
+    },
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "a"
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "b"
+      }
+    },
+    {
+      "advance": 1
+    },
+    {
+      "advance": 1
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 2,
+        "timers": [
+          [
+            "multi",
+            5,
+            1
+          ],
+          [
+            "single",
+            2,
+            2
+          ],
+          [
+            "multi",
+            3,
+            2
+          ],
+          [
+            "multi",
+            4,
+            2
+          ]
+        ],
+        "values": {
+          "fired": []
+        }
+      },
+      {
+        "tick": 1,
+        "values": {
+          "fired": [
+            {
+              "_id": 1,
+              "id": 5,
+              "who": "m"
+            }
+          ]
+        }
+      },
+      {
+        "tick": 2,
+        "values": {
+          "fired": [
+            {
+              "_id": 1,
+              "id": 5,
+              "who": "m"
+            },
+            {
+              "_id": 2,
+              "id": 2,
+              "who": "s"
+            },
+            {
+              "_id": 3,
+              "id": 3,
+              "who": "m"
+            },
+            {
+              "_id": 4,
+              "id": 4,
+              "who": "m"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
