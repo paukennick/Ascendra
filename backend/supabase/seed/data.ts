@@ -1,3 +1,5 @@
+import type { SourceRef } from "./sources";
+
 // Seed data ported from mscs-coach.html (WEEKS/COURSES) and security-plus-coach.html
 // (DOMAINS), trimmed of narrative fields not needed by the schema (deliverables,
 // resources links, STEP-specific notes) but keeping every real week/domain title and
@@ -19,6 +21,22 @@ export interface SeedUnit {
   // the unit and every objective in it, and the app stops listing it once
   // that moment has passed. Successor units are appended after it.
   retiredAt?: string; // ISO timestamp
+  // REQ-195: retire single objectives inside a unit that stays taught.
+  // Parallel to `objectives`: a timestamp retires that objective (it keeps
+  // its sort_order, row id and learners' history, as a retired unit's
+  // objectives do); null or missing leaves it active. A retired objective
+  // keeps its slot in `objectives` -- never remove or reorder it, since
+  // objectives are matched to their rows by position.
+  objectiveRetiredAt?: (string | null)[];
+  // REQ-195: the open textbooks or other references this unit is taught
+  // from, dated (REQ-142). Seed-only: the generation prompt's current-facts
+  // block names them for the unit (lib/current-facts.ts) and the currency
+  // report dates them.
+  sources?: UnitSource[];
+}
+
+export interface UnitSource extends SourceRef {
+  title: string;
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*
@@ -1831,50 +1849,102 @@ export const SECURITYX_TRACK: SeedTrack = {
 };
 
 // ---------------------------------------------------------------------------
-// Liberty University BS, Computational Mathematics: Computer Science
-// (2026-2027 Degree Completion Plan, CMPC-BS-D). Every course code, elective
-// list, and credit count mirrored directly from the official degree plan PDF.
-// Gen-ed units follow the plan's own section breakdown. Major Foundational,
-// Mathematics core, and CS Cognate courses are each their own unit (one per
-// course) with real sub-topic objectives grounded in Liberty's official
-// course descriptions (catalog.liberty.edu, cross-checked against course
-// syllabi where the catalog blurb was too thin) -- a single objective per
-// whole course was too broad for the guess/teach/fade/solo lesson format.
+// Computer Science Degree Foundations (code CMPCBS).
+//
+// REQ-195 (Nick, 2026-11-09): "liberty degree lesson should be removed unless
+// they can be reframed as general course titles. Content should be accurate
+// to the course type." This track began (REQ-142/161) as a mirror of one
+// university's published degree completion plan. It is now a set of GENERAL
+// courses -- the foundation courses of a computer science / computational
+// mathematics bachelor's degree -- each taught from dated open textbooks
+// (`sources` on each unit), and it names no school as its product.
+//
+// What changed, without moving any row (units and objectives are matched to
+// their database rows by position, so learners' mastery stays put):
+//   - Course units keep their objectives; their titles drop the school's
+//     course codes and their gates state what the course teaches instead of
+//     the school's grade rules.
+//   - Gen-ed courses that are a real general course type are reframed in
+//     place: composition (unit 0, objective 0) and the two religion surveys
+//     (unit 5), taught as neutral academic surveys. Their lessons are
+//     authored and cite sources (lib/authored-lessons-cmpcbs.ts).
+//   - Everything that was degree-plan logistics is RETIRED, never deleted:
+//     elective-choice lines, the online-learning orientation course, the
+//     worldview course (a formation course with no neutral general
+//     equivalent), free electives and the graduation checklist. Whole units
+//     use retiredAt; lines inside a unit that stays use objectiveRetiredAt.
+//     A retired line keeps its slot so nothing after it shifts.
 // ---------------------------------------------------------------------------
+const CMPCBS_RETIRED_AT = "2026-11-09T00:00:00Z";
+const R = CMPCBS_RETIRED_AT;
+const CMPCBS_CHECKED = "2026-11-09";
+const ref = (title: string, url: string): UnitSource => ({ title, url, kind: "reference", checkedAt: CMPCBS_CHECKED });
+const CMPCBS_SRC = {
+  writing: ref("OpenStax, Writing Guide with Handbook (2021)", "https://openstax.org/books/writing-guide/pages/preface"),
+  apa: ref("APA Style, Author-date citation system", "https://apastyle.apa.org/style-grammar-guidelines/citations/basic-principles/author-date"),
+  mla: ref("Purdue OWL, MLA In-Text Citations: The Basics", "https://owl.purdue.edu/owl/research_and_citation/mla_style/mla_formatting_and_style_guide/mla_in_text_citations_the_basics.html"),
+  hebrewBible: ref("Christine Hayes, Introduction to the Old Testament (Hebrew Bible), Open Yale Courses RLST 145, Lecture 1", "https://oyc.yale.edu/node/1724"),
+  newTestament: ref("Dale B. Martin, Introduction to New Testament History and Literature, Open Yale Courses RLST 152, Lecture 1", "https://oyc.yale.edu/religious-studies/rlst-152/lecture-1"),
+  worldHistory1: ref("OpenStax, World History Volume 1 (2023), 4.4 The Hebrews", "https://openstax.org/books/world-history-volume-1/pages/4-4-the-hebrews"),
+  worldHistory2: ref("OpenStax, World History Volume 2 (2022), 5.1 The Protestant Reformation", "https://openstax.org/books/world-history-volume-2/pages/5-1-the-protestant-reformation"),
+  brooks: ref("Christopher Brooks, Western Civilization: A Concise History I, 11.9 Orthodoxy and Heresy (LibreTexts)", "https://human.libretexts.org/Bookshelves/History/World_History/Book:_Western_Civilization_-_A_Concise_History_I_(Brooks)/11:_The_Late_Empire_and_Christianity/11.09:_Orthodoxy_and_Heresy"),
+  hanneken: ref("Todd Hanneken, Theological Questions (open textbook, 2022; written from a Catholic perspective)", "https://open.umn.edu/opentextbooks/textbooks/theological-questions"),
+  introCs: ref("OpenStax, Introduction to Computer Science (2024)", "https://openstax.org/books/introduction-computer-science/pages/preface"),
+  calc1: ref("OpenStax, Calculus Volume 1", "https://openstax.org/books/calculus-volume-1/pages/preface"),
+  calc2: ref("OpenStax, Calculus Volume 2", "https://openstax.org/books/calculus-volume-2/pages/preface"),
+  calc3: ref("OpenStax, Calculus Volume 3", "https://openstax.org/books/calculus-volume-3/pages/preface"),
+  stats: ref("OpenStax, Introductory Statistics 2e", "https://openstax.org/books/introductory-statistics-2e/pages/preface"),
+  discrete: ref("Oscar Levin, Discrete Mathematics: An Open Introduction", "https://discrete.openmathbooks.org/"),
+  mactutor: ref("MacTutor History of Mathematics Archive, University of St Andrews", "https://mathshistory.st-andrews.ac.uk/"),
+  linear: ref("Robert Beezer, A First Course in Linear Algebra", "https://linear.pugetsound.edu/"),
+  linearOcw: ref("MIT OpenCourseWare 18.06 Linear Algebra (Spring 2010)", "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/"),
+  numerical: ref("MIT OpenCourseWare 18.330 Introduction to Numerical Analysis (Spring 2012)", "https://ocw.mit.edu/courses/18-330-introduction-to-numerical-analysis-spring-2012/"),
+  abstract: ref("Thomas Judson, Abstract Algebra: Theory and Applications", "https://judsonbooks.org/abstract-algebra-theory-and-applications/"),
+  diffEq: ref("William F. Trench, Elementary Differential Equations", "https://digitalcommons.trinity.edu/mono/8"),
+  probability: ref("Charles Grinstead and J. Laurie Snell, Introduction to Probability", "https://chance.dartmouth.edu/book.html"),
+  forecasting: ref("Rob Hyndman and George Athanasopoulos, Forecasting: Principles and Practice, 3rd edition", "https://otexts.com/fpp3/"),
+  infoSystems: ref("David Bourgeois, Information Systems for Business and Beyond (2019)", "https://open.umn.edu/opentextbooks/textbooks/189"),
+  cpp: ref("cppreference.com, C++ language reference", "https://en.cppreference.com/w/cpp/language"),
+  dataStructures: ref("Pat Morin, Open Data Structures (C++ edition)", "https://opendatastructures.org/ods-cpp/"),
+  nistCsf: ref("NIST Cybersecurity Framework 2.0", "https://www.nist.gov/cyberframework"),
+} as const;
+
 export const CMPCBS_TRACK: SeedTrack = {
   code: "CMPCBS",
-  title: "Computational Math: CS Degree Coach",
+  title: "Computer Science Degree Foundations",
   description:
-    "Liberty University's 2026-2027 BS in Computational Mathematics: Computer Science degree completion plan (120 credits) -- gen ed, Christianity core, and the full math/CS major sequence, mirrored from the official plan.",
+    "The foundation courses of a bachelor's degree in computer science and computational mathematics, taught as general courses from open textbooks: calculus through differential equations, discrete math, linear algebra, probability and statistics, numerical methods, C++ programming, data structures, information systems and security, plus college composition and introductory surveys of the Bible and Christian theology. Not affiliated with any university; your school's catalog sets its own requirements.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
-  // REQ-142: no exam; mirrors Liberty's published degree plan. NOT re-checked
-  // on 2026-11-08: catalog.liberty.edu reset the connection and a fetch of the
-  // catalog page returned its 2024-2025 edition, so checkedAt is the date the
-  // plan was last edited here (git history, the REQ-142 backfill rule).
+  // REQ-195: the course outline is this seed; each unit names its own dated
+  // references in `sources`.
   curriculum: {
-    kind: "degree_plan",
-    name: "Liberty University BS Computational Mathematics: Computer Science, Degree Completion Plan CMPC-BS-D",
-    version: "2026-2027",
-    url: "https://catalog.liberty.edu/undergraduate/colleges-schools/arts-sciences/computational-mathematics-major-bs/computational-mathematics-bs-computer-science-online/",
-    checkedAt: "2026-10-31",
+    kind: "self_defined",
+    name: "Computer Science Degree Foundations outline (general courses taught from open textbooks)",
+    version: "REQ-195, 2026-11-09",
+    url: "https://github.com/paukennick/Ascendra/blob/master/backend/supabase/seed/data.ts",
+    checkedAt: CMPCBS_CHECKED,
   },
   units: [
+    // 0: reframed (objective 0); the elective-choice lines are retired.
     {
-      title: "Communication & Information Literacy",
-      rangeLabel: "9 credits",
-      gate: "Confirm which electives in this block are already satisfied by transfer credit before enrolling -- Info Literacy Elective I is satisfied by CSIS 110, shared with Major Foundational Courses, so it isn't a separate course to take.",
+      title: "College Composition I",
+      gate: "Given a question, write an arguable thesis, support each reason with evidence from credible sources, and cite every source in APA or MLA style.",
       objectives: [
-        "Composition and Rhetoric (ENGL 101)",
+        "College composition: thesis, argument, evidence and APA/MLA citation",
         "Communications elective -- choose 3 credits from COMS 101, BUSI 300, ENGR 270, or GICE 220",
         "Information Literacy Elective I -- satisfied by CSIS 110 (shared credit from Major Foundational Courses)",
         "Information Literacy Elective II -- choose 3 credits from ARTS 209, BUSI 201, CSIS 100, CSIS 110, CSIS 111, ENGL 102, ENGL 103, GEOG 200, HIEU 201, HIEU 202, HIUS 221, HIUS 222, HIUS 341, HIUS 360, HIUS 380, HIWD 370, or WRSP 101",
       ],
+      objectiveRetiredAt: [null, R, R, R],
+      sources: [CMPCBS_SRC.writing, CMPCBS_SRC.apa, CMPCBS_SRC.mla],
     },
+    // 1-4: degree-plan blocks (an orientation course and elective-choice
+    // lines). Retired.
     {
       title: "Technological Solutions & Quantitative Reasoning",
       rangeLabel: "3 credits",
-      gate: "The Math Elective here is satisfied by MATH 131, shared with Major Foundational Courses -- don't schedule it as a second course.",
+      retiredAt: R,
       objectives: [
         "Instructional Technology for Online Learning (UNIV 104)",
         "Math elective -- satisfied by MATH 131 (shared credit from Major Foundational Courses)",
@@ -1883,7 +1953,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "Critical Thinking",
       rangeLabel: "7 credits",
-      gate: "Pick a Critical Thinking elective that won't double up with a course you're already taking elsewhere in gen ed -- several PHIL/ENGL options here overlap in skillset with the Civic & Global Engagement block.",
+      retiredAt: R,
       objectives: [
         "Critical Thinking elective -- choose 3 credits from ARTS 105, ARTS 205, ARTS 214, BUSI 205, ENGL 201, ENGL 202, ENGL 216, ENGL 221, ETHC 101, ETHC 205, PHIL 201, or PHIL 240",
         "Christian Life and Biblical Worldview (RLGN 104)",
@@ -1892,7 +1962,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "Civic & Global Engagement",
       rangeLabel: "3 credits",
-      gate: "Choose the Cultural Studies elective based on what you can actually transfer in, if applicable -- the approved list spans languages, government, and religion, so options vary widely in workload.",
+      retiredAt: R,
       objectives: [
         "Cultural Studies elective -- choose 3 credits from ARTS 105, CSTU 101, CSTU 220, GICE 290, GOVT 200, GOVT 220, MUSC 103, or RLGN 210",
       ],
@@ -1900,32 +1970,27 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "Social & Scientific Inquiry",
       rangeLabel: "6 credits",
-      gate: "Pick a Natural Science elective with a lab component in mind if you'll need one later -- not all options in the approved list include one.",
+      retiredAt: R,
       objectives: [
         "Natural Science elective -- choose 3 credits from BIOL 101, BIOL 102, ETHC 210, NASC 210, PHSC 121, PHSC 122, PHSC 210, PHYS 101, PHYS 201, or PHYS 231",
         "Social Science elective -- choose 3 credits from BUSI 223, BUSI 240, ECON 110, ECON 213, ECON 214, HLTH 252, PSYC 101, PSYC 210, SOCI 200, or SOCI 201",
       ],
     },
+    // 5: reframed as neutral academic surveys (what the texts and traditions
+    // say, never which is true).
     {
-      title: "Christianity & Contexts",
-      rangeLabel: "8 credits",
-      gate: "Check transfer-credit waivers before scheduling these -- students transferring in 45+ UG credits have RLGN 104 waived, and 60+ UG credits also waives THEO 104.",
+      title: "Religion Surveys: The Bible and Christian Thought",
+      gate: "Describe how the Bible's canons are organised and differ between traditions, and explain how Christian traditions answer the same theological questions differently, attributing each position to those who hold it.",
       objectives: [
-        "Survey of Old and New Testament (BIBL 104)",
-        "Introduction to Theology Survey (THEO 104)",
+        "Survey of the Old and New Testaments: canon, structure and literary genres",
+        "Introduction to Christian theology: its main questions and how traditions answer them",
       ],
+      sources: [CMPCBS_SRC.hebrewBible, CMPCBS_SRC.newTestament, CMPCBS_SRC.worldHistory1, CMPCBS_SRC.worldHistory2, CMPCBS_SRC.brooks, CMPCBS_SRC.hanneken],
     },
-    // Below: every Major Foundational, Mathematics core, and CS Cognate course
-    // broken into its own unit with real sub-topic objectives grounded in
-    // Liberty's official course descriptions (catalog.liberty.edu) rather than
-    // one vague "objective" per whole course -- a single "Multivariable
-    // Calculus (MATH 430)" line was too broad for the guess/teach/fade/solo
-    // lesson format, which needs a narrow concept per objective the way the
-    // certification tracks already do.
+    // 6-25: the major courses, as general course titles.
     {
-      title: "CSIS 110: Introduction to Computer Science",
-      rangeLabel: "3 credits",
-      gate: "Earn a C or higher -- Liberty requires it for every major foundational course, and this is a prerequisite the entire CS cognate sequence is built on.",
+      title: "Introduction to Computer Science",
+      gate: "Given a small problem, design an algorithm for it in plain steps, then explain how a compiled program for it runs on the hardware and operating system.",
       objectives: [
         "Computer architecture and system organization",
         "Algorithm design and problem-solving strategies",
@@ -1934,11 +1999,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Networking and database fundamentals",
         "Computing ethics: intellectual property, privacy, and computer crime",
       ],
+      sources: [CMPCBS_SRC.introCs],
     },
     {
-      title: "MATH 131: Calculus and Analytic Geometry I",
-      rangeLabel: "4 credits",
-      gate: "Earn a C or higher -- Liberty requires it for every major foundational course, and this is a prerequisite the entire math core sequence is built on.",
+      title: "Calculus I",
+      gate: "Given a function, find its limits and derivative with the rules, and use the derivative to solve an optimisation problem and evaluate an indeterminate limit.",
       objectives: [
         "Functions and graphs, including exponential, logarithmic, and inverse trig forms",
         "Limits and continuity",
@@ -1946,11 +2011,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Applications of derivatives, including L'Hopital's Rule",
         "Introduction to integrals",
       ],
+      sources: [CMPCBS_SRC.calc1],
     },
     {
-      title: "MATH 132: Calculus and Analytic Geometry II",
-      rangeLabel: "4 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this feeds directly into Discrete Mathematics and Multivariable Calculus.",
+      title: "Calculus II",
+      gate: "Choose and carry out an integration technique, set up an area or volume integral, and decide whether a series converges, naming the test.",
       objectives: [
         "Integration techniques beyond basic antiderivatives",
         "Improper integrals",
@@ -1959,11 +2024,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Parametric curves and polar coordinates",
         "Introduction to differential equations",
       ],
+      sources: [CMPCBS_SRC.calc2],
     },
     {
-      title: "MATH 211: Introduction to Statistical Analysis",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      title: "Introduction to Statistical Analysis",
+      gate: "Given a data set and a claim, compute summary statistics, run the right hypothesis test, build a confidence interval and state the conclusion in context.",
       objectives: [
         "Probability theory foundations for calculus-trained students",
         "Common probability distribution models",
@@ -1971,11 +2036,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Statistical inference: estimation and hypothesis testing",
         "Regression and correlation between data sets",
       ],
+      sources: [CMPCBS_SRC.stats],
     },
     {
-      title: "MATH 250: Introduction to Discrete Mathematics",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Linear Algebra, Multivariable Calculus, and CSIS 215.",
+      title: "Discrete Mathematics",
+      gate: "Write a correct proof by induction or contradiction, check an argument with a truth table, and count arrangements with the right combinatorial rule.",
       objectives: [
         "Logic and formal proof techniques",
         "Set theory fundamentals",
@@ -1984,11 +2049,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Matrices and algorithmic thinking",
         "Mathematical induction and combinatorics",
       ],
+      sources: [CMPCBS_SRC.discrete],
     },
     {
-      title: "MATH 345: Introduction to the History of Mathematics",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. This one has a heavy upper-level-math prerequisite list, so schedule it after several 300/400-level math courses, not early.",
+      title: "History of Mathematics",
+      gate: "Explain how a major result arose (Euclid's proof on primes, the calculus of Newton and Leibniz, non-Euclidean geometry), what problem it answered, and how it shaped later mathematics.",
       objectives: [
         "Ancient mathematics: Egyptian, Babylonian, and early number systems",
         "Greek geometry: Euclid, Pythagoras, and Archimedes",
@@ -1997,11 +2062,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Non-Euclidean geometry and 19th-century developments",
         "Foundations of set theory and modern mathematics",
       ],
+      sources: [CMPCBS_SRC.mactutor],
     },
     {
-      title: "MATH 410: Matrix and Linear Algebra",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it underpins Numerical Methods and Abstract Algebraic Structures.",
+      title: "Linear Algebra",
+      gate: "Solve a linear system by elimination, describe its solution set in vector-space terms, and find and use a matrix's eigenvalues and eigenvectors.",
       objectives: [
         "Vector spaces and subspaces",
         "Systems of linear equations and Gaussian elimination",
@@ -2009,11 +2074,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Linear transformations",
         "Eigenvalues and eigenvectors",
       ],
+      sources: [CMPCBS_SRC.linear, CMPCBS_SRC.linearOcw],
     },
     {
-      title: "MATH 412: Numerical Methods",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      title: "Numerical Methods",
+      gate: "Pick a numerical method for a root, an integral or a differential equation, run it, and bound or estimate its error.",
       objectives: [
         "Interpolation techniques",
         "Numerical differentiation and integration",
@@ -2022,22 +2087,22 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Solving linear systems numerically",
         "Error analysis",
       ],
+      sources: [CMPCBS_SRC.numerical],
     },
     {
-      title: "MATH 423: Abstract Algebraic Structures",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      title: "Abstract Algebra",
+      gate: "Check whether a set with an operation is a group, ring or field, and prove a basic property of a homomorphism.",
       objectives: [
         "Groups and their properties",
         "Rings and fields",
         "Homomorphisms and structure-preserving maps",
         "Formal proof-writing in algebra",
       ],
+      sources: [CMPCBS_SRC.abstract],
     },
     {
-      title: "MATH 430: Multivariable Calculus",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it's a prerequisite for both Applied Differential Equations and Mathematical Modeling and Simulation.",
+      title: "Multivariable Calculus",
+      gate: "Find and classify the critical points of a function of two variables, and evaluate a line or surface integral, using Green's, Stokes' or the Divergence Theorem where it applies.",
       objectives: [
         "Limits, continuity, and differentiation for functions of several variables",
         "Integration and power series in several variables",
@@ -2046,11 +2111,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Vector fields and integration along curves and surfaces",
         "The major theorems of vector calculus: Green's, Stokes', and the Divergence Theorem",
       ],
+      sources: [CMPCBS_SRC.calc3],
     },
     {
-      title: "MATH 432: Applied Differential Equations",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Mathematical Modeling and Simulation and the Capstone.",
+      title: "Differential Equations",
+      gate: "Classify a differential equation, solve first- and second-order linear cases (including by Laplace transform), and interpret the solution for a physical model.",
       objectives: [
         "First-order differential equations",
         "Second-order linear differential equations",
@@ -2058,54 +2123,54 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Laplace transforms",
         "Applications: population growth, mechanical vibrations, and circuits",
       ],
+      sources: [CMPCBS_SRC.diffEq],
     },
     {
-      title: "MATH 441: Probability I",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      title: "Probability",
+      gate: "Model a random experiment with the axioms of probability, and compute probabilities, expected values and variances for discrete and continuous distributions.",
       objectives: [
         "Set notation and operations applied to probability",
         "Axioms and properties of probability",
         "Expected value and discrete probability distributions",
         "Continuous probability distributions",
       ],
+      sources: [CMPCBS_SRC.probability],
     },
     {
-      title: "MATH 460: Mathematical Modeling and Simulation",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Applied Differential Equations as a prerequisite.",
+      title: "Mathematical Modeling and Simulation",
+      gate: "Turn a described situation into a mathematical model, state its assumptions, analyse or simulate it, and say where it stops being reliable.",
       objectives: [
         "Formulating mathematical models from real-world scenarios",
         "Analytical techniques for evaluating model behavior",
         "Critiquing model assumptions and limitations",
         "Simulation-based methods",
       ],
+      sources: [CMPCBS_SRC.diffEq, CMPCBS_SRC.calc2],
     },
     {
-      title: "STAT 420: Regression and Forecasting I",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Calculus-based, not just applied stats -- it leans on Calculus I and Intro to Statistical Analysis.",
+      title: "Regression and Forecasting",
+      gate: "Fit and interpret a regression model, check its assumptions with residuals, and produce and evaluate a simple time-series forecast.",
       objectives: [
         "Simple and multiple linear regression",
         "Model diagnostics and checking regression assumptions",
         "Time series forecasting basics",
         "Applying regression to a real dataset",
       ],
+      sources: [CMPCBS_SRC.stats, CMPCBS_SRC.forecasting],
     },
     {
-      title: "MATH 491: Computational Mathematics Capstone",
-      rangeLabel: "3 credits",
-      gate: "Senior standing required -- this is the last math course in the sequence, sitting after Applied Differential Equations.",
+      title: "Computational Mathematics Capstone",
+      gate: "Plan, carry out and present an independent project that applies computational mathematics to a substantial problem.",
       objectives: [
         "Independent capstone project synthesizing the computational math major",
         "Applying computational techniques to a substantial problem",
         "Written and oral presentation of results",
       ],
+      sources: [CMPCBS_SRC.writing],
     },
     {
-      title: "CSIS 100: Introduction to Information Sciences and Systems",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      title: "Introduction to Information Systems",
+      gate: "Given an organisation's process, say where technology adds value, compare candidate systems against stated criteria, and document the choice.",
       objectives: [
         "Evaluating and choosing business technology solutions",
         "Mapping business processes to where technology adds value",
@@ -2113,11 +2178,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Business process management concepts",
         "Technical writing for information systems documentation",
       ],
+      sources: [CMPCBS_SRC.infoSystems],
     },
     {
-      title: "CSIS 111: Introduction to Programming Using C++",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and CSIS 112 and CSIS 215 both assume the fluency this course is supposed to build, not just a passing grade in it.",
+      title: "Programming in C++ I",
+      gate: "Write, compile and debug a structured C++ program that uses functions, loops, conditionals and basic input and output.",
       objectives: [
         "Structured programming fundamentals in C++",
         "Object-oriented programming basics",
@@ -2125,11 +2190,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Control flow: loops and conditionals",
         "Writing and using functions",
       ],
+      sources: [CMPCBS_SRC.cpp],
     },
     {
-      title: "CSIS 112: Advanced Programming Using C++",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Algorithms and Data Structures.",
+      title: "Programming in C++ II",
+      gate: "Use pointers, arrays and recursion correctly in C++, and implement and compare internal sorting and searching algorithms.",
       objectives: [
         "Pointers and memory referencing",
         "Introductory data structures: arrays and lists",
@@ -2137,11 +2202,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Internal sorting algorithms",
         "Internal searching algorithms",
       ],
+      sources: [CMPCBS_SRC.cpp, CMPCBS_SRC.dataStructures],
     },
     {
-      title: "CSIS 215: Algorithms and Data Structures",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires both Advanced Programming Using C++ and Introduction to Discrete Mathematics as prerequisites.",
+      title: "Data Structures and Algorithms",
+      gate: "Choose a data structure for a task, implement it as a C++ class with a clear interface, and state the time cost of its main operations.",
       objectives: [
         "Linked lists, stacks, and queues",
         "Trees and graphs",
@@ -2151,11 +2216,11 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Recursion as a problem-solving technique",
         "Implementing abstract data types with C++ classes",
       ],
+      sources: [CMPCBS_SRC.dataStructures, CMPCBS_SRC.cpp],
     },
     {
-      title: "CSIS 340: Studies in Information Security",
-      rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      title: "Information Security",
+      gate: "Given a system, identify its likely threats, write a security policy for it, and choose controls that prevent, detect and recover from attacks.",
       objectives: [
         "Fundamental principles of information system security",
         "Security policy development and application",
@@ -2163,11 +2228,15 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Common attacker tactics and how controls get bypassed",
         "Defensive strategies and countermeasures",
       ],
+      sources: [CMPCBS_SRC.nistCsf, CMPCBS_SRC.introCs],
     },
+    // 26-27: degree logistics. Retired. The two residency lines named the
+    // school; they are reworded (retired rows are not taught, so no
+    // learner's mastery points at different content).
     {
       title: "Free Electives",
       rangeLabel: "22 credits",
-      gate: "No courses are specified -- use these credits deliberately (e.g. a minor, a second language, or extra CS depth) rather than defaulting to whatever fills a schedule gap.",
+      retiredAt: R,
       objectives: [
         "22 credits of free electives, any 100-400 level course not already required elsewhere in the plan",
       ],
@@ -2175,13 +2244,14 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "Graduation Requirements",
       rangeLabel: "checklist",
-      gate: "Track these five gates independently of credit totals -- it's possible to have enough overall credits and still miss the upper-level or Liberty-residency minimums.",
+      gate: "Retired degree-plan checklist.",
+      retiredAt: R,
       objectives: [
         "Minimum 120 credits overall applied to the program of study",
         "Minimum 2.0 graduation GPA",
         "Minimum 30 upper-level (300-400) credits applied to the program",
-        "Minimum 13.75 Liberty credits applied to the major",
-        "Minimum 30 Liberty credits applied to the overall program of study",
+        "Minimum residency credits applied to the major (retired degree-plan line)",
+        "Minimum residency credits applied to the overall program (retired degree-plan line)",
         "Submit the Degree Completion Application within the final semester before graduation",
       ],
     },

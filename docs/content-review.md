@@ -93,7 +93,8 @@ no migration is needed.
 
 From the 2026-11-09 content audit (prompts and pipeline findings). Code:
 `backend/lib/lesson-generation.ts`, `content-validator.ts`, `fact-check.ts`,
-`verify-execution.ts`, `current-facts.ts`, `degree-advising.ts`,
+`verify-execution.ts`, `current-facts.ts`, `authored-lessons.ts` (was
+`degree-advising.ts` until REQ-195),
 `chat-dispute.ts`, `lesson-fixes.ts`, `recheck-stored.ts`.
 
 - **A disputed key is never served.** A lesson's practice half that the
@@ -125,11 +126,21 @@ From the 2026-11-09 content audit (prompts and pipeline findings). Code:
 - **Current facts per course.** Every prompt's course framing carries a short
   dated block built from the seed: the exam, its revision, status and dates,
   or the degree plan and its version, with the date it was last checked.
-- **Degree advising is authored.** The CMPCBS advising blocks (gen-ed
-  electives, the Christianity core, free electives, graduation requirements,
-  20 objectives) never generate a lesson. Their lesson is built from the
-  plan line, its block and the plan's advising note, citing the plan
-  (model `authored:degree-plan`); a regenerate returns the same lesson.
+- **Authored lessons for reframed courses (REQ-195, replaced R1's degree
+  advising).** The CMPCBS track no longer mirrors one school's degree plan
+  (Nick, 2026-11-09: "liberty degree lesson should be removed unless they can
+  be reframed as general course titles. Content should be accurate to the
+  course type."). Its degree-plan logistics (elective-choice lines, the
+  orientation course, the worldview course, free electives, the graduation
+  checklist; 17 objectives) are retired, never deleted, and a retired
+  objective is not served: the lesson route answers 404 and nothing is
+  generated for it. The three lines that are a real general course type --
+  college composition and two neutral religion surveys -- are reframed in
+  place and served authored lessons with dated sources
+  (`lib/authored-lessons-cmpcbs.ts`, model `authored:course-lesson`); a
+  regenerate returns the same lesson. Every active unit names the open
+  textbook it is taught from (`sources` in the seed), which the generation
+  prompt's current-facts block lists for that unit.
 - **Chat disputes flag the key.** When a learner disputes a grade in chat,
   has a lesson check marked wrong in that course in the last 24 hours, and
   the coach's reply agrees, that item gets a `key_suspect` flag (the same
@@ -146,8 +157,9 @@ Two manual workflows (Actions tab), both against `PROD_DATABASE_URL` in the
    stored lesson"). Then `dry-run`, read the plan, then `apply`. It voids
    the lessons with wrong keys (answers voided, mastery recomputed, lesson
    pulled), corrects the others in place with dated sources (the old content
-   goes to `item_holdbacks`), and replaces generated degree-advising lessons
-   with the authored ones. Re-running is safe: done fixes are skipped.
+   goes to `item_holdbacks`), and replaces any other stored lesson on an
+   objective that has an authored lesson (REQ-195: the reframed CMPCBS
+   composition and religion surveys) with the authored one. Re-running is safe: done fixes are skipped.
    Run it after the CompTIA objective fix is seeded or before; the SECPLUS
    fix accepts either objective title.
 2. **Re-check pre-gate content** (`.github/workflows/content-recheck.yml`,

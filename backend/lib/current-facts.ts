@@ -15,7 +15,10 @@ import { dayOf } from "@/lib/content-currency";
 // Built from the seed files (no database column holds the curriculum), loaded
 // once per server instance on first use.
 
-export function currentFactsBlock(track: SeedTrack): string | null {
+// REQ-195: with a unit title, the unit's own dated references (SeedUnit
+// `sources`, e.g. the open textbook a general course is taught from) are
+// listed too, so the writer teaches the course as that text does.
+export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): string | null {
   const lines: string[] = [];
   const c = track.credential;
   let checked: string | null = null;
@@ -39,6 +42,8 @@ export function currentFactsBlock(track: SeedTrack): string | null {
     lines.push(`- ${kind}: ${k.name}, version ${k.version}.`);
     checked = checked ?? dayOf(k.checkedAt);
   }
+  const unit = unitTitle ? track.units.find((u) => u.title === unitTitle && !u.retiredAt) : undefined;
+  for (const r of unit?.sources ?? []) lines.push(`- Reference for this unit: ${r.title} (${r.url}), checked ${r.checkedAt}.`);
   if (!lines.length) return null;
   return [
     `Current facts for this course (from its recorded outline${checked ? `, last checked ${checked}` : ""}):`,
@@ -47,25 +52,21 @@ export function currentFactsBlock(track: SeedTrack): string | null {
   ].join("\n");
 }
 
-let byCode: Promise<Map<string, string>> | null = null;
+let byCode: Promise<Map<string, SeedTrack>> | null = null;
 
-async function load(): Promise<Map<string, string>> {
+async function load(): Promise<Map<string, SeedTrack>> {
   const { CATALOG_TRACKS } = await import("../supabase/seed/catalog");
-  const m = new Map<string, string>();
-  for (const t of CATALOG_TRACKS) {
-    const block = currentFactsBlock(t);
-    if (block) m.set(t.code.toUpperCase(), block);
-  }
-  return m;
+  return new Map(CATALOG_TRACKS.map((t) => [t.code.toUpperCase(), t]));
 }
 
 // The block for a catalog track, by code; null for a learner's own track or a
 // code the seed does not know. Never throws.
-export async function currentFactsFor(trackCode: string | null | undefined): Promise<string | null> {
+export async function currentFactsFor(trackCode: string | null | undefined, unitTitle?: string | null): Promise<string | null> {
   if (!trackCode) return null;
   try {
     byCode ??= load();
-    return (await byCode).get(trackCode.toUpperCase()) ?? null;
+    const t = (await byCode).get(trackCode.toUpperCase());
+    return t ? currentFactsBlock(t, unitTitle) : null;
   } catch {
     byCode = null;
     return null;

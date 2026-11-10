@@ -68,6 +68,21 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
 // seed. Exam domains and weight checks are computed from these only -- a
 // retired unit stays in the seed (and the database) so learner history on
 // it survives, but it is no longer part of the exam blueprint.
+// REQ-195: an objective retired on its own (objectiveRetiredAt) is left out
+// of its unit here too, with its entry in the parallel `labs` list.
 export function activeUnits(track: SeedTrack): SeedTrack["units"] {
-  return track.units.filter((u) => !u.retiredAt);
+  return track.units
+    .filter((u) => !u.retiredAt)
+    .map((u) => {
+      const retired = u.objectiveRetiredAt;
+      if (!retired?.some(Boolean)) return u;
+      const keep = (_: unknown, j: number) => !retired[j];
+      return { ...u, objectives: u.objectives.filter(keep), ...(u.labs ? { labs: u.labs.filter(keep) } : {}), objectiveRetiredAt: undefined };
+    });
+}
+
+// REQ-195: when an objective stops being taught -- its unit's retiredAt, or
+// its own objectiveRetiredAt entry. Null for an active objective.
+export function objectiveRetiredAt(unit: SeedTrack["units"][number], index: number): string | null {
+  return unit.retiredAt ?? unit.objectiveRetiredAt?.[index] ?? null;
 }

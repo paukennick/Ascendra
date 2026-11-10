@@ -1,20 +1,18 @@
 import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
 import { source } from "../sources";
 
-// REQ-161: Computational Math: CS Degree Coach (CMPCBS) -- Liberty
-// University's BS in Computational Mathematics: Computer Science degree
-// completion plan as mirrored in seed/data.ts.
+// REQ-161: Computer Science Degree Foundations (CMPCBS). REQ-195 reframed
+// the track as general courses taught from open textbooks (seed/data.ts);
+// these labs sit on its course units and were already general skills, so
+// only their sources and the course codes in three briefs changed.
 //
-// Density (docs/labs.md, "hybrid") over the twenty COURSE units (the units
-// titled with a course code, CSIS 110 through CSIS 340): one lab per course
-// plus one extra in CSIS 110, the only course unit with a second performance
-// objective and room -> 21 labs. The eight advising units (gen-ed elective
-// blocks, Christianity & Contexts, Free Electives, Graduation Requirements)
-// get no lab: their objectives are "choose 3 credits from ..." and
-// credit-count checklists -- planning facts, not skills a course assesses
-// by doing -- and docs/labs.md says a lab goes only on a skill. The content
-// test (`lib/labs.test.ts`) checks the course units against the hybrid plan
-// and the advising units against zero.
+// Density (docs/labs.md, "hybrid") over the twenty major course units
+// (Introduction to Computer Science through Information Security): one lab
+// per course plus one extra in Introduction to Computer Science, the only
+// course unit with a second performance objective and room -> 21 labs. The
+// reframed general-education surveys (College Composition I, Religion
+// Surveys) have no lab yet, and the retired degree-plan units never get one.
+// The content test (`lib/labs.test.ts`) checks both.
 //
 // Each lab is a task the course itself grades by doing: design an
 // algorithm, tell compile-time from run-time errors, optimise with a
@@ -26,9 +24,10 @@ import { source } from "../sources";
 // write-up, weigh a technology decision, fix pass-by-value and recursion
 // bugs in C++, implement a stack ADT, and write a security policy.
 //
-// Sources: Liberty's course catalog (the course descriptions the track is
-// built from), cppreference for C++ semantics, MIT OCW single-variable
-// calculus and linear algebra as standard references, and NIST CSF 2.0 for
+// Sources: the open textbooks each unit is taught from (OpenStax Calculus
+// and Introductory Statistics, Levin's Discrete Mathematics, Judson's
+// Abstract Algebra, Open Data Structures), cppreference for C++ semantics,
+// MIT OCW single-variable calculus and linear algebra, and NIST CSF 2.0 for
 // the policy lab's framing. Every number was computed with SymPy 1.14 or
 // CPython 3.13's statistics module and every C++ snippet compiled and ran
 // with g++ (C++17, -Wall -Wextra; the stack lab also under
@@ -37,14 +36,18 @@ import { source } from "../sources";
 export const CMPCBS_LABS: SeedLabSet = {
   trackCode: "CMPCBS",
   sources: [
-    source("https://catalog.liberty.edu/", "reference", "2026-11-07"),
+    source("https://openstax.org/books/calculus-volume-1/pages/preface", "reference", "2026-11-09"),
+    source("https://openstax.org/books/introductory-statistics-2e/pages/preface", "reference", "2026-11-09"),
+    source("https://discrete.openmathbooks.org/", "reference", "2026-11-09"),
+    source("https://judsonbooks.org/abstract-algebra-theory-and-applications/", "reference", "2026-11-09"),
+    source("https://opendatastructures.org/ods-cpp/", "reference", "2026-11-09"),
     source("https://en.cppreference.com/w/cpp/language", "reference", "2026-11-07"),
     source("https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/", "reference", "2026-11-07"),
     source("https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "reference", "2026-11-07"),
     source("https://www.nist.gov/cyberframework", "reference", "2026-11-07"),
   ],
   labs: [
-    // CSIS 110 -------------------------------------------------------------
+    // Introduction to Computer Science -------------------------------------
     {
       slug: "design-duplicate-finder",
       objective: "Algorithm design and problem-solving strategies",
@@ -114,7 +117,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 131 -------------------------------------------------------------
+    // Calculus I -----------------------------------------------------------
     {
       slug: "open-box-optimisation-and-lhopital",
       objective: "Applications of derivatives, including L'Hopital's Rule",
@@ -152,7 +155,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 132 -------------------------------------------------------------
+    // Calculus II ----------------------------------------------------------
     {
       slug: "classify-four-series",
       objective: "Sequences, infinite series, and convergence tests",
@@ -185,7 +188,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 211 -------------------------------------------------------------
+    // Introduction to Statistical Analysis ---------------------------------
     {
       slug: "proportion-hypothesis-test",
       objective: "Statistical inference: estimation and hypothesis testing",
@@ -218,7 +221,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 250 -------------------------------------------------------------
+    // Discrete Mathematics -------------------------------------------------
     {
       slug: "truth-tables-and-argument-forms",
       objective: "Logic and formal proof techniques",
@@ -251,7 +254,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 345 -------------------------------------------------------------
+    // History of Mathematics -----------------------------------------------
     {
       slug: "euclid-primes-and-archimedes-pi",
       objective: "Greek geometry: Euclid, Pythagoras, and Archimedes",
@@ -284,7 +287,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 410 -------------------------------------------------------------
+    // Linear Algebra -------------------------------------------------------
     {
       slug: "gaussian-elimination-3x3",
       objective: "Systems of linear equations and Gaussian elimination",
@@ -317,7 +320,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 412 -------------------------------------------------------------
+    // Numerical Methods ----------------------------------------------------
     {
       slug: "newton-method-with-error-analysis",
       objective: "Root-finding methods",
@@ -355,7 +358,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 423 -------------------------------------------------------------
+    // Abstract Algebra -----------------------------------------------------
     {
       slug: "verify-z6-is-a-group",
       objective: "Groups and their properties",
@@ -393,7 +396,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 430 -------------------------------------------------------------
+    // Multivariable Calculus -----------------------------------------------
     {
       slug: "classify-critical-points-two-variables",
       objective: "Optimization in several variables",
@@ -431,7 +434,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 432 -------------------------------------------------------------
+    // Differential Equations -----------------------------------------------
     {
       slug: "newtons-law-of-cooling-ivp",
       objective: "First-order differential equations",
@@ -469,7 +472,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 441 -------------------------------------------------------------
+    // Probability ----------------------------------------------------------
     {
       slug: "expected-value-of-a-dice-game",
       objective: "Expected value and discrete probability distributions",
@@ -502,7 +505,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 460 -------------------------------------------------------------
+    // Mathematical Modeling and Simulation ---------------------------------
     {
       slug: "formulate-a-logistic-population-model",
       objective: "Formulating mathematical models from real-world scenarios",
@@ -535,7 +538,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // STAT 420 -------------------------------------------------------------
+    // Regression and Forecasting -------------------------------------------
     {
       slug: "fit-and-interpret-a-regression-line",
       objective: "Simple and multiple linear regression",
@@ -573,7 +576,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // MATH 491 -------------------------------------------------------------
+    // Computational Mathematics Capstone -----------------------------------
     {
       slug: "plan-a-capstone-write-up",
       objective: "Written and oral presentation of results",
@@ -606,7 +609,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 100 -------------------------------------------------------------
+    // Introduction to Information Systems ----------------------------------
     {
       slug: "weighted-decision-matrix-for-a-system",
       objective: "Evaluating and choosing business technology solutions",
@@ -639,14 +642,14 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 111 -------------------------------------------------------------
+    // Programming in C++ I -------------------------------------------------
     {
       slug: "pass-by-value-swap-bug",
       objective: "Writing and using functions",
       kind: "build",
       title: "Fix two functions that return the wrong thing",
       brief:
-        "A fictional CSIS 111 submission:\n\n#include <iostream>\nvoid swapValues(int a, int b) {\n    int temp = a;\n    a = b;\n    b = temp;\n}\ndouble average(int total, int count) {\n    return total / count;\n}\nint main() {\n    int x = 3, y = 9;\n    swapValues(x, y);\n    std::cout << x << \" \" << y << \"\\n\";\n    std::cout << average(7, 2) << \"\\n\";\n    return 0;\n}\n\nIt compiles with -Wall -Wextra and no warnings, and prints '3 9' and '3'. The student expected '9 3' and '3.5'. Explain both results, fix both functions, and state the rule for choosing a parameter-passing style.",
+        "A fictional student submission for a first C++ course:\n\n#include <iostream>\nvoid swapValues(int a, int b) {\n    int temp = a;\n    a = b;\n    b = temp;\n}\ndouble average(int total, int count) {\n    return total / count;\n}\nint main() {\n    int x = 3, y = 9;\n    swapValues(x, y);\n    std::cout << x << \" \" << y << \"\\n\";\n    std::cout << average(7, 2) << \"\\n\";\n    return 0;\n}\n\nIt compiles with -Wall -Wextra and no warnings, and prints '3 9' and '3'. The student expected '9 3' and '3.5'. Explain both results, fix both functions, and state the rule for choosing a parameter-passing style.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -672,14 +675,14 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 112 -------------------------------------------------------------
+    // Programming in C++ II ------------------------------------------------
     {
       slug: "recursion-missing-base-case",
       objective: "Recursive programming",
       kind: "build",
       title: "Find the missing base case and bound the stack",
       brief:
-        "A fictional CSIS 112 function is meant to return the sum of a number's digits, so digitSum(493) is 16:\n\nint digitSum(int n) {\n    return n % 10 + digitSum(n / 10);\n}\n\nCompiled at -O0 and run, digitSum(493) crashes with a segmentation fault. Explain why, trace the fixed function on 493, state what inputs it should handle (negatives, zero), and explain why a different recursive function that works for n = 1,000 might still crash for n = 10,000,000 even though it has a correct base case.",
+        "A fictional student function is meant to return the sum of a number's digits, so digitSum(493) is 16:\n\nint digitSum(int n) {\n    return n % 10 + digitSum(n / 10);\n}\n\nCompiled at -O0 and run, digitSum(493) crashes with a segmentation fault. Explain why, trace the fixed function on 493, state what inputs it should handle (negatives, zero), and explain why a different recursive function that works for n = 1,000 might still crash for n = 10,000,000 even though it has a correct base case.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -710,14 +713,14 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 215 -------------------------------------------------------------
+    // Data Structures and Algorithms ---------------------------------------
     {
       slug: "fix-an-int-stack-adt",
       objective: "Implementing abstract data types with C++ classes",
       kind: "build",
       title: "Make a stack class safe",
       brief:
-        "A fictional CSIS 215 submission of a fixed-capacity integer stack:\n\nclass IntStack {\npublic:\n    IntStack(int capacity) { data = new int[capacity]; cap = capacity; top = 0; }\n    void push(int v) { data[top] = v; top++; }\n    int pop() { top--; return data[top]; }\n    bool isEmpty() { return top == 0; }\nprivate:\n    int* data; int cap; int top;\n};\n\nA test does IntStack s(2); s.push(1); s.push(2); s.push(3); then pops four times. Under AddressSanitizer the third push reports 'heap-buffer-overflow ... WRITE of size 4 ... in IntStack::push'. List every defect, rewrite the class so its operations are safe and the ADT's contract is explicit, and explain what 'abstract data type' means for how a client may use it.",
+        "A fictional student submission of a fixed-capacity integer stack:\n\nclass IntStack {\npublic:\n    IntStack(int capacity) { data = new int[capacity]; cap = capacity; top = 0; }\n    void push(int v) { data[top] = v; top++; }\n    int pop() { top--; return data[top]; }\n    bool isEmpty() { return top == 0; }\nprivate:\n    int* data; int cap; int top;\n};\n\nA test does IntStack s(2); s.push(1); s.push(2); s.push(3); then pops four times. Under AddressSanitizer the third push reports 'heap-buffer-overflow ... WRITE of size 4 ... in IntStack::push'. List every defect, rewrite the class so its operations are safe and the ADT's contract is explicit, and explain what 'abstract data type' means for how a client may use it.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -743,7 +746,7 @@ export const CMPCBS_LABS: SeedLabSet = {
         },
       ],
     },
-    // CSIS 340 -------------------------------------------------------------
+    // Information Security -------------------------------------------------
     {
       slug: "write-an-access-control-policy",
       objective: "Security policy development and application",

@@ -2,7 +2,6 @@ import { query } from "@/lib/db";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { modelFactChecker, type CheckItem, type CheckVerdict, type FactChecker } from "@/lib/fact-check";
 import { lessonItemId, loadCheckItem, recordHoldback, servableSql, type ItemKind, type ItemRef } from "@/lib/item-quality";
-import { AUTHORED_ADVISING_MODEL } from "@/lib/degree-advising";
 
 // REQ-187 (audit 2026-11-09 R6): re-check content stored before the
 // fact-check gate.
@@ -37,7 +36,7 @@ export interface StoredRef {
   source: string; // where it came from, for the log
 }
 
-const PERSON_MADE = `(model like 'authored:%' or model like 'corrected:%' or model = '${AUTHORED_ADVISING_MODEL}')`;
+const PERSON_MADE = `(model like 'authored:%' or model like 'corrected:%')`;
 
 // Every still-served keyed item stored before `before`.
 export async function storedBefore(before: string, kinds: readonly ItemKind[] = ["lesson", "review", "quiz", "exam", "comparison"]): Promise<StoredRef[]> {

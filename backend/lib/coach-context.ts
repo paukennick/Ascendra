@@ -62,7 +62,7 @@ function rowToContext(row: ContextRow): CoachContext {
 // A learner-created track has user_id set; only catalog tracks get facts.
 async function withFacts(ctx: CoachContext | null): Promise<CoachContext | null> {
   if (!ctx) return ctx;
-  const currentFacts = await currentFactsFor(ctx.trackCode);
+  const currentFacts = await currentFactsFor(ctx.trackCode, ctx.unitTitle);
   return currentFacts ? { ...ctx, currentFacts } : ctx;
 }
 

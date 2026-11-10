@@ -30,6 +30,8 @@ import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, wi
 
 export const dynamic = "force-dynamic";
 
+const RETIRED_MESSAGE = "This objective has been retired and is no longer taught.";
+
 // GET /api/objectives/:id/lesson -- returns the lesson this learner should
 // see: their own regenerated lesson if they have one, otherwise the shared
 // lesson for the objective. On a miss of both, generates the shared lesson
@@ -57,6 +59,9 @@ export async function GET(
     // not an access check on its own.
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
+    // REQ-195: a retired objective is no longer taught -- no stored lesson
+    // is served and nothing is generated for it.
+    if (objective.retired) return notFound(RETIRED_MESSAGE);
     // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
     // build without the hint flow uses the same key as the hint route.
     const viewer = { userId: user.id, objectiveId: objective.id };
@@ -162,6 +167,9 @@ export async function POST(
     // not an access check on its own.
     const objective = await visibleObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
+    // REQ-195: a retired objective is no longer taught -- no stored lesson
+    // is served and nothing is generated for it.
+    if (objective.retired) return notFound(RETIRED_MESSAGE);
     // REQ-146: the canonical id, so a Solo hint reveal recorded for an app
     // build without the hint flow uses the same key as the hint route.
     const viewer = { userId: user.id, objectiveId: objective.id };
