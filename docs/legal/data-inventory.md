@@ -53,7 +53,7 @@ No cookies, analytics, crash reporting or advertising identifiers.
 | Resend | account email; support requests with the user's email as reply-to | |
 | Expo | app update requests from the mobile app | |
 | Google | sign-in, only if chosen | |
-| GitHub | the nightly backup (REQ-200): the whole database, encrypted with age; GitHub never has the key | Actions artifact, kept 30 days; the unencrypted manifest beside it holds counts only |
+| GitHub | the nightly backup (REQ-200): the whole database, encrypted with age; GitHub never has the key | Actions artifact, kept 30 days; the manifest (counts) is encrypted too, and the only plaintext beside the backup is a format number and two sha256 values |
 
 ## Retention jobs
 

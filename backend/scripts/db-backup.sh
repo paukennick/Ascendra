@@ -3,12 +3,19 @@
 #
 # Streams `pg_dump --format=custom` of the whole database (roles are never in
 # a pg_dump; --no-owner --no-privileges) straight into `age`, encrypted to a
-# public key. The plaintext dump never touches the disk. Next to it, writes an
-# unencrypted manifest.json with sizes, the sha256 of the encrypted file, the
-# server version, the number of tables in schema public and the row counts of
-# app_users, attempts and mastery -- counts only, no user data. The counts and
-# the dump come from the same snapshot (pg_export_snapshot), so a restore
-# must match them exactly.
+# public key. The plaintext dump never touches the disk. Next to it, writes
+# manifest.json.age: the manifest (sizes, the dump's sha256, the server
+# version, the number of tables in schema public and the row counts of
+# app_users, attempts and mastery -- counts only, no user data), encrypted to
+# the same recipient and piped straight into age, so it is never plaintext on
+# disk either. The counts and the dump come from the same snapshot
+# (pg_export_snapshot), so a restore must match them exactly.
+#
+# The repository is public, so what stays readable beside the two encrypted
+# files is only checksums.json: a format number and the sha256 of each
+# encrypted file (to catch a corrupt or swapped download before decrypting).
+# No counts, no table names, no versions, and none of them are printed to
+# the log either.
 #
 # Used by .github/workflows/db-backup.yml (nightly, production) and by
 # scripts/ci/backup-drill-test.sh (CI, a throwaway local database).
@@ -18,13 +25,14 @@
 # Env:
 #   DATABASE_URL           required. Never printed.
 #   BACKUP_AGE_RECIPIENT   required. The age public key (age1...).
-#   OUT_DIR                where to write the .age file and manifest.json
+#   OUT_DIR                where to write the two .age files and checksums.json
 #                          (default: current directory; created if missing).
 #   MIN_BACKUP_BYTES       fail if the encrypted file is smaller (default
 #                          1048576 = 1 MB; production is about 29 MB).
 #   PG_BIN                 directory holding pg_dump/psql (default: PATH).
 # Prints the backup file name as the last line of stdout. Exit 0 only when
-# the file exists, is at least MIN_BACKUP_BYTES, and the manifest is written.
+# the file exists, is at least MIN_BACKUP_BYTES, and the encrypted manifest and
+# checksums.json are written.
 
 set +x
 set -euo pipefail
@@ -60,7 +68,7 @@ out="$OUT_DIR/$name"
 ok=0
 cleanup() {
   local rc=$?
-  if [[ "$ok" != 1 ]]; then rm -f "$out" "$OUT_DIR/manifest.json"; fi
+  if [[ "$ok" != 1 ]]; then rm -f "$out" "$OUT_DIR/manifest.json.age" "$OUT_DIR/checksums.json"; fi
   if [[ -n "${SNAP_PID:-}" ]]; then kill "$SNAP_PID" 2>/dev/null || true; fi
   exit "$rc"
 }
@@ -99,7 +107,9 @@ for t in app_users attempts mastery; do
   [[ "${rows[$t]}" =~ ^[0-9]+$ ]] || fail "could not count public.$t."
 done
 
-echo "Server PostgreSQL $server_version, pg_dump $client_major; $table_count tables in public."
+# Nothing about the database (versions, table or row counts) goes to the log:
+# this repository is public and so are its Actions logs.
+echo "Dumping and encrypting."
 start=$(date +%s)
 pg pg_dump --dbname="$DATABASE_URL" --format=custom --no-owner --no-privileges \
   --snapshot="$snapshot" \
@@ -117,19 +127,29 @@ size="$(stat -c %s "$out")"
 head -c 21 "$out" | grep -q '^age-encryption.org/v1' || fail "the output is not an age file."
 sha="$(sha256sum "$out" | cut -d' ' -f1)"
 
+# The manifest goes from jq straight into age: no plaintext copy on disk.
+manifest_out="$OUT_DIR/manifest.json.age"
 jq -n \
   --arg file "$name" --argjson size "$size" --arg sha "$sha" \
   --arg sv "$server_version" --argjson pgd "$client_major" \
   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson secs "$secs" \
   --argjson tables "$table_count" \
   --argjson users "${rows[app_users]}" --argjson attempts "${rows[attempts]}" --argjson mastery "${rows[mastery]}" \
-  '{format: 1, file: $file, encrypted_bytes: $size, sha256: $sha, encryption: "age (X25519)",
+  '{format: 2, file: $file, encrypted_bytes: $size, sha256: $sha, encryption: "age (X25519)",
     dump: "pg_dump --format=custom --no-owner --no-privileges (whole database)",
     pg_dump_major: $pgd, server_version: $sv, created_at: $ts, dump_seconds: $secs,
     public_table_count: $tables,
     row_counts: {app_users: $users, attempts: $attempts, mastery: $mastery}}' \
-  > "$OUT_DIR/manifest.json"
+  | age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" --output "$manifest_out"
+[[ -s "$manifest_out" ]] || fail "the encrypted manifest was not written."
+head -c 21 "$manifest_out" | grep -q '^age-encryption.org/v1' || fail "the manifest output is not an age file."
+manifest_sha="$(sha256sum "$manifest_out" | cut -d' ' -f1)"
+
+# The only plaintext: a format number and the hash of each encrypted file.
+jq -n --arg dump "$name" --arg dsha "$sha" --arg msha "$manifest_sha" \
+  '{format: 2, sha256: {($dump): $dsha, "manifest.json.age": $msha}}' \
+  > "$OUT_DIR/checksums.json"
 
 ok=1
-echo "Backup written: $size bytes (encrypted) in ${secs}s; sha256 $sha"
+echo "Backup written; sha256 $sha"
 echo "$name"

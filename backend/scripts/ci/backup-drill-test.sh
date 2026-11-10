@@ -3,7 +3,10 @@
 # throwaway local databases with a throwaway age keypair:
 #   dump -> encrypt (scripts/db-backup.sh) -> decrypt -> restore -> verify
 #   (scripts/restore-drill.sh), plus the refusals that keep a public-repo
-#   artifact safe and a bad backup loud.
+#   artifact safe and a bad backup loud. The manifest (counts, versions) is
+#   inside manifest.json.age; the only plaintext beside the dump is
+#   checksums.json, and this test fails if any count or table name shows up
+#   in a plaintext file or in the backup's output.
 #
 # The source database is laid out like Supabase (roles, uuid-ossp in schema
 # `extensions` on the search_path), built with every migration over a small
@@ -97,46 +100,95 @@ ok "backup written"
 grep -qF -- "$SRC_URL" <<<"$out" && fail "the connection string was printed"
 grep -qF -- "postgres:postgres@" <<<"$out" && fail "credentials were printed"
 ok "no connection string or credentials in the output"
-[[ "$(find "$WORK/out" -mindepth 1 -printf '%f\n' | LC_ALL=C sort | tr '\n' ' ')" == "$name manifest.json " ]] \
+[[ "$(find "$WORK/out" -mindepth 1 -printf '%f\n' | LC_ALL=C sort | tr '\n' ' ')" == "$name checksums.json manifest.json.age " ]] \
   || fail "unexpected files beside the backup: $(ls -A "$WORK/out")"
-ok "only the .age file and manifest.json were written (no plaintext dump)"
+ok "only the two .age files and checksums.json were written (no plaintext dump or manifest)"
 [[ "$(head -c 21 "$BACKUP")" == "age-encryption.org/v1" ]] || fail "not an age file"
 pg_restore --list "$BACKUP" >/dev/null 2>&1 && fail "pg_restore can read the backup without the key"
 grep -qa 'PGDMP' "$BACKUP" && fail "the custom-format dump header is visible in the backup"
 age --decrypt --identity "$WORK/other.key" "$BACKUP" >/dev/null 2>&1 && fail "another key decrypted the backup"
 ok "unreadable without the key: not a dump to pg_restore, and another age key cannot decrypt it"
 
-M="$WORK/out/manifest.json"
-jq -e --arg n "$name" --argjson u "$users" --argjson a "$attempts" --argjson m "$mastery" \
-  '.file == $n and .row_counts == {app_users: $u, attempts: $a, mastery: $m}
+CK="$WORK/out/checksums.json"
+MAN_AGE="$WORK/out/manifest.json.age"
+[[ "$(head -c 21 "$MAN_AGE")" == "age-encryption.org/v1" ]] || fail "manifest.json.age is not an age file"
+age --decrypt --identity "$WORK/other.key" "$MAN_AGE" >/dev/null 2>&1 && fail "another key decrypted the manifest"
+# The manifest is read into a variable and piped, never written out in plaintext.
+MJSON="$(age --decrypt --identity "$WORK/test.key" "$MAN_AGE")" || fail "the test key could not decrypt manifest.json.age"
+mj() { printf '%s' "$MJSON" | jq "$@"; }
+mj -e --arg n "$name" --argjson u "$users" --argjson a "$attempts" --argjson m "$mastery" \
+  '.format == 2 and .file == $n and .row_counts == {app_users: $u, attempts: $a, mastery: $m}
    and (.public_table_count > 30) and (.sha256 | test("^[0-9a-f]{64}$"))
-   and (.encrypted_bytes > 0) and (.server_version | length > 0) and (.created_at | length > 0)' "$M" >/dev/null \
-  || { cat "$M"; fail "manifest does not record the expected counts and checksum"; }
-[[ "$(jq -r '.sha256' "$M")" == "$(sha256sum "$BACKUP" | cut -d' ' -f1)" ]] || fail "manifest sha256 is wrong"
-[[ "$(jq -c '[paths(scalars)] | map(join(".")) | sort' "$M")" == \
+   and (.encrypted_bytes > 0) and (.server_version | length > 0) and (.created_at | length > 0)' >/dev/null \
+  || { echo "$MJSON" | jq -c 'del(.row_counts)'; fail "the decrypted manifest does not record the expected counts and checksum"; }
+[[ "$(mj -r '.sha256')" == "$(sha256sum "$BACKUP" | cut -d' ' -f1)" ]] || fail "manifest sha256 is wrong"
+[[ "$(mj -c '[paths(scalars)] | map(join(".")) | sort')" == \
    '["created_at","dump","dump_seconds","encrypted_bytes","encryption","file","format","pg_dump_major","public_table_count","row_counts.app_users","row_counts.attempts","row_counts.mastery","server_version","sha256"]' ]] \
-  || { cat "$M"; fail "manifest has fields beyond the allowed list"; }
-grep -q '@' "$M" && fail "manifest contains an @ (an email address?)"
-ok "manifest: exact fields, counts and sha256 match, no user data"
+  || fail "the decrypted manifest has fields beyond the allowed list"
+grep -q '@' <<<"$MJSON" && fail "manifest contains an @ (an email address?)"
+ok "manifest.json.age: decrypts with the key only, exact fields, counts and sha256 match, no user data"
+
+# --- Nothing about the database is readable without the key. ---
+# Plaintext side: checksums.json holds a format number and two sha256 values,
+# nothing else (the dump's own name is the timestamp already in the artifact name).
+jq -e --arg n "$name" '
+    (keys == ["format", "sha256"]) and .format == 2
+    and (.sha256 | keys == ([$n, "manifest.json.age"] | sort))
+    and (.sha256 | map(test("^[0-9a-f]{64}$")) | all)' "$CK" >/dev/null \
+  || { cat "$CK"; fail "checksums.json holds more than a format and two sha256 values"; }
+[[ "$(jq -r '.sha256[$n]' --arg n "$name" "$CK")" == "$(sha256sum "$BACKUP" | cut -d' ' -f1)" ]] || fail "checksums.json: dump sha256 is wrong"
+[[ "$(jq -r '.sha256["manifest.json.age"]' "$CK")" == "$(sha256sum "$MAN_AGE" | cut -d' ' -f1)" ]] || fail "checksums.json: manifest sha256 is wrong"
+# No count, table name or version in any plaintext file or in the run's output
+# (the Actions log is public): scan checksums.json and the captured output for
+# every key name and for each actual count as a whole word.
+tables_n="$(mj -r '.public_table_count')"; sv="$(mj -r '.server_version')"
+leak_words='app_users|attempts|mastery|row_counts|public_table_count|server_version|tables in public|PostgreSQL'
+for count in "$users" "$attempts" "$mastery" "$tables_n"; do
+  [[ "$count" =~ ^[0-9]+$ ]] || fail "test setup: count '$count' is not a number"
+done
+printf '%s\n' "$out" > "$WORK/run-output.txt"
+for f in "$CK" "$WORK/run-output.txt"; do
+  grep -Eqi -- "$leak_words" "$f" && fail "$f names a table, a count field or the server"
+  for count in "$users" "$attempts" "$mastery" "$tables_n"; do
+    grep -qw -- "$count" "$f" && fail "$f contains the count $count"
+  done
+  grep -qF -- "$sv" "$f" && fail "$f contains the server version"
+done
+# Ciphertext side: the key names must not appear in the encrypted files either.
+grep -Eqai -- 'row_counts|public_table_count|server_version' "$MAN_AGE" && fail "manifest.json.age shows field names without the key"
+ok "plaintext side (checksums.json, the run's output) holds no counts, table names or versions"
 
 step "Restore drill: decrypt -> restore -> verify"
-ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$M" \
+ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE" \
   || fail "the restore drill did not pass on a good backup"
 ok "restore drill passed"
 
 step "The drill catches a wrong key, a changed file and a count mismatch"
-refuses "age could not decrypt" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/other.key" "$M"
+refuses "age could not decrypt" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/other.key" "$CK" "$MAN_AGE"
 ok "wrong key fails"
-jq '.row_counts.attempts += 1' "$M" > "$WORK/bad-count.json"
-refuses "attempts has $attempts rows, manifest says $((attempts + 1))" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/bad-count.json"
+# A changed manifest is re-encrypted to the same key straight from a pipe, then
+# checksums.json is pointed at it, so only the check under test can fail.
+rebuild() { # $1 = jq filter on the manifest, $2 = suffix for the new files
+  mj "$1" | age --encrypt --recipient "$RECIPIENT" --output "$WORK/man-$2.age"
+  jq --arg h "$(sha256sum "$WORK/man-$2.age" | cut -d' ' -f1)" '.sha256["manifest.json.age"] = $h' "$CK" > "$WORK/ck-$2.json"
+}
+rebuild '.row_counts.attempts += 1' count
+refuses "attempts has $attempts rows, manifest says $((attempts + 1))" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-count.json" "$WORK/man-count.age"
 ok "a row-count mismatch fails"
-jq '.public_table_count += 1' "$M" > "$WORK/bad-tables.json"
-refuses "table count" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/bad-tables.json"
+rebuild '.public_table_count += 1' tables
+refuses "table count" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-tables.json" "$WORK/man-tables.age"
 ok "a table-count mismatch fails"
+rebuild '.sha256 = ("0" * 64)' other
+refuses "written for a different dump" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-other.json" "$WORK/man-other.age"
+ok "a manifest that belongs to a different dump fails"
 cp "$BACKUP" "$WORK/tampered.age"; printf 'x' >> "$WORK/tampered.age"
-refuses "does not match the manifest" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$WORK/tampered.age" "$WORK/test.key" "$M"
+jq --arg n "tampered.age" --arg h "$(jq -r --arg n "$name" '.sha256[$n]' "$CK")" '.sha256 = {($n): $h, "manifest.json.age": .sha256["manifest.json.age"]}' "$CK" > "$WORK/ck-tampered.json"
+refuses "does not match checksums.json" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$WORK/tampered.age" "$WORK/test.key" "$WORK/ck-tampered.json" "$MAN_AGE"
 ok "a changed backup file fails the sha256 check"
-refuses "must point at a local cluster" env ADMIN_URL="postgres://u:p@db.example.com:5432/postgres" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$M"
+cp "$MAN_AGE" "$WORK/tampered-man.age"; printf 'x' >> "$WORK/tampered-man.age"
+refuses "does not match checksums.json" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$WORK/tampered-man.age"
+ok "a changed manifest file fails the sha256 check"
+refuses "must point at a local cluster" env ADMIN_URL="postgres://u:p@db.example.com:5432/postgres" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE"
 ok "a non-local target is refused"
 left="$(psql_q "$ADMIN_URL" -At -c "select count(*) from pg_database where datname like 'restore_drill_%'")"
 [[ "$left" == 0 ]] || fail "$left restore_drill_ database(s) left behind"

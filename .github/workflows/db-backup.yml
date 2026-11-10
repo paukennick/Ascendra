@@ -8,9 +8,12 @@
 # public key lives in GitHub; the private key is in Nick's password manager.
 #
 # This repository is PUBLIC, so anyone signed in to GitHub can download the
-# artifact: it is useless without the private key. The artifact also holds
-# an unencrypted manifest.json (size, sha256, server version, table count,
-# row counts of app_users/attempts/mastery; no user data). Kept 30 days.
+# artifact: it is useless without the private key. The manifest (size, server
+# version, table count, row counts of app_users/attempts/mastery; no user
+# data) is encrypted to the same key as manifest.json.age. The only plaintext
+# in the artifact is checksums.json: a format number and the sha256 of the two
+# encrypted files. Nothing about the database is printed to the log. Kept 30
+# days (the privacy policy says 30 days; change both together).
 #
 # Connects exactly like migrate-production.yml: the PROD_DATABASE_URL secret
 # (Supabase Session pooler URI) in the production-database environment.
@@ -57,7 +60,7 @@ jobs:
           sudo apt-get install -y -q postgresql-client-17
           /usr/lib/postgresql/17/bin/pg_dump --version
           age --version
-      - name: Dump, encrypt and write the manifest
+      - name: Dump and encrypt the database and its manifest
         id: backup
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
@@ -71,7 +74,8 @@ jobs:
           name="$(tail -n1 "$RUNNER_TEMP/db-backup.log")"
           test -f "$OUT_DIR/$name"
           echo "name=${name%.dump.age}" >> "$GITHUB_OUTPUT"
-          cat "$OUT_DIR/manifest.json"
+          # Only the checksums are plaintext; the manifest stays encrypted.
+          cat "$OUT_DIR/checksums.json"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.backup.outputs.name }}

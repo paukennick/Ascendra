@@ -183,16 +183,31 @@ takes one every day at 11:23 UTC (03:23 PST), and on demand from the Actions
 tab. It runs `pg_dump --format=custom --no-owner --no-privileges` of the whole
 database through the `PROD_DATABASE_URL` secret (the same Session pooler
 secret and `production-database` environment as `migrate-production.yml`),
-streams it straight into `age`, and uploads the encrypted `.age` file with a
-`manifest.json` as an artifact kept 30 days. The plaintext dump never touches
+streams it straight into `age`, and uploads the encrypted `.age` file with
+two small files as an artifact kept 30 days. The plaintext dump never touches
 disk. The repo is public, so anyone signed in to GitHub can download the
 artifact; without the private key it is noise.
 
-The manifest is not encrypted. It holds the file size, the sha256 of the
-`.age` file, the server version, the time, the number of tables in `public`
-and the row counts of `app_users`, `attempts` and `mastery`. No user data,
-but the user count is visible to anyone who looks. The counts and the dump
-come from one database snapshot, so a restore must match them exactly.
+The artifact holds three files:
+
+- `ascendra-db-<UTC time>.dump.age`: the dump, encrypted.
+- `manifest.json.age`: the manifest, encrypted to the same key. It holds the
+  file size, the sha256 of the dump `.age` file, the server version, the
+  time, the number of tables in `public` and the row counts of `app_users`,
+  `attempts` and `mastery`. No user data. The counts and the dump come from
+  one database snapshot, so a restore must match them exactly. It is piped
+  from `jq` into `age`, so it is never plaintext on disk.
+- `checksums.json`: the only plaintext. A format number (2) and the sha256 of
+  the two `.age` files, nothing else, so a corrupt download is caught before
+  decrypting. No counts, no table names, no versions.
+
+The workflow log shows no counts, versions or sizes either (the log is as
+public as the artifact). To read the manifest:
+`age -d -i ascendra-backup.key manifest.json.age | jq`.
+Backups made before this change (format 1) have a plaintext `manifest.json`
+and cannot be drilled by the current `restore-drill.sh`; they expire after 30
+days. The privacy policy tells people the backups are kept 30 days: change
+`retention-days` and the policy together.
 
 The job fails, and GitHub emails the repo owner, if `PROD_DATABASE_URL` or
 `BACKUP_AGE_RECIPIENT` is missing, the recipient is not an age public key,
@@ -224,7 +239,8 @@ and treat every artifact from the last 30 days as exposed.
 ### Restoring
 
 1. Actions -> "Nightly database backup" -> the run you want -> download the
-   artifact and unzip it (the `.age` file and `manifest.json`).
+   artifact and unzip it (the dump `.age` file, `manifest.json.age` and
+   `checksums.json`; keep them in one folder).
 2. Put the key file from your password manager somewhere temporary.
 3. Prove the backup first, on a local Postgres 17 (never production):
    `backend/scripts/restore-drill.sh <file>.dump.age ascendra-backup.key`
