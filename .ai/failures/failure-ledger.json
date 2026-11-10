@@ -8935,6 +8935,460 @@
       "prevention_rules": [],
       "prevention_notes": "SEND_BATCH and JOURNAL_MAX_COMMANDS are pinned to the server's SIM_LIMITS by a test that imports both",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-940",
+      "date": "2026-11-09",
+      "title": "The web app connected to the database as the table owner",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The app's DATABASE_URL was the owner login (Supabase postgres): it bypassed RLS and could run DDL, rewrite schema_migrations and read rollback backups, so a leaked URL or an injection bug had no ceiling.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "No runtime role was ever created: 026/052 enabled RLS with no policies and relied on the owner bypass, and nothing in CI connected as anything but the owner.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/supabase/migrations/071_app_runtime_role.sql",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "Migration 071 creates NOLOGIN app_runtime with per-table DML, an app_runtime_all RLS policy per table (no BYPASSRLS), select-only schema_migrations and no rollback copies; app_runtime_sync() repeats it; test:db also runs as app_runtime.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/app-runtime.dbtest.ts",
+        "backend/scripts/ci/db-tests-as-runtime.sh"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-941",
+      "date": "2026-11-09",
+      "title": "Project functions executable by PUBLIC with a mutable search_path",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The Supabase advisor flagged function_search_path_mutable; 19 functions and one procedure had EXECUTE for PUBLIC (and the API roles by default).",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Postgres grants EXECUTE to PUBLIC on every new function and no migration revoked it or set search_path.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/supabase/migrations/071_app_runtime_role.sql"
+      ],
+      "fix_summary": "071 revokes EXECUTE from PUBLIC, anon and authenticated and sets search_path = public, pg_temp on each function (the procedure cannot carry a SET clause and COMMIT); app_runtime_sync() does it for later functions.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/app-runtime.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-942",
+      "date": "2026-11-09",
+      "title": "Database TLS certificate never verified",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Every database connection used ssl { rejectUnauthorized: false }: encrypted, but anyone on the path could present their own certificate.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "The shared helper hard-coded no-verify and two scripts copied it; there was no way to supply a CA.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/lib/db.ts",
+        "backend/supabase/apply-migration.ts",
+        "backend/supabase/seed/seed.ts"
+      ],
+      "fix_summary": "lib/db-connection.ts: DATABASE_CA_CERT (PEM or path) or PGSSLROOTCERT pins the CA and verifies; unset keeps the old behaviour; an unreadable CA throws instead of falling back; db.ts, apply-migration and seed share it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/db-connection.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-943",
+      "date": "2026-11-09",
+      "title": "A plain query had no server-side statement_timeout",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "query() had only the driver's client-side timeout, which stops waiting but leaves the statement running on the server, holding a connection and locks.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Only withTransaction set statement_timeout (SET LOCAL); query() takes a fresh client per call and a session SET does not survive a transaction pooler.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/lib/db.ts",
+        "backend/lib/db-connection.ts"
+      ],
+      "fix_summary": "app_runtime carries statement_timeout 25s at the role level (works through any pooler); other roles get it in the startup packet except on pooler hosts/ports unless DB_STATEMENT_TIMEOUT_MS is set.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/db-connection.dbtest.ts",
+        "backend/lib/db-connection.test.ts",
+        "backend/lib/app-runtime.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-944",
+      "date": "2026-11-09",
+      "title": "Production migration job could hang or hide a failed status",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "'Status before' ended in || true so a wrong password looked like 'nothing to report'; the job had GitHub's 6-hour default timeout and no lock_timeout beyond each file's own.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "The workflow tolerated every non-zero exit instead of the one meaning 'objects missing'; the runner relied on each migration author remembering SET LOCAL lock_timeout.",
+      "requirement": "REQ-207",
+      "affected": [
+        ".github/workflows/migrate-production.yml",
+        "backend/supabase/apply-migration.ts",
+        "backend/lib/db-connection.ts"
+      ],
+      "fix_summary": "timeout-minutes 30; status-before tolerates only exit 2; apply-migration sets a session lock_timeout (5s, MIGRATION_LOCK_TIMEOUT) before each transaction.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts",
+        "backend/lib/db-connection.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-945",
+      "date": "2026-11-09",
+      "title": "Error reports lost when the serverless function froze",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "reportError fired a fetch and returned; on Vercel the invocation is frozen after the response, so many reports never left.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Fire-and-forget (void fetch) assumes the process keeps running.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/lib/error-tracker.ts",
+        "backend/instrumentation.ts"
+      ],
+      "fix_summary": "reportError hands the send to Next's after() and falls back to sending immediately outside a request; onRequestError awaits sendErrorReport (the documented contract for that hook).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/error-reporting.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-946",
+      "date": "2026-11-09",
+      "title": "Server errors logged the whole error object, including Postgres detail",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "console.error(label, err) printed node-postgres' detail/where/parameters; a unique violation's detail reads Key (email)=(learner@example.com) already exists.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "The 500 path logged the object for debugging convenience; Postgres puts row values in detail.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/lib/error-summary.ts",
+        "backend/lib/error-tracker.ts"
+      ],
+      "fix_summary": "lib/error-summary.ts: only name, code and a 200-character message with e-mail addresses masked go to the log; the tracker event masks e-mails in message and stack.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/error-reporting.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-947",
+      "date": "2026-11-09",
+      "title": "No Content-Security-Policy and no HSTS",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Responses carried no CSP and no Strict-Transport-Security.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "next.config.js set four baseline headers only; the Expo web export and the Next-rendered pages had no policy.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/next.config.js",
+        "backend/security-headers.js"
+      ],
+      "fix_summary": "security-headers.js: enforced CSP for the web app (own-origin script, no eval), a separate one for the Next-rendered pages (inline script allowed), default-src none for the API, HSTS max-age one year; CSP_REPORT_ONLY switch; checked in a browser against a local build.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/security-headers.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-948",
+      "date": "2026-11-09",
+      "title": "Static route containment check was a prefix test and everything was immutable",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "startsWith(PUBLIC_DIR) is true for /../public-secrets/x; every file under public/ was cached immutable for a year.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "A string prefix is not path containment; one Cache-Control for all files.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/app/[[...path]]/route.ts",
+        "backend/lib/static-assets.ts"
+      ],
+      "fix_summary": "resolveInside compares with a path separator; immutable only for Expo's content-hashed filenames, one hour revalidate for the rest.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/static-assets.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-949",
+      "date": "2026-11-09",
+      "title": "Public health check exposed internals and missed the ledger and mail sender",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "/api/health named missing environment variables and migration filenames to anyone; it did not compare schema_migrations with the code; an unset EMAIL_FROM was a warning on a 200.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "One response for every caller; probes check objects, never the ledger; REQ-191 chose a warning.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/app/api/health/route.ts",
+        "backend/lib/health.ts",
+        "backend/lib/cron-auth.ts",
+        "backend/next.config.js"
+      ],
+      "fix_summary": "Public answer is status, schema and short commit; details need Authorization: Bearer CRON_SECRET; ledger vs shipped migration files (traced into the function) gives ledger_incomplete 503; production with unset/resend.dev EMAIL_FROM is misconfigured 503.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/health-ledger.test.ts",
+        "backend/lib/hardening.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-950",
+      "date": "2026-11-09",
+      "title": "Keepalive printed the health response body into a public log",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The daily keepalive run cat'ed the response body.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Written when the body was harmless.",
+      "requirement": "REQ-207",
+      "affected": [
+        ".github/workflows/keepalive.yml"
+      ],
+      "fix_summary": "The body goes to /dev/null; only the status code is printed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-951",
+      "date": "2026-11-09",
+      "title": "CI supply-chain gaps",
+      "status": "mitigated",
+      "severity": "medium",
+      "symptom": "Workflows without a top-level permissions block, EXPO_TOKEN given to every step of the OTA job, mobile npm audit report-only, no dependabot, floating base images in the sandbox, mixed Node 22/24.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Defaults were left in place as workflows were added one at a time.",
+      "requirement": "REQ-207",
+      "affected": [
+        ".github/workflows",
+        ".github/dependabot.yml",
+        ".github/scripts",
+        "mobile/package-lock.json",
+        "mobile/audit-known.json",
+        "backend/sandbox/python.Dockerfile",
+        "backend/lib/sandbox-runner.ts"
+      ],
+      "fix_summary": "permissions contents:read on ci, migrate and keepalive; EXPO_TOKEN per step; Node 24 everywhere; dependabot; sandbox base images by digest; blocking mobile audit gate with lockfile-only npm audit fix (19 to 7 findings). Third-party action SHA pinning NOT done: no GitHub API access in the session; .github/scripts/pin-actions.mjs and the test's PENDING_PINS list carry it.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts",
+        ".github/scripts/audit-gate.test.mjs"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-952",
+      "date": "2026-11-09",
+      "title": "Supabase MCP config allowed writes and account access",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": ".mcp.json requested the account feature and was not read-only.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Default MCP URL copied from the connector's setup page.",
+      "requirement": "REQ-207",
+      "affected": [
+        ".mcp.json"
+      ],
+      "fix_summary": "read_only=true and the account feature removed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-953",
+      "date": "2026-11-09",
+      "title": "Re-check guard did not look at account tables or CREATEROLE",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A job role that could SELECT app_users, refresh_tokens or auth_events, or create roles, passed the guard.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "The guard listed what the role must not WRITE only.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/lib/recheck-guard.ts"
+      ],
+      "fix_summary": "currentRolePrivileges also reads SELECT (table or any column) on the three account tables and rolcreaterole; privilegeProblem refuses.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/recheck-role.dbtest.ts",
+        "backend/lib/sandbox.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-954",
+      "date": "2026-11-09",
+      "title": "content_recheck could read every learner's private course structure",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "064's recheck_read on objectives and course_units was using (true), unlike subject_tracks (catalog rows only).",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "The policy was written per table with the same body; the two tables that hang off subject_tracks needed the same filter.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/supabase/migrations/071_app_runtime_role.sql"
+      ],
+      "fix_summary": "071 restates both policies to rows under catalog tracks (subject_tracks.user_id is null).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/app-runtime.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-955",
+      "date": "2026-11-09",
+      "title": "A failing hourly sandbox job raised no alert",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "If the sandbox job failed, queued programs stayed exec_unverified and nobody was told.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Failure is only visible on the Actions tab.",
+      "requirement": "REQ-207",
+      "affected": [
+        ".github/workflows/content-sandbox.yml"
+      ],
+      "fix_summary": "An alert job (needs: exec, if: failure(), issues: write only) opens one deduplicated issue.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/workflow-hardening.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-956",
+      "date": "2026-11-09",
+      "title": "rollback-064 was a comment with a drop policy ... placeholder",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "064's header listed a rollback with a literal 'drop policy ...'; nothing runnable existed.",
+      "how_detected": "pre-launch audit 2026-11-09",
+      "root_cause": "Notes were written as prose.",
+      "requirement": "REQ-207",
+      "affected": [
+        "backend/scripts/rollback-064.sql",
+        "backend/scripts/rollback-071.sql",
+        "docs/ops/migration-rollbacks.md"
+      ],
+      "fix_summary": "scripts/rollback-064.sql and rollback-071.sql are real SQL, run in a rolled-back transaction by a DB test; docs/ops/migration-rollbacks.md covers 065 and 067.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/rollback-scripts.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }

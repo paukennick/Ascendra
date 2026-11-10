@@ -86,7 +86,7 @@ describe("REQ-196: fail closed when there is no sandbox", () => {
 });
 
 describe("REQ-196: least privilege for the jobs", () => {
-  const base: RolePrivileges = { role: "recheck_bot", superuser: false, bypassRls: false, writable: [], canStage: true };
+  const base: RolePrivileges = { role: "recheck_bot", superuser: false, bypassRls: false, writable: [], readable: [], createRole: false, canStage: true };
   test("a staging-only member of content_recheck may run", () => {
     assert.equal(privilegeProblem(base, {}), null);
   });
@@ -94,6 +94,10 @@ describe("REQ-196: least privilege for the jobs", () => {
     assert.match(privilegeProblem({ ...base, writable: ["item_status"] }, {})!, /can write item_status/);
     assert.match(privilegeProblem({ ...base, role: "postgres", superuser: true }, {})!, /superuser/);
     assert.match(privilegeProblem({ ...base, bypassRls: true }, {})!, /bypasses RLS/);
+    // REQ-207 (FAIL-953)
+    assert.match(privilegeProblem({ ...base, readable: ["app_users", "auth_events"] }, {})!, /can read app_users, auth_events/);
+    assert.match(privilegeProblem({ ...base, createRole: true }, {})!, /can create roles/);
+    assert.notEqual(privilegeProblem({ ...base, createRole: true }, { RECHECK_ALLOW_PRIVILEGED: "local", DATABASE_URL: "postgres://u@db.example.com/x" }), null, "remote databases never get the override");
     const remote = { RECHECK_ALLOW_PRIVILEGED: "local", DATABASE_URL: "postgres://u:p@db.example.supabase.co:5432/postgres" };
     assert.notEqual(privilegeProblem({ ...base, superuser: true }, remote), null);
     const local = { RECHECK_ALLOW_PRIVILEGED: "local", DATABASE_URL: "postgres://postgres@localhost:5432/x" };

@@ -100,6 +100,22 @@
   (lib/auth/refreshCookie.ts), and anything that reads the cookie checks
   `cookieRequestAllowed` (Origin + platform header). A dialog or sheet uses
   `SheetModal`, never React Native's `Modal`, so it hides under the lock.
+- Database roles and exposure (REQ-207, FAIL-940..956): a migration that adds
+  a table, view, sequence or function, or restates a function with CREATE OR
+  REPLACE (which drops its `search_path`), ends with `select
+  app_runtime_sync();` so the least-privilege `app_runtime` role and the
+  hardened functions stay complete (lib/app-runtime.dbtest.ts fails CI
+  otherwise); `npm run test:db` also passes as `app_runtime`
+  (scripts/ci/db-tests-as-runtime.sh), with owner-only steps going through
+  lib/test-owner.ts. Nothing logs a whole error object (`describeError`,
+  lib/error-summary.ts: Postgres `detail` can hold an e-mail address). A new
+  public route says what its unauthenticated answer reveals. A new workflow
+  declares top-level `permissions`, runs on Node 24, and pins third-party
+  actions (lib/workflow-hardening.test.ts). A new page rendered by Next is
+  added to security-headers.js. No session-level state in app code (session
+  SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
+  production connects through a transaction pooler
+  (docs/ops/2026-11-10-transaction-pooler-session-state.md).
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

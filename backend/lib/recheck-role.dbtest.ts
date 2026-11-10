@@ -82,12 +82,39 @@ describe("REQ-196: the jobs' database role", () => {
     const p = await L.guard.assertStagingOnlyRole({});
     assert.equal(p.role, LOGIN);
     assert.deepEqual(p.writable, []);
+    assert.deepEqual(p.readable, [], "no SELECT on app_users, refresh_tokens, auth_events (REQ-207)");
+    assert.equal(p.createRole, false);
     assert.equal(p.canStage, true);
     const o = await owner.query(`select current_user as role, rolsuper, rolbypassrls from pg_roles where rolname = current_user`);
     assert.notEqual(
-      L.guard.privilegeProblem({ role: o.rows[0].role, superuser: o.rows[0].rolsuper, bypassRls: o.rows[0].rolbypassrls, writable: ["item_status"], canStage: true }, {}),
+      L.guard.privilegeProblem({ role: o.rows[0].role, superuser: o.rows[0].rolsuper, bypassRls: o.rows[0].rolbypassrls, writable: ["item_status"], readable: [], createRole: false, canStage: true }, {}),
       null
     );
+  });
+
+  test("the guard sees a read of the account tables or CREATEROLE and refuses (FAIL-953)", async () => {
+    // Grant one thing at a time to the login the code under test connects as,
+    // ask the guard, take it back.
+    const ask = async (grant: string, revoke: string) => {
+      await owner.query(grant);
+      try {
+        const p = await L.guard.currentRolePrivileges();
+        return { p, problem: L.guard.privilegeProblem(p, {}) };
+      } finally {
+        await owner.query(revoke);
+      }
+    };
+    const a = await ask(`grant select on auth_events to ${LOGIN}`, `revoke select on auth_events from ${LOGIN}`);
+    assert.deepEqual(a.p.readable, ["auth_events"]);
+    assert.match(a.problem!, /can read auth_events/);
+    const c = await ask(`grant select (email) on app_users to ${LOGIN}`, `revoke select (email) on app_users from ${LOGIN}`);
+    assert.deepEqual(c.p.readable, ["app_users"], "one column is enough");
+    const t = await ask(`grant select on refresh_tokens to ${LOGIN}`, `revoke select on refresh_tokens from ${LOGIN}`);
+    assert.deepEqual(t.p.readable, ["refresh_tokens"]);
+    const r = await ask(`alter role ${LOGIN} createrole`, `alter role ${LOGIN} nocreaterole`);
+    assert.equal(r.p.createRole, true);
+    assert.match(r.problem!, /can create roles/);
+    assert.equal(L.guard.privilegeProblem(await L.guard.currentRolePrivileges(), {}), null, "back to accepted");
   });
 
   test("it can read content and stage; it cannot pull, void, clear, edit content or read learners", async () => {
