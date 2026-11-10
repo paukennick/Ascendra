@@ -73,6 +73,11 @@ would quietly stop. So the fix branch moves both to their own environment,
 `production-backup`, with no reviewer. Create it in 1.1. Turn on the reviewer
 (step 4) only after the fix branch is on `master`.
 
+**If the fix branch merges before `production-backup` exists with its
+`PROD_DATABASE_URL` secret (1.1), the nightly backup and the weekly clean-up
+fail on their next run** (the workflow names an environment that has no
+secret). Create it first.
+
 Until you reset the password in step 3, the new environment secrets you add
 below hold a password that does not work yet. A nightly backup that fires in
 that gap would fail. Do steps 1 to 3 in one sitting.
