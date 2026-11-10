@@ -11,7 +11,7 @@ import {
   type StoredExamItem,
 } from "@/lib/exam-formats";
 import { factCheckGate, type CheckItem } from "@/lib/fact-check";
-import { examCheckItem, recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
+import { examCheckItem, lessonCopyServableSql, recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
 
 // REQ-109: the shared exam_items bank (migration 038).
 //
@@ -65,6 +65,8 @@ export async function bankItems(userId: string, objectiveIds: string[], formats:
     `select ${ITEM_COLUMNS} from exam_items i
       where i.objective_id = any($1::uuid[]) and i.item_format = any($2::text[])
         and ${servableSql("exam", "i.id")}
+        -- FAIL-885: a copy of a lesson check is pulled with the check it copies.
+        and (i.source <> 'lesson' or ${lessonCopyServableSql("i")})
         and (i.source = 'generated'
              or exists (select 1 from attempts a where a.user_id = $3 and a.objective_id = i.objective_id
                           and a.stage in ('fade', 'solo') and a.question = i.stem))
@@ -112,6 +114,9 @@ export async function copyAnsweredLessonChecks(userId: string, objectiveIds: str
                     s(stage, q, c, i, why)
         where lc.objective_id = any($2::uuid[])
           and s.q is not null and jsonb_typeof(s.c) = 'array' and jsonb_array_length(s.c) = 4 and s.i between 0 and 3
+          -- FAIL-885: never copy a check that has been pulled (quarantined or
+          -- confirmed wrong) into the exam bank.
+          and ${servableSql("lesson", "lc.objective_id::text || ':' || s.stage || ':' || md5(s.q)")}
           and exists (select 1 from attempts a where a.user_id = $1 and a.objective_id = lc.objective_id
                         and a.stage = s.stage and a.question = s.q)
      ), ins as (

@@ -21,6 +21,7 @@ import type { CheckItem, FactChecker } from "./fact-check";
 import { getLessonFor, getSharedLesson, SHARED } from "./lesson-store";
 import {
   ContentHeldBackError,
+  ExecQueueUnavailableError,
   NOT_SERVED_MARK,
   EXEC_QUEUE_FAILED,
   recentlyHeldBack,
@@ -203,7 +204,7 @@ describe("R4/P7 + REQ-196: verify by execution never runs in the request path", 
     assert.deepEqual(await execBacklog().then((b) => b.pending >= 1), true);
   });
 
-  test("fail closed: if the program cannot be queued, the practice half is held back and nothing is stored", async () => {
+  test("fail closed: if the program cannot be queued, nothing is stored; it is retryable and starts no cooldown (FAIL-883)", async () => {
     const o = objs[8];
     const gen: LessonGenerator = {
       intro: async () => ({ guessPrompt: "g", teach: "t" }),
@@ -213,15 +214,10 @@ describe("R4/P7 + REQ-196: verify by execution never runs in the request path", 
         throw new Error("relation \"exec_checks\" does not exist");
       },
     };
-    await assert.rejects(ensureGeneration(o, objRow(8), { scope: SHARED, generator: gen, pending: fresh() }).fullPromise, ContentHeldBackError);
+    await assert.rejects(ensureGeneration(o, objRow(8), { scope: SHARED, generator: gen, pending: fresh() }).fullPromise, ExecQueueUnavailableError);
     assert.equal(await getSharedLesson(o), null, "nothing stored or served");
-    const held = await queryOne<{ claims: string[]; reason: string }>(
-      `select claims, reason from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at desc limit 1`,
-      [o]
-    );
-    assert.equal(held?.reason, "fact_check_error");
-    assert.equal(held?.claims[0], NOT_SERVED_MARK);
-    assert.match(held!.claims[1], new RegExp(EXEC_QUEUE_FAILED));
+    const held = await queryOne<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1 and item_kind = 'lesson'`, [o]);
+    assert.equal(held?.n, 0, "our failure is not logged as the content's");
   });
 
   test("a practice half without a program queues nothing", async () => {

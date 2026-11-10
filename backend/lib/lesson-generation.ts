@@ -714,6 +714,17 @@ export async function startRegeneration(
   return { introPromise: handle.introPromise, fullPromise };
 }
 
+// FAIL-888: gives a regenerate's counted use back when the regenerate ends
+// without storing a lesson (the practice half was held back or failed). Settles
+// when the generation does; a stored lesson keeps the use. Never rejects.
+export async function releaseUseUnlessStored(handle: GenerationHandle, use: { release(): Promise<void> }): Promise<void> {
+  try {
+    await handle.fullPromise;
+  } catch {
+    await use.release();
+  }
+}
+
 // What GET serves: the learner's own lesson if they have one, else the shared
 // one. If this learner's regenerate is running on another instance, wait for
 // it first, so a follow-up GET cannot return the pre-regenerate lesson in the

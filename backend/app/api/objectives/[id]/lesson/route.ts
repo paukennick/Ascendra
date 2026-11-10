@@ -21,6 +21,7 @@ import {
   introToLesson,
   GENERATE_LIMIT,
   GENERATE_RATE_EVENT,
+  releaseUseUnlessStored,
   type GenerationHandle,
 } from "@/lib/lesson-generation";
 import { learnerHistoryFor } from "@/lib/lesson-experience";
@@ -233,7 +234,7 @@ export async function POST(
       }
       return ok({ lesson: await lessonForClient(generated, viewer, hintAware), cached: false });
     }
-    after(() => handle.fullPromise.then(() => undefined, () => use.release()));
+    after(() => releaseUseUnlessStored(handle, use));
 
     return ok({
       lesson: introToLesson(intro),
