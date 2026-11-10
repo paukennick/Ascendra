@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { Pool } from "pg";
 
-const OWNER_URL = process.env.DATABASE_URL!;
+const OWNER_URL = (process.env.OWNER_DATABASE_URL || process.env.DATABASE_URL)!; // REQ-207: setup is an owner job
 const run = Date.now().toString(36);
 const LOGIN = `recheck_ci_${run}`;
 const PASSWORD = randomBytes(12).toString("hex");

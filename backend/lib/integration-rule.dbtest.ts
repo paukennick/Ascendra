@@ -7,6 +7,7 @@ import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { query, queryOne, closePool } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
@@ -164,10 +165,11 @@ beforeEach(() => {
 
 after(async () => {
   __setClientForTest(null);
-  await query(`delete from mastery_backup_041 where user_id = any($1::uuid[])`, [users]);
+  await ownerQuery(`delete from mastery_backup_041 where user_id = any($1::uuid[])`, [users]);
   await query(`delete from app_users where id = any($1::uuid[])`, [users]);
   await query(`delete from subject_tracks where id = $1`, [track]);
   await closePool();
+  await closeOwner();
 });
 
 describe("041 mastery rule (REQ-112)", () => {

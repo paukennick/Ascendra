@@ -18,6 +18,9 @@ const GOOD_ENV = {
   CHOICE_ORDER_SECRET: "c",
   ANTHROPIC_FEDERATION_RULE_ID: "f",
   ANTHROPIC_ORGANIZATION_ID: "o",
+  // REQ-207: production without a real sender is now a 503, so a "complete"
+  // environment has one (updated, not deleted: FAIL-232).
+  EMAIL_FROM: "Ascendra <no-reply@ascendra-learn.com>",
 };
 
 describe("health: required settings and jit (FAIL-386, FAIL-371)", () => {

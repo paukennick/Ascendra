@@ -17,6 +17,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
 import { query, queryOne, closePool, sslOption } from "./db";
+import { ownerClient, closeOwner } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
@@ -223,6 +224,7 @@ after(async () => {
   await query(`delete from subject_tracks where id = any($1::uuid[])`, [[track, otherTrack]]);
   await dbPool.end();
   await closePool();
+  await closeOwner();
 });
 
 describe("switches, listing and capabilities", () => {
@@ -593,7 +595,7 @@ describe("schema", () => {
     const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
     assert.ok(!status.missing.some((m) => m.migration === "067_sim_item_kind.sql"), JSON.stringify(status.missing));
     const sql = readFileSync(join(__dirname, "..", "supabase", "migrations", "067_sim_item_kind.sql"), "utf8");
-    const c = await dbPool.connect();
+    const c = await ownerClient(); // replaying a migration is an owner job (REQ-207)
     try {
       await c.query("begin");
       await c.query(sql);
@@ -618,7 +620,7 @@ describe("schema", () => {
     const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
     assert.ok(!status.missing.some((m) => m.migration === "062_sim_engine.sql"), JSON.stringify(status.missing));
     const sql = readFileSync(join(__dirname, "..", "supabase", "migrations", "062_sim_engine.sql"), "utf8");
-    const c = await dbPool.connect();
+    const c = await ownerClient(); // replaying a migration is an owner job (REQ-207)
     try {
       await c.query("begin");
       await c.query(sql);

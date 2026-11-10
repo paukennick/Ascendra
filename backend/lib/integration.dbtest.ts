@@ -5,6 +5,7 @@ import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { query, queryOne, closePool } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { checkSchema, migrationsToApply } from "./schema-status";
 import { trackProgressLateral, unitMasteryLateral } from "./progress-sql";
 import { buildAccountExport, EXPORT_SECTIONS } from "./account-export";
@@ -32,6 +33,7 @@ after(async () => {
   await query(`delete from app_users where id = $1`, [user]);
   await query(`delete from subject_tracks where id = $1`, [track]);
   await closePool();
+  await closeOwner();
 });
 
 describe("schema status", () => {
@@ -109,16 +111,16 @@ describe("grading writes", () => {
 
   test("a failure after the attempt insert rolls the attempt back", async () => {
     const fn = `it_boom_${run}`;
-    await query(`create function ${fn}() returns trigger language plpgsql as $$ begin raise exception 'forced'; end $$`);
-    await query(`create trigger ${fn} before update on mastery for each row execute function ${fn}()`);
+    await ownerQuery(`create function ${fn}() returns trigger language plpgsql as $$ begin raise exception 'forced'; end $$`);
+    await ownerQuery(`create trigger ${fn} before update on mastery for each row execute function ${fn}()`);
     try {
       await assert.rejects(
         recordAttemptAndUpdateMastery({ ...base, format: "mc", verdict: "correct", clientAttemptId: `it-${run}-2` })
       );
       assert.equal(await findClientAttempt(user, `it-${run}-2`), null, "half-written attempt left behind");
     } finally {
-      await query(`drop trigger ${fn} on mastery`);
-      await query(`drop function ${fn}()`);
+      await ownerQuery(`drop trigger ${fn} on mastery`);
+      await ownerQuery(`drop function ${fn}()`);
     }
   });
 

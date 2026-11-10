@@ -15,6 +15,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client } from "pg";
 import { query, queryOne, closePool, sslOption } from "./db";
+import { ownerUrl } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
@@ -209,7 +210,8 @@ describe("review loop (REQ-108)", () => {
   });
 
   test("037 and 037b re-run cleanly; 037b enrols existing Guided+ rows spread over a week", async () => {
-    const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: sslOption() });
+    // Replays migration SQL: an owner job (REQ-207).
+    const c = new Client({ connectionString: ownerUrl(), ssl: sslOption() });
     await c.connect();
     try {
       await c.query("begin");
