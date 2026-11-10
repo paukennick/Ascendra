@@ -18,6 +18,8 @@ import { loadChatHistory } from "@/lib/chat-history";
 import { requireAiBudget } from "@/lib/ai-budget";
 import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 import { consumeAllowance, requireAiAllowance, requireFeature } from "@/lib/entitlements";
+import { flagChatDisputes } from "@/lib/chat-dispute";
+import { inBackground } from "@/lib/understanding-ai";
 
 export const dynamic = "force-dynamic";
 
@@ -169,6 +171,15 @@ export async function POST(req: Request) {
       // Anthropic, the unique index rejects this insert and the stored reply wins.
       const saved = await saveChatTurn({ userId, trackId, unitId, message, reply, clientMessageId });
       if (saved.replayed) await use.release(); // the first copy was counted
+      // REQ-187 (R12): a coach reply agreeing that a graded answer was marked
+      // wrongly flags that item as a suspect key (lib/chat-dispute.ts). After
+      // the response; only on a dispute message.
+      if (!saved.replayed) {
+        inBackground(async () => {
+          const d = await flagChatDisputes({ userId, trackId, message, reply });
+          await Promise.all(d.rechecks);
+        });
+      }
       return ok(saved.replayed ? { reply: saved.reply, replayed: true } : { reply });
     } catch (err) {
       await use.release();

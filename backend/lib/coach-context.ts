@@ -1,4 +1,5 @@
 import { queryOne } from "@/lib/db";
+import { currentFactsFor } from "@/lib/current-facts";
 
 // REQ-076: what the coach needs to know about WHERE a learner is in the
 // catalog, so every prompt (lesson, guess feedback, grading, PBQ, chat)
@@ -22,6 +23,10 @@ export interface CoachContext {
   examCode?: string | null;
   unitTitle?: string | null;
   unitWeight?: number | null;
+  // REQ-187 (R10): the catalog code, and the dated current-facts block built
+  // from the seed for it (lib/current-facts.ts); null for a learner's track.
+  trackCode?: string | null;
+  currentFacts?: string | null;
 }
 
 interface ContextRow {
@@ -35,6 +40,7 @@ interface ContextRow {
   exam_code: string | null;
   unit_title: string | null;
   unit_weight: string | number | null;
+  track_code: string | null;
 }
 
 function rowToContext(row: ContextRow): CoachContext {
@@ -49,7 +55,15 @@ function rowToContext(row: ContextRow): CoachContext {
     examCode: row.exam_code,
     unitTitle: row.unit_title,
     unitWeight: row.unit_weight == null ? null : Number(row.unit_weight),
+    trackCode: row.track_code,
   };
+}
+
+// A learner-created track has user_id set; only catalog tracks get facts.
+async function withFacts(ctx: CoachContext | null): Promise<CoachContext | null> {
+  if (!ctx) return ctx;
+  const currentFacts = await currentFactsFor(ctx.trackCode);
+  return currentFacts ? { ...ctx, currentFacts } : ctx;
 }
 
 const TRACK_JOINS = `
@@ -61,6 +75,7 @@ const TRACK_JOINS = `
 
 const TRACK_FIELDS = `
   st.title as track_title, st.track_type::text as track_type,
+  case when st.user_id is null then st.code end as track_code,
   ec.slug as category_slug, ec.name as category_name, esc.name as subcategory_name,
   c.name as credential_name, cp.name as provider_name, ce.exam_code`;
 
@@ -71,7 +86,7 @@ export async function coachContextForTrack(trackId: string): Promise<CoachContex
      where st.id = $1`,
     [trackId]
   );
-  return row ? rowToContext(row) : null;
+  return withFacts(row ? rowToContext(row) : null);
 }
 
 export async function coachContextForUnit(unitId: string): Promise<CoachContext | null> {
@@ -82,7 +97,7 @@ export async function coachContextForUnit(unitId: string): Promise<CoachContext 
      where cu.id = $1`,
     [unitId]
   );
-  return row ? rowToContext(row) : null;
+  return withFacts(row ? rowToContext(row) : null);
 }
 
 export async function coachContextForObjective(objectiveId: string): Promise<CoachContext | null> {
@@ -94,5 +109,5 @@ export async function coachContextForObjective(objectiveId: string): Promise<Coa
      where o.id = $1`,
     [objectiveId]
   );
-  return row ? rowToContext(row) : null;
+  return withFacts(row ? rowToContext(row) : null);
 }

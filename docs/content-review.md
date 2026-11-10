@@ -88,3 +88,72 @@ correct, time). Its reports are picked up from `item_flags` automatically.
 For sims (REQ-141): `attempts a ... where a.sim_id is not null`, item kind
 `sim`. `content_review_queue.item_kind` takes any short lowercase name, so
 no migration is needed.
+
+## Generated content: what the pipeline now refuses (REQ-187)
+
+From the 2026-11-09 content audit (prompts and pipeline findings). Code:
+`backend/lib/lesson-generation.ts`, `content-validator.ts`, `fact-check.ts`,
+`verify-execution.ts`, `current-facts.ts`, `degree-advising.ts`,
+`chat-dispute.ts`, `lesson-fixes.ts`, `recheck-stored.ts`.
+
+- **A disputed key is never served.** A lesson's practice half that the
+  checker disputes (or the writer doubts) is regenerated once, steered away
+  from the claims. If the retry fails too, nothing is stored: the learner is
+  told the lesson is held for review and pointed to the lab and review, the
+  content is logged in `item_holdbacks` with the first claim
+  `[not served: failed again after one retry]`, and the objective is not
+  tried again for 6 hours. Before REQ-187 the retry was served
+  (`served_after_retry`).
+- **Teaching text is held back the same way** when the writer lists
+  uncertain claims or low confidence: one steered retry, then not shown.
+- **The checker is at least as strong as the writer**: the writer's own model
+  (`ANTHROPIC_MODEL`) at effort medium with thinking on, instead of the fast
+  model with thinking off. A learner's own regenerate is checked too.
+- **Distractor lint** (deterministic, before anything is stored): the key at
+  most about 1.25x the mean distractor's length, no absolute cue words the
+  stem does not use, no "all/none of the above", "Which TWO ..." means two
+  in every option, no option that labels itself, and no explanation that
+  names an option by position. A failure is regenerated once with the
+  problems as a steer, then a clean 503. The stored answer position of
+  lesson checks and Quiz-me questions is shuffled.
+- **Verify by execution (interface only).** On academic and developer
+  courses the writer may add a short Python/SymPy or JavaScript program that
+  recomputes the Solo key; a mismatch holds the item back. No sandbox is
+  wired up yet (`unavailableVerifier`), so in production nothing runs and
+  nothing is held back for it. Remaining work: an isolated runner with no
+  network, no secrets, CPU/memory caps and a hard timeout.
+- **Current facts per course.** Every prompt's course framing carries a short
+  dated block built from the seed: the exam, its revision, status and dates,
+  or the degree plan and its version, with the date it was last checked.
+- **Degree advising is authored.** The CMPCBS advising blocks (gen-ed
+  electives, the Christianity core, free electives, graduation requirements,
+  20 objectives) never generate a lesson. Their lesson is built from the
+  plan line, its block and the plan's advising note, citing the plan
+  (model `authored:degree-plan`); a regenerate returns the same lesson.
+- **Chat disputes flag the key.** When a learner disputes a grade in chat,
+  has a lesson check marked wrong in that course in the last 24 hours, and
+  the coach's reply agrees, that item gets a `key_suspect` flag (the same
+  flag the free-response grader raises), which runs the automated re-check
+  and counts toward quarantine.
+
+### Running the audit's content actions in production
+
+Two manual workflows (Actions tab), both against `PROD_DATABASE_URL` in the
+`production-database` environment, logging ids and outcomes only:
+
+1. **Lesson fixes** (`.github/workflows/lesson-fixes.yml`, no model calls).
+   Run `lookup` first: every fix should say "audited lesson present" (or "no
+   stored lesson"). Then `dry-run`, read the plan, then `apply`. It voids
+   the lessons with wrong keys (answers voided, mastery recomputed, lesson
+   pulled), corrects the others in place with dated sources (the old content
+   goes to `item_holdbacks`), and replaces generated degree-advising lessons
+   with the authored ones. Re-running is safe: done fixes are skipped.
+   Run it after the CompTIA objective fix is seeded or before; the SECPLUS
+   fix accepts either objective title.
+2. **Re-check pre-gate content** (`.github/workflows/content-recheck.yml`,
+   needs the `ANTHROPIC_API_KEY` repository secret). Re-checks every
+   still-served lesson check and keyed item stored before 2026-11-07 with
+   the current checker. Start with a dry run and `limit` 20, then the whole
+   set, then tick `apply` to pull the failures (quarantine plus a holdback
+   log; nothing is voided). Work the pulled items with `npm run items --
+   list | confirm | clear`.

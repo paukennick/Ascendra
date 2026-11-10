@@ -363,7 +363,9 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
   };
   const goodPractice = {
     fadeProblem: "Fill in: SHA-256 output is ___ bits long.", fadeChoices: ["256", "160", "128", "512"], fadeCorrectIndex: 0, fadeWhy: "The name says it.",
-    soloCheck: "Which property stops two inputs having the same digest?", soloChoices: ["Collision resistance", "Avalanche", "Salting", "Padding"],
+    soloCheck: "Which property stops two inputs having the same digest?", // REQ-187: parallel option lengths (the distractor lint refuses a key
+    // much longer than the rest).
+    soloChoices: ["Collision resistance", "Avalanche effect", "Salt uniqueness", "Length padding"],
     soloCorrectIndex: 0, soloWhy: "That is what collision resistance means.",
     fadeOptionReasons: ["Right.", "That is SHA-1.", "That is MD5.", "That is SHA-512."],
     soloOptionReasons: ["Right.", "That is about bit flips.", "That is for passwords.", "That fills blocks."],
@@ -380,7 +382,9 @@ describe("M2 + L2: generated lessons are checked before they are shared (FAIL-29
     route = (b) => (JSON.stringify(b).includes("exampleSteps") ? intro : practice.shift());
     const objRow = await loadObjective(obj2);
     const row = await ensureGeneration(obj2, objRow!, { scope: SHARED }).fullPromise;
-    assert.deepEqual(row.fade_choices, goodPractice.fadeChoices);
+    // REQ-187: the stored order is shuffled; the same options and key.
+    assert.deepEqual([...row.fade_choices].sort(), [...goodPractice.fadeChoices].sort());
+    assert.equal(row.fade_choices[row.fade_correct_index], goodPractice.fadeChoices[goodPractice.fadeCorrectIndex]);
     assert.equal(row.solo_check, goodPractice.soloCheck);
   });
 

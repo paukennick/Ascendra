@@ -29,7 +29,7 @@ import { unseenItems } from "./review-store";
 import { nextDiscriminationItem } from "./understanding-store";
 import { getLessonFor, saveLesson, SHARED } from "./lesson-store";
 import { gateQuizItem } from "./coach-quiz";
-import { checkedPractice, type LessonGenerator, type ObjectiveRow } from "./lesson-generation";
+import { checkedPractice, ContentHeldBackError, NOT_SERVED_MARK, type LessonGenerator, type ObjectiveRow } from "./lesson-generation";
 import { UserFacingError } from "./http";
 import { POST as gradePost } from "../app/api/grade/route";
 import { POST as reportPost } from "../app/api/items/report/route";
@@ -472,7 +472,10 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     assert.deepEqual(reasons.map((r) => r.reason), ["uncertain", "fact_check"]);
   });
 
-  test("shared lesson: a disputed practice half is regenerated once; a second failure is kept and logged", async () => {
+  // REQ-187 (audit 2026-11-09 R3/P1): a second failure is NOT served any
+  // more (it used to be kept and logged 'served_after_retry'), and a
+  // learner's own regenerate is fact-checked too (R4).
+  test("lesson: a disputed practice half is regenerated once; a second failure is never served; regenerates are checked too", async () => {
     const o = objs[1];
     const objRow: ObjectiveRow = { title: "Objective 2", unit_title: "Ports", track_title: "Web basics", ctx: null };
     const practice = (tag: string) => ({
@@ -497,15 +500,15 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     assert.equal(steers.length, 1);
     assert.match(steers[0]!, /held back/);
     const alwaysFails = checker(DISAGREE);
-    const kept = await checkedPractice(o, objRow, practice("first"), { shared: true, gen: gen(alwaysFails), meta: {} });
-    assert.equal(kept.fadeProblem, "fade retry 2");
-    const reasons = await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at`, [o]);
-    assert.deepEqual(reasons.map((r) => r.reason), ["fact_check", "fact_check", "served_after_retry"]);
-    // A learner's own regenerate is not fact-checked (not shared); its writer's
-    // uncertainty still triggers the one retry.
+    await assert.rejects(checkedPractice(o, objRow, practice("first"), { shared: true, gen: gen(alwaysFails), meta: {} }), ContentHeldBackError);
+    const held = await query<{ reason: string; claims: string[] }>(`select reason, claims from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at`, [o]);
+    assert.deepEqual(held.map((r) => r.reason), ["fact_check", "fact_check", "fact_check"]);
+    assert.equal(held[2].claims[0], NOT_SERVED_MARK);
+    assert.ok(!held.some((r) => r.reason === "served_after_retry"));
+    // A learner's own regenerate is now fact-checked as well.
     const none = checker(DISAGREE);
-    const own = await checkedPractice(o, objRow, practice("own"), { shared: false, gen: gen(none), meta: {} });
-    assert.equal(own.fadeProblem, "fade own");
-    assert.equal(none.calls, 0);
+    await assert.rejects(checkedPractice(o, objRow, practice("own"), { shared: false, gen: gen(none), meta: { userId: undefined } }), ContentHeldBackError);
+    assert.equal(none.calls, 2, "checked, and the retry checked");
   });
+
 });

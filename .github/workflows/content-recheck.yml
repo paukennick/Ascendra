@@ -1,0 +1,64 @@
+# REQ-187 (audit 2026-11-09 R6): re-run the fact-check on every still-served
+# lesson check and keyed item stored in PRODUCTION before the 2026-11-07
+# gate, and pull (quarantine + item_holdbacks log) the ones the checker does
+# not agree with (backend/lib/recheck-stored.ts). Pulled items are listed by
+# `npm run items -- list` for a person to clear or confirm; nothing is voided.
+#
+# Manual only (Actions tab -> Re-check pre-gate content -> Run workflow).
+# apply defaults to false: the dry run makes the model calls (that is the
+# check) and writes nothing; tick apply to pull. Use limit for a small first
+# run. Needs the PROD_DATABASE_URL secret (production-database environment)
+# and the repository secret ANTHROPIC_API_KEY (as live-evals.yml). Each call
+# is recorded in ai_calls with purpose item_recheck. Logs item ids and
+# outcomes only.
+name: Re-check pre-gate content
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Pull the items that fail (unticked: dry run)"
+        type: boolean
+        default: false
+      kinds:
+        description: "Comma-separated: lesson,review,quiz,exam,comparison"
+        type: string
+        default: lesson,review,quiz,exam,comparison
+      limit:
+        description: "At most this many items (blank: all)"
+        type: string
+        default: ""
+concurrency:
+  group: content-recheck
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    environment: production-database
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      APPLY: ${{ inputs.apply }}
+      KINDS: ${{ inputs.kinds }}
+      LIMIT: ${{ inputs.limit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: test -n "$DATABASE_URL" || { echo "PROD_DATABASE_URL secret is not set"; exit 1; }
+      - run: test -n "$ANTHROPIC_API_KEY" || { echo "ANTHROPIC_API_KEY secret is not set"; exit 1; }
+      - run: npm ci
+      - name: Re-check content stored before the gate
+        run: |
+          set -- --kinds "$KINDS"
+          if [ -n "$LIMIT" ]; then set -- "$@" --limit "$LIMIT"; fi
+          if [ "$APPLY" = "true" ]; then set -- "$@" --apply; fi
+          npm run items:recheck -- "$@"
