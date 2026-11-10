@@ -2,6 +2,7 @@
 // set in .env.local for local dev or in eas.json for production builds — see mobile/.env.example.
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
+import { LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
@@ -194,6 +195,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
         "Content-Type": "application/json",
         [CLIENT_PROTOCOL_HEADER]: String(CLIENT_PROTOCOL),
         ...identityHeaders,
+        [LEGAL_VERSION_HEADER]: TERMS_VERSION,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },

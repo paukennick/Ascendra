@@ -7,8 +7,7 @@ import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
 import { logEmailFailure } from "@/lib/email-errors";
-import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
-import { isLegacyClient } from "@/lib/client-version";
+import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
     // the Terms and Privacy versions separately (termsVersion,
     // privacyVersion). Either, when current, records both documents.
     // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
-    const termsCtx = { legacy: isLegacyClient(req) };
+    const termsCtx = legalContext(req);
     const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return badRequest("email and password are required");

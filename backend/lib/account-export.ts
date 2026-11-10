@@ -54,7 +54,13 @@ export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
 };
 
 export const EXPORT_SECTIONS = {
-  profile: "select id, email, display_name, created_at, whats_new_seen_id from app_users where id = $1",
+  // REQ-205: the profile photo (a small JPEG, at most ~30 KB as base64, stored
+  // on app_users since migration 004) and the age confirmation (migration 070).
+  profile: `select id, email, display_name, created_at, whats_new_seen_id, age_confirmed_at, age_confirmed_min,
+                   case when avatar_image is not null
+                        then 'data:' || coalesce(avatar_content_type, 'image/jpeg') || ';base64,' || replace(encode(avatar_image, 'base64'), E'\n', '')
+                   end as avatar_data_url
+              from app_users where id = $1`,
   tracks: "select * from subject_tracks where user_id = $1 order by created_at asc, id asc",
   favorites: "select track_id, created_at from course_favorites where user_id = $1 order by created_at asc, track_id asc",
   mastery: "select * from mastery where user_id = $1 order by id asc",
@@ -131,11 +137,17 @@ export const EXPORT_SECTIONS = {
   labDisclaimerAcknowledgements:
     "select family, version, acknowledged_at from lab_disclaimer_acknowledgements where user_id = $1 order by acknowledged_at asc, id asc",
   // REQ-116 (audit 3, low): the learner's own sign-in log and devices, with
-  // the IP addresses recorded. Events are matched by user id or by the
-  // account's address (events before sign-in carry only the address).
+  // the IP addresses recorded. Events are matched by user id, or by the
+  // account's address for events before sign-in (they carry only the
+  // address) -- but only those logged since this account was created
+  // (REQ-205, FAIL-904): an address can be freed and registered again, and
+  // an earlier holder's attempts are not this person's data.
   // Sessions leave out the token hash. Kept for 90 days (lib/auth/retention.ts).
   signInEvents: `select event_type, ip, created_at from auth_events
-                  where user_id = $1 or identifier = (select email from app_users where id = $1)
+                  where user_id = $1
+                     or (user_id is null
+                         and identifier = (select email from app_users where id = $1)
+                         and created_at >= (select created_at from app_users where id = $1))
                   order by created_at asc, id asc`,
   // REQ-093: sign-in providers linked to the account (no tokens).
   linkedAccounts: "select provider, email, created_at from oauth_accounts where user_id = $1 order by created_at asc, provider asc",

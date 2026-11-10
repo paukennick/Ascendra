@@ -22,9 +22,16 @@
 // notice record. Both are a new version: everyone agrees once more, in the
 // same launch flow as the study notice (src/lib/legal.ts launchGate).
 //
-// Items in [square brackets] are owner decisions not yet made. They render
-// visibly on purpose: a placeholder that looks finished is worse than one
-// that looks unfinished. Nothing here has had legal review yet.
+// 2026-11-10 (REQ-205, Nick): the owner decisions are filled in (operator,
+// contact, governing law, minimum age 16, 12-month retention of AI request
+// counts) and the "draft for legal review" banner is gone, on his call. The
+// encrypted nightly database backups (kept 30 days at GitHub) and GitHub as a
+// processor are disclosed (REQ-200), as are the in-database release backups
+// (REQ-168), error reporting through Sentry, the age confirmation at
+// sign-up, and exactly what is kept after an account is deleted. Terms and
+// Privacy are one new version: everyone agrees once more. Nothing here has
+// had a lawyer's review; a [square-bracket] placeholder must never ship again
+// (src/lib/productBasics.test.ts checks).
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -39,27 +46,30 @@ export interface LegalDoc {
   version: string;
   /** Human-readable date for the version. */
   updated: string;
-  /** Shown under the title until legal review signs the text off. */
-  status: string;
   intro?: string;
   sections: LegalSection[];
 }
 
-const DRAFT = "Draft for legal review — not yet reviewed by a lawyer.";
-
-// Owner decisions still open. Kept in one place so each is filled in once.
+// Owner decisions (Nick, 2026-11-09). Kept in one place so each changes once.
+// contactEmail is the proposed default and is not confirmed yet: it must equal
+// DEFAULT_SUPPORT_EMAIL in backend/lib/support-contact.ts (a backend test
+// checks), and the server's SUPPORT_EMAIL variable overrides it on the
+// delete-account page only. Change the operator to the company's name when an
+// LLC is formed.
 export const OWNER = {
-  operator: "[Operator: legal name of the business or person running Ascendra]",
-  contactEmail: "[Contact email for support, privacy and legal requests]",
-  governingLaw: "[State or country whose law governs these terms]",
-  minimumAge: "[Minimum age to create an account]",
+  operator: "Nicholas Pauken",
+  contactEmail: "support@mail.ascendra-learn.com",
+  governingLaw: "the State of Washington, USA",
+  minimumAge: "16",
 };
+// How long the AI request counts (section 5 of the Privacy Policy) are kept.
+// lib/retention.ts RETENTION.aiCallsMonths must match (a backend test checks).
+export const AI_COUNTS_MONTHS = 12;
 
 export const TERMS: LegalDoc = {
   title: "Terms of Service",
-  version: "2026-11-09",
-  updated: "November 9, 2026",
-  status: DRAFT,
+  version: "2026-11-10",
+  updated: "November 10, 2026",
   intro:
     "These terms are the agreement between you and Ascendra's operator when you use Ascendra on the web or in the app. Please read them; creating an account means you accept them.",
   sections: [
@@ -73,7 +83,7 @@ export const TERMS: LegalDoc = {
     {
       title: "2. Who can use it",
       body: [
-        `You must be at least ${OWNER.minimumAge} to create an account. If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
+        `You must be at least ${OWNER.minimumAge} to create an account, and you confirm that you are when you sign up. We don't ask for your date of birth. If you are under the age of majority where you live, a parent or guardian must agree to these terms on your behalf.`,
         "One person per account. Keep your sign-in details to yourself.",
       ],
     },
@@ -181,9 +191,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-09",
-  updated: "November 9, 2026",
-  status: DRAFT,
+  version: "2026-11-10",
+  updated: "November 10, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -197,13 +206,14 @@ export const PRIVACY: LegalDoc = {
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
         "• Access grants: if the operator gives an email address unrestricted access, that address (even before an account uses it), who gave it, its dates and any note, and a record of grants, changes and when an account with it reached the AI safety limit.",
-        "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when.",
+        "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when. We don't ask for or keep your date of birth.",
+        "• Questions you report: when you use “Report a problem” on a question, the reason you chose and any note you write, with the question it is about.",
       ],
     },
     {
       title: "2. What we don't collect",
       body: [
-        "No advertising or cross-site tracking, no analytics or crash-reporting trackers, and no sale or sharing of personal data for advertising. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
+        "No advertising or cross-site tracking, no analytics trackers, and no sale or sharing of personal data for advertising. The app itself has no crash-reporting tracker in it; the server's error reports are described in section 4. Biometric unlock is handled entirely by your device's operating system; Ascendra only learns whether it succeeded. Study reminders, if you turn them on, are scheduled on your phone; we don't receive them and use no push service.",
       ],
     },
     {
@@ -223,9 +233,11 @@ export const PRIVACY: LegalDoc = {
         "• Supabase — hosts the database holding everything above, in Canada.",
         "• Vercel — runs the website and the server the app talks to, in the United States.",
         "• Anthropic (United States) — the AI provider (Claude models). What it receives is described in section 5.",
-        "• Resend — sends account email, and delivers support requests to our inbox with your email address.",
+        "• Resend — sends account email, receives the email you send to our support address, and delivers support requests and that email to our support inbox, with your email address.",
         "• Expo — delivers app updates to the mobile app.",
-        "• Google — only if you choose to sign in with Google.",
+        "• Google — if you choose to sign in with Google; and it provides the mailbox where our support inbox is kept (section 6).",
+        "• GitHub — stores our encrypted nightly database backups (section 6). They are encrypted before they reach GitHub, and GitHub does not have the key.",
+        "• Sentry — receives reports of technical errors on our server, so we can fix them: the error message and where in the code it happened, which page or action was running, a request code and the environment. It does not receive your name, email address, account ID, what you typed, or request headers. An error message can occasionally include a fragment of the data being handled when it failed.",
       ],
     },
     {
@@ -237,7 +249,7 @@ export const PRIVACY: LegalDoc = {
         "• Grading and feedback on written answers: lesson answers you write in your own words, your first guess in a lesson, \"explain it back\" explanations, lab reports, your answers to each step of a build or case lab, scenario (PBQ) answers, written review answers and unit-check answers. Each is sent with the question and the course material it is graded against.",
         "Features that send no personal data: writing lessons, practice and exam-style questions, comparison cards, \"Quiz me\" questions and practice scenarios. These are created from the course's published topics and shared by everyone studying that course.",
         "Under Anthropic's commercial terms, Anthropic may not train its models on what we send. Anthropic says it deletes these inputs and outputs from its systems within 30 days, but may keep them longer where the law requires or to enforce its usage policy (up to 2 years for content its safety systems flag).",
-        "We keep your answers, the feedback and your coach conversations with your account, as described in section 6. For each AI request we also log counts only — which feature, how many tokens, how long it took, whether it worked — never the text.",
+        `We keep your answers, the feedback and your coach conversations with your account, as described in section 6. For each AI request we also log counts only — which feature, how many tokens, how long it took, whether it worked — never the text. These counts are kept for ${AI_COUNTS_MONTHS} months and then deleted (section 6).`,
       ],
     },
     {
@@ -248,7 +260,18 @@ export const PRIVACY: LegalDoc = {
         "• Ended or expired sessions: 30 days after they end.",
         "• Used or expired one-time codes: 7 days after they expire.",
         "• Email address change requests (so the link we send to your old address can still cancel one): 30 days after they expire.",
-        "Deleting your account removes everything listed in section 1 from our database straight away, including the sign-in log. The AI request counts in section 5 are kept after an account is deleted, with the link to the account removed. [Retention period for AI request counts to confirm.] Copies held elsewhere follow their own schedules: the AI provider within 30 days (as above), and the copy of any support request emailed to our support inbox until we delete it.",
+        `• AI request counts (section 5): ${AI_COUNTS_MONTHS} months after the request, then deleted.`,
+        "• Encrypted nightly database backups: 30 days, then GitHub deletes them.",
+        "• Copies of tables we make inside our own database before a major update, so we can undo it: 30 days, then removed by a weekly clean-up, so never more than 37 days.",
+        "Backups: each night we save an encrypted copy of the whole database, including the data in section 1, with GitHub as the backup storage provider. Only we hold the key. If we ever restore a backup, we delete the accounts that were deleted after it was made.",
+        "When you delete your account, we remove from our live database everything listed in section 1, including the sign-in log and any note you wrote on a reported question. Here is exactly what is left, and for how long:",
+        `• AI request counts, with the link to your account removed: until ${AI_COUNTS_MONTHS} months after each request, then deleted. The clock runs from the request, not from the deletion.`,
+        "• The record that a question was reported, with your note erased and no link to you (the question, the reason chosen and the date): kept with no end date, so the fix is not lost. It holds nothing about you.",
+        "• Backups already made, which still contain your account: the encrypted nightly backups for at most 30 days after you delete it, and the pre-update copies for at most 37 days. They are not used for anything else, and they are deleted as a whole.",
+        "• Our AI provider (Anthropic): inputs and outputs within 30 days, longer only as described in section 5.",
+        "• Sentry: any error report that was sent about a request of yours, for as long as Sentry's own schedule keeps it. It holds no account ID or name.",
+        "• Our support inbox, and Resend: the email you sent to our support address, and the copy of any support request we emailed to the inbox, until we delete them. There is no fixed period; ask us at the contact address and we will delete the ones from you. Resend keeps the messages it received under its own schedule.",
+        "• Billing records: paid plans are not switched on, so there are none. This section will be updated before they are.",
       ],
     },
     {
@@ -261,7 +284,7 @@ export const PRIVACY: LegalDoc = {
     {
       title: "8. Children",
       body: [
-        `Ascendra is not meant for children under 13 and doesn't knowingly collect their data. Accounts require a minimum age of ${OWNER.minimumAge}. If you think a child has created an account, contact us and we will delete it.`,
+        `Ascendra is not meant for anyone under ${OWNER.minimumAge} and doesn't knowingly collect their data. Creating an account asks you to confirm that you are ${OWNER.minimumAge} or older; we don't ask for a date of birth. If you think someone under ${OWNER.minimumAge} has created an account, contact us and we will delete it.`,
       ],
     },
     {
@@ -284,7 +307,6 @@ export const COOKIES: LegalDoc = {
   title: "Cookies & Device Storage",
   version: "2026-11-07",
   updated: "November 7, 2026",
-  status: DRAFT,
   sections: [
     {
       title: "What we store on your device",
@@ -322,7 +344,6 @@ export const DISCLAIMER: LegalDoc = {
   title: "Disclaimer",
   version: "2026-11-07",
   updated: "November 7, 2026",
-  status: DRAFT,
   intro: "A summary of terms already in the Terms of Service, kept here so it is easy to find. It is not a separate agreement.",
   sections: [
     termsSection("Not affiliated"),
@@ -355,7 +376,6 @@ export const SOURCES: LegalDoc = {
   title: "Sources & Trademarks",
   version: "2026-11-07",
   updated: "November 7, 2026",
-  status: DRAFT,
   sections: [
     {
       title: "How courses are built",
@@ -387,7 +407,6 @@ export const ABOUT: LegalDoc = {
   title: "About Ascendra",
   version: "2026-11-07",
   updated: "November 7, 2026",
-  status: "",
   sections: [
     {
       title: "What it's for",
@@ -418,7 +437,6 @@ export const FAQ: LegalDoc = {
   title: "FAQ",
   version: "2026-11-07",
   updated: "November 7, 2026",
-  status: "",
   sections: [
     {
       title: "What is Ascendra?",

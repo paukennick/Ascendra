@@ -1,6 +1,6 @@
 import { queryOne, withTransaction } from "@/lib/db";
 import { recordEvent } from "@/lib/events";
-import { termsState, type ClientContext, type TermsState } from "@/lib/legal";
+import { CURRENT_CLIENT, termsState, type ClientContext, type TermsState } from "@/lib/legal";
 import { studyNoticeState, type StudyNoticeState } from "@/lib/study-notice";
 
 // REQ-119 (Audit 3 product M2): the first-run flow for a brand-new learner
@@ -64,6 +64,6 @@ export interface OnboardingState {
 
 // REQ-175: `ctx.legacy` (a request without the app-version header) lets the
 // previous Terms version satisfy the terms gate; see lib/legal.ts.
-export async function onboardingState(userId: string, ctx: ClientContext = { legacy: false }): Promise<OnboardingState> {
+export async function onboardingState(userId: string, ctx: ClientContext = CURRENT_CLIENT): Promise<OnboardingState> {
   return { terms: await termsState(userId, ctx), firstRun: await firstRunState(userId), notice: await studyNoticeState(userId) };
 }

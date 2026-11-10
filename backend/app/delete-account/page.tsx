@@ -5,15 +5,18 @@
 //
 // What deletion removes must match docs/legal/data-inventory.md and the
 // Privacy Policy (mobile/src/content/legal.ts).
+import { supportEmail } from "@/lib/support-contact";
+import { RETENTION } from "@/lib/retention";
+
 export const metadata = {
   title: "Delete your Ascendra account",
   description: "How to delete your Ascendra account and the data stored with it.",
 };
 
 export default function DeleteAccountPage() {
-  // SUPPORT_EMAIL is the address support requests already go to. Until it is
-  // set, the placeholder shows so the page never names a wrong address.
-  const contact = process.env.SUPPORT_EMAIL || "[Contact email for support, privacy and legal requests]";
+  // REQ-205: SUPPORT_EMAIL overrides the default address (lib/support-contact.ts);
+  // the page never shows a placeholder.
+  const contact = supportEmail();
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 640, lineHeight: 1.5 }}>
       <h1>Delete your Ascendra account</h1>
@@ -38,14 +41,32 @@ export default function DeleteAccountPage() {
         <li>Sign-in data: sessions, two-factor settings and backup codes, linked Google sign-in, and the sign-in log.</li>
         <li>Study data: courses you added, favourites, answers, mastery scores, review schedule and study sessions.</li>
         <li>AI coach conversations, support requests and lesson reports.</li>
-        <li>Records of which terms, policies and course disclaimers you accepted.</li>
+        <li>The note you wrote on any question you reported.</li>
+        <li>Records of which terms, policies and course disclaimers you accepted, and that you confirmed your age.</li>
       </ul>
 
       <h2>What is kept, and for how long</h2>
       <ul>
-        <li>Nothing about you stays in our database after deletion.</li>
+        <li>
+          AI request counts (which feature, how many tokens, how long it took, whether it worked; never the text),
+          with the link to your account removed: {RETENTION.aiCallsMonths} months after each request, then deleted.
+        </li>
+        <li>
+          The record that a question was reported (the question, the reason chosen and the date), with your note
+          erased and no link to you: kept with no end date so the fix is not lost. It holds nothing about you.
+        </li>
+        <li>
+          Backups already made: the encrypted nightly backups for at most 30 days after you delete your account, and
+          copies we make inside our database before a major update for at most 37 days. We delete them as a whole, and
+          if we ever restore one we delete the accounts that were deleted after it was made.
+        </li>
         <li>Text recently sent to our AI provider is deleted by them within 30 days.</li>
-        <li>Copies of support requests that were emailed to our support inbox stay there until we delete them.</li>
+        <li>Error reports sent to Sentry, our error-reporting service, follow Sentry&apos;s own schedule. They hold no account ID or name.</li>
+        <li>
+          Email you sent to our support address, and copies of support requests emailed to our support inbox, stay
+          there until we delete them. There is no fixed period; ask at the address above and we will delete yours.
+        </li>
+        <li>Billing records: paid plans are not switched on, so there are none.</li>
       </ul>
 
       <p>

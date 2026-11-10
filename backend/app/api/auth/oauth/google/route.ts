@@ -7,8 +7,7 @@ import { completeLogin } from "@/lib/auth/session";
 import { sessionResponse } from "@/lib/auth/refreshCookie";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
-import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
-import { isLegacyClient } from "@/lib/client-version";
+import { recordSignupTermsAcceptance, signupAcceptedVersion, legalContext } from "@/lib/legal";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
     const body = await readJson(req);
     const { idToken, deviceLabel } = body ?? {};
     // REQ-175: a legacy client (no X-Ascendra-App) may have shown the previous text.
-    const termsCtx = { legacy: isLegacyClient(req) };
+    const termsCtx = legalContext(req);
     const acceptedTermsVersion = signupAcceptedVersion(body, termsCtx);
     if (!idToken || typeof idToken !== "string") {
       return badRequest("idToken is required");
