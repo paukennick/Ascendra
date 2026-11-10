@@ -343,6 +343,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where c.slug = 'healthcare-nursing' and s.slug = 'emergency-medical-services') as ok`,
   },
   {
+    // REQ-197: Settings > Email, the unsubscribe links, the daily
+    // /api/cron/service-emails run and the account export read these.
+    migration: "063_service_emails.sql",
+    what: "email_preferences and service_email_log (service email choices and the once-per-period send log)",
+    sql: `select to_regclass('public.email_preferences') is not null
+             and to_regclass('public.service_email_log') is not null
+             and to_regclass('public.service_email_log_once') is not null as ok`,
+  },
+  {
     // REQ-196: lesson generation queues a writer's verification program in
     // exec_checks (fail closed: no table, the lesson is held back), and the
     // sandbox / re-check jobs connect as a member of content_recheck.

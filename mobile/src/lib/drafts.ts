@@ -15,6 +15,10 @@ export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 // Bounds applied when reading, so a corrupted or tampered entry can't push
 // an enormous string into a text field. They match the form's maxLength.
 export const CHAT_DRAFT_MAX = 10_000;
+// REQ-197: what a restored draft may hold. Larger than the send limit, so a
+// dictated message that ran over is kept whole for the learner to shorten,
+// never cut; still bounded against a corrupted entry.
+export const CHAT_DRAFT_KEEP_MAX = 4 * CHAT_DRAFT_MAX;
 export const SUPPORT_LIMITS = { subject: 200, body: 5000, courseName: 200, courseSourceUrl: 2000 } as const;
 
 export type SupportDraftKind = "ticket" | "course_request";
@@ -65,7 +69,7 @@ export function chatDraftPayload(text: string, prefill?: string | null): string 
 }
 
 export function chatDraftText(payload: string): string | null {
-  const t = payload.slice(0, CHAT_DRAFT_MAX);
+  const t = payload.slice(0, CHAT_DRAFT_KEEP_MAX);
   return t.trim() ? t : null;
 }
 

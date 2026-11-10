@@ -206,17 +206,128 @@ now also verifies the address. Do not hand-verify accounts in production.
   flags those past 30 days. Drop them as in deploy-runbook-integration.md
   "Cleanup", in the same change that removes their probes from
   `backend/lib/schema-status.ts`.
-- **Restore drill**: quarterly, [restore-drill.md](restore-drill.md).
+- **Nightly backup** (REQ-200): a failed "Nightly database backup" run
+  emails the repo owner; see "Backups" below.
+- **Restore drill**: quarterly, starting with the latest nightly backup, [restore-drill.md](restore-drill.md).
 - **Content review queue** (REQ-143): `npm run review-queue -- list`
   shows what learners' reports or a correct-rate drop put in front of a
   person; resolve each entry there or through `npm run items`
   ([content-review.md](content-review.md)). The daily cron
   `/api/cron/content-signals` (10:40 UTC, `CRON_SECRET`) fills it.
+- **Service emails** (REQ-197): the daily cron `/api/cron/service-emails`
+  (16:10 UTC, `CRON_SECRET`) sends exam change notices, the 14- and 3-day
+  exam countdown and the opt-in weekly digest, each at most once per learner
+  and period (`service_email_log`). Off until `SERVICE_EMAILS_ENABLED=true`
+  (switch on with the Privacy Policy update). Batches of
+  `SERVICE_EMAIL_BATCH` (default 25) with a 0.6 s gap, at most 3 service
+  mails per address a day; the rest wait for the next run. The digest is
+  refused (reported as `refused` in the cron response) until
+  `MAIL_POSTAL_ADDRESS` and `DIGEST_EMAIL_FROM` are set. Failed sends show
+  as `status = 'failed'` and are retried up to 3 tries; a new exam change is
+  added to `backend/lib/exam-changes.ts` (its test checks the dates against
+  the seed).
 - **Source currency** (REQ-142): `npm run currency:report` lists exam
   outlines and lab sources overdue or due within 60 days
   ([source-reliability-standard.md](source-reliability-standard.md)).
 - **`auth_events` retention**: owned by the security branch (daily purge
   cron).
+
+## Backups
+
+REQ-200. The Supabase Free plan keeps no backup we can download or restore
+on our own, so `.github/workflows/db-backup.yml` ("Nightly database backup")
+takes one every day at 11:23 UTC (03:23 PST), and on demand from the Actions
+tab. It runs `pg_dump --format=custom --no-owner --no-privileges` of the whole
+database through the `PROD_DATABASE_URL` secret (the same Session pooler
+secret and `production-database` environment as `migrate-production.yml`),
+streams it straight into `age`, and uploads the encrypted `.age` file with
+two small files as an artifact kept 30 days. The plaintext dump never touches
+disk. The repo is public, so anyone signed in to GitHub can download the
+artifact; without the private key it is noise.
+
+The artifact holds three files:
+
+- `ascendra-db-<UTC time>.dump.age`: the dump, encrypted.
+- `manifest.json.age`: the manifest, encrypted to the same key. It holds the
+  file size, the sha256 of the dump `.age` file, the server version, the
+  time, the number of tables in `public` and the row counts of `app_users`,
+  `attempts` and `mastery`. No user data. The counts and the dump come from
+  one database snapshot, so a restore must match them exactly. It is piped
+  from `jq` into `age`, so it is never plaintext on disk.
+- `checksums.json`: the only plaintext. A format number (2) and the sha256 of
+  the two `.age` files, nothing else, so a corrupt download is caught before
+  decrypting. No counts, no table names, no versions.
+
+The workflow log shows no counts, versions or sizes either (the log is as
+public as the artifact). To read the manifest:
+`age -d -i ascendra-backup.key manifest.json.age | jq`.
+Backups made before this change (format 1) have a plaintext `manifest.json`
+and cannot be drilled by the current `restore-drill.sh`; they expire after 30
+days. The privacy policy tells people the backups are kept 30 days: change
+`retention-days` and the policy together.
+
+The job fails, and GitHub emails the repo owner, if `PROD_DATABASE_URL` or
+`BACKUP_AGE_RECIPIENT` is missing, the recipient is not an age public key,
+`pg_dump` is older than the server, or the encrypted file is under 1 MB
+(production is about 29 MB). The logic is `backend/scripts/db-backup.sh`.
+
+### One-time setup (Nick)
+
+1. Install age on your own computer: `brew install age`, `apt install age`,
+   or a release from github.com/FiloSottile/age.
+2. Make the key: `age-keygen -o ascendra-backup.key`. It prints
+   `Public key: age1...`.
+3. Save `ascendra-backup.key` in your password manager (as a file
+   attachment or a secure note with the whole file), then delete the local
+   copy. Without it no backup can ever be read, so check the saved copy
+   opens before deleting.
+4. In GitHub: Settings -> Secrets and variables -> Actions -> Variables ->
+   New repository variable, name `BACKUP_AGE_RECIPIENT`, value the `age1...`
+   public key only. (A secret of the same name also works.)
+5. Actions -> "Nightly database backup" -> Run workflow, once. Check the run
+   is green and the artifact is there, then do the restore drill below with
+   it.
+
+The private key (`AGE-SECRET-KEY-1...`) is never pasted anywhere: not into
+GitHub, Vercel, Supabase, a chat or an issue. The workflow refuses a value
+that starts with it. If it ever leaks, make a new key, change the variable,
+and treat every artifact from the last 30 days as exposed.
+
+### Restoring
+
+1. Actions -> "Nightly database backup" -> the run you want -> download the
+   artifact and unzip it (the dump `.age` file, `manifest.json.age` and
+   `checksums.json`; keep them in one folder).
+2. Put the key file from your password manager somewhere temporary.
+3. Prove the backup first, on a local Postgres 17 (never production):
+   `backend/scripts/restore-drill.sh <file>.dump.age ascendra-backup.key`
+   (details in [restore-drill.md](restore-drill.md)).
+4. To restore for real into a new Supabase project (it already has the
+   `extensions` schema with uuid-ossp that the tables' defaults call):
+   `age -d -i ascendra-backup.key <file>.dump.age | pg_restore --no-owner
+   --no-privileges --schema=public --dbname="$TARGET_DIRECT_URL"`, then
+   `npm run migrate -- --status` against it and the checks in
+   [restore-drill.md](restore-drill.md). Point Vercel's `DATABASE_URL` at it
+   last.
+5. Delete the key file copy and the downloaded files when done.
+
+### What this does not cover
+
+- No point-in-time recovery. A restore goes back to the last nightly
+  snapshot, so up to 24 hours of answers, accounts and payments since then
+  are lost (more if a night's run failed: check the Actions tab).
+- 30 days of history only; nothing older survives.
+- Supabase's own schemas (`auth`, `storage`, ...) are in the dump but the
+  drill restores `public` only, which holds all of Ascendra's data.
+- If GitHub Actions or the repo is unavailable, so are the backups.
+
+### When to move to Supabase Pro
+
+Switch on Supabase Pro (daily platform backups, and point-in-time recovery
+as an add-on) when any of these is true: billing is on and people are paying,
+about 50 active users, the database is over about 300 MB, or losing a day of
+data is no longer acceptable (point-in-time recovery needed). Keep this
+workflow running after the switch; it is a copy off Supabase.
 
 ## CI
 

@@ -28,6 +28,7 @@ export default function AppLayout() {
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="settings/mfa" options={{ title: "Two-factor authentication" }} />
       <Stack.Screen name="settings/reminders" options={{ title: "Study reminders" }} />
+      <Stack.Screen name="settings/emails" options={{ title: "Email" }} />
       <Stack.Screen name="whats-new" options={{ title: "What's new" }} />
       {/* REQ-119: one-tap Terms prompt and the first-run flow (no back: each finishes by moving on). */}
       <Stack.Screen name="agree" options={{ title: "Before you continue", headerBackVisible: false, gestureEnabled: false }} />

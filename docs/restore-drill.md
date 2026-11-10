@@ -12,14 +12,53 @@ from a platform backup) and restores into a throwaway database.
 ## What you need
 
 - `psql`, `pg_dump` and `pg_restore` of the same major version as production
-  (Postgres 16 at the time of writing; `select version();` on production).
+  (Postgres 17 at the time of writing; `select version();` on production).
 - The production **direct** connection string (port 5432, not the
   transaction pooler on 6543), from the Supabase dashboard. `pg_dump` needs a
   session, which the transaction pooler does not give.
 - A scratch Postgres: a local one (`docker run -p 55432:5432 -e
-  POSTGRES_HOST_AUTH_METHOD=trust postgres:16`) or a separate, disposable
+  POSTGRES_HOST_AUTH_METHOD=trust postgres:17`) or a separate, disposable
   Supabase project. Never the production project.
 - This repo checked out at the commit production runs.
+
+## Nightly backup (REQ-200): the quick drill
+
+Since REQ-200 the nightly workflow ("Nightly database backup",
+`.github/workflows/db-backup.yml`) is the backup to drill first. Setup is in
+[operations-runbook.md](operations-runbook.md) "Backups". With a local
+Postgres 17 (the Docker one above, or a local cluster) and this repo checked out:
+
+```bash
+# 1. Download the run's artifact from the Actions tab and unzip it:
+#    ascendra-db-<UTC time>.dump.age, manifest.json.age and checksums.json
+#    (keep the three in one folder).
+# 2. Put the key file from the password manager next to it, then (the
+#    Docker cluster above; a local cluster is postgres://postgres:postgres@localhost:5432/postgres):
+ADMIN_URL=postgres://postgres@localhost:55432/postgres \
+  backend/scripts/restore-drill.sh ascendra-db-<UTC time>.dump.age ascendra-backup.key
+# 3. Delete the key file copy.
+```
+
+`restore-drill.sh` refuses a non-local `ADMIN_URL`. It checks the file's
+sha256 and the manifest's against `checksums.json`, decrypts `manifest.json.age`
+with the same key (in memory, never to disk), creates a new database, loads
+`backend/scripts/ci/supabase-roles.sql` and Supabase's `extensions` schema
+(uuid-ossp), decrypts with age straight into `pg_restore --no-owner
+--no-privileges --schema=public` (no plaintext file), checks the number of
+tables in `public` and the row counts of `app_users`, `attempts` and
+`mastery` equal the manifest's, runs `npm run migrate -- --status` (must say
+"Schema is current"), and drops the database (`KEEP_DB=1` keeps it, for step 5
+below). It prints the restore time. A wrong key, a changed file or a count
+mismatch fails it (counts must equal the manifest's exactly). The third and
+fourth arguments name `checksums.json` and `manifest.json.age` if they are not
+beside the dump. CI runs the same path on every pull request with a
+throwaway key and database (`backend/scripts/ci/backup-drill-test.sh`, job
+"backup-drill").
+
+Pass when it prints `RESTORE DRILL PASSED`. Write the date, the manifest's
+`encrypted_bytes` (`age -d -i ascendra-backup.key manifest.json.age | jq`), the
+restore time and the manifest's `created_at` (the recovery point, which the
+drill prints) in the drill log below.
 
 ## Two sources, drill both once
 

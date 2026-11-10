@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { launchGate, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
-import { syncRemindersFor } from "@/lib/reminderScheduler";
+import { syncRemindersFor, watchAppForeground } from "@/lib/reminderScheduler";
 import { router } from "expo-router";
 import { STUDY_NOTICE_VERSION, registerStudyNoticeHandler, studyNoticeDecision } from "@/lib/studyNotice";
 import { StudyNoticeSheet } from "@/components/StudyNotice";
@@ -66,6 +66,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (userId) void syncRemindersFor(userId);
   }, [userId]);
+
+  // REQ-197: and again when the app comes back to the front, so the next
+  // reminders name what is due now (at most every 30 minutes).
+  const userIdRef = useRef<string | null>(userId);
+  userIdRef.current = userId;
+  useEffect(() => watchAppForeground(() => userIdRef.current), []);
 
   const acceptTerms = useCallback(async () => {
     const s = await api.post<OnboardingState>("/api/onboarding/terms", { version: TERMS_VERSION });

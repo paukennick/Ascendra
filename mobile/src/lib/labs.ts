@@ -223,6 +223,9 @@ export interface LabDraft {
 }
 
 export const LAB_PART_MAX = 4000;
+// REQ-197: a restored draft part may run over the send limit (dictation) and
+// is kept whole for the learner to shorten; canSubmit holds the send back.
+export const LAB_PART_KEEP_MAX = 4 * LAB_PART_MAX;
 
 export function labDraftPayload(d: LabDraft): string | null {
   if (!d.parts.some((p) => p.trim()) && !d.sentId) return null;
@@ -241,7 +244,7 @@ export function parseLabDraft(payload: string | null, partCount: number): LabDra
   const r = o as Record<string, unknown>;
   const stored = r.parts;
   if (!Array.isArray(stored)) return null;
-  const parts = Array.from({ length: partCount }, (_, i) => (typeof stored[i] === "string" ? (stored[i] as string).slice(0, LAB_PART_MAX) : ""));
+  const parts = Array.from({ length: partCount }, (_, i) => (typeof stored[i] === "string" ? (stored[i] as string).slice(0, LAB_PART_KEEP_MAX) : ""));
   return {
     parts,
     sentId: typeof r.sentId === "string" ? r.sentId : null,

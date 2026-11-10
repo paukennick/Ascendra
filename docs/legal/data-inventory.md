@@ -28,6 +28,14 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `support_requests` | tickets, course requests, lesson reports (may name an objective and lesson step), coach-reply reports (quote the reply) | support and content fixes | while account open | deleted (cascade) | yes |
 | `track_acknowledgements` | which course disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate now) | while account open | deleted (cascade) | yes |
 | `legal_acceptances` | which Terms, Privacy and study-notice (REQ-165) versions were accepted, how and when | record of consent | while account open | deleted (cascade) | yes |
+| `email_preferences` (REQ-197, 063) | on/off for exam change notices, exam countdown, weekly digest | the learner's email choices | while account open | deleted (cascade) | yes |
+| `service_email_log` (REQ-197, 063) | which service email kind was sent for which period (exam change, exam date, ISO week), status, tries, times; no address, subject or body | sending each at most once | while account open | deleted (cascade) | yes |
+
+**Pending Privacy Policy change (REQ-197):** the two rows above, and the
+service emails they support, are not yet described in
+`mobile/src/content/legal.ts`, which still says email is account email
+only. The cron that sends them stays off (`SERVICE_EMAILS_ENABLED`) until
+that text is updated.
 
 Shared, not personal: `lesson_content`, `pbq_scenarios`, catalog and taxonomy
 tables, `content_review_findings`, `schema_migrations`.
@@ -50,9 +58,10 @@ No cookies, analytics, crash reporting or advertising identifiers.
 | Supabase | the whole database | hosting |
 | Vercel | all API traffic | hosting, United States (no region set in `vercel.json`, so Vercel's default US region; confirm in the project settings); request logs on Vercel's side |
 | Anthropic API | coach messages and history (`/api/chat`), written answers for grading (`/api/grade`), pre-lesson guesses (`guess-feedback`), scenario answers (`/api/pbq`); lesson generation sends only course and objective titles | commercial terms: not used for training; deleted within 30 days unless kept for usage-policy enforcement or law (privacy.claude.com, checked 2026-11-04) |
-| Resend | account email; support requests with the user's email as reply-to | |
+| Resend | account email; support requests with the user's email as reply-to; from REQ-197 (once switched on) the service emails: exam change notices, exam countdown with readiness and weakest objectives, opt-in weekly digest | |
 | Expo | app update requests from the mobile app | |
 | Google | sign-in, only if chosen | |
+| GitHub | the nightly backup (REQ-200): the whole database, encrypted with age; GitHub never has the key | Actions artifact, kept 30 days; the manifest (counts) is encrypted too, and the only plaintext beside the backup is a format number and two sha256 values |
 
 ## Retention jobs
 
@@ -70,3 +79,11 @@ same personal data, and an account deleted in the meantime stays in the
 copy until it is dropped. The 2026-11-07 copy (schema
 `backup_release_20261107`) is dropped by the run on 2026-12-08. The API
 roles have no access to it.
+
+Nightly backups (REQ-200): the "Nightly database backup" GitHub workflow
+dumps the whole database every day, encrypts it with age to a key only the
+owner holds, and keeps it as a workflow artifact for 30 days, after which
+GitHub deletes it. Each backup holds the same personal data as the database,
+so an account deleted today is still in the backups of the previous 30 days
+until they expire; a restore from one must re-delete any account deleted
+after that backup was taken. See operations-runbook.md "Backups".
