@@ -7634,6 +7634,32 @@
       ],
       "prevention_notes": "Pre-completion checklist: bumping a legal or protocol version moves the old value to PREVIOUS_LEGAL_VERSIONS and is checked against the installed builds (legacy clients without X-Ascendra-App); a version gate never returns a raw validation string to the app",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-562",
+      "date": "2026-11-09",
+      "title": "A wrong reauth password was refreshed and resent, spending two tries",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Typing a wrong password or code to confirm it's you (change email, MFA setup) counted twice against the 10-per-15-minutes reauth budget and rotated the refresh token",
+      "how_detected": "review (REQ-177 security sweep)",
+      "root_cause": "The API client treats every 401 outside /api/auth/* as an expired access token and refreshes then resends once. lib/auth/reauth.ts answers a wrong secret with 401 plus reauthRequired, which is about the input, not the session.",
+      "requirement": "REQ-177",
+      "affected": [
+        "mobile/src/api/client.ts"
+      ],
+      "fix_summary": "client.ts skips the refresh-and-retry when the 401 body has reauthRequired: true (isReauthRefusal)",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/apiClient.test.ts",
+        "backend/lib/app-lock.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A 401 that means 'what you typed is wrong' carries reauthRequired and the client never refreshes on it",
+      "recurrence_of": ""
     }
   ]
 }

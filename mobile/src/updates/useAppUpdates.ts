@@ -39,7 +39,20 @@ const SILENT_APPLY_AFTER_MS = 5 * 60 * 1000;
 const MIN_CHECK_INTERVAL_MS = 60 * 1000;
 
 /** Routes holding in-memory work that a reload would discard. */
-const PROTECTED_ROUTE_FRAGMENTS = ["/lesson", "/pbq", "/chat"];
+// REQ-177: and every other screen that holds an attempt in progress (labs,
+// exams, quizzes, review and unit checks, explain-back, placement).
+const PROTECTED_ROUTE_FRAGMENTS = [
+  "/lesson",
+  "/pbq",
+  "/chat",
+  "/lab",
+  "/exam",
+  "/quiz",
+  "/review-session",
+  "/unit-check",
+  "/explain",
+  "/placement",
+];
 
 function holdsUnsavedWork(pathname: string): boolean {
   return PROTECTED_ROUTE_FRAGMENTS.some((fragment) => pathname.includes(fragment));

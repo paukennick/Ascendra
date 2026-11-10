@@ -1,7 +1,7 @@
 // REQ-175: first, so the API client knows this build before any request.
 import "@/updates/appIdentity";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { AppState, Platform, Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -25,6 +25,7 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
 import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { AppLock, PrivacyCover } from "@/components/AppLock";
 import { UpdateRequired } from "@/components/UpdateRequired";
 import { registerUpdateRequiredHook } from "@/api/client";
 import type { UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
@@ -78,7 +79,15 @@ function IdleWarningBanner({ secondsLeft }: { secondsLeft: number }) {
 }
 
 function RootNavigator() {
-  const { status, webIdleWarningSecondsLeft } = useAuth();
+  const { status, webIdleWarningSecondsLeft, appLocked } = useAuth();
+  // REQ-177: native -- hide the screen while the app is not in front, for
+  // the app switcher's snapshot.
+  const [inFront, setInFront] = useState(true);
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const sub = AppState.addEventListener("change", (next) => setInFront(next === "active"));
+    return () => sub.remove();
+  }, []);
   const { gate } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
@@ -127,9 +136,12 @@ function RootNavigator() {
       {Platform.OS === "web" ? <AlertHost /> : null}
       {/* Sits below the idle warning in priority: that one is about to take
           something away from the user, this one is only an offer. */}
-      {updateReady && webIdleWarningSecondsLeft === null ? (
+      {updateReady && webIdleWarningSecondsLeft === null && !appLocked ? (
         <UpdateBanner onApply={applyUpdate} onDismiss={dismiss} />
       ) : null}
+      {/* REQ-177: the lock after time away covers the screens, which stay mounted. */}
+      {status === "signedIn" && appLocked ? <AppLock /> : null}
+      {status === "signedIn" && !inFront ? <PrivacyCover /> : null}
       {updateRequired ? <UpdateRequired info={updateRequired} /> : null}
     </>
   );
