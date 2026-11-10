@@ -49,12 +49,21 @@ describe("exam change notices match the seed", () => {
     assert.ok((t.credential?.effectiveDate ?? "9999") <= c.date);
   });
 
-  test("GCPDEVOPS: the switch date is the course's review date (not rewritten yet, and the notice says so)", () => {
+  // REQ-183 (#81) re-authored the course to the new guide: the old guide's
+  // units retire on the switch date and the new sections are live units.
+  test("GCPDEVOPS: the new guide from its effective date; the old guide's units retire that day", () => {
     const t = track("GCPDEVOPS");
     const c = EXAM_CHANGES.find((x) => x.trackCode === "GCPDEVOPS")!;
-    assert.equal(day(t.contentReviewDueAt), c.date);
-    assert.match(c.courseDid, /not been rewritten/);
-    assert.equal(t.units.find((u) => !u.retiredAt)?.weight, 20, "the course still carries the old 20% section 1");
+    assert.equal(t.credential?.effectiveDate, c.date);
+    assert.ok(t.units.some((u) => day(u.retiredAt) === c.date), "the old guide's units retire on the switch date");
+    assert.deepEqual(
+      t.units.filter((u) => !u.retiredAt).map((u) => u.weight),
+      [18, 30, 18, 22, 12],
+      "the live units carry the new guide's weights"
+    );
+    assert.match(c.whatChanges, /18\/30\/18\/22\/12/);
+    assert.match(c.courseDid, /new units/);
+    assert.doesNotMatch(c.courseDid, /not been rewritten/);
   });
 
   test("every notice has an https source, a unique period and plain copy", () => {

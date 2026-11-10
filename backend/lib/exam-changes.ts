@@ -76,7 +76,7 @@ export const EXAM_CHANGES: readonly ExamChange[] = [
     whatChanges:
       "Google publishes a new exam guide that is live from November 23, 2026. It renames section 1 (to include organizational governance), adds maintaining and ML workloads to section 2, and changes the section weights from 20/25/18/25/12 to 18/30/18/22/12.",
     courseDid:
-      "The course still follows the guide in effect until November 22. It has not been rewritten for the new guide yet; its review is due on November 23. Until then, check the new guide for the reweighted sections.",
+      "The course added the five sections of the new guide as new units. The units for the guide before November 23 stay listed until November 23 so anyone sitting the exam before then can finish them; after that they are hidden, and your answers on them are kept. Progress is not copied across, because the sections were renamed, reweighted and given new topics.",
     sourceUrl: "https://cloud.google.com/learn/certification/guides/cloud-devops-engineer",
   },
 ];
