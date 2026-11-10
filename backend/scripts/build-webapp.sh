@@ -60,7 +60,10 @@ trap '[ "$had_env_local" = "1" ] && mv "$ENV_LOCAL_BAK" "$ENV_LOCAL"; true' EXIT
 
 cd "$MOBILE_DIR"
 rm -rf dist
-npx expo export --platform web --clear
+# REQ-177: the build id the web bundle compares with GET /api/version, so a
+# tab left open learns a new deploy is out (mobile/src/lib/webVersion.ts).
+# Empty outside Vercel; the check then does nothing.
+EXPO_PUBLIC_WEB_BUILD_ID="${VERCEL_GIT_COMMIT_SHA:-}" npx expo export --platform web --clear
 
 cd "$BACKEND_DIR"
 rm -rf public/_expo public/assets public/index.html public/metadata.json public/favicon.ico

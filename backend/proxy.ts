@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { minAppVersion, needsUpdate, updateRequiredBody } from "./lib/client-version";
 
-// The mobile app authenticates with a bearer token, never cookies, so a
-// wildcard origin couldn't actually leak a session -- but scoping it means a
+// The app authenticates with a bearer token; since REQ-192 the web app's
+// refresh token is also an httpOnly cookie on /api/auth/refresh only
+// (lib/auth/refreshCookie.ts), so credentials are allowed for the listed
+// origins (the Expo web dev server is cross-origin). Scoping also means a
 // typo'd or unexpected frontend origin fails loudly instead of silently
 // working from anywhere. ALLOWED_ORIGINS (.env.local / Vercel env) is a
 // comma-separated list of extra origins on top of the defaults below --
@@ -34,6 +36,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
   if (origin && allowedOrigins.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
+    headers["Access-Control-Allow-Credentials"] = "true";
   }
   return headers;
 }

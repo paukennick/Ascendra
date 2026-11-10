@@ -3,7 +3,7 @@
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
-import { APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
+import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -96,6 +96,14 @@ export function setAppIdentity(identity: AppIdentity): void {
   identityHeaders = appHeaders(identity);
 }
 
+// REQ-192: the web app's refresh token is an httpOnly cookie the server
+// sets on /api/auth/refresh (backend/lib/auth/refreshCookie.ts), so web
+// requests carry credentials (the Expo dev server is cross-origin; the
+// deployed app is same-origin). Native never sends cookies.
+export function isWebClient(): boolean {
+  return identityHeaders[APP_PLATFORM_HEADER] === "web";
+}
+
 // REQ-175: the server answers 426 { code: "update_required" } when this
 // build is below MIN_APP_VERSION. The root layout registers this to show the
 // "Update required" screen; the request still throws its ApiError.
@@ -173,6 +181,7 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   let text: string;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
+      ...(isWebClient() ? { credentials: "include" as const } : {}),
       ...options,
       signal: controller.signal,
       headers: {
@@ -227,6 +236,10 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
   return data as T;
 }
 
+export function isReauthRefusal(data: unknown): boolean {
+  return !!data && typeof data === "object" && (data as { reauthRequired?: unknown }).reauthRequired === true;
+}
+
 // One silent refresh-and-retry on a 401, never for /api/auth/* itself
 // (a 401 from login is just "wrong password", not "needs a refresh", and
 // retrying refresh's own 401 would recurse). A timeout is never retried
@@ -244,8 +257,17 @@ async function request<T>(
   try {
     return await rawRequest<T>(path, options, timeoutMs);
   } catch (err) {
+    // REQ-177: a 401 that says "confirm it's you" (wrong password or code,
+    // lib/auth/reauth.ts) is about what was typed, not the session. Refreshing
+    // and resending it spent a second try from the 10-per-15-minutes budget
+    // and rotated the refresh token for nothing.
     const canRetry =
-      err instanceof ApiError && err.status === 401 && !alreadyRetried && refreshAccessToken && !path.startsWith("/api/auth/");
+      err instanceof ApiError &&
+      err.status === 401 &&
+      !isReauthRefusal(err.data) &&
+      !alreadyRetried &&
+      refreshAccessToken &&
+      !path.startsWith("/api/auth/");
     if (canRetry) {
       const refreshed = await refreshAccessToken!();
       if (refreshed) {

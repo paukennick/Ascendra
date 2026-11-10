@@ -4,6 +4,7 @@ import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http"
 import { verifyGoogleIdToken } from "@/lib/auth/oauth";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
+import { sessionResponse } from "@/lib/auth/refreshCookie";
 import { recordAuthEvent } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });
     const session = await completeLogin(user, meta);
-    return ok(session);
+    return sessionResponse(req, session);
   } catch (err) {
     return serverError(err);
   }

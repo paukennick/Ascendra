@@ -5,6 +5,7 @@ import { consumeRateLimit, recordAuthEvent, RateLimitError } from "@/lib/auth/ra
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { completeLogin } from "@/lib/auth/session";
+import { sessionResponse } from "@/lib/auth/refreshCookie";
 import {
   reserveLoginAttempt,
   clearLoginFailures,
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
 
     await recordAuthEvent("login_success", normalizedEmail, { ip, userId: user.id });
     const session = await completeLogin(user, meta);
-    return ok(session);
+    return sessionResponse(req, session);
   } catch (err) {
     return serverError(err);
   }

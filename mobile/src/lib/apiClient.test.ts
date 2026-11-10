@@ -179,3 +179,28 @@ describe("app version header and update required (REQ-175)", () => {
     assert.deepEqual(got, [{ message: "Please update Ascendra.", minVersion: "9.0.0", storeUrl: null }]);
   });
 });
+
+// REQ-177: a wrong password or code (401 with reauthRequired) is not an
+// expired session. Refreshing and resending it spent a second try from the
+// reauth budget and rotated the refresh token.
+describe("reauth refusals are not retried (REQ-177)", () => {
+  test("a 401 with reauthRequired throws without a refresh or a second send", async () => {
+    const { registerAuthHooks, isReauthRefusal } = await import("../api/client.ts");
+    let refreshes = 0;
+    let sends = 0;
+    registerAuthHooks({ getAccessToken: () => "t", refresh: async () => (refreshes++, true), onAuthExpired: () => undefined });
+    globalThis.fetch = (() => {
+      sends++;
+      return Promise.resolve({
+        ok: false,
+        status: 401,
+        text: () => Promise.resolve(JSON.stringify({ error: "That password or code isn't right.", reauthRequired: true })),
+      });
+    }) as unknown as typeof fetch;
+    await assert.rejects(api.post("/api/account/email", { email: "a@b.c", reauth: "x" }), (err: unknown) => err instanceof ApiError && err.status === 401);
+    assert.equal(refreshes, 0);
+    assert.equal(sends, 1);
+    assert.equal(isReauthRefusal({ reauthRequired: true }), true);
+    assert.equal(isReauthRefusal({ error: "expired" }), false);
+  });
+});

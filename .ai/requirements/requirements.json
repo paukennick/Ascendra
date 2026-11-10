@@ -6162,6 +6162,108 @@
         "Three objective titles were reworded (CKA etcd, KCA failureAction, CNPE Crossplane) plus the PYTHON typing and CMPCBS UNIV 104 titles; mastery maps by sort order, so learners keep their progress",
         "EX188 and CBA minors were not itemised in the audit and were left"
       ]
+    },
+    {
+      "id": "REQ-177",
+      "category": "security",
+      "title": "Lock after time away (native and web) and client security/update hardening",
+      "description": "Nick 2026-11-09: show the lock screen after a short time away instead of only at launch (native) or a full sign-out (web). A Settings choice (Security > Lock Ascendra: Immediately, 1, 5 or 15 minutes; default 5; device preference) sets how long. Native: returning from the background after that long shows a lock overlay over the still-mounted screens (no lost lesson, lab or exam state); unlock with biometrics with the device passcode as the OS fallback when biometric unlock is on, otherwise by re-entering the password (or an authenticator/backup code, or Google, for accounts without a password) through the new POST /api/auth/unlock (lib/auth/reauth.ts checkReauth, same per-account try budget). This replaces the 1.5 s background sign-out (no biometrics) and background re-lock (biometrics). Returns inside a background hold (share sheet, picker) and absences under 1.5 s never lock. Web: no input or a hidden tab for that long (at least 1 minute of idle) shows the same lock with the password; the 30-minute hard sign-out is unchanged and still runs while locked. A cold start or reload that resumes a session locks if a lock was open or the last-seen time is missing or old enough. Also: native screens are covered while the app is not in front (iOS app-switcher snapshot); a 401 with reauthRequired is no longer refreshed and resent (FAIL-562); silent OTA apply skips every screen holding an attempt in progress (labs, exams, quizzes, review and unit checks, explain-back, placement), not only lesson/PBQ/chat. Web version check (lead, 2026-11-09): expo-updates is off on the web, so a tab kept its old bundle until reloaded. build-webapp.sh bakes VERCEL_GIT_COMMIT_SHA into the bundle as EXPO_PUBLIC_WEB_BUILD_ID; GET /api/version (no DB, no auth, Cache-Control no-store) returns the deployed commit; the web app compares them on focus (at most once a minute) and every 10 minutes and shows the update banner with Reload on a mismatch (never automatic). A 426 update_required reloads the tab by itself only on a screen without work in progress (lesson, lab, sim, exam, PBQ, quiz, review, unit check, explain-back, placement, chat) and at most once per bundle per 10 minutes; elsewhere the Update required screen asks. The native silent-apply rule shares the same protected-screen list (mobile/src/lib/webVersion.ts).",
+      "priority": "high",
+      "status": "proposed",
+      "minimum_access_scope": [
+        "mobile/src/lib/autoLock.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/components/AppLock.tsx",
+        "mobile/app/_layout.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/updates/useAppUpdates.ts",
+        "backend/app/api/auth/unlock/route.ts",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Native: back after the chosen time shows the lock over the same screen and unlocking returns to it with its state",
+        "Biometric unlock falls back to the device passcode",
+        "Without biometrics the password (or code or Google) unlocks via /api/auth/unlock",
+        "Web locks after the chosen idle or hidden time and still signs out at 30 minutes",
+        "A restart or reload cannot skip an open or due lock",
+        "Settings offers Immediately 1 5 15 minutes defaulting to 5",
+        "A wrong password is not refreshed and resent"
+      ],
+      "validation_required": [
+        "mobile and backend typecheck",
+        "npm test both",
+        "npm run test:db (lib/app-lock.dbtest.ts)",
+        "omni gate",
+        "CI",
+        "manual check on a device (not done: no device in this session)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Behaviour change: without biometrics",
+        "leaving the app no longer signs out; the session stays and a password lock guards it (refresh token remains in SecureStore as for remember-me cold starts)",
+        "Default 5 minutes is looser than today's biometric re-lock after 1.5 s in the background; Immediately restores it",
+        "RN Modals opened by a screen (choice sheets",
+        "the study-notice sheet) draw above the overlay",
+        "Android recents snapshot still shows content without FLAG_SECURE (needs expo-screen-capture and a store build)",
+        "Not verified on a physical device",
+        "Web bundles from before #76 send no app header, so they never get a 426; they rely on the banner, which only bundles with this change have. Older open tabs still need a manual reload once."
+      ]
+    },
+    {
+      "id": "REQ-192",
+      "category": "security",
+      "title": "Session hardening: logout revokes server-side, web refresh token in an httpOnly cookie, lock above sheets",
+      "description": "Nick 2026-11-09 (approved via lead). (1) A plain logout revokes the session on the server on every platform; with biometric unlock it was left live up to 30 days. Native sends the refresh token, or with only a sealed token the bearer access token (POST /api/auth/logout ends that token's refresh family); the sealed copy is deleted and a per-device flag (ascendra_biometric_session = 0) sends the next launch to sign-in while the biometric preference stays on. (2) The web refresh token moves from sessionStorage to an httpOnly; Secure; SameSite=Strict browser-session cookie on Path=/api/auth/refresh, set on login, MFA verify, Google sign-in and refresh for requests with X-Ascendra-Platform: web; web responses carry no refreshToken. Cookie refresh and DELETE /api/auth/refresh (web logout) require an Origin in the allowed origins, APP_BASE_URL or the request's own origin, plus the platform header. Native keeps secure-store and body refresh. An old web tab's sessionStorage token is deleted then exchanged once in the body for the cookie; failure falls back to sign-in. Tabs serialize refresh with Web Locks. CORS allows credentials for allowed origins. (3) Every Modal goes through SheetModal, hidden while the lock overlay is up (opener stays mounted).",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/auth/refreshCookie.ts",
+        "backend/lib/auth/tokens.ts",
+        "backend/app/api/auth/refresh/route.ts",
+        "backend/app/api/auth/logout/route.ts",
+        "backend/app/api/auth/logout-all/route.ts",
+        "backend/app/api/auth/login/route.ts",
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/src/lib/secureStorage.ts",
+        "mobile/src/components/SheetModal.tsx",
+        "mobile/src/components",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Logout revokes the session server-side on native with and without biometric unlock and on web",
+        "Web responses carry no refresh token and set an HttpOnly Secure SameSite=Strict cookie on /api/auth/refresh",
+        "Cookie refresh rotates and a replay revokes the family",
+        "A cookie refresh or web logout from a foreign or missing Origin is refused with 403 and spends nothing",
+        "An old sessionStorage token is exchanged once or falls back to sign-in without a loop",
+        "Native login/refresh/logout unchanged",
+        "Logout-all and session listing work with cookie sessions",
+        "No sheet draws above the lock"
+      ],
+      "validation_required": [
+        "npm run test:db (lib/session-cookie.dbtest.ts)",
+        "npm test both",
+        "typecheck both",
+        "omni gate",
+        "manual check on a device and browser (not done: none in this session)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Web sign-in now persists across tabs (one cookie per browser) instead of per tab",
+        "Requires Origin header on web refresh: a deployment origin outside ALLOWED_ORIGINS/APP_BASE_URL/own host gets 403",
+        "The 'Use password instead' fallback on the launch lock still cannot revoke the sealed session (token unreadable without the prompt)"
+      ]
     }
   ]
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Animated, Dimensions, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import { useNavigation, usePathname, useRouter } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 import { t } from "@/lib/i18n";
@@ -130,7 +131,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
 
   return (
     <>
-    <Modal transparent visible statusBarTranslucent animationType="none" onRequestClose={onClose}>
+    <SheetModal transparent visible statusBarTranslucent animationType="none" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close menu" />
       <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -261,7 +262,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           />
         </ScrollView>
       </Animated.View>
-    </Modal>
+    </SheetModal>
     <ChoiceSheet
       visible={!!choiceTrack}
       title={choiceTrack?.title ?? ""}

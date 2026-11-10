@@ -8,7 +8,7 @@
 // same kind of object when either appears.
 
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { colors, fonts, radius, shadow, spacing } from "@/lib/theme";
 
@@ -19,6 +19,7 @@ export function UpdateBanner({
   onApply: () => void;
   onDismiss: () => void;
 }) {
+  const web = Platform.OS === "web";
   return (
     <View
       style={{
@@ -39,7 +40,8 @@ export function UpdateBanner({
     >
       <Feather name="arrow-up-circle" size={16} color={colors.accent} />
       <Text style={{ color: colors.text, fontFamily: fonts.body, flex: 1 }}>
-        An update is ready to install.
+        {/* REQ-177: on the web, a newer deploy than this tab's bundle. */}
+        {web ? "A new version is available." : "An update is ready to install."}
       </Text>
       <Pressable
         onPress={onDismiss}
@@ -53,7 +55,7 @@ export function UpdateBanner({
       <Pressable
         onPress={onApply}
         accessibilityRole="button"
-        accessibilityLabel="Restart now to install the update"
+        accessibilityLabel={web ? "Reload to get the new version" : "Restart now to install the update"}
         style={{
           paddingVertical: 6,
           paddingHorizontal: 12,
@@ -61,7 +63,7 @@ export function UpdateBanner({
           backgroundColor: colors.accent,
         }}
       >
-        <Text style={{ color: colors.bg, fontFamily: fonts.bodySemiBold }}>Restart</Text>
+        <Text style={{ color: colors.bg, fontFamily: fonts.bodySemiBold }}>{web ? "Reload" : "Restart"}</Text>
       </Pressable>
     </View>
   );
