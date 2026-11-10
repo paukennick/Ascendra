@@ -7167,7 +7167,50 @@
       ],
       "risk_notes": [
         "A killed function leaves its estimate counting for 24 hours",
-        "The REQ-201 global ceiling must be wired into setGlobalCeilingCheck after the rebase"
+        "The REQ-201 global ceiling must be wired into setGlobalCeilingCheck after the rebase",
+        "B11 (2026-11-10): the REQ-201 global ceiling is wired into the gate (FAIL-964): non-grading model calls pause at the ceiling, owners, the grading pool and pregen purposes pass; REQ-201's list of open AI paths no longer holds for the writers"
+      ]
+    },
+    {
+      "id": "REQ-208",
+      "category": "operations",
+      "title": "Pre-generate launch-course lessons from GitHub Actions with a hard budget",
+      "description": "Shared catalog lessons are pre-generated for the launch courses (DPT, PTPREREQ, CCRNADULT, AWSSAA, AWSMLA, SECPLUS, CNA, Nick 2026-11-09) through the Message Batches API (50% off), run only by the manual 'Pre-generate lessons' workflow so nobody handles the API key or the database URL: workflow_dispatch only, contents: read, the production-database environment, PROD_DATABASE_URL plus a separate ANTHROPIC_PREGEN_API_KEY (a dedicated Console workspace with its own spend limit; never the app's key), refuses to start if either secret is missing, prints counts, the estimate and batch ids only, uploads a counts-only JSON artifact. Budget guard: --tracks is a priority order; the cap (--max-usd, default 110: the whole launch set, 845 lessons, is an upper bound of $100.23 on the batch-10 seed) is checked against an upper bound (every request at max_tokens with the Batches discount, plus the live fact-check at its max_tokens) and fills whole units in order, stopping at the first unit that does not fit; the estimate prints per-track counts and cost and where the cutoff falls; submit refuses when nothing fits, without tracks and max_usd, or while a batch is running. Flow matches the app's lesson pipeline: two batches so practice is written from the teaching text (FAIL-527 rule), verify-by-execution requested and queued (REQ-196), the app's own checkedIntro/checkedPractice (writer doubt, fact-check gate, holdbacks), shuffled answer position, retired/hidden/authored objectives left out, insert-if-absent so content fixes and learners' lessons are never overwritten. Spend lands in ai_calls as purpose pregen / pregen_fact_check and is excluded from AI_GLOBAL_DAILY_CEILING_USD so a run cannot pause learners. --dry-run builds every request and sends nothing. Runbook: Pre-generating lessons. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/pregen.ts",
+        "backend/scripts/pregenerate.ts",
+        "backend/scripts/pregenerate-lib.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/lib/fact-check.ts",
+        ".github/workflows/pregenerate.yml",
+        "docs/operations-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "Workflow is manual",
+        "read-only and refuses without both secrets",
+        "Submit never passes max_usd and cuts whole units in priority order",
+        "Collect saves only through the app's gates and never overwrites an existing lesson",
+        "Pregen spend is in ai_calls but outside the global ceiling",
+        "--dry-run sends nothing"
+      ],
+      "validation_required": [
+        "typecheck",
+        "unit_tests",
+        "integration_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog",
+        "runbook"
+      ],
+      "risk_notes": [
+        "Live API acceptance of the batch request shapes and the real cost per lesson are unverified (no key here): run estimate then a small submit first",
+        "The upper bound is about 2-3x the likely cost so a run may leave cap unspent",
+        "Fact-checks run one after another so a large collect takes hours",
+        "Cap raised to 110 (Nick via the lead, 2026-11-09): the pregen Console workspace limit is 110; the runbook starts with a trial of limit 25 and max_usd 5, then estimates again before the full submit."
       ]
     }
   ]

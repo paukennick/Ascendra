@@ -1,6 +1,6 @@
-import type { AiCallRecord, AiPurpose } from "@/lib/ai-calls";
+import { PREGEN_PURPOSE_PREFIX, type AiCallRecord, type AiPurpose } from "@/lib/ai-calls";
 import { query, withTransaction } from "@/lib/db";
-import { isUnrestricted, noteCeilingReached } from "@/lib/account-access";
+import { isOwner, isUnrestricted, noteCeilingReached } from "@/lib/account-access";
 import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-access-config";
 import { AiBudgetError, dailyBudgetUsd } from "@/lib/ai-budget";
 import { AiSpendUnavailableError, poolOf, poolSpendUsd, type AiPool, type CallEstimate, type SqlRunner } from "@/lib/ai-spend-ledger";
@@ -34,15 +34,23 @@ import { AiSpendUnavailableError, poolOf, poolSpendUsd, type AiPool, type CallEs
 // Accounts with unrestricted access (owners) keep REQ-144's ceiling instead
 // of the everyday budget: raised, never removed.
 //
-// ----- Integration point for the global daily ceiling (REQ-201, batch 10) ---
-// `globalCeilingCheck` below runs first for EVERY model call, with or without a
-// userId, before any per-learner work. It does nothing here. Once batch 10
-// (AI_ACCESS_MODE, AI_GLOBAL_DAILY_CEILING_USD in lib/ai-access.ts) is rebased
-// on this branch, make it call that module's ceiling check -- in place of the
-// no-op body, or by calling setGlobalCeilingCheck at start-up -- and the
-// ceiling stops every path this gate covers (grading, exam items, labs,
-// re-checks, shared lesson generation), not just chat, regenerate and a first
-// lesson. A throw from it refuses the call and no model request is made.
+// ----- The global daily ceiling (REQ-201, batch 10) --------------------------
+// `globalCeilingCheck` runs first for EVERY model call, with or without a
+// userId, before any per-learner work. By default it is the REQ-201 ceiling
+// (lib/ai-access.ts globalCeilingReached): once the day's summed spend reaches
+// AI_GLOBAL_DAILY_CEILING_USD every call that writes or checks content -- chat
+// and its guards, lesson text, exam items, review and unit-check writing,
+// item re-checks, labs, shared generation -- is refused with the same 429
+// "paused" answer, whichever route or script called it, and no model request is
+// made. Three things stay open:
+//   - owners (OWNER_EMAILS), as in REQ-201;
+//   - the grading pool (typed answers, PBQ, lab steps, review and unit-check
+//     grading, explain-back, guess feedback): REQ-201's acceptance rule, set by
+//     Nick, is that the ceiling never stops grading. Those calls still count;
+//   - purposes starting `pregen` (REQ-208): an operator-started script with its
+//     own budget; its rows are left out of the ceiling's sum for the same reason.
+// With no ceiling set it returns without a database read. A failed read of the
+// spend counts as no spend (REQ-201), the per-learner budget still stands.
 
 export interface SpendContext {
   userId: string | null;
@@ -51,13 +59,41 @@ export interface SpendContext {
   estimate: CallEstimate;
 }
 
-export type GlobalCeilingCheck = (ctx: SpendContext) => Promise<void>;
+export type GlobalCeilingCheck = (ctx: SpendContext, env?: NodeJS.ProcessEnv) => Promise<void>;
 
-const noGlobalCeiling: GlobalCeilingCheck = async () => {};
-let globalCeilingCheck: GlobalCeilingCheck = noGlobalCeiling;
+export interface CeilingDeps {
+  reached(env: NodeJS.ProcessEnv): Promise<boolean>;
+  isOwner(userId: string, env: NodeJS.ProcessEnv): Promise<boolean>;
+  paused(env: NodeJS.ProcessEnv): Error;
+}
 
+export function makeGlobalCeilingCheck(deps: CeilingDeps): GlobalCeilingCheck {
+  return async (ctx, env = process.env) => {
+    if (ctx.purpose.startsWith(PREGEN_PURPOSE_PREFIX)) return;
+    if (poolOf(ctx.purpose) === "grading") return;
+    if (!(await deps.reached(env))) return;
+    if (ctx.userId && (await deps.isOwner(ctx.userId, env).catch(() => false))) return;
+    throw deps.paused(env);
+  };
+}
+
+// ai-access imports the billing and entitlement modules, which import the
+// model-call layer that imports this file: it is loaded on first use to keep
+// the import graph acyclic.
+const defaultGlobalCeilingCheck: GlobalCeilingCheck = async (ctx, env = process.env) => {
+  const access = await import("@/lib/ai-access");
+  return makeGlobalCeilingCheck({
+    reached: (e) => access.globalCeilingReached(e),
+    isOwner,
+    paused: (e) => access.ceilingPausedError("coach", e),
+  })(ctx, env);
+};
+
+let globalCeilingCheck: GlobalCeilingCheck = defaultGlobalCeilingCheck;
+
+// null restores the REQ-201 ceiling.
 export function setGlobalCeilingCheck(fn: GlobalCeilingCheck | null): void {
-  globalCeilingCheck = fn ?? noGlobalCeiling;
+  globalCeilingCheck = fn ?? defaultGlobalCeilingCheck;
 }
 
 // ---------------------------------------------------------------------------
@@ -167,7 +203,7 @@ function reservation(id: string, estimate: CallEstimate): SpendReservation {
 
 const realGate: SpendGate = {
   async reserve(ctx, env = process.env) {
-    await globalCeilingCheck(ctx);
+    await globalCeilingCheck(ctx, env);
     const userId = ctx.userId;
     if (!userId) return null;
     const pool = poolOf(ctx.purpose);
@@ -226,7 +262,7 @@ export async function canAffordAiSpend(
   env: NodeJS.ProcessEnv = process.env
 ): Promise<boolean> {
   try {
-    await globalCeilingCheck({ userId, purpose, model: "", estimate: { usd: estimateUsd, inputTokens: 0, outputTokens: 0 } });
+    await globalCeilingCheck({ userId, purpose, model: "", estimate: { usd: estimateUsd, inputTokens: 0, outputTokens: 0 } }, env);
     const pool = poolOf(purpose);
     const budget = poolBudgetUsd(pool, env);
     if (budget === null) return true;

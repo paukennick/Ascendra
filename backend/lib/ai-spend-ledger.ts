@@ -62,6 +62,10 @@ export const PURPOSE_POOL: Record<AiPurpose, AiPool> = {
   eval_generation: "coach",
   eval_cache: "coach",
   eval_factcheck: "coach",
+  // REQ-208: operator pre-generation (no learner, never reserved). Outside the
+  // global ceiling too (lib/ai-spend-gate.ts, lib/ai-budget.ts).
+  pregen: "coach",
+  pregen_fact_check: "coach",
 };
 
 export function poolOf(purpose: string): AiPool {

@@ -32,6 +32,11 @@
   (FAIL-510), and every study route the other branch added is checked
   against the gated-route list in docs/billing.md, the Free one-course
   check included (FAIL-511).
+- A hook one branch leaves for another (a no-op seam such as `setGlobalCeilingCheck`)
+  is wired and tested on the merged tree, through the real call paths, not only
+  stubbed (FAIL-964); every caller that special-cases one refusal class handles
+  the new one the gate can now raise (FAIL-965); a purpose, option or map one
+  branch made required is satisfied by every call site the other added (FAIL-966).
 - When two lines changed the same function, write down each side's rule and
   check both survived the merge, not only the text (REQ-139): the parallel
   lesson calls kept the speed and dropped "practice sees the teaching text"

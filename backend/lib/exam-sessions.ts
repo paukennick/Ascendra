@@ -8,6 +8,7 @@ import { getModel, THINKING_HEADROOM_TOKENS } from "@/lib/anthropic";
 import { canAffordAiSpend } from "@/lib/ai-spend-gate";
 import { estimateCall } from "@/lib/ai-spend-ledger";
 import { AiBudgetError } from "@/lib/ai-budget";
+import { AiAccessError } from "@/lib/ai-access";
 import { factCheckMaxTokens, factCheckModel } from "@/lib/fact-check";
 import {
   answerText,
@@ -330,6 +331,7 @@ export async function createSession(opts: {
   // from the bank only -- no model call, and no rate-limit slot spent. Fails
   // closed: if the budget cannot be read the answer is "cannot afford".
   let budgetPaused = false;
+  let ceilingRefusal: AiAccessError | null = null;
   if (missing.length && opts.allowGeneration !== false && !(await canAffordAiSpend(userId, "exam_items", generationEstimateUsd()))) {
     budgetPaused = true;
   }
@@ -377,11 +379,18 @@ export async function createSession(opts: {
       GENERATION_CONCURRENCY
     );
     generatedCalls = madeCalls;
-    // A refusal from the spend gate mid-session is the budget running out, not
-    // a failed generation: the session is built from the bank.
+    // A refusal from the spend gate mid-session is the budget (AiBudgetError) or the
+    // global daily ceiling (AiAccessError, REQ-201) running out, not a failed
+    // generation: the session is built from the bank (FAIL-965).
     const failures = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
-    for (const f of failures) if (f.reason instanceof AiBudgetError) budgetPaused = true;
-    const real = failures.filter((f) => !(f.reason instanceof AiBudgetError));
+    const isRefusal = (e: unknown) => e instanceof AiBudgetError || e instanceof AiAccessError;
+    for (const f of failures) {
+      if (isRefusal(f.reason)) {
+        budgetPaused = true;
+        if (f.reason instanceof AiAccessError) ceilingRefusal ??= f.reason;
+      }
+    }
+    const real = failures.filter((f) => !isRefusal(f.reason));
     generationFailed = real.length > 0;
     if (generationFailed) {
       const first = real[0];
@@ -410,7 +419,7 @@ export async function createSession(opts: {
   }[];
   if (!picked.length) {
     // Nothing in the bank to build from and no budget to write more: say so.
-    if (budgetPaused && !generationFailed) throw new AiBudgetError();
+    if (budgetPaused && !generationFailed) throw ceilingRefusal ?? new AiBudgetError();
     throw new ExamSessionError(
       generationFailed
         ? "Practice questions for this course couldn't be prepared just now. Please try again in a few minutes."

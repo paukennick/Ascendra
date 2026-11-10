@@ -335,6 +335,117 @@ about 50 active users, the database is over about 300 MB, or losing a day of
 data is no longer acceptable (point-in-time recovery needed). Keep this
 workflow running after the switch; it is a copy off Supabase.
 
+## Pre-generating lessons
+
+Shared catalog lessons are normally written the first time a learner opens an
+objective (a 13-20 second wait for that learner). **Pre-generation** writes
+them ahead of time for chosen courses, through the Message Batches API at half
+price. It runs only from the **Pre-generate lessons** workflow
+(`.github/workflows/pregenerate.yml`, Actions tab, run by hand); nobody handles
+the API key or the database URL. Code: `lib/pregen.ts`, `scripts/pregenerate.ts`,
+`scripts/pregenerate-lib.ts` (REQ-132, REQ-208).
+
+**How a lesson is made.** Exactly as the app makes one on demand, in two
+batches because the practice questions are written from the teaching text:
+
+1. `submit` creates the **intro batch** (guess prompt + teaching cards).
+2. `collect <intro batch>`, once it has ended, applies the app's checks to each
+   teaching text (content lint; teaching text the writer is unsure of is held
+   back) and creates the **practice batch**, whose prompts carry that text and,
+   for Python/JavaScript/academic courses, ask for a verification program.
+3. `collect <practice batch>` with `intro_batch_id`, once it has ended, shuffles
+   the stored answer position, runs the content lint, the second-model fact-check
+   (one live call per lesson, not discounted), the holdbacks and the exec-check
+   queue, then saves **insert-if-absent**: it never replaces a lesson, a lesson
+   a content fix voided or corrected, an authored lesson or a learner's own
+   version. A lesson that fails a check is logged in `item_holdbacks` (review
+   with `npm run items`) and not saved; its first learner visit makes it through
+   the full pipeline, retry included.
+
+Left out always: retired objectives and units, hidden courses (`hidden_at`
+passed), private courses, authored lessons, and any objective that already has
+a lesson row of any kind.
+
+**The money.** `max_usd` is checked against an **upper bound**, not a guess:
+every request priced at its full `max_tokens` with the Batches discount, plus
+the fact-check at its full `max_tokens` (thinking included). At the 2026-11-09
+prices (Sonnet 5.5, $2 in / $10 out per million tokens; batches $1 / $5) that is
+about **$0.118 a lesson, so about 84 lessons per $10** of cap. The real cost is
+expected to be well under that (collect prints the actual figure), so a run
+usually leaves cap unspent; run estimate again afterwards for what is left.
+`--tracks` is a **priority order**: a track is filled before the next, a unit at
+a time, and the first unit that would pass `max_usd` ends the list, so the
+lowest-priority track loses its later units. Estimate prints per-track counts
+and cost and where the cutoff falls. Submit refuses if even the first unit does
+not fit, if a batch is already running (a second click would pay twice), or
+without `tracks` and `max_usd`.
+
+**Where the spend shows.** Each batch's usage is one `ai_calls` row, purpose
+`pregen`, dated when the batch ended (collecting it twice does not count it
+twice); the live fact-checks are purpose `pregen_fact_check`. Neither counts
+toward `AI_GLOBAL_DAILY_CEILING_USD` (docs/billing.md): a run this size would reach the
+recommended $5 ceiling at once and pause chat and regenerate for learners. The
+rows are in `ai_calls`, so any total over the table includes them; the app's
+price table prices tokens at list price, so such a total shows a batch at twice
+its real cost. The real cost is what collect prints and the artifact holds.
+
+### Steps
+
+**(a) One-time setup (Nick).** In the Claude Console create a workspace named
+**pregen** with a **$110 spend limit**, and create an API key in it. In
+GitHub: repository Settings -> Environments -> **production-database** -> add
+the secret **`ANTHROPIC_PREGEN_API_KEY`** with that key. It is a separate secret
+from the app's key, which this job never has; in GitHub Actions the script
+refuses any other key. (If production pins `ANTHROPIC_MODEL`, set the same as a
+repository variable named `ANTHROPIC_MODEL`; blank uses the default.) The
+workflow stops at once, naming the secret, if `PROD_DATABASE_URL` or
+`ANTHROPIC_PREGEN_API_KEY` is missing.
+
+**(b) Estimate.** Actions -> Pre-generate lessons -> Run workflow, mode
+`estimate`. `tracks` defaults to the launch set in priority order:
+`DPT,PTPREREQ,CCRNADULT,AWSSAA,AWSMLA,SECPLUS,CNA`; `max_usd` 110. On the
+batch-10 seed this is 845 lessons and an upper bound of $100.23 (DPT 110,
+PTPREREQ 95, CCRNADULT 271, AWSSAA 99, AWSMLA 107, SECPLUS 36, CNA 127), so the
+whole set fits with $9.77 to spare. Read the log:
+lessons and upper-bound cost per track and the line "Cut off at ...". Change
+the order or drop courses until the cutoff is where you want it. No model call,
+no write.
+
+**(b2) Trial first.** Before the full run, spend a few dollars to prove the
+whole path on real API responses (the request shapes are untested against the
+live API). Run `submit` with the same `tracks`, **`limit` 25 and `max_usd` 5**
+(25 lessons are about $3 at the upper bound), then collect both stages as in
+(d). Check the counts and the Console usage page (e). Then run **estimate
+again**: the 25 saved lessons drop out, and the new total and cutoff are what
+the full submit will use. Only then run (c) without `limit`.
+
+**(c) Submit.** Mode `submit`, the agreed `tracks` (priority order) and
+`max_usd` (110), no `limit`. The log prints the intro batch id (`msgbatch_...`). Most batches
+finish within an hour.
+
+**(d) Collect, until it ends.** Mode `collect`, `batch_id` = the intro batch id,
+the same `tracks` and `max_usd`. "Not finished yet" means run it later. When it
+has ended it starts the **practice batch** and prints its id. Wait again, then
+run `collect` with `batch_id` = the practice batch id and `intro_batch_id` = the
+intro batch id. That run saves the lessons and prints the counts (saved,
+already had one, held back, failed) and the actual cost. Run each collect once
+per ended batch: a repeat of the first starts nothing (the workflow refuses
+when a newer batch exists), and a repeat of the second only re-checks lessons
+still unsaved. To cover what was cut off, go back to (b): saved lessons drop out
+of the estimate, so use `max_usd` = $110 minus what has been spent.
+
+**(e) Check.** The job summary and the `pregen-summary` artifact hold counts
+only. Then: `npm run items -- list` shows lessons held back for review;
+`select purpose, count(*), sum(output_tokens) from ai_calls where purpose like
+'pregen%' group by 1;` shows the usage; open a pre-generated objective in the
+app and confirm the lesson appears at once; the Console workspace's usage page
+should agree with the actual cost collect printed. Failed and held objectives are
+not a problem: they are simply still missing and are made on first visit.
+
+The log never contains prompts, lesson text or claims (the held-back claims are in
+`item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
+--tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
+
 ## CI
 
 - `backfill` job: applies 001-028, loads `scripts/ci/synthetic-history.sql`

@@ -90,7 +90,8 @@ function callSites(): CallSite[] {
 
 // Call sites that pass `userId: null` on purpose. Everything under scripts/ is
 // run by an operator (offline evals, pregeneration, lab generation) and has
-// no learner to charge; the global ceiling still covers them. Anything else
+// no learner to charge; the global ceiling still covers them, except pregeneration
+// (purposes starting `pregen`, REQ-208), which has its own budget. Anything else
 // needs a line here and a reason.
 const NULL_USER_OK: Record<string, string> = {
   "lib/lab-generation.ts": "modelLabChecker: run only by scripts/generate-labs.ts (an operator), never for a learner",
@@ -100,7 +101,10 @@ const nullUserAllowed = (file: string) => file.startsWith("scripts/") || file in
 describe("every AiPurpose has a pool", () => {
   test("PURPOSE_POOL lists exactly the AiPurpose union", () => {
     const src = readFileSync(join(ROOT, "lib/ai-calls.ts"), "utf8");
-    const union = src.slice(src.indexOf("export type AiPurpose ="), src.indexOf("export interface AiCallMeta"));
+    // Up to the union's own closing semicolon (comments stripped): constants declared between the union and
+    // AiCallMeta, such as REQ-208's PREGEN_PURPOSE_PREFIX = "pregen", are not purposes (FAIL-964).
+    const from = stripLineComments(src.slice(src.indexOf("export type AiPurpose =")));
+    const union = from.slice(0, from.indexOf(";"));
     const purposes = [...union.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]);
     assert.ok(purposes.length >= 30, "the scan found the union");
     assert.deepEqual([...purposes].sort(), Object.keys(PURPOSE_POOL).sort());
