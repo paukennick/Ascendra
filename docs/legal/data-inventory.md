@@ -53,6 +53,7 @@ No cookies, analytics, crash reporting or advertising identifiers.
 | Resend | account email; support requests with the user's email as reply-to | |
 | Expo | app update requests from the mobile app | |
 | Google | sign-in, only if chosen | |
+| GitHub | the nightly backup (REQ-200): the whole database, encrypted with age; GitHub never has the key | Actions artifact, kept 30 days; the unencrypted manifest beside it holds counts only |
 
 ## Retention jobs
 
@@ -70,3 +71,11 @@ same personal data, and an account deleted in the meantime stays in the
 copy until it is dropped. The 2026-11-07 copy (schema
 `backup_release_20261107`) is dropped by the run on 2026-12-08. The API
 roles have no access to it.
+
+Nightly backups (REQ-200): the "Nightly database backup" GitHub workflow
+dumps the whole database every day, encrypts it with age to a key only the
+owner holds, and keeps it as a workflow artifact for 30 days, after which
+GitHub deletes it. Each backup holds the same personal data as the database,
+so an account deleted today is still in the backups of the previous 30 days
+until they expire; a restore from one must re-delete any account deleted
+after that backup was taken. See operations-runbook.md "Backups".
