@@ -189,7 +189,7 @@ export async function sampleSimId(trackId: string, env: Record<string, string | 
 }
 
 export async function simAccess(userId: string, sim: Pick<SimRow, "id" | "track_id">, env: Record<string, string | undefined> = process.env): Promise<SimAccess> {
-  if (await hasFeature(userId, SIMS_FEATURE, env as NodeJS.ProcessEnv)) return "full";
+  if (await hasFeature(userId, SIMS_FEATURE, sim.track_id, env as NodeJS.ProcessEnv)) return "full"; // REQ-170: on this course
   return (await sampleSimId(sim.track_id, env)) === sim.id ? "sample" : "locked";
 }
 
@@ -209,7 +209,7 @@ export async function gateSim(userId: string, sim: SimRow, mode: "view" | "resum
   const continuing = mode === "view" ? runs.any : runs.open;
   if (!continuing) {
     await requireCourseAccess(userId, sim.track_id, env as NodeJS.ProcessEnv);
-    if (access === "locked") await requireFeature(userId, SIMS_FEATURE, env as NodeJS.ProcessEnv);
+    if (access === "locked") await requireFeature(userId, SIMS_FEATURE, sim.track_id, env as NodeJS.ProcessEnv);
   }
   return access;
 }
@@ -262,7 +262,8 @@ export async function listSims(userId: string, scope: SimScope, caps: SimCaps | 
     [id, userId]
   );
   const on = renderersOn(env);
-  const full = await hasFeature(userId, SIMS_FEATURE, env as NodeJS.ProcessEnv);
+  // REQ-170: the tier on the listed course (a scope is one track, unit or objective).
+  const full = await hasFeature(userId, SIMS_FEATURE, scope, env as NodeJS.ProcessEnv);
   const samples = new Map<string, string | null>();
   const out: SimListItem[] = [];
   for (const r of rows) {
