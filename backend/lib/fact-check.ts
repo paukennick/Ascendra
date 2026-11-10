@@ -1,18 +1,22 @@
 import { z } from "zod";
-import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
+import { callClaudeStructured, getModel } from "@/lib/anthropic";
 import type { CoachContext } from "@/lib/coach-context";
 import { systemWithRules, type SystemPrompt } from "@/lib/prompts";
 
 // REQ-114 (Audit 3, recommendation 1): the second-model fact-check gate.
 //
 // Before a new SHARED item is published (exam bank, review question, Quiz-me
-// question, comparison-card scenario, a shared lesson's two checks), one call
-// to the fast model answers it WITHOUT the key and lists any claim in it that
+// question, comparison-card scenario, a lesson's two checks -- shared or a
+// learner's regenerate, REQ-187), one model call answers it WITHOUT the key and lists any claim in it that
 // it cannot support for this exam version. The item is published only when
 // that independent answer matches the key and no unsupported claim is listed;
 // otherwise it is held back (lib/item-quality.ts recordHoldback).
 //
-// Cost: one fast-model call per generation BATCH (every item a generation
+// REQ-187 (audit 2026-11-09 R4/P3): the checker was the fast model at low
+// effort with thinking off, checking the stronger writer's work. It is now
+// the writer's own model (getModel, the same ANTHROPIC_MODEL setting, so a
+// rollback moves both) with thinking on, so it is at least as strong as what
+// it checks. Cost: one writer-model call per generation BATCH (every item a generation
 // call wrote is checked in the same call), never per learner. The same
 // function is the automated re-check of a flagged item (one item, once).
 //
@@ -145,7 +149,12 @@ export interface CheckMeta {
 }
 export type FactChecker = (items: CheckItem[], meta: CheckMeta) => Promise<CheckVerdict[]>;
 
-// The real checker: one fast-model call for the whole batch. Throws if the
+// REQ-187: the writer's model, never a weaker one.
+export function factCheckModel(): string {
+  return getModel();
+}
+
+// The real checker: one call for the whole batch. Throws if the
 // call fails; callers decide (the gate fails closed).
 export const modelFactChecker: FactChecker = async (items, meta) => {
   if (!items.length) return [];
@@ -154,10 +163,11 @@ export const modelFactChecker: FactChecker = async (items, meta) => {
     system,
     messages: [{ role: "user", content: user }],
     schema: factCheckSchema,
-    maxTokens: 300 + 160 * items.length,
-    model: getFastModel(),
-    effort: "low",
-    thinking: "off",
+    // The answer itself; lib/anthropic.ts adds thinking headroom.
+    maxTokens: 400 + 200 * items.length,
+    model: factCheckModel(),
+    effort: "medium",
+    thinking: "default",
     purpose: meta.purpose ?? "fact_check",
     userId: meta.userId ?? undefined,
   });

@@ -64,6 +64,8 @@ let labQuestions = ["Which TLS version did you see?", "Who is the issuer?", "Whe
 let verdict: "correct" | "partial" | "incorrect" = "correct";
 
 function purposeOf(text: string): string {
+  // REQ-187: a lesson's checks are fact-checked; a disputed key is not served.
+  if (text.includes("independent fact-checker")) return "fact_check";
   if (text.includes("exampleSteps")) return "intro";
   if (text.includes("fadeProblem")) return "practice";
   if (text.includes("guessMatch")) return "guess";
@@ -122,8 +124,21 @@ before(async () => {
         const text = JSON.stringify(body);
         const purpose = purposeOf(text);
         sent.push({ purpose, text });
+        // The checker agrees with the key: the right option is "a" in the
+        // fixture, wherever the stored shuffle put it (REQ-187).
+        const agree = () => {
+          const user = String(body.messages?.[0]?.content ?? "");
+          const results = [...user.matchAll(/<item key="([^"]+)"[^>]*>([\s\S]*?)<\/item>/g)].map((m) => {
+            const opts = [...m[2].matchAll(/Option (\d+): (.*)/g)];
+            const right = opts.find((o) => o[2].trim() === "a");
+            return { key: m[1], answer: [right ? Number(right[1]) : 0], unsupportedClaims: [] };
+          });
+          return { results };
+        };
         const out =
-          purpose === "intro"
+          purpose === "fact_check"
+            ? agree()
+            : purpose === "intro"
             ? INTRO
             : purpose === "practice"
               ? PRACTICE

@@ -6264,6 +6264,59 @@
         "Requires Origin header on web refresh: a deployment origin outside ALLOWED_ORIGINS/APP_BASE_URL/own host gets 403",
         "The 'Use password instead' fallback on the launch lock still cannot revoke the sealed session (token unreadable without the prompt)"
       ]
+    },
+    {
+      "id": "REQ-187",
+      "category": "content",
+      "title": "Generated content pipeline accuracy (2026-11-09 audit)",
+      "description": "Audit 2026-11-09 prompts-and-pipeline findings and generated-lesson findings: never serve a key the checker disputed (R3/P1); deterministic distractor lint and shuffled stored answer position (R5/P6); fact-checker at least as strong as the writer with thinking, regenerations fact-checked, verify-by-execution interface (R4/P3/P7); chat coach agreement flags KEY_SUSPECT (R12/P9); teaching text held back on self-reported doubt (P8); dated current-facts block per course from the seed (R10); authored lessons for degree-advising objectives (R1); re-check job for content stored before 2026-11-07 (R6); lesson-fix tooling and workflows to void or correct the audited wrong lessons in production.",
+      "priority": "critical",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/verify-execution.ts",
+        "backend/lib/current-facts.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/degree-advising.ts",
+        "backend/lib/chat-dispute.ts",
+        "backend/lib/lesson-fixes.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/ai-calls.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/scripts/lesson-fixes.ts",
+        "backend/scripts/lesson-fixes-2026-11-09.ts",
+        "backend/scripts/recheck-stored.ts",
+        "backend/package.json",
+        ".github/workflows/lesson-fixes.yml",
+        ".github/workflows/content-recheck.yml",
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A practice half the checker disputes after one retry is never stored or served",
+        "Distractor lint refuses length cues absolute words above-options count mismatches self-labels and positional explanations",
+        "The fact-checker uses the writer model with thinking and checks regenerations",
+        "A coach reply agreeing a verdict was wrong records a key_suspect flag",
+        "Uncertain teach text is retried once then held back",
+        "Every prompt carries a dated current-facts block for catalog courses",
+        "Degree-advising objectives are served authored lessons",
+        "Pre-gate content can be re-checked and failures pulled",
+        "The audited wrong lessons can be voided or corrected in production through a workflow"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
     }
   ]
 }

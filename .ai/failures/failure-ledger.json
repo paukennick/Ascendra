@@ -8257,6 +8257,198 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-610",
+      "date": "2026-11-09",
+      "title": "A lesson check the fact-checker disputed twice was still served",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "checkedPractice kept a practice half whose retry also failed the fact-check and served it ('served_after_retry'), so learners were graded against a disputed key",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "A lesson could not be shown without its checks, so the design chose availability over accuracy for the second failure",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "After the one retry a still-disputed practice half is logged (NOT_SERVED_MARK) and the generation fails with ContentHeldBackError; a 6-hour cooldown stops repeat spend",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.dbtest.ts",
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "No path stores a lesson whose key failed the gate; tests assert the rejection and the log",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-611",
+      "date": "2026-11-09",
+      "title": "Learner regenerations and teaching text were never checked",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A learner's own regenerate skipped the fact-check, and teaching text with the writer's own uncertain claims was shown with only a log entry",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "The gate was scoped to shared lessons to save cost, and teach text was treated as non-item content",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/fact-check.ts"
+      ],
+      "fix_summary": "Regenerations are fact-checked; uncertain teach text is retried once then held back; the checker is the writer's model with thinking",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-quality.dbtest.ts",
+        "backend/lib/generation-pipeline.dbtest.ts",
+        "backend/lib/generation-pipeline.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Tests assert a regenerate is checked and uncertain teach text is not stored",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-612",
+      "date": "2026-11-09",
+      "title": "CMPCBS advising lessons invented course titles and contradicted the plan",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Generated lessons for CMPCBS advising objectives named GICE 290, GICE 220 and COMS 101 with invented titles and taught no double counting against the plan's shared credit; keys depended on the invented facts",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "The writer was given only the plan line's title and filled the gap from memory; advising facts are about one school's plan, not a subject",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/degree-advising.ts"
+      ],
+      "fix_summary": "Degree-advising objectives get authored lessons built only from the seed plan; the three audited lessons are voided by the lesson-fixes workflow",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts",
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Advising objectives never call the model; a test checks every course code in an authored lesson appears in the plan",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-613",
+      "date": "2026-11-09",
+      "title": "AWSSAP Direct Connect lesson: two defensible answers and outdated speeds",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The Guided check rejected a second Direct Connect connection at another location (AWS High Resiliency), and the teaching text gave hosted speeds of sub-1 to 10 Gbps",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "Generated without the current guide; no check that each item has exactly one defensible answer under the stem's constraints",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "Stem now rules out a second DX on budget and time; old Guided answers voided; speeds corrected to 50 Mbps-25 Gbps hosted, 1/10/100/400 Gbps dedicated, 5 Gbps large-bandwidth VPN tunnels",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The corrected values are asserted against the audited lesson fixture",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-614",
+      "date": "2026-11-09",
+      "title": "ABPTSGCS ageing lesson: 220 minus age said to overestimate HRmax in older adults",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The worked example and the Solo check's explanation said 220-age overestimates maximum heart rate in older adults",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "Generated from memory; Tanaka 2001 shows the formula underestimates HRmax in older adults",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "Worked example corrected with Tanaka's 208-0.7xage; the Solo check replaced and its old answers voided",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts",
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Corrected values asserted against the audited fixture; the clinical source is cited in the lesson",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-615",
+      "date": "2026-11-09",
+      "title": "ABPTSECS lesson: Lambert-Eaton said to have a normal resting amplitude",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Teaching text said NMJ disorders including Lambert-Eaton show normal amplitude at rest",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "Generated from memory, grouping LEMS with myasthenia gravis",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "Corrected: LEMS resting CMAP is low; decrement at 2-3 Hz; increment after 30-50 Hz or about 10 s of maximal exercise; cited",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Corrected text asserted against the audited fixture",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-616",
+      "date": "2026-11-09",
+      "title": "AWSAIF chunking lesson counted 4 chunks where there are 5",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "1,200 tokens in 300-token chunks with 50-token overlap was said to give 4 chunks",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "Arithmetic in generated text is not recomputed",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts",
+        "backend/lib/verify-execution.ts"
+      ],
+      "fix_summary": "Corrected to 5 chunks; verify-by-execution interface added for computed keys",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The test recomputes the chunk count",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-617",
+      "date": "2026-11-09",
+      "title": "SECPLUS controls lesson swapped control categories and control types",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The lesson's checks called technical/managerial/operational/physical 'control types' and the six preventive...directive 'functions'",
+      "how_detected": "content audit 2026-11-09",
+      "root_cause": "Generated from an objective title that itself swapped the terms (fixed separately in data.ts)",
+      "requirement": "REQ-187",
+      "affected": [
+        "backend/scripts/lesson-fixes-2026-11-09.ts"
+      ],
+      "fix_summary": "Lesson wording corrected to SY0-701 categories and types; keys unchanged",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-pipeline.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Corrected wording asserted against the audited fixture",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-670",
       "date": "2026-11-09",
       "title": "Email link scanners spent verification links on GET; set_password links cleared the password for the scanner",
