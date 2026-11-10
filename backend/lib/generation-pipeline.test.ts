@@ -2,7 +2,8 @@
 //   - distractor lint and stored answer shuffle (R5/P6)
 //   - fact-checker strength (R4/P3) and verify-by-execution interface (R4/P7)
 //   - dated current-facts block per course (R10)
-//   - authored degree-advising lessons (R1)
+//   - (R1's authored degree-advising lessons were replaced by REQ-195:
+//     lib/cmpcbs-general-courses.test.ts)
 //   - chat dispute detection (R12/P9)
 //   - the audit's lesson fixes apply to the audited text and correct it
 // The stateful parts are in lib/generation-pipeline.dbtest.ts.
@@ -25,11 +26,9 @@ import { setAiCallSink } from "./ai-calls";
 import { sameOutput, snippetProblems, verifyByExecution, wantsVerification, type CodeRunner } from "./verify-execution";
 import { currentFactsBlock } from "./current-facts";
 import { domainFraming, lessonPracticePrompt, lessonIntroPrompt } from "./prompts";
-import { ADVISING_UNITS, authoredAdvisingLesson, isAdvisingUnit, type AdvisingContext } from "./degree-advising";
 import { looksLikeGradeDispute, disputeJudgePrompt } from "./chat-dispute";
 import { correctedLesson, lessonText, type LessonFix } from "./lesson-fixes";
 import { CATALOG_TRACKS } from "../supabase/seed/catalog";
-import { CMPCBS_TRACK } from "../supabase/seed/data";
 import { LESSON_FIXES_2026_11_09 } from "../scripts/lesson-fixes-2026-11-09";
 import fixture from "./fixtures/audit-2026-11-09-lessons.json";
 import type { LessonRow } from "./lesson-store";
@@ -202,9 +201,12 @@ describe("R10: a dated current-facts block per course, from the seed", () => {
     assert.match(b, /retires 2027-06-11/);
     assert.match(b, /Prefer these facts over anything you remember/);
   });
-  test("a degree course states its plan and version", () => {
+  test("a course with no exam states its outline and version; a unit adds its own dated references (REQ-195)", () => {
     const b = currentFactsBlock(byCode("CMPCBS"))!;
-    assert.match(b, /Degree plan: .*CMPC-BS-D, version 2026-2027/);
+    assert.match(b, /Syllabus: Computer Science Degree Foundations outline .*, version REQ-195, 2026-11-09\./);
+    assert.doesNotMatch(b, /Reference for this unit/);
+    const u = currentFactsBlock(byCode("CMPCBS"), "Calculus I")!;
+    assert.match(u, /Reference for this unit: OpenStax, Calculus Volume 1 \(https:\/\/openstax\.org\/[^)]+\), checked 2026-11-09\./);
   });
   test("every catalog course builds a block or none, without throwing; it reaches the prompt framing", () => {
     for (const t of CATALOG_TRACKS) currentFactsBlock(t);
@@ -212,59 +214,6 @@ describe("R10: a dated current-facts block per course, from the seed", () => {
     const ctx = { trackTitle: "Security+", trackType: "certification", currentFacts: facts };
     assert.ok(domainFraming(ctx).includes(facts));
     assert.ok(lessonIntroPrompt({ trackTitle: "T", unitTitle: "U", objectiveTitle: "O", ctx }).system.stable.includes(facts));
-  });
-});
-
-function advisingCtx(unitTitle: string, objectiveTitle: string): AdvisingContext {
-  const units = CMPCBS_TRACK.units.filter((u) => ADVISING_UNITS.CMPCBS.includes(u.title));
-  const unit = units.find((u) => u.title === unitTitle)!;
-  return {
-    trackCode: "CMPCBS",
-    objectiveTitle,
-    unitTitle,
-    rangeLabel: unit.rangeLabel ?? null,
-    advisingNote: unit.gate ?? null,
-    lines: units.flatMap((u) => u.objectives.map((o) => ({ unitTitle: u.title, objectiveTitle: o }))),
-    curriculum: CMPCBS_TRACK.curriculum!,
-  };
-}
-
-describe("R1: degree-advising objectives get authored lessons from the plan", () => {
-  const units = CMPCBS_TRACK.units.filter((u) => ADVISING_UNITS.CMPCBS.includes(u.title));
-  test("the advising units exist in the seed, about 20 objectives", () => {
-    assert.equal(units.length, ADVISING_UNITS.CMPCBS.length);
-    const n = units.reduce((k, u) => k + u.objectives.length, 0);
-    assert.ok(n >= 18 && n <= 22, `${n} advising objectives`);
-    assert.ok(isAdvisingUnit("cmpcbs", "Free Electives"));
-    assert.ok(!isAdvisingUnit("CMPCBS", "MATH 410: Matrix and Linear Algebra"));
-  });
-  test("every advising objective gets a valid lesson whose keys are what the plan says, with the plan cited", () => {
-    const planText = units.flatMap((u) => [u.title, u.gate ?? "", ...u.objectives]).join(" ");
-    for (const u of units) {
-      for (const o of u.objectives) {
-        const l = authoredAdvisingLesson(advisingCtx(u.title, o));
-        assert.equal(l.fadeChoices[l.fadeCorrectIndex], u.title);
-        assert.equal(l.soloChoices[l.soloCorrectIndex], o);
-        assert.equal(new Set(l.fadeChoices).size, 4);
-        assert.equal(new Set(l.soloChoices).size, 4);
-        // Every wrong Solo option is a line from ANOTHER block.
-        l.soloChoices.forEach((c, i) => i !== l.soloCorrectIndex && assert.ok(!u.objectives.includes(c)));
-        const structural = lessonPracticeProblems(l).filter((p) => !/much longer|absolute word|asks for/.test(p));
-        assert.deepEqual(structural, [], `${o}: ${structural.join(" ")}`);
-        assert.match(l.teach, /CMPC-BS-D, 2026-2027/);
-        assert.match(l.teach, /confirm with the current catalog and your academic advisor/);
-        // No course code the plan does not state (the GICE 290 failure).
-        for (const code of l.teach.match(/\b[A-Z]{3,4} \d{3}\b/g) ?? []) assert.ok(planText.includes(code), `${code} is not in the plan`);
-        assert.equal(l.teachCards!.cards.length, 4);
-      }
-    }
-  });
-  test("the same objective always gets the same lesson; answer positions vary across objectives", () => {
-    const a = authoredAdvisingLesson(advisingCtx("Free Electives", units.find((u) => u.title === "Free Electives")!.objectives[0]));
-    const b = authoredAdvisingLesson(advisingCtx("Free Electives", units.find((u) => u.title === "Free Electives")!.objectives[0]));
-    assert.deepEqual(a, b);
-    const positions = new Set(units.flatMap((u) => u.objectives.map((o) => authoredAdvisingLesson(advisingCtx(u.title, o)).soloCorrectIndex)));
-    assert.ok(positions.size >= 3);
   });
 });
 

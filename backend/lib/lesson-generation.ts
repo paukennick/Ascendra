@@ -33,9 +33,10 @@ import {
 } from "@/lib/lesson-store";
 import { factCheckGate, modelFactChecker, type CheckItem, type FactChecker } from "@/lib/fact-check";
 import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
-import { AUTHORED_ADVISING_MODEL, advisingContextFor, authoredAdvisingLesson, type AdvisingContext } from "@/lib/degree-advising";
+import { AUTHORED_LESSON_MODEL, authoredLesson, authoredRefFor, type AuthoredRef } from "@/lib/authored-lessons";
 import { unavailableVerifier, verifyByExecution, wantsVerification, type CodeRunner } from "@/lib/verify-execution";
 import { recordHintReveal } from "@/lib/grading-service";
+import { isActive } from "@/lib/progress-sql";
 
 export type { LessonRow, LessonScope } from "@/lib/lesson-store";
 
@@ -54,9 +55,12 @@ export interface ObjectiveRow {
   // REQ-076: taxonomy/credential framing for the prompts. Null only for an
   // objective whose track has no taxonomy row at all (user-created tracks).
   ctx: CoachContext | null;
-  // REQ-187 (R1): set for a degree-advising requirement (lib/degree-advising.ts):
-  // its lesson is authored from the plan, never generated.
-  advising?: AdvisingContext | null;
+  // REQ-195 (was REQ-187 R1's degree-advising context): set for an objective
+  // with an authored lesson (lib/authored-lessons.ts); never generated.
+  authored?: AuthoredRef | null;
+  // REQ-195: the objective (or its unit) is retired. Nothing is generated
+  // for it; the lesson route answers 404 before getting here.
+  retired?: boolean;
 }
 
 // REQ-134: what the app is sent for a lesson. Grading is server-side, so the
@@ -147,9 +151,10 @@ export function rowToAvoid(row: LessonRow): LessonAvoid {
 }
 
 export async function loadObjective(objectiveId: string): Promise<ObjectiveRow | null> {
-  const [row, ctx, advising] = await Promise.all([
-    queryOne<Omit<ObjectiveRow, "ctx" | "advising">>(
-      `select o.title, cu.title as unit_title, st.title as track_title
+  const [row, ctx, authored] = await Promise.all([
+    queryOne<Omit<ObjectiveRow, "ctx" | "authored">>(
+      `select o.title, cu.title as unit_title, st.title as track_title,
+              not (${isActive("o")} and ${isActive("cu")}) as retired
        from objectives o
        join course_units cu on cu.id = o.unit_id
        join subject_tracks st on st.id = cu.track_id
@@ -157,9 +162,9 @@ export async function loadObjective(objectiveId: string): Promise<ObjectiveRow |
       [objectiveId]
     ),
     coachContextForObjective(objectiveId),
-    advisingContextFor(objectiveId).catch(() => null),
+    authoredRefFor(objectiveId).catch(() => null),
   ]);
-  return row ? { ...row, ctx, advising } : null;
+  return row ? { ...row, ctx, authored } : null;
 }
 
 
@@ -262,10 +267,14 @@ export const claudeGenerator: LessonGenerator = {
   runCode: unavailableVerifier,
 };
 
-// REQ-187 (R1): a degree-advising requirement's lesson, authored from the
-// plan (lib/degree-advising.ts). No model call, nothing to fact-check.
-export function authoredAdvisingGenerator(ctx: AdvisingContext): LessonGenerator {
-  const lesson = () => authoredAdvisingLesson(ctx);
+// REQ-195 (was REQ-187 R1's advising generator): an authored lesson
+// (lib/authored-lessons.ts). No model call, nothing to fact-check.
+export function authoredGenerator(ref: AuthoredRef): LessonGenerator {
+  const lesson = () => {
+    const l = authoredLesson(ref);
+    if (!l) throw new Error(`no authored lesson for ${ref.trackCode} "${ref.objectiveTitle}"`);
+    return l;
+  };
   return {
     async intro() {
       const l = lesson();
@@ -275,7 +284,7 @@ export function authoredAdvisingGenerator(ctx: AdvisingContext): LessonGenerator
       const { guessPrompt: _g, teach: _t, teachCards: _c, ...practice } = lesson();
       return practice;
     },
-    model: () => AUTHORED_ADVISING_MODEL,
+    model: () => AUTHORED_LESSON_MODEL,
   };
 }
 
@@ -286,6 +295,14 @@ export function authoredAdvisingGenerator(ctx: AdvisingContext): LessonGenerator
 export const HELD_BACK_MESSAGE =
   "This lesson didn't pass our accuracy checks, so we're not showing it yet. It has been held for review. " +
   "In the meantime, try this objective's lab or your review questions, and check back later.";
+
+// REQ-195: asked to generate a lesson for a retired objective.
+export class RetiredObjectiveError extends Error {
+  constructor() {
+    super("This objective has been retired and is no longer taught.");
+    this.name = "RetiredObjectiveError";
+  }
+}
 
 export class ContentHeldBackError extends UserFacingError {
   constructor() {
@@ -586,8 +603,12 @@ export function ensureGeneration(objectiveId: string, objRow: ObjectiveRow, opts
   // unhandled; callers that do await it still see the rejection.
   introPromise.catch(() => {});
 
-  // REQ-187 (R1): a degree-advising requirement is authored, never generated.
-  const gen = opts.generator ?? (objRow.advising ? authoredAdvisingGenerator(objRow.advising) : claudeGenerator);
+  // REQ-195: a retired objective is not taught, so nothing is generated for
+  // it (a model call here would write a lesson for degree-plan content that
+  // was removed). The routes check first; this is the backstop.
+  if (objRow.retired) throw new RetiredObjectiveError();
+  // REQ-195 (was REQ-187 R1): an objective with an authored lesson is never generated.
+  const gen = opts.generator ?? (objRow.authored ? authoredGenerator(objRow.authored) : claudeGenerator);
   const fullPromise = runGeneration(objectiveId, objRow, opts, gen, settle).catch(
     (err) => {
       failIntro(err); // no-op if the intro already settled

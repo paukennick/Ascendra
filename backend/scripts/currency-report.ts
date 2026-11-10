@@ -35,7 +35,7 @@ if (process.argv.includes("--json")) {
     console.log(`\n${c.code}  ${c.title}`);
     for (const d of c.due) {
       const label = d.status === "overdue" ? "OVERDUE " : "due soon";
-      const what = d.what === "outline" ? "outline" : `lab source (${d.kind}, ${d.labs} labs)`;
+      const what = d.what === "outline" ? "outline" : d.what === "unit_source" ? `unit source (${d.kind})` : `lab source (${d.kind}, ${d.labs} labs)`;
       console.log(`  ${label}  re-check by ${d.recheckBy || "(no date)"}  checked ${d.checkedAt || "(never)"}  ${what}`);
       console.log(`            ${d.url}`);
     }

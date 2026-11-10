@@ -309,22 +309,25 @@ describe("authored pilot content (supabase/seed/labs)", () => {
       assert.deepEqual(got, want, code);
     }
   });
-  // REQ-161: CMPCBS is a degree plan. Its course units (titled with a course
-  // code) follow the hybrid plan; its advising units (elective blocks, free
-  // electives, graduation checklist) have no skill to practise and get none.
-  test("CMPCBS course units follow the hybrid density; advising units have no lab", () => {
+  // REQ-161/195: CMPCBS's twenty major course units follow the hybrid plan.
+  // Its reframed general-education surveys have no lab yet, and its retired
+  // degree-plan units and objectives (electives, free electives, the
+  // graduation checklist) never get one.
+  test("CMPCBS course units follow the hybrid density; gen-ed surveys and retired lines have no lab", () => {
     const t = tracks.get("CMPCBS")!;
     const set = LAB_SETS.find((s) => s.trackCode === "CMPCBS")!;
     const units = activeUnits(t);
-    const isCourse = (title: string) => /^[A-Z]{4} \d{3}:/.test(title);
-    const course = units.filter((u) => isCourse(u.title));
-    assert.ok(course.length >= 20, "course units found");
+    const genEd = new Set(["College Composition I", "Religion Surveys: The Bible and Christian Thought"]);
+    const course = units.filter((u) => !genEd.has(u.title));
+    assert.equal(course.length, 20, "course units found");
     const want = unitPlan({ code: "CMPCBS", family: "general", units: course.map((u) => ({ title: u.title, weight: u.weight ?? null, objectives: u.objectives })) }, "hybrid");
     const got = course.map((u) => set.labs.filter((l) => u.objectives.includes(l.objective)).length);
     assert.deepEqual(got, want, "course units");
-    for (const u of units.filter((u) => !isCourse(u.title))) {
+    for (const u of units.filter((u) => genEd.has(u.title))) {
       assert.equal(set.labs.filter((l) => u.objectives.includes(l.objective)).length, 0, u.title);
     }
+    const active = new Set(units.flatMap((u) => u.objectives));
+    for (const l of set.labs) assert.ok(active.has(l.objective), `${l.slug} is on an active objective`);
   });
 });
 

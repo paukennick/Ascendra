@@ -6317,6 +6317,60 @@
         "CHANGELOG.md"
       ],
       "risk_notes": []
+    },
+    {
+      "id": "REQ-195",
+      "category": "content",
+      "title": "CMPCBS as general CS/math courses; school degree-plan and non-CS gen-ed content retired",
+      "description": "Nick, 2026-11-09: 'liberty degree lesson should be removed unless they can be reframed as general course titles. Content should be accurate to the course type.' The CMPCBS track mirrored one university's degree completion plan and named it. Rename the track to Computer Science Degree Foundations; retitle the major course units as general courses taught from dated open textbooks; reframe college composition and the two religion surveys (as neutral academic surveys) in place with authored, sourced lessons; retire (never delete or reorder) degree-plan logistics objectives; stop serving or generating lessons for retired objectives; replace REQ-187's authored degree-advising lessons; remove the school's catalog and course codes from the labs. Later the same day (Nick): 'Remove English and religious courses that aren't CS.' College composition and both religion surveys are retired too (units 0 and 5, ids and positions kept), and their authored lessons are deleted; the track teaches only CS, math and information-systems courses.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/data.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/seed/labs/academic-cmpcbs.ts",
+        "backend/lib/authored-lessons.ts",
+        "backend/lib/authored-lessons-cmpcbs.ts",
+        "backend/lib/degree-advising.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/lesson-fixes.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/current-facts.ts",
+        "backend/lib/coach-context.ts",
+        "backend/lib/content-currency.ts",
+        "backend/lib/visibility.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/scripts/lesson-fixes.ts",
+        "backend/scripts/lesson-fixes-2026-11-09.ts",
+        "backend/scripts/currency-report.ts",
+        ".github/workflows/lesson-fixes.yml",
+        "docs/content-review.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "No school name in the track's learner-facing titles or descriptions",
+        "Retired objectives are not listed served or generated",
+        "Reframed objectives are served authored lessons that cite dated sources",
+        "Re-seeding master then the branch keeps every objective row id by position and learners' mastery",
+        "Every active unit names at least one dated open reference"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on fresh Postgres 16 after master seed then branch seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/content-review.md"
+      ],
+      "risk_notes": [
+        "Track code CMPCBS (derived from the school's plan code CMPC-BS) is unchanged and shown on the mobile course card; renaming it needs a data move",
+        "Existing answers on the three reframed objectives are kept (not voided); mastery from REQ-187 advising lessons would carry over if those were applied first",
+        "The three labs whose briefs changed go back to needs_expert_review",
+        "The gen-ed survey units have no lab yet",
+        "Checks 2026-11-09: npm test 728/728; test:db 605/605 on fresh Postgres 16 after master seed then branch seed twice."
+      ]
     }
   ]
 }

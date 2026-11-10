@@ -20,13 +20,15 @@ export const LESSON_FIXES_2026_11_09: LessonFix[] = [
   // invented course titles (GICE 290 is Cultural Anthropology; GICE 220 is
   // Intercultural Communication and Engagement; COMS 101 is Speech
   // Communication I) or teach "no double counting" against the plan's own
-  // shared credit (CSIS 110, MATH 131). Voided; the objective then gets the
-  // authored advising lesson (lib/degree-advising.ts).
+  // shared credit (CSIS 110, MATH 131). Voided. REQ-195 retired all three
+  // objectives (degree-plan logistics), so the void matches them retired
+  // (includeRetired) and nothing replaces the lesson.
   {
     id: "CMPCBS-7",
     track: "CMPCBS",
     objective: "Cultural Studies elective -- choose 3 credits from ARTS 105, CSTU 101, CSTU 220, GICE 290, GOVT 200, GOVT 220, MUSC 103, or RLGN 210",
     action: "void",
+    includeRetired: true,
     note: "invented course titles (GICE 290 is Cultural Anthropology); the key depends on them",
     expect: ["New scenario, same idea: You need a course from this same list"],
   },
@@ -35,6 +37,7 @@ export const LESSON_FIXES_2026_11_09: LessonFix[] = [
     track: "CMPCBS",
     objective: "22 credits of free electives, any 100-400 level course not already required elsewhere in the plan",
     action: "void",
+    includeRetired: true,
     note: "teaches 'no double counting', contradicting the plan's shared credit (CSIS 110, MATH 131); options mismatched",
     expect: ["Sam's plan requires 22 credits of free electives."],
   },
@@ -43,6 +46,7 @@ export const LESSON_FIXES_2026_11_09: LessonFix[] = [
     track: "CMPCBS",
     objective: "Communications elective -- choose 3 credits from COMS 101, BUSI 300, ENGR 270, or GICE 220",
     action: "void",
+    includeRetired: true,
     note: "invented course titles (GICE 220 is Intercultural Communication and Engagement; COMS 101 is Speech Communication I)",
     expect: ["A different transfer student, Marcus, is a Computer Engineering major"],
   },

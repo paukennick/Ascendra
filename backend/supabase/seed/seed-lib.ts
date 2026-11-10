@@ -3,7 +3,7 @@
 // mastery, seed v2) through exactly the code production runs.
 import type { Pool } from "pg";
 import type { SeedTrack, SeedCredential } from "./data";
-import { activeUnits } from "./catalog";
+import { activeUnits, objectiveRetiredAt } from "./catalog";
 import type { SeedLabSet } from "./labs/types";
 import { labContentHash, labContentProblems, type LabContent } from "../../lib/lab-content";
 
@@ -295,6 +295,8 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     for (let j = 0; j < unit.objectives.length; j++) {
       const objTitle = unit.objectives[j];
       const lab = unit.labs?.[j] ?? null;
+      // REQ-195: an objective can be retired on its own in a unit that stays.
+      const objRetiredAt = objectiveRetiredAt(unit, j);
       const existingObj = await pool.query(
         `select id from objectives where unit_id = $1 and sort_order = $2`,
         [unitId, j]
@@ -302,12 +304,12 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
       if (existingObj.rows[0]) {
         await pool.query(
           `update objectives set title = $1, lab_prompt = $2, retired_at = $4::timestamptz where id = $3`,
-          [objTitle, lab, existingObj.rows[0].id, retiredAt]
+          [objTitle, lab, existingObj.rows[0].id, objRetiredAt]
         );
       } else {
         await pool.query(
           `insert into objectives (unit_id, title, sort_order, lab_prompt, retired_at) values ($1,$2,$3,$4,$5::timestamptz)`,
-          [unitId, objTitle, j, lab, retiredAt]
+          [unitId, objTitle, j, lab, objRetiredAt]
         );
       }
     }

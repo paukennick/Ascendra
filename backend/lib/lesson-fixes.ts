@@ -1,7 +1,7 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { lessonIntroProblems, lessonPracticeProblems } from "@/lib/content-validator";
 import { confirmItemWrong, lessonItemId, recordHoldback, type ItemRef } from "@/lib/item-quality";
-import { advisingContextFor, authoredAdvisingLesson, AUTHORED_ADVISING_MODEL, ADVISING_UNITS } from "@/lib/degree-advising";
+import { AUTHORED_LESSONS, AUTHORED_LESSON_MODEL, authoredLesson, authoredRefFor } from "@/lib/authored-lessons";
 import { parseTeachCards, teachFromCards, type TeachCards } from "@/lib/prompts";
 import type { LessonRow } from "@/lib/lesson-store";
 
@@ -20,8 +20,8 @@ import type { LessonRow } from "@/lib/lesson-store";
 //              against them is voided (kept, left out of mastery), the
 //              learners' mastery is recomputed, and the lesson is no longer
 //              served. The next visit generates a replacement through the
-//              hardened pipeline (or, for a degree-advising objective, the
-//              authored lesson).
+//              hardened pipeline (or, for an objective with an authored
+//              lesson, that lesson).
 //   replace    the lesson is corrected in place: exact text edits (each must
 //              match), optional replacement fields, and a dated sources line
 //              added to the teaching text. Checks listed in `voidChecks`
@@ -29,9 +29,9 @@ import type { LessonRow } from "@/lib/lesson-store";
 //              which voids the answers graded against them; their question
 //              text must change, so the corrected check is a new item.
 //              Answers to checks that were right are kept.
-//   authored   a degree-advising objective (lib/degree-advising.ts): the
-//              stored generated lesson is replaced by the authored one, and
-//              learners' own regenerated copies of it are removed.
+//   authored   an objective with an authored lesson (lib/authored-lessons.ts,
+//              REQ-195): the stored lesson is replaced by the authored one,
+//              and learners' own regenerated copies of it are removed.
 // Each replaced lesson's previous content is logged in item_holdbacks with
 // the reason, so nothing is lost.
 
@@ -75,6 +75,10 @@ export interface LessonFix {
   // A wording-only correction (a typo, a leaked phrase, recomputed
   // arithmetic) that changes no factual claim needs no sources line.
   editorial?: boolean;
+  // REQ-195: also match a retired objective. A void still applies to one
+  // (its wrong answers are voided in the learners' history), though the
+  // objective itself is no longer taught.
+  includeRetired?: boolean;
 }
 
 export interface FixTarget {
@@ -87,12 +91,13 @@ const LESSON_COLUMNS = `guess_prompt, teach, fade_problem, fade_choices, fade_co
   solo_check, solo_choices, solo_correct_index, solo_why, fade_option_reasons, solo_option_reasons, teach_cards, model, generated_at`;
 
 // Read-only: the catalog objective a fix names, and its shared lesson.
-export async function lookupFix(fix: Pick<LessonFix, "track" | "objective">): Promise<FixTarget[]> {
+export async function lookupFix(fix: Pick<LessonFix, "track" | "objective" | "includeRetired">): Promise<FixTarget[]> {
   const rows = await query<{ id: string; unit_title: string }>(
     `select o.id, cu.title as unit_title
        from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
-      where st.user_id is null and upper(st.code) = upper($1) and o.title = any($2::text[]) and (o.retired_at is null or o.retired_at > now())`,
-    [fix.track, Array.isArray(fix.objective) ? fix.objective : [fix.objective]]
+      where st.user_id is null and upper(st.code) = upper($1) and o.title = any($2::text[])
+        and ($3::boolean or (o.retired_at is null or o.retired_at > now()))`,
+    [fix.track, Array.isArray(fix.objective) ? fix.objective : [fix.objective], fix.includeRetired === true]
   );
   const out: FixTarget[] = [];
   for (const r of rows) {
@@ -280,7 +285,7 @@ export async function applyLessonFix(fix: LessonFix, opts: { apply: boolean }): 
   const text = lessonText(row);
   const missing = (fix.expect ?? []).filter((e) => !text.includes(e));
   if (missing.length) return { ...base, status: "skipped", detail: `stored lesson differs from the audited one (missing: "${missing[0].slice(0, 60)}"); left alone` };
-  const tag = `REQ-187 ${fix.id}: ${fix.note}`;
+  const tag = `${fix.action === "authored" ? "REQ-195" : "REQ-187"} ${fix.id}: ${fix.note}`;
 
   if (fix.action === "void") {
     const done = await queryOne<{ n: number }>(
@@ -296,13 +301,13 @@ export async function applyLessonFix(fix: LessonFix, opts: { apply: boolean }): 
   }
 
   if (fix.action === "authored") {
-    const ctx = await advisingContextFor(t.objectiveId);
-    if (!ctx) return { ...base, status: "error", detail: "not a degree-advising objective" };
-    if (row.model === AUTHORED_ADVISING_MODEL) return { ...base, status: "skipped", detail: "already authored" };
-    const l = authoredAdvisingLesson(ctx);
-    if (!opts.apply) return { ...base, status: "would_apply", detail: "would replace the generated lesson with the authored one and remove learners' regenerated copies" };
+    const ref = await authoredRefFor(t.objectiveId);
+    const l = ref ? authoredLesson(ref) : null;
+    if (!l) return { ...base, status: "error", detail: "no authored lesson for this objective" };
+    if (row.model === AUTHORED_LESSON_MODEL) return { ...base, status: "skipped", detail: "already authored" };
+    if (!opts.apply) return { ...base, status: "would_apply", detail: "would replace the stored lesson with the authored one and remove learners' regenerated copies" };
     await logReplaced(t.objectiveId, row, tag);
-    await overwriteShared(t.objectiveId, { ...l, teachCards: l.teachCards ?? null }, AUTHORED_ADVISING_MODEL);
+    await overwriteShared(t.objectiveId, { ...l, teachCards: l.teachCards ?? null }, AUTHORED_LESSON_MODEL);
     const removed = await removeOverrides(t.objectiveId);
     return { ...base, status: "applied", detail: `replaced with the authored lesson; ${removed} learner copies removed` };
   }
@@ -320,8 +325,8 @@ export async function applyLessonFix(fix: LessonFix, opts: { apply: boolean }): 
   return { ...base, status: "applied", detail: "lesson corrected", voidedAnswers: voided };
 }
 
-// Learners' own regenerated copies of an advising lesson are generated text
-// too; the authored lesson replaces them. Their saved places reset.
+// Learners' own regenerated copies of a lesson that is now authored are
+// generated text; the authored lesson replaces them. Their saved places reset.
 async function removeOverrides(objectiveId: string): Promise<number> {
   return withTransaction(async (tx) => {
     const rows = await tx.query<{ user_id: string }>(`delete from lesson_content_overrides where objective_id = $1 returning user_id`, [objectiveId]);
@@ -329,22 +334,25 @@ async function removeOverrides(objectiveId: string): Promise<number> {
   });
 }
 
-// Every degree-advising objective that has a stored lesson not yet authored,
-// as "authored" fixes (R1).
-export async function advisingFixes(): Promise<LessonFix[]> {
+// REQ-195 (was REQ-187's advisingFixes): every catalog objective with an
+// authored lesson whose stored shared lesson is something else -- a generated
+// lesson, or REQ-187's degree-plan lesson (model authored:degree-plan) -- as
+// "authored" fixes. Retired objectives are left out: they are not served.
+export async function authoredFixes(): Promise<LessonFix[]> {
   const out: LessonFix[] = [];
-  for (const [code, units] of Object.entries(ADVISING_UNITS)) {
+  for (const [code, lessons] of Object.entries(AUTHORED_LESSONS)) {
     const rows = await query<{ title: string }>(
       `select o.title
          from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
          join lesson_content lc on lc.objective_id = o.id
-        where st.user_id is null and upper(st.code) = $1 and cu.title = any($2::text[]) and (o.retired_at is null or o.retired_at > now())
+        where st.user_id is null and upper(st.code) = $1 and o.title = any($2::text[])
+          and (o.retired_at is null or o.retired_at > now()) and (cu.retired_at is null or cu.retired_at > now())
           and lc.model <> $3
         order by cu.sort_order, o.sort_order`,
-      [code, units, AUTHORED_ADVISING_MODEL]
+      [code, Object.keys(lessons), AUTHORED_LESSON_MODEL]
     );
     for (const r of rows) {
-      out.push({ id: `${code}-advising:${r.title.slice(0, 40)}`, track: code, objective: r.title, action: "authored", note: "degree-advising objective: authored lesson from the plan (audit R1)" });
+      out.push({ id: `${code}-authored:${r.title.slice(0, 40)}`, track: code, objective: r.title, action: "authored", note: "reframed general course: authored lesson with sources (REQ-195)" });
     }
   }
   return out;

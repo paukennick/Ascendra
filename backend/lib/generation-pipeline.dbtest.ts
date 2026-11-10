@@ -3,9 +3,10 @@
 // client or an injected generator/checker; no API key.
 //   - P8: teaching text held back on the writer's doubt; the cooldown
 //   - R4/P7: a verification program's mismatch holds the practice half back
-//   - R1: a degree-advising objective is authored, never generated
+//   - (R1's degree-advising lessons: replaced by REQ-195, lib/cmpcbs-general-courses.dbtest.ts)
 //   - R12/P9: a coach reply agreeing a verdict was wrong flags the item
-//   - lesson fixes (void / replace / authored) through the app's mechanisms
+//   - lesson fixes (void / replace) through the app's mechanisms; the
+//     "authored" fix is tested in lib/cmpcbs-general-courses.dbtest.ts
 //   - R6: the re-check of content stored before the gate
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after, beforeEach } from "node:test";
@@ -22,14 +23,12 @@ import {
   ContentHeldBackError,
   NOT_SERVED_MARK,
   ensureGeneration,
-  loadObjective,
   type GenerationHandle,
   type LessonGenerator,
   type ObjectiveRow,
 } from "./lesson-generation";
-import { AUTHORED_ADVISING_MODEL } from "./degree-advising";
 import { flagChatDisputes } from "./chat-dispute";
-import { applyLessonFix, lookupFix, advisingFixes, type LessonFix } from "./lesson-fixes";
+import { applyLessonFix, lookupFix, type LessonFix } from "./lesson-fixes";
 import { recheckStored, RECHECK_REASON } from "./recheck-stored";
 import { LESSON_FIXES_2026_11_09 } from "../scripts/lesson-fixes-2026-11-09";
 import fixture from "./fixtures/audit-2026-11-09-lessons.json";
@@ -200,31 +199,6 @@ describe("R4/P7: verify by execution", () => {
   });
 });
 
-describe("R1: degree-advising objectives are authored, never generated", () => {
-  test("a CMPCBS advising objective gets the authored lesson with no model call; a regenerate returns the same lesson", async () => {
-    const o = await queryOne<{ id: string }>(
-      `select o.id from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
-        where st.code = 'CMPCBS' and st.user_id is null and cu.title = 'Free Electives' limit 1`
-    );
-    assert.ok(o, "seeded CMPCBS");
-    await query(`delete from lesson_content where objective_id = $1`, [o!.id]);
-    try {
-      const objRowReal = await loadObjective(o!.id);
-      assert.ok(objRowReal?.advising, "advising context loaded");
-      const row = await ensureGeneration(o!.id, objRowReal!, { scope: SHARED, pending: fresh() }).fullPromise;
-      assert.equal(modelCalls, 0);
-      assert.equal(row.model, AUTHORED_ADVISING_MODEL);
-      assert.equal(row.fade_choices[row.fade_correct_index], "Free Electives");
-      const u = await newUser();
-      const mine = await ensureGeneration(o!.id, objRowReal!, { scope: { kind: "user", userId: u }, pending: fresh() }).fullPromise;
-      assert.equal(mine.solo_check, row.solo_check);
-      await query(`delete from lesson_content_overrides where objective_id = $1`, [o!.id]);
-    } finally {
-      await query(`delete from lesson_content where objective_id = $1`, [o!.id]);
-    }
-  });
-});
-
 describe("R12/P9: a coach reply agreeing a verdict was wrong flags the item", () => {
   test("dispute + recent wrong answer + agreeing reply -> one key_suspect flag; no dispute -> no judge call", async () => {
     process.env.ITEM_FACT_CHECK = "off"; // the flag's automated re-check is tested elsewhere
@@ -343,35 +317,6 @@ describe("lesson fixes through the app's mechanisms", () => {
     // A lesson that no longer matches the audited text is left alone.
     const other = await applyLessonFix({ ...f, objective: "Objective 1" }, { apply: true });
     assert.notEqual(other.status, "applied");
-  });
-
-  test("authored: a generated advising lesson is replaced by the authored one and learners' copies go", async () => {
-    const o = await queryOne<{ id: string; title: string }>(
-      `select o.id, o.title from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
-        where st.code = 'CMPCBS' and st.user_id is null and cu.title = 'Graduation Requirements' order by o.sort_order limit 1`
-    );
-    const u = await newUser();
-    await insertLesson(o!.id, lessons["CMPCBS-10"].row);
-    await query(
-      `insert into lesson_content_overrides (user_id, objective_id, guess_prompt, teach, fade_problem, fade_choices, fade_correct_index, fade_why, solo_check, solo_choices, solo_correct_index, solo_why, model)
-       values ($1, $2, 'g', 't', 'f', $3, 0, 'w', 's', $3, 0, 'w', 'claude-sonnet-5')`,
-      [u, o!.id, JSON.stringify(CHOICES)]
-    );
-    try {
-      const listed = await advisingFixes();
-      const f = listed.find((x) => x.objective === o!.title);
-      assert.ok(f, "listed as an advising fix");
-      const r = await applyLessonFix(f!, { apply: true });
-      assert.equal(r.status, "applied", r.detail);
-      assert.match(r.detail, /1 learner copies removed/);
-      const now = (await getLessonFor(u, o!.id))!;
-      assert.equal(now.source, "shared");
-      assert.equal(now.row.model, AUTHORED_ADVISING_MODEL);
-      assert.ok(!(await advisingFixes()).some((x) => x.objective === o!.title), "not listed again");
-    } finally {
-      await query(`delete from lesson_content where objective_id = $1`, [o!.id]);
-      await query(`delete from item_holdbacks where objective_id = $1`, [o!.id]);
-    }
   });
 });
 
