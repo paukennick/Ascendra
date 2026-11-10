@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { factCheckEnabled, modelFactChecker, orderingForCheck, type CheckItem, type FactChecker } from "@/lib/fact-check";
+import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 
 // REQ-114 (Audit 3 H1/H2/H3): what keeps a wrong shared item from reaching
 // every learner. Migration 042.
@@ -301,7 +302,18 @@ export interface RecheckResult {
 // If the check disagrees with the key or finds an unsupported claim, the
 // item is quarantined ("one flag + a failed re-check"). If the call fails the
 // claim is released so a later flag can try again.
-export async function recheckItem(ref: ItemRef, checker: FactChecker = modelFactChecker): Promise<RecheckResult> {
+//
+// REQ-202 (audit finding 3): the re-check used to carry no userId, so no
+// budget saw it, and a learner could send up to 20 reports an hour
+// (480 a day) and start a Sonnet re-check for each. It is now charged to the
+// learner whose report started it (their spend gate applies inside the model
+// call), and each learner may START at most RECHECK_LIMIT.max a day; past
+// that the report is still recorded and the item waits for another reporter
+// or a person. `userId` is null only for an operator script.
+export const RECHECK_EVENT = "item_recheck";
+export const RECHECK_LIMIT = { max: 10, windowMinutes: 24 * 60 };
+
+export async function recheckItem(ref: ItemRef, checker: FactChecker, userId: string | null): Promise<RecheckResult> {
   if (!factCheckEnabled()) return { ran: false, agreed: null, quarantined: false };
   const claim = await queryOne<{ id: string }>(
     `insert into item_flags (item_kind, item_id, objective_id, question, source)
@@ -309,6 +321,16 @@ export async function recheckItem(ref: ItemRef, checker: FactChecker = modelFact
     [ref.kind, ref.itemId, ref.objectiveId, ref.question]
   );
   if (!claim) return { ran: false, agreed: null, quarantined: false };
+  if (userId) {
+    try {
+      await consumeRateLimit(RECHECK_EVENT, userId, RECHECK_LIMIT, { userId });
+    } catch (err) {
+      // Give the claim back: the one re-check is still unspent.
+      await query(`delete from item_flags where id = $1`, [claim.id]).catch(() => undefined);
+      if (err instanceof RateLimitError) return { ran: false, agreed: null, quarantined: false };
+      throw err;
+    }
+  }
   try {
     const item = await loadCheckItem(ref);
     if (!item) {
@@ -316,7 +338,7 @@ export async function recheckItem(ref: ItemRef, checker: FactChecker = modelFact
       return { ran: false, agreed: null, quarantined: false };
     }
     const ctx = ref.objectiveId ? (await coachContextForObjective(ref.objectiveId)) ?? undefined : undefined;
-    const [v] = await checker([item], { ctx, purpose: "item_recheck" });
+    const [v] = await checker([item], { ctx, purpose: "item_recheck", userId });
     const agreed = !!v && v.publish;
     await query(`update item_flags set recheck_agreed = $2, recheck_detail = $3 where id = $1`, [
       claim.id,
@@ -355,7 +377,7 @@ export async function flagItem(
   const r = await recordFlag(ref, f);
   // REQ-123: labs have no automated re-check (loadCheckItem has nothing to
   // ask); running it would only spend the item's one re-check on an error.
-  const recheck = r.recorded && !r.quarantined && !NO_RECHECK.includes(ref.kind) ? recheckItem(ref, checker) : null;
+  const recheck = r.recorded && !r.quarantined && !NO_RECHECK.includes(ref.kind) ? recheckItem(ref, checker ?? modelFactChecker, f.userId) : null;
   return { ...r, recheck };
 }
 

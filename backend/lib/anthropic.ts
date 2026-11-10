@@ -5,22 +5,57 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 import { flattenSystem, type SystemPrompt } from "@/lib/prompts";
 import { AiResponseError, loggedCall, type AiPurpose } from "@/lib/ai-calls";
+import { estimateCall } from "@/lib/ai-spend-ledger";
 
-// The two methods this module uses, loosely typed so tests can supply a fake
+// The one method this module uses, loosely typed so tests can supply a fake
 // (no network, no key) and because request params carry fields the installed
-// SDK's types predate (thinking.type "between_tools").
+// SDK's types predate (thinking.type "between_tools"). Structured calls use
+// create too and parse the answer here (REQ-202, see callClaudeStructured).
 interface ClientLike {
   messages: {
     create(params: any): Promise<any>;
-    parse(params: any): Promise<any>;
+    // Test fakes written before REQ-202 implement parse() for structured
+    // calls; see __setClientForTest.
+    parse?(params: any): Promise<any>;
   };
 }
 
 let client: ClientLike | null = null;
 
+// REQ-202 (F1): the SDK's defaults are a 10-minute timeout and 2 retries, so
+// one hung request could hold a function and a database connection for half
+// an hour and a flaky upstream could triple a call's cost. One attempt gets
+// 90 s (the slowest call here, a 6,000-token lesson half on Sonnet, takes
+// about 60 to 100 s) and one retry; the routes' maxDuration (300 s at most,
+// the Hobby plan's ceiling with Fluid compute) covers both attempts for the
+// long routes. Exported for the test that pins them.
+export const ANTHROPIC_TIMEOUT_MS = 90_000;
+export const ANTHROPIC_MAX_RETRIES = 1;
+
 // Test seam: null restores the real client.
+//
+// Structured calls used to go through messages.parse (REQ-202 moved them to
+// create and a local parse, so usage survives a parse failure). A fake that
+// still implements parse() for them keeps working: a create() carrying an
+// output format is answered by its parse(), and a message that already
+// carries parsed_output (the SDK's parse() shape; a real create() never
+// does) is used as it is, as those fakes always were -- they were never
+// checked against the schema. A fake that answers create() with a text block
+// goes through the real local parse.
 export function __setClientForTest(c: ClientLike | null): void {
-  client = c;
+  if (!c || !c.messages.parse) {
+    client = c;
+    return;
+  }
+  const legacy = c;
+  client = {
+    messages: {
+      async create(params: any) {
+        if (!params?.output_config?.format) return legacy.messages.create(params);
+        return legacy.messages.parse!(params);
+      },
+    },
+  };
 }
 
 // Production authenticates to Anthropic via Workload Identity Federation:
@@ -34,7 +69,7 @@ function getClient(): ClientLike {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (apiKey) {
-    client = new Anthropic({ apiKey });
+    client = new Anthropic({ apiKey, timeout: ANTHROPIC_TIMEOUT_MS, maxRetries: ANTHROPIC_MAX_RETRIES });
     return client;
   }
 
@@ -49,6 +84,8 @@ function getClient(): ClientLike {
   }
 
   client = new Anthropic({
+    timeout: ANTHROPIC_TIMEOUT_MS,
+    maxRetries: ANTHROPIC_MAX_RETRIES,
     credentials: oidcFederationProvider({
       identityTokenProvider: () => getVercelOidcToken(),
       federationRuleId,
@@ -236,7 +273,13 @@ export interface CallOptions {
   thinking?: ThinkingMode;
   // Recorded in ai_calls; required so a new call site can't go unlabelled.
   purpose: AiPurpose;
-  userId?: string | null;
+  // REQ-202: REQUIRED, so a new call site cannot forget it. The learner the
+  // call is for: it is held to that learner's spend gate
+  // (lib/ai-spend-gate.ts) and recorded against them. null is for work with
+  // no learner to charge (offline scripts, shared jobs run by a cron);
+  // lib/ai-spend-gate.test.ts lists every call site that passes it and fails
+  // on a new one.
+  userId: string | null;
 }
 
 const EPHEMERAL = { type: "ephemeral" } as const;
@@ -379,13 +422,13 @@ export function parseLooseJson(raw: string): unknown {
  */
 export async function callClaude(opts: CallOptions): Promise<string> {
   if (isLocalProvider()) {
-    return loggedCall({ purpose: opts.purpose, model: getOllamaModel(), userId: opts.userId }, () =>
+    return loggedCall({ purpose: opts.purpose, model: getOllamaModel(), userId: opts.userId, free: true }, () =>
       callOllama({ system: flattenSystem(opts.system), messages: opts.messages, maxTokens: opts.maxTokens })
     );
   }
   const { model, body } = prepare(opts);
   const res = await loggedCall(
-    { purpose: opts.purpose, model, userId: opts.userId },
+    { purpose: opts.purpose, model, userId: opts.userId, estimate: estimateCall(model, body) },
     () => getClient().messages.create(body),
     (r) => {
       if (!r.content?.some((b: { type: string }) => b.type === "text")) {
@@ -419,23 +462,50 @@ export async function callClaudeStructured<S extends z.ZodType>(
   opts: CallOptions & { schema: S }
 ): Promise<z.infer<S>> {
   if (isLocalProvider()) {
-    const raw = await loggedCall({ purpose: opts.purpose, model: getOllamaModel(), userId: opts.userId }, () =>
+    const raw = await loggedCall({ purpose: opts.purpose, model: getOllamaModel(), userId: opts.userId, free: true }, () =>
       callOllama({ system: flattenSystem(opts.system), messages: opts.messages, maxTokens: opts.maxTokens })
     );
     return opts.schema.parse(parseLooseJson(raw));
   }
-  const { model, body } = prepare(opts, zodOutputFormat(opts.schema));
-  const message = await loggedCall(
-    { purpose: opts.purpose, model, userId: opts.userId },
-    () => getClient().messages.parse(body),
+  const format = zodOutputFormat(opts.schema);
+  // `format.parse` is the SDK helper's local parser: a function, so it is
+  // dropped when the body is serialized and is used on the answer below.
+  const parseOutput = (format as typeof format & { parse: (text: string) => unknown }).parse;
+  const { model, body } = prepare(opts, format);
+  // REQ-202 (audit finding 5): this used to call messages.parse, which throws
+  // on an unparseable answer BEFORE the response -- and its usage -- reaches
+  // loggedCall, so a billed call that failed to parse was logged at $0 and
+  // its cost never counted against a budget. messages.create returns the
+  // message either way; the answer is parsed here, inside loggedCall's check,
+  // which records the usage whether the check passes or not.
+  let parsed: unknown;
+  await loggedCall(
+    { purpose: opts.purpose, model, userId: opts.userId, estimate: estimateCall(model, body) },
+    () => getClient().messages.create(body),
     (m) => {
-      if (m.parsed_output === null || m.parsed_output === undefined) {
+      if (m.parsed_output !== undefined && m.parsed_output !== null) {
+        parsed = m.parsed_output;
+        return;
+      }
+      const text = (m.content ?? []).find((b: { type: string }) => b.type === "text")?.text;
+      if (typeof text !== "string" || !text) {
+        const blockTypes = (m.content ?? []).map((b: { type: string }) => b.type).join(", ") || "none";
         throw new AiResponseError(
           "no_parsed_output",
-          `Claude structured output missing parsed_output. stop_reason=${m.stop_reason}`
+          `Claude structured output had no text to parse. stop_reason=${m.stop_reason}, blocks=[${blockTypes}]`
+        );
+      }
+      try {
+        parsed = parseOutput(text);
+      } catch (err) {
+        // The SDK helper's message carries the first schema issues, never the
+        // model text; stop_reason max_tokens is the usual cause of bad JSON.
+        throw new AiResponseError(
+          "invalid_structured_output",
+          `Claude structured output did not parse. stop_reason=${m.stop_reason}. ${(err as Error).message}`.slice(0, 600)
         );
       }
     }
   );
-  return message.parsed_output as z.infer<S>;
+  return parsed as z.infer<S>;
 }

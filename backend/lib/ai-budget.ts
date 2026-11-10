@@ -3,6 +3,7 @@ import { callCostUsd } from "@/lib/ai-pricing";
 import { UserFacingError } from "@/lib/http";
 import { isUnrestricted, noteCeilingReached } from "@/lib/account-access";
 import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-access-config";
+import { AiSpendUnavailableError, poolSpendUsd } from "@/lib/ai-spend-ledger";
 
 // Audit 3 H4 (FAIL-294, and adversary finding 8): a per-learner daily AI spend budget.
 //
@@ -15,10 +16,10 @@ import { CEILING_REACHED_MESSAGE, unrestrictedCeilingUsd } from "@/lib/account-a
 // learner caused -- grading, chat, the guard's judge, regenerations.
 //
 // What it gates: the open-ended spenders, coach chat and lesson regenerate.
-// Grading is NOT blocked when the budget runs out: it is cheap (well under a
-// tenth of a cent), already rate-limited, and the core of learning, and
-// refusing to grade an answer the learner wrote would cost them more than it
-// saves. It still counts toward the total.
+// REQ-202 replaced "grading is never blocked" (it was an exemption that left
+// the 13 grading and generating routes with no cap at all): every model call
+// is now under a pool of its own in lib/ai-spend-gate.ts, and grading has its
+// own daily budget instead of none.
 //
 // Defaults (env-configurable, read per call):
 //   AI_DAILY_BUDGET_USD     0.50  -- about 3x a heavy learner's day (~$5/month,
@@ -108,19 +109,40 @@ export class AiBudgetError extends UserFacingError {
 // the same 24 hours) -- raised, never removed. Its access is only looked up
 // once the everyday budget is reached, so other learners pay no extra read.
 // At the ceiling it is logged, recorded and the owners are emailed.
+//
+// REQ-202 (F1): this is the route-level look, made early so a learner gets
+// the kind answer before any work is done. The enforcement is the gate in the
+// model-call layer (lib/ai-spend-gate.ts), which also reserves the call's cost.
+// Two changes here:
+//   - The everyday budget counts the COACH pool only. Grading has its own
+//     (AI_DAILY_GRADING_BUDGET_USD), so a heavy legitimate grader no longer
+//     uses up the coach. The REQ-144 ceiling still counts every pool.
+//   - A database error is no longer read as "no spend" (it used to be, which
+//     let every learner through while the database was failing). It fails
+//     closed with AiSpendUnavailableError, a 503.
 export async function requireAiBudget(userId: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const budget = dailyBudgetUsd(env);
-  let spent: number | null = null;
-  const spend = async () => (spent ??= await spendLast24hUsd(userId).catch(() => 0));
-  if (budget !== null && (await spend()) < budget) return;
+  if (budget !== null && (await readSpend(userId, "coach")) < budget) return;
   const unrestricted = await isUnrestricted(userId, env).catch(() => false);
   if (!unrestricted) {
     if (budget === null) return;
     throw new AiBudgetError();
   }
   const ceiling = unrestrictedCeilingUsd(env);
-  const total = await spend();
+  const total = await readSpend(userId, "all");
   if (total < ceiling) return;
   await noteCeilingReached(userId, total, ceiling, env);
   throw new AiBudgetError(CEILING_REACHED_MESSAGE);
+}
+
+async function readSpend(userId: string, pool: "coach" | "all"): Promise<number> {
+  try {
+    return await poolSpendUsd((sql, params) => query(sql, params) as never, userId, pool);
+  } catch (err) {
+    // 42P01: no ai_calls table yet, so nothing has ever been spent.
+    if ((err as { code?: unknown } | null)?.code === "42P01") return 0;
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[ai-budget] could not read the spend, refusing (fail closed): ${msg.slice(0, 200)}`);
+    throw new AiSpendUnavailableError();
+  }
 }

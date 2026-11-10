@@ -8,6 +8,10 @@ import { labObjective, labQuestionsFor } from "@/lib/lesson-experience";
 import { requireFeature } from "@/lib/entitlements";
 import { LABS_FEATURE } from "@/lib/labs";
 
+// REQ-202: seconds this route may run (one fast-model call). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/lab/questions -- REQ-106: the lab report's
@@ -35,7 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       throw err;
     }
     const ctx = await coachContextForObjective(id);
-    return ok({ questions: await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined) });
+    return ok({ questions: await labQuestionsFor(id, obj.title, prompt, ctx ?? undefined, user.id) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof AcknowledgementError) return forbidden(err.message);

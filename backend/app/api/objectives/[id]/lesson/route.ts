@@ -29,6 +29,10 @@ import { SHARED } from "@/lib/lesson-store";
 import { isHintAwareClient } from "@/lib/client-protocol";
 import { requireAiAllowance, requireCourseAccessForObjective, requireFeature, withAllowance } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (two sequential Sonnet halves plus fact-check and a retry). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 300;
+
 export const dynamic = "force-dynamic";
 
 const RETIRED_MESSAGE = "This objective has been retired and is no longer taught.";
@@ -118,12 +122,12 @@ export async function GET(
       await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
     } catch (err) {
       if (err instanceof RateLimitError) {
-        return tooManyRequests("You've opened a lot of new lessons just now. Please wait a few minutes and try again.");
+        return tooManyRequests("You've opened a lot of new lessons this hour. Please wait a while and try again.");
       }
       throw err;
     }
 
-    const handle = ensureGeneration(id, objRow, { scope: SHARED });
+    const handle = ensureGeneration(id, objRow, { scope: SHARED, triggeredBy: user.id });
     const intro = await handle.introPromise;
     // null: another server instance is generating (or has just finished)
     // this lesson. Wait for its stored result so every part of what the

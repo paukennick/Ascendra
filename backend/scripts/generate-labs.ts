@@ -136,7 +136,7 @@ async function submit(list: Target[]) {
     requests.push({
       custom_id: labRequestId(t.objectiveId, t.kind),
       params: buildRequest(
-        { model, effort: "medium", thinking: "off", purpose: "lab_generate", system, messages: [{ role: "user", content: user }], maxTokens: 4000 },
+        { model, effort: "medium", thinking: "off", purpose: "lab_generate", userId: null, system, messages: [{ role: "user", content: user }], maxTokens: 4000 },
         zodOutputFormat(labGenerationSchema)
       ),
     });

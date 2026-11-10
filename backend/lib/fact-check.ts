@@ -185,7 +185,7 @@ export function makeModelFactChecker(variant?: Partial<CheckerVariant>): FactChe
       effort: variant?.effort ?? "medium",
       thinking: variant?.thinking ?? "default",
       purpose: meta.purpose ?? "fact_check",
-      userId: meta.userId ?? undefined,
+      userId: meta.userId ?? null,
     });
     return judgeFactCheck(items, out);
   };

@@ -13,6 +13,10 @@ import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { requireCourseAccessForObjective } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (one fast-model call). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/objectives/:id/guess-feedback -- compares a learner's pre-teaching

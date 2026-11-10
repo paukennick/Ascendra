@@ -8,6 +8,10 @@ import { getOrWriteUnitCheck, gradeUnitCheck, unitCheckStatus } from "@/lib/unit
 import { reviewRouteError } from "@/lib/review-routes";
 import { featureLock, requireFeature } from "@/lib/entitlements";
 
+// REQ-202: seconds this route may run (generate or grade a unit check). Never above 300, the Hobby
+// plan ceiling with Fluid compute (docs/billing.md, "Function duration").
+export const maxDuration = 120;
+
 export const dynamic = "force-dynamic";
 
 const MAX_ANSWER = 8000;

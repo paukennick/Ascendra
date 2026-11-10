@@ -4,6 +4,11 @@ import { examBlueprintForTrack } from "@/lib/exam-blueprint";
 import { courseReadiness } from "@/lib/readiness";
 import { recordAttemptIdempotent } from "@/lib/grading-service";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+import { getModel, THINKING_HEADROOM_TOKENS } from "@/lib/anthropic";
+import { canAffordAiSpend } from "@/lib/ai-spend-gate";
+import { estimateCall } from "@/lib/ai-spend-ledger";
+import { AiBudgetError } from "@/lib/ai-budget";
+import { factCheckMaxTokens, factCheckModel } from "@/lib/fact-check";
 import {
   answerText,
   attemptQuestionText,
@@ -83,7 +88,24 @@ export class ExamSessionError extends Error {
 export const MAX_GENERATIONS: Record<ExamMode, number> = { sprint: 4, mock: 12 };
 const GENERATION_CONCURRENCY = 4;
 // Per learner, per hour, so one account can't run up model cost.
-export const GENERATION_RATE = { max: 40, windowMinutes: 60 };
+// REQ-202: 12, down from 40. At 40 an hour a sprint loop could start about 960
+// Sonnet generations a day (40 x 24), each a writer call and a fact-check
+// call. 12 an hour is three full sprints (MAX_GENERATIONS.sprint is 4) and
+// still more than a learner who studies for an hour needs, since a generated
+// item goes into the shared bank and serves every later session. The spend
+// gate (lib/ai-spend-gate.ts) caps the money; this caps the count.
+export const GENERATION_RATE = { max: 12, windowMinutes: 60 };
+
+// What one generateForObjective can cost at most -- the writer call and the
+// fact-check call -- used to look before starting a session's generation. A
+// nominal 6,000-character prompt each; each call reserves its exact worst case
+// itself, this only decides whether to begin.
+export function generationEstimateUsd(): number {
+  const prompt = { system: "x".repeat(6000), messages: [] };
+  const writer = estimateCall(getModel(), { ...prompt, max_tokens: 900 * ITEMS_PER_CALL });
+  const checker = estimateCall(factCheckModel(), { ...prompt, max_tokens: factCheckMaxTokens(ITEMS_PER_CALL) + THINKING_HEADROOM_TOKENS });
+  return writer.usd + checker.usd;
+}
 // Multiple choice is most of every exam; the other formats share the rest.
 const FORMAT_SHARE: Record<ExamFormat, number> = { multiple_choice: 2, multiple_response: 1, ordering: 1, matching: 1 };
 
@@ -304,7 +326,14 @@ export async function createSession(opts: {
     if (!state.chosen[i]) emptyBy.set(s.id, (emptyBy.get(s.id) ?? 0) + 1);
   });
   const missing = [...emptyBy.entries()].map(([id, n]) => ({ id, calls: Math.ceil(n / ITEMS_PER_CALL) }));
-  if (missing.length && opts.allowGeneration !== false) {
+  // REQ-202: a learner whose AI budget cannot cover another generation draws
+  // from the bank only -- no model call, and no rate-limit slot spent. Fails
+  // closed: if the budget cannot be read the answer is "cannot afford".
+  let budgetPaused = false;
+  if (missing.length && opts.allowGeneration !== false && !(await canAffordAiSpend(userId, "exam_items", generationEstimateUsd()))) {
+    budgetPaused = true;
+  }
+  if (missing.length && opts.allowGeneration !== false && !budgetPaused) {
     // Per-learner budget (auth_events, as lib/auth/rateLimit.ts counts it):
     // past it the session is built from what the bank already has.
     const row = await queryOne<{ n: number }>(
@@ -348,9 +377,14 @@ export async function createSession(opts: {
       GENERATION_CONCURRENCY
     );
     generatedCalls = madeCalls;
-    generationFailed = results.some((r) => r.status === "rejected");
+    // A refusal from the spend gate mid-session is the budget running out, not
+    // a failed generation: the session is built from the bank.
+    const failures = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+    for (const f of failures) if (f.reason instanceof AiBudgetError) budgetPaused = true;
+    const real = failures.filter((f) => !(f.reason instanceof AiBudgetError));
+    generationFailed = real.length > 0;
     if (generationFailed) {
-      const first = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+      const first = real[0];
       console.warn(`[exam-sessions] item generation failed: ${(first.reason as Error)?.message ?? first.reason}`);
     }
     pool = await bankItems(userId, objectiveIds, profile.formats);
@@ -375,6 +409,8 @@ export async function createSession(opts: {
     item: ExamItemRow;
   }[];
   if (!picked.length) {
+    // Nothing in the bank to build from and no budget to write more: say so.
+    if (budgetPaused && !generationFailed) throw new AiBudgetError();
     throw new ExamSessionError(
       generationFailed
         ? "Practice questions for this course couldn't be prepared just now. Please try again in a few minutes."

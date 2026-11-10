@@ -186,11 +186,11 @@ describe("comparison cards (generated once per course, mocked model)", () => {
       return CONCEPT_SETS;
     };
     // Two at once: the claim lets only one call the model.
-    const [a, b] = await Promise.all([ensureConceptSets(track), ensureConceptSets(track)]);
+    const [a, b] = await Promise.all([ensureConceptSets(track, null), ensureConceptSets(track, null)]);
     assert.ok([a, b].includes("ready"));
     assert.ok([a, b].every((x) => x === "ready" || x === "generating"));
     assert.equal(calls, 1);
-    assert.equal(await ensureConceptSets(track), "ready");
+    assert.equal(await ensureConceptSets(track, null), "ready");
     assert.equal(calls, 1, "a ready course is never generated again");
     const sets = await query(`select * from concept_sets where track_id = $1`, [track]);
     assert.equal(sets.length, 1, "the one-concept set is dropped");
@@ -383,8 +383,8 @@ describe("prerequisite remediation", () => {
       // 2 -> 4 (RBAC builds on identity), 4 -> 2 would be a cycle, 9 is out of range.
       return { edges: [{ objective: 2, prerequisite: 4 }, { objective: 4, prerequisite: 2 }, { objective: 1, prerequisite: 9 }] };
     };
-    assert.equal(await ensurePrerequisites(track), "ready");
-    assert.equal(await ensurePrerequisites(track), "ready");
+    assert.equal(await ensurePrerequisites(track, null), "ready");
+    assert.equal(await ensurePrerequisites(track, null), "ready");
     assert.equal(calls, 1);
     const edges = await query<{ objective_id: string; prerequisite_id: string }>(
       `select objective_id, prerequisite_id from objective_prerequisites where track_id = $1`, [track]
@@ -462,8 +462,8 @@ describe("learned comparison cards", () => {
         ],
       };
     };
-    assert.equal(await generateLearnedSets(track), 1);
-    assert.equal(await generateLearnedSets(track), 0);
+    assert.equal(await generateLearnedSets(track, null), 1);
+    assert.equal(await generateLearnedSets(track, null), 0);
     assert.equal(calls, 1);
     const s = await queryOne<{ source: string }>(`select source from concept_sets where track_id = $1 and source = 'learned'`, [track]);
     assert.equal(s?.source, "learned");
@@ -476,7 +476,7 @@ describe("claims and account data", () => {
     respond = () => {
       throw new Error("model down");
     };
-    assert.equal(await ensureConceptSets(privateTrack), "failed");
+    assert.equal(await ensureConceptSets(privateTrack, null), "failed");
     // REQ-113 (Audit 3 mobile L4, FAIL-268): the app is told the cards failed
     // to generate, rather than shown "no look-alike concepts were found".
     const owner = (await queryOne<{ user_id: string }>(`select user_id from subject_tracks where id = $1`, [privateTrack]))!.user_id;
@@ -487,7 +487,7 @@ describe("claims and account data", () => {
     await query(`update course_insights set claimed_at = now() - interval '11 minutes' where track_id = $1`, [privateTrack]);
     assert.equal(await claimInsight(privateTrack, "concept_sets", randomUUID()), true);
     // A course with fewer than two objectives has nothing to compare: ready, no call.
-    assert.equal(await ensureConceptSets(otherTrack), "ready");
+    assert.equal(await ensureConceptSets(otherTrack, null), "ready");
   });
 
   test("a learner's misconceptions and refreshers are in their export and go with the account", async () => {
