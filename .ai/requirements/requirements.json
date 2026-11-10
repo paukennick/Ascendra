@@ -5674,6 +5674,119 @@
       ]
     },
     {
+      "id": "REQ-169",
+      "category": "feature",
+      "title": "Intake form (study profile): what the learner wants to learn, skippable, editable in Settings",
+      "description": "Nick 2026-11-09: a skippable intake in the first run and Settings > Study profile asks goal, target exam(s) or course(s) with optional exam dates (up to five), experience, weekly study time and optionally use (personal, work, teaching a class). The answers write each named course's study plan (exam date and an even share of weekly hours), suggest placement for anyone with some experience, and with BILLING_ENABLED on suggest a category plan and a length (the cheapest published way to cover the time to the exam; about 10 weeks suggests 3 months) from the courses' categories and the exam date only. The intake never changes or carries a price (no personalised pricing; New York and Connecticut laws). Teaching a class shows CLASS_CONTACT_LINE instead of a plan. Works with billing off for study-plan personalisation. Migration 060 learner_intake and learner_intake_targets; GET/PUT /api/intake.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/migrations/060_intake_and_category_plans.sql",
+        "backend/lib/intake.ts",
+        "backend/lib/intake-suggest.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "mobile/src/lib/intake.ts",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/src/components/IntakeResult.tsx",
+        "mobile/app/(app)/welcome.tsx",
+        "mobile/app/(app)/settings/study-profile.tsx",
+        "mobile/app/(app)/settings.tsx",
+        "mobile/app/(app)/_layout.tsx",
+        "docs/billing.md",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Every answer optional and skippable; skip remembered",
+        "Saving writes each named course's study plan",
+        "Other learners' private courses are a 404 and every query is scoped to user_id",
+        "No plan suggestion and no price while BILLING_ENABLED is off",
+        "The suggestion uses only course categories and exam date and has no price field",
+        "Teaching a class shows the class contact line and no plan",
+        "In the account export and deleted with the account"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db on a fresh database",
+        "typecheck backend and mobile",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md Study profile",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md 060 rows",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Weekly hours are split evenly across courses and overwrite each named course's plan hours on save",
+        "Courses map to plans by catalog category; health informatics counts as clinical",
+        "Nick 2026-11-09: weekly hours from the study profile fill in only plans that have no hours yet; existing plan hours are never overwritten (the earlier risk note about overwriting no longer applies)."
+      ]
+    },
+    {
+      "id": "REQ-170",
+      "category": "feature",
+      "title": "Category-based pricing (IT and cloud, PM, fitness, all-access, clinical), behind BILLING_ENABLED",
+      "description": "Nick 2026-11-09: plans by category with one published price each for everyone. IT and cloud, project management and fitness Plus (12.99/29.99/79.99) and Pro (19.99/44.99/129.99); all-access every non-clinical course with Pro features (29.99/69.99/199); Clinical Pro (49/99) and a clinical add-on for all-access holders (29 a month). Prices from config (BILLING_PRICE_<FAMILY>_<PERIOD>_USD). A learner's level on a course is the highest among plans covering its catalog category (health informatics stays clinical); other courses are on Free terms. Every gated route passes its course. Entitlements carry family and scope (migration 060); grants cover every course. Per-plan AI cap = half the yearly (or cheapest) monthly take after fees; a learner's cap is the sum over plans; discounts never lower it and don't stack. Verified group discounts (REQ-166) are capped at 25% (a larger setting is refused). Owner-granted unrestricted access (REQ-144) opens every category, clinical included, without payment, capped at all-access plus the clinical add-on (20.16); owners have no monthly cap. No founding-member discount on any platform (Nick 2026-11-09, second decision: removed because the App Store can't offer it). 24 store products documented. Replaces the unlaunched Plus/Pro products. Nick, 2026-11-09 (later): these prices are approved as the baseline; Pro's new-lesson-version allowance drops from 15 to 10 a week to fit the Pro AI cap.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/billing-config.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/billing-webhooks.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/lib/founding.ts",
+        "backend/lib/discount-choice.ts",
+        "backend/lib/discount-codes-cli.ts",
+        "backend/app/api/billing/**",
+        "backend/app/api (gated routes)",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/lab-attempts.ts",
+        "backend/supabase/migrations/060_intake_and_category_plans.sql",
+        "backend/.env.example",
+        "mobile/src/lib/billing.ts",
+        "mobile/src/billing/BillingContext.tsx",
+        "mobile/app/(app)/plans.tsx",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "BILLING_ENABLED off: everyone Pro on every course and the config route says only enabled false",
+        "A category plan opens its own courses only and other categories are on Free terms",
+        "All-access covers every non-clinical course and not clinical",
+        "The clinical add-on is refused without all-access",
+        "Upgrade prompts name the course's plan and carry its scope",
+        "The AI cap is the sum of the plans held and no plan goes negative at the cap at list or 20 or 40 percent off",
+        "Founding off by default; never more seats than the limit under parallel checkouts; lapsed holds free seats; one discount only",
+        "Webhooks store family and scope and hold a higher plan's paid period on a downgrade"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db on a fresh database",
+        "typecheck backend and mobile",
+        "omni gate",
+        "CI"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "backend/.env.example",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Prices not final; Nick reviews before merge",
+        "Founding price lock is not possible with App Store offers; not offered on iOS",
+        "Play developer-determined offers are app-enforced",
+        "Worst case margin 40 percent founding on yearly Plus at full cap is 0.59 a month; verified percentages above about 49 lose money at the cap on yearly lengths",
+        "Holding a category plan plus another category requires all-access in the stores",
+        "Superseded by the second decision of 2026-11-09: the founding-member discount was removed entirely (code, migration table, config, docs). The acceptance line and risk note about founding seats, and the 40 percent worst-case margin, no longer apply; worst case is now 25 percent verified on yearly category Plus at the full cap, 1.47 a month."
+      ]
+    },
+    {
       "id": "REQ-172",
       "category": "content",
       "title": "Labs for Google Cloud Network Engineer, AI-901 and Tech+",

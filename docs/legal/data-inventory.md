@@ -28,6 +28,7 @@ API roles (migration 026). Only the backend server reads and writes them.
 | `support_requests` | tickets, course requests, lesson reports (may name an objective and lesson step), coach-reply reports (quote the reply) | support and content fixes | while account open | deleted (cascade) | yes |
 | `track_acknowledgements` | which course disclaimer version was accepted, when | history only since REQ-165 (the study notice is the gate now) | while account open | deleted (cascade) | yes |
 | `legal_acceptances` | which Terms, Privacy and study-notice (REQ-165) versions were accepted, how and when | record of consent | while account open | deleted (cascade) | yes |
+| `learner_intake`, `learner_intake_targets` (REQ-169) | study-profile answers: goal, experience, weekly study hours, what it's for (personal, work, teaching), up to five courses with exam dates | setting up the study plan; suggesting a plan and length (never a price) | while account open; editable in Settings > Study profile | deleted (cascade) | yes (`intake`, `intakeTargets`) |
 | `email_preferences` (REQ-197, 063) | on/off for exam change notices, exam countdown, weekly digest | the learner's email choices | while account open | deleted (cascade) | yes |
 | `service_email_log` (REQ-197, 063) | which service email kind was sent for which period (exam change, exam date, ISO week), status, tries, times; no address, subject or body | sending each at most once | while account open | deleted (cascade) | yes |
 

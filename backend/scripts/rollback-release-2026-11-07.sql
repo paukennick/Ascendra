@@ -127,6 +127,9 @@ drop table if exists
   review_sessions, study_plans, unit_check_items, terms_acceptances,
   -- REQ-166 (058): verified group discounts and the App Store offer-code pool
   verified_discounts,
+  -- REQ-169/170 (060): intake answers (060's family and scope columns go
+  -- with entitlements, also in this list)
+  learner_intake, learner_intake_targets,
   -- REQ-197 (063): service email choices and the send log
   email_preferences, service_email_log
   cascade;

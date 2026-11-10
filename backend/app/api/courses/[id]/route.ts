@@ -88,7 +88,7 @@ export async function GET(
     // 2026-11-07). Free gets null and readinessLocked, whose message is the
     // one line the app shows instead of a number; not computed for Free. No
     // database read while billing is off.
-    const lock = await featureLock(userId, "readiness");
+    const lock = await featureLock(userId, "readiness", id);
     const readinessLocked = lock ? { ...lock, message: READINESS_LOCKED_TEXT } : null;
     const readiness = readinessLocked
       ? null

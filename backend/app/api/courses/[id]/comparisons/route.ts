@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (objectiveId && !isUuid(objectiveId)) return badRequest("objectiveId must be an id");
     // REQ-122: not in this learner's plan -- no cards, said gently, and no
     // generation started on their behalf.
-    const locked = await featureLock(user.id, "comparison");
+    const locked = await featureLock(user.id, "comparison", id);
     if (locked) return ok({ pending: false, failed: false, sets: [], locked });
 
     const state = await insightStatus(id, "concept_sets");

@@ -6,7 +6,7 @@
 //   --import <file> --group <g> --product <id> --expires YYYY-MM-DD [--dry-run]
 //       <file> is Apple's downloaded one-time-code CSV, or one code per line.
 //       --product is the App Store product the offer belongs to
-//       (ascendra.plus.monthly ... ascendra.pro.yearly), --expires the
+//       (ascendra.it_cloud_plus.monthly ... ascendra.clinical_addon.monthly; REQ-170), --expires the
 //       codes' expiry date from App Store Connect.
 
 import { readFileSync } from "node:fs";
@@ -31,7 +31,7 @@ export function parseCodesArgs(argv: string[], now = new Date()): CodesArgs | st
   const group = get("--group");
   if (!isDiscountGroup(group)) return "--group must be one of military, responder, nurse, student, teacher.";
   const productId = get("--product") ?? "";
-  if (!plans({}).some((p) => p.appStoreProductId === productId)) return "--product must be an App Store product id such as ascendra.pro.yearly.";
+  if (!plans({}).some((p) => p.appStoreProductId === productId)) return "--product must be an App Store product id such as ascendra.it_cloud_pro.yearly.";
   const exp = get("--expires") ?? "";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(exp)) return "--expires must be YYYY-MM-DD.";
   // Apple's codes stop at 12:00 a.m. Pacific on the expiry date; store the

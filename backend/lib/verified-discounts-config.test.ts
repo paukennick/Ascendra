@@ -14,6 +14,8 @@ import {
   playOfferFor,
   stripeCouponFor,
   supportEmail,
+  MAX_DISCOUNT_PERCENT,
+  rejectedPercents,
 } from "./verified-discounts-config";
 import {
   APP_RETURN_URL,
@@ -30,7 +32,7 @@ import {
 } from "./discount-providers";
 import { availableGroups, discountOperatorConfig, discountStatus, discountsAvailable, parseCodeFile, startVerification } from "./verified-discounts";
 import { parseCodesArgs } from "./discount-codes-cli";
-import { monthlyAiCapUsd, DEFAULT_MONTHLY_CAP_USD } from "./billing-config";
+import { familyCapUsd, monthlyAiCapUsd, PLAN_FAMILY_IDS } from "./billing-config";
 import { createCheckoutSession } from "./stripe-checkout";
 
 const SECRET = { AUTH_JWT_SECRET: "unit-test-secret" };
@@ -74,10 +76,17 @@ describe("REQ-166 groups and percentages", () => {
     assert.match(TEACHER_NOTE, /doesn't cover using Ascendra with a class/);
   });
 
-  test("percentages come only from config; no default; 1-90 whole numbers", () => {
+  // REQ-170 (Nick, 2026-11-09): capped at 25% (was 1-90). Above it the group
+  // isn't offered, and the operator report names it.
+  test("percentages come only from config; no default; 1-25 whole numbers", () => {
     assert.equal(discountPercent("military", {}), null);
     assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: "20" }), 20);
-    for (const bad of ["0", "91", "12.5", "x", "-5"]) assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: bad }), null, bad);
+    for (const bad of ["0", "26", "40", "90", "91", "12.5", "x", "-5"]) assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: bad }), null, bad);
+    assert.equal(discountPercent("military", { DISCOUNT_PERCENT_MILITARY: "25" }), 25);
+    assert.equal(MAX_DISCOUNT_PERCENT, 25);
+    assert.deepEqual(offeredGroups({ DISCOUNT_PERCENT_MILITARY: "30", DISCOUNT_PERCENT_NURSE: "20" }).map((g) => g.id), ["nurse"], "a group over 25% is not offered");
+    assert.deepEqual(rejectedPercents({ DISCOUNT_PERCENT_MILITARY: "30", DISCOUNT_PERCENT_NURSE: "20" }), [{ group: "military", value: "30" }]);
+    assert.deepEqual(discountOperatorConfig({ DISCOUNT_PERCENT_STUDENT: "50" }).rejectedPercents, ["student: 50 (allowed 1-25)"]);
     // A group without a percentage is not offered.
     assert.deepEqual(offeredGroups({ DISCOUNT_PERCENT_NURSE: "15" }).map((g) => g.id), ["nurse"]);
   });
@@ -200,8 +209,8 @@ describe("REQ-166 offer-code pool parsing", () => {
     assert.deepEqual(parseCodesArgs(["--status"], now), { kind: "status" });
     assert.match(String(parseCodesArgs(["--import", "f"], now)), /--group/);
     assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "nope"], now)), /--product/);
-    assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.pro.yearly", "--expires", "2020-01-01"], now)), /future/);
-    const ok = parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.pro.yearly", "--expires", "2027-05-01", "--dry-run"], now);
+    assert.match(String(parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.it_cloud_pro.yearly", "--expires", "2020-01-01"], now)), /future/);
+    const ok = parseCodesArgs(["--import", "f", "--group", "military", "--product", "ascendra.it_cloud_pro.yearly", "--expires", "2027-05-01", "--dry-run"], now);
     assert.equal(typeof ok, "object");
     assert.equal((ok as any).dryRun, true);
   });
@@ -210,13 +219,15 @@ describe("REQ-166 offer-code pool parsing", () => {
 describe("REQ-166 Nick's rules: full AI cap, no stacking", () => {
   test("the monthly AI cap ignores every discount setting (list price, not discounted)", () => {
     for (const tier of ["plus", "pro"] as const) {
-      assert.equal(monthlyAiCapUsd(tier, ON), DEFAULT_MONTHLY_CAP_USD[tier]);
-      assert.equal(monthlyAiCapUsd(tier, { ...ON, DISCOUNT_PERCENT_MILITARY: "90" }), monthlyAiCapUsd(tier, {}));
+      assert.equal(monthlyAiCapUsd(tier, ON), monthlyAiCapUsd(tier, {}));
+      assert.equal(monthlyAiCapUsd(tier, { ...ON, DISCOUNT_PERCENT_MILITARY: "25" }), monthlyAiCapUsd(tier, {}));
     }
+    // REQ-170: every category plan's cap too (FAIL-232: updated, not deleted).
+    for (const f of PLAN_FAMILY_IDS) assert.equal(familyCapUsd(f, { ...ON, DISCOUNT_PERCENT_MILITARY: "25" }), familyCapUsd(f, {}), f);
   });
 
   test("Stripe checkout: a verified coupon replaces the promotion-code box (never both)", async () => {
-    const env = { BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_PLUS_MONTHLY: "price_1", APP_URL: "https://a.test" } as unknown as NodeJS.ProcessEnv;
+    const env = { BILLING_ENABLED: "true", STRIPE_SECRET_KEY: "sk_test_x", STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY: "price_1", APP_URL: "https://a.test" } as unknown as NodeJS.ProcessEnv;
     const sent: string[] = [];
     const real = globalThis.fetch;
     globalThis.fetch = (async (_url: string, init: RequestInit) => {
@@ -224,8 +235,8 @@ describe("REQ-166 Nick's rules: full AI cap, no stacking", () => {
       return new Response(JSON.stringify({ url: "https://checkout.stripe.test/s" }), { status: 200 });
     }) as typeof fetch;
     try {
-      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "plus_monthly", coupon: "co_mil20" }, env);
-      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "plus_monthly" }, env);
+      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "it_cloud_plus_monthly", coupon: "co_mil20" }, env);
+      await createCheckoutSession({ userId: "u", email: "u@x.test", planId: "it_cloud_plus_monthly" }, env);
     } finally {
       globalThis.fetch = real;
     }

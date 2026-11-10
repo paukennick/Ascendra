@@ -20,7 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ itemId:
     const item = isUuid(itemId) ? await discriminationItem(itemId) : null;
     if (!item || !(await visibleConceptSet(item.set_id, user.id))) return notFound("Question not found");
     await requireAcknowledgementForTrack(item.track_id, user.id);
-    await requireFeature(user.id, "comparison"); // REQ-122
+    await requireFeature(user.id, "comparison", item.track_id); // REQ-122, REQ-170
     if (item.objective_id) await recordHintReveal(user.id, item.objective_id, "discriminate", item.scenario);
     return ok({ recorded: !!item.objective_id });
   } catch (err) {

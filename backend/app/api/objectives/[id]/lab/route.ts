@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     // REQ-122: not in this learner's plan -- no lab card, said gently.
-    const locked = await featureLock(user.id, LABS_FEATURE);
+    const locked = await featureLock(user.id, LABS_FEATURE, { objectiveId: id });
     if (locked) return ok({ lab: null, report: null, locked });
     const obj = await labObjective(id);
     const prompt = obj?.lab_prompt?.trim();

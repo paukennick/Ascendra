@@ -133,12 +133,17 @@ export const EXPORT_SECTIONS = {
   // REQ-122 (migration 049): plans paid for or given, the payment events
   // received for the account (type, time, outcome -- no payload), the free
   // course choice and counted allowance uses.
-  entitlements: `select id, tier, source, product_id, plan, status, period_end, store, created_at, updated_at
+  entitlements: `select id, tier, family, scope, source, product_id, plan, status, period_end, store, created_at, updated_at
                    from entitlements where user_id = $1 order by created_at asc, id asc`,
   billingEvents: `select provider, event_type, occurred_at, received_at, outcome
                     from billing_events where user_id = $1 order by received_at asc, id asc`,
   freeCourse: "select * from free_course_choice where user_id = $1 order by user_id asc",
   allowanceUses: "select kind, used_at from allowance_uses where user_id = $1 order by used_at asc, id asc",
+  // REQ-169 (migration 060): the learner's answers to the intake form and
+  // the courses and exam dates they named.
+  intake: "select goal, experience, weekly_hours, use_for, skipped, created_at, updated_at from learner_intake where user_id = $1 order by user_id asc",
+  intakeTargets:
+    "select track_id, exam_date, position, created_at from learner_intake_targets where user_id = $1 order by position asc, track_id asc",
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.

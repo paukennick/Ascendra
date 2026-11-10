@@ -227,11 +227,30 @@ describe("unrestricted lifts the plan gates", () => {
     assert.equal(bm.entitlement, null);
   });
 
-  test("BILLING_ENABLED on: no per-tier monthly AI cap (Pro's is $2.21)", async () => {
+  // REQ-170 (Nick, 2026-11-09): was "no monthly cap". A granted account now
+  // has the highest cap a paying learner can hold (all-access plus the
+  // clinical add-on, $20.16); owners still have none.
+  test("BILLING_ENABLED on: unrestricted is capped at all-access plus the clinical add-on ($20.16), owners not at all", async () => {
     process.env.BILLING_ENABLED = "true";
+    // Spend is dated up to 3 days back but never before the 1st, so early in a
+    // month it can fall inside the 24-hour safety ceiling; raise it here.
+    process.env.AI_UNRESTRICTED_DAILY_CEILING_USD = "1000";
     const u = await unrestrictedUser();
-    await query(`insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at) values ($1,'chat','claude-haiku-5-5',0,$2,1,true, now() - interval '3 days')`, [u, Math.round(5 / PER_TOKEN)]); // $5 this month, outside 24h
+    const monthSpend = async (who: string, usd: number) =>
+      query(
+        `insert into ai_calls (user_id, purpose, model, input_tokens, output_tokens, latency_ms, ok, created_at)
+         values ($1,'chat','claude-haiku-5-5',0,$2,1,true, greatest(date_trunc('month', now()), now() - interval '3 days'))`,
+        [who, Math.round(usd / PER_TOKEN)]
+      );
+    await monthSpend(u, 5); // $5 this month: above any single category plan's cap, under $20.16
     assert.equal((await chat(u)).status, 200);
+    await monthSpend(u, 16); // $21 this month
+    const paused = await json(await chat(u), 429);
+    assert.ok(paused.aiPaused?.resetsAt, JSON.stringify(paused));
+    assert.equal((await json(await call(billingMeGet, "/api/billing/me", u))).aiPaused.paused, true);
+    await monthSpend(ownerId, 21);
+    assert.equal((await chat(ownerId)).status, 200, "the owner has no monthly cap");
+    delete process.env.AI_UNRESTRICTED_DAILY_CEILING_USD;
   });
 
   // Nick, 2026-11-09: owners get a $35 monthly safety cap. Coach chat and

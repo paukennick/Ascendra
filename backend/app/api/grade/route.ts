@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     const objectiveId = objective.id;
     await requireAcknowledgementForObjective(objectiveId, authUser.id);
     // REQ-122: a Free learner studies one course (no-op while billing is off).
-    await requireCourseAccess(authUser.id, objective.track_id);
+    const courseTier = await requireCourseAccess(authUser.id, objective.track_id); // REQ-170: the tier on this course
 
     const found = await lessonCheckFor(authUser.id, objectiveId, stage);
     if (found.status === "no-lesson") return notFound("No lesson for this objective yet");
@@ -250,7 +250,7 @@ export async function POST(req: Request) {
       // REQ-122: Free gets a few graded typed answers a day (Plus and Pro
       // are not counted; nothing is counted while billing is off). Given
       // back if grading fails. Multiple choice above is never counted.
-      const use = await consumeAllowance(authUser.id, "graded_answer");
+      const use = await consumeAllowance(authUser.id, "graded_answer", courseTier);
       // REQ-076: grade in the voice of the learner's actual track/exam.
       const ctx = await coachContextForObjective(objectiveId);
       let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;
