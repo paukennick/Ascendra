@@ -3,7 +3,7 @@ import { ok, badRequest, unauthorized, tooManyRequests, serverError } from "@/li
 import { verifyPassword } from "@/lib/auth/passwords";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { REAUTH_EVENT, REAUTH_LIMIT, checkReauth, reauthFailure } from "@/lib/auth/reauth";
+import { REAUTH_EVENT, REAUTH_LIMIT, checkReauth, hasReauthProof, reauthFailure } from "@/lib/auth/reauth";
 import { purgeUserAuthEvents } from "@/lib/auth/retention";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,9 @@ export async function DELETE(req: Request) {
       }
       const valid = await verifyPassword(password, row.password_hash);
       if (!valid) return badRequest("Password is incorrect.");
-    } else {
+    } else if (await hasReauthProof(authUser.id)) {
+      // An account with no password, code or Google link has nothing it
+      // could be asked for (and can't sign in), so it isn't asked.
       const body = await req.json().catch(() => ({}));
       const proof = await checkReauth(authUser.id, body ?? {});
       if (!proof.ok) return reauthFailure(proof);
