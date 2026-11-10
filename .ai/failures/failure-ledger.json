@@ -8823,6 +8823,27 @@
       "prevention_rules": [],
       "prevention_notes": "Runbook states both workflows fail at their first step until the secret exists",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-770",
+      "date": "2026-11-09",
+      "title": "omni gate failed on a commit message citing another branch's requirement ID",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After the REQ-198 commit, omni gate failed: controlled.requirement_id REQ-189 cited in a commit message but not found in .ai/requirements/requirements.json",
+      "how_detected": "omni gate run after the map commit",
+      "root_cause": "The commit message named REQ-189 (interactive labs), which is registered only on the unmerged feature/interactive-labs branch, not on master, which this branch is based on. The gate checked before committing (it passed) but not after, and the gate output was piped through tail, so its failure did not stop the next command.",
+      "requirement": "REQ-198",
+      "affected": [
+        "commit message of the REQ-198 main commit"
+      ],
+      "fix_summary": "Reworded the unpushed commit message to name the branch (feature/interactive-labs) instead of the ID, and re-applied the map commit unchanged (tree identical). The gate passes.",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Process slip in a commit message. The gate already catches it; no code changed.",
+      "prevention_rules": [],
+      "prevention_notes": "Cite only requirement IDs that exist in the base branch's registry, and refer to unmerged work by branch name. Run omni gate after the last commit, without a pipe that hides its exit status.",
+      "recurrence_of": ""
     }
   ]
 }

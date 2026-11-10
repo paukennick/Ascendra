@@ -22,6 +22,7 @@ import {
 } from "@/components/ui";
 import { Sidebar } from "@/components/Sidebar";
 import { CoursePlanPanel } from "@/components/CoursePlanPanel";
+import { StudyPathPanel } from "@/components/StudyPathPanel";
 import { colors, fonts, masteryColor, spacing } from "@/lib/theme";
 import { readinessSummary } from "@/lib/progress";
 import { nextCourseStep } from "@/lib/nextStep";
@@ -253,6 +254,9 @@ export default function CourseDashboard() {
 
           {/* REQ-110: placement offer, session choice, plan and kept summary. */}
           <CoursePlanPanel trackId={trackId} trackTitle={track.title} />
+
+          {/* REQ-198: "Recommended before / after" when the course is on a study path. */}
+          <StudyPathPanel trackId={trackId} />
 
           <SectionHeader label="Units" />
           {units?.map((u) => {

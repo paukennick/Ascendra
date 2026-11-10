@@ -13,6 +13,8 @@ import { NCCPTCPT_LABS } from "./fitness-nccptcpt";
 import { NPTEPT_LABS } from "./pt-nptept";
 import { NPTEPTA_LABS } from "./pt-nptepta";
 import { DPT_LABS } from "./pt-dpt";
+// REQ-198: PT school prerequisites refresher.
+import { PTPREREQ_LABS } from "./pt-prereq";
 // REQ-150: more project-management courses.
 import { CAPM_LABS } from "./pm-capm";
 import { PMIACP_LABS } from "./pm-acp";
@@ -131,6 +133,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   NPTEPT_LABS,
   NPTEPTA_LABS,
   DPT_LABS,
+  PTPREREQ_LABS,
   CAPM_LABS,
   PMIACP_LABS,
   PMIRMP_LABS,
