@@ -42,6 +42,7 @@ export const CMPCBS_LABS: SeedLabSet = {
     source("https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/", "reference", "2026-11-07"),
     source("https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "reference", "2026-11-07"),
     source("https://www.nist.gov/cyberframework", "reference", "2026-11-07"),
+    source("https://www.law.cornell.edu/cfr/text/45/appendix-A_to_subpart_C_of_part_164", "reference", "2026-11-09"),
   ],
   labs: [
     // CSIS 110 -------------------------------------------------------------
@@ -759,8 +760,8 @@ export const CMPCBS_LABS: SeedLabSet = {
           parts: [
             part(
               "Scope and principles",
-              "Scope: all systems holding patient, financial or staff data, all workforce members and contractors, all devices used to access them. Principles stated and defined: least privilege, need-to-know, individual accountability (unique accounts), separation of duties, defence in depth; names a framework the policy aligns with (e.g. NIST CSF 2.0 functions, with this section under Protect and Govern).",
-              "Scope: every system that stores or processes patient, payment or staff information at any Pinewood clinic; every employee, dentist, contractor and vendor who touches them; every device used to reach them, owned by the practice or not. Principles: least privilege -- each account has only the access its role needs; need-to-know -- access to a record requires a work reason; individual accountability -- every action traces to one named person; separation of duties -- no one person can both grant themselves access and approve it; defence in depth -- no single control is relied on alone. This section sits under the Govern and Protect functions of NIST CSF 2.0, which the practice adopts as its framework."
+              "Scope: all systems holding patient, financial or staff data, all workforce members and contractors, all devices used to access them. Principles stated and defined: least privilege, need-to-know, individual accountability (unique accounts), separation of duties, defence in depth; names a framework the policy aligns with (e.g. NIST CSF 2.0 functions, with this section under Protect and Govern); notes that a US dental practice that bills insurers electronically is a HIPAA covered entity, so the HIPAA Security Rule applies as law, not just as a framework.",
+              "Scope: every system that stores or processes patient, payment or staff information at any Pinewood clinic; every employee, dentist, contractor and vendor who touches them; every device used to reach them, owned by the practice or not. Principles: least privilege -- each account has only the access its role needs; need-to-know -- access to a record requires a work reason; individual accountability -- every action traces to one named person; separation of duties -- no one person can both grant themselves access and approve it; defence in depth -- no single control is relied on alone. This section sits under the Govern and Protect functions of NIST CSF 2.0, which the practice adopts as its framework. Because a US dental practice that bills insurers electronically is a HIPAA covered entity, the section also meets the HIPAA Security Rule, which is a legal requirement rather than a choice: unique user identification (45 CFR 164.312(a)), termination procedures (164.308(a)(3)), audit controls (164.312(b)), person or entity authentication (164.312(d)) and a data backup plan (164.308(a)(7)) -- R1, R2, R7, R5 and R6 below."
             ),
             part(
               "Concrete rules",

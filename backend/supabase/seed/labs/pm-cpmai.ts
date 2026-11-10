@@ -8,9 +8,11 @@ import { source } from "../sources";
 // Business Needs and Solutions 26%, Identify Data Needs 26%, Manage AI Model
 // Development and Evaluation 16%, Operationalize AI Solution 17%. pmi.org's
 // PMI-CPMAI page, read 2026-11-09, still offers the exam (120 questions,
-// 160 minutes) and announces no change, but doesn't list domain weights;
-// the ECO PDF answered "not on allowlist" to this session, so the weights
-// rest on the track's 2026-09-27 reading of that PDF.
+// 160 minutes) and announces no change, but doesn't list domain weights.
+// The ECO PDF (pmicpmai-exam-content-outline2025-updated.pdf) was fetched
+// and re-read on 2026-11-09 and its weights match the ones above. AI
+// pattern names follow the Seven Patterns of AI that the ECO cites
+// (Cognilytica, read 2026-11-09).
 // Density ("hybrid"): 2 / 3 / 2 / 2 / 2 = 11 labs (7 build, 4 case).
 // Model metrics are worked in the model answers; no vendor product is
 // required.
@@ -40,7 +42,7 @@ export const PMICPMAI_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Pilot results: applicants aged under 30 make up 35% of applications but 12% of fast-track recommendations; applicants 30 and over are fast-tracked at 40%. Approval outcomes for both groups after full review are similar.",
+          text: "Pilot results: applicants aged under 30 make up 35% of applications and are fast-tracked at 10%; applicants 30 and over are fast-tracked at 40%. Approval outcomes for both groups after full review are similar.",
           ask: "What do you check to find out whether the model is biased?",
           parts: [
             part(
@@ -119,8 +121,8 @@ export const PMICPMAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Patterns",
-              "1 predictive analytics (classification of churn); 2 conversational/generative (chatbot); 3 anomaly/pattern detection; 4 pattern recognition / clustering (unsupervised); 5 predictive analytics (time-series forecasting).",
-              "1 predictive analytics -- churn classification. 2 conversational AI. 3 patterns and anomalies -- fraud detection. 4 pattern recognition -- unsupervised clustering into segments. 5 predictive analytics -- sales forecasting."
+              "Uses the Seven Patterns of AI names: 1 predictive analytics and decision support (churn classification); 2 conversational/human interaction (chatbot); 3 patterns and anomalies (fraud detection); 4 patterns and anomalies (unsupervised clustering finds which customers belong together -- not recognition, which identifies things in unstructured data such as images or text); 5 predictive analytics and decision support (time-series forecasting).",
+              "1 predictive analytics and decision support -- churn classification. 2 conversational/human interaction -- a customer-service assistant. 3 patterns and anomalies -- fraud detection. 4 patterns and anomalies -- unsupervised clustering into segments nobody has defined. 5 predictive analytics and decision support -- sales forecasting."
             ),
             part(
               "Persona and problem statement",

@@ -670,7 +670,7 @@ export const KCA_TRACK: SeedTrack = {
       weight: 10,
       gate: "Given a policy and a cluster, choose the validation action, scope the policy to the right resources and namespaces, and roll it out from Audit to Enforce safely.",
       objectives: [
-        "Apply policies in the cluster: Audit versus Enforce (validationFailureAction), background scanning, and the effect on existing resources",
+        "Apply policies in the cluster: Audit versus Enforce (the rule's failureAction), background scanning, and the effect on existing resources",
         "Select resources with match and exclude: kinds, names, namespaces, selectors, operations, roles and subjects, any and all blocks",
         "Configure common policy settings for Kyverno rules: failurePolicy, webhookTimeoutSeconds, admission and background flags, skipBackgroundRequests and schemaValidation",
       ],
@@ -961,7 +961,7 @@ export const CNPE_TRACK: SeedTrack = {
       gate: "Given a self-service requirement, design and create the CRD, implement the workflow that provisions it through platform APIs, and wire operators or automation frameworks to fulfil it.",
       objectives: [
         "Design and create CustomResourceDefinitions for platform services: OpenAPI schemas, validation rules, defaults, status subresources and versions",
-        "Implement workflows for self-service provisioning using platform APIs: claims and compositions in Crossplane, or custom resources reconciled by operators",
+        "Implement workflows for self-service provisioning using platform APIs: composite resources and compositions in Crossplane, or custom resources reconciled by operators",
         "Use Kubernetes operators for platform automation and integration: installing operators, configuring their custom resources and reading their status",
         "Use automation frameworks for self-service provisioning: Crossplane providers and compositions, Argo Workflows or Tekton as provisioning engines, and templates in a developer portal",
       ],

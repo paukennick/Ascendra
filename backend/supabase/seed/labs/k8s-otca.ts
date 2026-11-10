@@ -21,6 +21,7 @@ export const OTCA_LABS: SeedLabSet = {
     source("https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/", "exam_outline", "2026-11-08"),
     source("https://opentelemetry.io/docs/specs/otel/", "reference", "2026-11-08"),
     source("https://opentelemetry.io/docs/collector/configuration/", "reference", "2026-11-08"),
+    source("https://pkg.go.dev/github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector", "reference", "2026-11-09"),
   ],
   labs: [
     // ----------------------------------------------------------------- 18%
@@ -275,7 +276,7 @@ export const OTCA_LABS: SeedLabSet = {
             part(
               "Connector for span metrics",
               "The spanmetrics connector declared under connectors, used as an exporter at the end of the traces pipeline and as a receiver at the start of a metrics pipeline, producing calls and duration metrics per service/span name/status; explains connectors join two pipelines and that these metrics reflect the spans the Collector sees (so sampling upstream affects them -- tail sampling after the connector does not).",
-              "connectors:\n  spanmetrics:\n    histogram:\n      explicit:\n        buckets: [100ms, 250ms, 500ms, 1s, 2.5s]\n    dimensions:\n    - name: http.request.method\n    - name: http.response.status_code\nA connector is both an exporter (in one pipeline) and a receiver (in another): traces flow into spanmetrics, which emits calls_total and duration histograms per service.name, span.name, span.kind and status.code plus the listed dimensions, into the metrics pipeline. It counts the spans it receives, so head sampling in the SDK still thins it; if tail sampling is wanted, put the tail_sampling processor in a separate traces pipeline after the connector so metrics stay complete."
+              "connectors:\n  spanmetrics:\n    histogram:\n      explicit:\n        buckets: [100ms, 250ms, 500ms, 1s, 2.5s]\n    dimensions:\n    - name: http.request.method\n    - name: http.response.status_code\nA connector is both an exporter (in one pipeline) and a receiver (in another): traces flow into spanmetrics, which emits traces.span.metrics.calls and traces.span.metrics.duration (the connector's default namespace is traces.span.metrics; in Prometheus they appear as traces_span_metrics_calls_total and traces_span_metrics_duration_* series) per service.name, span.name, span.kind and status.code plus the listed dimensions, into the metrics pipeline. It counts the spans it receives, so head sampling in the SDK still thins it; if tail sampling is wanted, put the tail_sampling processor in a separate traces pipeline after the connector so metrics stay complete."
             ),
             part(
               "Service pipelines and extensions",
@@ -376,8 +377,8 @@ export const OTCA_LABS: SeedLabSet = {
             ),
             part(
               "Per-service liveness without per-service rules",
-              "A single query over a metric every service emits (e.g. the SDK's target_info / otel_scope_info or a spanmetrics calls_total) grouped by service.name, comparing recent presence to a longer window -- series present over 1h but absent in the last 5m -- so a service that goes silent is detected generically; plus a synthetic 'heartbeat' span from each Collector tier to prove the end-to-end path.",
-              "Use a metric every instrumented service produces -- target_info (the OTLP resource metric) or spanmetrics' calls_total -- and alert on silence generically: count by (service_name) (count_over_time(target_info[1h])) unless count by (service_name) (count_over_time(target_info[5m])) lists services seen in the past hour but not in the last five minutes; one rule covers every service, present and future. Add a heartbeat: a tiny telemetrygen CronJob sends a known span and metric through the agent tier every minute, and an alert fires if the heartbeat is missing from the backend -- the only check that proves the whole path end to end."
+              "A single query over a metric every service emits (e.g. the SDK's target_info / otel_scope_info or spanmetrics' traces_span_metrics_calls_total) grouped by service.name, comparing recent presence to a longer window -- series present over 1h but absent in the last 5m -- so a service that goes silent is detected generically; plus a synthetic 'heartbeat' span from each Collector tier to prove the end-to-end path.",
+              "Use a metric every instrumented service produces -- target_info (the OTLP resource metric) or spanmetrics' traces_span_metrics_calls_total -- and alert on silence generically: count by (service_name) (count_over_time(target_info[1h])) unless count by (service_name) (count_over_time(target_info[5m])) lists services seen in the past hour but not in the last five minutes; one rule covers every service, present and future. Add a heartbeat: a tiny telemetrygen CronJob sends a known span and metric through the agent tier every minute, and an alert fires if the heartbeat is missing from the backend -- the only check that proves the whole path end to end."
             ),
           ],
         },

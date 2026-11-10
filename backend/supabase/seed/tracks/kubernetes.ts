@@ -89,7 +89,7 @@ export const CKA_TRACK: SeedTrack = {
         "Prepare the underlying infrastructure for a kubeadm cluster: container runtime (containerd) with the systemd cgroup driver, kernel modules and sysctls, swap off, and the ports the control plane and kubelet need",
         "Create and join a cluster with kubeadm: kubeadm init with a pod network CIDR, install a CNI plugin, generate and use join tokens, and add worker and control plane nodes",
         "Manage the lifecycle of a cluster: upgrade the control plane and then each node with kubeadm upgrade, drain, kubelet and kubectl upgrades, and uncordon, one minor version at a time",
-        "Back up and restore etcd with etcdctl snapshot save and snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
+        "Back up and restore etcd with etcdctl snapshot save and etcdutl snapshot restore using the right certificates and endpoint, and bring the static pod back up on the restored data",
         "Implement and configure a highly available control plane: stacked versus external etcd, a load-balanced API server endpoint, and the controlPlaneEndpoint and certificate-key flow for joining extra control plane nodes",
         "Use Helm to install and manage cluster components: add repositories, inspect values, install, upgrade, roll back and uninstall releases",
         "Use Kustomize to install and customize components: bases, overlays, patches and kubectl apply -k",
