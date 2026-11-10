@@ -13,18 +13,10 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 const workflows = readdirSync(WF).filter((f) => f.endsWith(".yml")).map((f) => ({ name: f, text: readFileSync(join(WF, f), "utf8") }));
 const wf = (name: string) => workflows.find((w) => w.name === name)!.text;
 
-// Actions that cannot be pinned yet: resolving a tag to a commit needs GitHub
-// API access that the session this was written in did not have. Run
-// `node .github/scripts/pin-actions.mjs`, commit the result, then empty this
-// list. A NEW unpinned action fails the test either way.
-const PENDING_PINS = new Set([
-  "actions/cache@v4",
-  "actions/checkout@v4",
-  "actions/setup-node@v4",
-  "actions/setup-python@v5",
-  "actions/upload-artifact@v4",
-  "expo/expo-github-action@v8",
-]);
+// Actions that may stay on a tag for now. Empty: every action is pinned to a
+// commit (node .github/scripts/pin-actions.mjs does it from `git ls-remote`).
+// Dependabot raises the update PRs, keyed on the "# vX.Y.Z" comment.
+const PENDING_PINS = new Set<string>([]);
 
 describe("FAIL-951: workflow permissions, pins, tokens", () => {
   test("every workflow declares top-level permissions; ci, migrate and keepalive are read-only", () => {

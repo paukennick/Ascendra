@@ -1,39 +1,28 @@
 // REQ-207 (FAIL-951): rewrite `uses: owner/repo@vN` to `uses: owner/repo@<40-hex sha> # vX.Y.Z`
-// in .github/workflows. Needs network access to GitHub with the `gh` CLI signed in
-// (any account; it only reads public tags). Run from the repository root:
+// in .github/workflows. Needs only `git` and network access to github.com (it
+// runs `git ls-remote` on public repositories; no token, no REST API). Run from
+// the repository root:
 //
 //   node .github/scripts/pin-actions.mjs            # rewrite in place
 //   node .github/scripts/pin-actions.mjs --check    # list what is not pinned, exit 1 if any
 //
 // For each action it takes the newest tag within the major version that the
 // workflow already names, resolves the tag (annotated tags are dereferenced)
-// to the commit it points at, and writes that commit SHA with the tag in a
+// to the commit it points at (the peeled ^{} entry), and writes that commit SHA with the tag in a
 // comment, which Dependabot then keeps current. After running it, empty
 // PENDING_PINS in backend/lib/workflow-hardening.test.ts.
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { newestInMajor, parseLsRemote } from "./pin-lib.mjs";
 
 const DIR = ".github/workflows";
 const USES = /^(\s*(?:-\s+)?uses:\s*)([A-Za-z0-9_.-]+\/[A-Za-z0-9_.\/-]+)@([^\s#]+)(\s*#.*)?$/;
 const SHA = /^[0-9a-f]{40}$/;
 
-const gh = (path, jq) => execFileSync("gh", ["api", path, "--jq", jq], { encoding: "utf8" }).trim();
-
 function resolve(repo, ref) {
-  const major = /^v(\d+)$/.exec(ref)?.[1];
-  if (!major) throw new Error(`${repo}@${ref}: expected a major-version tag like v4`);
-  const tags = gh(`repos/${repo}/tags?per_page=100`, ".[].name").split("\n").filter((t) => new RegExp(`^v${major}\\.\\d+\\.\\d+$`).test(t));
-  tags.sort((a, b) => {
-    const [x, y] = [a, b].map((t) => t.slice(1).split(".").map(Number));
-    return x[1] - y[1] || x[2] - y[2];
-  });
-  const tag = tags.at(-1);
-  if (!tag) throw new Error(`${repo}: no ${major}.x.y tag found`);
-  let [type, sha] = gh(`repos/${repo}/git/ref/tags/${tag}`, '.object.type + " " + .object.sha').split(" ");
-  if (type === "tag") sha = gh(`repos/${repo}/git/tags/${sha}`, ".object.sha");
-  if (!SHA.test(sha)) throw new Error(`${repo}@${tag}: could not resolve a commit`);
-  return { tag, sha };
+  const out = execFileSync("git", ["ls-remote", "--tags", `https://github.com/${repo}`], { encoding: "utf8" });
+  return newestInMajor(repo, ref, parseLsRemote(out));
 }
 
 const check = process.argv.includes("--check");

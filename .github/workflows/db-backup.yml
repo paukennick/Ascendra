@@ -47,7 +47,7 @@ jobs:
           set +x
           test -n "$DATABASE_URL" || { echo "::error::PROD_DATABASE_URL secret is not set"; exit 1; }
           test -n "$BACKUP_AGE_RECIPIENT" || { echo "::error::BACKUP_AGE_RECIPIENT (repository variable or secret) is not set"; exit 1; }
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           sparse-checkout: backend/scripts
       # pg_dump must be at least the server's major version (production runs
@@ -76,7 +76,7 @@ jobs:
           echo "name=${name%.dump.age}" >> "$GITHUB_OUTPUT"
           # Only the checksums are plaintext; the manifest stays encrypted.
           cat "$OUT_DIR/checksums.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ steps.backup.outputs.name }}
           path: ${{ runner.temp }}/db-backup/

@@ -59,7 +59,7 @@ jobs:
       NO_COLOR: "1"
       FORCE_COLOR: "0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Full history so the summary can show what changed in the native
           # inputs since the commit a build was made from.
@@ -109,12 +109,12 @@ jobs:
             echo "- Channel: \`$channel\`, dry run: \`$dry_run\`"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: mobile/package-lock.json
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8.2.1
         with:
           eas-version: 27.4.1
           packager: npm
@@ -259,7 +259,7 @@ jobs:
           done
       - name: Keep the fingerprints and reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: eas-ota-report
           path: |

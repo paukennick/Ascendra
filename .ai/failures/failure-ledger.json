@@ -9234,7 +9234,7 @@
       "id": "FAIL-951",
       "date": "2026-11-09",
       "title": "CI supply-chain gaps",
-      "status": "mitigated",
+      "status": "fixed",
       "severity": "medium",
       "symptom": "Workflows without a top-level permissions block, EXPO_TOKEN given to every step of the OTA job, mobile npm audit report-only, no dependabot, floating base images in the sandbox, mixed Node 22/24.",
       "how_detected": "pre-launch audit 2026-11-09",
@@ -9249,11 +9249,12 @@
         "backend/sandbox/python.Dockerfile",
         "backend/lib/sandbox-runner.ts"
       ],
-      "fix_summary": "permissions contents:read on ci, migrate and keepalive; EXPO_TOKEN per step; Node 24 everywhere; dependabot; sandbox base images by digest; blocking mobile audit gate with lockfile-only npm audit fix (19 to 7 findings). Third-party action SHA pinning NOT done: no GitHub API access in the session; .github/scripts/pin-actions.mjs and the test's PENDING_PINS list carry it.",
+      "fix_summary": "permissions contents:read on ci, migrate and keepalive; EXPO_TOKEN per step; Node 24 everywhere; dependabot; sandbox base images by digest; blocking mobile audit gate with lockfile-only npm audit fix (19 to 7 findings). Every third-party action is pinned to a commit SHA with a vX.Y.Z comment (newest patch tag of the major version in use): .github/scripts/pin-actions.mjs resolves tags with git ls-remote (peeled ^{} entry for annotated tags); PENDING_PINS is empty and the test rejects any new unpinned action.",
       "fix_commits": [],
       "regression_tests": [
         "backend/lib/workflow-hardening.test.ts",
-        ".github/scripts/audit-gate.test.mjs"
+        ".github/scripts/audit-gate.test.mjs",
+        ".github/scripts/pin-lib.test.mjs"
       ],
       "no_test_reason": "",
       "prevention_rules": [
