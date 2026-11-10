@@ -1,4 +1,5 @@
 import { isActive } from "@/lib/progress-sql";
+import { lessonServableSql } from "@/lib/item-quality";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { presentationOrder, presentationSeed, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
 import { recordPracticeAttemptTx } from "@/lib/practice-attempts";
@@ -99,6 +100,8 @@ export function placementSummaryMessage(asked: number, correct: number, endedEar
   return `You already know ${correct} of the ${asked} we asked about. We'll skip ahead past those, confirm them with a quick check later, and start with what's new.`;
 }
 
+// FAIL-894: a lesson check that was pulled (quarantined) is not asked here either; a
+// placement answer can skip the objective on the strength of a key nobody trusts.
 async function candidatesFor(run: TxClient | null, trackId: string): Promise<(PlacementCandidate & { question: string; choices: string[]; correctIndex: number })[]> {
   const sql = `select o.id as objective_id, o.unit_id, cu.sort_order as unit_sort, cu.weight as unit_weight, o.sort_order,
                       lc.fade_problem as question, lc.fade_choices as choices, lc.fade_correct_index as correct_index
@@ -107,6 +110,7 @@ async function candidatesFor(run: TxClient | null, trackId: string): Promise<(Pl
                  join lesson_content lc on lc.objective_id = o.id
                 where cu.track_id = $1 and lc.fade_problem is not null
                   and ${isActive("o")} and ${isActive("cu")}
+                  and ${lessonServableSql("lc")}
                   and jsonb_typeof(lc.fade_choices) = 'array' and jsonb_array_length(lc.fade_choices) >= 2
                   and lc.fade_correct_index is not null`;
   type Row = { objective_id: string; unit_id: string; unit_sort: number; unit_weight: string | null; sort_order: number; question: string; choices: string[]; correct_index: number };

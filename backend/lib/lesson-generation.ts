@@ -27,6 +27,7 @@ import {
   CLAIM_LEASE_SECONDS,
   saveLesson,
   scopeKey,
+  SHARED,
   tryClaim,
   type LessonRow,
   type LessonScope,
@@ -195,7 +196,13 @@ export interface LessonGenerator {
 // ever saw it and one account could walk the catalog's first generations for
 // free (audit finding 3).
 export interface GenerateMeta {
+  // Who the model calls are charged to (REQ-202): the learner whose regenerate
+  // this is, or whoever started a shared generation.
   userId?: string;
+  // FAIL-967: set for a shared (first) generation. A holdback's scope is the
+  // scope of the generation, not the learner it was charged to, or the shared
+  // cooldown (scope_user_id null, FAIL-882) would never see it.
+  sharedScope?: boolean;
   // REQ-114: set on the one retry of a practice half that was held back --
   // the claims to leave out or state as uncertain.
   steer?: string;
@@ -312,10 +319,27 @@ export class RetiredObjectiveError extends Error {
   }
 }
 
+// FAIL-884: a 409, not a 503. The app shows a 5xx as "something went wrong on
+// our side" (mobile/src/lib/errorMessage.ts), so the held-back guidance above
+// never reached a learner. `held` says the lesson was refused by the accuracy
+// checks (a person will look; trying again now will not help), `retryable`
+// that waiting a moment will not change the answer.
 export class ContentHeldBackError extends UserFacingError {
   constructor() {
-    super(HELD_BACK_MESSAGE, 503);
+    super(HELD_BACK_MESSAGE, 409, { held: true, retryable: false });
     this.name = "ContentHeldBackError";
+  }
+}
+
+// FAIL-883: the lesson's verification program could not be queued (a database
+// blip). Nothing was wrong with the content, so nothing is recorded as held
+// back and no cooldown starts: the next request tries again.
+export const EXEC_QUEUE_UNAVAILABLE =
+  "We couldn't finish preparing this lesson just now. Please try again in a moment.";
+export class ExecQueueUnavailableError extends UserFacingError {
+  constructor() {
+    super(EXEC_QUEUE_UNAVAILABLE, 503, { retryable: true });
+    this.name = "ExecQueueUnavailableError";
   }
 }
 
@@ -329,12 +353,19 @@ export const NOT_SERVED_MARK = "[not served: failed again after one retry]";
 // on content the checks just refused.
 export const HELD_BACK_COOLDOWN_HOURS = 6;
 
-export async function recentlyHeldBack(objectiveId: string): Promise<boolean> {
+// FAIL-882: the cooldown is per scope. It used to filter by objective only, so
+// one learner's failed regenerate locked the objective for every learner for
+// six hours. A learner's regenerate is held back by that learner's own
+// holdbacks; a shared (first) generation by shared holdbacks only
+// (item_holdbacks.scope_user_id null, migration 069; rows from before it are
+// all null and so count as shared).
+export async function recentlyHeldBack(objectiveId: string, scope: LessonScope = SHARED): Promise<boolean> {
   const r = await queryOne<{ n: number }>(
     `select count(*)::int as n from item_holdbacks
       where objective_id = $1 and item_kind in ('lesson', 'lesson_intro')
-        and claims ? $2 and created_at > now() - make_interval(hours => $3)`,
-    [objectiveId, NOT_SERVED_MARK, HELD_BACK_COOLDOWN_HOURS]
+        and claims ? $2 and created_at > now() - make_interval(hours => $3)
+        and scope_user_id is not distinct from $4::uuid`,
+    [objectiveId, NOT_SERVED_MARK, HELD_BACK_COOLDOWN_HOURS, scope.kind === "user" ? scope.userId : null]
   ).catch(() => null);
   return (r?.n ?? 0) > 0;
 }
@@ -343,6 +374,10 @@ export async function recentlyHeldBack(objectiveId: string): Promise<boolean> {
 // way the checks are. A first draft that lists uncertain claims (or rates
 // its confidence low) is logged and regenerated once, steered away from
 // them; if the retry is unsure too, the lesson is not shown.
+function holdbackScopeUserId(meta: GenerateMeta, shared = false): string | undefined {
+  return shared || meta.sharedScope ? undefined : meta.userId;
+}
+
 export async function checkedIntro(
   objectiveId: string,
   objRow: ObjectiveRow,
@@ -351,12 +386,12 @@ export async function checkedIntro(
   const first = await opts.gen.intro(objRow, opts.avoid, opts.meta);
   const unsure = uncertaintyOf(first);
   if (!unsure) return first;
-  await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: unsure, content: first, model: opts.gen.model() });
+  await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: unsure, content: first, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta) });
   const introSteer = `A previous draft of this teaching text was held back because the writer was not sure of these claims. Leave each out, or state plainly that it may differ for this version:\n${unsure.map((c) => `- ${c}`).join("\n")}`;
   const retry = await opts.gen.intro(objRow, opts.avoid, { ...opts.meta, introSteer });
   const again = uncertaintyOf(retry);
   if (!again) return retry;
-  await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: [NOT_SERVED_MARK, ...again], content: retry, model: opts.gen.model() });
+  await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: [NOT_SERVED_MARK, ...again], content: retry, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta) });
   throw new ContentHeldBackError();
 }
 
@@ -404,26 +439,24 @@ export async function checkedPractice(
     try {
       await opts.gen.queueExec(ref, snip);
     } catch (err) {
-      await recordHoldback({
-        kind: "lesson",
-        objectiveId,
-        reason: "fact_check_error",
-        claims: [NOT_SERVED_MARK, `${EXEC_QUEUE_FAILED}: ${(err as Error)?.message ?? "error"}`.slice(0, 300)],
-        content: p,
-        model: opts.gen.model(),
-      });
-      throw new ContentHeldBackError();
+      // FAIL-883: this is our failure, not the content's. It used to be
+      // recorded as a holdback marked NOT_SERVED_MARK, which started the six
+      // hour cooldown for the objective. Now it is logged and refused as
+      // retryable, and the next request tries again.
+      // eslint-disable-next-line no-console
+      console.warn(`[lesson-generation] ${EXEC_QUEUE_FAILED}: ${(err as Error)?.message ?? "error"}`);
+      throw new ExecQueueUnavailableError();
     }
     return p;
   };
   const firstProblem = await problems(first);
   if (!firstProblem) return queued(first);
-  await recordHoldback({ kind: "lesson", objectiveId, reason: firstProblem.reason, claims: firstProblem.claims, content: first, model: opts.gen.model() });
+  await recordHoldback({ kind: "lesson", objectiveId, reason: firstProblem.reason, claims: firstProblem.claims, content: first, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta, opts.shared) });
   const steer = `A previous draft was held back because of these claims. Leave each out, or state plainly that it may differ for this exam version, and make sure each check has exactly one defensible answer:\n${firstProblem.claims.map((c) => `- ${c}`).join("\n")}`;
   const retry = await opts.gen.practice(objRow, opts.avoid, { ...opts.meta, steer });
   const retryProblem = await problems(retry);
   if (retryProblem) {
-    await recordHoldback({ kind: "lesson", objectiveId, reason: retryProblem.reason, claims: [NOT_SERVED_MARK, ...retryProblem.claims], content: retry, model: opts.gen.model() });
+    await recordHoldback({ kind: "lesson", objectiveId, reason: retryProblem.reason, claims: [NOT_SERVED_MARK, ...retryProblem.claims], content: retry, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta, opts.shared) });
     throw new ContentHeldBackError();
   }
   return queued(retry);
@@ -566,8 +599,8 @@ async function runGeneration(
         // practice prompt is longer by the teaching text.
         // REQ-187: an objective whose lesson was just refused twice waits
         // out the cooldown instead of paying for the same refusal again.
-        if (await recentlyHeldBack(objectiveId)) throw new ContentHeldBackError();
-        const meta: GenerateMeta = { userId: scope.kind === "user" ? scope.userId : opts.triggeredBy };
+        if (await recentlyHeldBack(objectiveId, scope)) throw new ContentHeldBackError();
+        const meta: GenerateMeta = scope.kind === "user" ? { userId: scope.userId } : { userId: opts.triggeredBy, sharedScope: true };
         // REQ-187 (P8): the teaching text is checked for the writer's own
         // doubt BEFORE the learner sees it (retried once, then held back).
         const intro = await checkedIntro(objectiveId, objRow, { gen, avoid, meta });
@@ -666,8 +699,10 @@ export function ensureGeneration(objectiveId: string, objRow: ObjectiveRow, opts
 // Regenerate for one learner: writes only their override, steered away from
 // whatever they currently see (their override if they have one, else the
 // shared lesson). Their saved place in the old lesson is cleared once the new
-// lesson's intro exists. Nobody else's lesson text or saved position is
-// touched.
+// lesson is STORED (FAIL-887): it used to go as soon as the new intro existed,
+// so a regenerate whose practice half was then held back or failed left the
+// learner with their old lesson and no saved place in it. Nobody else's lesson
+// text or saved position is touched.
 export async function startRegeneration(
   userId: string,
   objectiveId: string,
@@ -675,17 +710,37 @@ export async function startRegeneration(
   opts: Omit<GenerationOptions, "scope" | "avoid"> = {}
 ): Promise<GenerationHandle> {
   const current = await getLessonFor(userId, objectiveId);
+  // Database time, so a saved position is compared with the clock that
+  // stamped it (lesson_progress.updated_at).
+  const startedAt = (await queryOne<{ t: Date }>(`select clock_timestamp() as t`))?.t;
   const handle = ensureGeneration(objectiveId, objRow, {
     ...opts,
     scope: { kind: "user", userId },
     avoid: current ? rowToAvoid(current.row) : undefined,
   });
-  const introPromise = handle.introPromise.then(async (intro) => {
-    if (intro) await clearLessonProgress(userId, objectiveId);
-    return intro;
+  const fullPromise = handle.fullPromise.then(async (row) => {
+    // The new lesson is stored. A failure to tidy the old position must not
+    // fail a regenerate that worked: the app drops a position whose
+    // lesson_key no longer matches anyway.
+    await clearLessonProgress(userId, objectiveId, startedAt).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn(`[lesson-generation] could not clear the old saved position: ${(err as Error).message}`);
+    });
+    return row;
   });
-  introPromise.catch(() => {});
-  return { introPromise, fullPromise: handle.fullPromise };
+  fullPromise.catch(() => {});
+  return { introPromise: handle.introPromise, fullPromise };
+}
+
+// FAIL-888: gives a regenerate's counted use back when the regenerate ends
+// without storing a lesson (the practice half was held back or failed). Settles
+// when the generation does; a stored lesson keeps the use. Never rejects.
+export async function releaseUseUnlessStored(handle: GenerationHandle, use: { release(): Promise<void> }): Promise<void> {
+  try {
+    await handle.fullPromise;
+  } catch {
+    await use.release();
+  }
 }
 
 // What GET serves: the learner's own lesson if they have one, else the shared

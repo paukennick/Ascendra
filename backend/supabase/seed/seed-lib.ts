@@ -188,6 +188,38 @@ export async function seedCredentialExam(
   return examId;
 }
 
+// FAIL-893: units and objectives are matched by sort_order, so an objective
+// retitled in place keeps its row id -- and with it a stored lesson, review
+// questions and exam items written for the OLD title, served under the new
+// one. When the title changes, the generated content for that objective is
+// invalidated: the shared and learner lessons are deleted (the next visit
+// generates them again; a lesson a person corrected, model 'corrected:...',
+// is kept for that person to look at), and the shared review, Quiz-me and
+// exam items (a lesson check copied into the exam bank included) are pulled
+// from rotation with an item_status row, not deleted, so past sessions and
+// their answers stay readable. Learner history (attempts, mastery) is kept.
+export async function invalidateGeneratedContent(pool: Pool, objectiveId: string): Promise<{ lessons: number; pulled: number }> {
+  const lessons =
+    ((await pool.query(`delete from lesson_content where objective_id = $1 and model not like 'corrected:%' returning 1`, [objectiveId])).rowCount ?? 0) +
+    ((await pool.query(`delete from lesson_content_overrides where objective_id = $1 returning 1`, [objectiveId])).rowCount ?? 0);
+  let pulled = 0;
+  for (const [kind, table, question] of [
+    ["review", "review_items", "question"],
+    ["quiz", "coach_quiz_items", "question"],
+    ["exam", "exam_items", "stem"],
+  ] as const) {
+    const r = await pool.query(
+      `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_note)
+       select $1, t.id::text, t.objective_id, t.${question}, 'quarantined', 'objective_retitled', 'the objective was retitled in the seed'
+         from ${table} t where t.objective_id = $2
+       on conflict (item_kind, item_id) do nothing`,
+      [kind, objectiveId]
+    );
+    pulled += r.rowCount ?? 0;
+  }
+  return { lessons, pulled };
+}
+
 export async function seedTrack(pool: Pool, legacyUserId: string | null, track: SeedTrack) {
   const credentialExamId = track.credential
     ? await seedCredentialExam(pool, track.credential, activeUnits(track))
@@ -270,6 +302,7 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
   // re-seed. retired_at is assigned outright from the seed (a unit the seed
   // marks retired gets that timestamp, on itself and all its objectives;
   // anything else is un-retired), so the seed file stays the authority.
+  let retitled = 0;
   for (let i = 0; i < track.units.length; i++) {
     const unit = track.units[i];
     const retiredAt = unit.retiredAt ?? null;
@@ -302,7 +335,7 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
       // REQ-195: an objective can be retired on its own in a unit that stays.
       const objRetiredAt = objectiveRetiredAt(unit, j);
       const existingObj = await pool.query(
-        `select id from objectives where unit_id = $1 and sort_order = $2`,
+        `select id, title from objectives where unit_id = $1 and sort_order = $2`,
         [unitId, j]
       );
       if (existingObj.rows[0]) {
@@ -310,6 +343,13 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
           `update objectives set title = $1, lab_prompt = $2, retired_at = $4::timestamptz where id = $3`,
           [objTitle, lab, existingObj.rows[0].id, objRetiredAt]
         );
+        if (existingObj.rows[0].title !== objTitle) {
+          const gone = await invalidateGeneratedContent(pool, existingObj.rows[0].id);
+          retitled++;
+          console.log(
+            `  retitled "${existingObj.rows[0].title}" -> "${objTitle}": ${gone.lessons} stored lesson(s) deleted, ${gone.pulled} item(s) pulled`
+          );
+        }
       } else {
         await pool.query(
           `insert into objectives (unit_id, title, sort_order, lab_prompt, retired_at) values ($1,$2,$3,$4,$5::timestamptz)`,
@@ -340,9 +380,22 @@ export async function seedTrack(pool: Pool, legacyUserId: string | null, track: 
     [trackId, track.units.length]
   );
 
+  // FAIL-890: a learner's unresolved review entries (error_log) for objectives
+  // and units that are now retired are resolved, so the Review queue does not
+  // keep asking about content that is no longer taught. The rows are kept.
+  const resolved = await pool.query(
+    `update error_log e set resolved = true, next_review_at = null
+      where e.resolved = false
+        and (e.unit_id in (select id from course_units where track_id = $1 and retired_at <= now())
+             or e.objective_id in (select o.id from objectives o join course_units cu on cu.id = o.unit_id
+                                    where cu.track_id = $1 and (o.retired_at <= now() or cu.retired_at <= now())))`,
+    [trackId]
+  );
+  if (resolved.rowCount) console.log(`  resolved ${resolved.rowCount} review entr${resolved.rowCount === 1 ? "y" : "ies"} for retired content in ${track.code}`);
+
   const retired = track.units.length - activeUnits(track).length;
   console.log(
-    `  seeded ${track.units.length} units for ${track.code}${retired ? ` (${retired} retired, history kept)` : ""}`
+    `  seeded ${track.units.length} units for ${track.code}${retired ? ` (${retired} retired, history kept)` : ""}${retitled ? ` (${retitled} retitled, generated content invalidated)` : ""}`
   );
 }
 

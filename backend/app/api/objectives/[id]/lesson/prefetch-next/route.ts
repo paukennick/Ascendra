@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { queryOne } from "@/lib/db";
 import { ok, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { isActive } from "@/lib/progress-sql";
 import {
   requireAcknowledgementForObjective,
@@ -88,7 +88,7 @@ export async function POST(
     // Audit 2: the access check REQ-129 added everywhere else. The disclaimer
     // gate below returns silently for a track the caller can't see, so it is
     // not an access check on its own.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
 
     const next = await findNextObjective(id);

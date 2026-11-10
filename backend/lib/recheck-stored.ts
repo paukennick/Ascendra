@@ -72,7 +72,25 @@ export async function storedBefore(before: string, kinds: readonly ItemKind[] = 
     add("quiz", await query(`select id::text, objective_id, question from coach_quiz_items where generated_at < $1::date and ${servableSql("quiz", "id")}`, [before]), "coach_quiz_items");
   }
   if (kinds.includes("exam")) {
-    add("exam", await query(`select id::text, objective_id, stem as question from exam_items where source = 'generated' and created_at < $1::date and ${servableSql("exam", "id")}`, [before]), "exam_items");
+    // FAIL-885: and a lesson check copied into the bank (source 'lesson'),
+    // which is a different item from the lesson check it was copied from and
+    // was skipped here. It is as old as the stored lesson it came from, not
+    // as its own row, and is skipped when a person wrote or corrected that
+    // lesson (the same rule as the lesson branch above).
+    add(
+      "exam",
+      await query(
+        `select e.id::text, e.objective_id, e.stem as question from exam_items e
+          where ${servableSql("exam", "e.id")}
+            and ((e.source = 'generated' and e.created_at < $1::date)
+              or (e.source = 'lesson' and exists (
+                    select 1 from lesson_content lc
+                     where lc.objective_id = e.objective_id and (lc.fade_problem = e.stem or lc.solo_check = e.stem)
+                       and lc.generated_at < $1::date and not (lc.model like 'authored:%' or lc.model like 'corrected:%'))))`,
+        [before]
+      ),
+      "exam_items"
+    );
   }
   if (kinds.includes("comparison")) {
     add(

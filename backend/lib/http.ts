@@ -97,7 +97,9 @@ export function serverError(err: unknown) {
   }
   if (err instanceof EmailSendError) {
     logEmailFailure(`request ${requestId}`, err);
-    return NextResponse.json({ error: EMAIL_NOT_SENT, requestId, retryable: true }, { status: 503 });
+    // FAIL-884: a 409, not a 503: the app hides a 5xx's message behind
+    // "something went wrong on our side", so the learner never read this.
+    return NextResponse.json({ error: EMAIL_NOT_SENT, requestId, retryable: true }, { status: 409 });
   }
   if (isTransientModelFailure(err)) {
     // eslint-disable-next-line no-console

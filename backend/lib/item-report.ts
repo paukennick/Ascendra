@@ -1,7 +1,7 @@
 import { queryOne } from "@/lib/db";
 import { lessonCheckFor } from "@/lib/grading-service";
 import { requireAcknowledgementForObjective, requireAcknowledgementForTrack } from "@/lib/auth/requireAcknowledgement";
-import { isUuid, visibleObjective, visibleTrack } from "@/lib/visibility";
+import { isUuid, taughtObjective, visibleTrack } from "@/lib/visibility";
 import { visibleLab } from "@/lib/labs";
 import { SimError, simReportTarget } from "@/lib/sims";
 import { textField } from "@/lib/text-input";
@@ -52,7 +52,7 @@ export async function resolveReport(userId: string, body: Record<string, unknown
       if (typeof b.objectiveId !== "string" || (b.stage !== "fade" && b.stage !== "solo")) {
         throw new ReportError(400, "objectiveId and stage ('fade' or 'solo') are required");
       }
-      const o = await visibleObjective(b.objectiveId, userId);
+      const o = await taughtObjective(b.objectiveId, userId);
       if (!o) throw notFound();
       await requireAcknowledgementForObjective(o.id, userId);
       const found = await lessonCheckFor(userId, o.id, b.stage);
