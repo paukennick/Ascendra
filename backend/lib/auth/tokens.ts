@@ -175,6 +175,17 @@ export async function revokeRefreshToken(rawToken: string): Promise<void> {
   ]);
 }
 
+// REQ-192: ends one session -- every live token of the family -- for the
+// signed-in caller. Scoped by user so a family id alone revokes nothing.
+export async function revokeRefreshFamily(userId: string, familyId: string): Promise<number> {
+  const rows = await query(
+    `update refresh_tokens set revoked_at = now()
+     where user_id = $1 and family_id = $2 and revoked_at is null returning id`,
+    [userId, familyId]
+  );
+  return rows.length;
+}
+
 export async function revokeAllRefreshTokens(userId: string): Promise<void> {
   await query(`update refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null`, [userId]);
 }
