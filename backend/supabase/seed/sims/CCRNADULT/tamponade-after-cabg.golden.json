@@ -2735,6 +2735,413 @@
         "whatIsHappening": "missed"
       },
       "notes": "The accessible compression mode, scored on the rate and pause chosen. A shock to a non-shockable rhythm, a wrong fix first, the right one after 3 minutes."
+    },
+    {
+      "id": "expert3x",
+      "title": "The expert path at study pace (3x)",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "inspect",
+          "seq": 2,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "tubes",
+          "seq": 3,
+          "tick": 560
+        },
+        {
+          "type": "act",
+          "action": "ausc",
+          "seq": 4,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "wedge",
+          "seq": 5,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "surgeon",
+          "params": {
+            "sit": "stop",
+            "bg": "full",
+            "asmt": "tamp",
+            "rec": "come"
+          },
+          "seq": 6,
+          "tick": 660
+        },
+        {
+          "type": "teach",
+          "prompt": "triad",
+          "choice": "no",
+          "seq": 7,
+          "tick": 660
+        },
+        {
+          "type": "act",
+          "action": "echo",
+          "seq": 8,
+          "tick": 680
+        },
+        {
+          "type": "teach",
+          "prompt": "echoNormal",
+          "choice": "notRuledOut",
+          "seq": 9,
+          "tick": 680
+        },
+        {
+          "type": "act",
+          "action": "prep",
+          "seq": 10,
+          "tick": 700
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 11,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "params": {
+            "ml": "250"
+          },
+          "seq": 12,
+          "tick": 760
+        },
+        {
+          "type": "teach",
+          "prompt": "cvpAfterBolus",
+          "choice": "rise",
+          "seq": 13,
+          "tick": 760
+        },
+        {
+          "type": "teach",
+          "prompt": "echoSigns",
+          "choice": "ivcCollapse",
+          "seq": 14,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 15,
+          "tick": 800
+        },
+        {
+          "type": "reason",
+          "moment": "whatIsHappening",
+          "answered": true,
+          "seq": 16,
+          "tick": 1020
+        },
+        {
+          "type": "chapter",
+          "chapter": "surgeonAtBedside",
+          "choice": "continue",
+          "seq": 17,
+          "tick": 1380
+        },
+        {
+          "type": "chapter",
+          "chapter": "reexploration",
+          "choice": "continue",
+          "seq": 18,
+          "tick": 2580
+        },
+        {
+          "type": "skip",
+          "timer": "backInIcu",
+          "instance": 12,
+          "to": 7980,
+          "seq": 19,
+          "tick": 2580
+        },
+        {
+          "type": "choose",
+          "prompt": "p2a",
+          "choice": "inotrope",
+          "seq": 20,
+          "tick": 7980
+        },
+        {
+          "type": "chapter",
+          "chapter": "backInIcu",
+          "choice": "continue",
+          "seq": 21,
+          "tick": 7980
+        },
+        {
+          "type": "skip",
+          "timer": "reassessT",
+          "instance": 13,
+          "to": 9780,
+          "seq": 22,
+          "tick": 7980
+        }
+      ],
+      "expect": {
+        "ending": "early",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "tubes": "met",
+          "callEarly": "met",
+          "sbar": "met",
+          "confirm": "met",
+          "bridge": "met",
+          "prep": "met",
+          "labs": "met",
+          "phase2": "met",
+          "code_compressions": "na",
+          "code_cprQuality": "na",
+          "code_defib": "na",
+          "code_epinephrine": "na",
+          "code_cause": "na"
+        },
+        "kpis": {
+          "recognition": 420,
+          "page": 540,
+          "reexp": 2460,
+          "code_toCompressions": -1,
+          "code_toCause": -1,
+          "code_toRosc": -1,
+          "code_goodCycleCount": 0
+        },
+        "stateHash": "dcef2c0d5a82811f",
+        "minWallSeconds": 860
+      },
+      "reasoning": {
+        "whatIsHappening": "met"
+      },
+      "notes": "REQ-209. The expert path with pace 3 logged first, a teaching answer for each prompt (one deliberately wrong) and a chapter 'continue' at each break. Pacing, teaching and chapter commands change no sim state, so the end state, criteria, KPIs and state hash are the expert path's own; only the fewest wall seconds differ."
+    },
+    {
+      "id": "focused3x",
+      "title": "A focused start at study pace (3x)",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "begin",
+          "start": "focused",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 2,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "inspect",
+          "seq": 3,
+          "tick": 782
+        },
+        {
+          "type": "act",
+          "action": "tubes",
+          "seq": 4,
+          "tick": 790
+        },
+        {
+          "type": "act",
+          "action": "ausc",
+          "seq": 5,
+          "tick": 800
+        },
+        {
+          "type": "act",
+          "action": "wedge",
+          "seq": 6,
+          "tick": 810
+        },
+        {
+          "type": "act",
+          "action": "surgeon",
+          "params": {
+            "sit": "stop",
+            "bg": "full",
+            "asmt": "tamp",
+            "rec": "come"
+          },
+          "seq": 7,
+          "tick": 820
+        },
+        {
+          "type": "teach",
+          "prompt": "triad",
+          "choice": "no",
+          "seq": 8,
+          "tick": 820
+        },
+        {
+          "type": "act",
+          "action": "echo",
+          "seq": 9,
+          "tick": 842
+        },
+        {
+          "type": "teach",
+          "prompt": "echoNormal",
+          "choice": "notRuledOut",
+          "seq": 10,
+          "tick": 842
+        },
+        {
+          "type": "act",
+          "action": "prep",
+          "seq": 11,
+          "tick": 844
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 12,
+          "tick": 846
+        },
+        {
+          "type": "act",
+          "action": "fluid",
+          "params": {
+            "ml": "250"
+          },
+          "seq": 13,
+          "tick": 850
+        },
+        {
+          "type": "teach",
+          "prompt": "cvpAfterBolus",
+          "choice": "rise",
+          "seq": 14,
+          "tick": 850
+        },
+        {
+          "type": "act",
+          "action": "norepi",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 15,
+          "tick": 855
+        },
+        {
+          "type": "teach",
+          "prompt": "echoSigns",
+          "choice": "rvCollapse",
+          "seq": 16,
+          "tick": 940
+        },
+        {
+          "type": "reason",
+          "moment": "whatIsHappening",
+          "answered": true,
+          "seq": 17,
+          "tick": 1020
+        },
+        {
+          "type": "chapter",
+          "chapter": "surgeonAtBedside",
+          "choice": "continue",
+          "seq": 18,
+          "tick": 1540
+        },
+        {
+          "type": "chapter",
+          "chapter": "reexploration",
+          "choice": "continue",
+          "seq": 19,
+          "tick": 2440
+        },
+        {
+          "type": "skip",
+          "timer": "backInIcu",
+          "instance": 12,
+          "to": 7840,
+          "seq": 20,
+          "tick": 2440
+        },
+        {
+          "type": "choose",
+          "prompt": "p2a",
+          "choice": "inotrope",
+          "seq": 21,
+          "tick": 7840
+        },
+        {
+          "type": "chapter",
+          "chapter": "backInIcu",
+          "choice": "continue",
+          "seq": 22,
+          "tick": 7840
+        },
+        {
+          "type": "skip",
+          "timer": "reassessT",
+          "instance": 13,
+          "to": 9640,
+          "seq": 23,
+          "tick": 7840
+        }
+      ],
+      "expect": {
+        "ending": "early",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "tubes": "na",
+          "callEarly": "met",
+          "sbar": "met",
+          "confirm": "met",
+          "bridge": "met",
+          "prep": "met",
+          "labs": "met",
+          "phase2": "met",
+          "code_compressions": "na",
+          "code_cprQuality": "na",
+          "code_defib": "na",
+          "code_epinephrine": "na",
+          "code_cause": "na"
+        },
+        "kpis": {
+          "recognition": 662,
+          "page": 700,
+          "reexp": 2320,
+          "code_toCompressions": -1,
+          "code_toCause": -1,
+          "code_toRosc": -1,
+          "code_goodCycleCount": 0
+        },
+        "stateHash": "1e41afd19191044b",
+        "minWallSeconds": 553.3333333333334,
+        "focusedAt": 780
+      },
+      "reasoning": {
+        "whatIsHappening": "met"
+      },
+      "notes": "REQ-209. begin focused (evolves the normal start to tick 780 with no actions), pace 3, then an expert-style path from there. The tubes criterion is not applicable because the start is after the expert's recognition time (540 s); every other criterion is scored as in a full case."
     }
   ]
 }

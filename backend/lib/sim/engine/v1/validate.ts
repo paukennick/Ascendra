@@ -1291,7 +1291,7 @@ function pacingRules(doc: ScenarioDoc, col: Collector, opts: LintOptions): void 
       else if (clockMode(run) !== "running") col.error("focusedStart.at", `seed ${seed}: the phase at that point is not running`);
       else if (run.state.reasoningOpened.length) col.error("focusedStart.at", `seed ${seed}: a reasoning moment has already been opened; start before it`);
       if (opts.goldenResults !== undefined || opts.golden) {
-        if (run.state.triggerFired.some((f) => f)) col.warn("focusedStart.at", "an alarm or trigger has already fired before the focused start; the learner starts with it in the log");
+        if (doc.triggers.some((t, i) => t.interruptsSkip && run.state.triggerFired[i])) col.warn("focusedStart.at", "an alarm has already fired before the focused start; the learner starts with it in the log");
       }
       break; // the evolution has no random draws unless the document uses streams; seed 1 stands for all
     }

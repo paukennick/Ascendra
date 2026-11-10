@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "engine": {
     "major": 1,
-    "minor": 0
+    "minor": 1
   },
   "slug": "tamponade-after-cabg",
   "title": "Tamponade after CABG",
@@ -630,6 +630,15 @@
         "cite": "Prototype criteria",
         "checkedAt": "2026-11-09",
         "note": "Tubes looked at within 30 min of onset scores partial."
+      }
+    },
+    "recognizeExpertAt": {
+      "value": 540,
+      "unit": "s",
+      "source": {
+        "cite": "Expert path (prototype EXPERT, golden path expert)",
+        "checkedAt": "2026-11-09",
+        "note": "The expert path inspects the chest tubes 9 min into the case (7 min after the drainage stops). A focused start that begins later than this skips the window in which the expert recognises the problem, so the recognition criterion is left out of the score for that run (docs/sims.md 5.4b)."
       }
     }
   },
@@ -2435,7 +2444,8 @@
     "q15check": {
       "label": "the next drainage check",
       "wait": {
-        "skipLabel": "the next drainage check"
+        "skipLabel": "the next drainage check",
+        "routine": true
       },
       "instances": "one",
       "source": {
@@ -3427,6 +3437,11 @@
         "weight": 1,
         "rows": [
           {
+            "when": "focusedAt > recognizeExpertAt",
+            "score": "na",
+            "why": "You joined the case after the point where the expert path notices the drainage stop, so this is left out of your score."
+          },
+          {
             "when": "isNull(tubesAt)",
             "score": "missed",
             "why": "The tubes were not looked at after the drainage stopped."
@@ -3837,6 +3852,135 @@
             "label": "100 mcg IV, on the senior clinician's instruction"
           }
         ]
+      }
+    }
+  },
+  "focusedStart": {
+    "label": "Start near the deterioration",
+    "summary": "Join the case at 14:13, 11 minutes after the drainage stopped. The first written question comes about a minute later.",
+    "at": "13min",
+    "source": {
+      "cite": "Scenario timing (authored)",
+      "checkedAt": "2026-11-09",
+      "note": "Tick 780 is 11 min after onset (the drainage stops at 120 s), inside the brief's 10 to 12 min. With no learner action the first reasoning moment opens at tick 840 and no alarm has fired by 780, so the start is reached by evolving the normal start with no actions and leaves the first clear deterioration to the learner."
+    }
+  },
+  "chapters": [
+    {
+      "id": "surgeonAtBedside",
+      "label": "Surgeon at the bedside",
+      "when": "surgeonArrived"
+    },
+    {
+      "id": "reexploration",
+      "label": "Re-exploration begins",
+      "when": "phase == \"reexp\""
+    },
+    {
+      "id": "backInIcu",
+      "label": "Back in the ICU",
+      "when": "phase == \"p2\""
+    }
+  ],
+  "teaching": {
+    "cvpAfterBolus": {
+      "during": "bolusDone",
+      "ask": "What do you expect the CVP to do as this bolus goes in?",
+      "choices": [
+        {
+          "id": "rise",
+          "label": "Rise"
+        },
+        {
+          "id": "same",
+          "label": "Stay about the same"
+        },
+        {
+          "id": "fall",
+          "label": "Fall"
+        }
+      ],
+      "expect": "rise",
+      "explain": "It rises. In 49 patients with tamponade, a 500 mL saline bolus raised the right atrial pressure by about 3 mmHg on average. Cardiac output rose in about half of them, stayed the same in about a fifth and fell in about a third, and a low systolic pressure (under 100) predicted who benefited. So fluid can buy a little time, it is not the fix.",
+      "source": {
+        "cite": "Sagrista-Sauleda J, et al. Hemodynamic effects of volume expansion in patients with cardiac tamponade. Circulation 2008;117:1545-1549",
+        "url": "https://doi.org/10.1161/CIRCULATIONAHA.107.737841",
+        "note": "Right atrial pressure 9.8 to 12.8 mmHg; cardiac index up by more than 10% in 47%, unchanged in 22%, down in 31%; baseline systolic under 100 mmHg predicted a response. FLAG: the patients had large pericardial effusions from medical causes, not early post-cardiac-surgery bleeding, and the bolus was 500 mL over 10 min; it is used here for the direction of the CVP and the unreliable benefit only.",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "echoNormal": {
+      "during": "echoResultT",
+      "ask": "The echo is being done. If it looks normal, what does that tell you this soon after surgery?",
+      "choices": [
+        {
+          "id": "ruledOut",
+          "label": "Tamponade is ruled out"
+        },
+        {
+          "id": "notRuledOut",
+          "label": "Not ruled out: an early echo can miss it"
+        },
+        {
+          "id": "onlyIfClear",
+          "label": "Ruled out only if the pictures are clear"
+        }
+      ],
+      "expect": "notRuledOut",
+      "explain": "Not ruled out. In a cohort of 427 echocardiograms done for suspected tamponade within 4 weeks of cardiac surgery, 105 of 116 re-explorations found tamponade, and the accuracy of echo was poor in the first 24 hours. Blood after surgery can sit in one pocket (a clot) that a standard bedside echo does not show. The picture at the bedside still decides.",
+      "source": {
+        "cite": "Diagnostic performance of echocardiography to predict cardiac tamponade after cardiac surgery. Eur J Cardiothorac Surg 2022;62:ezab468",
+        "url": "https://doi.org/10.1093/ejcts/ezab468",
+        "note": "Reported: accuracy acceptable overall within 4 weeks and improving over time, but poor in the first 24 h. Also: J Card Surg 2008;23:450-453 (doi 10.1111/j.1540-8191.2008.00581.x), where 13 of 22 tamponades missed by transthoracic echo were found by transesophageal echo and confirmed at surgery. FLAG: retrospective single-centre data; the score the authors give for the early phase is in the full text, which was not available to the author of this prompt.",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "triad": {
+      "during": "callbackT",
+      "ask": "While you wait for the call back: will this patient show the full classic triad (low blood pressure, raised venous pressure, quiet heart sounds)?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes, all three, before it gets dangerous"
+        },
+        {
+          "id": "no",
+          "label": "Probably not: don't wait for all three"
+        }
+      ],
+      "expect": "no",
+      "explain": "Probably not. The classic triad is not common, so waiting to see all three delays the call. Act on the pattern you already have: a falling drainage, a rising heart rate, a narrowing pulse pressure and a CVP rising toward the wedge.",
+      "source": {
+        "cite": "Alerhand S, Adrian RJ, Long B, Avila J. Pericardial tamponade: a comprehensive emergency medicine and echocardiography review. Am J Emerg Med 2022;58:159-174",
+        "url": "https://doi.org/10.1016/j.ajem.2022.05.001",
+        "note": "Review abstract: the classically taught Beck's triad does not appear commonly. FLAG: the second sentence of the explanation (the pattern to act on) restates this scenario's own expert path, not a finding of the review.",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "echoSigns": {
+      "during": "arriveT",
+      "ask": "While the surgeon walks over: which echo sign is the most specific for tamponade?",
+      "choices": [
+        {
+          "id": "rvCollapse",
+          "label": "The right ventricle collapses in diastole"
+        },
+        {
+          "id": "ivcCollapse",
+          "label": "The vena cava collapses when the patient breathes in"
+        },
+        {
+          "id": "bigLv",
+          "label": "A large, poorly squeezing left ventricle"
+        }
+      ],
+      "expect": "rvCollapse",
+      "explain": "Diastolic collapse of the right ventricle is the most specific sign. Collapse of the right atrium in systole and a wide, non-collapsing vena cava are more sensitive, so they catch more cases but are less specific. A vena cava that collapses on breathing in points away from tamponade.",
+      "source": {
+        "cite": "Alerhand S, Adrian RJ, Long B, Avila J. Pericardial tamponade: a comprehensive emergency medicine and echocardiography review. Am J Emerg Med 2022;58:159-174",
+        "url": "https://doi.org/10.1016/j.ajem.2022.05.001",
+        "note": "Review abstract: diastolic right ventricular collapse (specific), systolic right atrial collapse (sensitive), a plethoric non-collapsible inferior vena cava (sensitive). FLAG: the wrong options are the author's, not taken from the review. The review is of tamponade in general and does not weigh in on localised post-surgical collections (see echoNormal).",
+        "checkedAt": "2026-11-09"
       }
     }
   }
