@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 0
+  },
+  "slug": "code-vf-fixture",
+  "title": "Code fixture: VF on a medical ward",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              50,
+              120
+            ]
+          },
+          "colour": "ecg"
+        }
+      ]
+    }
+  },
+  "objective": "Test fixture objective",
+  "sources": [
+    {
+      "cite": "Ascendra test fixture",
+      "checkedAt": "2026-11-09"
+    }
+  ],
+  "brief": {
+    "situation": "A test fixture for modules/code-acls@1: a fictional adult on a medical ward with a high potassium goes into VF."
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "1s",
+    "maxDuration": "1h",
+    "calendar": "clock"
+  },
+  "params": {
+    "arrestAt": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra test fixture",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "goodRosc": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra test fixture",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  },
+  "state": {
+    "seen": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "code_inCode ? 0 : 88",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [],
+  "phases": {
+    "ward": {
+      "label": "On the ward",
+      "clock": "running",
+      "actions": [
+        "look"
+      ]
+    },
+    "post": {
+      "label": "After ROSC",
+      "clock": "stopped",
+      "actions": []
+    }
+  },
+  "initialPhase": "ward",
+  "actions": {
+    "look": {
+      "label": "Look at the monitor",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "seen",
+          "to": "true"
+        },
+        {
+          "finding": "Peaked T waves on the monitor."
+        }
+      ]
+    }
+  },
+  "timers": {},
+  "triggers": [],
+  "reasoning": {
+    "think": {
+      "trigger": "t >= 5 and phase == \"ward\"",
+      "question": "What is the monitor telling you?",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Rhythm",
+          "criteria": "Names hyperkalaemia from peaked T waves.",
+          "modelAnswer": "Peaked T waves suggest hyperkalaemia; prepare for an arrhythmia."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "false",
+      "class": "recovered",
+      "rationale": "A fixture: every run ends in ROSC or no ROSC.",
+      "source": {
+        "cite": "Ascendra test fixture",
+        "checkedAt": "2026-11-09"
+      }
+    }
+  },
+  "endings": {
+    "quickRosc": {
+      "label": "ROSC, quickly",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(code_roscAt) and timeAt(code_roscAt) - timeAt(code_startAt) <= goodRosc",
+      "narrative": "ROSC within ten minutes."
+    },
+    "slowRosc": {
+      "label": "ROSC, slowly",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(code_roscAt)",
+      "narrative": "ROSC after a long resuscitation."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The hour ended."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "look",
+        "label": "Looked at the monitor",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "seen",
+            "score": "met",
+            "why": "Looked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Did not look."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "think",
+        "label": "Reasoning",
+        "weight": 1
+      }
+    ],
+    "kpis": [],
+    "expertPath": [
+      {
+        "at": "Arrest",
+        "text": "Compressions, shock within 2 minutes, calcium for the potassium, epinephrine after the second shock."
+      }
+    ],
+    "debrief": {
+      "quickRosc": {
+        "headline": "ROSC",
+        "body": "Quick."
+      },
+      "slowRosc": {
+        "headline": "ROSC, slowly",
+        "body": "Slow."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "-"
+      }
+    },
+    "modelReasoning": "Peaked T waves: hyperkalaemia."
+  },
+  "modules": {
+    "code": {
+      "use": "code-acls@1",
+      "with": {
+        "entry": "t >= arrestAt and phase == \"ward\"",
+        "protocol": "acls",
+        "etiology": {
+          "rhythm": "vf",
+          "cause": "hyperkalaemia",
+          "arrestLog": "VF arrest.",
+          "fixes": [
+            {
+              "value": "calcium",
+              "label": "Calcium chloride 1 g IV"
+            },
+            {
+              "value": "amio",
+              "label": "Amiodarone 300 mg IV"
+            }
+          ],
+          "correct": [
+            "calcium"
+          ],
+          "fixAfter": "60",
+          "fixStartLog": "Calcium chloride given.",
+          "fixLabel": "calcium",
+          "fixSkipLabel": "the calcium to act (1 min)",
+          "fixDoneLog": "Calcium in.",
+          "roscOnFix": "false",
+          "fixWindow": 300,
+          "fixSource": {
+            "cite": "Ascendra test fixture",
+            "checkedAt": "2026-11-09"
+          }
+        },
+        "scope": [
+          "code_compress",
+          "code_compressPaced",
+          "code_shock",
+          "code_epi",
+          "code_fix"
+        ],
+        "returnPhase": "post",
+        "onEntry": [],
+        "onRosc": [],
+        "epiDoses": [
+          {
+            "value": "1mg",
+            "label": "1 mg IV"
+          }
+        ]
+      }
+    }
+  }
+}

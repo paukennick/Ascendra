@@ -254,9 +254,23 @@ export interface ScreenSpec {
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
   };
+  // REQ-190: the architecture board's topology, display-only like the
+  // bedside tiles. Each zone (an edge, a subnet per AZ, a Region, an
+  // account) lists the items whose `when` holds on the current state;
+  // meters are short read-outs (cost, availability). The renderer evaluates
+  // the bindings; it never holds a rule of its own (docs/sims.md 3, 8.2).
+  board?: {
+    zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
 }
 
 export type CriterionScore = "met" | "partial" | "missed";
+// REQ-190: a criterion row may also score "na" (not applicable), left out of
+// the process score's numerator and denominator, like a grader failure (9.1).
+// A spliced module's criteria use it when the module never ran (a code
+// criterion in a run with no arrest). Reasoning grades never use it.
+export type CriterionRowScore = CriterionScore | "na";
 
 export interface Scoring {
   criteria: {
@@ -264,7 +278,7 @@ export interface Scoring {
     label: string;
     weight: number;
     critical?: boolean;
-    rows: { when: Expr; score: CriterionScore; why: Template }[]; // first match
+    rows: { when: Expr; score: CriterionRowScore; why: Template }[]; // first match
   }[];
   reasoningCriteria: { moment: Id; label: string; weight: number; critical?: boolean }[];
   kpis: { id: Id; label: string; value: Expr; format: "duration" | "number" | "usd"; expert?: string }[];
@@ -379,7 +393,7 @@ export interface CriterionResult {
   label: string;
   weight: number;
   critical: boolean;
-  score: CriterionScore;
+  score: CriterionRowScore;
   why: string;
 }
 

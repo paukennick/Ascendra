@@ -4,7 +4,7 @@
 // cross-copy check; the on-device run (1c) is the second.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCorpusCase } from "./engine/v1/golden/corpus.ts";
@@ -32,9 +32,29 @@ test("the engine copy replays every seeded golden path to the recorded state has
   const { stateHash } = await import("./engine/v1/engine.ts");
   const seeds = join(here, "..", "..", "..", "backend", "supabase", "seed", "sims");
   let paths = 0;
-  for (const course of readdirSync(seeds)) {
+  // REQ-190: a seeded source may splice modules or be a band over another
+  // scenario; the server compiles it before the app ever sees it, so the
+  // test compiles it the same way (pure functions, the module loader given).
+  const { spliceModules } = await import("../../../backend/lib/sim/modules.ts");
+  const { applyBand } = await import("../../../backend/lib/sim/overlay.ts");
+  const read = (p: string) => JSON.parse(readFileSync(p, "utf8"));
+  const loader = (ref: string) => read(join(seeds, "modules", `${ref}.module.json`));
+  const compile = (course: string, slug: string) => {
+    const band = join(seeds, course, `${slug}.band.json`);
+    let source = existsSync(band) ? null : read(join(seeds, course, `${slug}.sim.json`));
+    if (!source) {
+      const b = read(band);
+      const r = applyBand(read(join(seeds, b.base.course, `${b.base.slug}.sim.json`)), b);
+      assert.deepEqual(r.problems, [], `${course}/${slug}: band`);
+      source = r.source;
+    }
+    const s = spliceModules(source, loader);
+    assert.deepEqual(s.problems, [], `${course}/${slug}: modules`);
+    return s.doc;
+  };
+  for (const course of readdirSync(seeds).filter((c) => c !== "modules")) {
     for (const f of readdirSync(join(seeds, course)).filter((x) => x.endsWith(".golden.json"))) {
-      const doc = JSON.parse(readFileSync(join(seeds, course, f.replace(/\.golden\.json$/, ".sim.json")), "utf8"));
+      const doc = compile(course, f.replace(/\.golden\.json$/, ""));
       const golden = JSON.parse(readFileSync(join(seeds, course, f), "utf8"));
       for (const p of golden.paths) {
         const r = replayGoldenPath(doc, p, (run) => stateHash(run.state));

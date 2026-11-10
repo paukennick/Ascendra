@@ -356,6 +356,22 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                      where c.slug = 'healthcare-nursing' and s.slug = 'emergency-medical-services') as ok`,
   },
   {
+    // REQ-190 (docs/sims.md 6): the sim routes (app/api/sims/**, lib/sims.ts).
+    migration: "062_sim_engine.sql",
+    what: "sims / sim_versions / sim_runs / sim_run_commands / sim_run_reasoning, attempts.sim_id, kind 'simtask' and the sim_run type (sim labs)",
+    sql: `select to_regclass('public.sims') is not null
+             and to_regclass('public.sim_versions') is not null
+             and to_regclass('public.sim_runs') is not null
+             and to_regclass('public.sim_run_commands') is not null
+             and to_regclass('public.sim_run_reasoning') is not null
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'attempts' and column_name = 'sim_id')
+             and exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
+                         where t.typname = 'attempt_kind' and e.enumlabel = 'simtask')
+             and exists(select 1 from assessment_types where type_name = 'sim_run')
+             and exists(select 1 from pg_constraint where conname = 'attempts_simtask_shape') as ok`,
+  },
+  {
     // REQ-197: Settings > Email, the unsubscribe links, the daily
     // /api/cron/service-emails run and the account export read these.
     migration: "063_service_emails.sql",

@@ -1,0 +1,1033 @@
+{
+  "module": "code-acls",
+  "version": 1,
+  "prefix": "code",
+  "about": "REQ-190 (docs/sims.md 4.8): a cardiac arrest ('code') spliced into a host scenario before validation. The host names when the arrest starts, its reversible cause and the actions that fix it, the scope of practice (which code actions the learner may take), the phase to return to on ROSC, and the protocol: standard adult ACLS or the cardiac-surgery protocol (STS 2017 / EACTS: stacked shocks, resternotomy within about 5 minutes, no full-dose epinephrine without expert direction). Compressions come in as integers measured by the app (rate per minute, longest pause in seconds), never as live timing (docs/sims.md 19.4 item 3).",
+  "inputs": {
+    "entry": {
+      "type": "expr",
+      "about": "Condition that starts the arrest (checked every settle; fires once)."
+    },
+    "protocol": {
+      "type": "enum",
+      "values": [
+        "acls",
+        "cals"
+      ],
+      "about": "acls = AHA 2025 adult ALS; cals = cardiac arrest after cardiac surgery (STS 2017 consensus, EACTS 2009 guideline)."
+    },
+    "etiology": {
+      "type": "object",
+      "about": "rhythm (vf|pvt|pea|asystole), cause (label), arrestLog, fixes (options), correct (list of option values that fix the cause), fixAfter (seconds, an expression), fixDoneLog, roscOnFix (true when fixing the cause restores circulation at once, as opening the chest does in tamponade), fixWindow (seconds; the scored window to start the fix), fixSource (Source)"
+    },
+    "scope": {
+      "type": "list",
+      "about": "Code action ids the learner may use (scope of practice for this band). Must include code_compress and code_compressPaced."
+    },
+    "returnPhase": {
+      "type": "id",
+      "about": "The phase the run moves to on ROSC."
+    },
+    "onEntry": {
+      "type": "effects",
+      "about": "Host effects run when the arrest starts (cancel host timers)."
+    },
+    "onRosc": {
+      "type": "effects",
+      "about": "Host effects run at ROSC (set the host's path, schedule what comes next)."
+    },
+    "epiDoses": {
+      "type": "options",
+      "about": "Epinephrine dose options; value 1mg is the full ACLS dose."
+    }
+  },
+  "fragment": {
+    "sources": [
+      {
+        "cite": "Perman SM, et al. Part 9: Adult Advanced Life Support: 2025 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care. Circulation 2025;152(16 suppl 2), published 2025-10-21, doi:10.1161/CIR.0000000000001376",
+        "url": "https://professional.heart.org/en/guidelines-statements/part-9-adult-advanced-life-support-2025-american-heart-association-guidelinescir0000000000001376",
+        "note": "Rate 100-120/min, pauses under 10 s, rhythm checks every 2 min, defibrillation for VF/pVT as soon as possible, epinephrine as soon as feasible for a non-shockable rhythm and after initial defibrillation attempts fail for a shockable one. Paraphrased; no AHA course text is reproduced. Citation checked on Crossref; the full text sits behind a browser check, so the recommendations are as carried from the 2020 update into 2025 and should be re-read against the full text.",
+        "checkedAt": "2026-11-09"
+      },
+      {
+        "cite": "Dunning J, Levine A, Ley J, et al. The Society of Thoracic Surgeons Expert Consensus for the Resuscitation of Patients Who Arrest After Cardiac Surgery. Ann Thorac Surg 2017;103(3):1005-1020, doi:10.1016/j.athoracsur.2016.10.033",
+        "url": "https://www.sts.org/sites/default/files/documents/ExpertConsensus_ResuscitationAfterCardiacSurgery.pdf",
+        "note": "Three sequential shocks for VF/pVT, external massage deferred while shocks or pacing can be given within about a minute; emergency resternotomy within 5 minutes for an arrest that does not resolve (class I, level C); once arrested, epinephrine or vasopressin should not be given unless a clinician experienced in their use after cardiac surgery directs it (class III: harm, level C). Paraphrased.",
+        "checkedAt": "2026-11-09"
+      },
+      {
+        "cite": "Dunning J, et al. Guideline for resuscitation in cardiac arrest after cardiac surgery (EACTS). Eur J Cardiothorac Surg 2009;36(1):3-28, doi:10.1016/j.ejcts.2009.01.033",
+        "note": "The European protocol the STS consensus builds on: stacked shocks, resternotomy within 5 minutes, no routine 1 mg adrenaline. Paraphrased.",
+        "checkedAt": "2026-11-09"
+      }
+    ],
+    "params": {
+      "code_protocol": {
+        "value": "{{protocol}}"
+      },
+      "code_startRhythm": {
+        "value": "{{etiology.rhythm}}"
+      },
+      "code_cycleLen": {
+        "value": 120,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (doi:10.1161/CIR.0000000000001376)",
+          "note": "Rhythm and pulse check every 2 minutes of compressions.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_rateLow": {
+        "value": 100,
+        "unit": "/min",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (doi:10.1161/CIR.0000000000001376)",
+          "note": "Compression rate 100-120 per minute.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_rateHigh": {
+        "value": 120,
+        "unit": "/min",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (doi:10.1161/CIR.0000000000001376)",
+          "note": "Compression rate 100-120 per minute.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_pauseLimit": {
+        "value": 10,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (doi:10.1161/CIR.0000000000001376)",
+          "note": "Minimise pauses in compressions to under 10 seconds.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_compWindow": {
+        "value": 30,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 adult BLS and ALS (start compressions at once); Ascendra scoring window",
+          "note": "Met within 30 s of the arrest, partial within 2 min. For the cardiac-surgery protocol with VF the three stacked shocks come first, so compressions are met within 90 s.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_shockWindow": {
+        "value": 120,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (defibrillate as soon as possible); Get With The Guidelines-Resuscitation measure: first shock within 2 min for in-hospital VF/pVT",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_stackWindow": {
+        "value": 60,
+        "unit": "s",
+        "source": {
+          "cite": "STS 2017 expert consensus (Ann Thorac Surg 2017;103:1005-1020)",
+          "note": "Three sequential shocks; massage deferred while a defibrillator is available within about one minute.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_epiWindow": {
+        "value": 300,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (epinephrine as soon as feasible for a non-shockable rhythm); Get With The Guidelines-Resuscitation measure: within 5 min",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_epiRepeat": {
+        "value": 180,
+        "unit": "s",
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS (doi:10.1161/CIR.0000000000001376)",
+          "note": "Epinephrine every 3-5 minutes.",
+          "checkedAt": "2026-11-09"
+        }
+      },
+      "code_fixWindow": {
+        "value": "{{etiology.fixWindow}}",
+        "unit": "s",
+        "source": "{{etiology.fixSource}}"
+      },
+      "code_noRoscAfter": {
+        "value": 1800,
+        "unit": "s",
+        "source": {
+          "cite": "Ascendra teaching limit",
+          "note": "The simulation stops a resuscitation without ROSC after 30 minutes. A teaching cut-off, not a termination-of-resuscitation rule.",
+          "checkedAt": "2026-11-09"
+        }
+      }
+    },
+    "state": {
+      "code_active": {
+        "type": "bool",
+        "init": false
+      },
+      "code_startAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_rhythm": {
+        "type": "enum",
+        "values": [
+          "none",
+          "vf",
+          "pvt",
+          "pea",
+          "asystole",
+          "rosc"
+        ],
+        "init": "none"
+      },
+      "code_cycles": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "code_goodCycles": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "code_badCycles": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "code_cprMode": {
+        "type": "enum",
+        "values": [
+          "none",
+          "tap",
+          "paced"
+        ],
+        "init": "none"
+      },
+      "code_compStartAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_rate": {
+        "type": "number",
+        "init": 0,
+        "unit": "/min",
+        "min": 0,
+        "max": 400
+      },
+      "code_pause": {
+        "type": "number",
+        "init": 0,
+        "unit": "s",
+        "min": 0,
+        "max": 600
+      },
+      "code_cycleMeasured": {
+        "type": "bool",
+        "init": false
+      },
+      "code_shocks": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 50
+      },
+      "code_badShocks": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 50
+      },
+      "code_firstShockAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_thirdShockAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_shockSinceCheck": {
+        "type": "bool",
+        "init": false
+      },
+      "code_firstEpiAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_lastEpiAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_fullEpi": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 50
+      },
+      "code_shocksAtFirstEpi": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 50
+      },
+      "code_fixAt": {
+        "type": "time",
+        "init": null
+      },
+      "code_causeFixed": {
+        "type": "bool",
+        "init": false
+      },
+      "code_wrongFix": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 50
+      },
+      "code_roscAt": {
+        "type": "time",
+        "init": null
+      }
+    },
+    "derived": {
+      "code_inCode": {
+        "expr": "phase == \"code\""
+      },
+      "code_shockable": {
+        "expr": "code_startRhythm == \"vf\" or code_startRhythm == \"pvt\""
+      },
+      "code_elapsed": {
+        "expr": "isNull(code_startAt) ? 0 : t - timeAt(code_startAt)",
+        "unit": "s",
+        "precision": 0
+      }
+    },
+    "phases": {
+      "code": {
+        "label": "Cardiac arrest",
+        "clock": "running",
+        "actions": "{{scope}}"
+      }
+    },
+    "actions": {
+      "code_compress": {
+        "label": "Compressions (tap the beat)",
+        "group": "Code",
+        "available": "code_active",
+        "why": "Only during the arrest.",
+        "params": [
+          {
+            "id": "pad",
+            "kind": "command",
+            "label": "Compression pad: the app sends the measured rate and longest pause",
+            "maxLength": 200,
+            "patterns": [
+              {
+                "id": "cpr",
+                "pattern": "cpr {rate:int} {pause:int}",
+                "cases": [
+                  {
+                    "when": "true",
+                    "then": [
+                      {
+                        "set": "code_rate",
+                        "to": "rate"
+                      },
+                      {
+                        "set": "code_pause",
+                        "to": "pause"
+                      },
+                      {
+                        "set": "code_cycleMeasured",
+                        "to": "true"
+                      },
+                      {
+                        "set": "code_cprMode",
+                        "to": "\"tap\""
+                      },
+                      {
+                        "if": "isNull(code_compStartAt)",
+                        "then": [
+                          {
+                            "set": "code_compStartAt",
+                            "to": "t"
+                          },
+                          {
+                            "log": "Compressions started.",
+                            "kind": "act"
+                          }
+                        ]
+                      },
+                      {
+                        "log": "Compressions: {code_rate} per minute, longest pause {code_pause} s.",
+                        "kind": "act"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "unmatched": "The compression pad sends: cpr <rate> <longest pause>."
+          }
+        ],
+        "effects": []
+      },
+      "code_compressPaced": {
+        "label": "Compressions (paced, no tapping)",
+        "group": "Code",
+        "available": "code_active",
+        "why": "Only during the arrest.",
+        "params": [
+          {
+            "id": "paced",
+            "kind": "form",
+            "label": "Compressions with a metronome",
+            "fields": [
+              {
+                "id": "prate",
+                "label": "Rate",
+                "options": [
+                  {
+                    "value": "90",
+                    "label": "About 90 per minute"
+                  },
+                  {
+                    "value": "110",
+                    "label": "100 to 120 per minute"
+                  },
+                  {
+                    "value": "140",
+                    "label": "About 140 per minute"
+                  }
+                ]
+              },
+              {
+                "id": "ppause",
+                "label": "Pauses for rhythm checks and shocks",
+                "options": [
+                  {
+                    "value": "5",
+                    "label": "Under 10 seconds"
+                  },
+                  {
+                    "value": "20",
+                    "label": "About 20 seconds"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "set": "code_rate",
+            "to": "num(prate)"
+          },
+          {
+            "set": "code_pause",
+            "to": "num(ppause)"
+          },
+          {
+            "set": "code_cycleMeasured",
+            "to": "true"
+          },
+          {
+            "set": "code_cprMode",
+            "to": "\"paced\""
+          },
+          {
+            "if": "isNull(code_compStartAt)",
+            "then": [
+              {
+                "set": "code_compStartAt",
+                "to": "t"
+              },
+              {
+                "log": "Compressions started (paced).",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "log": "Paced compressions: {code_rate} per minute, pauses about {code_pause} s.",
+            "kind": "act"
+          }
+        ]
+      },
+      "code_shock": {
+        "label": "Defibrillate (biphasic, 200 J)",
+        "group": "Code",
+        "available": "code_active",
+        "why": "Only during the arrest.",
+        "effects": [
+          {
+            "if": "code_rhythm == \"vf\" or code_rhythm == \"pvt\"",
+            "then": [
+              {
+                "add": "code_shocks",
+                "by": "1"
+              },
+              {
+                "set": "code_shockSinceCheck",
+                "to": "true"
+              },
+              {
+                "if": "isNull(code_firstShockAt)",
+                "then": [
+                  {
+                    "set": "code_firstShockAt",
+                    "to": "t"
+                  }
+                ]
+              },
+              {
+                "if": "code_shocks == 3",
+                "then": [
+                  {
+                    "set": "code_thirdShockAt",
+                    "to": "t"
+                  }
+                ]
+              },
+              {
+                "log": "Shock {code_shocks} delivered.",
+                "kind": "act"
+              }
+            ],
+            "else": [
+              {
+                "add": "code_badShocks",
+                "by": "1"
+              },
+              {
+                "log": "Shock delivered to a non-shockable rhythm ({code_rhythm}). It cannot help and interrupts compressions.",
+                "kind": "bad"
+              }
+            ]
+          }
+        ]
+      },
+      "code_epi": {
+        "label": "Epinephrine IV",
+        "group": "Code",
+        "available": "code_active and (isNull(code_lastEpiAt) or t - timeAt(code_lastEpiAt) >= code_epiRepeat)",
+        "why": "Epinephrine is repeated every 3-5 minutes.",
+        "params": [
+          {
+            "id": "dose",
+            "kind": "choice",
+            "label": "Dose",
+            "options": "{{epiDoses}}"
+          }
+        ],
+        "effects": [
+          {
+            "if": "isNull(code_firstEpiAt)",
+            "then": [
+              {
+                "set": "code_firstEpiAt",
+                "to": "t"
+              },
+              {
+                "set": "code_shocksAtFirstEpi",
+                "to": "code_shocks"
+              }
+            ]
+          },
+          {
+            "set": "code_lastEpiAt",
+            "to": "t"
+          },
+          {
+            "if": "dose == \"1mg\"",
+            "then": [
+              {
+                "add": "code_fullEpi",
+                "by": "1"
+              },
+              {
+                "log": "Epinephrine 1 mg IV given.",
+                "kind": "act"
+              }
+            ],
+            "else": [
+              {
+                "log": "Epinephrine, small dose on the senior clinician's instruction.",
+                "kind": "act"
+              }
+            ]
+          }
+        ]
+      },
+      "code_fix": {
+        "label": "Treat the cause",
+        "group": "Code",
+        "available": "code_active and isNull(code_fixAt)",
+        "why": "Already under way.",
+        "params": [
+          {
+            "id": "fix",
+            "kind": "choice",
+            "label": "Treatment",
+            "options": "{{etiology.fixes}}"
+          }
+        ],
+        "effects": [
+          {
+            "if": "fix in {{etiology.correct}}",
+            "then": [
+              {
+                "set": "code_fixAt",
+                "to": "t"
+              },
+              {
+                "schedule": "code_fixDone",
+                "after": "{{etiology.fixAfter}}"
+              },
+              {
+                "log": "{{etiology.fixStartLog}}",
+                "kind": "act"
+              }
+            ],
+            "else": [
+              {
+                "add": "code_wrongFix",
+                "by": "1"
+              },
+              {
+                "log": "That does not treat {{etiology.cause}}.",
+                "kind": "bad"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "timers": {
+      "code_cycle": {
+        "label": "rhythm check",
+        "wait": {
+          "skipLabel": "the next rhythm check (2 minutes of compressions)"
+        },
+        "instances": "one",
+        "interruptsSkip": true,
+        "source": {
+          "cite": "AHA 2025 Part 9 adult ALS",
+          "note": "Rhythm check every 2 minutes.",
+          "checkedAt": "2026-11-09"
+        },
+        "effects": [
+          {
+            "add": "code_cycles",
+            "by": "1"
+          },
+          {
+            "cases": [
+              {
+                "when": "code_cycleMeasured and code_rate >= code_rateLow and code_rate <= code_rateHigh and code_pause <= code_pauseLimit",
+                "then": [
+                  {
+                    "add": "code_goodCycles",
+                    "by": "1"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "add": "code_badCycles",
+                    "by": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "set": "code_cycleMeasured",
+            "to": "false"
+          },
+          {
+            "if": "code_causeFixed and not isNull(code_compStartAt) and (not code_shockable or code_shockSinceCheck)",
+            "then": [
+              {
+                "set": "code_roscAt",
+                "to": "t"
+              },
+              {
+                "set": "code_rhythm",
+                "to": "\"rosc\""
+              },
+              {
+                "set": "code_active",
+                "to": "false"
+              },
+              {
+                "cancel": "code_fixDone"
+              },
+              {
+                "log": "Rhythm check: organised rhythm with a pulse. ROSC.",
+                "kind": "good"
+              },
+              "{{...onRosc}}",
+              {
+                "phase": "{{returnPhase}}"
+              }
+            ],
+            "else": [
+              {
+                "set": "code_shockSinceCheck",
+                "to": "false"
+              },
+              {
+                "log": "Rhythm check: {code_rhythm}, no pulse. Resume compressions.",
+                "kind": "alarm"
+              },
+              {
+                "schedule": "code_cycle",
+                "after": "code_cycleLen"
+              }
+            ]
+          }
+        ]
+      },
+      "code_fixDone": {
+        "label": "{{etiology.fixLabel}}",
+        "wait": {
+          "skipLabel": "{{etiology.fixSkipLabel}}"
+        },
+        "instances": "one",
+        "interruptsSkip": true,
+        "source": "{{etiology.fixSource}}",
+        "effects": [
+          {
+            "set": "code_causeFixed",
+            "to": "true"
+          },
+          {
+            "log": "{{etiology.fixDoneLog}}",
+            "kind": "good"
+          },
+          {
+            "if": "{{etiology.roscOnFix}}",
+            "then": [
+              {
+                "set": "code_roscAt",
+                "to": "t"
+              },
+              {
+                "set": "code_rhythm",
+                "to": "\"rosc\""
+              },
+              {
+                "set": "code_active",
+                "to": "false"
+              },
+              {
+                "cancel": "code_cycle"
+              },
+              {
+                "log": "Organised rhythm with a pulse. ROSC.",
+                "kind": "good"
+              },
+              "{{...onRosc}}",
+              {
+                "phase": "{{returnPhase}}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "triggers": [
+      {
+        "id": "code_enter",
+        "when": "{{entry}}",
+        "mode": "once",
+        "interruptsSkip": true,
+        "effects": [
+          {
+            "set": "code_active",
+            "to": "true"
+          },
+          {
+            "set": "code_startAt",
+            "to": "t"
+          },
+          {
+            "set": "code_rhythm",
+            "to": "code_startRhythm"
+          },
+          "{{...onEntry}}",
+          {
+            "phase": "code"
+          },
+          {
+            "schedule": "code_cycle",
+            "after": "code_cycleLen"
+          },
+          {
+            "log": "{{etiology.arrestLog}}",
+            "kind": "alarm"
+          }
+        ]
+      }
+    ],
+    "endings": {
+      "code_noRosc": {
+        "label": "No return of circulation",
+        "class": "harm",
+        "terminal": true,
+        "when": "code_active and code_elapsed >= code_noRoscAfter",
+        "narrative": "Thirty minutes of resuscitation without a return of circulation. The simulation ends here."
+      },
+      "code_epiHarm": {
+        "$onlyIf": {
+          "input": "protocol",
+          "equals": "cals"
+        },
+        "label": "ROSC, then a bleed from full-dose epinephrine",
+        "class": "harm",
+        "terminal": true,
+        "when": "code_protocol == \"cals\" and code_fullEpi > 0 and not isNull(code_roscAt)",
+        "narrative": "Circulation returned, then the 1 mg of epinephrine given during the arrest drove the systolic pressure past 200 and a fresh graft anastomosis tore and bled. After cardiac surgery the protocol keeps full-dose epinephrine out of the arrest unless a senior clinician directs it. The simulation ends here."
+      },
+      "code_rosc": {
+        "label": "Return of spontaneous circulation",
+        "terminal": false,
+        "when": "not isNull(code_roscAt)",
+        "phase": "{{returnPhase}}",
+        "narrative": "Return of spontaneous circulation after {code_elapsed|duration} of resuscitation."
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "code_compressions",
+          "label": "Compressions started without delay",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "isNull(code_startAt)",
+              "score": "na",
+              "why": "No arrest in this run."
+            },
+            {
+              "when": "isNull(code_compStartAt)",
+              "score": "missed",
+              "why": "Compressions were never started."
+            },
+            {
+              "when": "timeAt(code_compStartAt) - timeAt(code_startAt) <= (code_protocol == \"cals\" and code_shockable ? code_compWindow + code_stackWindow : code_compWindow)",
+              "score": "met",
+              "why": "Compressions started {timeAt(code_compStartAt) - timeAt(code_startAt)|duration} after the arrest."
+            },
+            {
+              "when": "timeAt(code_compStartAt) - timeAt(code_startAt) <= code_cycleLen",
+              "score": "partial",
+              "why": "Compressions started {timeAt(code_compStartAt) - timeAt(code_startAt)|duration} after the arrest; start at once."
+            },
+            {
+              "when": "true",
+              "score": "missed",
+              "why": "Compressions started {timeAt(code_compStartAt) - timeAt(code_startAt)|duration} after the arrest: minutes without flow."
+            }
+          ]
+        },
+        {
+          "id": "code_cprQuality",
+          "label": "Compression quality: 100-120 a minute, pauses under 10 s",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "isNull(code_startAt)",
+              "score": "na",
+              "why": "No arrest in this run."
+            },
+            {
+              "when": "code_goodCycles == 0",
+              "score": "missed",
+              "why": "No two-minute cycle had compressions at 100-120 a minute with pauses under 10 s{code_cprMode == \"paced\" ? \" (paced option: the rate and pause chosen)\" : \"\"}."
+            },
+            {
+              "when": "code_badCycles == 0",
+              "score": "met",
+              "why": "{code_goodCycles} cycle(s), every one at rate and with short pauses{code_cprMode == \"paced\" ? \" (paced option: scored on the rate and pause chosen, not a tapped rhythm)\" : \" (tapped rhythm)\"}."
+            },
+            {
+              "when": "true",
+              "score": "partial",
+              "why": "{code_goodCycles} good cycle(s), {code_badCycles} with no compressions, the wrong rate or a long pause{code_cprMode == \"paced\" ? \" (paced option)\" : \"\"}."
+            }
+          ]
+        },
+        {
+          "id": "code_defib",
+          "label": "Defibrillation matched to the rhythm",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "isNull(code_startAt)",
+              "score": "na",
+              "why": "No arrest in this run."
+            },
+            {
+              "when": "not code_shockable and code_badShocks == 0",
+              "score": "met",
+              "why": "A non-shockable rhythm, and no shock was given."
+            },
+            {
+              "when": "not code_shockable",
+              "score": "missed",
+              "why": "Shocked a non-shockable rhythm {code_badShocks} time(s)."
+            },
+            {
+              "when": "code_protocol == \"cals\" and not isNull(code_thirdShockAt) and timeAt(code_thirdShockAt) - timeAt(code_startAt) <= code_stackWindow",
+              "score": "met",
+              "why": "Three stacked shocks within a minute, as the cardiac-surgery protocol asks."
+            },
+            {
+              "when": "code_protocol != \"cals\" and not isNull(code_firstShockAt) and timeAt(code_firstShockAt) - timeAt(code_startAt) <= code_shockWindow",
+              "score": "met",
+              "why": "First shock {timeAt(code_firstShockAt) - timeAt(code_startAt)|duration} after the arrest."
+            },
+            {
+              "when": "not isNull(code_firstShockAt)",
+              "score": "partial",
+              "why": "Shocked, but late: first shock {timeAt(code_firstShockAt) - timeAt(code_startAt)|duration} after the arrest."
+            },
+            {
+              "when": "true",
+              "score": "missed",
+              "why": "A shockable rhythm was never shocked."
+            }
+          ]
+        },
+        {
+          "id": "code_epinephrine",
+          "label": "Epinephrine given by the protocol",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "isNull(code_startAt)",
+              "score": "na",
+              "why": "No arrest in this run."
+            },
+            {
+              "when": "code_protocol == \"cals\" and code_fullEpi > 0",
+              "score": "missed",
+              "why": "Full-dose (1 mg) epinephrine during an arrest after cardiac surgery: the STS 2017 consensus names it harmful unless an experienced clinician directs it, because the rebound hypertension at ROSC can tear fresh suture lines."
+            },
+            {
+              "when": "code_protocol == \"cals\"",
+              "score": "met",
+              "why": "No full-dose epinephrine: the cardiac-surgery protocol puts resternotomy and shocks first."
+            },
+            {
+              "when": "isNull(code_firstEpiAt) and not isNull(code_roscAt) and timeAt(code_roscAt) - timeAt(code_startAt) <= code_epiWindow",
+              "score": "met",
+              "why": "Circulation returned before epinephrine was due."
+            },
+            {
+              "when": "isNull(code_firstEpiAt)",
+              "score": "missed",
+              "why": "No epinephrine was given."
+            },
+            {
+              "when": "code_shockable and code_shocksAtFirstEpi < 2",
+              "score": "partial",
+              "why": "Epinephrine before the second shock: for VF/pVT the shocks come first."
+            },
+            {
+              "when": "not code_shockable and timeAt(code_firstEpiAt) - timeAt(code_startAt) > code_epiWindow",
+              "score": "partial",
+              "why": "First epinephrine {timeAt(code_firstEpiAt) - timeAt(code_startAt)|duration} after the arrest; for a non-shockable rhythm give it as soon as feasible."
+            },
+            {
+              "when": "true",
+              "score": "met",
+              "why": "Epinephrine at the right point in the sequence."
+            }
+          ]
+        },
+        {
+          "id": "code_cause",
+          "label": "Reversible cause treated",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "isNull(code_startAt)",
+              "score": "na",
+              "why": "No arrest in this run."
+            },
+            {
+              "when": "isNull(code_fixAt)",
+              "score": "missed",
+              "why": "{{etiology.cause}} was never treated{code_wrongFix > 0 ? \" (other treatments were tried)\" : \"\"}."
+            },
+            {
+              "when": "timeAt(code_fixAt) - timeAt(code_startAt) <= code_fixWindow",
+              "score": "met",
+              "why": "Treatment for {{etiology.cause}} started {timeAt(code_fixAt) - timeAt(code_startAt)|duration} after the arrest."
+            },
+            {
+              "when": "true",
+              "score": "partial",
+              "why": "Treatment for {{etiology.cause}} started {timeAt(code_fixAt) - timeAt(code_startAt)|duration} after the arrest; the window is {code_fixWindow|duration}."
+            }
+          ]
+        }
+      ],
+      "kpis": [
+        {
+          "id": "code_toCompressions",
+          "label": "Arrest to compressions",
+          "value": "isNull(code_startAt) or isNull(code_compStartAt) ? -1 : timeAt(code_compStartAt) - timeAt(code_startAt)",
+          "format": "duration",
+          "expert": "30 s or less"
+        },
+        {
+          "id": "code_toCause",
+          "label": "Arrest to treating the cause",
+          "value": "isNull(code_startAt) or isNull(code_fixAt) ? -1 : timeAt(code_fixAt) - timeAt(code_startAt)",
+          "format": "duration",
+          "expert": "as soon as it is recognised"
+        },
+        {
+          "id": "code_toRosc",
+          "label": "Arrest to ROSC",
+          "value": "isNull(code_startAt) or isNull(code_roscAt) ? -1 : timeAt(code_roscAt) - timeAt(code_startAt)",
+          "format": "duration"
+        },
+        {
+          "id": "code_goodCycleCount",
+          "label": "Two-minute cycles at rate with short pauses",
+          "value": "code_goodCycles",
+          "format": "number"
+        }
+      ],
+      "debrief": {
+        "code_noRosc": {
+          "headline": "No return of circulation",
+          "body": "The arrest went on without a return of circulation. Look at when compressions started and when the cause was treated."
+        },
+        "code_epiHarm": {
+          "$onlyIf": {
+            "input": "protocol",
+            "equals": "cals"
+          },
+          "headline": "Circulation back, then a bleed",
+          "body": "The resuscitation worked, but full-dose epinephrine after cardiac surgery is named as harmful by the STS 2017 consensus (class III) unless an experienced clinician directs it. The rebound hypertension at ROSC is the danger."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,2165 @@
+{
+  "slug": "ticketburst-launch-day-sap",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "sapExpert",
+      "title": "Warm standby, Aurora Global Database, guardrails and a locked vault, DMS with CDC",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "auroraGlobal",
+            "place.slot": "data-a"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "warmStandby",
+            "place.slot": "region2"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dms",
+            "place.slot": "regional"
+          },
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 17,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 18,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 19,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 20,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 21,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 22,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 23,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 24,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 25,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 26,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 27,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "resilient": "met",
+          "multiRegion": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met",
+          "migration": "met"
+        },
+        "kpis": {
+          "availability": 99.98726851851852,
+          "rto": 3,
+          "rpo": 0,
+          "cost": 2009,
+          "savings": 632,
+          "regionDown": 0
+        },
+        "stateHash": "0bacc9e95fd469a2"
+      },
+      "reasoning": {
+        "design": "met"
+      }
+    },
+    {
+      "id": "sapDynamoOtherAz",
+      "title": "Serverless with DynamoDB global tables and a warm standby; the other AZ fails",
+      "seed": 4,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "lambda",
+            "place.slot": "regional"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dynamoGlobal",
+            "place.slot": "regional"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "warmStandby",
+            "place.slot": "region2"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dms",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 16,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 17,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 19,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 20,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 21,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 22,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "cut",
+            "sp": "cut",
+            "ri": "keep",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 23,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "resilient": "met",
+          "multiRegion": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met",
+          "migration": "met"
+        },
+        "kpis": {
+          "availability": 99.98958333333333,
+          "rto": 3,
+          "rpo": 0,
+          "cost": 1920,
+          "savings": 633,
+          "regionDown": 0
+        },
+        "stateHash": "d6d3348024564660"
+      },
+      "reasoning": {
+        "design": "met"
+      }
+    },
+    {
+      "id": "sapPilotLight",
+      "title": "The expert design with a pilot light instead of a warm standby",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "auroraGlobal",
+            "place.slot": "data-a"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "pilotLight",
+            "place.slot": "region2"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dms",
+            "place.slot": "regional"
+          },
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 17,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 18,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 19,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 20,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 21,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 22,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 23,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 24,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 25,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 26,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 27,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "harm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 71,
+        "criteria": {
+          "resilient": "missed",
+          "multiRegion": "partial",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met",
+          "migration": "met"
+        },
+        "kpis": {
+          "availability": 99.92245370370371,
+          "rto": 30,
+          "rpo": 0,
+          "cost": 1719,
+          "savings": 632,
+          "regionDown": 30
+        },
+        "stateHash": "c09f6fdb0b46fecc"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "sapNoReplication",
+      "title": "Expert design, but the order history is reloaded from a dump instead of DMS",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "auroraGlobal",
+            "place.slot": "data-a"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "warmStandby",
+            "place.slot": "region2"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 17,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 18,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 19,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 20,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 21,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 22,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 23,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 24,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 25,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 26,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "resilient": "met",
+          "multiRegion": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "partial",
+          "migration": "missed"
+        },
+        "kpis": {
+          "availability": 99.88773148148148,
+          "rto": 3,
+          "rpo": 0,
+          "cost": 1859,
+          "savings": 482,
+          "regionDown": 0
+        },
+        "stateHash": "7642fbac19b755d0"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "sapAssociateDesign",
+      "title": "The SAA reference design brought to the SAP day: one Region, one account",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsMulti",
+            "place.slot": "data-a"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "redis",
+            "place.slot": "data-b"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 17,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 18,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 19,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 20,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 21,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 22,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 23,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 24,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "harm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "resilient": "missed",
+          "multiRegion": "missed",
+          "performing": "met",
+          "secure": "partial",
+          "cost": "met",
+          "migration": "missed"
+        },
+        "kpis": {
+          "availability": 99.47453703703704,
+          "rto": 180,
+          "rpo": 0,
+          "cost": 1394,
+          "savings": 471,
+          "regionDown": 180
+        },
+        "stateHash": "ce2b7e8087a2e3a0"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "sapOverBudget",
+      "title": "The expert design plus a cache and a bigger fleet: every event held, over the $2,400 budget",
+      "seed": 9,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "ab",
+            "mn": "6",
+            "mx": "20",
+            "size": "m6i.large"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "auroraGlobal",
+            "place.slot": "data-b"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "redis",
+            "place.slot": "data-a"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "warmStandby",
+            "place.slot": "region2"
+          },
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dms",
+            "place.slot": "regional"
+          },
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 17,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 18,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 19,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 20,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 21,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 22,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 23,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 24,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 25,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 26,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 27,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "keep",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 28,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "recovered",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "resilient": "met",
+          "multiRegion": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "missed",
+          "migration": "met"
+        },
+        "kpis": {
+          "availability": 99.98726851851852,
+          "rto": 3,
+          "rpo": 0,
+          "cost": 2453,
+          "savings": 332,
+          "regionDown": 0
+        },
+        "stateHash": "d2985053fee7a55d"
+      },
+      "reasoning": {
+        "design": "met"
+      },
+      "notes": "Seed 9 draws AZ b for the power loss."
+    },
+    {
+      "id": "sapLuckyAzB",
+      "title": "Everything in AZ b, and the hidden draw takes out AZ a: survived by luck",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "route53",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "waf",
+            "place.slot": "edge"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-b"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-b"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-b"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "b",
+            "mn": "4",
+            "mx": "16",
+            "size": "m6i.large"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "auroraGlobal",
+            "place.slot": "data-b"
+          },
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "sqs",
+            "place.slot": "regional"
+          },
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "warmStandby",
+            "place.slot": "region2"
+          },
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "orgGuard",
+            "place.slot": "org"
+          },
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "vaultLock",
+            "place.slot": "org"
+          },
+          "seq": 13,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "dms",
+            "place.slot": "regional"
+          },
+          "seq": 14,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 15,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 16,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 17,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 18,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 19,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 20,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 21,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 22,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 23,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 24,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 25,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "cut",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "cut",
+            "ri": "cut",
+            "s3life": "cut",
+            "cfttl": "cut",
+            "natunused": "keep",
+            "nat1": "keep",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "keep",
+            "dmsoff": "cut"
+          },
+          "seq": 26,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 86,
+        "criteria": {
+          "resilient": "partial",
+          "multiRegion": "met",
+          "performing": "met",
+          "secure": "met",
+          "cost": "met",
+          "migration": "met"
+        },
+        "kpis": {
+          "availability": 99.98842592592592,
+          "rto": 3,
+          "rpo": 0,
+          "cost": 1964,
+          "savings": 632,
+          "regionDown": 0
+        },
+        "stateHash": "4f75c5d2d01cc993"
+      },
+      "reasoning": {
+        "design": "partial"
+      }
+    },
+    {
+      "id": "sapLuckyNoGuards",
+      "title": "Single-AZ everything, no guardrails, no WAF: the leaked key deletes the backups",
+      "seed": 2,
+      "commands": [
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "cloudfront",
+            "place.slot": "edge"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "alb",
+            "place.slot": "pub-a"
+          },
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "nat",
+            "place.slot": "pub-a"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "asg",
+            "place.slot": "app-a"
+          },
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "configure",
+          "params": {
+            "azs": "a",
+            "mn": "2",
+            "mx": "8",
+            "size": "m6i.large"
+          },
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "rdsSingle",
+            "place.slot": "data-a"
+          },
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "place",
+          "params": {
+            "place": "s3",
+            "place.slot": "regional"
+          },
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "toggleBackup",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "start",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "design",
+          "answered": true,
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "normalT",
+          "instance": 1,
+          "to": 1,
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "orgT",
+          "instance": 2,
+          "to": 7,
+          "seq": 12,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "spikeT",
+          "instance": 5,
+          "to": 13,
+          "seq": 13,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "azT",
+          "instance": 6,
+          "to": 23,
+          "seq": 14,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "regionT",
+          "instance": 3,
+          "to": 43,
+          "seq": 15,
+          "tick": 23
+        },
+        {
+          "type": "skip",
+          "timer": "dbT",
+          "instance": 7,
+          "to": 63,
+          "seq": 16,
+          "tick": 43
+        },
+        {
+          "type": "skip",
+          "timer": "migT",
+          "instance": 4,
+          "to": 73,
+          "seq": 17,
+          "tick": 63
+        },
+        {
+          "type": "skip",
+          "timer": "financeT",
+          "instance": 8,
+          "to": 91,
+          "seq": 18,
+          "tick": 73
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "params": {
+            "sched": "keep",
+            "rightsize": "keep",
+            "httpapi": "keep",
+            "sp": "keep",
+            "ri": "keep",
+            "s3life": "keep",
+            "cfttl": "keep",
+            "natunused": "keep",
+            "nat1": "cut",
+            "dbsingle": "keep",
+            "dynprov": "keep",
+            "nowaf": "keep",
+            "nobackup": "cut",
+            "dmsoff": "keep"
+          },
+          "seq": 19,
+          "tick": 91
+        }
+      ],
+      "expect": {
+        "ending": "harm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "resilient": "missed",
+          "multiRegion": "missed",
+          "performing": "missed",
+          "secure": "missed",
+          "cost": "partial",
+          "migration": "missed"
+        },
+        "kpis": {
+          "availability": 99.03935185185185,
+          "rto": 180,
+          "rpo": 730,
+          "cost": 622,
+          "savings": 40,
+          "regionDown": 180
+        },
+        "stateHash": "83aa164d09a0e85c"
+      },
+      "reasoning": {
+        "design": "missed"
+      }
+    }
+  ]
+}

@@ -4,6 +4,7 @@
 // golden file); layers 2-3 are the engine's lintScenario with the golden
 // paths replayed, the bounded path search and the source re-check dates.
 import { readFileSync } from "node:fs";
+import { compileEntry } from "./documents.ts";
 import type { DocumentEntry } from "./documents.ts";
 import { goldenFileSchema, schemaProblems } from "./schema.ts";
 import { lintScenario, replayGolden } from "./engine/v1/validate.ts";
@@ -37,7 +38,9 @@ function readJson(path: string, problems: Problem[], label: string): unknown {
 // content layers, golden replays and the path search (sims:lint).
 export function checkDocument(entry: DocumentEntry, opts: { full: boolean; now?: string; searchNodes?: number }): DocumentReport {
   const problems: Problem[] = [];
-  const raw = readJson(entry.file, problems, "document");
+  const compiled = compileEntry(entry);
+  problems.push(...compiled.problems);
+  const raw = compiled.problems.some((p) => p.level === "error") ? null : compiled.doc;
   const rawGolden = entry.golden ? readJson(entry.golden, problems, "golden") : null;
   let doc: ScenarioDoc | null = null;
   let golden: GoldenFile | null = null;

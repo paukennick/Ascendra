@@ -1,0 +1,604 @@
+{
+  "slug": "code-vf-fixture",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "aclsGood",
+      "title": "Compressions at once, shock within 2 min, calcium, epinephrine after the second shock",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "think",
+          "answered": true,
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 110 6"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 4,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "code_fix",
+          "params": {
+            "fix": "calcium"
+          },
+          "seq": 5,
+          "tick": 50
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 1,
+          "to": 140,
+          "seq": 6,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 114 5"
+          },
+          "seq": 7,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 8,
+          "tick": 110
+        },
+        {
+          "type": "act",
+          "action": "code_epi",
+          "params": {
+            "dose": "1mg"
+          },
+          "seq": 9,
+          "tick": 110
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 1,
+          "to": 140,
+          "seq": 10,
+          "tick": 110
+        }
+      ],
+      "expect": {
+        "ending": "quickRosc",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "look": "met",
+          "code_compressions": "met",
+          "code_cprQuality": "met",
+          "code_defib": "met",
+          "code_epinephrine": "met",
+          "code_cause": "met"
+        },
+        "kpis": {
+          "code_toCompressions": 0,
+          "code_toCause": 30,
+          "code_toRosc": 120,
+          "code_goodCycleCount": 1
+        },
+        "stateHash": "dcc80f348b72903c"
+      },
+      "reasoning": {
+        "think": "met"
+      }
+    },
+    {
+      "id": "aclsLate",
+      "title": "Paced compressions late, first shock after 4 minutes, amiodarone before calcium",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "think",
+          "answered": true,
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "code_compressPaced",
+          "params": {
+            "prate": "110",
+            "ppause": "20"
+          },
+          "seq": 2,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "code_epi",
+          "params": {
+            "dose": "1mg"
+          },
+          "seq": 3,
+          "tick": 80
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 1,
+          "to": 140,
+          "seq": 4,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "code_compressPaced",
+          "params": {
+            "prate": "110",
+            "ppause": "5"
+          },
+          "seq": 5,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 6,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "code_fix",
+          "params": {
+            "fix": "amio"
+          },
+          "seq": 7,
+          "tick": 170
+        },
+        {
+          "type": "act",
+          "action": "code_fix",
+          "params": {
+            "fix": "calcium"
+          },
+          "seq": 8,
+          "tick": 200
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 2,
+          "to": 260,
+          "seq": 9,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "code_compressPaced",
+          "params": {
+            "prate": "110",
+            "ppause": "5"
+          },
+          "seq": 10,
+          "tick": 260
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 11,
+          "tick": 260
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 4,
+          "to": 380,
+          "seq": 12,
+          "tick": 260
+        }
+      ],
+      "expect": {
+        "ending": "quickRosc",
+        "class": "target",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "look": "missed",
+          "code_compressions": "partial",
+          "code_cprQuality": "partial",
+          "code_defib": "partial",
+          "code_epinephrine": "partial",
+          "code_cause": "met"
+        },
+        "kpis": {
+          "code_toCompressions": 60,
+          "code_toCause": 180,
+          "code_toRosc": 360,
+          "code_goodCycleCount": 2
+        },
+        "stateHash": "c3bf02369695f8ce"
+      },
+      "reasoning": {
+        "think": "partial"
+      }
+    },
+    {
+      "id": "aclsSlowCause",
+      "title": "A good code, but the potassium is treated only after 9 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "think",
+          "answered": true,
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 110 6"
+          },
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 4,
+          "tick": 40
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 1,
+          "to": 140,
+          "seq": 5,
+          "tick": 40
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 112 6"
+          },
+          "seq": 6,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 7,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "code_epi",
+          "params": {
+            "dose": "1mg"
+          },
+          "seq": 8,
+          "tick": 140
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 2,
+          "to": 260,
+          "seq": 9,
+          "tick": 140
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 112 6"
+          },
+          "seq": 10,
+          "tick": 260
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 11,
+          "tick": 260
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 3,
+          "to": 380,
+          "seq": 12,
+          "tick": 260
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 112 6"
+          },
+          "seq": 13,
+          "tick": 380
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 14,
+          "tick": 380
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 4,
+          "to": 500,
+          "seq": 15,
+          "tick": 380
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 112 6"
+          },
+          "seq": 16,
+          "tick": 500
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 17,
+          "tick": 500
+        },
+        {
+          "type": "act",
+          "action": "code_fix",
+          "params": {
+            "fix": "calcium"
+          },
+          "seq": 18,
+          "tick": 560
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 5,
+          "to": 620,
+          "seq": 19,
+          "tick": 560
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 112 6"
+          },
+          "seq": 20,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "code_shock",
+          "seq": 21,
+          "tick": 620
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 7,
+          "to": 740,
+          "seq": 22,
+          "tick": 620
+        }
+      ],
+      "expect": {
+        "ending": "slowRosc",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "look": "met",
+          "code_compressions": "met",
+          "code_cprQuality": "met",
+          "code_defib": "met",
+          "code_epinephrine": "met",
+          "code_cause": "partial"
+        },
+        "kpis": {
+          "code_toCompressions": 0,
+          "code_toCause": 540,
+          "code_toRosc": 720,
+          "code_goodCycleCount": 6
+        },
+        "stateHash": "7715194fd7f6d399"
+      },
+      "reasoning": {
+        "think": "partial"
+      }
+    },
+    {
+      "id": "aclsNoRosc",
+      "title": "Compressions only: VF never shocked, the cause never treated",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "think",
+          "answered": true,
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "code_compress",
+          "params": {
+            "pad": "cpr 90 15"
+          },
+          "seq": 2,
+          "tick": 170
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 2,
+          "to": 260,
+          "seq": 3,
+          "tick": 170
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 3,
+          "to": 380,
+          "seq": 4,
+          "tick": 260
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 4,
+          "to": 500,
+          "seq": 5,
+          "tick": 380
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 5,
+          "to": 620,
+          "seq": 6,
+          "tick": 500
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 6,
+          "to": 740,
+          "seq": 7,
+          "tick": 620
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 7,
+          "to": 860,
+          "seq": 8,
+          "tick": 740
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 8,
+          "to": 980,
+          "seq": 9,
+          "tick": 860
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 9,
+          "to": 1100,
+          "seq": 10,
+          "tick": 980
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 10,
+          "to": 1220,
+          "seq": 11,
+          "tick": 1100
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 11,
+          "to": 1340,
+          "seq": 12,
+          "tick": 1220
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 12,
+          "to": 1460,
+          "seq": 13,
+          "tick": 1340
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 13,
+          "to": 1580,
+          "seq": 14,
+          "tick": 1460
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 14,
+          "to": 1700,
+          "seq": 15,
+          "tick": 1580
+        },
+        {
+          "type": "skip",
+          "timer": "code_cycle",
+          "instance": 15,
+          "to": 1820,
+          "seq": 16,
+          "tick": 1700
+        }
+      ],
+      "expect": {
+        "ending": "code_noRosc",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "look": "missed",
+          "code_compressions": "missed",
+          "code_cprQuality": "missed",
+          "code_defib": "missed",
+          "code_epinephrine": "missed",
+          "code_cause": "missed"
+        },
+        "kpis": {
+          "code_toCompressions": 150,
+          "code_toCause": -1,
+          "code_toRosc": -1,
+          "code_goodCycleCount": 0
+        },
+        "stateHash": "6bd49ffed9b8796f"
+      },
+      "reasoning": {
+        "think": "missed"
+      }
+    }
+  ]
+}

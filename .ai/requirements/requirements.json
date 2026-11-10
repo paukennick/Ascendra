@@ -6962,6 +6962,45 @@
         "Update 2026-11-09: the cross-runtime jobs now run the engine corpus and golden replays (the fixture still runs too); the tamponade port and its golden paths are written; three ports and the paper scenarios are not",
         "Update 2026-11-09 (later): TicketBurst (AWSSAA) port done and matched to cloud.html exactly; PMP, fitness, security, terminal, data (and PT from the fixed file) still to port; no freeze"
       ]
+    },
+    {
+      "id": "REQ-190",
+      "category": "feature",
+      "title": "Sim difficulty bands, the code/ACLS module and the Phase 1b app screen",
+      "description": "Nick's priority after PR #64 (docs/sims.md 19.4). (1) Difficulty bands: a band file is a JSON merge-patch (RFC 7396, plus append for arrays) over a base scenario source, compiled and validated as its own document with its own content hash; the band linter checks that patched paths exist and that no threshold is looser than the base. First band: the TicketBurst launch day at SAP-C03 level (Region impairment, leaked-key multi-account event, migration cutover, RPO 1 min, RTO 10 min, budget 2400, extra catalogue entries, the failing AZ hidden, objective tags) with Good/Mediocre/Bad golden paths. (2) modules/code-acls@1: a document-level fragment spliced before validation (state code_*, inputs entry, protocol, etiology, scope, returnPhase, onEntry, onRosc), compressions as integer command params from the tap pad with a paced non-tap mode, rosc/no-rosc endings, AHA 2025 and STS 2017 sources; tamponade is the first host. (3) Phase 1b: routes, migration 062, schema probe and the mobile sim screen for these scenarios.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/sim/**",
+        "backend/scripts/sim-golden.ts",
+        "backend/scripts/sim-golden/**",
+        "backend/supabase/seed/sims/**",
+        "mobile/src/sim/**",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "band compiles and passes the linter with Good/Mediocre/Bad golden paths and every non-timeout ending reached",
+        "band lint rejects missing paths and looser thresholds",
+        "code module passes on a fixture host and on tamponade with golden paths",
+        "tamponade's seven prototype paths still match the prototype up to the arrest",
+        "phase 1b routes and screen (pending)",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "SAP-C03 used instead of SAP-C02 (C02 retires 2026-11-16)",
+        "na criterion score is an engine scoring change before the major-1 freeze",
+        "Part 3 built (Phase 1b server and the first app screen, docs/sims.md 22): migration 062, the sim routes, the seed, the app screen with the tap pad and the paced alternative. Scope grew beyond the listed paths: backend/lib/sims.ts, backend/lib/sim-grading.ts, backend/app/api/sims/**, backend/supabase/migrations/062_sim_engine.sql, backend/supabase/seed/sims-seed.ts and seed.ts, lib/grading-service.ts, lib/billing-config.ts (the sims feature), lib/schema-status.ts, lib/account-export.ts, docs/deploy-runbook-integration.md, mobile/app/(app)/course/[trackId]/{sims,sim/[simId],index}.tsx, mobile/src/api/client.ts and src/lib/studyNotice.ts.",
+        "Left open (docs/sims.md 22, Not built yet): the sim item kind and Report a problem, the review queue entry, metrics view and stale report, resume/lease routes, observability counters; in the app the write-ahead journal, protected route, keep-awake, waveforms and the on-device accessibility pass.",
+        "Content choices for Nick: tamponade now counts toward 'Care of the patient after cardiac surgery' (its own objective title was not in the CCRN catalog); TicketBurst secondary objectives remapped to AWSSAA titles; SIMS_RENDERERS default bedside,board; screen.board binding added to the schema (display-only)."
+      ]
     }
   ]
 }

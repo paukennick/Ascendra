@@ -60,6 +60,7 @@ export type Feature =
   | "mock_exam"
   | "pbq"
   | "labs"
+  | "sims"
   | "readiness";
 
 export interface FeatureInfo {
@@ -84,6 +85,10 @@ export const FEATURES: Record<Feature, FeatureInfo> = {
   // and Plus get one sample build or case lab per course (lib/labs.ts
   // labAccess); everything else about labs is Pro.
   labs: { minTier: "pro", label: "Hands-on labs" },
+  // REQ-190 (docs/sims.md 11.2): sim labs have their own key so pricing can
+  // treat them apart later without a migration. Free and Plus get one sample
+  // sim per course (lib/sims.ts simAccess).
+  sims: { minTier: "pro", label: "Simulation labs" },
   // Nick, 2026-11-07: the readiness score is on Plus and Pro. Free sees
   // READINESS_LOCKED_TEXT instead of a number.
   readiness: { minTier: "plus", label: "Your readiness score" },

@@ -1,7 +1,9 @@
 # Sim labs (REQ-141): engine design, Phase 1
 
 **Status: design, revised after an independent architecture review
-(2026-11-07). Nothing in this document is built yet.** It is the plan for
+(2026-11-07). Phase 1a (the engine, three documents, bands and the code
+module) is built; Phase 1b's server and the first app screen are built in
+REQ-190 (section 22 says what was built and what is left).** It is the plan for
 Ascendra's interactive simulations ("sim labs"), written to be reviewed
 before any code. Nick's decisions are in section 19; section 21 maps every
 review finding to the change that resolves it.
@@ -21,7 +23,7 @@ engine and the practice-lab acknowledgement).
 1. Summary of the key decisions
 2. Goals and non-goals
 3. What the four prototypes teach us
-4. The scenario document (schema, expressions, versioning, hashing)
+4. The scenario document (schema, expressions, versioning, hashing, bands, modules)
 5. Engine architecture and the time model
 6. Persistence
 7. API routes
@@ -39,6 +41,7 @@ engine and the practice-lab acknowledgement).
 19. Decisions
 20. Sims for every subject family
 21. Review resolution
+22. Phase 1b as built (REQ-190)
 
 ---
 
@@ -381,6 +384,16 @@ Deliberate differences, beyond the 3.1 reclassification:
   each prompt. Phase 2 ends by itself after the inotrope or a second choice.
 - **The arrest path** scores the phase-2 criterion `missed`; the prototype
   leaves it out, so its process scores are not comparable.
+- **The arrest is a code (REQ-190).** Since REQ-190 the PEA arrest no longer
+  ends the run: it enters the code/ACLS module (4.8) under the
+  cardiac-surgery protocol, at the prototype's arrest tick. Untreated, the
+  arrest path ends `code_noRosc` (harm). Three further golden paths go
+  through the code: compressions and an early resternotomy call to ROSC and
+  back through phase 2 (`arrestRosc`, recovered), the same with 1 mg of
+  epinephrine (`code_epiHarm`, harm), and the paced (no tapping) mode with a
+  shock to PEA and a late resternotomy. `lib/sim/ports.test.ts` compares the
+  seven prototype paths as before, with the code's criteria `na` on the
+  paths with no arrest.
 - **Written reasoning** adds a scored criterion (weight 1), graded by the
   model in 1b; the prototype shows the model answer and does not score it.
 - **At most three boluses run at once** (the action is unavailable while
@@ -442,6 +455,46 @@ prototype, exactly. Deliberate differences:
 - **Finance** is one form with a yes/no per option; an option that does not
   apply to the design is ignored. Written reasoning about the design is
   asked when launch day starts and is scored (weight 1).
+
+### 3.4 The TicketBurst SAP band (REQ-190)
+
+`backend/supabase/seed/sims/AWSSAP/ticketburst-launch-day-sap.band.json` is
+the first difficulty band (4.7): the launch day of 3.3 re-set for the
+Solutions Architect Professional. AWS now runs SAP-C03 (from 2026-11-17;
+SAP-C02's last day is 2026-11-16, per AWS's comparison page, checked
+2026-11-09) and the AWSSAP course teaches C03, so the band's objective and
+criteria name SAP-C03 domains; the C02 guide was read as well, and the
+events also cover its domains 1, 2 and 4. What the band changes, all as a
+merge-patch plus appends over the base source:
+
+- **Events.** A leaked deployment key at 09:30 (multi-account: Organizations
+  SCPs and a compliance-mode Backup Vault Lock decide whether backups and
+  CloudTrail survive; without them the backups are gone for the day), a
+  us-east-1 Region impairment at 12:30 (backup and restore, pilot light or
+  warm standby; a cross-Region database or not; health-checked DNS failover
+  or a manual change), and the on-premises order-history cutover at 15:00
+  (DMS with change data capture, or a dump reloaded).
+- **Tighter targets.** RPO 1 minute (base 5), RTO 10 minutes (base 15),
+  budget $2,400 (base $2,500). The band linter refuses any looser value.
+- **Catalogue.** Seven entries appended (warm standby, pilot light, Aurora
+  Global Database, DynamoDB global tables, Organizations guardrails, a
+  locked cross-account backup vault, DMS) with two new slots (`region2`,
+  `org`) and a finance option to stop DMS after the cutover.
+- **AZ placement hidden.** Which AZ loses power is drawn from the run's seed
+  (`pick(azFail, ["a", "b"])` when launch day starts) and named only when it
+  happens; the base always failed AZ a, so a design could learn to live in
+  AZ b. The AZ event's rules are rewritten symmetric in the failing AZ.
+- **Objective tags.** The objective is SAP-C03 skill 4.2.4 (multi-Region DR)
+  and four secondary objectives (organisations and guardrails, ransomware
+  and deletion protection, database migration, DR to RTO/RPO/cost), each an
+  exact AWSSAP objective title; the criteria are labelled by SAP-C03 domain,
+  with two new ones (multi-Region DR, critical; migration).
+
+Eight golden paths: the expert design and a serverless variant (Good), a
+lucky all-in-AZ-b design (Good on outcome, the resilience criterion
+partial), the expert design over budget and without DMS (Mediocre), and a
+pilot light, the SAA reference design and a single-AZ design (Bad, harm).
+Every terminal ending except `time_up` is reached.
 
 ## 4. The scenario document
 
@@ -1118,6 +1171,120 @@ drop-out is a `harm` ending on `pain >= 8.5 or adherence < 45`; the
 week-8 endings are classified by pain reduction, adherence, screening and
 adverse events.
 
+### 4.7 Difficulty bands (REQ-190; Nick, 19.4 item 1)
+
+One scenario can serve two exams. A **band** is a file
+`<course>/<slug>.band.json` beside the golden paths, naming its base
+(`{ course, slug }` of a `.sim.json`), its own slug and label, and a patch:
+
+```json
+{ "band": "sap", "label": "Professional (SAP-C03)",
+  "base": { "course": "AWSSAA", "slug": "ticketburst-launch-day" },
+  "slug": "ticketburst-launch-day-sap",
+  "tighten": { "params.budget": "lower" },
+  "append": { "/catalogs/components/entries": [ ... ] },
+  "patch": { "outcome": { "thresholds": { "rpoMinutes": { "value": 1, ... } } }, ... } }
+```
+
+Compile order (`lib/sim/documents.ts` `compileEntry`): read the base
+**source**, apply `append` (JSON pointer to an existing array, items added
+at its end), apply `patch` as an RFC 7396 merge-patch, set the band's slug,
+splice modules (4.8), then validate and lint the result as its own document
+with its own golden file. Its content hash and client hash are its own (4.5).
+`append` is the one extension to RFC 7396: merge-patch replaces arrays
+whole, and copying every base row into a band to add one would drift from
+the base. Insertion inside an array is not offered; a band that must change
+an array's order replaces it (the SAP band replaces the AZ and database
+event timers' effects and the criteria).
+
+The band linter (`lib/sim/overlay.ts`) adds:
+
+- every patched or deleted path exists in the base, except new ids in the
+  id-keyed maps (params, state, actions, timers, endings, ...) and optional
+  schema fields; a typo in an existing object is an error;
+- the patch may not change `schemaVersion`, `engine` or `outcome.profile`;
+- every `append` pointer resolves to an array, its items' ids are new, and
+  the patch does not also replace that array;
+- **no threshold looser than the base**: every base outcome threshold is
+  kept and no looser (direction from the profile defaults, 9.2, or the
+  band's `tighten` map), and every param named in `tighten` is no looser.
+
+The seed (1b) treats a band like any other document: its course's
+objective resolves the `objective` title.
+
+### 4.8 Capability modules: `modules/code-acls@1` (REQ-190)
+
+A **module** is a document-level fragment a host scenario splices in before
+validation. Modules are how the shared capabilities Nick ordered (19.4: crisis
+modules first, then several patients on one clock, then a people layer)
+reach many scenarios without engine changes. The host declares:
+
+```json
+"modules": { "code": { "use": "code-acls@1", "with": { "entry": "...", "protocol": "cals",
+  "etiology": { ... }, "scope": [ ... ], "returnPhase": "reexp", "onEntry": [ ... ], "onRosc": [ ... ], "epiDoses": [ ... ] } } }
+```
+
+`lib/sim/modules.ts` loads `supabase/seed/sims/modules/<name>@<n>.module.json`,
+substitutes the inputs (`"{{a.b}}"` takes the input's value, `"{{...a}}"`
+spreads a list into an array, `{{a}}` inside a string takes its text, and an
+entry with `"$onlyIf"` is spliced only for a given input value), merges the
+fragment's maps and appends its arrays, and drops `modules`. The alias must
+be the module's prefix and every id it adds starts with it, so it cannot
+collide with the host; ids cannot contain dots, so `code.*` state is named
+`code_*`. The spliced document is validated like any other: a module adds
+nothing the engine does not already run.
+
+**The code/ACLS module.** State `code_*`: active, start time, rhythm
+(vf/pvt/pea/asystole/rosc), cycles and good/bad cycles, compression mode
+(tap/paced), compression start, the last measured rate and longest pause,
+shocks (first and third shock times), epinephrine (first and last time,
+full doses, shocks before the first dose), the cause's fix time, wrong fixes,
+ROSC time. Inputs: `entry` (the condition that starts the arrest), `protocol`
+(`acls`, AHA 2025 adult ALS; `cals`, arrest after cardiac surgery, STS 2017
+consensus and the EACTS 2009 guideline), `etiology` (starting rhythm, the
+reversible cause, the fix options, which are correct, how long the fix
+takes, the scored window, whether fixing it restores circulation at once,
+and its source), `scope` (the code actions this band's learner may take:
+scope of practice), `returnPhase`, and host effects `onEntry` and `onRosc`.
+
+- **Compressions** come in as integers in a command: the tap pad sends
+  `cpr <rate per minute> <longest pause in seconds>` through a `command`
+  param with two `int` captures (19.4 item 3); the engine never reads live
+  timing. Each 2-minute rhythm check scores the cycle: good when the last
+  measure is 100-120 a minute with no pause over 10 s. **The paced mode**
+  (no tapping) picks a rate and a pause length from a form; it is the
+  accessible path (13) and must always be in scope (splice error otherwise).
+  Its cycles are scored on the choices; the criterion's text and the run's
+  `code_cprMode` say which mode was used, so the two are reported apart.
+- **Endings**: `code_rosc` (non-terminal, moves to `returnPhase`),
+  `code_noRosc` (harm, 30 minutes without ROSC, a teaching cut-off) and,
+  only under `cals`, `code_epiHarm` (harm at ROSC after 1 mg of epinephrine:
+  the STS 2017 consensus names epinephrine during an arrest after cardiac
+  surgery as harmful, class III, unless an experienced clinician directs it,
+  so this follows Nick's rule of harm endings only where a guideline names
+  the action).
+- **Criteria** (each `na` when no arrest happened, 9.1): compressions started
+  without delay (critical; 30 s, or 90 s under `cals` with VF while the three
+  stacked shocks come first), compression quality, defibrillation matched to
+  the rhythm (VF/pVT: first shock within 2 min under ACLS, three shocks
+  within 1 min under `cals`; PEA/asystole: no shock), epinephrine by the
+  protocol (ACLS: within 5 min for a non-shockable rhythm, after the second
+  shock for a shockable one; `cals`: no full dose), and the reversible cause
+  treated within its window (critical).
+- **Sources** (checked 2026-11-09): AHA 2025 Part 9, Circulation
+  2025;152(16 suppl 2), doi:10.1161/CIR.0000000000001376 (citation checked
+  on Crossref; the full text sits behind a browser check, so the
+  recommendations are paraphrased as carried from the 2020 update and should
+  be re-read against it); STS 2017, Ann Thorac Surg 2017;103(3):1005-1020
+  (read in full); EACTS 2009, Eur J Cardiothorac Surg 2009;36(1):3-28. No
+  AHA course text is reproduced.
+
+Hosts: the tamponade case (3.2; `cals`, PEA, emergency resternotomy, the
+nurse's scope) and a test fixture (`lib/sim/fixtures/code-vf-fixture.sim.json`;
+`acls`, VF from hyperkalaemia, calcium as the fix), each with golden paths
+built by `npm run sim:golden -- steps <name>` (driver scripts in
+`scripts/sim-golden/*.steps.ts`; expectations are the engine's own results).
+
 ## 5. Engine architecture and the time model
 
 ### 5.1 The invariant
@@ -1604,7 +1771,8 @@ renderers and sees "Update the app".
 ## 6. Persistence
 
 Migration `<NNN>_sim_engine.sql`, numbered **the next free number at
-implementation time (currently 057)**: 055 is taken by PR #44
+implementation time** (built as `062_sim_engine.sql`, the number reserved
+for the sim engine; section 22 lists what it holds): 055 is taken by PR #44
 (`055_content_review_queue.sql`, REQ-142/143) and 056 by the
 unrestricted-access PR. No number is fixed in this design; below, "the
 sim migration" means that file. Additive only; follows 050's conventions
@@ -1867,7 +2035,14 @@ interface ScreenSpec {
     infusions?: Template;
     banner?: { when: Expr; text: Template }[];
   };
-  // board, dashboard, trainer, session, security, terminal, data: later phases (20)
+  // REQ-190: the architecture board's topology. Each zone lists the items
+  // whose `when` holds; meters are short read-outs. Display-only, validated
+  // like tile bindings (bool `when`, templates over tick-scope names).
+  board?: {
+    zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
+    meters?: { id: Id; label: string; value: Template }[];
+  };
+  // dashboard, trainer, session, security, terminal, data: later phases (20)
 }
 ```
 
@@ -1940,7 +2115,10 @@ means 15 sim minutes, and paused time never counts for or against.
 
 **Process score** = 100 × sum of (weight × 1 / 0.5 / 0 for met / partial /
 missed) over every criterion and every reasoning criterion, divided by the
-sum of their weights, rounded to an integer. Both kinds may be
+sum of their weights, rounded to an integer. A criterion row may also score
+`na` (REQ-190): not applicable, left out of both sums like a grader
+failure. Module criteria use it when the module never ran, so a run with no
+arrest is not handed five free "met" scores. Both kinds may be
 `critical`. A reasoning criterion marked critical and missed (including
 skipped) blocks Good through the rating rule (9.2) like any other
 critical miss; but the path-search lint against `target` with a critical
@@ -2218,7 +2396,8 @@ app reads it from the course payload. An open run's journal is kept on the
 device while sims are off (5.9).
 
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
-(default `bedside`). A renderer can be launched, or pulled after a bad
+(default `bedside,board` since REQ-190, because the first flagship is the
+TicketBurst board, 19.4 item 1). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -2857,7 +3036,7 @@ rules below followed. Nick approved all of them.
   names either as contraindicated in this setting (searched 2026-11-09), so
   neither is a `harm` ending; a reviewer may supply a source.
 
-### 19.4 Nick's decisions, 2026-11-09 (recorded in REQ-162, PR #64)
+### 19.4 Nick's decisions, 2026-11-09 (recorded in REQ-162, PR #64; items 1-4 built in REQ-190)
 
 1. **First flagship sims:** AWS SAA and SAP as one scenario with two
    difficulty bands (the TicketBurst launch day, 3.3, is the base), then
@@ -2878,6 +3057,35 @@ rules below followed. Nick approved all of them.
 5. **Content is served to learners as built and deployed**, under the
    one-time study notice (REQ-165). There is no reviewer gate; review
    status stays internal (11.4).
+
+### 19.5 Choices made in REQ-190, for Nick to confirm
+
+- **SAP-C03, not SAP-C02.** The brief said SAP-C02; AWS retires it on
+  2026-11-16 and the AWSSAP course already teaches SAP-C03, so the band's
+  objective and criteria use C03 domains (C02 was read too).
+- **"AZ placement hidden"** is read as: which AZ fails is hidden and drawn
+  from the run's seed. The other reading (the board hides per-AZ subnets and
+  AZ spread becomes one setting) is a renderer and catalogue change.
+- **`append`** extends RFC 7396 for arrays (4.7).
+- **`na` criterion score** (9.1): an engine scoring change before the
+  major-1 freeze; state hashes and the corpus are unchanged.
+- **Full-dose epinephrine after cardiac surgery is a harm ending**
+  (`code_epiHarm`, reached at ROSC), because STS 2017 names it class III
+  (harm) without expert direction.
+- **The paced compression mode** is scored by the same rule on the rate and
+  pause the learner picks, reported as its own mode; it is not a free pass.
+- **Resternotomy window**: the cause criterion is met when the resternotomy
+  is called within 2 minutes (opening takes 5 minutes with the tray at the
+  bedside, 10 without), which keeps "open within about 5 minutes" (STS 2017)
+  reachable only with preparation.
+- **Phase 1b (section 22).** The tamponade sim counts toward "Care of the
+  patient after cardiac surgery" (the document's own objective title is not
+  in the CCRN catalog); `SIMS_RENDERERS` defaults to `bedside,board` so the
+  TicketBurst flagship is not off by default; the board's topology is a
+  declared `screen.board` binding (display-only) rather than renderer code;
+  sims have their own `sims` feature key (11.2); the start route returns
+  every accepted command and the app replays from tick 0 instead of a
+  checkpoint; the run starts with the clock paused until the learner runs it.
 
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
@@ -3086,3 +3294,86 @@ at implementation time (currently 057), and 050's `kind::text` lesson
 applies to it (6, 6.1, 9.5, 17). Per-sim learner signals plug into #44's
 `content_review_queue` through a `sim` entry in `ATTEMPT_SOURCES` in
 `lib/content-review-queue.ts`, which the signals job reads (6, 9.5, 17).
+
+## 22. Phase 1b as built (REQ-190)
+
+Nick ordered the app screen to ship with the code module (19.4 item 2), so
+REQ-190 builds Phase 1b's server and the first version of the Phase 1c
+screen together, for the tamponade case (CCRN, with the code module) and the
+TicketBurst launch day (SAA base and SAP band). `SIMS_ENABLED` stays off by
+default; with it off nothing here is visible.
+
+**Migration 062** (`backend/supabase/migrations/062_sim_engine.sql`):
+`sims`, `sim_versions`, `sim_reviews`, `sim_runs`, `sim_run_commands`,
+`sim_run_reasoning`; attempt kind `simtask` with `attempts.sim_id` (no
+foreign key) and `attempts_simtask_shape` comparing `kind::text`; the
+`sim_run` assessment type (family `simulation`, weight 1.5, application
+level, not unit-wide); RLS on every new table. Idempotent (a dbtest applies
+it a second time); rollback notes in its header and rows in
+`docs/deploy-runbook-integration.md`. The schema probe in
+`lib/schema-status.ts` checks the tables, the column, the enum value, the
+type and the check.
+
+**Routes** (`app/api/sims/**`, thin over `lib/sims.ts`; every one 404
+`sims_disabled` while the switch is off):
+
+| Route | What it does |
+|---|---|
+| `GET /api/sims?trackId=` / `unitId` / `objectiveId` | The list: state, last rating, access (full / sample / locked), `runnable`. No review status (19.4 item 5). |
+| `GET /api/sims/:id` | Brief, access, the open run, the latest finished run. |
+| `POST /api/sims/:id/runs { restart?, deviceId?, cachedHash? }` | Start or resume; takes the lease (epoch + 1). Returns the run (seed, epoch), the client document unless the cached hash matches, and **every accepted command** (the app replays from tick 0). 409 `app_update_required` when the app cannot run the served version. |
+| `POST /api/sims/runs/:runId/commands { leaseEpoch, commands[], tick?, stateHash? }` | The step route. Idempotent by seq (a changed resend is 409 `seq_conflict`), 409 `lease_lost`, `seq_gap`, `too_fast` (speed bound), 429 `sync_too_fast` (a heartbeat within 2 s), 413 `replay_budget`. Replays from the run's checkpoint; an illegal command is refused with its seq and the legal prefix is kept; a new checkpoint (Pre(k) at a command boundary, at least 300 ticks on) is stored; a client hash that differs from the server's at the same tick counts a desync. |
+| `POST /api/sims/runs/:runId/skip { leaseEpoch, seq, tick, timer?, instance? }` | Skip to a pending wait (the named one, else the soonest). The server builds the skip command to its own due tick, stores it and returns it; the app applies that command. |
+| `POST /api/sims/runs/:runId/reasoning { momentId, openedSeq, openedTick, answer, clientAttemptId }` | Grades one written-reasoning moment (10): only where the server's replay shows the moment open at `openedTick` with `openedSeq` the last command (else 409 `replay_behind`); replay by client id; one grade per moment; the lab grader, claim, rate limit and allowance; `grader_failed` after three failed model calls. |
+| `POST /api/sims/runs/:runId/finish { leaseEpoch, tick? }` | The submit route. Replays from tick 0 (advancing real time to `tick` when the ending came with no command), refuses 409 `not_ended`, scores, and records one `simtask` attempt for a terminal ending with the rating as verdict. A learner quit records nothing and marks the run abandoned. Idempotent. |
+| `GET /api/sims/runs/:runId/debrief` | The stored debrief. |
+
+The app sends its capabilities as `x-sim-caps:
+protocol=1;engine=1.0;renderers=bedside@3,board@3`. Access uses the `sims`
+feature key (Pro; one sample per course on Free and Plus). A clinical or
+fitness sim needs the study notice on every run route.
+
+**The app** (`mobile/app/(app)/course/[trackId]/sims.tsx` and
+`sim/[simId].tsx`, `mobile/src/sim/`): vitals tiles (bedside), the
+architecture topology from `screen.board` (8.2), waits as "Skip to" or
+"Advance to" buttons, the action groups with their parameter sheets
+(choices, forms, slot placement, typed commands), decision cards and the
+written-reasoning box (both stop the clock), the event log, and the
+debrief. The pure parts are tested under `node --test`
+(`src/sim/runtime/`): the frame clock (5.4), the announcement policy
+(13.2), the view model, the local session and the tap pad.
+
+**Compressions.** The tap pad measures the rate and the longest pause from
+tap timestamps on the app's monotonic clock and sends `cpr <rate> <pause>`
+as integers every 15 s while tapping and when the learner stops (19.4 item
+3). The non-tap alternative is the module's paced form, offered beside the
+pad and named on the pad when a screen reader is on; the run records which
+mode was used, so the two are scored and reported apart (4.8).
+
+**Objectives.** The seed resolves a document's objective by exact title in
+its course. The tamponade document's title was not in the CCRN catalog, so
+it now names "Care of the patient after cardiac surgery" (the case is a
+post-CABG tamponade managed by re-exploration, with the cardiac-surgery
+arrest protocol), with the CCRN tamponade and hemodynamic-monitoring
+objectives as secondary. The TicketBurst base's three secondary objectives
+now name AWSSAA catalog titles. `lib/sim/objectives.test.ts` pins this.
+
+**Not built yet** (what is left of Phase 1b and 1c):
+
+- `GET /api/sims/runs/:runId` and `POST .../lease` (resume and takeover go
+  through the start route, which takes the lease), and the
+  acknowledgement route (the study notice replaced it, REQ-165).
+- The `sim` item kind (Report a problem on a sim, voiding through
+  `confirmItemWrong`), `item-quality.ts`, `coach-guard.ts` and
+  `item-report.ts` cases, the `ATTEMPT_SOURCES` entry, the
+  `sim_version_daily` view, the stale-sources report, and the review CLI.
+- Offline play measurement beyond `offline_ticks`, the per-minute command
+  cap (a heartbeat is limited to one per 2 s; commands are limited per
+  request and per run), and the observability counters.
+- In the app: the write-ahead journal in device storage and the sweep
+  (`localDataOwner`), the protected `/sim` route for updates, the web idle
+  auto-pause, keep-awake, waveforms, the cached client document across app
+  launches, and the manual accessibility pass on devices (VoiceOver,
+  TalkBack, web at 400 px, 200% text). The run starts paused, leaving the
+  app pauses it, and a frame gap over 3 s pauses it.
+

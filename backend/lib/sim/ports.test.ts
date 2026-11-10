@@ -8,7 +8,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { ALL_DOCUMENTS } from "./documents.ts";
+import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 import type { Command, ScenarioDoc } from "./engine/v1/types.ts";
 import { advance, applyCommand, createRun, TICK_BUDGET } from "./engine/v1/engine.ts";
 import { replayGoldenPath } from "./engine/v1/validate.ts";
@@ -29,7 +29,7 @@ interface ProtoPath {
 
 const tamponade = ALL_DOCUMENTS.find((d) => d.slug === "tamponade-after-cabg");
 if (!tamponade?.golden) throw new Error("tamponade port is not registered");
-const doc = JSON.parse(readFileSync(tamponade.file, "utf8")) as ScenarioDoc;
+const doc: ScenarioDoc = loadDocument(tamponade);
 const golden = JSON.parse(readFileSync(tamponade.golden, "utf8")) as GoldenFile;
 const proto = JSON.parse(readFileSync(tamponade.golden.replace(/\.golden\.json$/, ".prototype.json"), "utf8")) as { paths: ProtoPath[] };
 
@@ -40,12 +40,19 @@ const proto = JSON.parse(readFileSync(tamponade.golden.replace(/\.golden\.json$/
 //   phase-2 low-output state ended on an inotrope; otherwise recovered.
 // - the arrest path scores the phase-2 criterion "missed" (the prototype
 //   omits it), so every run is scored on the same eight criteria.
+// - REQ-190: the arrest is no longer terminal. It enters the code/ACLS
+//   module (modules/code-acls@1); the prototype's arrest tick is the tick
+//   the code starts, and the untreated arrest path ends without ROSC. The
+//   module's criteria follow the host's and score "na" when no arrest
+//   happens, so the host's criteria are compared by position as before.
+//   Paths that go through the code (code*) have no prototype recording.
 const ENDING_FOR_PATH: Record<string, string[]> = {
   early: ["early", "earlyUntreated"],
   bridge: ["bridge"],
   late: ["late"],
-  arrest: ["arrest"],
+  arrest: ["code_noRosc"],
 };
+const CODE_PATHS = golden.paths.filter((p) => p.id.startsWith("code")).map((p) => p.id);
 
 // Clearing the tubes adds 120 mL at once; the prototype interpolates its
 // 5-second drainage ledger across that step and the engine's history keeps
@@ -58,10 +65,10 @@ function nearGush(cmds: Command[], tick: number): boolean {
 
 describe("tamponade port matches the revised prototype (critical-care.html)", () => {
   test("every golden path has a prototype recording and the reverse", () => {
-    assert.deepEqual(golden.paths.map((p) => p.id), proto.paths.map((p) => p.id));
+    assert.deepEqual(golden.paths.map((p) => p.id).filter((id) => !CODE_PATHS.includes(id)), proto.paths.map((p) => p.id));
   });
 
-  for (const gp of golden.paths) {
+  for (const gp of golden.paths.filter((p) => !CODE_PATHS.includes(p.id))) {
     const pp = proto.paths.find((p) => p.id === gp.id);
     test(gp.id, () => {
       assert.ok(pp, "no prototype recording");
@@ -75,7 +82,8 @@ describe("tamponade port matches the revised prototype (critical-care.html)", ()
         assert.equal(target, p2inotrope && (pp.reexp ?? Infinity) <= 2700, "early splits by the 45-minute window and the phase-2 inotrope");
       }
       // criteria by position; the prototype omits phase 2 on an arrest
-      const engineScores = d.criteria.map((c) => c.score);
+      const engineScores = d.criteria.filter((c) => !c.id.startsWith("code_")).map((c) => c.score);
+      for (const c of d.criteria.filter((x) => x.id.startsWith("code_"))) assert.equal(c.score === "na", pp.path !== "arrest", `${c.id} is na exactly when no arrest happened`);
       const expected = pp.path === "arrest" ? [...pp.criteria, "missed"] : pp.criteria;
       assert.deepEqual(engineScores, expected);
       const kpi = (id: string): number | null => {
@@ -85,7 +93,20 @@ describe("tamponade port matches the revised prototype (critical-care.html)", ()
       assert.equal(kpi("recognition"), pp.recognition);
       assert.equal(kpi("page"), pp.page);
       assert.equal(kpi("reexp"), pp.reexp);
-      if (pp.arrestAt !== null) assert.equal(r.finalTick, pp.arrestAt);
+      if (pp.arrestAt !== null) {
+        const run = createRun(doc, gp.seed);
+        for (const c of gp.commands) {
+          while (run.state.tick < c.tick && advance(run)) {
+            /* real time */
+          }
+          applyCommand(run, c);
+        }
+        while (run.state.phase === "live" && advance(run)) {
+          /* until the arrest */
+        }
+        assert.equal(run.state.tick, pp.arrestAt, "the code starts at the prototype's arrest tick");
+        assert.equal(run.state.phase, "code");
+      }
       // vitals within ±1 display unit (0.1 for CI and lactate) at every snapshot both reached
       const snaps = gp.expect.snapshots ?? [];
       assert.ok(snaps.length >= 3, "at least three snapshots");
@@ -184,7 +205,7 @@ describe("tamponade performance budget (docs/sims.md 14, 16)", () => {
 describe("TicketBurst port matches the revised prototype (cloud.html)", () => {
   const entry = ALL_DOCUMENTS.find((d) => d.slug === "ticketburst-launch-day");
   if (!entry?.golden) throw new Error("cloud port is not registered");
-  const cdoc = JSON.parse(readFileSync(entry.file, "utf8")) as ScenarioDoc;
+  const cdoc: ScenarioDoc = loadDocument(entry);
   const cgold = JSON.parse(readFileSync(entry.golden, "utf8")) as GoldenFile;
   const cproto = JSON.parse(readFileSync(entry.golden.replace(/\.golden\.json$/, ".prototype.json"), "utf8")) as {
     paths: { id: string; cost: number; avail: number; rto: number; rpo: number; criteria: string[]; finTotal: number }[];

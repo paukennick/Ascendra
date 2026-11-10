@@ -177,9 +177,16 @@ export const screenSpecSchema = z.object({
       banner: z.array(z.object({ when: expr, text: template })).optional(),
     })
     .optional(),
+  board: z
+    .object({
+      zones: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), items: z.array(z.object({ label: template, when: expr })) })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
 });
 
 const criterionScoreSchema = z.enum(["met", "partial", "missed"]);
+const criterionRowScoreSchema = z.enum(["met", "partial", "missed", "na"]);
 
 export const scoringSchema = z.object({
   criteria: z
@@ -189,7 +196,7 @@ export const scoringSchema = z.object({
         label: z.string().max(300),
         weight: z.number(),
         critical: z.boolean().optional(),
-        rows: z.array(z.object({ when: expr, score: criterionScoreSchema, why: template })),
+        rows: z.array(z.object({ when: expr, score: criterionRowScoreSchema, why: template })),
       }),
     )
     .max(30),
@@ -249,7 +256,7 @@ export const goldenFileSchema = z.object({
         class: outcomeClassSchema.nullable(),
         rating: z.enum(["good", "mediocre", "bad"]).nullable(),
         score: z.number().optional(),
-        criteria: z.record(z.string(), criterionScoreSchema).optional(),
+        criteria: z.record(z.string(), criterionRowScoreSchema).optional(),
         kpis: z.record(z.string(), z.union([z.number(), z.string(), z.null()])).optional(),
         snapshots: z.array(z.object({ tick: z.number(), values: z.record(z.string(), z.unknown()) })).optional(),
         stateHash: z.string().optional(),
