@@ -160,6 +160,7 @@ const MODEL_ROUTES: readonly RegExp[] = [
   /^\/api\/units\/[^/?]+\/check(?:$|\?)/, // REQ-108: unit check written and graded
   /^\/api\/coach\/quiz(?:$|\?)/, // REQ-110: first ask of an objective writes its question
   /^\/api\/labs\/[^/?]+\/submit(?:$|\?)/, // REQ-123: a lab step is graded
+  /^\/api\/sims\/runs\/[^/?]+\/reasoning(?:$|\?)/, // REQ-190: a sim's written reasoning is graded
 ];
 
 export function requestTimeoutMs(path: string, override?: number): number {
@@ -170,6 +171,8 @@ export function requestTimeoutMs(path: string, override?: number): number {
 export interface RequestOptions {
   // Milliseconds before the request is abandoned with RequestTimeoutError.
   timeoutMs?: number;
+  // REQ-190: extra request headers (the sim routes read x-sim-caps).
+  headers?: Record<string, string>;
 }
 
 async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: number): Promise<T> {
@@ -258,7 +261,7 @@ async function request<T>(
   // that sends the learner's own text to the AI provider.
   if (!alreadyRetried) await studyNoticeGate(options.method, path);
   try {
-    return await rawRequest<T>(path, options, timeoutMs);
+    return await rawRequest<T>(path, opts.headers ? { ...options, headers: { ...(options.headers as Record<string, string> | undefined), ...opts.headers } } : options, timeoutMs);
   } catch (err) {
     // REQ-177: a 401 that says "confirm it's you" (wrong password or code,
     // lib/auth/reauth.ts) is about what was typed, not the session. Refreshing

@@ -20,25 +20,11 @@ export const WEB_VERSION_MIN_GAP_MS = 60 * 1000;
 export const AUTO_RELOAD_KEY = "ascendra_auto_reloaded";
 export const AUTO_RELOAD_GAP_MS = 10 * 60 * 1000;
 
-// Screens holding in-memory work that a reload would discard. Shared with
-// src/updates/useAppUpdates.ts (native silent apply).
-export const PROTECTED_ROUTE_FRAGMENTS = [
-  "/lesson",
-  "/pbq",
-  "/chat",
-  "/lab",
-  "/sim",
-  "/exam",
-  "/quiz",
-  "/review-session",
-  "/unit-check",
-  "/explain",
-  "/placement",
-] as const;
-
-export function holdsUnsavedWork(pathname: string): boolean {
-  return PROTECTED_ROUTE_FRAGMENTS.some((fragment) => pathname.includes(fragment));
-}
+// Screens holding in-memory work that a reload would discard: one list,
+// shared with src/updates/useAppUpdates.ts (native silent apply), kept in
+// src/updates/protectedRoutes.ts (REQ-199 moved it there).
+import { holdsUnsavedWork } from "../updates/protectedRoutes.ts";
+export { PROTECTED_ROUTE_FRAGMENTS, holdsUnsavedWork } from "../updates/protectedRoutes.ts";
 
 const BUILD_ID = /^[0-9A-Za-z._-]{4,64}$/;
 

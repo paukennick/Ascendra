@@ -30,6 +30,7 @@ import { vendorDisclaimer } from "@/lib/vendor";
 import { COURSE_NO_UNITS } from "@/lib/emptyStates";
 import { ExamOutcomePrompt } from "@/components/ExamOutcomePrompt";
 import { labCountsByUnit, type LabListItem } from "@/lib/labs";
+import { capsHeaders } from "@/sim/runtime/caps.ts";
 import { readinessLockedLine } from "@/lib/billing";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
@@ -57,6 +58,9 @@ export default function CourseDashboard() {
   // REQ-123: verifiable labs per unit; empty (and nothing shown) for a
   // course without labs or if the request fails.
   const [labCounts, setLabCounts] = useState<Record<string, number>>({});
+  // REQ-190: simulations in this course; 0 (and nothing shown) when sims are
+  // switched off (404 sims_disabled) or the request fails.
+  const [simCount, setSimCount] = useState(0);
   // REQ-075: which units are expanded to show their objective list. Nothing
   // on this screen let a learner pick a specific objective before -- only
   // "continue" into whatever came next.
@@ -107,6 +111,10 @@ export default function CourseDashboard() {
       .get<{ labs: LabListItem[] }>(`/api/labs?trackId=${encodeURIComponent(trackId)}`)
       .then((res) => setLabCounts(labCountsByUnit(res.labs)))
       .catch(() => setLabCounts({}));
+    api
+      .get<{ sims: unknown[] }>(`/api/sims?trackId=${encodeURIComponent(trackId)}`, { headers: capsHeaders() })
+      .then((res) => setSimCount(Array.isArray(res.sims) ? res.sims.length : 0))
+      .catch(() => setSimCount(0));
   }, [trackId]);
   const totalLabs = Object.values(labCounts).reduce((a, b) => a + b, 0);
 
@@ -217,6 +225,17 @@ export default function CourseDashboard() {
                 icon="tool"
                 variant="ghost"
                 onPress={() => router.push({ pathname: `/course/${trackId}/labs`, params: { trackTitle: track.title } })}
+              />
+            ) : null}
+
+            {/* REQ-190: simulations, only on courses that have them. */}
+            {simCount > 0 ? (
+              <Button
+                label={`Simulations (${simCount})`}
+                accessibilityLabel={`Simulations: ${simCount} interactive ${simCount === 1 ? "case" : "cases"} that respond over time`}
+                icon="activity"
+                variant="ghost"
+                onPress={() => router.push({ pathname: `/course/${trackId}/sims`, params: { trackTitle: track.title } })}
               />
             ) : null}
 

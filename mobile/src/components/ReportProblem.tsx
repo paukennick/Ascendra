@@ -3,15 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { api } from "@/api/client";
 import { Button, Muted, TextField } from "@/components/ui";
 import { colors } from "@/lib/theme";
-import {
-  REPORT_NOTE_MAX,
-  REPORT_REASONS,
-  REPORT_SENT_FALLBACK,
-  reportBody,
-  reportKey,
-  type ReportReason,
-  type ReportTarget,
-} from "@/lib/reportProblem";
+import { REPORT_NOTE_MAX, reportBody, reportCopy, reportKey, reportReasons, type ReportReason, type ReportTarget } from "@/lib/reportProblem";
 
 // REQ-114 (Audit 3 H2): "Report a problem with this question". A small link
 // under a question that opens a reason picker and an optional note, then
@@ -26,13 +18,17 @@ import {
 
 const sent = new Set<string>();
 
-export function ReportProblem({ target }: { target: ReportTarget }) {
+// REQ-199: also a simulation (kind "sim"), with its own wording. `resolve`,
+// when given, builds the target at the moment of sending (a running sim's
+// tick and state hash), so nothing is computed on every frame.
+export function ReportProblem({ target, resolve }: { target: ReportTarget; resolve?: () => ReportTarget }) {
   const key = reportKey(target);
+  const copy = reportCopy(target);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason>("wrong_answer");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(sent.has(key) ? REPORT_SENT_FALLBACK : null);
+  const [message, setMessage] = useState<string | null>(sent.has(key) ? copy.thanks : null);
   const [error, setError] = useState<string | null>(null);
 
   if (message) {
@@ -45,7 +41,7 @@ export function ReportProblem({ target }: { target: ReportTarget }) {
   if (!open) {
     return (
       <Button
-        label="Report a problem with this question"
+        label={copy.link}
         variant="link"
         size="sm"
         icon="flag"
@@ -59,9 +55,9 @@ export function ReportProblem({ target }: { target: ReportTarget }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.post<{ recorded: boolean; message?: string }>("/api/items/report", reportBody(target, reason, note));
+      const res = await api.post<{ recorded: boolean; message?: string }>("/api/items/report", reportBody(resolve ? resolve() : target, reason, note));
       sent.add(key);
-      setMessage(res.message ?? REPORT_SENT_FALLBACK);
+      setMessage(res.message ?? copy.thanks);
     } catch (err) {
       setError((err as Error).message || "Couldn't send the report. Please try again.");
     } finally {
@@ -72,10 +68,10 @@ export function ReportProblem({ target }: { target: ReportTarget }) {
   return (
     <View style={{ gap: 8, paddingVertical: 4 }}>
       <Text style={{ color: colors.text, fontWeight: "600" }} accessibilityRole="header">
-        What's wrong with this question?
+        {copy.heading}
       </Text>
       <View accessibilityRole="radiogroup" style={{ gap: 4 }}>
-        {REPORT_REASONS.map((r) => {
+        {reportReasons(target).map((r) => {
           const checked = reason === r.value;
           return (
             <Pressable
@@ -108,7 +104,7 @@ export function ReportProblem({ target }: { target: ReportTarget }) {
         label="Anything to add? (optional)"
         value={note}
         onChangeText={setNote}
-        placeholder="For example, what you think the right answer is"
+        placeholder={copy.placeholder}
         multiline
         minHeight={72}
         maxLength={REPORT_NOTE_MAX}

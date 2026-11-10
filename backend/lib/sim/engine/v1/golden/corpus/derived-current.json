@@ -1,0 +1,177 @@
+{
+  "id": "derived-current",
+  "spec": "5.3 Derived values: reading a derived value returns its expression on the state at that instant, including inside the command that wrote the state",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 1,
+        "min": 0,
+        "max": 100
+      },
+      "seen": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      },
+      "seen2": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "derived": {
+      "dbl": {
+        "expr": "x * 2"
+      },
+      "quad": {
+        "expr": "dbl * 2"
+      }
+    },
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "go"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "go": {
+        "label": "go",
+        "group": "g",
+        "effects": [
+          {
+            "set": "seen",
+            "to": "quad"
+          },
+          {
+            "set": "x",
+            "to": "5"
+          },
+          {
+            "set": "seen2",
+            "to": "quad"
+          }
+        ]
+      }
+    },
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "go"
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 1,
+        "values": {
+          "seen": 4,
+          "seen2": 20,
+          "quad": 20
+        }
+      }
+    ]
+  }
+}

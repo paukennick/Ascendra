@@ -110,6 +110,17 @@ export const EXPORT_SECTIONS = {
   // learner's answers. A finished run's attempt is also under attempts.
   labRuns: "select * from lab_runs where user_id = $1 order by started_at asc, id asc",
   labRunSteps: "select * from lab_run_steps where user_id = $1 order by created_at asc, run_id asc, step_index asc",
+  // REQ-190 (migration 062): sim runs with their debrief, every command the
+  // learner sent, and their written reasoning with its grade. The replay
+  // checkpoint is engine state derived from the commands, so it is left out.
+  simRuns: `select id, sim_id, sim_version_id, seed, engine_version, started_at, status, last_seq, last_tick,
+                   realtime_ticks, skipped_ticks, offline_ticks, revealed, ending_id, outcome_class, rating, ended_at,
+                   score, attempt_id
+              from sim_runs where user_id = $1 order by started_at asc, id asc`,
+  simRunCommands: `select c.run_id, c.seq, c.tick, c.type, c.payload, c.received_at
+                     from sim_run_commands c join sim_runs r on r.id = c.run_id
+                    where r.user_id = $1 order by r.started_at asc, c.run_id asc, c.seq asc`,
+  simRunReasoning: "select * from sim_run_reasoning where user_id = $1 order by created_at asc, run_id asc, moment_id asc",
   // REQ-125 (migration 051): when the learner accepted the clinical or
   // fitness lab disclaimer, and which version.
   // REQ-197 (migration 063): the learner's email choices, and which service

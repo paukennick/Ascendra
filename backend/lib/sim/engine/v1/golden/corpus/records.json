@@ -1,0 +1,310 @@
+{
+  "id": "records",
+  "spec": "4.1 records: every pushed record gets the next _id for that variable, never reused after a remove; update changes matching records' fields; remove drops matches; each iterates in order; cases takes the first match",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "items": {
+        "type": "records",
+        "fields": {
+          "kind": {
+            "type": "enum",
+            "values": [
+              "a",
+              "b"
+            ]
+          },
+          "n": {
+            "type": "number"
+          }
+        },
+        "max": 10,
+        "init": []
+      },
+      "total": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 1000
+      },
+      "branch": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 10
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "fill",
+          "edit",
+          "sum"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "fill": {
+        "label": "fill",
+        "group": "g",
+        "effects": [
+          {
+            "push": "items",
+            "value": {
+              "kind": "'a'",
+              "n": "1"
+            }
+          },
+          {
+            "push": "items",
+            "value": {
+              "kind": "'b'",
+              "n": "2"
+            }
+          },
+          {
+            "push": "items",
+            "value": {
+              "kind": "'a'",
+              "n": "3"
+            }
+          }
+        ]
+      },
+      "edit": {
+        "label": "edit",
+        "group": "g",
+        "effects": [
+          {
+            "update": "items",
+            "where": "kind == 'a'",
+            "set": {
+              "n": "n * 10"
+            }
+          },
+          {
+            "remove": "items",
+            "where": "_id == 2"
+          },
+          {
+            "push": "items",
+            "value": {
+              "kind": "'b'",
+              "n": "4"
+            }
+          }
+        ]
+      },
+      "sum": {
+        "label": "sum",
+        "group": "g",
+        "effects": [
+          {
+            "each": "it",
+            "in": "items",
+            "do": [
+              {
+                "add": "total",
+                "by": "it.n"
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "total > 100",
+                "then": [
+                  {
+                    "set": "branch",
+                    "to": "1"
+                  }
+                ]
+              },
+              {
+                "when": "total > 10",
+                "then": [
+                  {
+                    "set": "branch",
+                    "to": "2"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "branch",
+                    "to": "3"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "branch == 2",
+            "then": [
+              {
+                "add": "branch",
+                "by": "5"
+              }
+            ],
+            "else": [
+              {
+                "set": "branch",
+                "to": "0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "timers": {},
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "fill"
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "edit"
+      }
+    },
+    {
+      "command": {
+        "seq": 3,
+        "tick": 0,
+        "type": "act",
+        "action": "sum"
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 0,
+        "afterSeq": 3,
+        "values": {
+          "items": [
+            {
+              "_id": 1,
+              "kind": "a",
+              "n": 10
+            },
+            {
+              "_id": 3,
+              "kind": "a",
+              "n": 30
+            },
+            {
+              "_id": 4,
+              "kind": "b",
+              "n": 4
+            }
+          ],
+          "total": 44,
+          "branch": 7
+        }
+      }
+    ]
+  }
+}

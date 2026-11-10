@@ -1,5 +1,94 @@
-// REQ-141 (docs/sims.md 5.8): placeholder for engine major 1, so the copy
-// in mobile/src/sim/engine/ and its drift test exist before any engine code.
-// Phase 1a step 4 replaces this. Rules for every file in this folder: `.ts`
-// on every relative import, erasable syntax only, no imports outside it.
-export const ENGINE_MAJOR = 1;
+// REQ-162 (docs/sims.md 5.8): engine major 1, the public surface. The app
+// runs a generated copy of this folder (`npm run sim:sync-engine`); the
+// server imports it from here. Rules for every file in this folder: `.ts` on
+// every relative import, erasable syntax only, no imports outside it, no
+// Math.exp/sin/pow or `**` (lib/sim/engine-source.test.ts).
+export { ENGINE_MAJOR, ENGINE_MINOR, ENGINE_VERSION, TICK_BUDGET, COMMAND_BUDGET } from "./engine.ts";
+export {
+  advance,
+  applyCommand,
+  checkpoint,
+  clockBlocked,
+  clockMode,
+  compileDoc,
+  createRun,
+  insideSkip,
+  isDurationLiteral,
+  parseDuration,
+  readValue,
+  renderTemplate,
+  replay,
+  restoreRun,
+  simTime,
+  simTimeText,
+  stateHash,
+  waits,
+} from "./engine.ts";
+export type { ApplyResult, Compiled, Run } from "./engine.ts";
+export { scoreRun, rateRun, processScoreOf, GOOD_MIN_SCORE, BAD_MAX_SCORE } from "./scoring.ts";
+export type { ScoreInput } from "./scoring.ts";
+export { lintScenario, validateScenario, replayGolden, replayGoldenPath, pathSearch, readRunValue, LIMITS, PROFILE_THRESHOLDS, FEATURE_MINOR } from "./validate.ts";
+export type { GoldenFile, GoldenPath, GoldenResult, LintOptions, SafetyFamily, SearchLeaf, SearchResult } from "./validate.ts";
+export { parseExpr, parseCached, parseTemplate, tokenize, ParseError, MAX_DEPTH, MAX_NODES } from "./parser.ts";
+export type { Ast } from "./parser.ts";
+export { checkExpr, CheckError, literalTy, fieldSpecTy, assignable, tyName, scopeWith, ALL_FUNCTIONS, WHERE_TICK, WHERE_TICK_EFFECT, WHERE_COMMAND_EFFECT, WHERE_SCORING, WHERE_HISTORY_OF } from "./check.ts";
+export type { Ty, Scope, CheckOptions, CheckResult, Where } from "./check.ts";
+export { evaluate, EngineError, frameWith } from "./eval.ts";
+export type { EvalCtx, Frame } from "./eval.ts";
+export { dexp, dln, dsin, dcos, dpow, dsqrt, sat, div, clamp, lerp, mulberry32Step, streamSeed, SAT_MAX } from "./math.ts";
+export { applyFormat, parseClockStart, fmtClock, fmtDate, fmtDuration, fmtUsd, fmtFixed, FORMATS } from "./format.ts";
+export { parsePattern, matchPattern, splitCommand, commandInputOk, matchQuery, parseQuery, ipInCidr, cidrContains, sameSubnet, ipToInt, cidrPrefix, cidrNetwork, parseIpv4, parseCidr } from "./text.ts";
+export type {
+  Duration,
+  Expr,
+  Template,
+  Id,
+  Literal,
+  Unit,
+  Source,
+  ScenarioDoc,
+  Param,
+  Catalog,
+  FieldSpec,
+  StateVar,
+  History,
+  Derived,
+  Process,
+  Table,
+  Phase,
+  Action,
+  Option,
+  ActionParam,
+  CommandPattern,
+  Effect,
+  TableView,
+  TimerSpec,
+  Trigger,
+  Prompt,
+  ReasoningMoment,
+  OutcomeClass,
+  OutcomeProfile,
+  OutcomeSpec,
+  Ending,
+  ScreenSpec,
+  CriterionScore,
+  CriterionRowScore,
+  Scoring,
+  CommandParams,
+  Command,
+  RecordValue,
+  Value,
+  TimerInstance,
+  LogEntry,
+  OutputBlock,
+  SkipRecord,
+  RunEnd,
+  SimState,
+  Checkpoint,
+  WaitInfo,
+  Rating,
+  CriterionResult,
+  ReasoningGrade,
+  DebriefData,
+  Problem,
+} from "./types.ts";

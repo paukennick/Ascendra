@@ -88,6 +88,7 @@ export const AI_ROUTES: readonly RegExp[] = [
   /^\/api\/objectives\/[^/?]+\/explain-back(?:$|\?)/,
   /^\/api\/objectives\/[^/?]+\/lab\/report(?:$|\?)/,
   /^\/api\/labs\/[^/?]+\/submit(?:$|\?)/, // a lab step graded by the model
+  /^\/api\/sims\/runs\/[^/?]+\/reasoning(?:$|\?)/, // REQ-190: a sim's written reasoning, graded by the model
   /^\/api\/review\/sessions\/[^/?]+\/items\/[^/?]+\/answer(?:$|\?)/, // written review answers
   /^\/api\/units\/[^/?]+\/check(?:$|\?)/,
 ];

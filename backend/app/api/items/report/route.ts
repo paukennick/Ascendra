@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 //   { kind: "review" | "exam", sessionId, position, reason?, note? }
 //   { kind: "quiz", turnId, reason?, note? }
 //   { kind: "comparison", itemId, reason?, note? }
+//   { kind: "lab", labId, reason?, note? }
+//   { kind: "sim", runId, tick?, stateHash?, reason?, note? }   (REQ-199; 404 while SIMS_ENABLED is off)
 // reason: wrong_answer (default) | unclear | outdated | offensive | other;
 // note: optional, up to 500 characters.
 //
@@ -42,11 +44,12 @@ export async function POST(req: Request) {
     }
     const out = await reportItem(user.id, input);
     if (out.recheck) inBackground(() => out.recheck!);
+    const what = input.ref.kind === "sim" ? "simulation" : "question";
     return ok({
       recorded: out.recorded,
       message: out.recorded
-        ? "Thanks -- we'll check this question. If it's wrong, it won't count against you."
-        : "You've already reported this question. Thanks -- it's being checked.",
+        ? `Thanks -- we'll check this ${what}. If it's wrong, it won't count against you.`
+        : `You've already reported this ${what}. Thanks -- it's being checked.`,
     });
   } catch (err) {
     if (err instanceof ReportError) return err.status === 404 ? notFound(err.message) : badRequest(err.message);

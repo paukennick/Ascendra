@@ -27,9 +27,7 @@ const LABEL_MAX = 500;
 // SELECT per content kind with the same seven columns. $1/$2 bound the
 // window. Each learner's answer counts once per window (the caller keeps the
 // first); voided answers (042) and answers given after help was shown
-// (assisted, 029) are left out. A new kind plugs in with one entry here: a
-// sim (REQ-141) would be `attempts a ... where a.sim_id is not null`, and its
-// "Report a problem" flags (item_flags kind 'sim') are already counted.
+// (assisted, 029) are left out. A new kind plugs in with one entry here.
 const COMMON = `a.user_id is not null and a.verdict is not null and a.voided_at is null and not a.assisted
                 and a.created_at >= $1 and a.created_at < $2`;
 
@@ -59,6 +57,11 @@ export const ATTEMPT_SOURCES: Record<string, string> = {
   lab: `select 'lab'::text, a.lab_id::text, a.objective_id, l.title, a.user_id, a.verdict = 'correct', a.created_at
           from attempts a join labs l on l.id = a.lab_id
          where a.lab_id is not null and ${COMMON}`,
+  // REQ-199: a sim is reviewed per version (item_id sim_versions.id), the
+  // way its "Report a problem" flags are keyed.
+  sim: `select 'sim'::text, r.sim_version_id::text, a.objective_id, a.question, a.user_id, a.verdict = 'correct', a.created_at
+          from attempts a join sim_runs r on r.attempt_id = a.id
+         where a.sim_id is not null and ${COMMON}`,
 };
 
 const answersSql = () =>

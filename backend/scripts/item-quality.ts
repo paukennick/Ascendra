@@ -8,7 +8,8 @@
 //   npm run items -- confirm <kind> <itemId> "<what is wrong>"
 //   npm run items -- clear   <kind> <itemId> "<why it is fine>"
 //
-// kind: lesson | review | exam | quiz | comparison. itemId as listed.
+// kind: lesson | review | exam | quiz | comparison | lab | sim. itemId as listed
+// (a sim's is the sim_versions.id: confirming pulls that version).
 //
 // REQ-196: confirm and clear also take a STAGED item (listed by `staged`,
 // not yet pulled). confirm pulls it and voids answers graded against it --

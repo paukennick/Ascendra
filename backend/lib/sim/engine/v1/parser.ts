@@ -1,0 +1,371 @@
+// REQ-162 (docs/sims.md 4.3): the expression language's tokenizer and a
+// hand-written Pratt parser. Output is an AST that the checker types and the
+// evaluator walks. There is no eval, Function or host access anywhere.
+
+export type Ast =
+  | { k: "num"; v: number; pos: number }
+  | { k: "bool"; v: boolean; pos: number }
+  | { k: "str"; v: string; pos: number }
+  | { k: "null"; pos: number }
+  | { k: "list"; items: Ast[]; pos: number }
+  | { k: "name"; name: string; pos: number }
+  | { k: "field"; obj: Ast; name: string; pos: number }
+  | { k: "index"; obj: Ast; idx: Ast; pos: number }
+  | { k: "unary"; op: "-" | "not"; e: Ast; pos: number }
+  | { k: "binary"; op: BinOp; l: Ast; r: Ast; pos: number }
+  | { k: "cond"; c: Ast; a: Ast; b: Ast; pos: number }
+  | { k: "call"; fn: string; args: Ast[]; pos: number };
+
+export type BinOp = "+" | "-" | "*" | "/" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "and" | "or" | "in";
+
+export class ParseError extends Error {
+  pos: number;
+  constructor(message: string, pos: number) {
+    super(`${message} (at ${pos})`);
+    this.pos = pos;
+  }
+}
+
+type Tok =
+  | { t: "num"; v: number; pos: number }
+  | { t: "str"; v: string; pos: number }
+  | { t: "id"; v: string; pos: number }
+  | { t: "op"; v: string; pos: number }
+  | { t: "eof"; pos: number };
+
+const KEYWORDS = new Set(["and", "or", "not", "in", "true", "false", "null"]);
+
+function isIdStart(c: string): boolean {
+  return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || c === "_";
+}
+function isIdPart(c: string): boolean {
+  return isIdStart(c) || (c >= "0" && c <= "9");
+}
+function isDigit(c: string): boolean {
+  return c >= "0" && c <= "9";
+}
+
+export function tokenize(src: string): Tok[] {
+  const out: Tok[] = [];
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    const c = src[i];
+    if (c === " " || c === "\t" || c === "\n" || c === "\r") {
+      i++;
+      continue;
+    }
+    const pos = i;
+    if (isDigit(c) || (c === "." && i + 1 < n && isDigit(src[i + 1]))) {
+      let j = i;
+      while (j < n && isDigit(src[j])) j++;
+      if (j < n && src[j] === ".") {
+        j++;
+        while (j < n && isDigit(src[j])) j++;
+      }
+      if (j < n && (src[j] === "e" || src[j] === "E")) {
+        let k = j + 1;
+        if (k < n && (src[k] === "+" || src[k] === "-")) k++;
+        if (k < n && isDigit(src[k])) {
+          while (k < n && isDigit(src[k])) k++;
+          j = k;
+        }
+      }
+      const text = src.slice(i, j);
+      const v = Number(text);
+      if (v !== v || v === Infinity) throw new ParseError(`bad number "${text}"`, pos);
+      out.push({ t: "num", v, pos });
+      i = j;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      let j = i + 1;
+      let s = "";
+      while (j < n && src[j] !== c) {
+        if (src[j] === "\\" && j + 1 < n) {
+          j++;
+          s += src[j];
+        } else s += src[j];
+        j++;
+      }
+      if (j >= n) throw new ParseError("unterminated string", pos);
+      out.push({ t: "str", v: s, pos });
+      i = j + 1;
+      continue;
+    }
+    if (isIdStart(c)) {
+      let j = i;
+      while (j < n && isIdPart(src[j])) j++;
+      out.push({ t: "id", v: src.slice(i, j), pos });
+      i = j;
+      continue;
+    }
+    const two = src.slice(i, i + 2);
+    if (two === "==" || two === "!=" || two === "<=" || two === ">=") {
+      out.push({ t: "op", v: two, pos });
+      i += 2;
+      continue;
+    }
+    if ("+-*/<>()[],?:.".indexOf(c) >= 0) {
+      out.push({ t: "op", v: c, pos });
+      i++;
+      continue;
+    }
+    if (c === "&" || c === "|" || c === "!" || c === "=") throw new ParseError(`unexpected "${c}": use and, or, not, ==`, pos);
+    throw new ParseError(`unexpected character "${c}"`, pos);
+  }
+  out.push({ t: "eof", pos: n });
+  return out;
+}
+
+// Binding powers: higher binds tighter. `? :` is lowest and right-associative.
+const BP: Record<string, number> = {
+  or: 1,
+  and: 2,
+  "==": 4,
+  "!=": 4,
+  "<": 5,
+  "<=": 5,
+  ">": 5,
+  ">=": 5,
+  in: 5,
+  "+": 6,
+  "-": 6,
+  "*": 7,
+  "/": 7,
+};
+
+export const MAX_DEPTH = 32;
+export const MAX_NODES = 400;
+
+export function parseExpr(src: string): Ast {
+  const toks = tokenize(src);
+  let p = 0;
+  let nodes = 0;
+  const peek = (): Tok => toks[p];
+  const next = (): Tok => toks[p++];
+  const isOp = (v: string): boolean => {
+    const t = toks[p];
+    return (t.t === "op" && t.v === v) || (t.t === "id" && t.v === v && KEYWORDS.has(v));
+  };
+  const expect = (v: string): void => {
+    if (!isOp(v)) throw new ParseError(`expected "${v}"`, peek().pos);
+    p++;
+  };
+  const mk = <T extends Ast>(node: T): T => {
+    nodes++;
+    if (nodes > MAX_NODES) throw new ParseError(`expression has more than ${MAX_NODES} nodes`, node.pos);
+    return node;
+  };
+
+  function primary(depth: number): Ast {
+    if (depth > MAX_DEPTH) throw new ParseError(`expression deeper than ${MAX_DEPTH}`, peek().pos);
+    const t = next();
+    let e: Ast;
+    if (t.t === "num") e = mk({ k: "num", v: t.v, pos: t.pos });
+    else if (t.t === "str") e = mk({ k: "str", v: t.v, pos: t.pos });
+    else if (t.t === "id") {
+      if (t.v === "true" || t.v === "false") e = mk({ k: "bool", v: t.v === "true", pos: t.pos });
+      else if (t.v === "null") e = mk({ k: "null", pos: t.pos });
+      else if (t.v === "not") {
+        const inner = parseBp(3, depth + 1);
+        e = mk({ k: "unary", op: "not", e: inner, pos: t.pos });
+        return e; // `not` binds looser than comparison; no postfix on it
+      } else if (KEYWORDS.has(t.v)) throw new ParseError(`unexpected "${t.v}"`, t.pos);
+      else if (isOp("(")) {
+        p++;
+        const args: Ast[] = [];
+        if (!isOp(")")) {
+          for (;;) {
+            args.push(parseBp(0, depth + 1));
+            if (isOp(",")) {
+              p++;
+              continue;
+            }
+            break;
+          }
+        }
+        expect(")");
+        e = mk({ k: "call", fn: t.v, args, pos: t.pos });
+      } else e = mk({ k: "name", name: t.v, pos: t.pos });
+    } else if (t.t === "op" && t.v === "(") {
+      e = parseBp(0, depth + 1);
+      expect(")");
+    } else if (t.t === "op" && t.v === "[") {
+      const items: Ast[] = [];
+      if (!isOp("]")) {
+        for (;;) {
+          items.push(parseBp(0, depth + 1));
+          if (isOp(",")) {
+            p++;
+            continue;
+          }
+          break;
+        }
+      }
+      expect("]");
+      if (items.length > 64) throw new ParseError("list literal has more than 64 items", t.pos);
+      e = mk({ k: "list", items, pos: t.pos });
+    } else if (t.t === "op" && t.v === "-") {
+      const inner = parseBp(8, depth + 1);
+      if (inner.k === "num") return mk({ k: "num", v: -inner.v, pos: t.pos });
+      return mk({ k: "unary", op: "-", e: inner, pos: t.pos });
+    } else if (t.t === "eof") throw new ParseError("unexpected end of expression", t.pos);
+    else throw new ParseError(`unexpected "${t.v}"`, t.pos);
+    return postfix(e, depth);
+  }
+
+  function postfix(e: Ast, depth: number): Ast {
+    for (;;) {
+      if (isOp(".")) {
+        const dot = next();
+        const id = next();
+        if (id.t !== "id" || KEYWORDS.has(id.v)) throw new ParseError("expected a field name after .", dot.pos);
+        e = mk({ k: "field", obj: e, name: id.v, pos: dot.pos });
+      } else if (isOp("[")) {
+        const br = next();
+        const idx = parseBp(0, depth + 1);
+        expect("]");
+        e = mk({ k: "index", obj: e, idx, pos: br.pos });
+      } else return e;
+    }
+  }
+
+  function parseBp(minBp: number, depth: number): Ast {
+    if (depth > MAX_DEPTH) throw new ParseError(`expression deeper than ${MAX_DEPTH}`, peek().pos);
+    let left = primary(depth);
+    for (;;) {
+      const t = peek();
+      if (t.t === "eof") break;
+      if (t.t === "op" && t.v === "?") {
+        if (minBp > 0) break;
+        p++;
+        const a = parseBp(0, depth + 1);
+        expect(":");
+        const b = parseBp(0, depth + 1);
+        left = mk({ k: "cond", c: left, a, b, pos: t.pos });
+        continue;
+      }
+      const opv = t.t === "op" || t.t === "id" ? t.v : "";
+      const bp = BP[opv];
+      if (bp === undefined || (t.t === "id" && !KEYWORDS.has(opv))) break;
+      if (bp < minBp) break;
+      p++;
+      const right = parseBp(bp + 1, depth + 1);
+      left = mk({ k: "binary", op: opv as BinOp, l: left, r: right, pos: t.pos });
+    }
+    return left;
+  }
+
+  const ast = parseBp(0, 1);
+  const end = peek();
+  if (end.t !== "eof") throw new ParseError(`unexpected "${(end as { v?: string }).v ?? ""}" after the expression`, end.pos);
+  return ast;
+}
+
+export function astDepth(a: Ast): number {
+  switch (a.k) {
+    case "num":
+    case "bool":
+    case "str":
+    case "null":
+    case "name":
+      return 1;
+    case "list":
+      return 1 + a.items.reduce((m, x) => Math.max(m, astDepth(x)), 0);
+    case "field":
+      return 1 + astDepth(a.obj);
+    case "index":
+      return 1 + Math.max(astDepth(a.obj), astDepth(a.idx));
+    case "unary":
+      return 1 + astDepth(a.e);
+    case "binary":
+      return 1 + Math.max(astDepth(a.l), astDepth(a.r));
+    case "cond":
+      return 1 + Math.max(astDepth(a.c), astDepth(a.a), astDepth(a.b));
+    case "call":
+      return 1 + a.args.reduce((m, x) => Math.max(m, astDepth(x)), 0);
+  }
+}
+
+export function astNodes(a: Ast): number {
+  switch (a.k) {
+    case "num":
+    case "bool":
+    case "str":
+    case "null":
+    case "name":
+      return 1;
+    case "list":
+      return 1 + a.items.reduce((s, x) => s + astNodes(x), 0);
+    case "field":
+      return 1 + astNodes(a.obj);
+    case "index":
+      return 1 + astNodes(a.obj) + astNodes(a.idx);
+    case "unary":
+      return 1 + astNodes(a.e);
+    case "binary":
+      return 1 + astNodes(a.l) + astNodes(a.r);
+    case "cond":
+      return 1 + astNodes(a.c) + astNodes(a.a) + astNodes(a.b);
+    case "call":
+      return 1 + a.args.reduce((s, x) => s + astNodes(x), 0);
+  }
+}
+
+// Parse cache: the same source text always yields the same AST, so each
+// expression is parsed once per process.
+const CACHE = new Map<string, Ast>();
+export function parseCached(src: string): Ast {
+  let a = CACHE.get(src);
+  if (!a) {
+    a = parseExpr(src);
+    CACHE.set(src, a);
+  }
+  return a;
+}
+
+// ---- templates: plain text with {expr|format} slots ----
+
+export type TemplatePart = { text: string } | { expr: Ast; src: string; format: string | null };
+
+const TPL_CACHE = new Map<string, TemplatePart[]>();
+
+export function parseTemplate(tpl: string): TemplatePart[] {
+  const cached = TPL_CACHE.get(tpl);
+  if (cached) return cached;
+  const parts: TemplatePart[] = [];
+  let i = 0;
+  let text = "";
+  while (i < tpl.length) {
+    const c = tpl[i];
+    if (c === "{") {
+      if (tpl[i + 1] === "{") {
+        text += "{";
+        i += 2;
+        continue;
+      }
+      const close = tpl.indexOf("}", i);
+      if (close < 0) throw new ParseError("unclosed { in template", i);
+      const inner = tpl.slice(i + 1, close);
+      const bar = inner.lastIndexOf("|");
+      const src = (bar >= 0 ? inner.slice(0, bar) : inner).trim();
+      const format = bar >= 0 ? inner.slice(bar + 1).trim() : null;
+      if (text) parts.push({ text });
+      text = "";
+      parts.push({ expr: parseCached(src), src, format });
+      i = close + 1;
+      continue;
+    }
+    if (c === "}" && tpl[i + 1] === "}") {
+      text += "}";
+      i += 2;
+      continue;
+    }
+    text += c;
+    i++;
+  }
+  if (text) parts.push({ text });
+  TPL_CACHE.set(tpl, parts);
+  return parts;
+}

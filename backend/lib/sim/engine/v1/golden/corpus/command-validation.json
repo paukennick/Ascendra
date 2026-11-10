@@ -1,0 +1,307 @@
+{
+  "id": "command-validation",
+  "spec": "5.3 Apply: an invalid command is rejected with its seq and reason and applies nothing: not in the phase, unavailable, a param outside its options, an unknown param, a sequence gap, a tick behind the run, a skip naming the wrong instance or due tick",
+  "doc": {
+    "schemaVersion": 1,
+    "engine": {
+      "major": 1,
+      "minor": 0
+    },
+    "slug": "corpus",
+    "title": "Corpus case",
+    "screen": {
+      "type": "bedside",
+      "bedside": {
+        "tiles": []
+      }
+    },
+    "objective": "corpus",
+    "sources": [
+      {
+        "cite": "docs/sims.md 5.3",
+        "checkedAt": "2026-11-07"
+      }
+    ],
+    "brief": {
+      "situation": "A corpus case: a toy document that pins one rule of the tick contract."
+    },
+    "safetyNote": "Fictional, for engine tests only; nothing here is clinical guidance.",
+    "clock": {
+      "start": "14:00",
+      "tick": "1s",
+      "maxDuration": "20s"
+    },
+    "params": {},
+    "state": {
+      "x": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 100
+      }
+    },
+    "derived": {},
+    "processes": [],
+    "phases": {
+      "main": {
+        "label": "Main",
+        "actions": [
+          "a",
+          "gated"
+        ],
+        "clock": "running"
+      },
+      "other": {
+        "label": "Other",
+        "actions": [
+          "b"
+        ],
+        "clock": "running"
+      }
+    },
+    "initialPhase": "main",
+    "actions": {
+      "a": {
+        "label": "a",
+        "group": "g",
+        "params": [
+          {
+            "id": "v",
+            "kind": "choice",
+            "label": "v",
+            "options": [
+              {
+                "value": "1",
+                "label": "1"
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "add": "x",
+            "by": "num(v)"
+          },
+          {
+            "schedule": "w",
+            "after": "5s"
+          }
+        ]
+      },
+      "b": {
+        "label": "b",
+        "group": "g",
+        "effects": [
+          {
+            "add": "x",
+            "by": "100"
+          }
+        ]
+      },
+      "gated": {
+        "label": "gated",
+        "group": "g",
+        "available": "x >= 50",
+        "why": "Needs x at 50.",
+        "effects": [
+          {
+            "add": "x",
+            "by": "100"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "w": {
+        "label": "w",
+        "wait": {
+          "skipLabel": "w"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        },
+        "effects": []
+      }
+    },
+    "triggers": [],
+    "reasoning": {
+      "why": {
+        "question": "Why?",
+        "parts": [
+          {
+            "label": "p",
+            "criteria": "States the reason clearly.",
+            "modelAnswer": "Because the rule says so."
+          }
+        ],
+        "pausesClock": true
+      }
+    },
+    "outcome": {
+      "profile": "clinical",
+      "thresholds": {},
+      "noProgress": {
+        "when": "false",
+        "class": "recovered",
+        "rationale": "A corpus case has no clinical goal; nothing is classified by progress.",
+        "source": {
+          "cite": "docs/sims.md 5.3",
+          "checkedAt": "2026-11-07"
+        }
+      }
+    },
+    "endings": {
+      "time_up": {
+        "label": "Time up",
+        "class": "recovered",
+        "narrative": "Time is up.",
+        "terminal": true
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "any",
+          "label": "Did anything",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "true",
+              "score": "met",
+              "why": "ok"
+            }
+          ]
+        }
+      ],
+      "reasoningCriteria": [],
+      "kpis": [],
+      "expertPath": [],
+      "debrief": {},
+      "modelReasoning": "n/a"
+    }
+  },
+  "seed": 1,
+  "script": [
+    {
+      "commandRejected": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "b"
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "gated"
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "a",
+        "params": {
+          "v": "2"
+        }
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "a",
+        "params": {
+          "v": "1",
+          "extra": "1"
+        }
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "a",
+        "params": {
+          "v": "1"
+        }
+      }
+    },
+    {
+      "command": {
+        "seq": 1,
+        "tick": 0,
+        "type": "act",
+        "action": "a",
+        "params": {
+          "v": "1"
+        }
+      }
+    },
+    {
+      "advance": 1
+    },
+    {
+      "commandRejected": {
+        "seq": 2,
+        "tick": 0,
+        "type": "act",
+        "action": "a",
+        "params": {
+          "v": "1"
+        }
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 2,
+        "tick": 1,
+        "type": "skip",
+        "timer": "w",
+        "instance": 2,
+        "to": 5
+      }
+    },
+    {
+      "commandRejected": {
+        "seq": 2,
+        "tick": 1,
+        "type": "skip",
+        "timer": "w",
+        "instance": 1,
+        "to": 4
+      }
+    },
+    {
+      "command": {
+        "seq": 2,
+        "tick": 1,
+        "type": "skip",
+        "timer": "w",
+        "instance": 1,
+        "to": 5
+      }
+    }
+  ],
+  "expect": {
+    "ticks": [
+      {
+        "tick": 5,
+        "values": {
+          "x": 1
+        }
+      }
+    ],
+    "final": {
+      "tick": 5
+    }
+  }
+}
