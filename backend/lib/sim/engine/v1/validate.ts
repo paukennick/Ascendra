@@ -48,7 +48,7 @@ import {
 import { FORMATS, parseClockStart } from "./format.ts";
 import { parsePattern } from "./text.ts";
 import type { Run } from "./engine.ts";
-import { advance, applyCommand, checkpoint, clockBlocked, clockMode, createRun, ENGINE_MINOR, isDurationLiteral, parseDuration, restoreRun, waits } from "./engine.ts";
+import { advance, applyCommand, chapterHolds, checkpoint, clockBlocked, clockMode, createRun, ENGINE_MINOR, isDurationLiteral, minWallSeconds, parseDuration, restoreRun, teachingAvailable, waits } from "./engine.ts";
 import { scoreRun } from "./scoring.ts";
 import { evaluate } from "./eval.ts";
 import type { CaptureType } from "./text.ts";
@@ -73,7 +73,15 @@ export const LIMITS = {
 
 // Which engine minor introduced each feature (4.5). Everything in major 1
 // minor 0 is 0; a later minor adds rows here and the check below bites.
-export const FEATURE_MINOR: Record<string, number> = {};
+// REQ-209 (minor 1): the pacing declarations. Detected structurally (see
+// usesFeature), because "teaching" and "chapters" are ordinary words that
+// appear in cites and narrative text.
+export const FEATURE_MINOR: Record<string, number> = {
+  focusedStart: 1,
+  chapters: 1,
+  teaching: 1,
+  "wait.routine": 1,
+};
 
 // Per-profile default outcome thresholds and the direction that tightens
 // them (9.2). A document may use any key; a key listed here may not be
@@ -128,6 +136,8 @@ export interface GoldenPath {
     kpis?: Record<Id, number | string | null>;
     snapshots?: { tick: number; values: Record<string, Value> }[];
     stateHash?: string;
+    minWallSeconds?: number; // REQ-209: the fewest wall-clock seconds the real-time part could take at its logged pace
+    focusedAt?: number; // REQ-209: the tick a focused start began the run at
   };
   reasoning?: Record<Id, CriterionScore>; // grades to assume for the reasoning criteria
   notes?: string;
@@ -1163,6 +1173,7 @@ function semantic(doc: ScenarioDoc, info: DocInfo, col: Collector): void {
     commandCosts.push({ path: `timers.${k}`, cost: cost + settleCost });
     timerPerTick = Math.max(timerPerTick, cost);
   }
+  pacingDeclarations(doc, root, info, col);
   for (const k of Object.keys(doc.timers)) if (!acc.schedules.has(k)) col.warn(`timers.${k}`, "never scheduled by any effect");
   for (const k of Object.keys(doc.prompts ?? {})) if (!acc.prompts.has(k)) col.warn(`prompts.${k}`, "never opened by any effect");
   for (const k of Object.keys(doc.reasoning)) if (!acc.reasons.has(k)) col.error(`reasoning.${k}`, "never opened: give it a trigger or a { reason } effect");
@@ -1205,7 +1216,97 @@ function semantic(doc: ScenarioDoc, info: DocInfo, col: Collector): void {
 }
 
 function usesFeature(doc: ScenarioDoc, feature: string): boolean {
-  return JSON.stringify(doc).indexOf(feature) >= 0;
+  switch (feature) {
+    case "focusedStart":
+      return doc.focusedStart !== undefined;
+    case "chapters":
+      return (doc.chapters ?? []).length > 0;
+    case "teaching":
+      return Object.keys(doc.teaching ?? {}).length > 0;
+    case "wait.routine":
+      return Object.keys(doc.timers).some((k) => doc.timers[k].wait?.routine === true);
+    default:
+      return JSON.stringify(doc).indexOf(feature) >= 0;
+  }
+}
+
+// REQ-209 (docs/sims.md 5.4a-5.4e, layer 2): the shape of the optional
+// focused start, chapters and teaching prompts. Structure only; whether this
+// scenario may use them at all, and whether they work, is pacingRules.
+function pacingDeclarations(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collector): void {
+  const dt = info.dt;
+  if (doc.focusedStart) {
+    const fs = doc.focusedStart;
+    const at = parseDuration(fs.at);
+    if (at === null || at % dt !== 0) col.error("focusedStart.at", `"${fs.at}" is not a duration that is a multiple of the ${dt} s tick`);
+    else if (at < dt || at >= info.maxTick * dt) col.error("focusedStart.at", "must be at least one tick and before the run's hard stop");
+    if (!fs.source || !fs.source.cite || !isIsoDate(fs.source.checkedAt)) col.error("focusedStart.source", "a focused start needs a source with a cite and a checkedAt date (why this is the right moment)");
+  }
+  const seen = new Set<string>();
+  (doc.chapters ?? []).forEach((c, i) => {
+    if (!isId(c.id)) col.error(`chapters[${i}].id`, "must be an id");
+    if (seen.has(c.id)) col.error(`chapters[${i}].id`, `duplicate chapter id ${c.id}`);
+    seen.add(c.id);
+    if (!c.label.trim()) col.error(`chapters[${i}].label`, "a chapter needs a label the learner can read");
+    checkOne(c.when, root, WHERE_TICK, `chapters[${i}].when`, info, col, "bool");
+  });
+  for (const k of Object.keys(doc.teaching ?? {})) {
+    const t = (doc.teaching ?? {})[k];
+    const timer = doc.timers[t.during];
+    if (!timer) col.error(`teaching.${k}.during`, `timer "${t.during}" does not exist`);
+    else if (!timer.wait) col.error(`teaching.${k}.during`, `timer "${t.during}" has no wait: a teaching prompt appears while a named wait runs`);
+    const ids = t.choices.map((c) => c.id);
+    if (new Set(ids).size !== ids.length) col.error(`teaching.${k}.choices`, "duplicate choice ids");
+    if (ids.indexOf(t.expect) < 0) col.error(`teaching.${k}.expect`, `"${t.expect}" is not one of the choices`);
+    if (t.choices.length < 2 || t.choices.length > 4) col.error(`teaching.${k}.choices`, "2 to 4 choices");
+    if (t.when) checkOne(t.when, root, WHERE_TICK, `teaching.${k}.when`, info, col, "bool");
+    if (!t.source || !t.source.cite.trim() || !isIsoDate(t.source.checkedAt)) col.error(`teaching.${k}.source`, "a teaching prompt needs a sourced rationale: a cite and a checkedAt date");
+    else if (!t.source.url && !t.source.note) col.warn(`teaching.${k}.source`, "give the rationale a url or a note saying where in the source it comes from");
+  }
+}
+
+// REQ-209 (layer 3): which scenarios may use the pacing features, and
+// whether each declaration works when the engine runs it.
+function pacingRules(doc: ScenarioDoc, col: Collector, opts: LintOptions): void {
+  const used = Object.keys(FEATURE_MINOR).filter((f) => usesFeature(doc, f));
+  if (!used.length) return;
+  const hasRunning = Object.keys(doc.phases).some((k) => doc.phases[k].clock === "running");
+  if (!hasRunning) col.error("pacing", `${used.join(", ")} need a scenario with a running phase (turn-based scenarios are already paced by the learner)`);
+  if (opts.safetyFamily !== undefined && opts.safetyFamily === "general") col.error("pacing", `${used.join(", ")} are for clinical and fitness scenarios only (docs/sims.md 5.4a); this scenario's safety family is general`);
+  if (doc.engine.minor < 1) col.error("engine.minor", "the pacing declarations need engine minor 1");
+  if (doc.focusedStart) {
+    // The start is reached by the engine itself: evolve the normal start with
+    // no learner actions and require that it arrives, running and unblocked.
+    for (const seed of [1, 2, 3]) {
+      const run = createRun(doc, seed);
+      const r = applyCommand(run, { seq: 1, tick: 0, type: "begin", start: "focused" });
+      if (!r.ok) {
+        col.error("focusedStart", `seed ${seed}: the begin command is refused: ${r.reason}`);
+        break;
+      }
+      const want = (parseDuration(doc.focusedStart.at) ?? 0) / run.c.dt;
+      if (run.state.tick !== want) col.error("focusedStart.at", `seed ${seed}: evolving stopped at tick ${run.state.tick}, not ${want}`);
+      else if (run.state.ended) col.error("focusedStart.at", `seed ${seed}: the run has already ended by then`);
+      else if (clockBlocked(run)) col.error("focusedStart.at", `seed ${seed}: a prompt or reasoning moment is already open by then; start before it`);
+      else if (clockMode(run) !== "running") col.error("focusedStart.at", `seed ${seed}: the phase at that point is not running`);
+      else if (run.state.reasoningOpened.length) col.error("focusedStart.at", `seed ${seed}: a reasoning moment has already been opened; start before it`);
+      if (opts.goldenResults !== undefined || opts.golden) {
+        if (run.state.triggerFired.some((f) => f)) col.warn("focusedStart.at", "an alarm or trigger has already fired before the focused start; the learner starts with it in the log");
+      }
+      break; // the evolution has no random draws unless the document uses streams; seed 1 stands for all
+    }
+    if ((doc.random?.streams ?? []).length) col.warn("focusedStart", "the document uses random streams: the focused start is a function of the seed, which the server picks");
+  }
+  if (!opts.goldenResults && !opts.golden) return;
+  const results = opts.goldenResults ?? [];
+  const chapterSeen = new Set<string>();
+  const teachSeen = new Set<string>();
+  for (const r of results) {
+    r.chaptersSeen.forEach((c) => chapterSeen.add(c));
+    r.teachingSeen.forEach((c) => teachSeen.add(c));
+  }
+  for (const c of doc.chapters ?? []) if (!chapterSeen.has(c.id)) col.error(`chapters.${c.id}`, "its boundary is reached by no golden path (an unreachable chapter break)");
+  for (const k of Object.keys(doc.teaching ?? {})) if (!teachSeen.has(k)) col.error(`teaching.${k}`, "offered at no command boundary of any golden path (its wait is never pending when the learner acts)");
 }
 
 function merge(a: EffectAcc, b: EffectAcc): void {
@@ -1544,6 +1645,7 @@ function content(doc: ScenarioDoc, info: DocInfo, col: Collector, opts: LintOpti
   }
   sourceStaleness(doc, col, opts.now);
   textRules(doc, col, opts.safetyFamily);
+  pacingRules(doc, col, opts);
   // outcome thresholds vs profile defaults
   const defaults = PROFILE_THRESHOLDS[doc.outcome.profile];
   if (!defaults) col.error("outcome.profile", "unknown profile");
@@ -1635,6 +1737,10 @@ export interface GoldenResult {
   waitAlways: boolean;
   stateHash: string;
   finalTick: number;
+  chaptersSeen: Set<string>; // REQ-209: chapters whose boundary held at a command boundary
+  teachingSeen: Set<string>; // REQ-209: teaching prompts on offer at a command boundary
+  minWallSeconds: number; // REQ-209: the fewest wall seconds the real-time part could take at its logged pace
+  focusedAt: number;
 }
 
 function near(a: unknown, b: unknown): boolean {
@@ -1648,6 +1754,8 @@ export function replayGolden(doc: ScenarioDoc, golden: GoldenFile, stateHashFn?:
 
 export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn?: (run: Run) => string): GoldenResult {
   const mismatches: string[] = [];
+  const chaptersSeen = new Set<string>();
+  const teachingSeen = new Set<string>();
   const availableActions = new Set<string>();
   let waitAlways = true;
   let boundaries = 0;
@@ -1665,7 +1773,10 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   };
   const noteBoundary = (): void => {
     boundaries++;
-    if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).length) waitAlways = false;
+    // a routine wait (the q15 check) is a recurring check, not a reason to skip
+    if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).some((w) => !w.routine)) waitAlways = false;
+    for (const ch of run.c.doc.chapters ?? []) if (chapterHolds(run, ch)) chaptersSeen.add(ch.id);
+    for (const t of teachingAvailable(run)) teachingSeen.add(t.id);
     for (const a of run.c.doc.phases[run.state.phase].actions) {
       const act = run.c.doc.actions[a];
       try {
@@ -1721,11 +1832,13 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
       if (!kpi) mismatches.push(`kpi ${k} does not exist`);
       else if (!near(kpi.raw, (e.kpis ?? {})[k])) mismatches.push(`kpi ${k} = ${JSON.stringify(kpi.raw)}, expected ${JSON.stringify((e.kpis ?? {})[k])}`);
     }
+    if (e.minWallSeconds !== undefined && !near(minWallSeconds(run), e.minWallSeconds)) mismatches.push(`minimum wall seconds ${minWallSeconds(run)}, expected ${e.minWallSeconds}`);
+    if (e.focusedAt !== undefined && run.focusedAt !== e.focusedAt) mismatches.push(`focused start at tick ${run.focusedAt}, expected ${e.focusedAt}`);
     if (run.state.ended?.reason === "engine_error") mismatches.push(`engine error: ${run.state.ended.detail}`);
   }
   const hash = stateHashFn ? stateHashFn(run) : "";
   if (!error && path.expect.stateHash && hash && hash !== path.expect.stateHash) mismatches.push(`state hash ${hash}, expected ${path.expect.stateHash}`);
-  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick };
+  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
 }
 
 // Read a state or derived value by name (and, for the lint, an action's availability).

@@ -30,6 +30,7 @@ export interface ScoringHooks {
   outcomeClass(): string;
   pausedTotal(): number;
   skips(): number;
+  focusedAt(): number; // REQ-209: sim seconds a focused start began at, 0 for a full case
   chose(prompt: string, choice: string): boolean;
 }
 
@@ -154,6 +155,8 @@ export function evaluate(ast: Ast, frame: Frame | null, ctx: EvalCtx): Value {
             return ctx.scoring.pausedTotal();
           case "skips":
             return ctx.scoring.skips();
+          case "focusedAt":
+            return ctx.scoring.focusedAt();
         }
       }
       throw new EngineError("unknown_name", `unknown name "${ast.name}"`);

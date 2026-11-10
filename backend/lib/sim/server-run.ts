@@ -13,7 +13,8 @@ import {
   restoreRun,
   simTimeText,
 } from "./engine/v1/index.ts";
-import type { Checkpoint, Command, Rating, Run, ScenarioDoc } from "./engine/v1/index.ts";
+import type { Checkpoint, Command, Pace, Rating, Run, ScenarioDoc } from "./engine/v1/index.ts";
+import { PACE_EXAM, PACE_STUDY } from "./engine/v1/index.ts";
 
 // ---- switches (docs/sims.md 11.1) ----
 
@@ -154,7 +155,8 @@ export function parseCommand(raw: unknown): Command | string {
       return { ...base, type: "choose", prompt: c.prompt, choice: c.choice };
     case "skip":
       if (typeof c.timer !== "string" || !ID.test(c.timer) || !isInt(c.instance, 1) || !isInt(c.to, 1)) return "skip needs a timer, an instance and a due tick";
-      return { ...base, type: "skip", timer: c.timer, instance: c.instance, to: c.to };
+      if (c.calm !== undefined && c.calm !== true) return "skip calm must be true when present";
+      return c.calm === true ? { ...base, type: "skip", timer: c.timer, instance: c.instance, to: c.to, calm: true } : { ...base, type: "skip", timer: c.timer, instance: c.instance, to: c.to };
     case "pause":
       if (typeof c.reason !== "string" || !PAUSE_REASONS.has(c.reason)) return "pause needs a reason";
       return { ...base, type: "pause", reason: c.reason as "learner" };
@@ -166,6 +168,19 @@ export function parseCommand(raw: unknown): Command | string {
     case "end":
       if (c.reason !== "learner_quit") return "end needs reason learner_quit";
       return { ...base, type: "end", reason: "learner_quit" };
+    // REQ-209: none of these four changes sim state
+    case "pace":
+      if (c.pace !== PACE_EXAM && c.pace !== PACE_STUDY) return "pace must be 1 or 3";
+      return { ...base, type: "pace", pace: c.pace as Pace };
+    case "begin":
+      if (c.start !== "focused") return "begin needs start focused";
+      return { ...base, type: "begin", start: "focused" };
+    case "teach":
+      if (typeof c.prompt !== "string" || !ID.test(c.prompt) || typeof c.choice !== "string" || !ID.test(c.choice)) return "teach needs a prompt and a choice";
+      return { ...base, type: "teach", prompt: c.prompt, choice: c.choice };
+    case "chapter":
+      if (typeof c.chapter !== "string" || !ID.test(c.chapter) || (c.choice !== "continue" && c.choice !== "later")) return "chapter needs a chapter and continue or later";
+      return { ...base, type: "chapter", chapter: c.chapter, choice: c.choice };
     default:
       return "unknown command type";
   }
@@ -300,6 +315,47 @@ export function replayRun(input: ReplayInput): ReplayResult {
 export function withinSpeedBound(realtimeTicks: number, dtSeconds: number, wallSeconds: number): boolean {
   const simSeconds = realtimeTicks * dtSeconds;
   return simSeconds <= wallSeconds * (1 + SIM_LIMITS.speedToleranceFraction) + SIM_LIMITS.speedToleranceSeconds;
+}
+
+// The speed bound with pacing (REQ-209, 5.7). Each real-time tick is charged
+// at the pace logged when it was played, so the fewest wall seconds the run
+// could have taken is the sum over segments of (ticks x dt / pace), which the
+// engine keeps as minWallSeconds(run). It may not exceed the server's wall
+// clock since the run started plus the same 5 s and 1%. A run whose ticks are
+// all at 1x (every run before REQ-209, and every run that never logs a pace)
+// gets exactly the old check; a client that logs 1x and plays 3x is over the
+// bound after the same tolerance. The bound is cumulative on purpose: offline
+// play synced later carries no per-segment wall times the server could trust.
+export function withinPacedSpeedBound(minWallSeconds: number, wallSeconds: number): boolean {
+  return minWallSeconds <= wallSeconds * (1 + SIM_LIMITS.speedToleranceFraction) + SIM_LIMITS.speedToleranceSeconds;
+}
+
+// ---- who may use the pacing features (REQ-209, docs/sims.md 5.4a) ----
+
+export type SimSafetyFamily = "clinical" | "fitness" | "general";
+
+// The pacing features (pace 3x, focused start, calm-skip offer, teaching
+// prompts, chapters) apply to a scenario with a `running` phase in a clinical
+// or fitness track, and to nothing else: the cloud and PM sims are turn-based
+// and stay exactly as they were.
+export function pacingEligible(doc: Pick<ScenarioDoc, "phases">, family: SimSafetyFamily): boolean {
+  if (family === "general") return false;
+  return Object.keys(doc.phases).some((k) => doc.phases[k].clock === "running");
+}
+
+export const PACING_COMMAND_TYPES = new Set(["pace", "begin", "teach", "chapter"]);
+
+// The reason a batch of commands may not be accepted for this scenario, or
+// null. 1x is the default everywhere, so a pace of 1 is always fine; anything
+// else, and the other three command types and the calm flag, need eligibility.
+export function pacingRefusal(cmds: Command[], eligible: boolean): string | null {
+  if (eligible) return null;
+  for (const c of cmds) {
+    if (c.type === "pace" && c.pace === PACE_EXAM) continue;
+    if (PACING_COMMAND_TYPES.has(c.type)) return `${c.type} is not available in this simulation`;
+    if (c.type === "skip" && c.calm === true) return "the skip offer is not available in this simulation";
+  }
+  return null;
 }
 
 // Whether the learner has acted or anything was revealed (9.4).
