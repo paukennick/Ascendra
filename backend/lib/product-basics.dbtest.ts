@@ -176,8 +176,10 @@ describe("terms acceptance (H5)", () => {
     const root = join(__dirname, "..", "app", "api", "auth");
     const register = readFileSync(join(root, "register", "route.ts"), "utf8");
     const google = readFileSync(join(root, "oauth", "google", "route.ts"), "utf8");
-    assert.match(register, /recordSignupTermsAcceptance\(userRow\.id, acceptedTermsVersion, "register"\)/);
-    assert.match(google, /recordSignupTermsAcceptance\(user\.id, acceptedTermsVersion, "google_signup"\)/);
+    // REQ-175: with the request's client context (legacy builds may accept
+    // the previous version; lib/legacy-terms.dbtest.ts).
+    assert.match(register, /recordSignupTermsAcceptance\(userRow\.id, acceptedTermsVersion, "register", termsCtx\)/);
+    assert.match(google, /recordSignupTermsAcceptance\(user\.id, acceptedTermsVersion, "google_signup", termsCtx\)/);
     // Google: only inside the branch that creates the account.
     const created = google.indexOf("insert into app_users");
     const recorded = google.indexOf("recordSignupTermsAcceptance(user.id");

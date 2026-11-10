@@ -5793,6 +5793,58 @@
       ]
     },
     {
+      "id": "REQ-175",
+      "category": "legal/compatibility",
+      "title": "Hotfix: old app builds can accept the previous Terms; app-version header and minimum supported version",
+      "description": "Nick 2026-11-09: after PR #67 moved Terms and Privacy to 2026-11-09, POST /api/onboarding/terms accepted only that version, so app builds that carry and send 2026-11-07 failed with 'version must be the current terms version (2026-11-09)' and could never pass the Terms gate (no OTA possible: EXPO_TOKEN unset). The app (native and web) now sends X-Ascendra-App: <semver>+<build> and X-Ascendra-Platform on every request (mobile/src/lib/appVersion.ts, src/updates/appIdentity.ts). A request without X-Ascendra-App is a legacy client (backend/lib/client-version.ts). For legacy clients only, /api/onboarding/terms, /api/legal/accept and the register and Google sign-up acceptance also accept the immediately previous versions (PREVIOUS_LEGAL_VERSIONS in lib/legal.ts), record exactly the version sent, and the onboarding terms state, /api/auth/me legalPending count the previous version as satisfying the gate. Clients that send the header still need the current version, so an updated app asks once for 2026-11-09 on the existing Agree page. MIN_APP_VERSION (env, semver; unset or unreadable means no minimum): proxy.ts answers 426 {code: update_required, minVersion, storeUrl} to a headered request below it (or with an unreadable header) and the app shows an Update required screen with the store link on native or Reload on web. Legacy requests are not version-checked.",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/client-version.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/onboarding.ts",
+        "backend/proxy.ts",
+        "backend/app/api/onboarding/**",
+        "backend/app/api/legal/accept/route.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/auth/me/route.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/appVersion.ts",
+        "mobile/src/updates/appIdentity.ts",
+        "mobile/src/components/UpdateRequired.tsx",
+        "mobile/app/_layout.tsx",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "A request without X-Ascendra-App can accept 2026-11-07 at /api/onboarding/terms and /api/legal/accept and at sign-up and is recorded as 2026-11-07 never 2026-11-09",
+        "For such a request the onboarding terms gate is satisfied by 2026-11-07",
+        "A request with the header gets 400 for 2026-11-07 and needsAcceptance true until it accepts 2026-11-09",
+        "An unreadable header is not legacy",
+        "MIN_APP_VERSION unset means no 426; set it answers 426 update_required to headered requests below it",
+        "The app sends the header on every request and shows Update required on 426"
+      ],
+      "validation_required": [
+        "backend and mobile typecheck",
+        "npm test both packages",
+        "npm run test:db (lib/legacy-terms.dbtest.ts)",
+        "omni gate",
+        "CI",
+        "production health after deploy"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Legacy is self-declared by omitting a header; omitting it only lets a caller accept and be recorded for the older text it says it saw",
+        "The study notice (REQ-165) is still required server-side for clinical courses and labs; old builds cannot show it and get the existing 'update the app' message there",
+        "PREVIOUS_LEGAL_VERSIONS must be moved forward whenever LEGAL_VERSIONS is bumped",
+        "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
+        "iOS store link needs IOS_APP_STORE_URL"
+      ]
+    },
+    {
       "id": "REQ-187",
       "category": "content",
       "title": "Generated content pipeline accuracy (2026-11-09 audit)",
