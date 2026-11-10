@@ -179,7 +179,7 @@ the sum of both caps; a held period and its new plan count once.
 | Clinical add-on | $12.81 | `AI_MONTHLY_CAP_CLINICAL_ADDON_USD` |
 | A grant (no plan) | Plus $2.95, Pro $7.35 | `AI_MONTHLY_CAP_PLUS_USD`, `AI_MONTHLY_CAP_PRO_USD` |
 | Unrestricted access (REQ-144), granted by the owner | $20.16: all-access plus the clinical add-on, the most a paying learner can hold | `AI_MONTHLY_CAP_UNRESTRICTED_USD` |
-| An owner (`OWNER_EMAILS`) | none | -- |
+| An owner (`OWNER_EMAILS`) | $35 safety cap (REQ-181), billing switch on or off | `OWNER_MONTHLY_AI_CAP_USD` |
 
 `off` removes a cap. A verified discount never lowers it, and only one
 discount ever applies. Spend is summed from `ai_calls` for the calendar month (UTC).

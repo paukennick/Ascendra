@@ -229,8 +229,9 @@ describe("unrestricted lifts the plan gates", () => {
 
   // REQ-170 (Nick, 2026-11-09): was "no monthly cap". A granted account now
   // has the highest cap a paying learner can hold (all-access plus the
-  // clinical add-on, $20.16); owners still have none.
-  test("BILLING_ENABLED on: unrestricted is capped at all-access plus the clinical add-on ($20.16), owners not at all", async () => {
+  // clinical add-on, $20.16). Owners have their own $35 safety cap (REQ-181,
+  // tested below), so $21 of owner spend is still under it.
+  test("BILLING_ENABLED on: unrestricted is capped at all-access plus the clinical add-on ($20.16); owners are not paused at $21", async () => {
     process.env.BILLING_ENABLED = "true";
     // Spend is dated up to 3 days back but never before the 1st, so early in a
     // month it can fall inside the 24-hour safety ceiling; raise it here.
@@ -249,13 +250,14 @@ describe("unrestricted lifts the plan gates", () => {
     assert.ok(paused.aiPaused?.resetsAt, JSON.stringify(paused));
     assert.equal((await json(await call(billingMeGet, "/api/billing/me", u))).aiPaused.paused, true);
     await monthSpend(ownerId, 21);
-    assert.equal((await chat(ownerId)).status, 200, "the owner has no monthly cap");
+    assert.equal((await chat(ownerId)).status, 200, "$21 is under the owner's $35 safety cap");
     delete process.env.AI_UNRESTRICTED_DAILY_CEILING_USD;
   });
 
   // Nick, 2026-11-09: owners get a $35 monthly safety cap. Coach chat and
   // regenerate pause at it like a plan's cap; grading never stops. It applies
-  // with the billing switch on or off. A granted account (above) has none.
+  // with the billing switch on or off. A granted account (above) has #73's
+  // $20.16 cap instead.
   for (const billing of ["true", "off"]) {
     test(`owner monthly AI safety cap ($35), BILLING_ENABLED ${billing}`, async () => {
       process.env.BILLING_ENABLED = billing;
