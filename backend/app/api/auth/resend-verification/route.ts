@@ -5,6 +5,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendVerificationEmail } from "@/lib/email";
+import { logEmailFailure } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,10 @@ export async function POST(req: Request) {
         `insert into email_verification_tokens (user_id, token_hash, expires_at, set_password) values ($1, $2, $3, $4)`,
         [user.id, tokenHash, expiresAt, user.set_password]
       );
-      await sendVerificationEmail(normalizedEmail, rawToken, { setPassword: user.set_password });
+      // REQ-191: logged, answer unchanged (enumeration-safe).
+      await sendVerificationEmail(normalizedEmail, rawToken, { setPassword: user.set_password }).catch((err) =>
+        logEmailFailure("auth/resend-verification", err)
+      );
     }
 
     return ok({ message: GENERIC_MESSAGE });

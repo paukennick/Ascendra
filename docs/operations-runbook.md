@@ -141,6 +141,51 @@ the health check red straight away instead of failing on a learner's first
 sign-in. Outside production it is a `warnings` entry. Open `/api/health`
 once after every deploy (the daily cron only runs at 09:00 UTC).
 
+## Email sender (REQ-191)
+
+All mail (verification, password reset, email change, MFA codes, alerts)
+goes through Resend from `EMAIL_FROM`. Unset, it falls back to
+`onboarding@resend.dev`, which Resend delivers only to the address of the
+Resend account itself; every other recipient's send is refused with a 403
+(https://resend.com/docs/knowledge-base/403-error-resend-dev-domain). To
+send to real users:
+
+1. In the Resend dashboard, add and verify the sending domain (DNS records).
+2. In Vercel -> Project Settings -> Environment Variables, set `EMAIL_FROM`
+   for Production to an address on that domain, e.g.
+   `Ascendra <no-reply@ascendra-learn.com>`, and redeploy.
+3. Open `/api/health`: it should say `"email":"ok"`.
+
+`/api/health` reports `"email":"unconfigured"` (with a `warnings` entry) in
+production while `EMAIL_FROM` is unset or ends in `@resend.dev`. It stays a
+200 like the jit warning, so the keepalive does not go red.
+
+**Finding failed sends.** Resend answers a refused send with an error
+instead of throwing; `lib/email.ts` now turns that into `EmailSendError`.
+Each failure logs one JSON line in Vercel's logs:
+
+```
+{"event":"email_send_failed","route":"auth/register","kind":"verification","code":"validation_error","statusCode":403}
+```
+
+Search the logs for `email_send_failed`. The line never carries the
+address, the token or Resend's message text (which can name an address).
+Sign-up, resend-verification and forgot-password still answer their usual
+generic message (they must not reveal which addresses have accounts);
+signed-in actions whose mail fails (an MFA code, an email-change
+confirmation) answer 503 "We couldn't send the email just now."
+
+**Email links are scanner-safe.** `/verify-email`, `/confirm-email-change`
+and `/cancel-email-change` only read the token when opened; the person
+presses a button (a POST) to use it. Mail scanners that open links before
+the person does no longer use them up. A link already used on a verified
+account says "Your email is already verified. You can log in."
+
+**Stuck unverified accounts.** A learner who never got the verification
+mail can use "Resend verification email" (on the "Check your email" screen,
+also shown when login answers 403), or "Forgot password": a completed reset
+now also verifies the address. Do not hand-verify accounts in production.
+
 ## Caches and their limits
 
 - **Course readiness** (`lib/readiness-cache.ts`): per learner and course,

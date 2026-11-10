@@ -41,7 +41,7 @@ export default function Register() {
     try {
       // REQ-119: the version agreed to is recorded with the account.
       await register(email.trim(), password, displayName.trim() || undefined, TERMS_VERSION);
-      router.replace({ pathname: "/verify-email-pending", params: { email: email.trim() } });
+      router.replace({ pathname: "/verify-email-pending", params: { email: email.trim(), from: "register" } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
     } finally {

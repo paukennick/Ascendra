@@ -7634,6 +7634,168 @@
       ],
       "prevention_notes": "Pre-completion checklist: bumping a legal or protocol version moves the old value to PREVIOUS_LEGAL_VERSIONS and is checked against the installed builds (legacy clients without X-Ascendra-App); a version gate never returns a raw validation string to the app",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-670",
+      "date": "2026-11-09",
+      "title": "Email link scanners spent verification links on GET; set_password links cleared the password for the scanner",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Clicking the verification link said 'This verification link is invalid or has expired' for users behind Outlook Safe Links or a corporate mail gateway; for a REQ-116 set_password link the password was cleared and the one-hour reset link was shown only to the scanner",
+      "how_detected": "review (lead, production data 2026-11-09)",
+      "root_cause": "app/verify-email/page.tsx called verifyEmailToken during the GET render. Mail security scanners prefetch every link in a message, so the scanner's GET spent the single-use token before the person clicked. GET must be safe: a link that changes state needs a deliberate POST.",
+      "requirement": "REQ-191",
+      "affected": [
+        "backend/app/verify-email/page.tsx",
+        "backend/lib/auth/emailTokens.ts"
+      ],
+      "fix_summary": "GET only reads the token (inspectVerifyToken) and renders a 'Verify my email' button; a server action (POST) spends it and redirects to ?result=; set_password results carry the reset token so that page links to the reset form. A used link on a verified account says 'Your email is already verified. You can log in.'",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/email-verification.dbtest.ts::register then verify then log in (FAIL-670)",
+        "backend/lib/email-verification.dbtest.ts::mail scanners (FAIL-670)",
+        "backend/lib/email-verification.dbtest.ts::REQ-116 set_password (squatting) path scanner-safe (FAIL-670)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Pages opened from email links render a confirm button on GET and change state only on POST; tests call the page component and assert nothing was written",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-671",
+      "date": "2026-11-09",
+      "title": "'Check your email' screen claimed a link was sent after a login refused for an unverified email",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After login answered 403 'Please verify your email', the app showed 'Verification link sent ... We sent a verification link to <address>' though the login sent nothing; no hint that a reset also recovers the account",
+      "how_detected": "review",
+      "root_cause": "login.tsx and register.tsx both routed to verify-email-pending.tsx with only the address, and the screen's copy was written for the sign-up case",
+      "requirement": "REQ-191",
+      "affected": [
+        "mobile/app/(auth)/verify-email-pending.tsx",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/register.tsx"
+      ],
+      "fix_summary": "Screens pass from=login|register; copy comes from src/lib/verifyEmailPending.ts; resend is the primary action after a refused login; Forgot password offered on the screen",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/verifyEmailPending.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-672",
+      "date": "2026-11-09",
+      "title": "Email-change confirm and cancel links were spent on GET; a scanner opening the cancel link signed every device out",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A scanner prefetch of the confirm-email-change link applied the change before the person clicked (their click then said invalid); a prefetch of the cancel link in the alert cancelled the change and revoked every session",
+      "how_detected": "review",
+      "root_cause": "Same GET-spends pattern as FAIL-670: both pages called the consuming function while rendering",
+      "requirement": "REQ-191",
+      "affected": [
+        "backend/app/confirm-email-change/page.tsx",
+        "backend/app/cancel-email-change/page.tsx"
+      ],
+      "fix_summary": "GET reads only (inspectEmailChangeToken, inspectCancelToken) and shows a button; server actions spend the tokens",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/email-verification.dbtest.ts::email change confirm and cancel (FAIL-672)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": "FAIL-670"
+    },
+    {
+      "id": "FAIL-673",
+      "date": "2026-11-09",
+      "title": "A completed password reset left an unverified account locked out (login 403)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A learner whose verification mail never arrived could reset the password but login still answered 403 'Please verify your email before logging in.'",
+      "how_detected": "review",
+      "root_cause": "reset-password set the password and revoked sessions but never recorded that the reset link, opened from the inbox, proves the address; recovery and verification were treated as unrelated",
+      "requirement": "REQ-191",
+      "affected": [
+        "backend/app/api/auth/reset-password/route.ts"
+      ],
+      "fix_summary": "The reset transaction sets email_verified_at = coalesce(email_verified_at, now()) and spends pending verification links (a leftover set_password link would otherwise clear the new password)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/email-verification.dbtest.ts::forgot password then reset then log in (FAIL-673)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-674",
+      "date": "2026-11-09",
+      "title": "Resend send failures were silent: routes said 'check your email' when nothing was sent",
+      "status": "fixed",
+      "severity": "critical",
+      "symptom": "Sign-up, resend, reset and MFA-code requests all reported success while no mail went out; nothing in Vercel logs",
+      "how_detected": "review (lead) and production data: a 2026-11-08 sign-up with two unused verification tokens",
+      "root_cause": "The Resend SDK returns { data, error } and does not throw on a refused send (bad sender, unverified domain, quota). lib/email.ts awaited emails.send() and ignored the result, so a 403 from the resend.dev test sender looked like a delivered mail.",
+      "requirement": "REQ-191",
+      "affected": [
+        "backend/lib/email.ts",
+        "backend/lib/http.ts",
+        "backend/app/api/auth/register/route.ts",
+        "backend/app/api/auth/resend-verification/route.ts",
+        "backend/app/api/auth/forgot-password/route.ts"
+      ],
+      "fix_summary": "send() checks the result and throws EmailSendError (kind, code, status; no address, token or provider message); enumeration-safe routes log email_send_failed and keep their generic answers; serverError maps EmailSendError to 503 for signed-in routes; best-effort alerts log instead of swallowing",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/email-verification.dbtest.ts::Resend errors surface as EmailSendError (FAIL-674)",
+        "backend/lib/email-errors.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "An SDK that reports failure in its return value is checked at the call; a test drives the real Resend client with a refused response",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-675",
+      "date": "2026-11-09",
+      "title": "Production sends mail from Resend's test sender and nothing reported it",
+      "status": "mitigated",
+      "severity": "critical",
+      "symptom": "Real users received no verification, reset or MFA mail; /api/health said ok",
+      "how_detected": "review (lead, production env 2026-11-09)",
+      "root_cause": "EMAIL_FROM is unset in production, so lib/email.ts falls back to onboarding@resend.dev, which Resend delivers only to the Resend account's own address. The health check (REQ-118) checked RESEND_API_KEY but not the sender.",
+      "requirement": "REQ-191",
+      "affected": [
+        "backend/app/api/health/route.ts",
+        "backend/lib/email-errors.ts"
+      ],
+      "fix_summary": "/api/health reports email: unconfigured with a warning in production while EMAIL_FROM is unset or @resend.dev. Owner action still open: verify the domain in Resend and set EMAIL_FROM (docs/operations-runbook.md, Email sender).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/email-errors.test.ts::emailSenderStatus (FAIL-675)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }

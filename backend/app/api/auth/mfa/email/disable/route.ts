@@ -4,6 +4,7 @@ import { consumeRateLimit, RateLimitError, MFA_DISABLE_EVENT, MFA_DISABLE_LIMIT 
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { mfaDisableGate } from "@/lib/auth/mfaDisableGate";
 import { sendSecurityAlertEmail } from "@/lib/email";
+import { emailFailureHandler } from "@/lib/email-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
       user.email,
       "Two-factor authentication settings changed",
       "Email verification codes were just turned off as a sign-in step on your Ascendra account."
-    ).catch(() => undefined);
+    ).catch(emailFailureHandler("auth/mfa/email/disable"));
 
     return ok({ enabled: false });
   } catch (err) {

@@ -5843,6 +5843,60 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-191",
+      "category": "security/auth",
+      "title": "Sign-up, email verification and recovery: surfaced send failures, scanner-safe links, reset verifies",
+      "description": "Lead 2026-11-09: production has no EMAIL_FROM so mail goes from onboarding@resend.dev (delivered only to the Resend account owner); lib/email.ts ignored Resend's { data, error } result so routes said 'check your email' when nothing was sent; production shows an unverified 2026-11-08 sign-up with two unused verification tokens. (1) Every send in lib/email.ts checks the result and throws EmailSendError (kind, Resend code, status; no address, token or provider message). Register, resend-verification and forgot-password keep their enumeration-safe answers and log one JSON line (event email_send_failed); best-effort alerts log the same way; signed-in sends (MFA code, email-change confirmation) answer 503. /api/health adds email: ok|unconfigured (production with EMAIL_FROM unset or @resend.dev) as a warning on a 200. (2) /verify-email, /confirm-email-change and /cancel-email-change only read the token on GET and render a button; a server action (POST) spends it. A used link on a verified account says 'Your email is already verified. You can log in.' REQ-116 set_password behaviour is unchanged and the page that spends it links to the reset form. (3) A completed password reset sets email_verified_at if null and spends pending verification links. The app's Check your email screen distinguishes a refused login from a fresh sign-up and offers resend and Forgot password. Google sign-up already marks verified only when Google says email_verified. No migration.",
+      "priority": "critical",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/email.ts",
+        "backend/lib/email-errors.ts",
+        "backend/lib/http.ts",
+        "backend/lib/auth/emailTokens.ts",
+        "backend/app/verify-email",
+        "backend/app/confirm-email-change",
+        "backend/app/cancel-email-change",
+        "backend/app/_components/LinkPage.tsx",
+        "backend/app/api/auth/register",
+        "backend/app/api/auth/resend-verification",
+        "backend/app/api/auth/forgot-password",
+        "backend/app/api/auth/reset-password",
+        "backend/app/api/health",
+        "mobile/app/(auth)/verify-email-pending.tsx",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/register.tsx",
+        "mobile/src/lib/verifyEmailPending.ts"
+      ],
+      "acceptance_criteria": [
+        "A Resend error result throws EmailSendError and is logged without PII",
+        "Opening any email link (GET) changes nothing; only the button POST spends it",
+        "A reset on an unverified account lets it log in",
+        "REQ-116 set_password path unchanged and its reset link shown",
+        "Each fix has a test that fails with it reverted",
+        "Backend and mobile unit tests and tsc pass; test:db passes on a fresh DB with all migrations and the seed run twice"
+      ],
+      "validation_required": [
+        "npm test (backend and mobile)",
+        "npm run test:db",
+        "npx tsc --noEmit (backend and mobile)",
+        "python3 omni failure check",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/operations-runbook.md",
+        "backend/.env.example",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Mail still reaches nobody until EMAIL_FROM is set to a Resend-verified domain (owner action)",
+        "Email links now need one extra click",
+        "Some scanners may submit forms; none known to among common gateways (inferred)",
+        "Correction to the scanner note above: whether any mail scanner submits forms (POST) was not checked; if one does, the link is spent as before"
+      ]
     }
   ]
 }

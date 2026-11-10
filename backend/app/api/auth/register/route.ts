@@ -6,6 +6,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
 import { sendAlreadyRegisteredEmail, sendVerificationEmail } from "@/lib/email";
+import { logEmailFailure } from "@/lib/email-errors";
 import { recordSignupTermsAcceptance, signupAcceptedVersion } from "@/lib/legal";
 import { isLegacyClient } from "@/lib/client-version";
 import { LATEST_RELEASE_NOTE_ID } from "@/lib/release-notes";
@@ -77,11 +78,17 @@ export async function POST(req: Request) {
         );
       }
       if (await mayEmail(normalizedEmail)) {
-        if (existing.email_verified_at) {
-          await sendAlreadyRegisteredEmail(normalizedEmail);
-        } else {
-          const raw = await issueVerificationToken(existing.id, true);
-          await sendVerificationEmail(normalizedEmail, raw, { setPassword: true });
+        try {
+          if (existing.email_verified_at) {
+            await sendAlreadyRegisteredEmail(normalizedEmail);
+          } else {
+            const raw = await issueVerificationToken(existing.id, true);
+            await sendVerificationEmail(normalizedEmail, raw, { setPassword: true });
+          }
+        } catch (err) {
+          // REQ-191: logged (no address or token); the answer stays the same
+          // so it can't tell anyone which addresses have accounts.
+          logEmailFailure("auth/register", err);
         }
       }
       return ok({ message: CREATED_MESSAGE }, 201);
@@ -103,7 +110,11 @@ export async function POST(req: Request) {
     await recordSignupTermsAcceptance(userRow.id, acceptedTermsVersion, "register", termsCtx);
 
     const rawToken = await issueVerificationToken(userRow.id, false);
-    if (await mayEmail(normalizedEmail)) await sendVerificationEmail(normalizedEmail, rawToken);
+    if (await mayEmail(normalizedEmail)) {
+      // REQ-191: the account exists either way; the learner can resend from
+      // the "Check your email" screen. Logged so a failure shows up.
+      await sendVerificationEmail(normalizedEmail, rawToken).catch((err) => logEmailFailure("auth/register", err));
+    }
 
     return ok({ message: CREATED_MESSAGE }, 201);
   } catch (err) {
