@@ -346,11 +346,41 @@ describe("teaching prompts", () => {
   test("every prompt has a source with a cite, a link and a checked date", () => {
     for (const [id, t] of Object.entries(doc.teaching ?? {})) {
       assert.ok(t.source.cite.length > 20, id);
-      assert.match(t.source.url ?? "", /^https:\/\/doi\.org\/10\./, id);
+      assert.match(t.source.url ?? "", /^https:\/\/(doi\.org\/10\.|academic\.oup\.com\/eurheartj\/)/, id);
       assert.match(t.source.checkedAt, /^\d{4}-\d{2}-\d{2}$/, id);
       assert.ok(t.choices.length >= 2 && t.choices.length <= 4, id);
     }
     assert.equal(Object.keys(doc.teaching ?? {}).length, 4);
+  });
+});
+
+describe("teaching prompts follow the 2025 ESC guideline (Nick, 2026-11-09)", () => {
+  const t = doc.teaching ?? {};
+  test("the 2025 guideline is cited, and the 2015 one is kept only for vasodilators", () => {
+    const cites = (doc.sources ?? []).map((x) => x.cite);
+    assert.ok(cites.some((c) => c.includes("2025 ESC Guidelines for the management of myocarditis and pericarditis")));
+    const old = (doc.sources ?? []).find((x) => x.cite.includes("2015 ESC"));
+    assert.ok(old && /vasodilators/.test(old.note ?? "") && /2025/.test(old.note ?? ""), "the 2015 entry says why it is kept");
+    for (const id of ["echoNormal", "triad", "echoSigns"]) assert.match(t[id].source.cite, /2025 ESC Guidelines/, id);
+  });
+  test("the normal-echo prompt grounds itself in loculated collections and does not credit the guideline with a claim about TTE or TEE", () => {
+    const p = t.echoNormal;
+    assert.match(p.explain, /loculated/);
+    assert.match(p.explain, /clinical diagnosis/);
+    assert.match(p.source.note ?? "", /does NOT say whether a normal transthoracic echo excludes tamponade/);
+    assert.match(p.source.note ?? "", /ezab468/, "the TTE statement has its own source");
+    assert.match(p.source.note ?? "", /J Card Surg 2008/, "so does the TEE statement");
+  });
+  test("the triad prompt asks whether to wait for it, because the guideline ties it to surgical tamponade", () => {
+    assert.match(t.triad.explain, /classically seen in surgical tamponade/);
+    assert.equal(t.triad.expect, "no");
+    assert.match(t.triad.ask, /Wait for all 3/);
+  });
+  test("the echo-sign prompt asks for the least specific finding, the plethoric vena cava (Table 17: sensitivity 97%, specificity 40%)", () => {
+    assert.equal(t.echoSigns.expect, "ivcPlethora");
+    assert.match(t.echoSigns.ask, /least specific/);
+    assert.match(t.echoSigns.explain, /97%/);
+    assert.match(t.echoSigns.explain, /40%/);
   });
 });
 

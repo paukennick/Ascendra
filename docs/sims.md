@@ -411,14 +411,18 @@ Deliberate differences, beyond the 3.1 reclassification:
 - **Drips** always offer "Turn off"; the prototype offers it only while one
   runs (turning off a drip that is off changes nothing).
 - **Contraindicated actions: none in this case** (Nick, 2026-11-09: a harm
-  ending only where a published guideline names the action). The 2015 ESC
-  pericardial guidelines (Adler et al., Eur Heart J 2015;36:2921-2964,
-  checked 2026-11-09) mark vasodilators and diuretics "not recommended" in
-  tamponade (class III, level C); this case offers neither before
-  re-exploration (nicardipine appears only in phase 2, after the tamponade is
-  relieved). Protamine with a normal ACT and dobutamine in tamponade have no
-  guideline naming them as contraindicated, so they stay poor choices in the
-  scoring and are listed for clinical review (19.3).
+  ending only where a published guideline names the action). The 2025 ESC
+  guideline on myocarditis and pericarditis (Schulz-Menger et al., Eur Heart
+  J 2025;46(40):3952-4041, section 11.8.3, checked 2026-11-09) says to avoid
+  diuretics and positive-pressure ventilation in tamponade; this case offers
+  no diuretic and the patient is already ventilated, which the case does not
+  change. The 2015 guideline (Adler et al., Eur Heart J 2015;36:2921-2964) is
+  kept only for the point the 2025 text does not cover: vasodilators are "not
+  recommended" in tamponade (class III, level C); this case offers none
+  before re-exploration (nicardipine appears only in phase 2, after the
+  tamponade is relieved). Protamine with a normal ACT and dobutamine in
+  tamponade have no guideline naming them as contraindicated, so they stay
+  poor choices in the scoring and are listed for clinical review (19.3).
 - **The chest-tube tile** reads `history` in whole 5-second samples, so for
   a few seconds after clearing the tubes (when the 15-minute window's far
   edge crosses that moment) it differs from the prototype's interpolated
@@ -1640,16 +1644,28 @@ app shows one prediction question, answered by tapping a choice.
   or the score.
 - **Tamponade prompts** (each with a sourced rationale, `checkedAt`
   2026-11-09, and an explicit `FLAG` in its source note where the evidence
-  is indirect): CVP after a fluid bolus (Sagrista-Sauleda 2008, medical
-  tamponade, not post-surgical); whether a normal-looking echo rules
-  tamponade out after cardiac surgery (Eur J Cardiothorac Surg 2022);
-  whether the classic triad is expected (Alerhand 2022); and the echo signs
-  of tamponade (Alerhand 2022). There is no prompt for "drainage stopped":
-  no source was found for it. The 2025 ESC myocarditis and pericarditis
-  guideline (Eur Heart J 2025) supersedes the 2015 guideline the scenario
-  cites; its text could not be read in this change (the publisher refused the
-  request), so the existing sources were not changed and a re-check is
-  recommended before the next review.
+  is indirect). The primary source of three is the 2025 ESC guideline
+  (Eur Heart J 2025;46:3952), read for this project through the publisher's
+  free-access page; its section numbers and wording are relayed, not yet
+  re-read by the author of the prompts. (1) CVP after a fluid bolus: the
+  direction rests on Sagrista-Sauleda 2008 (medical tamponade, not
+  post-surgical), and the guideline agrees that temporary fluid can
+  stabilise a patient while drainage is arranged (11.8.3). (2) Whether a
+  normal-looking echo rules tamponade out after cardiac surgery: grounded in
+  11.8 (a clinical diagnosis that echo confirms; post-surgical collections
+  may be loculated and compress one chamber). The guideline does not say
+  whether a normal transthoracic echo excludes tamponade and does not cover
+  transesophageal echo, so those statements are attributed to Eur J
+  Cardiothorac Surg 2022 and J Card Surg 2008 instead. (3) Whether to wait
+  for Beck's triad: the guideline says it is classically seen in surgical
+  tamponade, so the prompt asks whether to wait for all three, not whether
+  they will appear (the first version said the triad is uncommon, on a review
+  of tamponade in general). (4) The least specific echo finding, from Table 17
+  (11.8.2): a plethoric vena cava, sensitivity about 97% and specificity about
+  40%; the ranges for the other signs overlap, so a "most specific sign"
+  question is not supported. There is no prompt for "drainage stopped": no
+  source was found for it. The 2025 guideline supersedes the 2015 one the
+  scenario first cited; the 2015 entry stays only for vasodilators (3.2).
 - **Family interruption.** Not added: the people layer is not in the engine.
 
 ### 5.4e Chapters: continue, or save and finish later (REQ-209)
@@ -3274,8 +3290,8 @@ rules below followed. Nick approved all of them.
 2. Teaching prompts are unscored (5.4d), logged and shown in the debrief.
 3. Pace is the same for the whole scenario by default (3x); exam realism is
    a choice at launch or mid-run, not a separate "exam mode" that refuses
-   3x. If an exam-mode attempt that counts differently is wanted, say so.
-4. The 2025 ESC guideline should be read against the tamponade sources (5.4d).
+   3x.
+4. Settled (Nick, 2026-11-09): focused runs count toward mastery as built, and exam realism stays a pace choice, not a separate mode. The 2025 ESC guideline was read against the tamponade sources (5.4d).
 
 ## 20. Sims for every subject family (Nick, 2026-11-07)
 
