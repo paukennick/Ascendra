@@ -45,6 +45,32 @@ jobs:
       - run: npm audit --audit-level=high
         working-directory: backend
 
+  # REQ-196: the sandbox model-written code runs in (verify by execution,
+  # the fact-checker eval) must hold on every change: network, the job's
+  # environment, the filesystem outside the scratch area, root, a fork
+  # bomb, an endless loop, memory and an output flood are all tried against
+  # real Docker and must fail (backend/lib/sandbox-runner.sandboxtest.ts).
+  sandbox:
+    name: Sandbox (escape attempts against Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Build the sandbox images
+        working-directory: backend
+        run: |
+          docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
+          docker pull node:22-slim
+      - run: npm run test:sandbox
+        working-directory: backend
+
   # REQ-128: nothing in CI touched a database before, so a migration that
   # didn't apply, SQL that named a missing column, or code that needed a
   # migration production hadn't run could all ship green. This builds the

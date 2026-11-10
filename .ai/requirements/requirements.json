@@ -6371,6 +6371,54 @@
         "The gen-ed survey units have no lab yet",
         "Checks 2026-11-09: npm test 728/728; test:db 605/605 on fresh Postgres 16 after master seed then branch seed twice."
       ]
+    },
+    {
+      "id": "REQ-196",
+      "category": "content",
+      "title": "Sandboxed fact-checking, re-checking and fact-checker eval",
+      "description": "Nick 2026-11-09: 'Sandbox the fact checking and rechecking content' and 'Run simulations in the sandbox to determine the fact checker needs.' Verify-by-execution leaves the request path: items are served after the model fact-check and queued exec_unverified; an hourly GitHub Actions job runs the programs in a docker --network none container (no env, read-only, ephemeral scratch, CPU/memory/pids/time/output caps) and stages disagreements. The pre-gate re-check runs as the least-privilege content_recheck role (migration 064), under a dollar cap with a dry-run estimate, off ai_calls, and only stages findings; a person decides with npm run items -- confirm|clear. A workflow_dispatch eval harness scores Haiku and the writer's model, with and without thinking, plus sandboxed execution, on the 2026-11-09 audit's known-bad items and equal known-good items, and recommends per family the cheapest variant with recall >=95% and false holds <=5%.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sandbox-runner.ts",
+        "backend/lib/exec-checks.ts",
+        "backend/lib/staging.ts",
+        "backend/lib/recheck-guard.ts",
+        "backend/lib/run-budget.ts",
+        "backend/lib/factcheck-eval.ts",
+        "backend/lib/recheck-stored.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/fact-check.ts",
+        "backend/supabase/migrations/064_recheck_role.sql",
+        ".github/workflows/content-sandbox.yml",
+        ".github/workflows/content-recheck.yml",
+        ".github/workflows/factcheck-eval.yml",
+        "docs/content-review.md"
+      ],
+      "acceptance_criteria": [
+        "No model-written code runs in the request path",
+        "Sandbox escape probes (network/env/filesystem/root/fork bomb/timeout/memory/output) fail against real Docker",
+        "Jobs refuse a role that can write item_status or content",
+        "Workflows refuse to run without RECHECK_DATABASE_URL",
+        "Re-check and sandbox findings are staged and change nothing served until a person confirms",
+        "Model calls capped per run with an estimate printed first and kept out of ai_calls",
+        "Eval reports recall/false-hold/cost per check and per 1000/latency per variant and family with the recommendation rule"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db on fresh Postgres 16",
+        "npm run test:sandbox against Docker",
+        "actionlint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/content-review.md (Sandboxed fact-checking; Re-check database user)"
+      ],
+      "risk_notes": [
+        "Up to about an hour of serving an item whose program would disagree (accepted by Nick via lead)",
+        "Real eval numbers need the ANTHROPIC_API_KEY secret",
+        "Supabase session-pooler username format for a custom role to confirm on first run"
+      ]
     }
   ]
 }
