@@ -5843,6 +5843,58 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-189",
+      "category": "labs",
+      "title": "Interactive lab answer types: order, match, select, command, numeric (rule-graded, no AI cost)",
+      "description": "Nick approved track one of interactive labs: rubric parts can carry an interactive spec (order, match, select/hotspot, command, numeric) stored inside the existing labs.rubric JSON (no migration). The server sends each part's control without its key (order shuffled deterministically, never in key order; ids are hashes of item text), grades it by rule with per-type partial credit and no model call, and reveals the key with the criteria and reference answer only after the step is graded; later case steps are still withheld. Mixed steps send only the written parts to the model. Answers stay one string per part, so drafts, replay and lab_run_steps are unchanged. Apps below X-Ascendra-Client 2 get the options written into the step text and a written answer to an interactive part is graded by the model. labContentProblems rejects malformed specs (duplicate order items, match without a unique solution, select with no or every line correct, unreadable or duplicate commands, loose numeric tolerances, a model answer that does not state its key). The mobile app renders accessible controls (48 dp targets, drag plus up/down and screen-reader actions for order). Pilot: 40 labs converted in course files the concurrent audit fixes do not touch.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/lab-interactive.ts",
+        "backend/lib/lab-content.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/client-protocol.ts",
+        "backend/app/api/labs/**",
+        "backend/supabase/seed/labs/**",
+        "backend/supabase/seed/seed-lib.ts",
+        "mobile/src/lib/labInteractive.ts",
+        "mobile/src/lib/labs.ts",
+        "mobile/src/components/LabInteractive.tsx",
+        "mobile/app/(app)/course/[trackId]/lab/[labId].tsx",
+        "mobile/src/api/client.ts",
+        "docs/labs.md",
+        "CHANGELOG.md",
+        "tests"
+      ],
+      "acceptance_criteria": [
+        "Each interactive type is graded by rule with its documented partial credit and no model call",
+        "The key never reaches the app before the step is graded",
+        "A malformed interactive part fails the seed and npm test",
+        "A step with written and interactive parts sends only the written parts to the model",
+        "An app below protocol 2 can still answer every part",
+        "40 pilot labs converted with objectives and step order unchanged",
+        "Clinical and fitness labs keep a written part in every step"
+      ],
+      "validation_required": [
+        "npm test (backend)",
+        "npm run test:db on fresh Postgres 16 with all migrations and seeding twice",
+        "mobile npm test and typecheck",
+        "backend typecheck",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/labs.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Converted labs get a new content hash so they return to needs_expert_review",
+        "Security+ AWS SAA and Network+ were not converted because concurrent audit fixes touch those files",
+        "Command matching only accepts listed forms and option aliases"
+      ]
     }
   ]
 }

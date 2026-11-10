@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, selectPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA Data+ (DA0-002, V2).
@@ -125,11 +125,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
               "Mean = 120 / 8 = 15; sorted values 11, 12, 12, 15, 15, 15, 18, 22 give median = (15 + 15) / 2 = 15; mode = 15 (three times).",
               "Sum = 12 + 15 + 11 + 18 + 15 + 22 + 15 + 12 = 120; mean = 120 / 8 = 15 tickets per day. Sorted: 11, 12, 12, 15, 15, 15, 18, 22; median = average of the 4th and 5th values = (15 + 15) / 2 = 15. Mode = 15 (occurs three times). Mean, median and mode agree, so the distribution is roughly symmetric apart from the 22."
             ),
-            part(
-              "Dispersion",
-              "Range = 22 - 11 = 11; deviations from 15 are -3, 0, -4, 3, 0, 7, 0, -3, squared 9, 0, 16, 9, 0, 49, 0, 9 = 92; sample variance = 92 / 7 = 13.14; sample standard deviation = 3.63 (the population figure, 92 / 8 = 11.5, sd 3.39, is acceptable if labelled as such).",
-              "Range = 22 - 11 = 11. Deviations from the mean: -3, 0, -4, 3, 0, 7, 0, -3; squared: 9, 0, 16, 9, 0, 49, 0, 9; sum = 92. Sample variance = 92 / (8 - 1) = 13.14; sample standard deviation = sqrt(13.14) = 3.63 tickets. (Dividing by n gives the population figures 11.5 and 3.39; the brief asks for the sample version because these eight days stand in for the desk's usual behaviour.)"
-            ),
+            numericPart("Sample standard deviation", "Squared deviations from the mean of 15 sum to 92; sample variance = 92 / 7 = 13.14; sample standard deviation = 3.63 tickets. Met within 0.005; within 0.05 is partly there (rounding). The population figure (3.39) is not what the brief asks for.", "Range = 22 - 11 = 11. Deviations from the mean: -3, 0, -4, 3, 0, 7, 0, -3; squared: 9, 0, 16, 9, 0, 49, 0, 9; sum = 92. Sample variance = 92 / (8 - 1) = 13.14; sample standard deviation = sqrt(13.14) = 3.63 tickets. (Dividing by n gives the population figures 11.5 and 3.39; the brief asks for the sample version because these eight days stand in for the desk's usual behaviour.)", { answer: 3.63, tolerance: 0.005, partialTolerance: 0.05, unit: "tickets" }),
             part(
               "Was 22 unusual?",
               "Computes the z-score (22 - 15) / 3.63 = 1.93, about two standard deviations above the mean -- notable but not extreme for eight observations; checks whether the day had an identifiable cause; notes with so few data points a formal outlier claim is weak.",
@@ -200,6 +196,7 @@ export const DATAPLUS_LABS: SeedLabSet = {
               "Suspects join fan-out: each customer has two address rows (billing and shipping), so every order matches twice and its amount is summed twice -- consistent with a total exactly 2x the ledger.",
               "The exact doubling points at the join. customer_addresses has two rows per customer (billing and shipping), so each order joins to both and its amount is counted twice. A filter or date problem would give an arbitrary difference; a one-to-many join gives a clean multiple."
             ),
+            selectPart("The line that doubles the total", "Picks the JOIN to customer_addresses: with two address rows per customer, every order matches twice. Picking any other line as well is not met.", "JOIN customer_addresses a ON a.customer_id = o.customer_id -- one order row meets two address rows (billing and shipping), so SUM(o.amount) counts every order twice.", { display: "config", lines: ["SELECT a.region, SUM(o.amount) AS revenue", "FROM orders o", "JOIN customer_addresses a ON a.customer_id = o.customer_id", "WHERE o.order_date >= '2026-10-01' AND o.order_date < '2026-11-01'", "GROUP BY a.region;"], correct: [2] }),
             part(
               "Confirming queries",
               "Compares row counts before and after the join (COUNT(*) of October orders vs COUNT(*) of the joined result), sums orders alone, and checks the address table's cardinality per customer (COUNT by customer_id having > 1, or by address_type).",

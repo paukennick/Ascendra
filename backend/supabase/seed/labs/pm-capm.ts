@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: CAPM (PMI Certified Associate in Project Management, 2023 Exam
@@ -161,11 +161,7 @@ export const CAPM_LABS: SeedLabSet = {
               "Lists both paths with totals (A-B-E-F = 15 days; A-C-D-E-F = 17 days) and identifies A-C-D-E-F as the critical path with a duration of 17 days.",
               "A-B-E-F = 4 + 6 + 2 + 3 = 15 days. A-C-D-E-F = 4 + 3 + 5 + 2 + 3 = 17 days. The critical path is A-C-D-E-F and the project takes 17 days."
             ),
-            part(
-              "Float on B",
-              "Calculates total float of 2 days for B (early start 4, early finish 10; late finish 12, late start 6).",
-              "Forward pass: B starts day 4 and finishes day 10. Backward pass: F must start by 14, so E must finish by 14 and start by 12; B must finish by 12, so it can start as late as 6. Float = 6 - 4 = 2 days."
-            ),
+            numericPart("Float on B (days)", "Total float of 2 days for B (early start 4, early finish 10; late finish 12, late start 6). Met at exactly 2.", "Forward pass: B starts day 4 and finishes day 10. Backward pass: F must start by 14, so E must finish by 14 and start by 12; B must finish by 12, so it can start as late as 6. Float = 6 - 4 = 2 days.", { answer: 2, tolerance: 0, unit: "days" }),
             part(
               "Delay to B",
               "States that a 3-day slip on B uses its 2 days of float and delays the project by 1 day (to day 18), making B critical.",
@@ -345,26 +341,8 @@ export const CAPM_LABS: SeedLabSet = {
           text: "",
           ask: "Choose a technique for each situation and justify it.",
           parts: [
-            part(
-              "Large customer base (A)",
-              "Chooses a survey (questionnaire) because it reaches many people quickly and cheaply and gives quantifiable results.",
-              "A survey: it reaches thousands of customers at low cost and gives numbers we can rank (for example, rate each feature 1-5)."
-            ),
-            part(
-              "Conflicting stakeholders (B)",
-              "Chooses a facilitated requirements workshop (or joint session) to reach agreement among the conflicting stakeholders in one place; one-to-one interviews beforehand may be added.",
-              "A facilitated workshop with the three of them, so they hear each other's needs and agree the refund rules together; short interviews beforehand can surface each position."
-            ),
-            part(
-              "Previous project (C)",
-              "Chooses lessons learned (review of the lessons-learned register and archived documents, i.e. document analysis) to reuse knowledge and avoid repeating problems.",
-              "Review the earlier project's lessons learned and archived documents to find what caused the overrun and which requirements were missed."
-            ),
-            part(
-              "Step-by-step interaction (D)",
-              "Chooses a use case (main flow plus alternative/exception flows) because it describes the interaction step by step including exceptions; may mention a user story with acceptance criteria as a lighter alternative.",
-              "A use case \"Dispute a bill\": actor, preconditions, the main success flow, and an exception flow for missing evidence. It shows each step and what happens when things go wrong."
-            ),
+            matchPart("Technique for each situation", "Matches A to a survey, B to a facilitated workshop, C to lessons learned and document analysis, and D to a use case. Every pair right is met; at least half is partly there.", "A (40,000 customers) -> survey. B (three leaders disagree on refunds) -> facilitated workshop. C (the earlier project's archive) -> lessons learned and document analysis. D (step-by-step dispute, with exceptions) -> use case. Benchmarking fits none of these.", { leftHeading: "Situation", rightHeading: "Technique", left: ["A: 40,000 customers, which features they value", "B: three leaders disagree on refunds", "C: the earlier portal project's archived documents", "D: step by step, how a customer disputes a bill"], right: ["Survey (questionnaire)", "Facilitated requirements workshop", "Lessons learned and document analysis", "Use case with exception flows", "Benchmarking against other utilities"], pairs: [0, 1, 2, 3] }),
+            part("Why each fits", "Gives a reason for each choice: a survey reaches many people cheaply with countable results (A); a workshop gets the conflicting stakeholders to agree together (B); lessons learned reuse what went wrong before (C); a use case shows each step including what happens when evidence is missing (D).", "A: a survey reaches thousands of customers at low cost and gives numbers we can rank. B: a facilitated workshop lets the three hear each other and agree the refund rules together; short interviews beforehand can surface each position. C: the earlier project's lessons learned and archive show what caused the overrun and which requirements were missed. D: a use case \"Dispute a bill\" sets out the main flow and an exception flow for missing evidence."),
           ],
         },
       ],

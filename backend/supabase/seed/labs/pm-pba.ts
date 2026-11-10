@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-PBA (PMI Professional in Business Analysis; current ECO when
@@ -39,11 +39,7 @@ export const PMIPBA_LABS: SeedLabSet = {
           text: "",
           ask: "Determine the value proposition.",
           parts: [
-            part(
-              "Annual savings",
-              "Calculates handling cost now (18,000 x 12 / 60 = 3,600 h x $40 = $144,000) and after (900 h = $36,000), saving $108,000; rework now (720 x $25 = $18,000) and after (180 x $25 = $4,500), saving $13,500; total $121,500 a year.",
-              "Handling now: 18,000 x 12 min = 3,600 h x $40 = $144,000. After: 18,000 x 3 min = 900 h x $40 = $36,000. Saving $108,000. Rework now: 4% x 18,000 = 720 x $25 = $18,000; after: 1% = 180 x $25 = $4,500. Saving $13,500. Total = $121,500 a year."
-            ),
+            numericPart("Annual savings (before licences)", "Handling saves $108,000 (3,600 h -> 900 h at $40) and rework saves $13,500 (720 -> 180 invoices at $25): $121,500 a year. Met within $1.", "Handling now: 18,000 x 12 min = 3,600 h x $40 = $144,000. After: 18,000 x 3 min = 900 h x $40 = $36,000. Saving $108,000. Rework now: 4% x 18,000 = 720 x $25 = $18,000; after: 1% = 180 x $25 = $4,500. Saving $13,500. Total = $121,500 a year.", { answer: 121500, tolerance: 1, unit: "USD" }),
             part(
               "Payback and ROI",
               "Nets off the licence (121,500 - 20,000 = $101,500 a year), calculates payback (180,000 / 101,500 = 1.77 years, about 21 months) and a 3-year ROI ((3 x 101,500 - 180,000) / 180,000 = 69%), noting these are undiscounted.",
@@ -230,11 +226,7 @@ export const PMIPBA_LABS: SeedLabSet = {
           text: "",
           ask: "Evaluate the options and decide on the requirements.",
           parts: [
-            part(
-              "Weighted scores",
-              "Calculates A = 1.6 + 0.75 + 0.8 + 0.45 = 3.60; B = 2.0 + 0.5 + 0.6 + 0.6 = 3.70; C = 1.2 + 1.25 + 1.0 + 0.3 = 3.75, so C ranks first by a narrow margin.",
-              "A = 4(0.40) + 3(0.25) + 4(0.20) + 3(0.15) = 1.6 + 0.75 + 0.8 + 0.45 = 3.60. B = 2.0 + 0.5 + 0.6 + 0.6 = 3.70. C = 1.2 + 1.25 + 1.0 + 0.3 = 3.75. C leads, but only by 0.05."
-            ),
+            numericPart("Option C's weighted score", "C = 3(0.40) + 5(0.25) + 5(0.20) + 2(0.15) = 1.2 + 1.25 + 1.0 + 0.3 = 3.75 (A is 3.60 and B 3.70, so C leads narrowly). Met within 0.005.", "A = 4(0.40) + 3(0.25) + 4(0.20) + 3(0.15) = 1.6 + 0.75 + 0.8 + 0.45 = 3.60. B = 2.0 + 0.5 + 0.6 + 0.6 = 3.70. C = 1.2 + 1.25 + 1.0 + 0.3 = 3.75. C leads, but only by 0.05.", { answer: 3.75, tolerance: 0.005 }),
             part(
               "Sensitivity",
               "Tests sensitivity (for example with fit 50% and cost 15%: A 3.70, B 4.00, C 3.55, so B wins) and concludes the ranking depends on the weights, which must be agreed with stakeholders before deciding.",

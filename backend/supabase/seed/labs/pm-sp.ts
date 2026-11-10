@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-SP (PMI Scheduling Professional; current ECO when checked on
@@ -132,11 +132,7 @@ export const PMISP_LABS: SeedLabSet = {
               "Calculates triangular means (O + M + P) / 3: A = 8, B = 12, C = 5, path = 25 days, and explains why it is higher (it weights the pessimistic tail more than PERT's beta, which weights the most likely value 4 times).",
               "Triangular: A = (4 + 6 + 14) / 3 = 8; B = (8 + 10 + 18) / 3 = 12; C = (3 + 5 + 7) / 3 = 5; path = 25 days. It is 2 days higher because PERT weights the most likely value four times, pulling the mean away from the long pessimistic tails of A and B."
             ),
-            part(
-              "Path standard deviation",
-              "Calculates each SD (P - O) / 6 (A 1.67, B 1.67, C 0.67), sums variances (25/9 + 25/9 + 4/9 = 6.0), and takes the square root for the path SD (about 2.45 days) -- not adding the SDs.",
-              "SDs: A = 10 / 6 = 1.67; B = 10 / 6 = 1.67; C = 4 / 6 = 0.67. Variances: 2.78 + 2.78 + 0.44 = 6.0 (exactly 54/9). Path SD = sqrt(6) = 2.45 days. Add variances, not standard deviations."
-            ),
+            numericPart("Path standard deviation (days)", "Adds the variances, not the standard deviations: SDs (P - O) / 6 are 1.67, 1.67 and 0.67; variances 25/9 + 25/9 + 4/9 = 6.0; path SD = sqrt(6) = 2.45 days. Met within 0.01; within 0.1 is partly there (a rounding slip). Adding the SDs (4.0) is not.", "SDs: A = 10 / 6 = 1.67; B = 10 / 6 = 1.67; C = 4 / 6 = 0.67. Variances: 2.78 + 2.78 + 0.44 = 6.0 (exactly 54/9). Path SD = sqrt(6) = 2.45 days. Add variances, not standard deviations.", { answer: 2.45, tolerance: 0.01, partialTolerance: 0.1, unit: "days" }),
             part(
               "Confidence dates",
               "States 23 days is about 50% confidence, about 25.4 days is roughly 84% (mean + 1 SD), and about 27 days is roughly 95% (mean + 1.645 SD), and notes a limitation (merge bias from parallel paths, or correlated activities, is ignored).",
@@ -251,11 +247,7 @@ export const PMISP_LABS: SeedLabSet = {
               "Calculates ES = 3 + (230 - 200) / (280 - 200) = 3.375 months, SV(t) = 3.375 - 4 = -0.625 months, and SPI(t) = 3.375 / 4 = 0.84.",
               "EV of $230k falls between month 3 ($200k) and month 4 ($280k). ES = 3 + (230 - 200) / (280 - 200) = 3 + 30 / 80 = 3.375 months. SV(t) = ES - actual time = 3.375 - 4 = -0.625 months (about 2.7 weeks). SPI(t) = 3.375 / 4 = 0.84."
             ),
-            part(
-              "Duration forecast",
-              "Forecasts completion with earned schedule (planned duration / SPI(t) = 6 / 0.84375 = about 7.1 months), stating the assumption that current schedule performance continues.",
-              "If schedule performance continues, the forecast duration = 6 / 0.84375 = 7.1 months, about one month late."
-            ),
+            numericPart("Duration forecast (months)", "Forecasts completion with earned schedule: planned duration / SPI(t) = 6 / 0.84375 = 7.1 months, assuming current schedule performance continues. Met within 0.05 months.", "If schedule performance continues, the forecast duration = 6 / 0.84375 = 7.1 months, about one month late.", { answer: 7.11, tolerance: 0.05, unit: "months" }),
             part(
               "Why earned schedule",
               "Explains that SV and SPI in money converge to 0 and 1.0 as the project finishes regardless of lateness, while earned schedule measures time and stays meaningful to the end; recommends checking the critical path too.",
@@ -288,6 +280,7 @@ export const PMISP_LABS: SeedLabSet = {
               "For the fourth day, with both paths critical, compares options (A $3,000; E $4,000; B + C together $1,500 + $1,000 = $2,500) and chooses B + C, giving total cost $7,000 and a 36-day duration.",
               "Now both paths are critical, so one more day needs a cut on both: A ($3,000), E ($4,000), or B and C one day each ($1,500 + $1,000 = $2,500). Choose B + C. Total = 4,500 + 2,500 = $7,000. Result: B crashed 4 days, C 1 day; both paths 36 days."
             ),
+          numericPart("Total crash cost", "The cheapest way to 36 days costs $7,000: B for three days ($4,500), then B and C one day each ($2,500). Met within $1.", "3 x $1,500 (B) = $4,500 to reach 37 days on both paths; then B + C one day each = $1,500 + $1,000 = $2,500. Total = $7,000.", { answer: 7000, tolerance: 1, unit: "USD" }),
           ],
         },
         {

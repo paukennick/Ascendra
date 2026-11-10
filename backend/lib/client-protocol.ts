@@ -8,6 +8,11 @@
 //   1                   -- knows the Solo choices hint (REQ-134): the lesson
 //                          payload carries no Solo choices and the app fetches
 //                          them from POST /api/objectives/:id/hint
+//   2                   -- also renders interactive lab parts (REQ-189):
+//                          order, match, select, command and numeric controls.
+//                          Below 2 the lab view writes their options into
+//                          the step text, and a written answer to one is
+//                          graded by the model (lib/lab-interactive.ts).
 //
 // The header is not trusted for anything that matters to integrity: a caller
 // that leaves it off gets the Solo choices in the lesson AND the hint reveal
@@ -22,6 +27,13 @@ export function clientProtocol(req: Request): number {
   const raw = req.headers.get(CLIENT_PROTOCOL_HEADER)?.trim() ?? "";
   if (!/^\d{1,6}$/.test(raw)) return 0;
   return Number(raw);
+}
+
+// Protocol number from which the app renders interactive lab parts.
+export const LAB_INTERACTIVE_PROTOCOL = 2;
+
+export function rendersInteractiveLabs(req: Request): boolean {
+  return clientProtocol(req) >= LAB_INTERACTIVE_PROTOCOL;
 }
 
 export function isHintAwareClient(req: Request): boolean {

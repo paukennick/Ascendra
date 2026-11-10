@@ -12,6 +12,7 @@ import {
 } from "@/lib/prompts";
 import { reconciled, trivialAnswer, trivialGrade, type TrivialReason, type Verdict } from "@/lib/grade-consistency";
 import type { CoachContext } from "@/lib/coach-context";
+import { gradeInteractive, type InteractiveGrade, type InteractiveSpec } from "@/lib/lab-interactive";
 
 // REQ-123: grading one step of a verifiable lab (a build lab has one step, a
 // case lab 2-4). The PBQ per-part pattern (lib/pbq-grading.ts), with three
@@ -40,6 +41,8 @@ export interface LabRubricPart {
   label: string;
   criteria: string;
   modelAnswer: string;
+  // REQ-189: a rule-graded part (lib/lab-interactive.ts).
+  interactive?: InteractiveSpec;
 }
 
 export interface LabStepText {
@@ -186,6 +189,49 @@ export function trivialParts(parts: LabRubricPart[], answers: string[], ask: str
 export async function gradeLabStep(
   params: Parameters<typeof gradeLabStepPrompt>[0] & { userId?: string },
   model: LabStepModel = claudeLabStepModel
+): Promise<LabStepGraded> {
+  // REQ-189: rule-graded parts first. A part graded here never reaches the
+  // model; a written answer to an interactive part (an app build from
+  // before REQ-189) is null here and is graded as a written part.
+  const auto: (InteractiveGrade | null)[] = params.parts.map((p, i) => (p.interactive ? gradeInteractive(p.interactive, params.answers[i] ?? "") : null));
+  if (auto.every((a) => a === null)) return gradeWrittenParts(params, model);
+
+  const textIdx = auto.flatMap((a, i) => (a === null ? [i] : []));
+  let written: LabStepGraded | null = null;
+  if (textIdx.length) {
+    written = await gradeWrittenParts(
+      { ...params, parts: textIdx.map((i) => params.parts[i]), answers: textIdx.map((i) => params.answers[i] ?? "") },
+      model
+    );
+  }
+  const partScores: PartResult[] = params.parts.map((p, i) => {
+    const a = auto[i];
+    if (a) return { part: p.label, score: a.score, comment: a.comment };
+    const w = written!.partScores[textIdx.indexOf(i)];
+    return { part: p.label, score: w?.score ?? "missed", comment: w?.comment ?? "" };
+  });
+  const verdict = runVerdict([{ partScores }]);
+  const missedParts = partScores.filter((p) => p.score === "missed").map((p) => p.part);
+  const autoIdx = auto.flatMap((a, i) => (a ? [i] : []));
+  const autoMet = autoIdx.filter((i) => auto[i]!.score === "met").length;
+  const checked = `Checked instantly: ${autoMet} of ${autoIdx.length} ${autoIdx.length === 1 ? "part" : "parts"} met.`;
+  const firstGap = autoIdx.find((i) => auto[i]!.score !== "met");
+  const autoFix = firstGap !== undefined ? `Look again at "${params.parts[firstGap].label}": ${auto[firstGap]!.comment}` : "";
+  return {
+    verdict,
+    feedback: [checked, written?.feedback ?? ""].filter(Boolean).join(" "),
+    classification: written && written.classification !== "none" ? written.classification : verdict === "correct" ? "none" : "incomplete",
+    missedParts,
+    fixNext: (written && written.verdict !== "correct" && written.fixNext) || autoFix || (verdict === "correct" ? "" : written?.fixNext ?? ""),
+    partScores,
+  };
+}
+
+// Written parts: the model, with the trivial-answer rule and the
+// consistency check. Unchanged from REQ-123.
+async function gradeWrittenParts(
+  params: Parameters<typeof gradeLabStepPrompt>[0] & { userId?: string },
+  model: LabStepModel
 ): Promise<LabStepGraded> {
   const labels = params.parts.map((p) => p.label);
   const trivial = trivialParts(params.parts, params.answers, params.step.ask);
