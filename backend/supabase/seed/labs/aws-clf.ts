@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-153: AWS Certified Cloud Practitioner (CLF-C02), foundational level.
@@ -66,26 +66,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Name the migration strategy for each system and the one fact that decides it.",
           parts: [
-            part(
-              "Shipment tracker (40 VMs)",
-              "Chooses rehost (lift and shift), because the application cannot be changed and the goal is to move it as it is.",
-              "Rehost (lift and shift): the application cannot be modified, so the servers are moved to EC2 as they are, for example with AWS Application Migration Service, and modernised later if ever."
-            ),
-            part(
-              "Oracle database",
-              "Chooses replatform (lift, tinker and shift): keep a relational database but move it to a managed service such as Amazon RDS so AWS handles patching and backups; database replication (for example AWS DMS) moves the data.",
-              "Replatform: move it to Amazon RDS so patching, backups and failover become AWS's job, without rewriting the application. AWS Database Migration Service replicates the data across while the old database keeps running."
-            ),
-            part(
-              "HR system",
-              "Chooses repurchase (drop and shop), because a SaaS replacement has already been bought.",
-              "Repurchase: the SaaS HR product replaces the home-grown system, so the old application is not migrated at all; the data is moved into the new product."
-            ),
-            part(
-              "Tape-backup catalogue",
-              "Chooses retire, because the application is unused and its data exists elsewhere.",
-              "Retire: nobody uses it and the data is duplicated, so it is decommissioned rather than moved, which also removes its licence and server cost."
-            ),
+            matchPart("Strategy for each system", "(1) rehost, (2) replatform, (3) repurchase, (4) retire. Refactor and retain fit none, since nothing may be rewritten and everything must leave the data centre. All four right is met; two or three is partly there.", "(1) Rehost: the application cannot be changed. (2) Replatform: keep a relational database on Amazon RDS so AWS patches and backs it up. (3) Repurchase: the SaaS HR product is already bought. (4) Retire: unused for two years and its data is duplicated. Refactor would rewrite code nobody may touch; retain would leave a system on the data-centre floor.", {"leftHeading": "System", "rightHeading": "Migration strategy", "left": ["(1) Shipment tracker on 40 Windows VMs", "(2) Oracle database", "(3) Home-grown HR system", "(4) Tape-backup catalogue"], "right": ["Rehost (lift and shift)", "Replatform (to a managed service)", "Repurchase (move to SaaS)", "Retire", "Refactor (re-architect)", "Retain (leave on premises)"], "pairs": [0, 1, 2, 3]}),
+            part("Why each fits", "Gives the one deciding fact for each: Shipment tracker (40 VMs): Chooses rehost (lift and shift), because the application cannot be changed and the goal is to move it as it is. Oracle database: Chooses replatform (lift, tinker and shift): keep a relational database but move it to a managed service such as Amazon RDS so AWS handles patching and backups; database replication (for example AWS DMS) moves the data. HR system: Chooses repurchase (drop and shop), because a SaaS replacement has already been bought. Tape-backup catalogue: Chooses retire, because the application is unused and its data exists elsewhere.", "Shipment tracker (40 VMs): Rehost (lift and shift): the application cannot be modified, so the servers are moved to EC2 as they are, for example with AWS Application Migration Service, and modernised later if ever. Oracle database: Replatform: move it to Amazon RDS so patching, backups and failover become AWS's job, without rewriting the application. AWS Database Migration Service replicates the data across while the old database keeps running. HR system: Repurchase: the SaaS HR product replaces the home-grown system, so the old application is not migrated at all; the data is moved into the new product. Tape-backup catalogue: Retire: nobody uses it and the data is duplicated, so it is decommissioned rather than moved, which also removes its licence and server cost."),
           ],
         },
       ],
@@ -103,16 +85,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Assign each finding to a pillar of the AWS Well-Architected Framework, then name the two pillars in the founders' disagreement and how an architect resolves it.",
           parts: [
-            part(
-              "Findings A and B",
-              "Maps A (one AZ, spread to two) to Reliability and B (manual deployments, runbooks) to Operational Excellence.",
-              "A is Reliability: running in more than one Availability Zone lets the system recover from the loss of one. B is Operational Excellence: operations as code and runbooks make releases repeatable and recoverable."
-            ),
-            part(
-              "Findings C and D",
-              "Maps C (oversized database) to Cost Optimization and D (slow reports, caching) to Performance Efficiency.",
-              "C is Cost Optimization: rightsizing the database stops paying for capacity that is never used. D is Performance Efficiency: using a cache matches the resource to the access pattern instead of re-reading the table."
-            ),
+            matchPart("Pillar for each finding", "A Reliability, B Operational Excellence, C Cost Optimization, D Performance Efficiency. None of the findings is about Security. All four right is met; two or three is partly there.", "A: Reliability (survive the loss of an Availability Zone). B: Operational Excellence (scripted deployments and runbooks). C: Cost Optimization (right-size the oversized database). D: Performance Efficiency (a cache to cut report time).", {"leftHeading": "Finding", "rightHeading": "Pillar", "left": ["A: web tier in one Availability Zone, spread it to two", "B: hand deployments from a laptop, script them and keep runbooks", "C: database three sizes larger than its busiest hour", "D: nine-minute reports that a cache would make seconds"], "right": ["Reliability", "Operational Excellence", "Cost Optimization", "Performance Efficiency", "Security"], "pairs": [0, 1, 2, 3]}),
+            part("Findings A to D, in a sentence each", "Says in a sentence why each finding belongs to its pillar: Findings A and B: Maps A (one AZ, spread to two) to Reliability and B (manual deployments, runbooks) to Operational Excellence. Findings C and D: Maps C (oversized database) to Cost Optimization and D (slow reports, caching) to Performance Efficiency.", "Findings A and B: A is Reliability: running in more than one Availability Zone lets the system recover from the loss of one. B is Operational Excellence: operations as code and runbooks make releases repeatable and recoverable. Findings C and D: C is Cost Optimization: rightsizing the database stops paying for capacity that is never used. D is Performance Efficiency: using a cache matches the resource to the access pattern instead of re-reading the table."),
             part(
               "The founders' conflict",
               "Names Performance Efficiency (or Reliability) against Cost Optimization, and resolves it with a measurable target (latency or availability) plus elasticity (Auto Scaling) so capacity follows demand rather than sitting idle.",
@@ -216,26 +190,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Name the service for each worry and what it actually does.",
           parts: [
-            part(
-              "Worry 1: known vulnerabilities",
-              "Chooses Amazon Inspector, a vulnerability scanner for EC2 instances, container images and Lambda functions that reports known software vulnerabilities and unintended network exposure.",
-              "Amazon Inspector: it scans EC2 instances, container images in Amazon ECR and Lambda functions for known vulnerabilities (CVEs) and network exposure, and produces the list she is missing."
-            ),
-            part(
-              "Worry 2: suspicious activity",
-              "Chooses Amazon GuardDuty, a threat-detection service that analyses CloudTrail, VPC flow and DNS logs for malicious or unauthorised behaviour.",
-              "Amazon GuardDuty: continuous threat detection over account activity and network logs, which produces findings such as cryptocurrency mining or communication with known malicious addresses."
-            ),
-            part(
-              "Worry 3: DDoS",
-              "Chooses AWS Shield (Standard is automatic and free; Advanced adds more protection and support) for DDoS protection.",
-              "AWS Shield: Shield Standard protects every AWS customer automatically against common network-layer DDoS attacks; Shield Advanced adds larger-attack protection, visibility and response support for the website."
-            ),
-            part(
-              "Worry 4: one view with a standard",
-              "Chooses AWS Security Hub to aggregate findings from AWS and partner services across accounts and run checks against security standards.",
-              "AWS Security Hub: it collects findings from Inspector, GuardDuty and other tools across all twenty accounts into one view, scores them and runs automated checks against standards such as the AWS Foundational Security Best Practices."
-            ),
+            matchPart("Service for each worry", "Worry 1 Inspector, worry 2 GuardDuty, worry 3 Shield, worry 4 Security Hub. Macie (sensitive data in S3) answers none. All four right is met; two or three is partly there.", "1 Amazon Inspector (vulnerability scanning of EC2, ECR images and Lambda). 2 Amazon GuardDuty (threat detection over CloudTrail, VPC flow and DNS logs). 3 AWS Shield (DDoS protection; Standard is automatic). 4 AWS Security Hub (aggregates findings across accounts and checks them against standards). Amazon Macie finds sensitive data in S3, which none of the worries is about.", {"leftHeading": "Worry", "rightHeading": "Service", "left": ["Worry 1: known software vulnerabilities, no list", "Worry 2: crypto-mining or traffic to a known bad IP", "Worry 3: website must survive a DDoS attack", "Worry 4: one scored view of findings against a standard"], "right": ["Amazon Inspector", "Amazon GuardDuty", "AWS Shield", "AWS Security Hub", "Amazon Macie"], "pairs": [0, 1, 2, 3]}),
+            part("What each service does", "Says what each chosen service actually does: Worry 1: known vulnerabilities: Chooses Amazon Inspector, a vulnerability scanner for EC2 instances, container images and Lambda functions that reports known software vulnerabilities and unintended network exposure. Worry 2: suspicious activity: Chooses Amazon GuardDuty, a threat-detection service that analyses CloudTrail, VPC flow and DNS logs for malicious or unauthorised behaviour. Worry 3: DDoS: Chooses AWS Shield (Standard is automatic and free; Advanced adds more protection and support) for DDoS protection. Worry 4: one view with a standard: Chooses AWS Security Hub to aggregate findings from AWS and partner services across accounts and run checks against security standards.", "Worry 1: known vulnerabilities: Amazon Inspector: it scans EC2 instances, container images in Amazon ECR and Lambda functions for known vulnerabilities (CVEs) and network exposure, and produces the list she is missing. Worry 2: suspicious activity: Amazon GuardDuty: continuous threat detection over account activity and network logs, which produces findings such as cryptocurrency mining or communication with known malicious addresses. Worry 3: DDoS: AWS Shield: Shield Standard protects every AWS customer automatically against common network-layer DDoS attacks; Shield Advanced adds larger-attack protection, visibility and response support for the website. Worry 4: one view with a standard: AWS Security Hub: it collects findings from Inspector, GuardDuty and other tools across all twenty accounts into one view, scores them and runs automated checks against standards such as the AWS Foundational Security Best Practices."),
           ],
         },
       ],
@@ -254,26 +210,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Pick a storage class for each kind of data and give the deciding reason.",
           parts: [
-            part(
-              "Website images",
-              "Chooses S3 Standard for frequently accessed data with millisecond access and no retrieval fee.",
-              "S3 Standard: it is read constantly, so the class with the highest per-GB price but no retrieval charge and millisecond access is the cheapest overall."
-            ),
-            part(
-              "Accounting exports",
-              "Chooses S3 Standard-Infrequent Access (not One Zone-IA), because access is rare but must be immediate and the data must survive the loss of an Availability Zone; notes the per-GB retrieval charge and 30-day minimum storage duration.",
-              "S3 Standard-IA: lower storage price for rarely read files, still milliseconds to retrieve, stored across at least three Availability Zones. Not One Zone-IA, which lives in a single AZ. Expect a per-GB retrieval fee and a 30-day minimum charge per object."
-            ),
-            part(
-              "Old appointment records",
-              "Chooses S3 Glacier Deep Archive (or Glacier Flexible Retrieval), explaining that retrieval in hours (Deep Archive within 12 hours) is acceptable and the storage price is the lowest; mentions the 180-day minimum.",
-              "S3 Glacier Deep Archive: the lowest-cost class for data touched about once a year; a standard retrieval completes within 12 hours, which suits 'by the next morning'. Objects carry a 180-day minimum storage charge, fine for seven-year records."
-            ),
-            part(
-              "Unpredictable working files",
-              "Chooses S3 Intelligent-Tiering, which moves objects between access tiers automatically for a small monitoring charge with no retrieval fees.",
-              "S3 Intelligent-Tiering: it watches each object's access and moves it between frequent, infrequent and archive-instant tiers automatically, with no retrieval charges, so the team pays less without managing lifecycle rules."
-            ),
+            matchPart("Storage class for each kind of data", "(1) Standard, (2) Standard-IA, (3) Glacier Deep Archive, (4) Intelligent-Tiering. One Zone-IA does not survive the loss of an Availability Zone, so it is wrong for (2) and fits none. All four right is met; two or three is partly there.", "(1) S3 Standard: read constantly, no retrieval fee. (2) S3 Standard-IA: rare reads, milliseconds to retrieve, stored across Availability Zones (not One Zone-IA). (3) S3 Glacier Deep Archive: lowest price, standard retrieval within 12 hours suits 'by the next morning'. (4) S3 Intelligent-Tiering: moves objects between tiers automatically with no retrieval fees.", {"leftHeading": "Data", "rightHeading": "Storage class", "left": ["(1) Website product images, read thousands of times a day", "(2) Monthly accounting exports, rare but needed in seconds", "(3) Seven years of legal records, read about once a year", "(4) Data-science working files, access unpredictable"], "right": ["S3 Standard", "S3 Standard-IA", "S3 Glacier Deep Archive", "S3 Intelligent-Tiering", "S3 One Zone-IA"], "pairs": [0, 1, 2, 3]}),
+            part("Deciding reasons", "Gives the deciding reason for each: Website images: Chooses S3 Standard for frequently accessed data with millisecond access and no retrieval fee. Accounting exports: Chooses S3 Standard-Infrequent Access (not One Zone-IA), because access is rare but must be immediate and the data must survive the loss of an Availability Zone; notes the per-GB retrieval charge and 30-day minimum storage duration. Old appointment records: Chooses S3 Glacier Deep Archive (or Glacier Flexible Retrieval), explaining that retrieval in hours (Deep Archive within 12 hours) is acceptable and the storage price is the lowest; mentions the 180-day minimum. Unpredictable working files: Chooses S3 Intelligent-Tiering, which moves objects between access tiers automatically for a small monitoring charge with no retrieval fees.", "Website images: S3 Standard: it is read constantly, so the class with the highest per-GB price but no retrieval charge and millisecond access is the cheapest overall. Accounting exports: S3 Standard-IA: lower storage price for rarely read files, still milliseconds to retrieve, stored across at least three Availability Zones. Not One Zone-IA, which lives in a single AZ. Expect a per-GB retrieval fee and a 30-day minimum charge per object. Old appointment records: S3 Glacier Deep Archive: the lowest-cost class for data touched about once a year; a standard retrieval completes within 12 hours, which suits 'by the next morning'. Objects carry a 180-day minimum storage charge, fine for seven-year records. Unpredictable working files: S3 Intelligent-Tiering: it watches each object's access and moves it between frequent, infrequent and archive-instant tiers automatically, with no retrieval charges, so the team pays less without managing lifecycle rules."),
           ],
         },
       ],
@@ -291,21 +229,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Name the service for each need and say what property of it makes it the right fit.",
           parts: [
-            part(
-              "Paid booking to invoice service",
-              "Chooses Amazon SQS: a message queue that stores messages until the consumer retrieves them, so a briefly offline consumer loses nothing and works through the backlog.",
-              "Amazon SQS: the booking service puts a message on a queue and the invoice service pulls messages when it is ready. Messages wait durably in the queue, so an outage of the consumer delays processing instead of losing bookings."
-            ),
-            part(
-              "Cancellation to three teams",
-              "Chooses Amazon SNS: publish/subscribe fan-out that pushes one message to many subscribers at once.",
-              "Amazon SNS: one 'booking cancelled' message is published to a topic and pushed to every subscriber, so housekeeping, finance and the owner-portal all receive it at the same time without the booking service knowing about each one."
-            ),
-            part(
-              "Routing many kinds of events",
-              "Chooses Amazon EventBridge: an event bus that receives events from AWS services, your own applications and SaaS partners and routes them by rules to targets.",
-              "Amazon EventBridge: an event bus with rules that match on an event's content, so S3 uploads, EC2 state changes and the partner's SaaS events each route to their own handler, and new routes are added as rules rather than code."
-            ),
+            matchPart("Service for each need", "(1) SQS, (2) SNS, (3) EventBridge. All three right is met; two is partly there.", "(1) Amazon SQS: a durable queue the invoice service drains at its own pace. (2) Amazon SNS: publish once, pushed to every subscriber at the same time. (3) Amazon EventBridge: an event bus whose rules route events from AWS services, your apps and SaaS partners to targets.", {"leftHeading": "Need", "rightHeading": "Service", "left": ["(1) Paid booking to the invoice service, nothing lost", "(2) Cancellation to three teams at the same moment", "(3) Route S3, EC2 and SaaS events to different handlers by rules"], "right": ["Amazon SQS", "Amazon SNS", "Amazon EventBridge"], "pairs": [0, 1, 2]}),
+            part("The property that decides it", "Names the property that makes each the right fit: Paid booking to invoice service: Chooses Amazon SQS: a message queue that stores messages until the consumer retrieves them, so a briefly offline consumer loses nothing and works through the backlog. Cancellation to three teams: Chooses Amazon SNS: publish/subscribe fan-out that pushes one message to many subscribers at once. Routing many kinds of events: Chooses Amazon EventBridge: an event bus that receives events from AWS services, your own applications and SaaS partners and routes them by rules to targets.", "Paid booking to invoice service: Amazon SQS: the booking service puts a message on a queue and the invoice service pulls messages when it is ready. Messages wait durably in the queue, so an outage of the consumer delays processing instead of losing bookings. Cancellation to three teams: Amazon SNS: one 'booking cancelled' message is published to a topic and pushed to every subscriber, so housekeeping, finance and the owner-portal all receive it at the same time without the booking service knowing about each one. Routing many kinds of events: Amazon EventBridge: an event bus with rules that match on an event's content, so S3 uploads, EC2 state changes and the partner's SaaS events each route to their own handler, and new routes are added as rules rather than code."),
           ],
         },
       ],
@@ -361,26 +286,8 @@ export const AWSCLF_LABS: SeedLabSet = {
           text: "",
           ask: "Choose a purchasing option for each workload and say what it gives up.",
           parts: [
-            part(
-              "Steady API",
-              "Chooses a Savings Plan or Reserved Instances (1- or 3-year commitment) for the steady 24/7 baseline, noting that the trade-off is a commitment even if usage falls.",
-              "A Savings Plan or Reserved Instances over a 3-year term for the six always-on instances: the largest discount for steady usage, in exchange for paying the commitment whether or not the instances are still needed."
-            ),
-            part(
-              "Overnight job",
-              "Chooses Spot Instances, because the job tolerates interruption, noting that Spot capacity can be reclaimed at short notice.",
-              "Spot Instances: deepest discount on spare capacity; the only cost is that AWS can reclaim them with little warning, which this restartable, deadline-free job tolerates."
-            ),
-            part(
-              "One-month pilot",
-              "Chooses On-Demand: no commitment for a short, unpredictable workload and no interruptions, accepting the highest hourly price.",
-              "On-Demand: pay by the hour or second with no commitment, and the instances are never interrupted; the price per hour is the highest, which is acceptable for one month of unknown load."
-            ),
-            part(
-              "Licensed SQL Server",
-              "Chooses Dedicated Hosts, because bring-your-own per-socket or per-core licences require a physical server dedicated to the customer, with AWS License Manager to track usage.",
-              "Dedicated Hosts: a whole physical server for Fernhill alone, which is what the per-socket licence terms require, with visibility of sockets and cores and AWS License Manager to track the licences. Dedicated Instances would not expose the hardware the licence counts."
-            ),
+            matchPart("Purchasing option for each workload", "(1) Savings Plan or Reserved Instances, (2) Spot, (3) On-Demand, (4) Dedicated Hosts. Dedicated Instances do not expose the sockets and cores a per-socket licence counts, so they fit none. All four right is met; two or three is partly there.", "(1) Savings Plan or Reserved Instances: the biggest discount for steady 24/7 use, in exchange for a commitment. (2) Spot: the deepest discount; AWS can reclaim it, which a restartable job tolerates. (3) On-Demand: no commitment and never interrupted. (4) Dedicated Hosts: a whole physical server, as the licence requires; Dedicated Instances would not expose the hardware the licence counts.", {"leftHeading": "Workload", "rightHeading": "Purchasing option", "left": ["(1) Customer API on six instances, 24/7 for three more years", "(2) Overnight job that can stop and restart any time", "(3) One-month pilot, unpredictable, must not be interrupted", "(4) SQL Server with per-socket licences that need a dedicated physical server"], "right": ["Savings Plan or Reserved Instances", "Spot Instances", "On-Demand", "Dedicated Hosts", "Dedicated Instances"], "pairs": [0, 1, 2, 3]}),
+            part("What each gives up", "Says what each choice gives up: Steady API: Chooses a Savings Plan or Reserved Instances (1- or 3-year commitment) for the steady 24/7 baseline, noting that the trade-off is a commitment even if usage falls. Overnight job: Chooses Spot Instances, because the job tolerates interruption, noting that Spot capacity can be reclaimed at short notice. One-month pilot: Chooses On-Demand: no commitment for a short, unpredictable workload and no interruptions, accepting the highest hourly price. Licensed SQL Server: Chooses Dedicated Hosts, because bring-your-own per-socket or per-core licences require a physical server dedicated to the customer, with AWS License Manager to track usage.", "Steady API: A Savings Plan or Reserved Instances over a 3-year term for the six always-on instances: the largest discount for steady usage, in exchange for paying the commitment whether or not the instances are still needed. Overnight job: Spot Instances: deepest discount on spare capacity; the only cost is that AWS can reclaim them with little warning, which this restartable, deadline-free job tolerates. One-month pilot: On-Demand: pay by the hour or second with no commitment, and the instances are never interrupted; the price per hour is the highest, which is acceptable for one month of unknown load. Licensed SQL Server: Dedicated Hosts: a whole physical server for Fernhill alone, which is what the per-socket licence terms require, with visibility of sockets and cores and AWS License Manager to track the licences. Dedicated Instances would not expose the hardware the licence counts."),
           ],
         },
       ],

@@ -82,9 +82,12 @@ export function reissuedAccessToken(data: unknown): string | null {
 // POST /api/objectives/:id/hint. A request without the header is treated as
 // an app build from before this (no hint flow) and is sent the Solo choices
 // in the lesson, with the hint recorded (backend/lib/client-protocol.ts).
+// Protocol 2 (REQ-189): the app also renders interactive lab parts; below
+// 2 the server writes their options into the step text instead
+// (backend/lib/client-protocol.ts LAB_INTERACTIVE_PROTOCOL).
 // Raise it only together with the server's own check.
 export const CLIENT_PROTOCOL_HEADER = "X-Ascendra-Client";
-export const CLIENT_PROTOCOL = 1;
+export const CLIENT_PROTOCOL = 2;
 
 // REQ-175: the app build, sent on every request (src/lib/appVersion.ts).
 // src/updates/appIdentity.ts fills in the build and platform when the app

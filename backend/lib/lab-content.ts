@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { hasUnstorableText } from "./text-input";
+import { interactiveProblems, type InteractiveSpec } from "./lab-interactive";
 
 // REQ-123: the content rules for a lab, with no database or model imports,
 // so the seed (supabase/seed/seed-lib.ts), the seed test and the generator
@@ -9,6 +10,10 @@ export interface LabRubricPartContent {
   label: string;
   criteria: string;
   modelAnswer: string;
+  // REQ-189: answered with a control and graded by rule (lib/lab-interactive.ts).
+  // The criteria say what earns met / partly there; the model answer is
+  // shown after grading, as for a written part.
+  interactive?: InteractiveSpec;
 }
 
 export type LabKind = "build" | "case";
@@ -65,6 +70,9 @@ export function labContentProblems(lab: LabContent): string[] {
       str(part?.label, `step ${i + 1} part ${j + 1} label`, LAB_LIMITS.label, 2);
       str(part?.criteria, `step ${i + 1} part ${j + 1} criteria`, LAB_LIMITS.criteria, 10);
       str(part?.modelAnswer, `step ${i + 1} part ${j + 1} model answer`, LAB_LIMITS.modelAnswer, 10);
+      if (part?.interactive !== undefined) {
+        p.push(...interactiveProblems(part.interactive, typeof part.modelAnswer === "string" ? part.modelAnswer : "", `step ${i + 1} part ${j + 1}`));
+      }
       const key = (part?.label ?? "").trim().toLowerCase();
       if (labels.has(key)) p.push(`step ${i + 1} has two parts labelled "${part.label}"`);
       labels.add(key);

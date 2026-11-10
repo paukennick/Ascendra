@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, commandPart } from "./types";
 import { source } from "../sources";
 
 // REQ-164: Red Hat Certified System Administrator in OpenShift (EX280).
@@ -40,11 +40,7 @@ export const EX280_LABS: SeedLabSet = {
           text: "",
           ask: "Give the oc command for each question with its output and explain the selector or format used.",
           parts: [
-            part(
-              "Pods not Running (field selector)",
-              "oc get pods -n booking --field-selector status.phase!=Running, explaining field selectors operate server-side on a small set of fields (metadata.name, metadata.namespace, status.phase, spec.nodeName).",
-              "$ oc get pods -n booking --field-selector status.phase!=Running\nNAME                       READY   STATUS             RESTARTS   AGE\npricing-7c9d5f8b6-xk2lp    0/1     CrashLoopBackOff   9          31m\nseatmap-db-0               0/1     Pending            0          12m\nField selectors filter server-side on a handful of fields -- status.phase, metadata.name, metadata.namespace, spec.nodeName -- unlike label selectors, which work on any label. Combine them: --field-selector spec.nodeName=worker-2,status.phase=Running."
-            ),
+            commandPart("Pods not Running (field selector)", "oc get pods in project booking with --field-selector status.phase!=Running. Flag order, = or a space before the value, -n or --namespace, and pods or po are all accepted. Right command with the wrong filter or project is partly there.", "$ oc get pods -n booking --field-selector status.phase!=Running\nNAME                       READY   STATUS             RESTARTS   AGE\npricing-7c9d5f8b6-xk2lp    0/1     CrashLoopBackOff   9          31m\nseatmap-db-0               0/1     Pending            0          12m\nField selectors filter server-side on a handful of fields -- status.phase, metadata.name, metadata.namespace, spec.nodeName -- unlike label selectors, which work on any label. Combine them: --field-selector spec.nodeName=worker-2,status.phase=Running.", { accepted: ["oc get pods -n booking --field-selector status.phase!=Running", "oc get po -n booking --field-selector status.phase!=Running", "oc get pod -n booking --field-selector status.phase!=Running"], valueFlags: ["-n", "--field-selector"], optionAliases: { "--namespace": "-n" } }),
             part(
               "Node IPs and versions (custom-columns)",
               "oc get nodes -o custom-columns with jsonpath-style expressions, selecting the InternalIP address from the addresses array by type and status.nodeInfo.kubeletVersion.",

@@ -1,4 +1,4 @@
-# Labs (REQ-123, REQ-124, REQ-125)
+# Labs (REQ-123, REQ-124, REQ-125, REQ-189)
 
 Labs are hands-on practice for the skills an exam tests by doing: writing a
 least-privilege policy, laying out a work breakdown structure, prioritising
@@ -49,6 +49,94 @@ Cost: one fast-model call per graded step, about $0.0005 (3,200 tokens in,
 steps spends about one cent. Grading is not under the daily AI budget, like
 every other grader (`lib/ai-budget.ts`); it is rate limited (40 steps per 10
 minutes) and counts toward the learner's daily total.
+
+## Interactive parts (REQ-189)
+
+A rubric part can be answered with a control instead of a text box and
+graded instantly by rule, with no model call and no AI cost
+(`lib/lab-interactive.ts`). The spec lives in the part itself
+(`labs.rubric[step].parts[i].interactive`), so there is **no migration**;
+the part keeps its `label`, `criteria` (which state the rule) and
+`modelAnswer` (shown after grading, as for a written part).
+
+| Type | The learner | Met | Partly there | Missed |
+|---|---|---|---|---|
+| **order** (4-10 items) | drags items, or uses each item's up/down buttons (or the screen reader's "Move up/down" actions) | exact order | the fewest single moves to fix it is at most a third of the items (1 for 4-5 items, 2 for 6-8, 3 for 9-10) | more moves than that |
+| **match** (3-8 left items, up to 3 distractors on the right) | taps one option per item; each option is used once | every pair right | at least half the pairs right | fewer |
+| **select / hotspot** (3-40 lines of a log, config, table or list) | taps every line that is the problem | exactly the problem lines | (right picks - wrong picks) is at least half the problem lines | otherwise; ticking every line never scores |
+| **command** | types into a terminal-style field (never run) | same shape as an accepted form | right program, and either its other words or its options match an accepted form | otherwise |
+| **numeric** | types a number (currency signs, thousands commas and the part's unit are fine) | within `tolerance` | within `partialTolerance`, when set (a rounding slip) | otherwise, or not a number |
+
+**Command normalisation.** Whitespace and a leading prompt (`$ `, `# `,
+`> `) are ignored; quotes group words; short flag clusters equal separate
+flags (`-la` = `-l -a` = `-al`); flag order does not matter; a value option
+reads the same as `--name value`, `--name=value`, `-n value` or `-nvalue`
+(list short value options in `valueFlags`; a long option written with `=` in
+an accepted form is one automatically); `optionAliases` makes options equal
+(`{ "--namespace": "-n" }`); `ignoreCase` for device CLIs. Other equivalent
+forms (`pods` / `po`) are listed in `accepted`. The text is parsed, never
+evaluated: `; rm -rf /` is just more words.
+
+**What the app gets, and when.** Before a step is graded the step's
+`inputs` (beside `parts`) carry each control with no key: order items
+shuffled (deterministic per lab, step and part, and never already in key
+order), match's right side shuffled, select lines in their own order. Order
+and match ids are hashes of the item text, so they say nothing about the
+answer. After grading, `reference[i].key` carries the key, beside the
+criteria and model answer, and the result has `responses` (the answers as
+sent) and `answers` (written out in words). A case's later steps are still
+not sent before the earlier ones are graded.
+
+**Answers stay one string per part**, so drafts (`useLabDraft`), the client
+attempt id, replay and `lab_run_steps.answers` are unchanged: order is a
+JSON array of ids, match a JSON object of left id to right id, select a
+JSON array of line ids, command and numeric the text as typed. A structured
+answer that names options the part does not have is a 400.
+
+**Mixed steps.** Interactive parts are graded first; only the written parts
+go to the model (their own prompt, trivial-answer rule and consistency
+check). The step's verdict then follows the merged part scores, the same
+rule as a run (`runVerdict`); its feedback starts "Checked instantly: n of m
+parts met". A step with only interactive parts makes no model call. Grading
+still counts toward the rate limit and, on Free, the graded-answer
+allowance, as any lab step does.
+
+**Older apps.** The app sends `X-Ascendra-Client: 2` from REQ-189. Below 2
+the lab view writes each interactive part's options into the step text, and
+a written answer to an order, match or select part is graded by the model
+against that part's criteria, so nothing is unanswerable.
+
+**Content rules** (`labContentProblems`, so a bad part fails `npm test`
+and the seed): order items unique, 4-10; match sides unique, one right item
+per left item and never shared (otherwise there is no unique solution), at
+most three distractors; select has at least one and not every line correct,
+and no correct line with the same text as a fine one; commands readable,
+not duplicates after normalising, and the model answer quotes the first;
+numeric tolerance at most 10% of the answer, partial at most 25% and larger
+than the tolerance, and the model answer states the value. Clinical and
+fitness labs keep a written part in every step (`lib/lab-interactive.test.ts`):
+an interactive part may sit beside clinical reasoning, never replace it.
+
+**Authoring.** `seed/labs/types.ts` has `orderPart`, `matchPart`,
+`selectPart`, `commandPart` and `numericPart`. Write the criteria as the
+rule ("Met within $1"; "one item out of place is partly there") and keep
+the model answer explaining the key. Adding a spec changes the lab's content
+hash, so an approved lab goes back to `needs_expert_review`.
+
+**The pilot (40 labs).** Converted where a control tests the skill better
+than prose, in course files the concurrent audit fixes do not touch
+(Security+, Security+ V8, Network+ and AWS SAA are waiting for those fixes
+to merge). PMP, CAPM, PMI-SP, PMI-RMP, PMI-PBA and Project+ (numeric float,
+EAC, PERT standard deviation, earned schedule, crashing, EMV, reserve,
+value and weighted scores; a risk priority order; match on techniques and
+dependency types); AWS Cloud Practitioner, AI Practitioner, AZ-900, DP-900,
+Cloud Digital Leader and Generative AI Leader (service, storage, pillar and
+model matches; token cost and error-budget numbers); SecAI+, Data+, Data
+and AI, KCNA, EX280 and Tech+ (AI technique match, the SQL line that fans
+out a join, MCC and sample standard deviation, Kubernetes object and status
+matches, an `oc` field-selector command, the troubleshooting methodology in
+order). Objectives and step order are unchanged; each key was re-worked from
+the brief.
 
 ## How labs count toward mastery
 

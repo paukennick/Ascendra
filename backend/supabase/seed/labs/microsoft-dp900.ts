@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-156: Microsoft Certified: Azure Data Fundamentals (DP-900).
@@ -52,26 +52,8 @@ export const DP900_LABS: SeedLabSet = {
           text: "",
           ask: "Name the Azure data store for each need, say whether the data is structured, semi-structured or unstructured, and give the deciding reason.",
           parts: [
-            part(
-              "Photos and manuals",
-              "Chooses Azure Blob Storage, calls the files unstructured data, and gives the reason that Blob Storage is object storage optimised for large amounts of unstructured data served over HTTP.",
-              "Azure Blob Storage. Images and PDFs are unstructured data (no fixed schema inside them), and Blob Storage is object storage built for massive amounts of unstructured files, addressable by URL so the website can serve them directly."
-            ),
-            part(
-              "Order system",
-              "Chooses a relational database, Azure SQL Database (or another Azure relational service), calls the data structured, and cites tables with a fixed schema, transactions and joins as the reason.",
-              "Azure SQL Database. Customers, orders and payments are structured data in tables with a fixed schema; a relational engine gives transactions across tables for consistency and SQL joins for the reports. It is a transactional (OLTP) workload."
-            ),
-            part(
-              "Telemetry archive",
-              "Chooses Azure Data Lake Storage (Blob Storage with the hierarchical namespace), calls the JSON semi-structured and the Parquet files analytics files, and gives the reason that the hierarchical namespace makes directory rename and delete single atomic operations and suits big-data analytics tools.",
-              "Azure Data Lake Storage: a storage account with the hierarchical namespace enabled, built on Blob Storage for big-data analytics. The JSON is semi-structured and Parquet is a columnar analytics format. With the hierarchical namespace, folders are real directories, so renaming or deleting a year/month/day folder is one atomic metadata operation instead of touching every file, and analytics engines read the folder layout directly."
-            ),
-            part(
-              "Legacy SMB application",
-              "Chooses Azure Files, giving the reason that it provides managed file shares that can be mounted over SMB from Windows without changing the application.",
-              "Azure Files. It gives a fully managed file share in the cloud that the Windows application can mount over SMB like the old network drive, so the application does not change. Files on the share can be any type; here they are whatever the application writes."
-            ),
+            matchPart("Data store for each need", "(1) Blob Storage, (2) Azure SQL Database, (3) Data Lake Storage, (4) Azure Files. Cosmos DB for Table fits none. All four right is met; two or three is partly there.", "(1) Azure Blob Storage: object storage for unstructured files. (2) Azure SQL Database: structured data with a fixed schema, transactions and joins. (3) Azure Data Lake Storage: Blob Storage with the hierarchical namespace, so folder renames and deletes are atomic. (4) Azure Files: managed SMB shares, no code change.", {"leftHeading": "Need", "rightHeading": "Data store", "left": ["(1) Millions of product photos and PDF manuals", "(2) Orders, customers and payments with transactions and joins", "(3) Telemetry files analysts query and reorganise by folder", "(4) A legacy app writing to a network drive over SMB"], "right": ["Azure Blob Storage", "Azure SQL Database", "Azure Data Lake Storage", "Azure Files", "Azure Cosmos DB for Table"], "pairs": [0, 1, 2, 3]}),
+            part("Data type and deciding reason", "Says whether each is structured, semi-structured or unstructured and gives the deciding reason: Photos and manuals: Chooses Azure Blob Storage, calls the files unstructured data, and gives the reason that Blob Storage is object storage optimised for large amounts of unstructured data served over HTTP. Order system: Chooses a relational database, Azure SQL Database (or another Azure relational service), calls the data structured, and cites tables with a fixed schema, transactions and joins as the reason. Telemetry archive: Chooses Azure Data Lake Storage (Blob Storage with the hierarchical namespace), calls the JSON semi-structured and the Parquet files analytics files, and gives the reason that the hierarchical namespace makes directory rename and delete single atomic operations and suits big-data analytics tools. Legacy SMB application: Chooses Azure Files, giving the reason that it provides managed file shares that can be mounted over SMB from Windows without changing the application.", "Photos and manuals: Azure Blob Storage. Images and PDFs are unstructured data (no fixed schema inside them), and Blob Storage is object storage built for massive amounts of unstructured files, addressable by URL so the website can serve them directly. Order system: Azure SQL Database. Customers, orders and payments are structured data in tables with a fixed schema; a relational engine gives transactions across tables for consistency and SQL joins for the reports. It is a transactional (OLTP) workload. Telemetry archive: Azure Data Lake Storage: a storage account with the hierarchical namespace enabled, built on Blob Storage for big-data analytics. The JSON is semi-structured and Parquet is a columnar analytics format. With the hierarchical namespace, folders are real directories, so renaming or deleting a year/month/day folder is one atomic metadata operation instead of touching every file, and analytics engines read the folder layout directly. Legacy SMB application: Azure Files. It gives a fully managed file share in the cloud that the Windows application can mount over SMB like the old network drive, so the application does not change. Files on the share can be any type; here they are whatever the application writes."),
           ],
         },
       ],
@@ -132,26 +114,8 @@ export const DP900_LABS: SeedLabSet = {
           text: "",
           ask: "Choose the Cosmos DB API for each system and give the deciding reason.",
           parts: [
-            part(
-              "New player-profile service",
-              "Chooses Azure Cosmos DB for NoSQL, because it is the native document API with SQL-style queries, automatic indexing and schema flexibility, which suits a new application.",
-              "Azure Cosmos DB for NoSQL: the native API for document data, with SQL-style queries over JSON, automatic indexing and schema flexibility. A new application with no existing driver dependency should use it."
-            ),
-            part(
-              "Existing MongoDB inventory service",
-              "Chooses Azure Cosmos DB for MongoDB, because it is wire-protocol compatible so the existing drivers and tools keep working.",
-              "Azure Cosmos DB for MongoDB: it speaks the MongoDB wire protocol, so the existing application keeps its MongoDB drivers and tools and migrates with minimal code change."
-            ),
-            part(
-              "Friends graph",
-              "Chooses Azure Cosmos DB for Apache Gremlin, because it is the graph API and the Gremlin traversal language answers relationship queries like friends of friends.",
-              "Azure Cosmos DB for Apache Gremlin: a graph API where players are vertices and friendships are edges, and the Gremlin traversal language expresses 'friends of friends who play the same game' directly."
-            ),
-            part(
-              "Table Storage telemetry",
-              "Chooses Azure Cosmos DB for Table, because it modernises Azure Table Storage applications with global distribution and higher throughput while keeping the Table data model and SDK.",
-              "Azure Cosmos DB for Table: it is built for applications written against Azure Table Storage, keeping the same table/entity model so no rewrite is needed, while adding global distribution and the throughput the team wants."
-            ),
+            matchPart("API for each system", "(1) NoSQL, (2) MongoDB, (3) Apache Gremlin, (4) Table. The Cassandra API fits none. All four right is met; two or three is partly there.", "(1) for NoSQL: the native document API with SQL-style queries. (2) for MongoDB: wire-protocol compatible, so drivers keep working. (3) for Apache Gremlin: the graph API for traversals such as friends of friends. (4) for Table: keeps the Table model and SDK with global distribution. Nothing here uses Cassandra.", {"leftHeading": "System", "rightHeading": "Cosmos DB API", "left": ["(1) New player-profile service, JSON with SQL-like queries", "(2) Existing inventory service on MongoDB drivers", "(3) Friends-of-friends social graph", "(4) Old Azure Table Storage telemetry store"], "right": ["Azure Cosmos DB for NoSQL", "Azure Cosmos DB for MongoDB", "Azure Cosmos DB for Apache Gremlin", "Azure Cosmos DB for Table", "Azure Cosmos DB for Apache Cassandra"], "pairs": [0, 1, 2, 3]}),
+            part("Deciding reasons", "Gives the deciding reason for each: New player-profile service: Chooses Azure Cosmos DB for NoSQL, because it is the native document API with SQL-style queries, automatic indexing and schema flexibility, which suits a new application. Existing MongoDB inventory service: Chooses Azure Cosmos DB for MongoDB, because it is wire-protocol compatible so the existing drivers and tools keep working. Friends graph: Chooses Azure Cosmos DB for Apache Gremlin, because it is the graph API and the Gremlin traversal language answers relationship queries like friends of friends. Table Storage telemetry: Chooses Azure Cosmos DB for Table, because it modernises Azure Table Storage applications with global distribution and higher throughput while keeping the Table data model and SDK.", "New player-profile service: Azure Cosmos DB for NoSQL: the native API for document data, with SQL-style queries over JSON, automatic indexing and schema flexibility. A new application with no existing driver dependency should use it. Existing MongoDB inventory service: Azure Cosmos DB for MongoDB: it speaks the MongoDB wire protocol, so the existing application keeps its MongoDB drivers and tools and migrates with minimal code change. Friends graph: Azure Cosmos DB for Apache Gremlin: a graph API where players are vertices and friendships are edges, and the Gremlin traversal language expresses 'friends of friends who play the same game' directly. Table Storage telemetry: Azure Cosmos DB for Table: it is built for applications written against Azure Table Storage, keeping the same table/entity model so no rewrite is needed, while adding global distribution and the throughput the team wants."),
           ],
         },
       ],
