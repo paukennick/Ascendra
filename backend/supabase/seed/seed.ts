@@ -27,6 +27,7 @@ import { SEED_USER_EMAIL } from "./data";
 import { CATALOG_TRACKS } from "./catalog";
 import { seedLabs, seedTrack } from "./seed-lib";
 import { LAB_SETS } from "./labs";
+import { seedSims } from "./sims-seed";
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
@@ -69,6 +70,15 @@ async function main() {
     for (const set of LAB_SETS) {
       const n = await seedLabs(pool, set);
       console.log(`labs: ${set.trackCode} -> ${n} authored lab(s)`);
+    }
+
+    // REQ-190: authored sims (scenarios and bands), after the tracks.
+    const hasSims = await pool.query<{ ok: boolean }>(`select to_regclass('public.sim_versions') is not null as ok`);
+    if (!hasSims.rows[0]?.ok) {
+      throw new Error("sim tables missing -- run `npm run migrate -- 062_sim_engine.sql` before seeding.");
+    }
+    for (const r of await seedSims(pool)) {
+      console.log(`sims: ${r.course}/${r.slug} -> version ${r.version} (${r.change})`);
     }
 
     console.log("Seed complete.");
