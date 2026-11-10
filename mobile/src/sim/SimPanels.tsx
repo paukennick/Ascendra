@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { AccessibilityInfo, Pressable, ScrollView, Text, View } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import Feather from "@expo/vector-icons/Feather";
 import { Badge, Body, Button, Card, Chip, ErrorBanner, H2, H3, Muted, TextField, MIN_TOUCH } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -174,7 +175,7 @@ export function ActionBar({ run, groups, onCommand, disabled }: { run: Run; grou
 function Sheet({ visible, title, onClose, children }: { visible: boolean; title: string; onClose: () => void; children: React.ReactNode }) {
   if (!visible) return null;
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose}>
+    <SheetModal transparent visible animationType="none" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
         <View style={{ backgroundColor: colors.card, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, maxHeight: "85%", padding: spacing.md, gap: spacing.sm }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -186,7 +187,7 @@ function Sheet({ visible, title, onClose, children }: { visible: boolean; title:
           <ScrollView contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.lg }}>{children}</ScrollView>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
