@@ -7658,6 +7658,51 @@
       "prevention_rules": [],
       "prevention_notes": "Every seeded sim document's objective and secondary objectives must be exact catalog titles; objectives.test.ts checks this without a database",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-790",
+      "date": "2026-11-09",
+      "title": "A sim notice announcing a reload was wiped by that reload",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "After a desync, useSimRun set 'The run was out of step with the server and has been reloaded from the server's copy.' and then called start(false), whose first step is setNotice(null); the learner saw no explanation for the run jumping",
+      "how_detected": "code review while wiring the journal into useSimRun",
+      "root_cause": "start() reset every piece of screen state, including the notice line, and the callers set their notice before calling it; React applied both updates in order, so the reset won",
+      "requirement": "REQ-199",
+      "affected": [
+        "mobile/src/sim/useSimRun.ts"
+      ],
+      "fix_summary": "start(restart, carry?) takes the notice to show after the reload; every reload with an explanation (desync, refused command, discarded journal) passes it",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "the bug lives in React state ordering inside a hook that needs React Native to run; the mobile suite runs pure modules under node --test with no renderer",
+      "prevention_rules": [],
+      "prevention_notes": "A caller that reloads the run passes its message through start's carry argument instead of setting the notice first",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-791",
+      "date": "2026-11-09",
+      "title": "A sim sync sent every unsent command in one request, past the step route's 500-command limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "useSimRun.flush posted s.pending whole; with more than 500 unsent commands (a long offline stretch, now also a long journal) the step route answers 400 and the app retried the same oversized batch forever with 'Not saved to the server yet'",
+      "how_detected": "review of the step route's limits while designing journal replay",
+      "root_cause": "the app and server limits were written separately; nothing tied the app's send size to SIM_LIMITS.commandsPerRequest",
+      "requirement": "REQ-199",
+      "affected": [
+        "mobile/src/sim/useSimRun.ts"
+      ],
+      "fix_summary": "flush sends at most SEND_BATCH (500) commands and sends the next batch after each acknowledgement",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/sim/journal.test.ts::a send never exceeds the step route's per-request limit",
+        "and a journal never exceeds a run"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "SEND_BATCH and JOURNAL_MAX_COMMANDS are pinned to the server's SIM_LIMITS by a test that imports both",
+      "recurrence_of": ""
     }
   ]
 }

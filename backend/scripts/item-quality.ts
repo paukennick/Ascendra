@@ -6,7 +6,8 @@
 //   npm run items -- confirm <kind> <itemId> "<what is wrong>"
 //   npm run items -- clear   <kind> <itemId> "<why it is fine>"
 //
-// kind: lesson | review | exam | quiz | comparison. itemId as listed.
+// kind: lesson | review | exam | quiz | comparison | lab | sim. itemId as listed
+// (a sim's is the sim_versions.id: confirming pulls that version).
 import "../supabase/seed/env-local";
 import { query, queryOne, closePool } from "../lib/db";
 import { ITEM_KINDS, clearItem, confirmItemWrong, type ItemKind } from "../lib/item-quality";

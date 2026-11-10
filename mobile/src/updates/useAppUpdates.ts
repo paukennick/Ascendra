@@ -31,19 +31,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { usePathname } from "expo-router";
 import * as Updates from "expo-updates";
+import { holdsUnsavedWork } from "./protectedRoutes";
 
 /** Away for longer than this and a reload costs the user nothing. */
 const SILENT_APPLY_AFTER_MS = 5 * 60 * 1000;
 
 /** Don't re-check more often than this, however much the app is toggled. */
 const MIN_CHECK_INTERVAL_MS = 60 * 1000;
-
-/** Routes holding in-memory work that a reload would discard. */
-const PROTECTED_ROUTE_FRAGMENTS = ["/lesson", "/pbq", "/chat"];
-
-function holdsUnsavedWork(pathname: string): boolean {
-  return PROTECTED_ROUTE_FRAGMENTS.some((fragment) => pathname.includes(fragment));
-}
 
 export interface AppUpdatesState {
   /** An update is downloaded and ready to apply on reload. */

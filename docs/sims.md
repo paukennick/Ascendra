@@ -3363,17 +3363,78 @@ now name AWSSAA catalog titles. `lib/sim/objectives.test.ts` pins this.
 - `GET /api/sims/runs/:runId` and `POST .../lease` (resume and takeover go
   through the start route, which takes the lease), and the
   acknowledgement route (the study notice replaced it, REQ-165).
-- The `sim` item kind (Report a problem on a sim, voiding through
-  `confirmItemWrong`), `item-quality.ts`, `coach-guard.ts` and
-  `item-report.ts` cases, the `ATTEMPT_SOURCES` entry, the
-  `sim_version_daily` view, the stale-sources report, and the review CLI.
+- The `coach-guard.ts` case (a running sim as an open item the coach must
+  not answer), the `sim_version_daily` view, the stale-sources report, and
+  a sim-specific review CLI. (The `sim` item kind and reporting are built:
+  REQ-199 below.)
 - Offline play measurement beyond `offline_ticks`, the per-minute command
   cap (a heartbeat is limited to one per 2 s; commands are limited per
   request and per run), and the observability counters.
-- In the app: the write-ahead journal in device storage and the sweep
-  (`localDataOwner`), the protected `/sim` route for updates, the web idle
-  auto-pause, keep-awake, waveforms, the cached client document across app
+- In the app: the web idle auto-pause, keep-awake, waveforms, the cached client document across app
   launches, and the manual accessibility pass on devices (VoiceOver,
   TalkBack, web at 400 px, 200% text). The run starts paused, leaving the
   app pauses it, and a frame gap over 3 s pauses it.
+
+### 22.1 Follow-ups as built (REQ-199)
+
+**The on-device command journal** (5.9; `mobile/src/sim/runtime/journal.ts`,
+pure; `mobile/src/sim/journalStore.ts`, storage; wired in
+`mobile/src/sim/useSimRun.ts`). Every command is written to device storage
+with its seq and tick before it is sent: AsyncStorage on native, and
+`window.localStorage` directly on web (synchronous, so the write lands
+before the request leaves). Every storage call is wrapped; a blocked or full
+store leaves the run working as before, from memory. The key is
+`ascendra.simJournal.<userId>.<simId>`, so the logout sweep
+(`src/lib/localData.ts`) removes it and the logout guard stops a late write
+putting it back. Each acknowledgement (`acceptedThrough`) rewrites the
+journal with what is still unsent; an empty journal is removed; writes for
+one key are serialised so a removal is never overtaken by an older save.
+Sends are cut to 500 commands per request (the step route's limit).
+
+On "Continue the run" the app reads the journal, takes the lease through
+the start route, and compares (`planJournal`):
+
+| What the server returned | What happens | What the learner reads |
+|---|---|---|
+| Same run, open, same version and client hash; the journal's first unsent seq is `lastSeq + 1` and not behind the server's tick | Replay: the unsent commands are applied locally on top of the server's and sent through the step route (an identical resend of a stored seq is accepted) | "Restored N actions made before the app closed; sending them to the server." |
+| Every journaled command already stored | Journal removed | nothing |
+| Another run, or the run ended (finished, quit or restarted elsewhere) | Discarded | "This run ended on another device or was restarted, so N actions made here ... could not be added to it." |
+| Another sim version or client document | Discarded | "This simulation was updated since you last played ..." |
+| A different command at a stored seq, or the server's clock past the first unsent command (another device ran the run on) | Discarded | "This run continued on another device, so N actions made here that had not been saved yet were dropped." |
+
+While a run is live, a 409 `lease_lost` drops the journal with the same
+plain notice; `run_ended` drops it and shows the stored debrief if there is
+one; `seq_conflict`, `seq_gap`, `too_fast` and a refused command drop it and
+reload from the server, so a journal the server will never accept cannot
+loop. A notice that announces a reload now survives the reload (it used to
+be cleared by it, FAIL-790). Tests: `mobile/src/sim/journal.test.ts` (kill
+mid-run, duplicate replay, stale journals, write order, storage failures,
+the logout guard) and, against Postgres, `backend/lib/sims.dbtest.ts`
+"journal replay through the step route".
+
+**Updates.** `/sim/` is on the over-the-air reload protected list, now in
+`mobile/src/updates/protectedRoutes.ts` so it can be tested; the sims list
+(`/sims`) is not.
+
+**Report a problem on a sim** (migration 067). The `sim` item kind joins
+042/050's pipeline. The item is the **sim version** (`sim_versions.id`):
+`POST /api/items/report { kind: "sim", runId, tick?, stateHash?, reason?,
+note? }` resolves the version from a run the learner owns (404 for another
+learner's run, and while `SIMS_ENABLED` is off; the study notice applies).
+The learner's words stay in `item_flags.note`; the machine data goes in the
+new `item_flags.context` (sim id, version id and number, run id and status,
+the tick and state hash the app showed, the server's last tick and hash,
+the engine version; at most 2000 bytes). A malformed tick or hash is stored
+as null. No automated re-check (as labs). Reports join the content review
+queue (`ATTEMPT_SOURCES.sim` counts finished runs per version for the
+correct-rate signal). Quarantine (three learners) or a confirmation pulls
+that version: `servedVersion` skips it, so new runs get the next approved
+version or none. `confirmItemWrong` voids every scored attempt of that
+version (through `sim_runs.attempt_id`); a run finishing on a confirmed
+version records no attempt, and resuming an open run on one starts a new
+run on the version served now. A quarantined version's open runs carry on
+(a later confirmation voids them). `npm run items -- confirm sim
+<versionId> "<note>"` works as for the other kinds. "Report a problem" is
+on the sim screen (it sends the tick and hash at the moment of sending)
+and on the debrief.
 

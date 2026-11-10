@@ -5925,6 +5925,56 @@
         "Left open (docs/sims.md 22, Not built yet): the sim item kind and Report a problem, the review queue entry, metrics view and stale report, resume/lease routes, observability counters; in the app the write-ahead journal, protected route, keep-awake, waveforms and the on-device accessibility pass.",
         "Content choices for Nick: tamponade now counts toward 'Care of the patient after cardiac surgery' (its own objective title was not in the CCRN catalog); TicketBurst secondary objectives remapped to AWSSAA titles; SIMS_RENDERERS default bedside,board; screen.board binding added to the schema (display-only)."
       ]
+    },
+    {
+      "id": "REQ-199",
+      "category": "feature",
+      "title": "Sim follow-ups: on-device command journal and Report a problem on a sim",
+      "description": "Two follow-ups to REQ-190's sim feature (docs/sims.md 22). (1) Persist each unsent sim command with its client seq and tick to device storage (AsyncStorage on native, localStorage on web, wrapped) before sending, clear on server acknowledgement, replay on resume through the idempotent step route, and discard with a plain notice when the run ended elsewhere, another device holds or moved the run, or the sim version changed; protect /sim/ from OTA reloads via the useAppUpdates protected-route list. (2) A 'sim' item kind in the report/item_status pipeline (migration 067, number assigned by the lead): reports carry sim id, version, the run's tick and state hash and the learner's note; they join the content review queue; a confirmed report pulls the sim version from rotation and voids its attempts; Report a problem on the sim and debrief screens.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/sim/**",
+        "mobile/src/updates/**",
+        "mobile/src/lib/localData.ts",
+        "mobile/src/lib/reportProblem.ts",
+        "mobile/src/components/ReportProblem.tsx",
+        "mobile/app/(app)/course/[trackId]/sim/**",
+        "backend/lib/sims.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/item-report.ts",
+        "backend/lib/content-review-queue.ts",
+        "backend/lib/schema-status.ts",
+        "backend/app/api/items/report/**",
+        "backend/supabase/migrations/067_sim_item_kind.sql",
+        "docs/sims.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "kill mid-run: the journal persists and replays to the same state",
+        "duplicate replay is idempotent",
+        "a stale journal (ended run / other version / moved on / lease lost) is discarded with a plain notice",
+        "/sim/ is on the OTA protected list",
+        "a sim report records version + tick + state hash + note",
+        "reports join the review queue and quarantine or confirmation pulls the version and voids its attempts",
+        "Report a problem on the sim and debrief screens",
+        "omni gate passes"
+      ],
+      "validation_required": [
+        "test",
+        "typecheck",
+        "test:db"
+      ],
+      "documentation_required": [
+        "changelog",
+        "docs/sims.md 22.1",
+        "deploy runbook rows for 067"
+      ],
+      "risk_notes": [
+        "migration 067 swaps item_kind checks on three tables (brief ACCESS EXCLUSIVE)",
+        "the 050 schema probe now accepts the 067 check"
+      ]
     }
   ]
 }

@@ -311,7 +311,8 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and exists(select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid
                          where t.typname = 'attempt_kind' and e.enumlabel = 'labtask')
              and (select count(*) from assessment_types where type_name in ('lab_build', 'lab_case')) = 2
-             and exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_050') as ok`,
+             -- 067 replaces 050's item_kind check with one that also allows 'sim'.
+             and exists(select 1 from pg_constraint where conname in ('item_flags_item_kind_050', 'item_flags_item_kind_067')) as ok`,
   },
   {
     // REQ-125: starting or grading a clinical or fitness lab, the lab view
@@ -342,6 +343,17 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
                          where t.typname = 'attempt_kind' and e.enumlabel = 'simtask')
              and exists(select 1 from assessment_types where type_name = 'sim_run')
              and exists(select 1 from pg_constraint where conname = 'attempts_simtask_shape') as ok`,
+  },
+  {
+    // REQ-199: "Report a problem" on a sim (lib/item-report.ts kind 'sim').
+    migration: "067_sim_item_kind.sql",
+    what: "the 'sim' item kind on item_flags / item_status / item_holdbacks and item_flags.context (reporting a sim)",
+    sql: `select exists(select 1 from pg_constraint where conname = 'item_flags_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_status_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_holdbacks_item_kind_067')
+             and exists(select 1 from pg_constraint where conname = 'item_flags_context_067')
+             and exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'item_flags' and column_name = 'context') as ok`,
   },
   {
     migration: "032_lesson_progress_tombstone.sql",

@@ -9,6 +9,8 @@ import { capsHeaders } from "@/sim/runtime/caps.ts";
 import { alarmTexts, runView, vitalsSentence } from "@/sim/runtime/view.ts";
 import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
+import { ReportProblem } from "@/components/ReportProblem";
+import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, DebriefView, EventLog, PromptCard, ReasoningCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
 
 // REQ-190 (docs/sims.md 8): one simulation. The brief, then the run: the
@@ -145,11 +147,21 @@ export default function SimScreen() {
           <EventLog log={view.log} finding={view.finding} />
           {sim.status === "finishing" ? <Loading label="Confirming the ending with the server..." /> : null}
           {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => { sim.quit(); }} /> : null}
+          {/* REQ-199: the moment the learner saw (tick, state hash) goes with the report. */}
+          <ReportProblem
+            key={`report-${s.runId}`}
+            target={{ kind: "sim", runId: s.runId }}
+            resolve={() => ({ kind: "sim", runId: s.runId, tick: s.run.state.tick, stateHash: localHash(s) })}
+          />
         </>
       ) : null}
 
       {sim.status === "done" && sim.debrief ? (
-        <DebriefView d={sim.debrief} onAgain={() => sim.start(true)} onBack={() => router.back()} />
+        <>
+          {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
+          <DebriefView d={sim.debrief} onAgain={() => sim.start(true)} onBack={() => router.back()} />
+          <ReportProblem key={`report-${sim.debrief.runId}`} target={{ kind: "sim", runId: sim.debrief.runId }} />
+        </>
       ) : null}
     </Screen>
   );
