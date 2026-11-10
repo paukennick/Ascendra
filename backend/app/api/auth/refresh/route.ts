@@ -50,7 +50,13 @@ export async function POST(req: Request) {
     const presented = presentedToken(req, body);
     if ("error" in presented) {
       if (presented.error === "csrf") return csrfRejected();
-      if (isWebClient(req)) return clearRefreshCookie(unauthorized("No session. Sign in again."));
+      // REQ-203 (FAIL-868): a body that names a token (even a junk one) is not
+      // about the cookie, so a valid cookie stays. The cookie is cleared only
+      // when there is nothing to refresh with.
+      if (isWebClient(req)) {
+        const res = unauthorized("No session. Sign in again.");
+        return body.refreshToken === undefined ? clearRefreshCookie(res) : res;
+      }
       return badRequest("refreshToken is required");
     }
     const { deviceLabel } = body;
@@ -65,7 +71,10 @@ export async function POST(req: Request) {
     } catch (err) {
       if (err instanceof RefreshTokenError) {
         const res = unauthorized(err.message);
-        return isWebClient(req) ? clearRefreshCookie(res) : res;
+        // REQ-203 (FAIL-868): clear the cookie only when the cookie itself
+        // failed. A bad token in the body (an old tab's sessionStorage token,
+        // junk from a script) used to wipe a perfectly good session cookie.
+        return isWebClient(req) && presented.via === "cookie" ? clearRefreshCookie(res) : res;
       }
       throw err;
     }
