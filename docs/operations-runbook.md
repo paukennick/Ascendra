@@ -213,9 +213,9 @@ Resend (`receive.forge.rmta.net`), so receiving goes on the root domain. No
 
 **One-time setup (Nick):**
 
-1. Resend dashboard -> Domains -> `ascendra-learn.com` -> turn on the
-   **Receiving** toggle. If it asks for the MX record, it is the one already
-   there; wait for it to show "verified".
+1. Receiving is already ON for `ascendra-learn.com` in Resend (Nick turned it
+   on 2026-11-09; Domains -> `ascendra-learn.com` -> Receiving shows it
+   verified). Nothing to do here unless it is ever turned off.
 2. Resend dashboard -> Webhooks -> Add Webhook. URL:
    `https://<the production domain>/api/inbound/email`. Event: `email.received`
    only. Click Add, then open the webhook and copy its **Signing Secret**

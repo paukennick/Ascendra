@@ -69,7 +69,7 @@ after(async () => {
   await closePool();
 });
 
-describe("account deletion leaves no note anywhere (FAIL-900)", () => {
+describe("account deletion leaves no note anywhere, and AI counts are purged at 12 months (FAIL-900, FAIL-911)", () => {
   test("report notes, their copies in the review queue and support bodies are gone; unrelated data stays", async () => {
     const u = await newUser("del");
     const v = await newUser("other");
@@ -179,7 +179,7 @@ describe("account export scoping and the avatar (FAIL-904, FAIL-905)", () => {
 
 describe("the study notice on every route that sends learner text (FAIL-907)", () => {
   const uuid = () => randomUUID();
-  type Case = { name: string; handler: (r: Request, c: any) => Promise<Response>; body: () => unknown; params: () => Record<string, string> };
+  type Case = { name: string; handler: (r: Request, c?: any) => Promise<Response>; body: () => unknown; params: () => Record<string, string> };
   let labId = "";
   const cases: Case[] = [
     { name: "chat", handler: chatPost, body: () => ({ trackId: uuid(), message: "hello" }), params: () => ({}) },
@@ -218,9 +218,9 @@ describe("the study notice on every route that sends learner text (FAIL-907)", (
   });
   test("a multiple-choice answer, which sends no text, is not held up by the notice", async () => {
     const u = await newUser("notice-mc");
-    const g = await gradePost(req(u, "POST", { format: "mc", objectiveId: uuid(), stage: "solo", chosenIndex: 0 }), ctx());
+    const g = await gradePost(req(u, "POST", { format: "mc", objectiveId: uuid(), stage: "solo", chosenIndex: 0 }));
     assert.notEqual(g.status, 403);
-    const r = await reviewAnswerPost(req(u, "POST", { format: "mc", chosenIndex: 0 }), ctx({ id: uuid(), position: "0" }));
+    const r = await reviewAnswerPost(req(u, "POST", { format: "mc", chosenIndex: 0 }), ctx({ id: uuid(), position: "0" }) as { params: Promise<{ id: string; position: string }> });
     assert.notEqual(r.status, 403);
   });
 });
@@ -284,7 +284,7 @@ describe("16 or older at sign-up (FAIL-906)", () => {
   });
 });
 
-describe("the support inbox route (FAIL-910, FAIL-911)", () => {
+describe("the support inbox route (FAIL-910)", () => {
   const SECRET_BYTES = Buffer.from("fedcba9876543210fedcba9876543210");
   const SECRET = `whsec_${SECRET_BYTES.toString("base64")}`;
   const EMAIL_ID = "56761188-7520-42d8-8898-ff6fc54ce618";

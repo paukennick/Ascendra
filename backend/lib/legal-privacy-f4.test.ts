@@ -153,7 +153,7 @@ describe("Resend webhook signature (FAIL-910)", () => {
     assert.equal(verifyResendWebhook(BODY, hdr({ ...h, "svix-signature": `v1,AAAA ${h["svix-signature"]}` }), SECRET), true);
   });
   test("a changed body, wrong secret, missing header, stale or future timestamp, or odd version all fail", () => {
-    const good = sign(BODY);
+    const good: Record<string, string> = sign(BODY);
     assert.equal(verifyResendWebhook(BODY + " ", hdr(good), SECRET), false);
     assert.equal(verifyResendWebhook(BODY, hdr(good), `whsec_${Buffer.from("another secret entirely!!!!!!!!!!").toString("base64")}`), false);
     for (const k of Object.keys(good)) {
@@ -223,7 +223,7 @@ describe("inbound configuration fails closed (FAIL-910)", () => {
   });
 });
 
-describe("what is forwarded (FAIL-911)", () => {
+describe("what is forwarded (FAIL-910)", () => {
   const cfg = { apiKey: "re_test", forwardTo: "owner@example.test", from: "no-reply@ascendra-learn.com" };
   test("only email.received with a real id is acted on", () => {
     assert.deepEqual(receivedEvent(BODY), { emailId: "56761188-7520-42d8-8898-ff6fc54ce618" });
