@@ -16,6 +16,27 @@ export function ownedOrCatalog(userParam: string, alias = "st"): string {
   return `(${alias}.user_id is null or ${alias}.user_id = ${userParam})`;
 }
 
+// REQ-194 (migration 065): a course whose hidden_at has passed is out of the
+// catalog -- not listed, not newly startable -- but anyone who already
+// studied it keeps it. "Already studied" means any of: a study session, a
+// free-course pick, a study plan, or mastery, an answer or lesson progress on one of its
+// objectives (retired ones included, since that is still their history). A
+// favorite alone does not count. A private course is always the owner's.
+// Used for the course list and the start routes, never for the study routes,
+// so a learner part-way through loses nothing. Pair with ownedOrCatalog.
+export function listedOrStarted(userParam: string, alias = "st"): string {
+  return `(${alias}.hidden_at is null or ${alias}.hidden_at > now()
+    or ${alias}.user_id = ${userParam}
+    or exists (select 1 from study_sessions hs where hs.track_id = ${alias}.id and hs.user_id = ${userParam})
+    or exists (select 1 from free_course_choice hf where hf.track_id = ${alias}.id and hf.user_id = ${userParam})
+    or exists (select 1 from study_plans hp where hp.track_id = ${alias}.id and hp.user_id = ${userParam})
+    or exists (select 1 from course_units hu join objectives ho on ho.unit_id = hu.id
+                where hu.track_id = ${alias}.id
+                  and (exists (select 1 from mastery hm where hm.objective_id = ho.id and hm.user_id = ${userParam})
+                       or exists (select 1 from attempts ha where ha.objective_id = ho.id and ha.user_id = ${userParam})
+                       or exists (select 1 from lesson_progress hl where hl.objective_id = ho.id and hl.user_id = ${userParam}))))`;
+}
+
 // REQ-102 (migration 033): a unit or objective whose retired_at has passed
 // is no longer taught -- an exam version moved on -- but its row and the
 // learner's history on it are kept. Every listing and rollup filters with

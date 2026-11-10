@@ -423,7 +423,7 @@ const COMMON = {
 export const ABPTS_OCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSOCS",
-  title: "Orthopaedic Clinical Specialist (OCS) Coach",
+  title: "Prep for the ABPTS Orthopaedic Clinical Specialist (OCS) Exam",
   description:
     "ABPTS board certification in orthopaedic physical therapy, on the 2026 outline: 30% specialty knowledge, 60% patient management, and a body-region table that puts the lumbar spine, shoulder and knee at the top.",
   sourceUrl:
@@ -543,7 +543,7 @@ export const ABPTS_OCS_TRACK: SeedTrack = {
 export const ABPTS_GCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSGCS",
-  title: "Geriatric Clinical Specialist Coach",
+  title: "Prep for the ABPTS Geriatric Clinical Specialist Exam",
   description:
     "ABPTS board certification in geriatric physical therapy: examination (25%) and intervention (25%) for the older adult, with the multisystem conditions -- falls, sarcopenia, dementia, fractures, heart failure -- the outline names.",
   sourceUrl:
@@ -662,7 +662,7 @@ export const ABPTS_GCS_TRACK: SeedTrack = {
 export const ABPTS_NCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSNCS",
-  title: "Neurologic Clinical Specialist Coach",
+  title: "Prep for the ABPTS Neurologic Clinical Specialist Exam",
   description:
     "ABPTS board certification in neurologic physical therapy: 60% patient management across stroke, spinal cord injury, brain injury, Parkinson disease, multiple sclerosis, vestibular and balance disorders, with the knowledge, reasoning and systems domains the outline weights around it.",
   sourceUrl:
@@ -767,7 +767,7 @@ export const ABPTS_NCS_TRACK: SeedTrack = {
 export const ABPTS_CCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSCCS",
-  title: "Cardiovascular & Pulmonary Clinical Specialist Coach",
+  title: "Prep for the ABPTS Cardiovascular & Pulmonary Clinical Specialist Exam",
   description:
     "ABPTS board certification in cardiovascular and pulmonary physical therapy: case-history examination weighted toward evaluation (30%), with the outline's own frequently-, occasionally- and rarely-seen diagnoses.",
   sourceUrl: "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
@@ -904,7 +904,7 @@ export const ABPTS_CCS_TRACK: SeedTrack = {
 export const ABPTS_PCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPCS",
-  title: "Pediatric Clinical Specialist Coach",
+  title: "Prep for the ABPTS Pediatric Clinical Specialist Exam",
   description:
     "ABPTS board certification in pediatric physical therapy: examination, evaluation and intervention (20% each) across cerebral palsy, developmental disabilities, congenital and genetic conditions, from the NICU to the school setting.",
   sourceUrl:
@@ -1019,7 +1019,7 @@ export const ABPTS_PCS_TRACK: SeedTrack = {
 export const ABPTS_SCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSSCS",
-  title: "Sports Clinical Specialist Coach",
+  title: "Prep for the ABPTS Sports Clinical Specialist Exam",
   description:
     "ABPTS board certification in sports physical therapy: clinical intervention (35%) and assessment (30%) for athletes, plus emergency management, injury prevention, performance and the sports science behind it.",
   sourceUrl:
@@ -1125,7 +1125,7 @@ export const ABPTS_SCS_TRACK: SeedTrack = {
 export const ABPTS_ONC_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSONC",
-  title: "Oncologic Clinical Specialist Coach",
+  title: "Prep for the ABPTS Oncologic Clinical Specialist Exam",
   description:
     "ABPTS board certification in oncologic physical therapy: intervention and instruction (27%) and examination (23%) for people living with and beyond cancer, across treatment effects, lymphedema, fatigue and survivorship.",
   sourceUrl:
@@ -1246,7 +1246,7 @@ export const ABPTS_ONC_TRACK: SeedTrack = {
 export const ABPTS_ECS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSECS",
-  title: "Clinical Electrophysiologic Specialist Coach",
+  title: "Prep for the ABPTS Clinical Electrophysiologic Specialist Exam",
   description:
     "ABPTS board certification in clinical electrophysiologic physical therapy: electrodiagnostic tests and measures (15%) and the evaluation of normal and abnormal electrophysiologic findings (25%), on the outline's own 200-item blueprint.",
   sourceUrl:
@@ -1361,7 +1361,7 @@ export const ABPTS_ECS_TRACK: SeedTrack = {
 export const ABPTS_PWCS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSPWCS",
-  title: "Pelvic & Women's Health Clinical Specialist (PWCS) Coach",
+  title: "Prep for the ABPTS Pelvic & Women's Health Clinical Specialist (PWCS) Exam",
   description:
     "ABPTS board certification in pelvic and women's health physical therapy (renamed from Women's Health in September 2025): patient and client management across pelvic floor dysfunction, urinary and bowel dysfunction, pregnancy and postpartum, lymphedema and sexual dysfunction.",
   sourceUrl:
@@ -1447,7 +1447,7 @@ export const ABPTS_PWCS_TRACK: SeedTrack = {
 export const ABPTS_WMS_TRACK: SeedTrack = {
   ...COMMON,
   code: "ABPTSWMS",
-  title: "Wound Management Clinical Specialist Coach",
+  title: "Prep for the ABPTS Wound Management Clinical Specialist Exam",
   description:
     "ABPTS board certification in wound management physical therapy: wound clinical sciences, examination, evaluation and diagnosis (12-13% each) and interventions (14%) for pressure, vascular, neuropathic, surgical and burn wounds.",
   sourceUrl:

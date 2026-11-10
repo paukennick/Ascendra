@@ -123,6 +123,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.discount_offer_codes') is not null as ok`,
   },
   {
+    // REQ-194: GET /api/courses and the start routes read it; the seed writes it.
+    migration: "065_track_hidden_at.sql",
+    what: "subject_tracks.hidden_at (course list, starting a course, seed)",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,

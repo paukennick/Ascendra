@@ -1,7 +1,7 @@
 import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http";
 import { isLegacyClient } from "@/lib/client-version";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleTrack } from "@/lib/visibility";
+import { startableTrack } from "@/lib/visibility";
 import { completeFirstRun, onboardingState } from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
     let trackId: string | null = null;
     if (rawTrack) {
-      const track = await visibleTrack(rawTrack, user.id);
+      const track = await startableTrack(rawTrack, user.id); // REQ-194: not a hidden course
       if (!track) return notFound("Track not found");
       trackId = track.id;
     }

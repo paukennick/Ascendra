@@ -142,6 +142,13 @@ export interface SeedTrack {
   requiresAcknowledgement?: boolean;
   disclaimerKey?: string;
   disclaimerVersion?: number;
+
+  // REQ-194 (migration 065): taken out of the catalog without deleting it.
+  // Once passed, the course is not listed or newly startable; learners who
+  // already studied it keep it. Units, objectives and labs are still seeded,
+  // so removing this line and re-seeding brings the course back.
+  hiddenAt?: string; // ISO timestamp
+  hiddenReason?: string; // seed-only, why (with the guideline URL)
 }
 
 export const MSCS_TRACK: SeedTrack = {

@@ -46,6 +46,14 @@ async function main() {
     if (!has033.rows[0]?.ok) {
       throw new Error("course_units/objectives.retired_at missing -- run `npm run migrate -- 033_exam_blueprints.sql` before seeding.");
     }
+    // REQ-194: the seed writes subject_tracks.hidden_at (migration 065).
+    const has065 = await pool.query<{ ok: boolean }>(
+      `select count(*) = 1 as ok from information_schema.columns
+        where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at'`
+    );
+    if (!has065.rows[0]?.ok) {
+      throw new Error("subject_tracks.hidden_at missing -- run `npm run migrate -- 065_track_hidden_at.sql` before seeding.");
+    }
 
     // Legacy owner whose private catalog copies get adopted (see header).
     const legacy = await pool.query(`select id from app_users where email = $1`, [SEED_USER_EMAIL]);
