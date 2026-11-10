@@ -22,7 +22,8 @@ import { factCheckEnabled, modelFactChecker, orderingForCheck, type CheckItem, t
 //                  learners' mastery is recomputed.
 
 // REQ-123: "lab" (migration 050) -- a verifiable lab, by labs.id.
-export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison", "lab"] as const;
+// REQ-199: "sim" (migration 067) -- one simulation VERSION, by sim_versions.id.
+export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison", "lab", "sim"] as const;
 export type ItemKind = (typeof ITEM_KINDS)[number];
 
 export const FLAG_REASONS = ["wrong_answer", "unclear", "outdated", "offensive", "other"] as const;
@@ -36,6 +37,10 @@ export interface ItemRef {
   objectiveId: string | null;
   question: string;
 }
+
+// Kinds with no automated re-check: nothing for the choice checker to answer
+// without a key, so a flag goes to a person (REQ-123 labs, REQ-199 sims).
+const NO_RECHECK: readonly ItemKind[] = ["lab", "sim"];
 
 const md5 = (s: string) => createHash("md5").update(s, "utf8").digest("hex");
 
@@ -145,14 +150,14 @@ export interface FlagResult {
 // once give one quarantine row and a count of five.
 export async function recordFlag(
   ref: ItemRef,
-  f: { userId: string; source: "learner" | "key_suspect"; reason?: FlagReason | "key_suspect"; note?: string | null }
+  f: { userId: string; source: "learner" | "key_suspect"; reason?: FlagReason | "key_suspect"; note?: string | null; context?: Record<string, unknown> | null }
 ): Promise<FlagResult> {
   const threshold = await quarantineThreshold();
   return withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext('item_flag:' || $1 || ':' || $2))`, [ref.kind, ref.itemId]);
     const ins = await tx.queryOne<{ id: string }>(
-      `insert into item_flags (item_kind, item_id, objective_id, question, user_id, source, reason, note)
-       values ($1, $2, $3, $4, $5, $6, $7, $8)
+      `insert into item_flags (item_kind, item_id, objective_id, question, user_id, source, reason, note${f.context ? ", context" : ""})
+       values ($1, $2, $3, $4, $5, $6, $7, $8${f.context ? ", $9" : ""})
        on conflict do nothing returning id`,
       [
         ref.kind,
@@ -163,6 +168,9 @@ export async function recordFlag(
         f.source,
         f.reason ?? (f.source === "key_suspect" ? "key_suspect" : "other"),
         f.note ?? null,
+        // Only a sim report carries context (migration 067); every other
+        // kind's insert names no new column, so it runs before 067 too.
+        ...(f.context ? [JSON.stringify(f.context)] : []),
       ]
     );
     const c = await tx.queryOne<{ n: number }>(
@@ -248,8 +256,10 @@ export async function loadCheckItem(ref: ItemRef): Promise<CheckItem | null> {
       return examCheckItem("i1", objectiveTitle, row.item_format, row.stem, row.body, row.answer_key);
     }
     case "lab":
+    case "sim":
       // REQ-123: an open-ended lab has no key the choice checker can answer;
-      // a flagged lab goes to a person (flagItem skips the re-check).
+      // a flagged lab goes to a person (flagItem skips the re-check). REQ-199:
+      // the same for a sim, whose "key" is a whole scored scenario.
       return null;
   }
 }
@@ -339,13 +349,13 @@ export async function recheckItem(ref: ItemRef, checker: FactChecker = modelFact
 // (lib/understanding-ai.ts inBackground) and a test can await it.
 export async function flagItem(
   ref: ItemRef,
-  f: { userId: string; source: "learner" | "key_suspect"; reason?: FlagReason | "key_suspect"; note?: string | null },
+  f: { userId: string; source: "learner" | "key_suspect"; reason?: FlagReason | "key_suspect"; note?: string | null; context?: Record<string, unknown> | null },
   checker?: FactChecker
 ): Promise<FlagResult & { recheck: Promise<RecheckResult> | null }> {
   const r = await recordFlag(ref, f);
   // REQ-123: labs have no automated re-check (loadCheckItem has nothing to
   // ask); running it would only spend the item's one re-check on an error.
-  const recheck = r.recorded && !r.quarantined && ref.kind !== "lab" ? recheckItem(ref, checker) : null;
+  const recheck = r.recorded && !r.quarantined && !NO_RECHECK.includes(ref.kind) ? recheckItem(ref, checker) : null;
   return { ...r, recheck };
 }
 
@@ -384,6 +394,9 @@ function attemptsSql(ref: ItemRef): { sql: string; params: unknown[] } {
     case "lab":
       // REQ-123: every finished run of the lab (attempts.lab_id, migration 050).
       return { sql: `lab_id = $1::uuid`, params: [ref.itemId] };
+    case "sim":
+      // REQ-199: every scored run of that sim version (sim_runs.attempt_id).
+      return { sql: `id in (select attempt_id from sim_runs where sim_version_id = $1::uuid and attempt_id is not null)`, params: [ref.itemId] };
   }
 }
 

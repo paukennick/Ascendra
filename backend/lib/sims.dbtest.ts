@@ -7,7 +7,8 @@
 // command sync and its 409s, the speed bound, skip-to-wait, the reasoning
 // ordering check and grading replay, finish (one attempt, rating as
 // verdict, idempotent), the repeat rule, learner quit, the study notice,
-// tier gating, the debrief route, and the schema probe.
+// tier gating, the debrief route, and the schema probe. REQ-199: the app's
+// journal replay through the step route, and "Report a problem" on a sim.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
@@ -35,6 +36,9 @@ import { POST as skipPost } from "../app/api/sims/runs/[runId]/skip/route";
 import { POST as reasoningPost } from "../app/api/sims/runs/[runId]/reasoning/route";
 import { POST as finishPost } from "../app/api/sims/runs/[runId]/finish/route";
 import { GET as debriefGet } from "../app/api/sims/runs/[runId]/debrief/route";
+import { POST as reportPost } from "../app/api/items/report/route";
+import { confirmItemWrong, quarantineThreshold } from "./item-quality";
+import { listQueue, runContentSignals } from "./content-review-queue";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
@@ -585,6 +589,31 @@ describe("study notice and tiers", () => {
 });
 
 describe("schema", () => {
+  test("the 067 probe passes and the migration runs twice", async () => {
+    const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
+    assert.ok(!status.missing.some((m) => m.migration === "067_sim_item_kind.sql"), JSON.stringify(status.missing));
+    const sql = readFileSync(join(__dirname, "..", "supabase", "migrations", "067_sim_item_kind.sql"), "utf8");
+    const c = await dbPool.connect();
+    try {
+      await c.query("begin");
+      await c.query(sql);
+      await c.query("commit");
+    } finally {
+      c.release();
+    }
+    const checks = await query<{ conname: string }>(
+      `select conname from pg_constraint where conrelid in ('item_flags'::regclass, 'item_status'::regclass, 'item_holdbacks'::regclass)
+          and contype = 'c' and pg_get_constraintdef(oid) like '%item_kind%' order by 1`
+    );
+    assert.deepEqual(checks.map((x) => x.conname), ["item_flags_item_kind_067", "item_holdbacks_item_kind_067", "item_status_item_kind_067"], "one item_kind check per table");
+    const u = await newUser();
+    await assert.rejects(
+      query(`insert into item_flags (item_kind, item_id, question, user_id, source, context) values ('sim', 'x', 'q', $1, 'learner', $2)`, [u, JSON.stringify({ pad: "x".repeat(2100) })]),
+      /item_flags_context_067/
+    );
+    await assert.rejects(query(`insert into item_flags (item_kind, item_id, question, user_id, source, context) values ('sim', 'x', 'q', $1, 'learner', '[1]')`, [u]), /item_flags_context_067/);
+  });
+
   test("the 062 probe passes and the migration runs twice", async () => {
     const status = await checkSchema(async (sql) => (await dbPool.query<{ ok: boolean }>(sql)).rows);
     assert.ok(!status.missing.some((m) => m.migration === "062_sim_engine.sql"), JSON.stringify(status.missing));
@@ -605,5 +634,158 @@ describe("schema", () => {
       query(`insert into attempts (user_id, kind, format, question, answer, verdict, sim_id) values ($1, 'lesson', 'open', 'q', 'a', 'correct', $2)`, [u, TB]),
       /attempts_simtask_shape/
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-199: what the app's on-device journal relies on. After an app kill the
+// app takes the lease through the start route and resends the journal --
+// commands the server may already hold -- through the step route.
+// ---------------------------------------------------------------------------
+describe("journal replay through the step route (REQ-199)", () => {
+  const cmd = (seq: number): Command => ({ seq, tick: 0, type: "act", action: "toggleBackup" });
+
+  test("kill mid-run: the resumed device resends its whole journal; what the server held is not stored twice", async () => {
+    const u = await newUser();
+    const s = await start(u, TB, { restart: true, deviceId: "dev-a" });
+    const runId = s.body.run.id;
+    // Only the first of three journaled commands reached the server.
+    assert.equal((await sync(u, runId, { leaseEpoch: s.body.run.leaseEpoch, commands: [cmd(1)] })).body.acceptedThrough, 1);
+    // The app was killed; on relaunch it resumes (a new lease) and replays the journal.
+    const resumed = await start(u, TB, { deviceId: "dev-a2" });
+    assert.equal(resumed.body.run.id, runId, "resume returns the same run");
+    assert.deepEqual(resumed.body.commands.map((c: Command) => c.seq), [1]);
+    const replayed = await sync(u, runId, { leaseEpoch: resumed.body.run.leaseEpoch, commands: [cmd(1), cmd(2), cmd(3)] });
+    assert.equal(replayed.status, 200, JSON.stringify(replayed.body));
+    assert.equal(replayed.body.acceptedThrough, 3);
+    assert.equal(replayed.body.rejected, null);
+    // A duplicate replay (the acknowledgement was lost) is accepted and adds nothing.
+    const dup = await sync(u, runId, { leaseEpoch: resumed.body.run.leaseEpoch, commands: [cmd(2), cmd(3)] });
+    assert.equal(dup.status, 200);
+    assert.equal(dup.body.acceptedThrough, 3);
+    const stored = await query<{ seq: number }>(`select seq from sim_run_commands where run_id = $1 order by seq`, [runId]);
+    assert.deepEqual(stored.map((x) => x.seq), [1, 2, 3]);
+  });
+
+  test("a stale journal is refused without storing anything: the lease moved, another device acted, or the run ended", async () => {
+    const u = await newUser();
+    const a = await start(u, TB, { restart: true, deviceId: "dev-a" });
+    const runId = a.body.run.id;
+    // Device B takes the run and acts.
+    const b = await start(u, TB, { deviceId: "dev-b" });
+    assert.equal((await sync(u, runId, { leaseEpoch: b.body.run.leaseEpoch, commands: [{ seq: 1, tick: 0, type: "pause", reason: "learner" }] })).body.acceptedThrough, 1);
+    // Device A's journal under its old lease: lease_lost.
+    const old = await sync(u, runId, { leaseEpoch: a.body.run.leaseEpoch, commands: [cmd(1)] });
+    assert.equal(old.status, 409);
+    assert.equal(old.body.code, "lease_lost");
+    // A retakes the lease, but its seq 1 differs from what B stored: seq_conflict.
+    const a2 = await start(u, TB, { deviceId: "dev-a" });
+    const conflict = await sync(u, runId, { leaseEpoch: a2.body.run.leaseEpoch, commands: [cmd(1)] });
+    assert.equal(conflict.status, 409);
+    assert.equal(conflict.body.code, "seq_conflict");
+    // The run ends; a journal with new commands for it is run_ended.
+    await sync(u, runId, { leaseEpoch: a2.body.run.leaseEpoch, commands: [{ seq: 2, tick: 0, type: "end", reason: "learner_quit" }] });
+    assert.equal((await finish(u, runId, { leaseEpoch: a2.body.run.leaseEpoch })).status, 200);
+    const ended = await sync(u, runId, { leaseEpoch: a2.body.run.leaseEpoch, commands: [cmd(3)] });
+    assert.equal(ended.status, 409);
+    assert.equal(ended.body.code, "run_ended");
+    const stored = await query<{ seq: number; type: string }>(`select seq, type from sim_run_commands where run_id = $1 order by seq`, [runId]);
+    assert.deepEqual(stored.map((x) => `${x.seq}:${x.type}`), ["1:pause", "2:end"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-199: "Report a problem" on a sim (migration 067). Last in the file: it
+// pulls the TicketBurst version from rotation.
+// ---------------------------------------------------------------------------
+describe("Report a problem on a sim (REQ-199)", () => {
+  const report = (u: string, body: Record<string, unknown>) => reportPost(req(u, "POST", body)).then(json);
+
+  test("a report carries the version, the run's tick and state hash, and the learner's words; one per learner", async () => {
+    const u = await newUser();
+    const s = await start(u, TB, { restart: true });
+    const runId = s.body.run.id;
+    const synced = await sync(u, runId, { leaseEpoch: s.body.run.leaseEpoch, commands: [{ seq: 1, tick: 0, type: "act", action: "toggleBackup" }] });
+    const r = await report(u, { kind: "sim", runId, tick: 0, stateHash: synced.body.serverHash, reason: "wrong_answer", note: "The backup toggle did nothing." });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.recorded, true);
+    const versionId = s.body.run.versionId;
+    const f = await queryOne<{ item_kind: string; item_id: string; objective_id: string; question: string; note: string; context: Record<string, unknown> }>(
+      `select item_kind, item_id, objective_id, question, note, context from item_flags where user_id = $1`,
+      [u]
+    );
+    assert.equal(f?.item_kind, "sim");
+    assert.equal(f?.item_id, versionId, "the item is the sim version");
+    assert.equal(f?.objective_id, OBJ_TB);
+    assert.equal(f?.note, "The backup toggle did nothing.", "the learner's words stay in note");
+    assert.equal(f?.question, `${TB_DOC.title} (version 1)`);
+    assert.deepEqual(
+      { simId: f?.context.simId, versionId: f?.context.versionId, version: f?.context.version, runId: f?.context.runId, tick: f?.context.tick, stateHash: f?.context.stateHash, serverHash: f?.context.serverHash },
+      { simId: TB, versionId, version: 1, runId, tick: 0, stateHash: synced.body.serverHash, serverHash: synced.body.serverHash }
+    );
+    const again = await report(u, { kind: "sim", runId, tick: 0, note: "again" });
+    assert.equal(again.body.recorded, false, "one flag per learner per version");
+    // Malformed context is dropped, not stored.
+    const v = await newUser();
+    const vs = await start(v, TB, { restart: true });
+    assert.equal((await report(v, { kind: "sim", runId: vs.body.run.id, tick: -4, stateHash: "<script>" })).status, 200);
+    const vc = await queryOne<{ context: Record<string, unknown> }>(`select context from item_flags where user_id = $1`, [v]);
+    assert.equal(vc?.context.tick, null);
+    assert.equal(vc?.context.stateHash, null);
+    await query(`delete from item_flags where item_kind = 'sim' and user_id = any($1::uuid[])`, [[u, v]]);
+  });
+
+  test("another learner's run, an unknown run and a missing run id cannot be reported; the switch off is 404", async () => {
+    const u = await newUser();
+    const s = await start(u, TB, { restart: true });
+    const other = await newUser();
+    assert.equal((await report(other, { kind: "sim", runId: s.body.run.id })).status, 404);
+    assert.equal((await report(u, { kind: "sim", runId: randomUUID() })).status, 404);
+    assert.equal((await report(u, { kind: "sim" })).status, 400);
+    delete process.env.SIMS_ENABLED;
+    assert.equal((await report(u, { kind: "sim", runId: s.body.run.id })).status, 404);
+  });
+
+  test("enough reports pull the version: it joins the review queue, new runs cannot start on it, and confirming it voids its attempts", async () => {
+    const scorer = await newUser();
+    const played = await playPath(scorer, TB, TB_DOC, pathOf(TB_GOLDEN, "reference"));
+    const attemptId = played.debrief.attempt.id as string;
+    const versionId = (await queryOne<{ sim_version_id: string }>(`select sim_version_id from sim_runs where id = $1`, [played.runId]))!.sim_version_id;
+    // A learner mid-run on this version.
+    const midway = await newUser();
+    const open = await start(midway, TB, { restart: true });
+    const threshold = await quarantineThreshold();
+    for (let i = 0; i < threshold; i++) {
+      const u = i === 0 ? scorer : await newUser();
+      const s = i === 0 ? { body: { run: { id: played.runId } } } : await start(u, TB, { restart: true });
+      const r = await report(u, { kind: "sim", runId: s.body.run.id, note: `report ${i}` });
+      assert.equal(r.status, 200, JSON.stringify(r.body));
+    }
+    assert.equal((await queryOne<{ status: string }>(`select status from item_status where item_kind = 'sim' and item_id = $1`, [versionId]))?.status, "quarantined");
+    // The review queue lists it, by version.
+    await runContentSignals({ now: new Date(Date.now() + 60_000) });
+    const q = await listQueue({ status: "open", limit: 500 });
+    assert.ok(q.some((e) => e.item_kind === "sim" && e.item_id === versionId && e.signal === "learner_reports"), "the sim version is in the review queue");
+    // Pulled from rotation: no version left to serve, so a new run cannot start.
+    const fresh = await newUser();
+    assert.notEqual((await start(fresh, TB, { restart: true })).status, 200);
+    // A person confirms it: the scored run's attempt is voided.
+    const voided = await confirmItemWrong({ kind: "sim", itemId: versionId, objectiveId: OBJ_TB, question: TB_DOC.title }, "test: wrong scoring");
+    assert.ok(voided >= 1);
+    assert.ok((await queryOne<{ voided_at: Date | null }>(`select voided_at from attempts where id = $1`, [attemptId]))?.voided_at, "the attempt is voided");
+    // A fixed version 2 goes live; the learner mid-run on the condemned
+    // version resumes into a new run on version 2, never scored on version 1.
+    const v2 = await queryOne<{ id: string }>(
+      `insert into sim_versions (sim_id, version, schema_version, engine_major, engine_minor, renderer_level, document, client_document, content_hash, client_hash)
+       select sim_id, 2, schema_version, engine_major, engine_minor, renderer_level, document, client_document, md5(content_hash) || md5(content_hash || '-2'), client_hash from sim_versions where id = $1 returning id`,
+      [versionId]
+    );
+    await query(`update sims set head_version_id = $2 where id = $1`, [TB, v2!.id]);
+    const resumed = await start(midway, TB, {});
+    assert.equal(resumed.status, 200, JSON.stringify(resumed.body));
+    assert.notEqual(resumed.body.run.id, open.body.run.id, "a new run");
+    assert.equal(resumed.body.run.versionId, v2!.id);
+    assert.equal((await queryOne<{ status: string }>(`select status from sim_runs where id = $1`, [open.body.run.id]))?.status, "abandoned");
+    assert.equal((await start(fresh, TB, { restart: true })).body.run.versionId, v2!.id, "new runs get version 2");
   });
 });

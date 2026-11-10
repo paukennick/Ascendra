@@ -38,7 +38,8 @@ import { AppState, Platform, type AppStateStatus } from "react-native";
 import { usePathname } from "expo-router";
 import * as Updates from "expo-updates";
 import { api } from "@/api/client";
-import { compareBuild, holdsUnsavedWork, shouldCheckNow, WEB_VERSION_CHECK_MS } from "@/lib/webVersion";
+import { compareBuild, shouldCheckNow, WEB_VERSION_CHECK_MS } from "@/lib/webVersion";
+import { holdsUnsavedWork } from "./protectedRoutes";
 
 // Baked into the web bundle by backend/scripts/build-webapp.sh.
 const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";

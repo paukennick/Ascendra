@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState } from "react-native";
 import * as Crypto from "expo-crypto";
 import { api, ApiError } from "@/api/client";
 import { friendlyError } from "@/lib/errorMessage";
+import { useAuth } from "@/auth/AuthContext";
+import { localDataGuard } from "@/lib/localData";
+import { journalBackend } from "./journalStore";
+import { discardNotice, journalKey, journalWriter, loadJournal, makeJournal, planJournal, SEND_BATCH, type DiscardReason, type JournalWriter } from "./runtime/journal.ts";
 import type { ScenarioDoc, WaitInfo } from "./engine/v1/types.ts";
 import { capsHeaders } from "./runtime/caps.ts";
 import { planFrame, type Anchor } from "./runtime/clock.ts";
@@ -22,9 +26,13 @@ import { accepted, applyServerCommand, clockRuns, issue, localHash, openSession,
 // reloads the run from the server, whose replay is the record. The ending's
 // headline and the debrief come from the server's finish route only.
 //
-// What this release does not do yet (docs/sims.md 5.9, Phase 1c): keep the
-// unsent queue in device storage across an app kill, and keep the screen
-// awake. A queue that cannot be sent stays in memory and is retried.
+// REQ-199 (5.9): the unsent queue is also written to device storage before
+// each send (src/sim/runtime/journal.ts) and trimmed on every
+// acknowledgement, so an app kill, a crash or an over-the-air reload loses
+// nothing. "Continue the run" replays the journal through the step route
+// (idempotent by seq), or discards it, with a plain notice, when the run
+// ended or moved on elsewhere or the served version changed. Not done yet:
+// keeping the screen awake.
 
 export interface SimDebrief {
   runId: string;
@@ -85,6 +93,7 @@ function code(err: unknown): string | null {
 export type SimStatus = "idle" | "loading" | "ready" | "finishing" | "done" | "lease_lost" | "error";
 
 export function useSimRun(simId: string) {
+  const { user } = useAuth();
   const [status, setStatus] = useState<SimStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -103,6 +112,27 @@ export function useSimRun(simId: string) {
   const opened = useRef<{ moment: string; openedSeq: number; openedTick: number } | null>(null);
   const attemptIds = useRef(new Map<string, string>());
   const finishing = useRef(false);
+  // The run the journal belongs to (from the start route).
+  const runMeta = useRef<{ runId: string; versionId: string; clientHash: string } | null>(null);
+  const userId = user?.id ?? null;
+  const writer = useMemo<JournalWriter | null>(() => {
+    if (!userId) return null;
+    const key = journalKey(userId, simId);
+    return journalWriter(journalBackend, key, () => localDataGuard.mayWrite(key));
+  }, [userId, simId]);
+  const writerRef = useRef(writer);
+  writerRef.current = writer;
+
+  // Writes the current unsent queue to the device (an empty queue removes it).
+  const persist = useCallback((): Promise<void> => {
+    const s = session.current;
+    const w = writerRef.current;
+    const m = runMeta.current;
+    if (!w) return Promise.resolve();
+    if (!s || !m) return w.save(null);
+    return w.save(makeJournal(simId, m, s.pending, Date.now()));
+  }, [simId]);
+  const dropJournal = useCallback((): Promise<void> => writerRef.current?.save(null) ?? Promise.resolve(), []);
 
   const finish = useCallback(async () => {
     const s = session.current;
@@ -114,6 +144,7 @@ export function useSimRun(simId: string) {
       const d = await api.post<SimDebrief>(`/api/sims/runs/${s.runId}/finish`, { leaseEpoch: s.leaseEpoch, tick: s.run.state.tick }, { headers: capsHeaders() });
       setDebrief(d);
       setStatus("done");
+      void writerRef.current?.save(null);
     } catch (err) {
       finishing.current = false;
       setStatus("ready");
@@ -121,21 +152,43 @@ export function useSimRun(simId: string) {
     }
   }, []);
 
+  // `carry` is a notice that must survive the reload (a reload clears the
+  // notice line, which used to wipe the message that announced it).
   const start = useCallback(
-    async (restart: boolean) => {
+    async (restart: boolean, carry?: string) => {
       setStatus("loading");
       setError(null);
-      setNotice(null);
+      setNotice(carry ?? null);
       setDebrief(null);
       finishing.current = false;
       opened.current = null;
       try {
+        // Anything still being written lands before it is read back.
+        await writerRef.current?.settled();
+        const w = writerRef.current;
+        const journal = w && userId && !restart ? await loadJournal(journalBackend, journalKey(userId, simId), simId) : null;
+        if (restart) await dropJournal();
         const cached = [...docs.current.keys()].pop() ?? null;
         const p = await api.post<RunPayload>(`/api/sims/${simId}/runs`, { restart, deviceId: device.current, cachedHash: cached }, { headers: capsHeaders() });
         const doc = p.clientDocument ?? docs.current.get(p.clientHash);
         if (!doc) throw new Error("The simulation could not be loaded. Please try again.");
         docs.current.set(p.clientHash, doc);
-        session.current = openSession(p, doc);
+        runMeta.current = { runId: p.run.id, versionId: p.run.versionId, clientHash: p.clientHash };
+        const plan = planJournal(journal, p);
+        let replayed: Session | null = null;
+        let dropped: { reason: DiscardReason; lost: number } | null = plan.kind === "discard" ? plan : null;
+        if (plan.kind === "replay") {
+          try {
+            replayed = openSession({ ...p, commands: [...p.commands, ...plan.commands] }, doc);
+            replayed.pending = plan.commands.slice();
+          } catch {
+            dropped = { reason: "refused", lost: plan.commands.length };
+          }
+        }
+        session.current = replayed ?? openSession(p, doc);
+        if (dropped) setNotice(discardNotice(dropped.reason, dropped.lost));
+        else if (replayed) setNotice(`Restored ${replayed.pending.length === 1 ? "1 action" : `${replayed.pending.length} actions`} made before the app closed; sending ${replayed.pending.length === 1 ? "it" : "them"} to the server.`);
+        if (plan.kind !== "none") await persist();
         attemptIds.current.clear();
         setPaused(true);
         anchor.current = null;
@@ -144,15 +197,16 @@ export function useSimRun(simId: string) {
           const d = await api.get<SimDebrief>(`/api/sims/runs/${p.run.id}/debrief`, { headers: capsHeaders() });
           setDebrief(d);
           setStatus("done");
-        } else if (session.current.run.state.ended) {
-          void finish();
+        } else {
+          if (replayed) void flushRef.current(false);
+          if (session.current.run.state.ended) void finish();
         }
       } catch (err) {
         setStatus("error");
         setError(friendlyError(err));
       }
     },
-    [simId, finish]
+    [simId, finish, userId, persist, dropJournal]
   );
 
   // Sends the queue (and the tick, as a heartbeat). One sync at a time.
@@ -161,8 +215,11 @@ export function useSimRun(simId: string) {
       const s = session.current;
       if (!s) return;
       if (syncing.current) await syncing.current.catch(() => undefined);
+      // Write-ahead: every queued command is on the device before it is sent.
+      await writerRef.current?.settled();
+      if (session.current !== s) return;
       if (!s.pending.length && !withTick) return;
-      const sent = s.pending.slice();
+      const sent = s.pending.slice(0, SEND_BATCH);
       const tick = s.run.state.tick;
       const p = (async () => {
         try {
@@ -173,20 +230,51 @@ export function useSimRun(simId: string) {
           );
           accepted(s, r.acceptedThrough);
           lastBeat.current = now();
-          if ((r.rejected && sent.some((c) => c.seq === r.rejected!.seq)) || r.desync) {
-            setNotice("The run was out of step with the server and has been reloaded from the server's copy.");
-            await start(false);
+          if (r.rejected && sent.some((c) => c.seq === r.rejected!.seq)) {
+            // The server refused a command: the journal holds it and what
+            // followed, which can never be accepted now.
+            const lost = s.pending.length;
+            await dropJournal();
+            await start(false, `${discardNotice("refused", lost)} The run was reloaded from the server's copy.`);
+          } else if (r.desync) {
+            await persist();
+            await start(false, "The run was out of step with the server and has been reloaded from the server's copy.");
+          } else {
+            await persist();
+            if (s.pending.length && sent.length === SEND_BATCH) void flushRef.current(false);
           }
         } catch (err) {
           const c = code(err);
           if (c === "lease_lost") {
+            const lost = s.pending.length;
+            await dropJournal();
+            s.pending = [];
             setStatus("lease_lost");
             setPaused(true);
-            setNotice("This run continued on another device.");
+            setNotice(lost ? discardNotice("lease_lost", lost) : "This run continued on another device.");
+          } else if (c === "run_ended") {
+            // Finished or restarted on another device.
+            const lost = s.pending.length;
+            await dropJournal();
+            s.pending = [];
+            setPaused(true);
+            const msg = lost ? discardNotice("ended", lost) : "This run ended on another device.";
+            try {
+              const d = await api.get<SimDebrief>(`/api/sims/runs/${s.runId}/debrief`, { headers: capsHeaders() });
+              setDebrief(d);
+              setStatus("done");
+              setNotice(msg);
+            } catch {
+              session.current = null;
+              setStatus("idle");
+              setError(msg);
+            }
           } else if (c === "sync_too_fast") {
             /* a heartbeat too soon: the next one carries it */
           } else if (c === "seq_conflict" || c === "seq_gap" || c === "too_fast") {
-            await start(false);
+            const lost = s.pending.length;
+            await dropJournal();
+            await start(false, lost ? discardNotice(c === "too_fast" ? "refused" : "moved_on", lost) : undefined);
           } else {
             setNotice(`Not saved to the server yet; it will be sent when you're back online. ${friendlyError(err, { kept: true })}`);
           }
@@ -196,7 +284,7 @@ export function useSimRun(simId: string) {
       await p;
       if (syncing.current === p) syncing.current = null;
     },
-    [start]
+    [start, persist, dropJournal]
   );
   const flushRef = useRef(flush);
   flushRef.current = flush;
@@ -212,11 +300,13 @@ export function useSimRun(simId: string) {
       }
       if (r.stoppedBy) setNotice(`Stopped early: ${r.stoppedBy}.`);
       bump();
+      // Journal first; flush waits for the write before sending.
+      void persist();
       void flush(false);
       if (s.run.state.ended) void finish();
       return true;
     },
-    [status, bump, flush, finish]
+    [status, bump, flush, finish, persist]
   );
 
   const pause = useCallback(

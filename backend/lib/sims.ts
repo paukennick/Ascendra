@@ -14,6 +14,7 @@ import { cleanText, hasUnstorableText } from "@/lib/text-input";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { consumeAllowance, hasFeature, requireCourseAccess, requireFeature } from "@/lib/entitlements";
 import { requireStudyNotice } from "@/lib/study-notice";
+import { servableSql, type ItemRef } from "@/lib/item-quality";
 import type { Feature } from "@/lib/billing-config";
 import { LAB_GRADE_LIMIT } from "@/lib/lab-routes";
 import type { LabStepModel } from "@/lib/lab-grading";
@@ -113,7 +114,9 @@ export interface VersionRow {
 const SIM_COLS = `s.id, s.objective_id, s.slug, s.title, s.screen_type, s.safety_family, s.head_version_id,
                   o.unit_id, cu.track_id, o.title as objective_title`;
 
-// Which version new runs get (docs/sims.md 6): an approved head; else the
+// Which version new runs get (docs/sims.md 6): never one pulled from rotation
+// by learner reports (REQ-199, item kind 'sim' in item_status, not
+// cleared); then an approved head; else the
 // latest approved; else the head unless rejected, while serving unreviewed
 // content is on (the default). Among those, one the app can run (5.10): if
 // the first choice is not runnable, the latest approved runnable one.
@@ -125,7 +128,7 @@ export async function servedVersion(
 ): Promise<{ version: VersionRow; runnable: boolean } | null> {
   const rows = await db.query<VersionRow & { is_head: boolean }>(
     `select id, version, engine_major, engine_minor, renderer_level, client_hash, review_status, (id = $2::uuid) as is_head
-       from sim_versions where sim_id = $1 order by version desc`,
+       from sim_versions where sim_id = $1 and ${servableSql("sim", "id")} order by version desc`,
     [sim.id, sim.head_version_id]
   );
   const head = rows.find((r) => r.is_head) ?? null;
@@ -455,14 +458,19 @@ export async function startRun(
   const run = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext('sim_run:' || $1 || ':' || $2))`, [userId, sim.id]);
     const open = await tx.queryOne<RunRow>(`select * from sim_runs where user_id = $1 and sim_id = $2 and status = 'open' for update`, [userId, sim.id]);
-    if (open && !restart) {
+    // REQ-199: a run on a version a person confirmed wrong cannot be scored
+    // (finishRun records no attempt for it), so resuming it is a restart on
+    // the version served now. A quarantined version's open run continues; a
+    // later confirmation voids its attempt (lib/item-quality.ts).
+    const condemned = open && !restart ? await versionConfirmedWrong(open.sim_version_id, tx) : false;
+    if (open && !restart && !condemned) {
       return (await tx.queryOne<RunRow>(
         `update sim_runs set lease_epoch = lease_epoch + 1, lease_device = $2 where id = $1 returning *`,
         [open.id, device]
       ))!;
     }
     // A new run needs full or sample access (a resume above does not).
-    if (!open) await gateSim(userId, sim, "start", env);
+    if (!open || condemned) await gateSim(userId, sim, "start", env);
     const served = await servedVersion(sim, caps, env, tx);
     if (!served) throw notFound();
     if (!served.runnable) throw new SimError(409, "app_update_required", "Update the app to open this simulation.");
@@ -931,7 +939,8 @@ export async function finishRun(userId: string, runId: string, body: Record<stri
     const ended = run.state.ended;
     const terminal = ended.reason === "ending" || ended.reason === "time_up";
     let attempt: SimDebrief["attempt"] = null;
-    if (terminal && data.rating) {
+    // REQ-199: no attempt from a version a person confirmed wrong.
+    if (terminal && data.rating && !(await versionConfirmedWrong(row.sim_version_id, tx))) {
       const verdict = verdictFor(data.rating);
       const missed = data.criteria.filter((c) => c.score === "missed").map((c) => c.label);
       const rec = (await recordAttemptTx(tx, {
@@ -973,6 +982,55 @@ export async function finishRun(userId: string, runId: string, body: Record<stri
     );
     return debrief;
   });
+}
+
+// ---------------------------------------------------------------------------
+// "Report a problem" on a sim (REQ-199, migration 067)
+// ---------------------------------------------------------------------------
+
+async function versionConfirmedWrong(versionId: string, db: Pick<TxClient, "queryOne"> = { queryOne }): Promise<boolean> {
+  const r = await db.queryOne<{ status: string }>(`select status from item_status where item_kind = 'sim' and item_id = $1`, [versionId]);
+  return r?.status === "confirmed_wrong";
+}
+
+export interface SimReportTarget {
+  ref: ItemRef;
+  // item_flags.context: what the reviewer needs to reproduce the moment.
+  context: Record<string, unknown>;
+}
+
+const HASH_RE = /^[A-Za-z0-9:_-]{1,128}$/;
+
+// The sim version a learner is reporting, resolved from a run THEY own (the
+// app sends a run id, never a version id or a title that is trusted). The
+// tick and state hash the app saw are kept as the learner's view; the
+// server's last tick and hash beside them are the record.
+export async function simReportTarget(
+  userId: string,
+  body: { runId?: unknown; tick?: unknown; stateHash?: unknown },
+  env: Record<string, string | undefined> = process.env
+): Promise<SimReportTarget> {
+  requireSimsEnabled(env);
+  if (typeof body.runId !== "string") throw new SimError(400, "bad_request", "runId is required");
+  const { run, sim } = await ownRun(userId, body.runId, env);
+  const v = await queryOne<{ version: number }>(`select version from sim_versions where id = $1`, [run.sim_version_id]);
+  const tick = Number.isInteger(body.tick) && (body.tick as number) >= 0 && (body.tick as number) <= 10_000_000 ? (body.tick as number) : null;
+  const stateHash = typeof body.stateHash === "string" && HASH_RE.test(body.stateHash) ? body.stateHash : null;
+  return {
+    ref: { kind: "sim", itemId: run.sim_version_id, objectiveId: sim.objective_id, question: `${sim.title} (version ${v?.version ?? "?"})` },
+    context: {
+      simId: sim.id,
+      versionId: run.sim_version_id,
+      version: v?.version ?? null,
+      runId: run.id,
+      runStatus: run.status,
+      tick,
+      stateHash,
+      serverTick: run.last_tick,
+      serverHash: run.state_hash,
+      engineVersion: run.engine_version,
+    },
+  };
 }
 
 // GET /api/sims/runs/:runId/debrief: the stored debrief of an ended run.
