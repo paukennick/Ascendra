@@ -29,6 +29,9 @@ import { AppLock, PrivacyCover } from "@/components/AppLock";
 import { UpdateRequired } from "@/components/UpdateRequired";
 import { registerUpdateRequiredHook } from "@/api/client";
 import type { UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
+import { AUTO_RELOAD_KEY, autoReloadMarker, mayAutoReload } from "@/lib/webVersion";
+
+const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
 import { useAppUpdates } from "@/updates/useAppUpdates";
 import { AlertHost } from "@/lib/alert";
 import { installWebAutofillStyles } from "@/lib/webAutofillStyles";
@@ -98,6 +101,29 @@ function RootNavigator() {
     registerUpdateRequiredHook(setUpdateRequired);
     return () => registerUpdateRequiredHook(null);
   }, []);
+
+  // REQ-177: web -- the server says this bundle is too old. Reload at once
+  // to fetch the current one, unless the screen holds work in progress (then
+  // the Update required screen asks), and at most once per bundle per 10
+  // minutes so a server that keeps refusing can't loop the tab.
+  useEffect(() => {
+    if (!updateRequired || Platform.OS !== "web" || typeof window === "undefined") return;
+    let marker: string | null = null;
+    try {
+      marker = window.sessionStorage.getItem(AUTO_RELOAD_KEY);
+    } catch {
+      /* storage blocked: treat as never reloaded */
+    }
+    const now = Date.now();
+    const pathname = window.location.pathname;
+    if (!mayAutoReload({ pathname, buildId: WEB_BUILD_ID || null, marker, now })) return;
+    try {
+      window.sessionStorage.setItem(AUTO_RELOAD_KEY, autoReloadMarker(WEB_BUILD_ID || null, now));
+    } catch {
+      return; // can't record it, so don't risk a loop
+    }
+    window.location.reload();
+  }, [updateRequired]);
 
   useEffect(() => {
     if (status === "loading") return;

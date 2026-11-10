@@ -27,36 +27,27 @@
 //   never silently reloaded regardless of how long the user was away -- they
 //   get the banner instead, and choose for themselves.
 
+// REQ-177 (web): expo-updates is off on the web, so a tab left open kept its
+// old bundle until reloaded. The web build now compares its bundled build id
+// with GET /api/version on focus and every 10 minutes and shows the same
+// banner, whose button reloads the page (src/lib/webVersion.ts). Never
+// automatic: reloading is the learner's choice, as on native.
+
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 import { usePathname } from "expo-router";
 import * as Updates from "expo-updates";
+import { api } from "@/api/client";
+import { compareBuild, holdsUnsavedWork, shouldCheckNow, WEB_VERSION_CHECK_MS } from "@/lib/webVersion";
+
+// Baked into the web bundle by backend/scripts/build-webapp.sh.
+const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
 
 /** Away for longer than this and a reload costs the user nothing. */
 const SILENT_APPLY_AFTER_MS = 5 * 60 * 1000;
 
 /** Don't re-check more often than this, however much the app is toggled. */
 const MIN_CHECK_INTERVAL_MS = 60 * 1000;
-
-/** Routes holding in-memory work that a reload would discard. */
-// REQ-177: and every other screen that holds an attempt in progress (labs,
-// exams, quizzes, review and unit checks, explain-back, placement).
-const PROTECTED_ROUTE_FRAGMENTS = [
-  "/lesson",
-  "/pbq",
-  "/chat",
-  "/lab",
-  "/exam",
-  "/quiz",
-  "/review-session",
-  "/unit-check",
-  "/explain",
-  "/placement",
-];
-
-function holdsUnsavedWork(pathname: string): boolean {
-  return PROTECTED_ROUTE_FRAGMENTS.some((fragment) => pathname.includes(fragment));
-}
 
 export interface AppUpdatesState {
   /** An update is downloaded and ready to apply on reload. */
@@ -92,7 +83,47 @@ export function useAppUpdates(): AppUpdatesState {
   // check, and checkForUpdateAsync throws rather than returning false.
   const enabled = Updates.isEnabled && !__DEV__;
 
+  // REQ-177: web -- a newer deploy than this bundle.
+  const [webUpdate, setWebUpdate] = useState(false);
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    let last = 0;
+    let live = true;
+    const check = async () => {
+      const now = Date.now();
+      if (!shouldCheckNow(last, now)) return;
+      last = now;
+      try {
+        const res = await api.get<{ buildId?: unknown }>("/api/version");
+        if (live && compareBuild(WEB_BUILD_ID, res?.buildId) === "new") {
+          setDismissed(false);
+          setWebUpdate(true);
+        }
+      } catch {
+        // Offline or an older server: nothing to say. A 426 is handled by the
+        // root layout's Update required path (src/api/client.ts).
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void check();
+    };
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    const timer = setInterval(() => void check(), WEB_VERSION_CHECK_MS);
+    void check();
+    return () => {
+      live = false;
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(timer);
+    };
+  }, []);
+
   const applyUpdate = useCallback(() => {
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined") window.location.reload();
+      return;
+    }
     // Covers the reload with a branded screen rather than letting the app
     // blank out, which reads as a crash.
     Updates.showReloadScreen();
@@ -165,7 +196,7 @@ export function useAppUpdates(): AppUpdatesState {
   return {
     // Either our own fetch completed, or something already left an update
     // pending before this hook ran.
-    updateReady: (updateReady || isUpdatePending) && !dismissed,
+    updateReady: (updateReady || isUpdatePending || webUpdate) && !dismissed,
     applyUpdate,
     dismiss: () => setDismissed(true),
   };
