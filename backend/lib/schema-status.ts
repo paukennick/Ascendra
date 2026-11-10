@@ -328,6 +328,16 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
   },
   {
+    // REQ-196: lesson generation queues a writer's verification program in
+    // exec_checks (fail closed: no table, the lesson is held back), and the
+    // sandbox / re-check jobs connect as a member of content_recheck.
+    migration: "064_recheck_role.sql",
+    what: "exec_checks / exec_check_runs (sandboxed verify-by-execution) and the content_recheck role",
+    sql: `select to_regclass('public.exec_checks') is not null
+             and to_regclass('public.exec_check_runs') is not null
+             and exists(select 1 from pg_roles where rolname = 'content_recheck') as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

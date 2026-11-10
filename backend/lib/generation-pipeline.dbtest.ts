@@ -2,7 +2,7 @@
 // with every migration applied and the seed loaded. The model is a fake
 // client or an injected generator/checker; no API key.
 //   - P8: teaching text held back on the writer's doubt; the cooldown
-//   - R4/P7: a verification program's mismatch holds the practice half back
+//   - R4/P7 + REQ-196: a verification program is queued, never run, in the request path (fail closed)
 //   - R1: a degree-advising objective is authored, never generated
 //   - R12/P9: a coach reply agreeing a verdict was wrong flags the item
 //   - lesson fixes (void / replace / authored) through the app's mechanisms
@@ -15,12 +15,14 @@ import { query, queryOne, closePool } from "./db";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
-import { lessonItemId, itemStatus } from "./item-quality";
+import { lessonItemId, itemStatus, clearStaged, confirmItemWrong } from "./item-quality";
 import type { CheckItem, FactChecker } from "./fact-check";
 import { getLessonFor, getSharedLesson, SHARED } from "./lesson-store";
 import {
   ContentHeldBackError,
   NOT_SERVED_MARK,
+  EXEC_QUEUE_FAILED,
+  recentlyHeldBack,
   ensureGeneration,
   loadObjective,
   type GenerationHandle,
@@ -30,7 +32,10 @@ import {
 import { AUTHORED_ADVISING_MODEL } from "./degree-advising";
 import { flagChatDisputes } from "./chat-dispute";
 import { applyLessonFix, lookupFix, advisingFixes, type LessonFix } from "./lesson-fixes";
-import { recheckStored, RECHECK_REASON } from "./recheck-stored";
+import { recheckStored } from "./recheck-stored";
+import { RunBudget } from "./run-budget";
+import { listStaged } from "./staging";
+import { execBacklog, queueExecCheck } from "./exec-checks";
 import { LESSON_FIXES_2026_11_09 } from "../scripts/lesson-fixes-2026-11-09";
 import fixture from "./fixtures/audit-2026-11-09-lessons.json";
 import { POST as chatPost } from "../app/api/chat/route";
@@ -38,7 +43,7 @@ import { POST as chatPost } from "../app/api/chat/route";
 const run = Date.now().toString(36);
 const track = randomUUID();
 const unit = randomUUID();
-const objs = Array.from({ length: 8 }, () => randomUUID());
+const objs = Array.from({ length: 12 }, () => randomUUID());
 const users: string[] = [];
 const CHOICES = ["Port 80", "Port 443", "Port 8080", "Port 22"];
 let modelCalls = 0;
@@ -180,23 +185,59 @@ describe("P8: teaching text is held back on the writer's doubt", () => {
   });
 });
 
-describe("R4/P7: verify by execution", () => {
-  test("a program whose output disagrees with the key holds the practice half back; a matching retry is stored", async () => {
+describe("R4/P7 + REQ-196: verify by execution never runs in the request path", () => {
+  test("a practice half with a program is served once the fact-check passes and is queued exec_unverified; nothing is executed", async () => {
     const o = objs[2];
-    let n = 0;
     const gen: LessonGenerator = {
       intro: async () => ({ guessPrompt: "g", teach: "t" }),
-      practice: async () => {
-        n++;
-        return practice(`v${n}`, { soloVerification: { language: "python", code: "print(443)", expected: n === 1 ? "8080" : "443" } });
-      },
+      practice: async () => practice("v1", { soloVerification: { language: "python", code: "print(443)", expected: "8080" } }),
       model: () => "test",
-      runCode: async () => ({ status: "ok", stdout: "443\n" }),
+      // the production queue; there is no runner in the request path at all
+      queueExec: queueExecCheck,
     };
     const row = await ensureGeneration(o, objRow(2), { scope: SHARED, generator: gen, pending: fresh() }).fullPromise;
-    assert.equal(row.solo_check, "solo v2");
-    const held = await queryOne<{ claims: string[] }>(`select claims from item_holdbacks where objective_id = $1 and item_kind = 'lesson'`, [o]);
-    assert.match(held!.claims[0], /^solo: execution printed "443", the key says "8080"/);
+    assert.equal(row.solo_check, "solo v1", "served: the program's (wrong) expected value does not hold it back here");
+    const id = lessonItemId(o, "solo", "solo v1");
+    const q = await queryOne<{ expected: string }>(`select expected from exec_checks where item_kind = 'lesson' and item_id = $1`, [id]);
+    assert.equal(q?.expected, "8080", "queued for the sandbox job");
+    assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from exec_check_runs where item_id = $1`, [id]))?.n, 0, "never run here");
+    assert.deepEqual(await execBacklog().then((b) => b.pending >= 1), true);
+  });
+
+  test("fail closed: if the program cannot be queued, the practice half is held back and nothing is stored", async () => {
+    const o = objs[8];
+    const gen: LessonGenerator = {
+      intro: async () => ({ guessPrompt: "g", teach: "t" }),
+      practice: async () => practice("q1", { soloVerification: { language: "python", code: "print(443)", expected: "443" } }),
+      model: () => "test",
+      queueExec: async () => {
+        throw new Error("relation \"exec_checks\" does not exist");
+      },
+    };
+    await assert.rejects(ensureGeneration(o, objRow(8), { scope: SHARED, generator: gen, pending: fresh() }).fullPromise, ContentHeldBackError);
+    assert.equal(await getSharedLesson(o), null, "nothing stored or served");
+    const held = await queryOne<{ claims: string[]; reason: string }>(
+      `select claims, reason from item_holdbacks where objective_id = $1 and item_kind = 'lesson' order by created_at desc limit 1`,
+      [o]
+    );
+    assert.equal(held?.reason, "fact_check_error");
+    assert.equal(held?.claims[0], NOT_SERVED_MARK);
+    assert.match(held!.claims[1], new RegExp(EXEC_QUEUE_FAILED));
+  });
+
+  test("a practice half without a program queues nothing", async () => {
+    const o = objs[9];
+    let calls = 0;
+    const gen: LessonGenerator = {
+      intro: async () => ({ guessPrompt: "g", teach: "t" }),
+      practice: async () => practice("n1"),
+      model: () => "test",
+      queueExec: async () => {
+        calls++;
+      },
+    };
+    await ensureGeneration(o, objRow(9), { scope: SHARED, generator: gen, pending: fresh() }).fullPromise;
+    assert.equal(calls, 0);
   });
 });
 
@@ -375,8 +416,8 @@ describe("lesson fixes through the app's mechanisms", () => {
   });
 });
 
-describe("R6: re-check content stored before the gate", () => {
-  test("dry run writes nothing; apply pulls what the checker disputes; person-made lessons are skipped", async () => {
+describe("R6 + REQ-196: re-check content stored before the gate (staged, never pulled)", () => {
+  test("estimate calls nothing; check writes nothing; apply stages without changing what is served; a person decides", async () => {
     const o = objs[7];
     await insertLesson(o, { teach: "t", fade_problem: `Old fade ${run}`, fade_choices: CHOICES, fade_correct_index: 1, fade_why: "w", solo_check: `Old solo ${run}`, solo_choices: CHOICES, solo_correct_index: 1, solo_why: "w" }, "claude-sonnet-5", "2026-10-01T00:00:00Z");
     const seen: string[] = [];
@@ -384,22 +425,76 @@ describe("R6: re-check content stored before the gate", () => {
       seen.push(...items.map((i) => i.question));
       return items.map((it) => (it.question.startsWith("Old fade") ? { key: it.key, publish: false, answer: [0], unsupportedClaims: [], outcome: "disagree" as const } : { key: it.key, publish: true, answer: it.expected, unsupportedClaims: [], outcome: "agree" as const }));
     };
-    const mine = (r: Awaited<ReturnType<typeof recheckStored>>) => r.pulled.filter((p) => p.ref.objectiveId === o);
-    const dry = await recheckStored({ before: "2026-10-15", apply: false, kinds: ["lesson"], checker });
+    const fadeId = lessonItemId(o, "fade", `Old fade ${run}`);
+    const mine = (r: Awaited<ReturnType<typeof recheckStored>>) => r.staged.filter((p) => p.ref.objectiveId === o);
+    const stagedRows = async () =>
+      (await query<{ n: number }>(`select count(*)::int as n from item_holdbacks where content->>'staged' = 'recheck' and content->>'itemId' = $1`, [fadeId]))[0].n;
+
+    const est = await recheckStored({ before: "2026-10-15", mode: "estimate", kinds: ["lesson"], checker, model: "claude-sonnet-5-5" });
+    assert.equal(seen.length, 0, "estimate makes no model call");
+    assert.ok(est.batches >= 1 && est.estimate.upperUsd > 0 && est.estimate.typicalUsd <= est.estimate.upperUsd);
+
+    const dry = await recheckStored({ before: "2026-10-15", mode: "check", kinds: ["lesson"], checker, budget: new RunBudget(5) });
     assert.equal(mine(dry).length, 1);
     assert.ok(seen.includes(`Old solo ${run}`));
-    assert.equal(await itemStatus("lesson", lessonItemId(o, "fade", `Old fade ${run}`)), null, "dry run");
-    const done = await recheckStored({ before: "2026-10-15", apply: true, kinds: ["lesson"], checker });
+    assert.equal(await stagedRows(), 0, "check writes nothing");
+
+    const done = await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(5) });
     assert.equal(mine(done).length, 1);
-    const st = await queryOne<{ status: string; reason: string }>(`select status, reason from item_status where item_kind = 'lesson' and item_id = $1`, [lessonItemId(o, "fade", `Old fade ${run}`)]);
-    assert.deepEqual([st!.status, st!.reason], ["quarantined", RECHECK_REASON]);
-    assert.equal(await getSharedLesson(o) !== null, true);
+    assert.equal(await stagedRows(), 1, "staged for a person");
+    assert.equal(await itemStatus("lesson", fadeId), null, "not pulled");
     const u = await newUser();
-    assert.equal(await getLessonFor(u, o), null, "not served");
-    // Already pulled: not checked again. Person-made: never checked.
+    assert.equal((await getLessonFor(u, o))?.row.fade_problem, `Old fade ${run}`, "still served until a person decides");
+    assert.equal(await recentlyHeldBack(o), false, "a staged finding does not start the held-back cooldown");
+    assert.equal((await listStaged({ open: true })).some((r) => r.itemId === fadeId), true);
+
+    // Already staged: not checked or staged again.
+    seen.length = 0;
+    await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(5) });
+    assert.ok(!seen.includes(`Old fade ${run}`));
+    assert.equal(await stagedRows(), 1);
+
+    // A person confirms: only now does the learner-facing state change.
+    await confirmItemWrong({ kind: "lesson", itemId: fadeId, objectiveId: o, question: `Old fade ${run}` }, "test: key disputed");
+    assert.equal(await getLessonFor(u, o), null, "pulled after the person confirmed");
+    assert.equal((await listStaged({ open: true })).some((r) => r.itemId === fadeId), false, "decided");
+
+    // Person-made: never checked.
     seen.length = 0;
     await query(`update lesson_content set model = 'corrected:X' where objective_id = $1`, [o]);
-    await recheckStored({ before: "2026-10-15", apply: true, kinds: ["lesson"], checker });
+    await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(5) });
     assert.ok(!seen.some((q) => q.includes(run)));
+  });
+
+  test("the budget is a hard stop: a run that cannot afford its next batch makes no call", async () => {
+    const o = objs[10];
+    await insertLesson(o, { teach: "t", fade_problem: `Budget fade ${run}`, fade_choices: CHOICES, fade_correct_index: 1, fade_why: "w", solo_check: `Budget solo ${run}`, solo_choices: CHOICES, solo_correct_index: 1, solo_why: "w" }, "claude-sonnet-5", "2026-10-01T00:00:00Z");
+    let calls = 0;
+    const checker: FactChecker = async (items) => {
+      calls++;
+      return items.map((it) => ({ key: it.key, publish: true, answer: it.expected, unsupportedClaims: [], outcome: "agree" as const }));
+    };
+    const r = await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(0.0001) });
+    assert.equal(calls, 0);
+    assert.match(r.stoppedAtBudget ?? "", /Budget reached/);
+    await assert.rejects(recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker }), /budget is required/);
+  });
+
+  test("a person clears a staged finding: still served, never staged again", async () => {
+    const o = objs[11];
+    await insertLesson(o, { teach: "t", fade_problem: `Clear fade ${run}`, fade_choices: CHOICES, fade_correct_index: 1, fade_why: "w", solo_check: `Clear solo ${run}`, solo_choices: CHOICES, solo_correct_index: 1, solo_why: "w" }, "claude-sonnet-5", "2026-10-01T00:00:00Z");
+    const fadeId = lessonItemId(o, "fade", `Clear fade ${run}`);
+    const seen: string[] = [];
+    const checker: FactChecker = async (items) => {
+      seen.push(...items.map((i) => i.question));
+      return items.map((it) => ({ key: it.key, publish: !it.question.startsWith("Clear fade"), answer: [0], unsupportedClaims: [], outcome: it.question.startsWith("Clear fade") ? ("disagree" as const) : ("agree" as const) }));
+    };
+    await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(5) });
+    await clearStaged({ kind: "lesson", itemId: fadeId, objectiveId: o, question: `Clear fade ${run}` }, "test: checked, fine");
+    const u = await newUser();
+    assert.equal((await getLessonFor(u, o))?.row.fade_problem, `Clear fade ${run}`);
+    seen.length = 0;
+    await recheckStored({ before: "2026-10-15", mode: "apply", kinds: ["lesson"], checker, budget: new RunBudget(5) });
+    assert.ok(!seen.includes(`Clear fade ${run}`), "a person's decision is final for the job");
   });
 });

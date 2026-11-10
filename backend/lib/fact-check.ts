@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { callClaudeStructured, getModel } from "@/lib/anthropic";
+import { callClaudeStructured, getModel, type Effort, type ThinkingMode } from "@/lib/anthropic";
 import type { CoachContext } from "@/lib/coach-context";
-import { systemWithRules, type SystemPrompt } from "@/lib/prompts";
+import { flattenSystem, systemWithRules, type SystemPrompt } from "@/lib/prompts";
 
 // REQ-114 (Audit 3, recommendation 1): the second-model fact-check gate.
 //
@@ -145,7 +145,7 @@ export function orderingForCheck(steps: string[]): { options: string[]; expected
 export interface CheckMeta {
   ctx?: CoachContext;
   userId?: string | null;
-  purpose?: "fact_check" | "item_recheck";
+  purpose?: "fact_check" | "item_recheck" | "eval_factcheck";
 }
 export type FactChecker = (items: CheckItem[], meta: CheckMeta) => Promise<CheckVerdict[]>;
 
@@ -154,25 +154,46 @@ export function factCheckModel(): string {
   return getModel();
 }
 
+// REQ-196: which model and thinking setting checks. The production gate is
+// the writer's model with thinking (factCheckModel, "default"); the eval
+// harness (lib/factcheck-eval.ts) measures the others.
+export interface CheckerVariant {
+  model: string;
+  thinking: ThinkingMode;
+  effort?: Effort;
+}
+
+// The answer itself; lib/anthropic.ts adds thinking headroom.
+export const factCheckMaxTokens = (n: number) => 400 + 200 * n;
+
+// What one checker call sends, for budgeting before it is made.
+export function factCheckCallText(items: CheckItem[], ctx?: CoachContext): string {
+  const { system, user } = factCheckPrompt({ items, ctx });
+  return `${flattenSystem(system)}\n${user}`;
+}
+
+export function makeModelFactChecker(variant?: Partial<CheckerVariant>): FactChecker {
+  return async (items, meta) => {
+    if (!items.length) return [];
+    const { system, user } = factCheckPrompt({ items, ctx: meta.ctx });
+    const out = await callClaudeStructured({
+      system,
+      messages: [{ role: "user", content: user }],
+      schema: factCheckSchema,
+      maxTokens: factCheckMaxTokens(items.length),
+      model: variant?.model ?? factCheckModel(),
+      effort: variant?.effort ?? "medium",
+      thinking: variant?.thinking ?? "default",
+      purpose: meta.purpose ?? "fact_check",
+      userId: meta.userId ?? undefined,
+    });
+    return judgeFactCheck(items, out);
+  };
+}
+
 // The real checker: one call for the whole batch. Throws if the
 // call fails; callers decide (the gate fails closed).
-export const modelFactChecker: FactChecker = async (items, meta) => {
-  if (!items.length) return [];
-  const { system, user } = factCheckPrompt({ items, ctx: meta.ctx });
-  const out = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: factCheckSchema,
-    // The answer itself; lib/anthropic.ts adds thinking headroom.
-    maxTokens: 400 + 200 * items.length,
-    model: factCheckModel(),
-    effort: "medium",
-    thinking: "default",
-    purpose: meta.purpose ?? "fact_check",
-    userId: meta.userId ?? undefined,
-  });
-  return judgeFactCheck(items, out);
-};
+export const modelFactChecker: FactChecker = makeModelFactChecker();
 
 export interface GateResult {
   verdicts: Map<string, CheckVerdict>;

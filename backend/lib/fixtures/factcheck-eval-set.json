@@ -1,0 +1,905 @@
+{
+ "_note": "REQ-196: the labelled fact-checker eval set from the 2026-11-09 content audit (scratchpad/audit/findings-*.md). 'bad' = a wrong key or claim the audit confirmed; 'good' = a key the audit confirmed correct. Each item says where it came from: a stored production check, or a question constructed for this eval from an audited claim. Snippets are verification programs written for this eval in the shape the writer emits (they print what the KEY claims should be computed). Used by lib/factcheck-eval.ts.",
+ "items": [
+  {
+   "id": "SECPLUS-19-solo",
+   "label": "bad",
+   "family": "it",
+   "track": "SECPLUS",
+   "provenance": "stored generated lesson #19 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia C1",
+   "why": "SY0-701 calls technical/managerial/operational/physical control CATEGORIES and preventive...directive control TYPES; the item swaps them.",
+   "objectiveTitle": "Security control types (technical, managerial, operational, physical) and control functions (preventive, detective, corrective, deterrent, compensating, directive)",
+   "question": "A data center requires employees to swipe a badge and pass a biometric fingerprint scan before a door will physically unlock to let them into the server room. Identify BOTH the control type (technical, managerial, operational, or physical) and the control function (preventive, detective, corrective, deterrent, compensating, or directive) for this badge-and-biometric door lock, and briefly justify each.",
+   "options": [
+    "Physical control type, because the lock is a tangible barrier restricting physical access; preventive function, because it stops unauthorized entry before it happens",
+    "Technical control type, because it uses electronic biometric hardware; detective function, because it logs who entered after the fact",
+    "Physical control type, because it's a door; corrective function, because it fixes unauthorized access once discovered",
+    "Managerial control type, because badge policies are set by management; deterrent function, because it discourages people from trying to enter"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "AWSSAP-24-fade",
+   "label": "bad",
+   "family": "cloud",
+   "track": "AWSSAP",
+   "provenance": "stored generated lesson #24 (fade check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "aws M2",
+   "why": "Two defensible answers: a second Direct Connect connection at a different location is AWS's documented high-resiliency model, which the key rejects.",
+   "objectiveTitle": "Connectivity for on-premises, co-location, and cloud integration: AWS Direct Connect and AWS VPN",
+   "question": "A media company has a single AWS Direct Connect connection (1 Gbps dedicated connection) from their data center to a Direct Connect location, with a private virtual interface (VIF) to their VPC. This supports their core ERP traffic. The company's compliance team now requires that connectivity to AWS for this ERP workload survive the failure of the Direct Connect connection itself, the Direct Connect location, or the on-premises router -- with automatic failover and no sustained outage. Budget allows for one additional network path, but it must come up almost instantly if Direct Connect fails. Design: keep the existing Direct Connect connection, and add exactly one more network path/configuration to meet the resiliency requirement. State exactly what that second path should be and what configuration ties the two together for automatic failover.",
+   "options": [
+    "Add a second Direct Connect connection in a different Direct Connect location (or via a different partner) with its own private VIF, so BGP can fail over between the two dedicated connections",
+    "Add a Site-to-Site VPN connection over the public internet to the same VPC's virtual private gateway or transit gateway, configured as a backup route with a higher BGP AS path length (or lower priority) than the Direct Connect VIF, so BGP automatically prefers Direct Connect and fails over to VPN",
+    "Add a second private VIF on the same Direct Connect connection to a different VPC, so traffic can shift to the other VPC if the first VPC becomes unreachable",
+    "Enable a VPC peering connection to a second VPC in another region, so on-premises traffic can be rerouted through the peered VPC if Direct Connect fails"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "CMPCBS-7-fade",
+   "label": "bad",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "stored generated lesson #7 (fade check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "academic M2",
+   "why": "Invented course title: GICE 290 is Cultural Anthropology, not 'Global and Intercultural Civic Engagement'; the key depends on the invented title.",
+   "objectiveTitle": "Cultural Studies elective -- choose 3 credits from ARTS 105, CSTU 101, CSTU 220, GICE 290, GOVT 200, GOVT 220, MUSC 103, or RLGN 210",
+   "question": "New scenario, same idea: You need a course from this same list that (1) has no prerequisite, (2) meets only in the evening, and (3) actually matches the 'Civic & Global Engagement' theme of the unit this requirement sits under. Checking the catalog: ARTS 105 requires a placement prerequisite — eliminated. CSTU 101 only meets in the morning — eliminated. CSTU 220 requires CSTU 101 as a prerequisite — eliminated. GOVT 200 meets in the evening with no prerequisite, but its content is domestic government, not global/civic engagement themed. GOVT 220 has a prerequisite — eliminated. MUSC 103 meets in the evening with no prerequisite, but it's music appreciation, not civic/global themed. That leaves two real candidates that meet in the evening with no prerequisite: GICE 290 and RLGN 210. Your job: pick the ONE course between these two that best matches the 'Civic & Global Engagement' theme, and state why.",
+   "options": [
+    "GICE 290, because its full name — Global and Intercultural Civic Engagement — directly matches the unit's theme, and one 3-credit course still fully satisfies the requirement",
+    "RLGN 210, because any course covering a different culture automatically counts as 'civic and global engagement,' regardless of its actual title",
+    "Take both GICE 290 and RLGN 210 for 6 credits, since the unit name mentions both 'civic' and 'global' so you need a course for each word",
+    "Split enrollment so 1.5 credits come from GICE 290 and 1.5 from RLGN 210, since the theme has two parts"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CMPCBS-15-fade",
+   "label": "bad",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "stored generated lesson #15 (fade check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "academic M3",
+   "why": "Invented course title: GICE 220 is Intercultural Communication and Engagement, not 'Global Issues in Computing Ethics'; the key depends on it.",
+   "objectiveTitle": "Communications elective -- choose 3 credits from COMS 101, BUSI 300, ENGR 270, or GICE 220",
+   "question": "A different transfer student, Marcus, is a Computer Engineering major who needs his communications elective to also count toward an 'ethics and technology' breadth requirement his department imposes on top of the general degree requirement. He is comparing GICE 220 (Global Issues in Computing Ethics) against ENGR 270 (Technical Writing for Engineers). GICE 220's catalog description emphasizes case studies on technology's societal impact, privacy, and ethical decision-making; ENGR 270 emphasizes writing technical reports and documentation. Given Marcus's extra requirement, state exactly which single course he should pick to satisfy BOTH the communications elective AND the ethics/technology breadth requirement in one enrollment.",
+   "options": [
+    "ENGR 270, because technical writing is required for all engineering majors regardless of topic",
+    "GICE 220, because its content on societal impact and ethical decision-making directly satisfies the ethics/technology breadth requirement while still counting as the communications elective",
+    "BUSI 300, because business communication implicitly covers ethics in the workplace",
+    "COMS 101, because it is the default choice listed first among the four options"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "CCRNADULT-dka-k",
+   "label": "bad",
+   "family": "clinical",
+   "track": "CCRNADULT",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "nursing C1 (ccrn.ts:199-200)",
+   "why": "2024 consensus: delay insulin until K+ > 3.5 (PMC11343900); the lab used ~3.3.",
+   "objectiveTitle": "Diabetic ketoacidosis management",
+   "question": "An adult in diabetic ketoacidosis has a serum potassium of 3.4 mEq/L. Under the 2024 hyperglycemic crises consensus, what should happen before the insulin infusion starts?",
+   "options": [
+    "Start insulin now: insulin is held only when potassium is below 3.3 mEq/L",
+    "Hold insulin and replace potassium until it is above 3.5 mEq/L",
+    "Give a sodium bicarbonate bolus first",
+    "Start insulin and recheck potassium in 24 hours"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "ABPTSGCS-27-hrmax",
+   "label": "bad",
+   "family": "clinical",
+   "track": "ABPTSGCS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt M4 (generated GCS lesson #27 teach text)",
+   "why": "Tanaka 2001: 220-age underestimates HRmax in older adults.",
+   "objectiveTitle": "Physiology of ageing across systems",
+   "question": "Compared with measured maximum heart rate, how does the 220 minus age formula perform in older adults?",
+   "options": [
+    "It underestimates maximum heart rate",
+    "It is exact at every age",
+    "It applies only to children",
+    "It overestimates maximum heart rate"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "ABPTSECS-20-lems",
+   "label": "bad",
+   "family": "clinical",
+   "track": "ABPTSECS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt M2 (generated ECS lesson #20 teach text)",
+   "why": "LEMS: the resting CMAP is low, with post-exercise facilitation.",
+   "objectiveTitle": "Neuroscience of axonal conduction, demyelination and the neuromuscular junction",
+   "question": "In Lambert-Eaton myasthenic syndrome, what does a nerve conduction study typically show at rest and after brief exercise?",
+   "options": [
+    "A low resting CMAP amplitude that increases markedly after brief exercise or high-frequency stimulation",
+    "A high resting CMAP amplitude with no change after exercise",
+    "Absent CMAPs in every muscle",
+    "A normal resting CMAP amplitude that decrements with slow repetitive stimulation"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "ABPTSONC-fn-anc",
+   "label": "bad",
+   "family": "clinical",
+   "track": "ABPTSONC",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt M3 (pt-abpts.ts:1171)",
+   "why": "IDSA: ANC < 500 cells/uL, or expected to fall below 500 within 48 hours.",
+   "objectiveTitle": "Febrile neutropenia",
+   "question": "Under the IDSA definition, febrile neutropenia is a fever with an absolute neutrophil count (ANC) of:",
+   "options": [
+    "Below 500 cells/uL, or expected to fall below 500 within 48 hours",
+    "Below 4,000 cells/uL",
+    "Above 10,000 cells/uL",
+    "Below 1,500 cells/uL"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "NPTEPT-spo2",
+   "label": "bad",
+   "family": "clinical",
+   "track": "NPTEPT",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt M5 (pt.ts:315)",
+   "why": "BTS 2017: target 94-98% for most acutely ill adults; 88-92% if at risk of hypercapnia.",
+   "objectiveTitle": "Oxygen saturation targets",
+   "question": "Under the BTS 2017 emergency oxygen guideline, what SpO2 range is the target for most acutely ill adults who are not at risk of hypercapnic respiratory failure?",
+   "options": [
+    "88-92%",
+    "100%",
+    "92-98%",
+    "94-98%"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "NCLEXRN-clozapine",
+   "label": "bad",
+   "family": "clinical",
+   "track": "NCLEXRN",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "nursing M2 (nursing.ts:490, 2008)",
+   "why": "FDA ended the Clozapine REMS on 2025-06-13; ANC monitoring continues per labeling.",
+   "objectiveTitle": "Antipsychotic medication safety",
+   "question": "As of 2026, what is required before a US pharmacy dispenses clozapine?",
+   "options": [
+    "The prescriber, pharmacy and patient must be enrolled in the Clozapine REMS, with the ANC reported to it",
+    "No REMS enrolment (the FDA ended the REMS in 2025); neutrophil monitoring continues as the labeling directs",
+    "Nothing: clozapine is no longer marketed in the US",
+    "Only a baseline ECG"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "NCLEXRN-vt",
+   "label": "bad",
+   "family": "clinical",
+   "track": "NCLEXRN",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "nursing M3 (nursing.ts:684, 1862)",
+   "why": "Standard definition: three or more consecutive PVCs.",
+   "objectiveTitle": "Dysrhythmia recognition",
+   "question": "On a cardiac monitor, how many consecutive premature ventricular contractions define ventricular tachycardia?",
+   "options": [
+    "Ten or more in a row",
+    "More than three in a row",
+    "Three or more in a row",
+    "Two in a row"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "GCPNET-pod-range",
+   "label": "bad",
+   "family": "cloud",
+   "track": "GCPNET",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "azure-gcp C1 (gcp-net.ts:73-74)",
+   "why": "A /18 holds 2^(24-18) = 64 /24 node ranges.",
+   "objectiveTitle": "GKE IP address management",
+   "question": "A VPC-native GKE cluster uses the default maximum of 110 Pods per node, so each node is given a /24 from the Pod secondary range. How many nodes can a /18 Pod range hold?",
+   "options": [
+    "32 nodes",
+    "About 200 nodes",
+    "64 nodes",
+    "16,384 nodes"
+   ],
+   "expected": [
+    1
+   ],
+   "snippet": {
+    "language": "python",
+    "code": "pod_range = 18\nper_node = 24  # 110 max Pods per node -> a /24 per node\nprint(2 ** (per_node - pod_range))\n",
+    "expected": "200"
+   }
+  },
+  {
+   "id": "AWSSAA-retention-days",
+   "label": "bad",
+   "family": "cloud",
+   "track": "AWSSAA",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "aws m6 (awssaa.ts:341-342)",
+   "why": "2026-01-01 to 2033-01-01 spans the 2028 and 2032 leap days: 2,557 days.",
+   "objectiveTitle": "S3 data protection",
+   "question": "An S3 Object Lock retention period must last exactly 7 calendar years starting 2026-01-01. How many days is that?",
+   "options": [
+    "2,548",
+    "2,920",
+    "2,555",
+    "2,557"
+   ],
+   "expected": [
+    2
+   ],
+   "snippet": {
+    "language": "python",
+    "code": "from datetime import date\nprint((date(2033, 1, 1) - date(2026, 1, 1)).days)\n",
+    "expected": "2555"
+   }
+  },
+  {
+   "id": "AWSCLF-support-plans",
+   "label": "bad",
+   "family": "cloud",
+   "track": "AWSCLF",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "aws C1 (tracks/aws.ts:181)",
+   "why": "CLF-C02 guide revised 2026-09-24 / 2026-10-29: Basic Support, Business Support+, Enterprise Support, Unified Operations; old plans end 2027-01-01.",
+   "objectiveTitle": "AWS Support plans",
+   "question": "Under the current AWS Certified Cloud Practitioner (CLF-C02) exam guide, which list names the AWS Support plans a candidate is expected to compare?",
+   "options": [
+    "Basic Support, Business Support+, Enterprise Support and Unified Operations",
+    "Free, Standard and Premium",
+    "Starter, Pro and Enterprise",
+    "Basic, Developer, Business and Enterprise On-Ramp"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "CKA-etcd-restore",
+   "label": "bad",
+   "family": "cloud",
+   "track": "CKA",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "k8s K4 (k8s-cka.ts:97, 114)",
+   "why": "etcdctl snapshot restore/status were removed in etcd 3.6; etcdutl does it (CKA runs v1.37 with etcd 3.7).",
+   "objectiveTitle": "Back up and restore etcd",
+   "question": "On a Kubernetes v1.37 control plane running etcd 3.7, which command restores an etcd snapshot into a new data directory?",
+   "options": [
+    "kubeadm etcd restore",
+    "kubectl etcd restore",
+    "etcdctl snapshot restore",
+    "etcdutl snapshot restore"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "KCA-failure-action",
+   "label": "bad",
+   "family": "cloud",
+   "track": "KCA",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "k8s K6",
+   "why": "spec.validationFailureAction is deprecated; the current field is rules[].validate.failureAction.",
+   "objectiveTitle": "Kyverno validate rules",
+   "question": "In a current Kyverno ClusterPolicy, where should a validate rule's Enforce/Audit action be set?",
+   "options": [
+    "rules[].validate.failureAction",
+    "metadata.annotations[\"kyverno.io/action\"]",
+    "spec.background",
+    "spec.validationFailureAction"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "CNPE-crossplane-trace",
+   "label": "bad",
+   "family": "cloud",
+   "track": "CNPE",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "k8s K10",
+   "why": "Crossplane v2 has no claims, and the command is `crossplane resource trace`, not `crossplane beta trace`.",
+   "objectiveTitle": "Crossplane composition",
+   "question": "In Crossplane v2, which CLI command shows the tree of resources behind a composite resource?",
+   "options": [
+    "kubectl crossplane trace",
+    "crossplane xr tree",
+    "crossplane beta trace",
+    "crossplane resource trace"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "LINUXPLUS-set-e",
+   "label": "bad",
+   "family": "it",
+   "track": "LINUXPLUS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "comptia M2 (comptia-linuxplus.ts:417, 427, 432; reproduced)",
+   "why": "set -e ignores a failure in any command of an && list except the last, so the script continues.",
+   "objectiveTitle": "Shell scripting error handling",
+   "question": "A bash script starts with `set -e`. Inside a loop it runs `gzip \"$f\" && count=$((count+1))`. What happens when gzip fails on a file?",
+   "options": [
+    "The script exits with status 0",
+    "The script exits immediately with gzip's non-zero status",
+    "The script keeps going: set -e does not fire for a failing command in an && list unless it is the last one, so the failure passes silently",
+    "bash retries gzip once and then exits"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "CMPCBS-10-shared-credit",
+   "label": "bad",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "academic M4 (generated lesson #10 teach text)",
+   "why": "The degree plan lists shared credit (CSIS 110, MATH 131), contradicting 'no double counting'.",
+   "objectiveTitle": "22 credits of free electives",
+   "question": "In this CMPCBS degree plan, can a single course such as CSIS 110 or MATH 131 count toward more than one requirement?",
+   "options": [
+    "Only for 300- and 400-level courses",
+    "No: in this plan a course can never count toward two requirements",
+    "Yes: the plan itself lists shared credit for some courses, such as CSIS 110 and MATH 131",
+    "Only with a registrar's waiver"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "MSCS-scrypt",
+   "label": "bad",
+   "family": "academic",
+   "track": "MSCS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "academic M5 (academic-mscs.ts:454)",
+   "why": "OWASP Password Storage Cheat Sheet minimum for scrypt: N=2^17, r=8, p=1.",
+   "objectiveTitle": "Password storage",
+   "question": "Does scrypt with N=2^14, r=8, p=1 meet the OWASP Password Storage Cheat Sheet's recommended minimum?",
+   "options": [
+    "Yes: N=2^14 meets the minimum",
+    "No: the minimum is N=2^17 with r=8 and p=1",
+    "scrypt is not recommended in any configuration",
+    "Only when bcrypt is applied first"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "MSCS-heap-top10",
+   "label": "bad",
+   "family": "academic",
+   "track": "MSCS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "academic M6 (academic-mscs.ts:134)",
+   "why": "A size-k min-heap only keeps the top k when scores only increase; with decreases it loses the replacement.",
+   "objectiveTitle": "Choose data structures",
+   "question": "A leaderboard must always show the current top 10, and any player's score can go up or down at any time. Is a size-10 min-heap holding the current top 10 enough on its own?",
+   "options": [
+    "Yes, as long as the heap is rebuilt once a day",
+    "No: heaps cannot store integers",
+    "Yes: a size-10 min-heap always holds the correct top 10",
+    "No: when a top-10 score drops, the heap cannot tell which outside score should replace it; an ordered structure over all scores (or a full heap with updates) is needed"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "PMICPMAI-segmentation",
+   "label": "bad",
+   "family": "pm",
+   "track": "PMICPMAI",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pm M1 (pm-cpmai.ts:122-123)",
+   "why": "In the Seven Patterns of AI, segmentation/clustering is 'Patterns and anomalies'; 'Recognition' is identifying things in unstructured data.",
+   "objectiveTitle": "The seven patterns of AI",
+   "question": "In the Seven Patterns of AI used by CPMAI, which pattern does customer segmentation (grouping customers by similar behaviour) belong to?",
+   "options": [
+    "Patterns and anomalies",
+    "Conversational and human interaction",
+    "Goal-driven systems",
+    "Recognition"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "SECPLUS-0-solo",
+   "label": "good",
+   "family": "it",
+   "track": "SECPLUS",
+   "provenance": "stored generated lesson #0 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia: 9 lessons, all keys correct",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "CIA triad, non-repudiation, and the AAA security model",
+   "question": "An e-commerce website does the following when a customer checks out: requires the customer to log in with a password, checks whether the customer's account is allowed to apply a stored discount code, encrypts the credit card number while it's sent to the payment processor, verifies with a hash check that the order total wasn't altered in transit, keeps its servers mirrored across three regions so the site stays reachable during outages, and records the customer's IP address, timestamp, and purchased items in a searchable log. Which specific mechanism in this scenario represents 'Accounting' in the AAA model, and why is it different from Authentication or Authorization here?",
+   "options": [
+    "Recording the customer's IP address, timestamp, and purchased items in a searchable log — this tracks what happened after identity and permissions were already established, rather than proving identity or granting permission.",
+    "Requiring the customer to log in with a password — that proves identity, which is Authentication, not Accounting.",
+    "Checking whether the account is allowed to use the discount code — that's granting permission, which is Authorization, not Accounting.",
+    "Encrypting the credit card number in transit — that protects secrecy, which is Confidentiality, not Accounting."
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "LINUXPLUS-1-solo",
+   "label": "good",
+   "family": "it",
+   "track": "LINUXPLUS",
+   "provenance": "stored generated lesson #1 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia: 9 lessons, all keys correct",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Boot process, GRUB, and systemd targets",
+   "question": "A Linux system fails to boot normally — it drops you into a minimal shell with almost no services running, not even full filesystem mounts, and systemd reports it reached emergency.target. Explain: (1) what emergency.target is and how it differs from rescue.target, and (2) name one plausible cause that would make systemd fall back to emergency.target instead of continuing to multi-user.target or graphical.target.",
+   "options": [
+    "emergency.target is a bare minimal shell with even fewer services than rescue.target, used when something critical (like a corrupt fstab entry or failed root filesystem mount) prevents normal boot; rescue.target still mounts filesystems and starts basic services.",
+    "emergency.target and rescue.target are two names for the exact same state, and the fallback happens only when GRUB itself fails to find a kernel.",
+    "emergency.target is what systemd uses for graphical login failures specifically, while rescue.target is used only for network failures.",
+    "emergency.target is an older SysV runlevel alias with no real function in modern systemd, kept only for compatibility."
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "PENTESTPLUS-12-solo",
+   "label": "good",
+   "family": "it",
+   "track": "PENTESTPLUS",
+   "provenance": "stored generated lesson #12 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia: 9 lessons, all keys correct",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Pre-engagement: scoping, rules of engagement, authorization",
+   "question": "During a pentest of a company's web application, you discover the app is hosted on a cloud provider's servers (AWS). The signed authorization document only names 'the corporate web application at app.example.com' as in-scope and says nothing about the underlying cloud infrastructure. You want to also test the actual EC2 servers and storage buckets behind that app. What must you do before testing those cloud resources, and why?",
+   "options": [
+    "Go back to the client to explicitly expand and document the scope to name the cloud assets, and check the cloud provider's own policies/permission requirements for security testing on their platform, since infrastructure ownership may be split between client and provider",
+    "Proceed, since testing 'app.example.com' logically includes whatever servers happen to run it",
+    "Only test during the agreed time window, since the time window is what makes any testing authorized",
+    "Quietly skip those cloud assets without telling the client, since they weren't named in the document, and say nothing further"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CLOUDNETX-28-solo",
+   "label": "good",
+   "family": "it",
+   "track": "CLOUDNETX",
+   "provenance": "stored generated lesson #28 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia: 9 lessons, all keys correct",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Core networking concepts applied to design: the OSI model, IPv4/IPv6 addressing and subnetting, NAT, routing and DNS protocols, and container networking",
+   "question": "A cloud engineer deploys container hosts in two different physical locations. Each host runs its own containers with private IPs on a local virtual bridge, and that works fine for containers on the same host. Now the team needs containers on Host A to reliably reach containers on Host B using their private IPs, without manually updating routing tables every time a container is added or removed. Work out which container networking approach should be used to meet this requirement.",
+   "options": [
+    "Configure an identical virtual bridge network on each host so the address ranges match",
+    "Set up an overlay network that spans both container hosts",
+    "Add NAT rules on each host's gateway to forward traffic between the two bridge networks",
+    "Manually add a static route on each host for every individual container IP address"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "NETWORKPLUS-29-solo",
+   "label": "good",
+   "family": "it",
+   "track": "NETWORKPLUS",
+   "provenance": "stored generated lesson #29 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "comptia: 9 lessons, all keys correct",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Networking appliance roles: routers, switches, firewalls, IDS/IPS, load balancers, proxies, NAS, and SAN",
+   "question": "An organization wants all employees' outbound web browsing requests to go through a single device that caches commonly visited pages to save bandwidth, blocks access to a list of banned websites, and hides each employee's individual IP address from the external sites they visit. Identify which networking appliance should be placed between the employees and the internet to meet these three needs.",
+   "options": [
+    "A proxy, because it sits between clients and servers to forward requests on their behalf while caching, filtering, and masking client IPs",
+    "A firewall, because it can block traffic to specific IP addresses or ports based on rules",
+    "A load balancer, because it distributes outgoing client requests across multiple paths to the internet",
+    "An IDS, because it monitors outbound traffic and can alert staff when someone tries to reach a banned website"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "AWSAIF-14-solo",
+   "label": "good",
+   "family": "cloud",
+   "track": "AWSAIF",
+   "provenance": "stored generated lesson #14 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "aws: all 7 lessons checked; only #24 (key) and #13 (teach text) had findings",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Core vocabulary: AI, machine learning, deep learning, neural networks, computer vision, natural language processing",
+   "question": "A logistics company builds a chatbot that reads customer shipping complaints typed into a support chat, determines whether the complaint is about a late delivery, a damaged item, or a billing error, and routes it to the right team. It uses a neural network with many layers trained on 2 million past complaint transcripts, rather than hand-coded keyword rules like 'if the message contains late, route to shipping team.' In your own words, identify which of the six terms (AI, ML, deep learning, neural network, computer vision, NLP) describe this system and how they relate to each other for this specific case, and say which application domain it belongs to and why it is NOT the other domain.",
+   "options": [
+    "AI is the overall goal; ML is learning from the 2 million labeled transcripts instead of fixed keyword rules; deep learning is the many-layered network technique used; the neural network is the layered structure itself; the domain is NLP because the input is human language text to interpret, not images, so it is not computer vision",
+    "AI is the overall goal; ML is learning from the 2 million labeled transcripts instead of fixed keyword rules; deep learning is the many-layered network technique used; the neural network is the layered structure itself; the domain is computer vision because the chatbot displays text on a screen, so it is not NLP",
+    "The system is entirely deep learning and neural networks only, since ML, AI, and NLP are just older names for the same neural network technology",
+    "AI is the overall goal; ML is the neural network itself; deep learning is learning from labeled data; the domain is NLP because it involves customer service, so it is not computer vision"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "AWSAIF-16-solo",
+   "label": "good",
+   "family": "cloud",
+   "track": "AWSAIF",
+   "provenance": "stored generated lesson #16 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "aws: all 7 lessons checked",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Model, algorithm, training, and inferencing as four distinct things",
+   "question": "A team wants to build a system that recommends products to shoppers. They choose matrix factorization (a general mathematical technique for finding hidden patterns in ratings data) as their approach. They feed it three years of purchase history, and the technique iteratively adjusts numeric 'preference vectors' for each user and product until it captures patterns well. This process produces a specific, saved set of preference vectors and numbers. Later, when a shopper logs in, the system uses those saved numbers to instantly compute and display five recommended products. Name and distinguish all four elements here: what is the algorithm, what is training, what is the model, and what is inferencing?",
+   "options": [
+    "Algorithm = matrix factorization technique; Training = the iterative process of adjusting preference vectors on 3 years of data; Model = the final saved set of preference vectors/numbers; Inferencing = computing and displaying recommendations for a logged-in shopper",
+    "Algorithm = the saved preference vectors; Training = matrix factorization; Model = displaying recommendations; Inferencing = the three years of purchase history",
+    "Algorithm = matrix factorization technique; Training = displaying the five recommended products; Model = the three years of purchase history; Inferencing = adjusting the preference vectors",
+    "Algorithm = the model; Training = inferencing; Model = matrix factorization; Inferencing = the iterative adjustment process on purchase history"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "AWSSAP-25-solo",
+   "label": "good",
+   "family": "cloud",
+   "track": "AWSSAP",
+   "provenance": "stored generated lesson #25 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "aws: all 7 lessons checked",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Transitive routing, and the cases where it does not work the way people expect",
+   "question": "An architect has VPC-X peered with VPC-Y, and VPC-Y peered with VPC-Z (two separate peering connections, no TGW involved anywhere). VPC-X's route table has no route to VPC-Z's CIDR. The architect adds a route in VPC-X's route table pointing VPC-Z's CIDR to the VPC-X-to-VPC-Y peering connection, and adds a matching route in VPC-Z's route table pointing VPC-X's CIDR to the VPC-Y-to-VPC-Z peering connection. Will VPC-X now be able to reach VPC-Z, and why?",
+   "options": [
+    "Yes, because adding routes on both ends recreates the missing path and peering connections will forward the traffic through VPC-Y once routes exist",
+    "No, because VPC peering connections are never transitive — VPC-Y cannot forward traffic between its two separate peering connections regardless of what routes exist in VPC-X or VPC-Z, since VPC-Y itself has no route and no forwarding capability between the two peering attachments for that purpose",
+    "No, because the route tables were updated in the wrong order; reversing which VPC gets updated first would let the traffic flow",
+    "Yes, but only if VPC-Y's security groups are also updated to allow the pass-through traffic explicitly"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "AWSSAP-31-solo",
+   "label": "good",
+   "family": "cloud",
+   "track": "AWSSAP",
+   "provenance": "stored generated lesson #31 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "aws: all 7 lessons checked",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Hybrid DNS: Amazon Route 53 Resolver and on-premises DNS integration",
+   "question": "A company's on-premises engineers need to resolve names in a private hosted zone (app.internal) attached to a VPC, over an existing Direct Connect connection. No on-premises system needs to query AWS for anything else, and no AWS resource in the VPC needs to resolve any on-premises domain name. Work out exactly what the team should configure in AWS to support this one-directional need.",
+   "options": [
+    "Create a Resolver outbound endpoint in the VPC and a Resolver rule forwarding app.internal queries to the on-premises DNS server",
+    "Create both a Resolver inbound endpoint and a Resolver outbound endpoint with a rule, to guarantee resolution works in both directions",
+    "Create a Resolver rule associating the app.internal domain with the VPC, without creating any endpoints",
+    "Create a Resolver inbound endpoint in the VPC with a security group allowing DNS traffic from the on-premises network, and configure the on-premises DNS server to forward app.internal queries to the inbound endpoint's IP addresses"
+   ],
+   "expected": [
+    3
+   ]
+  },
+  {
+   "id": "NCLEXRN-17-solo",
+   "label": "good",
+   "family": "clinical",
+   "track": "NCLEXRN",
+   "provenance": "stored generated lesson #17 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "nursing: 3 lessons, all keys correct (#17's only finding is in the teach text)",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Airway, breathing, circulation as a prioritisation frame, and where it stops helping",
+   "question": "A nurse is caring for four clients. Client W: tracheostomy, audible gurgling and labored breathing just started. Client X: chest tube post-thoracotomy, drainage normal, vital signs stable. Client Y: reports sudden severe headache described as 'worst of my life,' vital signs currently stable. Client Z: scheduled for discharge teaching this morning, no acute complaints. Explain which client the nurse assesses first, and explain specifically why ABC prioritization correctly applies to this situation (unlike a case where ABC would mislead you).",
+   "options": [
+    "Client W first, because audible airway sounds with labored breathing is an actual, current, in-progress airway/breathing crisis — this is exactly the kind of immediate physiologic threat ABC is designed to catch",
+    "Client Y first, because 'worst headache of life' always overrides any airway concern under the ABC framework",
+    "Client X first, because chest tubes are inherently circulation emergencies regardless of current findings",
+    "Client Z first, because discharge teaching has a time constraint and must be completed on schedule"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "ABPTSGCS-26-solo",
+   "label": "good",
+   "family": "clinical",
+   "track": "ABPTSGCS",
+   "provenance": "stored generated lesson #26 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "pt: 3 lessons; only #20 and #27 had findings",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Clinical sciences of the common geriatric conditions: osteoporosis, osteoarthritis, heart failure, COPD, diabetes, dementia and Parkinson disease",
+   "question": "An 82-year-old client has hip osteoarthritis, osteoporosis (T-score -2.8), and type 2 diabetes with peripheral neuropathy. You are designing their exercise program. Which approach best integrates the physical therapy implications of all three conditions?",
+   "options": [
+    "Low-impact aerobic and resistance exercise (such as cycling or aquatic-based work) that avoids high-impact loading and spinal flexion-with-load, uses joint-friendly movement for the hip, and includes routine foot inspection and supportive footwear",
+    "High-impact weight-bearing circuit training to maximize bone density gains, since the osteoporosis carries the highest fracture risk of the three conditions",
+    "A standard land-based walking program dosed to a fixed target heart rate, since none of these three diagnoses affect cardiac output or exercise capacity",
+    "Flexibility-focused exercise only, to protect the painful arthritic hip, with bone-loading and neuropathy precautions added later once joint pain is controlled"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CMPCBS-4-solo",
+   "label": "good",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "stored generated lesson #4 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "academic: keys of all 32 lessons checked, no finding for this lesson",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Functions and graphs, including exponential, logarithmic, and inverse trig forms",
+   "question": "Evaluate arcsin(sin(2π/3)) without a calculator. State the exact value and briefly explain why it is not simply 2π/3.",
+   "options": [
+    "π/3",
+    "2π/3",
+    "π/6",
+    "-π/3"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CMPCBS-9-solo",
+   "label": "good",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "stored generated lesson #9 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "academic: keys of all 32 lessons checked, no finding for this lesson",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Logic and formal proof techniques",
+   "question": "Using proof by contraposition, prove: For any integer n, if n² − 4n + 5 is odd, then n is even. Write the contrapositive statement first, then give the full algebraic proof of it.",
+   "options": [
+    "Contrapositive: If n is odd, then n²−4n+5 is even. Must show: assuming n=2k+1, n²−4n+5 simplifies to 2(2k²−2k+1), an even number.",
+    "Contrapositive: If n²−4n+5 is even, then n is odd. Must show: assuming n²−4n+5 is even, derive that n is odd algebraically.",
+    "Contrapositive: If n is even, then n²−4n+5 is odd. Must show: assuming n=2k, n²−4n+5 simplifies to an odd expression.",
+    "Contrapositive: If n²−4n+5 is odd, then n is odd. Must show: assuming n²−4n+5=2k+1, derive n=2k+1."
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CMPCBS-11-solo",
+   "label": "good",
+   "family": "academic",
+   "track": "CMPCBS",
+   "provenance": "stored generated lesson #11 (solo check), exported from production 2026-11-09 (scratchpad/audit/generated-lessons.json)",
+   "finding": "academic: keys of all 32 lessons checked, no finding for this lesson",
+   "why": "Key confirmed correct by the audit.",
+   "objectiveTitle": "Vector spaces and subspaces",
+   "question": "Is the set W = {(x, y) ∈ R^2 : x^2 + y^2 = 1} (the unit circle) a subspace of R^2? Use the subspace test to justify your answer, and if it's not a subspace, name which specific condition of the test fails.",
+   "options": [
+    "No — it fails because the zero vector (0,0) is not in W, since 0^2+0^2 = 0 ≠ 1.",
+    "Yes — it is a subspace because adding two vectors on the circle keeps you on the circle.",
+    "No — it fails only the closure-under-scalar-multiplication condition; the zero vector is in W.",
+    "Yes — it is a subspace because the zero vector is trivially considered part of any curve through the plane."
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "CCRNADULT-dka-k-good",
+   "label": "good",
+   "family": "clinical",
+   "track": "CCRNADULT",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "nursing C1 corrected value",
+   "why": "2024 consensus: delay insulin until K+ > 3.5.",
+   "objectiveTitle": "Diabetic ketoacidosis management",
+   "question": "An adult in diabetic ketoacidosis has a serum potassium of 3.4 mEq/L. Under the 2024 hyperglycemic crises consensus, what should happen before the insulin infusion starts?",
+   "options": [
+    "Start insulin and recheck potassium in 24 hours",
+    "Start insulin now: insulin is held only when potassium is below 3.3 mEq/L",
+    "Hold insulin and replace potassium until it is above 3.5 mEq/L",
+    "Give a sodium bicarbonate bolus first"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "ABPTSGCS-hrmax-good",
+   "label": "good",
+   "family": "clinical",
+   "track": "ABPTSGCS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt M4 corrected (Tanaka 2001)",
+   "why": "220-age underestimates HRmax in older adults.",
+   "objectiveTitle": "Physiology of ageing across systems",
+   "question": "Compared with measured maximum heart rate, how does the 220 minus age formula perform in older adults?",
+   "options": [
+    "It underestimates maximum heart rate",
+    "It is exact at every age",
+    "It applies only to children",
+    "It overestimates maximum heart rate"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "NCLEXRN-vt-good",
+   "label": "good",
+   "family": "clinical",
+   "track": "NCLEXRN",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "nursing M3 corrected",
+   "why": "Three or more consecutive PVCs.",
+   "objectiveTitle": "Dysrhythmia recognition",
+   "question": "On a cardiac monitor, how many consecutive premature ventricular contractions define ventricular tachycardia?",
+   "options": [
+    "More than three in a row",
+    "Three or more in a row",
+    "Two in a row",
+    "Ten or more in a row"
+   ],
+   "expected": [
+    1
+   ]
+  },
+  {
+   "id": "ABPTSNCS-cidp-good",
+   "label": "good",
+   "family": "clinical",
+   "track": "ABPTSNCS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pt 'Confirmed open items': CIDP diagnosis requires at least 8 weeks",
+   "why": "CIDP: progression over at least 8 weeks.",
+   "objectiveTitle": "Peripheral neuropathies",
+   "question": "How long must weakness progress before chronic inflammatory demyelinating polyneuropathy (CIDP) is diagnosed rather than Guillain-Barre syndrome?",
+   "options": [
+    "At least 1 year",
+    "Any duration, if conduction is slowed",
+    "At least 8 weeks",
+    "At least 2 weeks"
+   ],
+   "expected": [
+    2
+   ]
+  },
+  {
+   "id": "GCPNET-pod-range-good",
+   "label": "good",
+   "family": "cloud",
+   "track": "GCPNET",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "azure-gcp C1 corrected (computed)",
+   "why": "64 nodes.",
+   "objectiveTitle": "GKE IP address management",
+   "question": "A VPC-native GKE cluster uses the default maximum of 110 Pods per node, so each node is given a /24 from the Pod secondary range. How many nodes can a /18 Pod range hold?",
+   "options": [
+    "About 200 nodes",
+    "64 nodes",
+    "16,384 nodes",
+    "32 nodes"
+   ],
+   "expected": [
+    1
+   ],
+   "snippet": {
+    "language": "python",
+    "code": "pod_range = 18\nper_node = 24  # 110 max Pods per node -> a /24 per node\nprint(2 ** (per_node - pod_range))\n",
+    "expected": "64"
+   }
+  },
+  {
+   "id": "AWSSAA-retention-days-good",
+   "label": "good",
+   "family": "cloud",
+   "track": "AWSSAA",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "aws m6 corrected (computed)",
+   "why": "2,557 days.",
+   "objectiveTitle": "S3 data protection",
+   "question": "An S3 Object Lock retention period must last exactly 7 calendar years starting 2026-01-01. How many days is that?",
+   "options": [
+    "2,548",
+    "2,920",
+    "2,555",
+    "2,557"
+   ],
+   "expected": [
+    3
+   ],
+   "snippet": {
+    "language": "python",
+    "code": "from datetime import date\nprint((date(2033, 1, 1) - date(2026, 1, 1)).days)\n",
+    "expected": "2557"
+   }
+  },
+  {
+   "id": "SECPLUS-categories-good",
+   "label": "good",
+   "family": "it",
+   "track": "SECPLUS",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "comptia C1: SY0-701 (V8 data.ts:609 already correct)",
+   "why": "SY0-701 control categories: technical, managerial, operational, physical.",
+   "objectiveTitle": "Security control categories and types",
+   "question": "In CompTIA Security+ SY0-701, which list names the security control CATEGORIES?",
+   "options": [
+    "Technical, managerial, operational and physical",
+    "Preventive, deterrent, detective, corrective, compensating and directive",
+    "Administrative, logical and environmental",
+    "Confidentiality, integrity and availability"
+   ],
+   "expected": [
+    0
+   ]
+  },
+  {
+   "id": "PMP-exam-format-good",
+   "label": "good",
+   "family": "pm",
+   "track": "PMP",
+   "provenance": "constructed from a claim the 2026-11-09 audit checked against the cited source (wording and distractors written for this eval)",
+   "finding": "pm 'Outline currency': July 2026 outline",
+   "why": "180 questions (170 scored), 240 minutes.",
+   "objectiveTitle": "PMP exam format",
+   "question": "Under the PMP exam content outline in effect from July 2026, how many questions does the exam have and how long is it?",
+   "options": [
+    "200 questions in 240 minutes",
+    "150 questions in 180 minutes",
+    "175 questions in 230 minutes",
+    "180 questions (170 scored) in 240 minutes"
+   ],
+   "expected": [
+    3
+   ]
+  }
+ ]
+}

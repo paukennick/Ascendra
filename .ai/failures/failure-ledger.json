@@ -7826,6 +7826,81 @@
       "prevention_rules": [],
       "prevention_notes": "Corrected wording asserted against the audited fixture",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-730",
+      "date": "2026-11-09",
+      "title": "Pre-gate re-check ran as the production owner with the app's key and pulled items itself",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "content-recheck.yml used PROD_DATABASE_URL (owner, bypasses RLS) and secrets.ANTHROPIC_API_KEY; apply inserted item_status 'quarantined' directly and logged calls to ai_calls",
+      "how_detected": "review for Nick's 2026-11-09 sandbox instruction",
+      "root_cause": "REQ-187 R6 reused the lesson-fixes pattern (owner URL, direct quarantine) for a job whose decisions come from a model, so a checker false positive pulled live content with no person in the loop, and its spend shared the app's key and caps",
+      "requirement": "REQ-196",
+      "affected": [
+        ".github/workflows/content-recheck.yml",
+        "backend/lib/recheck-stored.ts",
+        "backend/scripts/recheck-stored.ts"
+      ],
+      "fix_summary": "Runs as a LOGIN member of content_recheck (migration 064) via RECHECK_DATABASE_URL, refuses privileged roles (lib/recheck-guard.ts), stages findings in item_holdbacks only, estimate/check/apply modes with a hard dollar budget, usage tallied in-job (lib/run-budget.ts), separate RECHECK_ANTHROPIC_API_KEY",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/recheck-role.dbtest.ts",
+        "backend/lib/generation-pipeline.dbtest.ts",
+        "backend/lib/sandbox.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "sandbox.test.ts fails if a job file writes item_status or calls confirm/clear; the guard refuses any role that can write item_status or content",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-731",
+      "date": "2026-11-09",
+      "title": "Verify by execution had no sandbox: R4/P7 was inert in production",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "claudeGenerator.runCode was unavailableVerifier, so no verification program ever ran and a program-detectable wrong key was never caught",
+      "how_detected": "REQ-187 handoff notes",
+      "root_cause": "Running model-written code inside a Vercel request needs an isolated runner that did not exist; REQ-187 shipped the interface only",
+      "requirement": "REQ-196",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/verify-execution.ts"
+      ],
+      "fix_summary": "Programs are queued in exec_checks (exec_unverified) at store time, fail closed if queueing fails; hourly content-sandbox.yml runs them in docker --network none (lib/sandbox-runner.ts) after escape tests and stages disagreements",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sandbox-runner.sandboxtest.ts",
+        "backend/lib/sandbox.test.ts",
+        "backend/lib/generation-pipeline.dbtest.ts",
+        "backend/lib/recheck-role.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "sandbox.test.ts walks app/ imports and fails if the request path reaches the runner, child_process, vm or eval",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-732",
+      "date": "2026-11-09",
+      "title": "Hourly sandbox workflow passed green with no database secret",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "content-sandbox.yml (interrupted draft) printed a notice and exited 0 when RECHECK_DATABASE_URL was unset, so a missing setup looked healthy every hour",
+      "how_detected": "review of the uncommitted REQ-196 work",
+      "root_cause": "Draft chose a soft skip to avoid hourly failure noise, contradicting the decision that the workflow refuses to run without the secret",
+      "requirement": "REQ-196",
+      "affected": [
+        ".github/workflows/content-sandbox.yml"
+      ],
+      "fix_summary": "First step fails with an error naming the secret and the runbook section; the queue step has no skip branch; added a max_minutes time budget",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "Workflow YAML; checked with actionlint and by reading the step, no workflow test harness in the repo",
+      "prevention_rules": [],
+      "prevention_notes": "Runbook states both workflows fail at their first step until the secret exists",
+      "recurrence_of": ""
     }
   ]
 }

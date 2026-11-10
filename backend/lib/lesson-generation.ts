@@ -32,9 +32,10 @@ import {
   type LessonScope,
 } from "@/lib/lesson-store";
 import { factCheckGate, modelFactChecker, type CheckItem, type FactChecker } from "@/lib/fact-check";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { lessonItemId, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
 import { AUTHORED_ADVISING_MODEL, advisingContextFor, authoredAdvisingLesson, type AdvisingContext } from "@/lib/degree-advising";
-import { unavailableVerifier, verifyByExecution, wantsVerification, type CodeRunner } from "@/lib/verify-execution";
+import { snippetProblems, wantsVerification, type VerifySnippet } from "@/lib/verify-execution";
+import { queueExecCheck } from "@/lib/exec-checks";
 import { recordHintReveal } from "@/lib/grading-service";
 
 export type { LessonRow, LessonScope } from "@/lib/lesson-store";
@@ -174,9 +175,12 @@ export interface LessonGenerator {
   // test generator without one skips the gate (the writer's own
   // uncertainClaims are still honoured).
   factCheck?: FactChecker;
-  // REQ-187 (R4): runs the writer's soloVerification program. Production has
-  // no sandbox yet (lib/verify-execution.ts), so nothing is run.
-  runCode?: CodeRunner;
+  // REQ-196: records a served check's verification program as
+  // exec_unverified for the sandbox job (lib/exec-checks.ts). Nothing is
+  // executed in the request path. Production sets it; if it throws, the
+  // practice half is held back (fail closed). A test generator without one
+  // stores nothing.
+  queueExec?: (ref: ItemRef, snippet: VerifySnippet) => Promise<void>;
 }
 
 // Who a generation is for, for ai_calls. Only a regenerate is attributable to
@@ -259,7 +263,7 @@ export const claudeGenerator: LessonGenerator = {
   },
   model: getModel,
   factCheck: modelFactChecker,
-  runCode: unavailableVerifier,
+  queueExec: queueExecCheck,
 };
 
 // REQ-187 (R1): a degree-advising requirement's lesson, authored from the
@@ -343,9 +347,11 @@ export async function checkedIntro(
 // ContentHeldBackError, so no learner is ever graded against a key the
 // checker disputed. (Before REQ-187 it was kept and served, 'served_after_
 // retry'.) The fact-check now runs for a learner's own regenerate too, as
-// well as the shared lesson. When the writer included a soloVerification
-// program and a sandbox is configured (gen.runCode), its output must match
-// the key.
+// well as the shared lesson. REQ-196: when the writer included a
+// soloVerification program, nothing runs here. A practice half that passed
+// the fact-check is served and its program is queued (exec_unverified) for
+// the sandbox job; if it cannot be queued, the half is held back like a
+// failed check, so nothing is served that would never be verified.
 export async function checkedPractice(
   objectiveId: string,
   objRow: ObjectiveRow,
@@ -355,10 +361,6 @@ export async function checkedPractice(
   const problems = async (p: LessonPracticeContent): Promise<{ reason: "uncertain" | "fact_check" | "fact_check_error"; claims: string[] } | null> => {
     const unsure = uncertaintyOf(p);
     if (unsure) return { reason: "uncertain", claims: unsure };
-    if (p.soloVerification && opts.gen.runCode) {
-      const v = await verifyByExecution(p.soloVerification, opts.gen.runCode);
-      if (v.ran && v.agreed === false) return { reason: "fact_check", claims: [`solo: ${v.detail}`] };
-    }
     if (!opts.gen.factCheck) return null;
     const items: CheckItem[] = [
       { key: "fade", objectiveTitle: objRow.title, question: p.fadeProblem, format: "single", options: p.fadeChoices, expected: [p.fadeCorrectIndex] },
@@ -371,8 +373,30 @@ export async function checkedPractice(
     const claims = failed.flatMap((v) => (v?.unsupportedClaims.length ? v.unsupportedClaims : [`${v?.key}: independent answer disagreed with the key`]));
     return { reason: "fact_check", claims };
   };
+  // REQ-196: queue the solo check's program for the sandbox job. A
+  // malformed program is not queued (there is nothing to run) and does not
+  // hold the half back; the fact-check already passed it.
+  const queued = async (p: LessonPracticeContent): Promise<LessonPracticeContent> => {
+    const snip = p.soloVerification;
+    if (!snip || !opts.gen.queueExec || snippetProblems(snip)) return p;
+    const ref: ItemRef = { kind: "lesson", itemId: lessonItemId(objectiveId, "solo", p.soloCheck), objectiveId, question: p.soloCheck };
+    try {
+      await opts.gen.queueExec(ref, snip);
+    } catch (err) {
+      await recordHoldback({
+        kind: "lesson",
+        objectiveId,
+        reason: "fact_check_error",
+        claims: [NOT_SERVED_MARK, `${EXEC_QUEUE_FAILED}: ${(err as Error)?.message ?? "error"}`.slice(0, 300)],
+        content: p,
+        model: opts.gen.model(),
+      });
+      throw new ContentHeldBackError();
+    }
+    return p;
+  };
   const firstProblem = await problems(first);
-  if (!firstProblem) return first;
+  if (!firstProblem) return queued(first);
   await recordHoldback({ kind: "lesson", objectiveId, reason: firstProblem.reason, claims: firstProblem.claims, content: first, model: opts.gen.model() });
   const steer = `A previous draft was held back because of these claims. Leave each out, or state plainly that it may differ for this exam version, and make sure each check has exactly one defensible answer:\n${firstProblem.claims.map((c) => `- ${c}`).join("\n")}`;
   const retry = await opts.gen.practice(objRow, opts.avoid, { ...opts.meta, steer });
@@ -381,8 +405,11 @@ export async function checkedPractice(
     await recordHoldback({ kind: "lesson", objectiveId, reason: retryProblem.reason, claims: [NOT_SERVED_MARK, ...retryProblem.claims], content: retry, model: opts.gen.model() });
     throw new ContentHeldBackError();
   }
-  return retry;
+  return queued(retry);
 }
+
+// REQ-196: the claim logged when a verification program could not be queued.
+export const EXEC_QUEUE_FAILED = "verification program could not be queued for the sandbox";
 
 export interface GenerationHandle {
   // The guess+teach half as soon as it exists. null when ANOTHER server

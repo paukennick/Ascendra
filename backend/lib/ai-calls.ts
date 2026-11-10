@@ -67,7 +67,9 @@ export type AiPurpose =
   | "eval_explain_back"
   | "eval_lab"
   | "eval_generation"
-  | "eval_cache";
+  | "eval_cache"
+  // REQ-196: the fact-checker eval (scripts/factcheck-eval.ts).
+  | "eval_factcheck";
 
 export interface AiCallMeta {
   purpose: AiPurpose;

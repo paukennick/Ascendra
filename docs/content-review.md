@@ -116,12 +116,13 @@ From the 2026-11-09 content audit (prompts and pipeline findings). Code:
   names an option by position. A failure is regenerated once with the
   problems as a steer, then a clean 503. The stored answer position of
   lesson checks and Quiz-me questions is shuffled.
-- **Verify by execution (interface only).** On academic and developer
+- **Verify by execution (sandboxed, REQ-196).** On academic and developer
   courses the writer may add a short Python/SymPy or JavaScript program that
-  recomputes the Solo key; a mismatch holds the item back. No sandbox is
-  wired up yet (`unavailableVerifier`), so in production nothing runs and
-  nothing is held back for it. Remaining work: an isolated runner with no
-  network, no secrets, CPU/memory caps and a hard timeout.
+  recomputes the Solo key. Nothing runs in the request path: the item is
+  served once the model fact-check passes and its program is queued in
+  `exec_checks` (`exec_unverified`). The hourly sandbox job runs it (see
+  "Sandboxed fact-checking" below). If the program cannot be queued, the
+  practice half is held back (fail closed).
 - **Current facts per course.** Every prompt's course framing carries a short
   dated block built from the seed: the exam, its revision, status and dates,
   or the degree plan and its version, with the date it was last checked.
@@ -138,8 +139,10 @@ From the 2026-11-09 content audit (prompts and pipeline findings). Code:
 
 ### Running the audit's content actions in production
 
-Two manual workflows (Actions tab), both against `PROD_DATABASE_URL` in the
-`production-database` environment, logging ids and outcomes only:
+Two manual workflows (Actions tab), logging ids and outcomes only. Lesson
+fixes runs against `PROD_DATABASE_URL` in the `production-database`
+environment; the re-check, since REQ-196, runs as the staging-only
+`RECHECK_DATABASE_URL` user:
 
 1. **Lesson fixes** (`.github/workflows/lesson-fixes.yml`, no model calls).
    Run `lookup` first: every fix should say "audited lesson present" (or "no
@@ -151,9 +154,121 @@ Two manual workflows (Actions tab), both against `PROD_DATABASE_URL` in the
    Run it after the CompTIA objective fix is seeded or before; the SECPLUS
    fix accepts either objective title.
 2. **Re-check pre-gate content** (`.github/workflows/content-recheck.yml`,
-   needs the `ANTHROPIC_API_KEY` repository secret). Re-checks every
-   still-served lesson check and keyed item stored before 2026-11-07 with
-   the current checker. Start with a dry run and `limit` 20, then the whole
-   set, then tick `apply` to pull the failures (quarantine plus a holdback
-   log; nothing is voided). Work the pulled items with `npm run items --
-   list | confirm | clear`.
+   needs `RECHECK_DATABASE_URL` and `RECHECK_ANTHROPIC_API_KEY`; see
+   "Sandboxed fact-checking" below). Re-checks every still-served lesson
+   check and keyed item stored before 2026-11-07 with the current checker
+   and only STAGES what it disputes. Run mode `estimate` first (no calls,
+   prints the cost), then `check` with `limit` 20, then `apply`. Work the
+   staged items with `npm run items -- staged | confirm | clear`.
+
+## Sandboxed fact-checking (REQ-196)
+
+Nick, 2026-11-09: "Sandbox the fact checking and rechecking content" and
+"Run simulations in the sandbox to determine the fact checker needs."
+
+### What runs where
+
+- **Model fact-check of new content**: request path (Vercel). A failed
+  check is held back, as before. This is the only automatic step that can
+  change what learners see.
+- **Verify by execution**: GitHub Actions, hourly, in Docker. A
+  disagreement is staged, never pulled.
+- **Re-check of pre-gate content**: GitHub Actions, manual. Staged only.
+- **Fact-checker eval**: GitHub Actions, manual, on a throwaway Postgres.
+  Never touches production.
+- **`npm run items -- confirm`**: a person, with the owner URL, on their own
+  machine. The only step that pulls an item and voids answers.
+
+Details:
+
+- **Request path.** An item is served once the model fact-check passes. If
+  it carries a verification program, a row in `exec_checks` marks it
+  `exec_unverified`. If that row cannot be written, the item is held back.
+- **Sandbox** (`backend/lib/sandbox-runner.ts`). Each program runs in a
+  fresh container: `--network none`; no environment from the job
+  (`--env-file /dev/null`, and the Docker CLI itself gets only `PATH`); a
+  read-only image; 16 MB RAM-disk `/scratch` and `/tmp` that vanish with the
+  container; user nobody; all capabilities dropped; no-new-privileges; 256
+  MB memory with no swap; 1 CPU; 64 processes; 64 open files; 5 s wall
+  clock; 4 KB of output. The program goes in on stdin. Images are built
+  before any program runs and `--pull never` is set at run time. Every job
+  first runs the escape tests (`npm run test:sandbox`) and a self-test with
+  a canary secret; if any probe gets out, or Docker is missing, nothing runs
+  and every item stays `exec_unverified`. No `@vercel/sandbox`.
+- **Staging.** A finding is an `item_holdbacks` row whose `content` has
+  `staged` (`recheck` or `exec`). No serving query reads it and it does not
+  start the held-back cooldown. `npm run items -- staged` lists open
+  findings; `confirm` pulls the item and voids answers; `clear` marks it
+  fine so the jobs skip it from then on.
+- **Least privilege.** The jobs connect as a LOGIN member of
+  `content_recheck` (migration 064): SELECT on the content tables, INSERT on
+  `item_holdbacks` and `exec_check_runs`, nothing else (no `item_status`,
+  attempts, users or billing; learner ownership columns are not granted).
+  Each job checks its own role first and refuses a superuser, a role that
+  bypasses RLS, or one that can write `item_status` or content
+  (`backend/lib/recheck-guard.ts`).
+- **Model spend.** The re-check and the eval send every call's usage to an
+  in-job budget (`backend/lib/run-budget.ts`), not to `ai_calls`, so they
+  never count toward a learner's or the owner's AI cap. Each call starts
+  only if the run can still afford the most it could cost (prompt plus all
+  of `max_tokens`), and the estimate prints before any call. Defaults:
+  re-check $2, eval $5, both at most $25.
+
+### Re-check database user (Nick, once)
+
+Never paste the password into a chat, an issue or a commit.
+
+1. Deploy migration `064_recheck_role.sql`. It creates the NOLOGIN role
+   `content_recheck`; re-running it is safe. `--status` reports it among
+   the schema probes.
+2. Supabase -> SQL Editor, production project. Generate a long random
+   password in your password manager, then run this with that password in
+   place of the placeholder:
+
+   ```sql
+   create role recheck_bot login inherit password '<from your password manager>'
+     in role content_recheck;
+   ```
+
+3. Supabase -> Connect -> Session pooler. Copy the URI, change the user
+   part from `postgres.<project-ref>` to `recheck_bot.<project-ref>`, and
+   put the new password in place of `[YOUR-PASSWORD]`.
+4. GitHub -> Settings -> Secrets and variables -> Actions -> New repository
+   secret: name `RECHECK_DATABASE_URL`, value that URI.
+5. For the re-check: a Claude Console workspace of its own with a monthly
+   spend limit; create a key there and store it as the repository secret
+   `RECHECK_ANTHROPIC_API_KEY`. For the eval: the repository secret
+   `ANTHROPIC_API_KEY` (as `live-evals.yml`); a workspace with its own
+   spend limit is recommended there too.
+6. Run "Sandbox: verify by execution" once by hand. The log should say
+   `Connected as recheck_bot (staging only).` and every probe `held`.
+
+Until step 4 is done, the hourly sandbox workflow and the re-check workflow
+fail at their first step on purpose, and nothing runs. To rotate, run
+`alter role recheck_bot password '...'` in the SQL Editor and update the
+secret. To remove, `drop role recheck_bot;`, then follow the rollback notes
+at the top of migration 064.
+
+### Workflows
+
+- **Sandbox: verify by execution** (`.github/workflows/content-sandbox.yml`):
+  hourly at :17, also manual. Per run at most `limit` programs (200) and
+  `max_minutes` (20, at most 25) inside a 30-minute job. No model call. A
+  backlog that keeps growing (`npm run items -- list` prints it) means the
+  job is not running.
+- **Re-check pre-gate content** (`.github/workflows/content-recheck.yml`):
+  manual; modes `estimate` (default), `check`, `apply`; `budget` in USD.
+- **Fact-checker eval** (`.github/workflows/factcheck-eval.yml`): manual.
+  Runs the 44-item labelled set (22 known-bad from the 2026-11-09 audit, 22
+  known-good; `backend/lib/fixtures/factcheck-eval-set.json`) through Haiku
+  and the writer's model, each with and without thinking, plus a `+exec`
+  row with sandboxed execution where an item has a program. It reports, per
+  variant, overall and per subject family: recall on known-bad (with a 95%
+  interval), false-hold rate on known-good, cost per check and per 1,000,
+  latency p50/p95, and which items were missed or wrongly held. The
+  recommendation per family is the cheapest variant with recall >= 95% and
+  false holds <= 5%; if none qualifies it says so and names the best recall.
+  Results go to the job summary page and the `factcheck-eval-results`
+  artifact (`results.json`, `summary.md`). Tick `mock` to test the harness
+  with no key and no cost. Locally: `npm run eval:factcheck` (estimate
+  only) or `npm run eval:factcheck -- --run --mock`.

@@ -1,0 +1,80 @@
+# REQ-196: verify by execution, in a sandbox, outside the request path.
+#
+# A lesson check whose writer added a verification program is served once
+# the model fact-check passes and queued in exec_checks ("exec_unverified").
+# This job runs each queued program in a throwaway Docker container with no
+# network, no environment from the job, a read-only image, a small RAM-disk
+# scratch area, user nobody, no capabilities, and CPU / memory / process /
+# time / output caps (backend/lib/sandbox-runner.ts). A program whose
+# output disagrees with the key is STAGED in item_holdbacks for a person
+# (`npm run items -- staged`); nothing a learner sees changes until that
+# person confirms. No model call: no API key, no model cost.
+#
+# Fail closed: the sandbox escape tests and the job's own self-test run
+# first; if any probe gets out, or Docker is unavailable, nothing runs and
+# every queued item stays exec_unverified.
+#
+# Hourly (cron every 60 minutes). Budget per run: at most `limit` programs
+# (default 200) and `max_minutes` of running them (default 20, max 25),
+# inside a 30-minute job timeout; each program is capped at 5 s, 256 MB,
+# 1 CPU, 64 processes and 4 KB of output (lib/verify-execution.ts,
+# lib/sandbox-runner.ts). What a run does not reach stays exec_unverified
+# for the next one.
+#
+# Refuses to run (fails) until the RECHECK_DATABASE_URL repository secret
+# exists (docs/content-review.md, "Re-check database user"). The secret is
+# given only to the Node step that reads the queue; the containers get no
+# environment from the job at all.
+name: "Sandbox: verify by execution"
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "At most this many programs (1-1000)"
+        type: string
+        default: "200"
+      max_minutes:
+        description: "Time budget for running programs, in minutes (max 25)"
+        type: string
+        default: "20"
+concurrency:
+  group: content-sandbox
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  exec:
+    name: Run queued programs in the sandbox
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Refuse to run without the staging-only database user
+        env:
+          RECHECK_DATABASE_URL: ${{ secrets.RECHECK_DATABASE_URL }}
+        run: |
+          test -n "$RECHECK_DATABASE_URL" || { echo "::error::Add the repository secret RECHECK_DATABASE_URL (docs/content-review.md, 'Re-check database user'). Nothing ran."; exit 1; }
+        working-directory: .
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Build the sandbox images (network is used here only, before any program runs)
+        run: |
+          docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
+          docker pull node:22-slim
+      - name: Sandbox escape tests (network, env, filesystem, root, fork bomb, timeout, memory, output)
+        run: npm run test:sandbox
+      - name: Run the queue
+        env:
+          DATABASE_URL: ${{ secrets.RECHECK_DATABASE_URL }}
+          LIMIT: ${{ inputs.limit || '200' }}
+          MAX_MINUTES: ${{ inputs.max_minutes || '20' }}
+        run: npm run items:exec -- --limit "$LIMIT" --max-minutes "$MAX_MINUTES"
