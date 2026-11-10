@@ -25,7 +25,7 @@ const answer = (code: string, slug: string, label: string) => {
   assert.fail(`${code}/${slug}: no part "${label}"`);
 };
 
-describe("JS validating endpoint (FAIL-594)", () => {
+describe("JS validating endpoint (FAIL-601)", () => {
   test("the model-answer server answers a null body with 422 and keeps serving", async () => {
     const full = answer("JAVASCRIPT", "validating-json-endpoint", "Server code");
     const code = full.slice(0, full.indexOf("\n\nThe body arrives"));
@@ -56,7 +56,7 @@ describe("JS validating endpoint (FAIL-594)", () => {
   });
 });
 
-describe("CKA, CKS answer keys (FAIL-595, FAIL-596)", () => {
+describe("CKA, CKS answer keys (FAIL-602, FAIL-603)", () => {
   test("etcd backup accepts only etcdutl for snapshot status and restore", () => {
     const t = text("CKA", "etcd-backup-restore");
     assert.doesNotMatch(t, /etcdctl snapshot (status|restore)(?! was removed)/);
@@ -84,7 +84,7 @@ describe("CKA, CKS answer keys (FAIL-595, FAIL-596)", () => {
   });
 });
 
-describe("CNCF project labs (FAIL-597, FAIL-598)", () => {
+describe("CNCF project labs (FAIL-604, FAIL-605)", () => {
   test("Kyverno failureAction is per rule, and scale is not blocked by a Deployment rule", () => {
     const t = text("KCA", "read-a-policy");
     assert.doesNotMatch(t, /validationFailureAction:/);
@@ -113,7 +113,7 @@ describe("CNCF project labs (FAIL-597, FAIL-598)", () => {
   });
 });
 
-describe("Project management (FAIL-599)", () => {
+describe("Project management (FAIL-606)", () => {
   test("PMP eligibility lists the four 2026 tiers", () => {
     const e = PMP_TRACK.credential!.recommendedExperience!;
     for (const tier of ["60 months", "48 months", "36 months", "24 months"]) assert.ok(e.includes(tier), tier);
@@ -131,7 +131,7 @@ describe("Project management (FAIL-599)", () => {
   });
 });
 
-describe("Academic (FAIL-600)", () => {
+describe("Academic (FAIL-607)", () => {
   test("password storage meets the OWASP minimums", () => {
     const a = answer("MSCS", "fix-password-storage", "The right design");
     assert.match(a, /memory_cost=19456/);
