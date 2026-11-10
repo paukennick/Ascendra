@@ -19,9 +19,12 @@ import { advance, applyCommand, createRun, readValue, stateHash } from "../lib/s
 import type { Run } from "../lib/sim/engine/v1/engine.ts";
 import { replayGoldenPath } from "../lib/sim/engine/v1/validate.ts";
 import type { GoldenFile, GoldenPath } from "../lib/sim/engine/v1/validate.ts";
-import { ALL_DOCUMENTS } from "../lib/sim/documents.ts";
+import { ALL_DOCUMENTS, loadDocument } from "../lib/sim/documents.ts";
+import type { DocumentEntry } from "../lib/sim/documents.ts";
 import * as tamponade from "./sim-golden/tamponade.ts";
 import * as cloud from "./sim-golden/cloud.ts";
+import { buildSteps } from "./sim-golden/steps.ts";
+import type { StepsSpec } from "./sim-golden/steps.ts";
 
 const PORTS = {
   tamponade: { slug: "tamponade-after-cabg", spec: tamponade, prototype: "critical-care.html", vitals: ["hr", "sbp", "dbp", "map", "cvp", "paop", "ci", "svo2", "spo2", "uo", "ct15", "lactate"] },
@@ -36,10 +39,10 @@ function portOf(name: string): Port {
   return p;
 }
 
-function entryOf(slug: string): { file: string; golden: string } {
+function entryOf(slug: string): { entry: DocumentEntry; golden: string } {
   const e = ALL_DOCUMENTS.find((d) => d.slug === slug);
   if (!e || !e.golden) throw new Error(`${slug} is not in lib/sim/documents.ts`);
-  return { file: e.file, golden: e.golden };
+  return { entry: e, golden: e.golden };
 }
 
 // ---- engine side ----
@@ -139,8 +142,8 @@ function snapshotsFor(doc: ScenarioDoc, cmds: Command[], ticks: number[], vitals
 
 function build(name: string): void {
   const port = portOf(name);
-  const { file, golden } = entryOf(port.slug);
-  const doc = JSON.parse(readFileSync(file, "utf8")) as ScenarioDoc;
+  const { entry, golden } = entryOf(port.slug);
+  const doc = loadDocument(entry);
   const paths: GoldenPath[] = [];
   for (const p of port.spec.PATHS) {
     const commands = name === "cloud" ? cloudCommands(doc, p as unknown as cloud.CloudPath) : commandsFor(doc, p as unknown as tamponade.PathSpec);
@@ -274,12 +277,27 @@ async function prototype(name: string, dir: string): Promise<void> {
   console.log(`wrote ${out}`);
 }
 
+// REQ-190: driver-scripted golden paths (scripts/sim-golden/<name>.steps.ts).
+async function steps(name: string): Promise<void> {
+  if (!/^[a-z0-9-]+$/.test(name)) throw new Error("steps name: lower-case letters, digits and -");
+  const m = (await import(`./sim-golden/${name}.steps.ts`)) as { ENTRY?: { course: string; slug: string }; FIXTURE?: { source: string; golden: string }; spec: (golden: string) => StepsSpec };
+  if (m.FIXTURE) {
+    const fx: DocumentEntry = { course: "fixture", slug: name, file: m.FIXTURE.source, golden: m.FIXTURE.golden, kind: "scenario" };
+    buildSteps(loadDocument(fx), m.FIXTURE.golden, m.spec(m.FIXTURE.golden));
+    return;
+  }
+  const e = ALL_DOCUMENTS.find((d) => d.course === m.ENTRY?.course && d.slug === m.ENTRY?.slug);
+  if (!e || !e.golden) throw new Error(`${m.ENTRY?.course}/${m.ENTRY?.slug} is not in lib/sim/documents.ts`);
+  buildSteps(loadDocument(e), e.golden, m.spec(e.golden));
+}
+
 const [cmd, name, dir] = process.argv.slice(2);
 (async () => {
   if (cmd === "build" && name) build(name);
   else if (cmd === "prototype" && name && dir) await prototype(name, dir);
+  else if (cmd === "steps" && name) await steps(name);
   else {
-    console.error("usage: sim:golden -- build <port> | prototype <port> <prototype dir>");
+    console.error("usage: sim:golden -- build <port> | prototype <port> <prototype dir> | steps <name>");
     process.exit(2);
   }
 })().catch((e) => {

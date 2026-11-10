@@ -3,7 +3,7 @@
 // run, over the final state and the command log, with the scoring-only
 // functions. Deterministic: the same run always scores the same.
 
-import type { Command, CriterionResult, CriterionScore, DebriefData, Id, OutcomeClass, Rating, ReasoningGrade, Value } from "./types.ts";
+import type { Command, CriterionResult, CriterionRowScore, CriterionScore, DebriefData, Id, OutcomeClass, Rating, ReasoningGrade, Value } from "./types.ts";
 import type { Run } from "./engine.ts";
 import { COMMAND_BUDGET, renderTemplate, simTimeText } from "./engine.ts";
 import type { Frame, ScoringHooks } from "./eval.ts";
@@ -28,11 +28,12 @@ export function scoreValue(s: CriterionScore): number {
 }
 
 // 100 x sum(weight x value) / sum(weight), rounded; grader_failed moments
-// leave both numerator and denominator (9.1).
-export function processScoreOf(criteria: { weight: number; score: CriterionScore }[], reasoning: { weight: number; score: CriterionScore | "grader_failed" }[]): number | null {
+// and "na" criteria leave both numerator and denominator (9.1).
+export function processScoreOf(criteria: { weight: number; score: CriterionRowScore }[], reasoning: { weight: number; score: CriterionScore | "grader_failed" }[]): number | null {
   let num = 0;
   let den = 0;
   for (const c of criteria) {
+    if (c.score === "na") continue;
     num += c.weight * scoreValue(c.score);
     den += c.weight;
   }
@@ -126,7 +127,7 @@ export function scoreRun(run: Run, input: ScoreInput): DebriefData {
   run.ctx.t = run.state.tick * run.c.dt;
   try {
     const criteria: CriterionResult[] = doc.scoring.criteria.map((c) => {
-      let score: CriterionScore = "missed";
+      let score: CriterionRowScore = "missed";
       let why = "";
       for (const row of c.rows) {
         if (asBool(evaluate(parseCached(row.when), null, run.ctx))) {

@@ -60,7 +60,7 @@ import {
   triggerSchema,
 } from "./schema.ts";
 import { validateScenario } from "./engine/v1/index.ts";
-import { ALL_DOCUMENTS } from "./documents.ts";
+import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 
 // Mutual assignability: both directions must hold or tsc fails.
 type Mutual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;
@@ -93,7 +93,7 @@ ok<Mutual<z.infer<typeof scenarioSchema>, ScenarioDoc>>(true);
 describe("scenario schema conformance", () => {
   test("every document parses with the zod schema and the engine validator", () => {
     for (const d of ALL_DOCUMENTS) {
-      const doc = JSON.parse(readFileSync(d.file, "utf8")) as unknown;
+      const doc = loadDocument(d) as unknown;
       assert.deepEqual(schemaProblems(doc), [], `${d.slug}: schema`);
       assert.deepEqual(validateScenario(doc as ScenarioDoc), [], `${d.slug}: validator`);
       if (d.golden) {

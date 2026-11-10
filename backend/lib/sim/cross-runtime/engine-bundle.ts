@@ -9,7 +9,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
-import { ALL_DOCUMENTS } from "../documents.ts";
+import { ALL_DOCUMENTS, loadDocument } from "../documents.ts";
 
 const ENGINE_DIR = join(__dirname, "..", "engine", "v1");
 const GOLDEN_DIR = join(ENGINE_DIR, "golden");
@@ -53,7 +53,7 @@ export function bundleData(): BundleData {
     .map((f) => JSON.parse(readFileSync(join(GOLDEN_DIR, "corpus", f), "utf8")));
   const documents = ALL_DOCUMENTS.map((e) => ({
     slug: `${e.course}/${e.slug}`,
-    doc: JSON.parse(readFileSync(e.file, "utf8")),
+    doc: loadDocument(e),
     golden: e.golden ? JSON.parse(readFileSync(e.golden, "utf8")) : null,
   }));
   return { corpus, documents };

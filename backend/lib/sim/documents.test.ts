@@ -6,7 +6,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ALL_DOCUMENTS } from "./documents.ts";
+import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 import { checkDocument } from "./lint.ts";
 import { canonicalJson, clientDocument } from "./content-hash.ts";
 import type { ScenarioDoc } from "./engine/v1/types.ts";
@@ -57,7 +57,7 @@ describe("client document leaks nothing server-only", () => {
     ...readdirSync(corpusDir)
       .filter((f) => f.endsWith(".json"))
       .map((f): [string, ScenarioDoc] => [`corpus/${f}`, (JSON.parse(readFileSync(join(corpusDir, f), "utf8")) as { doc: ScenarioDoc }).doc]),
-    ...ALL_DOCUMENTS.map((e): [string, ScenarioDoc] => [`${e.course}/${e.slug}`, JSON.parse(readFileSync(e.file, "utf8")) as ScenarioDoc]),
+    ...ALL_DOCUMENTS.map((e): [string, ScenarioDoc] => [`${e.course}/${e.slug}`, loadDocument(e)]),
   ];
 
   test("there are documents to check", () => assert.ok(docs.length > 0));

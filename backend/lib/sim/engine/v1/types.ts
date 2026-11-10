@@ -257,6 +257,11 @@ export interface ScreenSpec {
 }
 
 export type CriterionScore = "met" | "partial" | "missed";
+// REQ-190: a criterion row may also score "na" (not applicable), left out of
+// the process score's numerator and denominator, like a grader failure (9.1).
+// A spliced module's criteria use it when the module never ran (a code
+// criterion in a run with no arrest). Reasoning grades never use it.
+export type CriterionRowScore = CriterionScore | "na";
 
 export interface Scoring {
   criteria: {
@@ -264,7 +269,7 @@ export interface Scoring {
     label: string;
     weight: number;
     critical?: boolean;
-    rows: { when: Expr; score: CriterionScore; why: Template }[]; // first match
+    rows: { when: Expr; score: CriterionRowScore; why: Template }[]; // first match
   }[];
   reasoningCriteria: { moment: Id; label: string; weight: number; critical?: boolean }[];
   kpis: { id: Id; label: string; value: Expr; format: "duration" | "number" | "usd"; expert?: string }[];
@@ -379,7 +384,7 @@ export interface CriterionResult {
   label: string;
   weight: number;
   critical: boolean;
-  score: CriterionScore;
+  score: CriterionRowScore;
   why: string;
 }
 

@@ -72,6 +72,7 @@ export type {
   Ending,
   ScreenSpec,
   CriterionScore,
+  CriterionRowScore,
   Scoring,
   CommandParams,
   Command,

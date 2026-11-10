@@ -202,6 +202,10 @@
         {
           "when": "phase == \"p2\"",
           "text": "Back in the ICU after re-exploration."
+        },
+        {
+          "when": "phase == \"code\"",
+          "text": "Cardiac arrest: PEA after cardiac surgery. Compressions, the cause, the protocol."
         }
       ]
     }
@@ -841,7 +845,8 @@
         "none",
         "early",
         "bridge",
-        "late"
+        "late",
+        "arrest"
       ],
       "init": "none"
     },
@@ -1002,17 +1007,17 @@
       "unit": "mmHg"
     },
     "hr": {
-      "expr": "inP2 ? p2hr : round(clamp(88 + 40 * eff + 1.5 * sin(t / 37) + 1.5 * epiEff + 4 * (dobEff / 2.5), 60, 150))",
+      "expr": "code_inCode ? 46 : inP2 ? p2hr : round(clamp(88 + 40 * eff + 1.5 * sin(t / 37) + 1.5 * epiEff + 4 * (dobEff / 2.5), 60, 150))",
       "unit": "/min",
       "precision": 0
     },
     "sbp": {
-      "expr": "inP2 ? p2sbp : round(sbpRaw)",
+      "expr": "code_inCode ? (code_cprMode == \"none\" ? 8 : 55) : inP2 ? p2sbp : round(sbpRaw)",
       "unit": "mmHg",
       "precision": 0
     },
     "dbp": {
-      "expr": "inP2 ? p2dbp : round(dbpRaw)",
+      "expr": "code_inCode ? (code_cprMode == \"none\" ? 5 : 15) : inP2 ? p2dbp : round(dbpRaw)",
       "unit": "mmHg",
       "precision": 0
     },
@@ -2906,7 +2911,7 @@
           "to": "3.4"
         },
         {
-          "if": "path == \"late\"",
+          "if": "path == \"late\" or path == \"arrest\"",
           "then": [
             {
               "set": "p2ci",
@@ -3022,11 +3027,11 @@
                 },
                 {
                   "set": "p2ci",
-                  "to": "path == \"late\" ? round((2.5 - 0.1) * 10) / 10 : 2.5"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((2.5 - 0.1) * 10) / 10 : 2.5"
                 },
                 {
                   "set": "p2lactate",
-                  "to": "path == \"late\" ? round((2.2 + 1) * 10) / 10 : 2.2"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((2.2 + 1) * 10) / 10 : 2.2"
                 },
                 {
                   "set": "dobDose",
@@ -3079,11 +3084,11 @@
                 },
                 {
                   "set": "p2ci",
-                  "to": "path == \"late\" ? round((1.9 - 0.1) * 10) / 10 : 1.9"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((1.9 - 0.1) * 10) / 10 : 1.9"
                 },
                 {
                   "set": "p2lactate",
-                  "to": "path == \"late\" ? round((3.6 + 1) * 10) / 10 : 3.6"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((3.6 + 1) * 10) / 10 : 3.6"
                 },
                 {
                   "log": "Filling pressures climb (PAOP 24) but cardiac index barely moves. SpO2 drifts to 93% with new crackles at the bases. The ventricle is already full; it needs help squeezing.",
@@ -3132,11 +3137,11 @@
                 },
                 {
                   "set": "p2ci",
-                  "to": "path == \"late\" ? round((1.6 - 0.1) * 10) / 10 : 1.6"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((1.6 - 0.1) * 10) / 10 : 1.6"
                 },
                 {
                   "set": "p2lactate",
-                  "to": "path == \"late\" ? round((3.9 + 1) * 10) / 10 : 3.9"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((3.9 + 1) * 10) / 10 : 3.9"
                 },
                 {
                   "set": "neDose",
@@ -3189,11 +3194,11 @@
                 },
                 {
                   "set": "p2ci",
-                  "to": "path == \"late\" ? round((2.0 - 0.1) * 10) / 10 : 2.0"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((2.0 - 0.1) * 10) / 10 : 2.0"
                 },
                 {
                   "set": "p2lactate",
-                  "to": "path == \"late\" ? round((3.5 + 1) * 10) / 10 : 3.5"
+                  "to": "(path == \"late\" or path == \"arrest\") ? round((3.5 + 1) * 10) / 10 : 3.5"
                 },
                 {
                   "log": "Cardiac index nudges to 2.0 but MAP drops to 60. Afterload reduction can help a failing ventricle, but not on its own when pressure is already marginal.",
@@ -3371,13 +3376,6 @@
     }
   },
   "endings": {
-    "arrest": {
-      "label": "PEA arrest",
-      "class": "harm",
-      "when": "live and eff >= arrestThr",
-      "terminal": true,
-      "narrative": "PEA: organised rhythm on the ECG, no pulse on the arterial line. The clot has stopped the heart from filling. The code team starts CPR and the cardiac surgery advanced life support protocol, which calls for emergency resternotomy within about five minutes. The simulation ends here."
-    },
     "early": {
       "label": "Stable: early re-exploration",
       "class": "target",
@@ -3405,6 +3403,13 @@
       "when": "p2done and path == \"late\"",
       "terminal": true,
       "narrative": "The patient survived, but only through an emergency reopening at the bedside. A late rescue: higher risk of infection, kidney and brain injury."
+    },
+    "arrestRosc": {
+      "label": "Survived a cardiac arrest",
+      "class": "recovered",
+      "when": "p2done and path == \"arrest\"",
+      "terminal": true,
+      "narrative": "The patient arrested from tamponade and came back after the chest was reopened at the bedside. Survival after a rescue: higher risk of brain, kidney and infection complications than an early return to the OR."
     },
     "time_up": {
       "label": "Time up",
@@ -3705,15 +3710,133 @@
         "headline": "Late rescue: emergency bedside resternotomy",
         "body": "The patient survived, but only through an emergency reopening at the bedside. The minutes before the call are where to look."
       },
-      "arrest": {
-        "headline": "PEA arrest",
-        "body": "The tamponade progressed until the heart could not fill. Fluid and drips bought minutes, but only the surgeon could fix it."
-      },
       "time_up": {
         "headline": "Time up",
         "body": "The run reached its time limit."
+      },
+      "arrestRosc": {
+        "headline": "Back from an arrest",
+        "body": "The arrest was survivable because the cause was mechanical and the chest was reopened fast. Look at when the clot could have been caught: the drainage that stopped, the narrowing pulse pressure, the rising CVP."
       }
     },
     "modelReasoning": "Cardiac tamponade from clot in the mediastinum. The clues: chest tube drainage that suddenly stopped after hours of steady output, hypotension with tachycardia, a narrowing pulse pressure, CVP and PAOP rising and moving toward the same number (equalisation), falling cardiac index and SvO2, muffled heart sounds and falling urine output. Hypovolemia does not raise filling pressures. Priority: call the cardiac surgeon now and ask them to come to the bedside, because the fix is surgical re-exploration, and getting the surgeon there takes minutes you cannot get back. While waiting: support the pressure (small fluid bolus, vasopressor as a bridge), get a STAT echo, prepare for emergency resternotomy and notify the OR, and draw labs. Fluids and drips buy minutes, not a cure."
+  },
+  "modules": {
+    "code": {
+      "use": "code-acls@1",
+      "with": {
+        "entry": "live and eff >= arrestThr",
+        "protocol": "cals",
+        "etiology": {
+          "rhythm": "pea",
+          "cause": "cardiac tamponade",
+          "arrestLog": "PEA: organised rhythm on the ECG, no pulse on the arterial line. The clot has stopped the heart from filling. Cardiac arrest after cardiac surgery: call the arrest and start the protocol.",
+          "fixes": [
+            {
+              "value": "resternotomy",
+              "label": "Emergency resternotomy at the bedside (call the surgeon and the resternotomy team)"
+            },
+            {
+              "value": "fluid",
+              "label": "Rapid fluid bolus 500 mL"
+            },
+            {
+              "value": "pacing",
+              "label": "Maximise the epicardial pacing output"
+            }
+          ],
+          "correct": [
+            "resternotomy"
+          ],
+          "fixAfter": "isNull(prepAt) ? bedsideNoTray : bedsideTray",
+          "fixStartLog": "Emergency resternotomy called: the team gowns and gloves, the chest is opened at the bedside.",
+          "fixLabel": "the chest open at the bedside",
+          "fixSkipLabel": "the chest to be open (about {(isNull(prepAt) ? bedsideNoTray : bedsideTray) / 60|0dp} min)",
+          "fixDoneLog": "Chest open: a large clot is lifted out from around the heart.",
+          "roscOnFix": "true",
+          "fixWindow": 120,
+          "fixSource": {
+            "cite": "STS 2017 expert consensus (Ann Thorac Surg 2017;103:1005-1020); post-cardiac-surgery ICU practice (prototype critical-care.html)",
+            "note": "Resternotomy within 5 minutes of the arrest; scored met when it is called within 2 minutes, since opening takes about 5 minutes with the tray at the bedside and 10 without.",
+            "checkedAt": "2026-11-09"
+          }
+        },
+        "scope": [
+          "code_compress",
+          "code_compressPaced",
+          "code_shock",
+          "code_epi",
+          "code_fix"
+        ],
+        "returnPhase": "reexp",
+        "onEntry": [
+          {
+            "cancel": "q15check"
+          },
+          {
+            "cancel": "callbackT"
+          },
+          {
+            "cancel": "recheckT"
+          },
+          {
+            "cancel": "echoResultT"
+          },
+          {
+            "cancel": "pocResult"
+          },
+          {
+            "cancel": "coagResult"
+          },
+          {
+            "cancel": "bolusDone"
+          },
+          {
+            "cancel": "dripCheck"
+          },
+          {
+            "cancel": "protDone"
+          },
+          {
+            "cancel": "arriveT"
+          },
+          {
+            "cancel": "reexpStart"
+          }
+        ],
+        "onRosc": [
+          {
+            "set": "path",
+            "to": "\"arrest\""
+          },
+          {
+            "set": "bedside",
+            "to": "true"
+          },
+          {
+            "set": "reexpStartAt",
+            "to": "t"
+          },
+          {
+            "log": "Back to the OR to close and find the bleeding point.",
+            "kind": "sys"
+          },
+          {
+            "schedule": "backInIcu",
+            "after": "backAfter"
+          }
+        ],
+        "epiDoses": [
+          {
+            "value": "1mg",
+            "label": "1 mg IV (standard ACLS dose)"
+          },
+          {
+            "value": "small",
+            "label": "100 mcg IV, on the senior clinician's instruction"
+          }
+        ]
+      }
+    }
   }
 }

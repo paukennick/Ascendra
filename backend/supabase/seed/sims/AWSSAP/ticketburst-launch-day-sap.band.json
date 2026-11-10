@@ -1,0 +1,2700 @@
+{
+  "band": "sap",
+  "label": "Professional (SAP-C03)",
+  "base": {
+    "course": "AWSSAA",
+    "slug": "ticketburst-launch-day"
+  },
+  "slug": "ticketburst-launch-day-sap",
+  "tighten": {
+    "params.budget": "lower"
+  },
+  "append": {
+    "/catalogs/components/entries": [
+      {
+        "id": "warmStandby",
+        "name": "Warm standby in us-west-2 (ALB, ASG min 2, NAT per AZ)",
+        "cost": 350,
+        "slots": [
+          "region2"
+        ]
+      },
+      {
+        "id": "pilotLight",
+        "name": "Pilot light in us-west-2 (AMIs and IaC, nothing running)",
+        "cost": 60,
+        "slots": [
+          "region2"
+        ]
+      },
+      {
+        "id": "auroraGlobal",
+        "name": "Aurora Global Database (writer here, secondary in us-west-2)",
+        "cost": 720,
+        "slots": [
+          "data-a",
+          "data-b"
+        ]
+      },
+      {
+        "id": "dynamoGlobal",
+        "name": "DynamoDB global tables (us-east-1 and us-west-2)",
+        "cost": 230,
+        "slots": [
+          "regional"
+        ]
+      },
+      {
+        "id": "orgGuard",
+        "name": "AWS Organizations + Control Tower: workload and backup accounts, SCP guardrails",
+        "cost": 25,
+        "slots": [
+          "org"
+        ]
+      },
+      {
+        "id": "vaultLock",
+        "name": "AWS Backup copy to a locked vault in the backup account and us-west-2",
+        "cost": 60,
+        "slots": [
+          "org"
+        ]
+      },
+      {
+        "id": "dms",
+        "name": "AWS DMS: full load + CDC from the on-premises order history",
+        "cost": 150,
+        "slots": [
+          "regional"
+        ]
+      }
+    ],
+    "/actions/place/effects": [
+      {
+        "cases": [
+          {
+            "when": "place.id == \"warmStandby\" and not (place.slot in [\"region2\"])",
+            "then": [
+              {
+                "log": "Warm standby in us-west-2 (ALB, ASG min 2, NAT per AZ) cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"pilotLight\" and not (place.slot in [\"region2\"])",
+            "then": [
+              {
+                "log": "Pilot light in us-west-2 (AMIs and IaC, nothing running) cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"auroraGlobal\" and not (place.slot in [\"data-a\", \"data-b\"])",
+            "then": [
+              {
+                "log": "Aurora Global Database (writer here, secondary in us-west-2) cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"dynamoGlobal\" and not (place.slot in [\"regional\"])",
+            "then": [
+              {
+                "log": "DynamoDB global tables (us-east-1 and us-west-2) cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"orgGuard\" and not (place.slot in [\"org\"])",
+            "then": [
+              {
+                "log": "AWS Organizations + Control Tower: workload and backup accounts, SCP guardrails cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"vaultLock\" and not (place.slot in [\"org\"])",
+            "then": [
+              {
+                "log": "AWS Backup copy to a locked vault in the backup account and us-west-2 cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"dms\" and not (place.slot in [\"regional\"])",
+            "then": [
+              {
+                "log": "AWS DMS: full load + CDC from the on-premises order history cannot go there.",
+                "kind": "sys"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"warmStandby\"",
+            "then": [
+              {
+                "set": "drMode",
+                "to": "\"warm\""
+              },
+              {
+                "log": "Placed Warm standby in us-west-2 (ALB, ASG min 2, NAT per AZ).",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"pilotLight\"",
+            "then": [
+              {
+                "set": "drMode",
+                "to": "\"pilot\""
+              },
+              {
+                "log": "Placed Pilot light in us-west-2 (AMIs and IaC, nothing running).",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"auroraGlobal\"",
+            "then": [
+              {
+                "set": "db",
+                "to": "\"aurora\""
+              },
+              {
+                "set": "dbAz",
+                "to": "place.slot == \"data-a\" ? \"a\" : \"b\""
+              },
+              {
+                "set": "dbGlobal",
+                "to": "true"
+              },
+              {
+                "log": "Placed Aurora Global Database (writer here, secondary in us-west-2).",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"dynamoGlobal\"",
+            "then": [
+              {
+                "set": "db",
+                "to": "\"dynamo\""
+              },
+              {
+                "set": "dbAz",
+                "to": "\"none\""
+              },
+              {
+                "set": "dbGlobal",
+                "to": "true"
+              },
+              {
+                "log": "Placed DynamoDB global tables (us-east-1 and us-west-2).",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"orgGuard\"",
+            "then": [
+              {
+                "set": "org",
+                "to": "true"
+              },
+              {
+                "log": "Placed AWS Organizations + Control Tower: workload and backup accounts, SCP guardrails.",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"vaultLock\"",
+            "then": [
+              {
+                "set": "vault",
+                "to": "true"
+              },
+              {
+                "log": "Placed AWS Backup copy to a locked vault in the backup account and us-west-2.",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"dms\"",
+            "then": [
+              {
+                "set": "dms",
+                "to": "true"
+              },
+              {
+                "log": "Placed AWS DMS: full load + CDC from the on-premises order history.",
+                "kind": "act"
+              }
+            ]
+          },
+          {
+            "when": "place.id == \"rdsSingle\" or place.id == \"rdsMulti\" or place.id == \"aurora\" or place.id == \"dynamo\"",
+            "then": [
+              {
+                "set": "dbGlobal",
+                "to": "false"
+              }
+            ]
+          },
+          {
+            "when": "true",
+            "then": []
+          }
+        ]
+      }
+    ],
+    "/actions/start/effects": [
+      {
+        "set": "failAz",
+        "to": "pick(azFail, [\"a\", \"b\"])"
+      }
+    ],
+    "/sources": [
+      {
+        "cite": "AWS Certified Solutions Architect - Professional (SAP-C03) exam guide: five domains (25/25/15/15/20); task 4.2 disaster recovery, task 4.3 business continuity, task 4.1 migration, skill 2.3.1 organisations and guardrails",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html"
+      },
+      {
+        "cite": "AWS Certification: Comparison of SAP-C02 and SAP-C03",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/sap-03-comparison.html",
+        "note": "SAP-C02 is in use until November 16, 2026; SAP-C03 from November 17, 2026. This band targets SAP-C03, which the AWSSAP course teaches."
+      },
+      {
+        "cite": "AWS Certified Solutions Architect - Professional (SAP-C02) exam guide: four domains (26/29/25/20)",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html",
+        "note": "Read for the comparison with SAA-C03; the band's events cover C02 domains 1 (organisational complexity), 2 (new solutions) and 4 (migration) as well."
+      },
+      {
+        "cite": "AWS Certified Solutions Architect - Associate (SAA-C03) exam guide: four domains (30/26/24/20)",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html",
+        "note": "The base scenario's level."
+      },
+      {
+        "cite": "Amazon Aurora User Guide: Aurora Global Database, and disaster recovery for global databases",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
+        "note": "Replication to secondary Regions with latency typically under a second; RPO typically seconds, RTO in the order of minutes."
+      },
+      {
+        "cite": "AWS Backup Developer Guide: AWS Backup Vault Lock (compliance mode)",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html",
+        "note": "After the grace time a compliance-mode lock is immutable and its recovery points cannot be deleted by any user."
+      },
+      {
+        "cite": "Amazon Route 53 Developer Guide: health checks (request interval 30 s or 10 s, failure threshold)",
+        "checkedAt": "2026-11-09",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating-values.html"
+      }
+    ],
+    "/scoring/kpis": [
+      {
+        "id": "regionDown",
+        "label": "Down during the Region impairment (min)",
+        "value": "regionDown",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "/triggers": [
+      {
+        "id": "sapEvents",
+        "when": "phase == \"run\"",
+        "mode": "once",
+        "effects": [
+          {
+            "schedule": "orgT",
+            "after": "35min"
+          },
+          {
+            "schedule": "regionT",
+            "after": "215min"
+          },
+          {
+            "schedule": "migT",
+            "after": "365min"
+          }
+        ]
+      }
+    ]
+  },
+  "patch": {
+    "title": "TicketBurst launch day: Professional",
+    "objective": "Multi-Region disaster recovery with replication and failover: Route 53 health checks, Global Accelerator, Application Recovery Controller",
+    "secondaryObjectives": [
+      "Organization structure, guardrails, landing zones, and automated account provisioning: AWS Organizations, OUs, Control Tower, Account Factory",
+      "Protecting data from ransomware and accidental deletion: S3 Object Lock, EBS snapshot lock, Backup Vault Lock",
+      "Database and data migration strategy: AWS Database Migration Service and AWS DataSync",
+      "Designing disaster recovery to business requirements: RTO, RPO, and cost"
+    ],
+    "brief": {
+      "situation": "TicketBurst sells concert tickets, now from separate AWS accounts under one organisation. A tour goes on sale at 10:00 today. Design before the doors open at 09:00: about 200 requests per second normally, 10x for the 40-minute rush, orders with RPO 1 minute and RTO 10 minutes even if the whole us-east-1 Region is impaired, card data never stored, the on-premises order-history database cut over to AWS this afternoon, and about $2,400 a month.",
+      "howItWorks": [
+        "Place components into the edge, the public and private subnets of two Availability Zones, the regional services, a second Region (us-west-2) and the organisation (accounts and guardrails), and configure the Auto Scaling group.",
+        "You are not told which Availability Zone fails today. Design for either.",
+        "Then advance the clock event by event: doors open, a leaked deployment key, the on-sale spike, an AZ power loss, a Region impairment, a database host failure, the migration cutover, then finance asks for a 30% cut.",
+        "The debrief scores the SAP-C03 domains the day touched."
+      ]
+    },
+    "random": {
+      "streams": [
+        "azFail"
+      ]
+    },
+    "params": {
+      "budget": {
+        "value": 2400,
+        "unit": "$",
+        "source": {
+          "cite": "SAP band: a tighter budget than the SAA base ($2,500) for a design that must also cover a second Region",
+          "checkedAt": "2026-11-09",
+          "note": "Tightened, never loosened (band lint)."
+        }
+      },
+      "regionOutMin": {
+        "value": 180,
+        "unit": "min",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "url": "https://aws.amazon.com/premiumsupport/technology/pes/",
+          "note": "A regional impairment lasting about 3 hours, in the range of AWS post-event summaries of multi-hour regional events."
+        }
+      },
+      "warmFailMin": {
+        "value": 5,
+        "unit": "min",
+        "source": {
+          "cite": "Amazon Route 53 health checks (3 failed 30 s checks) plus a 60 s TTL; warm standby scaling out (Ascendra teaching model (authored estimate))",
+          "checkedAt": "2026-11-09",
+          "note": "About 2.5 min to move DNS and about 2.5 min of degraded service while the standby scales."
+        }
+      },
+      "warmRtoMin": {
+        "value": 3,
+        "unit": "min",
+        "source": {
+          "cite": "Amazon Route 53 health checks and DNS failover",
+          "checkedAt": "2026-11-09",
+          "note": "Three failed 30 s checks (90 s) plus a 60 s TTL, rounded up."
+        }
+      },
+      "manualDnsMin": {
+        "value": 25,
+        "unit": "min",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "note": "On-call notices, decides and changes the records by hand."
+        }
+      },
+      "pilotRtoMin": {
+        "value": 30,
+        "unit": "min",
+        "source": {
+          "cite": "AWS whitepaper Disaster Recovery of Workloads on AWS: pilot light",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+          "note": "Provision and scale the application stack before serving; authored 30 min."
+        }
+      },
+      "globalFailoverMin": {
+        "value": 2,
+        "unit": "min",
+        "source": {
+          "cite": "Amazon Aurora: Global Database disaster recovery (RTO in the order of minutes)",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
+          "note": "Authored 2 min for a managed failover to the secondary."
+        }
+      },
+      "crossRestoreMin": {
+        "value": 120,
+        "unit": "min",
+        "source": {
+          "cite": "AWS whitepaper Disaster Recovery of Workloads on AWS: backup and restore (RTO in hours)",
+          "checkedAt": "2026-11-09",
+          "note": "Authored 2 hours to restore the orders database from a cross-Region copy."
+        }
+      },
+      "backupCopyMin": {
+        "value": 60,
+        "unit": "min",
+        "source": {
+          "cite": "AWS Backup cross-Region copy after each hourly backup job (Ascendra teaching model (authored estimate))",
+          "checkedAt": "2026-11-09",
+          "note": "The newest copy in us-west-2 is up to an hour old."
+        }
+      },
+      "cdcCutoverMin": {
+        "value": 4,
+        "unit": "min",
+        "source": {
+          "cite": "AWS DMS ongoing replication (CDC): cutover after the target catches up; Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html"
+        }
+      },
+      "dumpCutoverMin": {
+        "value": 90,
+        "unit": "min",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "note": "Reloading a nightly dump of the order history."
+        }
+      }
+    },
+    "state": {
+      "failAz": {
+        "type": "enum",
+        "values": [
+          "a",
+          "b"
+        ],
+        "init": "a"
+      },
+      "drMode": {
+        "type": "enum",
+        "values": [
+          "none",
+          "pilot",
+          "warm"
+        ],
+        "init": "none"
+      },
+      "dbGlobal": {
+        "type": "bool",
+        "init": false
+      },
+      "org": {
+        "type": "bool",
+        "init": false
+      },
+      "vault": {
+        "type": "bool",
+        "init": false
+      },
+      "dms": {
+        "type": "bool",
+        "init": false
+      },
+      "backupsLost": {
+        "type": "bool",
+        "init": false
+      },
+      "orgRank": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 2
+      },
+      "regionRank": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 2
+      },
+      "regionDown": {
+        "type": "number",
+        "init": 0,
+        "unit": "min",
+        "min": 0,
+        "max": 2000
+      },
+      "migRank": {
+        "type": "number",
+        "init": 0,
+        "min": 0,
+        "max": 2
+      }
+    },
+    "derived": {
+      "computeFail": {
+        "expr": "failAz == \"a\" ? computeA : computeB"
+      },
+      "computeOther": {
+        "expr": "failAz == \"a\" ? computeB : computeA"
+      },
+      "asgFail": {
+        "expr": "failAz == \"a\" ? asgA : asgB"
+      },
+      "ec2Fail": {
+        "expr": "failAz == \"a\" ? ec2A : ec2B"
+      },
+      "ec2Other": {
+        "expr": "failAz == \"a\" ? ec2B : ec2A"
+      },
+      "natOther": {
+        "expr": "failAz == \"a\" ? natB : natA"
+      },
+      "dbCost": {
+        "expr": "db == \"none\" ? 0 : dbGlobal ? (db == \"aurora\" ? 720 : 230) : components[db].cost"
+      },
+      "cost": {
+        "expr": "(cf ? 85 : 0) + (r53 ? 5 : 0) + (waf ? 35 : 0) + (alb ? 45 : 0) + 45 * natCount + (compute == \"asg\" ? asgCost : 0) + (compute == \"ec2\" ? 140 * ec2Count : 0) + (compute == \"lambda\" ? 900 : 0) + dbCost + (cache ? 290 : 0) + (sqs ? 15 : 0) + (s3 ? 25 : 0) + (backup ? 40 : 0) + (drMode == \"warm\" ? 350 : drMode == \"pilot\" ? 60 : 0) + (org ? 25 : 0) + (vault ? 60 : 0) + (dms ? 150 : 0)"
+      }
+    },
+    "actions": {
+      "place": {
+        "params": [
+          {
+            "id": "place",
+            "kind": "slot",
+            "label": "Component and slot",
+            "catalog": "components",
+            "slots": [
+              "edge",
+              "pub-a",
+              "pub-b",
+              "app-a",
+              "app-b",
+              "data-a",
+              "data-b",
+              "regional",
+              "region2",
+              "org"
+            ]
+          }
+        ]
+      },
+      "remove": {
+        "params": [
+          {
+            "id": "what",
+            "kind": "choice",
+            "label": "Component",
+            "options": [
+              {
+                "value": "cloudfront",
+                "label": "cloudfront"
+              },
+              {
+                "value": "route53",
+                "label": "route53"
+              },
+              {
+                "value": "waf",
+                "label": "waf"
+              },
+              {
+                "value": "alb",
+                "label": "alb"
+              },
+              {
+                "value": "natA",
+                "label": "natA"
+              },
+              {
+                "value": "natB",
+                "label": "natB"
+              },
+              {
+                "value": "compute",
+                "label": "compute"
+              },
+              {
+                "value": "db",
+                "label": "db"
+              },
+              {
+                "value": "redis",
+                "label": "redis"
+              },
+              {
+                "value": "sqs",
+                "label": "sqs"
+              },
+              {
+                "value": "s3",
+                "label": "s3"
+              },
+              {
+                "value": "region2",
+                "label": "region2"
+              },
+              {
+                "value": "org",
+                "label": "org"
+              },
+              {
+                "value": "vaultLock",
+                "label": "vaultLock"
+              },
+              {
+                "value": "dms",
+                "label": "dms"
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "cases": [
+              {
+                "when": "what == \"cloudfront\"",
+                "then": [
+                  {
+                    "set": "cf",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"route53\"",
+                "then": [
+                  {
+                    "set": "r53",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"waf\"",
+                "then": [
+                  {
+                    "set": "waf",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"alb\"",
+                "then": [
+                  {
+                    "set": "alb",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"natA\"",
+                "then": [
+                  {
+                    "set": "natA",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"natB\"",
+                "then": [
+                  {
+                    "set": "natB",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"compute\"",
+                "then": [
+                  {
+                    "set": "compute",
+                    "to": "\"none\""
+                  },
+                  {
+                    "set": "asgA",
+                    "to": "false"
+                  },
+                  {
+                    "set": "asgB",
+                    "to": "false"
+                  },
+                  {
+                    "set": "ec2A",
+                    "to": "false"
+                  },
+                  {
+                    "set": "ec2B",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"db\"",
+                "then": [
+                  {
+                    "set": "db",
+                    "to": "\"none\""
+                  },
+                  {
+                    "set": "dbAz",
+                    "to": "\"none\""
+                  }
+                ]
+              },
+              {
+                "when": "what == \"redis\"",
+                "then": [
+                  {
+                    "set": "cache",
+                    "to": "false"
+                  },
+                  {
+                    "set": "cacheAz",
+                    "to": "\"none\""
+                  }
+                ]
+              },
+              {
+                "when": "what == \"sqs\"",
+                "then": [
+                  {
+                    "set": "sqs",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"s3\"",
+                "then": [
+                  {
+                    "set": "s3",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": []
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "what == \"db\"",
+                "then": [
+                  {
+                    "set": "dbGlobal",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"region2\"",
+                "then": [
+                  {
+                    "set": "drMode",
+                    "to": "\"none\""
+                  }
+                ]
+              },
+              {
+                "when": "what == \"org\"",
+                "then": [
+                  {
+                    "set": "org",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"vaultLock\"",
+                "then": [
+                  {
+                    "set": "vault",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "what == \"dms\"",
+                "then": [
+                  {
+                    "set": "dms",
+                    "to": "false"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": []
+              }
+            ]
+          }
+        ]
+      },
+      "start": {
+        "why": "Add compute, an orders database, and an ALB in front of instances."
+      },
+      "review": {
+        "params": [
+          {
+            "id": "fin",
+            "kind": "form",
+            "label": "Cuts",
+            "fields": [
+              {
+                "id": "sched",
+                "label": "Lower the ASG minimum to 2 and schedule scaling before each on-sale",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "rightsize",
+                "label": "Right-size app instances one size down (average CPU 18%)",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "httpapi",
+                "label": "Move API Gateway from REST API to HTTP API",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "sp",
+                "label": "Buy a 1-year Compute Savings Plan",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "ri",
+                "label": "Reserved instances for the database and cache nodes",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "s3life",
+                "label": "S3 lifecycle rule for logs and past-event images",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "cfttl",
+                "label": "Raise CloudFront cache TTLs for versioned assets",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "natunused",
+                "label": "Delete NAT gateways that nothing uses",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "nat1",
+                "label": "Remove the NAT gateway in AZ b",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "dbsingle",
+                "label": "Switch the database to Single-AZ",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "dynprov",
+                "label": "Switch DynamoDB to provisioned capacity",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "nowaf",
+                "label": "Drop AWS WAF",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "nobackup",
+                "label": "Turn off automated backups and PITR",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              },
+              {
+                "id": "dmsoff",
+                "label": "Stop the DMS replication instance now the cutover is done",
+                "options": [
+                  {
+                    "value": "keep",
+                    "label": "No"
+                  },
+                  {
+                    "value": "cut",
+                    "label": "Yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "set": "finSave",
+            "to": "0"
+          },
+          {
+            "if": "sched == \"cut\" and (compute == \"asg\" and asgMin > 2)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "asgCost - round((2 + 0.1 * (asgMax - 2)) * sizes[asgSize].cost)"
+              }
+            ]
+          },
+          {
+            "if": "rightsize == \"cut\" and (compute == \"asg\" and asgSize != \"t3.medium\")",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "asgCost - round((asgMin + 0.1 * (asgMax - asgMin)) * sizes[sizes[asgSize].smaller].cost)"
+              },
+              {
+                "if": "asgMax * sizes[sizes[asgSize].smaller].rps < loadPeak",
+                "then": [
+                  {
+                    "set": "riskPerf",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: right-size app instances one size down (average cpu 18%).",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "httpapi == \"cut\" and (compute == \"lambda\")",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "385"
+              }
+            ]
+          },
+          {
+            "if": "ri == \"cut\" and (relational or cache)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "round(0.35 * ((relational ? dbCost : 0) + (cache ? 290 : 0)))"
+              }
+            ]
+          },
+          {
+            "if": "s3life == \"cut\" and (s3)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "12"
+              }
+            ]
+          },
+          {
+            "if": "cfttl == \"cut\" and (cf)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "25"
+              }
+            ]
+          },
+          {
+            "if": "natunused == \"cut\" and (not needsNat and natCount > 0)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "45 * natCount"
+              }
+            ]
+          },
+          {
+            "if": "nat1 == \"cut\" and (needsNat and natCount == 2)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "45"
+              },
+              {
+                "if": "true",
+                "then": [
+                  {
+                    "set": "riskRes",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: remove the nat gateway in az b.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "dbsingle == \"cut\" and (db == \"rdsMulti\" or db == \"aurora\")",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "dbCost - 200"
+              },
+              {
+                "if": "true",
+                "then": [
+                  {
+                    "set": "riskRes",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: switch the database to single-az.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "dynprov == \"cut\" and (db == \"dynamo\")",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "50"
+              },
+              {
+                "if": "true",
+                "then": [
+                  {
+                    "set": "riskPerf",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: switch dynamodb to provisioned capacity.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "nowaf == \"cut\" and (waf)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "35"
+              },
+              {
+                "if": "true",
+                "then": [
+                  {
+                    "set": "riskSec",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: drop aws waf.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "nobackup == \"cut\" and (backup)",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "40"
+              },
+              {
+                "if": "true",
+                "then": [
+                  {
+                    "set": "riskRes",
+                    "to": "true"
+                  },
+                  {
+                    "add": "finRisks",
+                    "by": "1"
+                  },
+                  {
+                    "log": "Risk: turn off automated backups and pitr.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": "sp == \"cut\" and compute != \"none\"",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "round(compute == \"asg\" ? round(((sched == \"cut\" and asgMin > 2 ? 2 : asgMin) + 0.1 * (asgMax - (sched == \"cut\" and asgMin > 2 ? 2 : asgMin))) * sizes[(rightsize == \"cut\" and asgSize != \"t3.medium\" ? sizes[asgSize].smaller : asgSize)].cost) * 0.28 : compute == \"ec2\" ? ec2Count * 140 * 0.28 : compute == \"lambda\" ? 360 * 0.17 : 0)"
+              }
+            ]
+          },
+          {
+            "if": "dmsoff == \"cut\" and dms",
+            "then": [
+              {
+                "add": "finSave",
+                "by": "150"
+              }
+            ]
+          },
+          {
+            "set": "finDone",
+            "to": "true"
+          },
+          {
+            "log": "Finance: saves ${finSave} a month ({(designCost == 0 ? 0 : finSave / designCost * 100)|0dp}% of ${designCost}).",
+            "kind": "sys"
+          }
+        ]
+      }
+    },
+    "timers": {
+      "azT": {
+        "label": "10:50 Availability Zone power loss",
+        "wait": {
+          "skipLabel": "10:50 Availability Zone power loss"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate); prototype cloud.html rules",
+          "checkedAt": "2026-11-09",
+          "note": "SAP band: which AZ loses power is drawn from the run's seed and named only when it happens, so a design cannot rely on the failure landing in the other AZ."
+        },
+        "effects": [
+          {
+            "set": "rank",
+            "to": "0"
+          },
+          {
+            "set": "down",
+            "to": "0"
+          },
+          {
+            "set": "deg",
+            "to": "0"
+          },
+          {
+            "log": "10:50 AZ {failAz} power loss",
+            "kind": "sys"
+          },
+          {
+            "cases": [
+              {
+                "when": "compute == \"lambda\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Compute: Lambda runs across AZs.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"asg\" and asgA and asgB and floor(asgAtPeak / 2) * rps >= loadAfter",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 1)"
+                  },
+                  {
+                    "log": "Compute: lost half the instances; health checks pulled AZ {failAz} out within about a minute and the other AZ carried the load.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"asg\" and asgA and asgB",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, replaceMin)"
+                  },
+                  {
+                    "log": "Compute: half the fleet went dark; the survivors were overloaded until replacements passed health checks.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"asg\" and asgFail",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, azOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Compute: the ASG only had subnets in AZ {failAz}; the site was down until power came back.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"asg\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "lucky",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Compute: the fleet lives only in the other AZ. Lucky: had that AZ failed, the site would have been down.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"ec2\" and not ec2Other",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, azOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Compute: the only instance was in AZ {failAz}; down until power returned.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"ec2\" and ec2Fail",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, azOutMin)"
+                  },
+                  {
+                    "log": "Compute: the instance in the other AZ survived alone against {loadAfter} req/s, slow for an hour.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "compute == \"ec2\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "lucky",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Compute: the instance is in the other AZ. Lucky: had that AZ failed, the site would have been down.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": []
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "db == \"dynamo\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Database: DynamoDB replicates across three AZs.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"aurora\" and dbAz == failAz",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 1)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, 1)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 0)"
+                  },
+                  {
+                    "log": "Database: Aurora promoted the replica in the other AZ in about 30 s.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"aurora\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Database: the Aurora writer is in the other AZ.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsMulti\" and dbAz == failAz",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 2)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, 2)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 0)"
+                  },
+                  {
+                    "log": "Database: Multi-AZ failed over to the standby in the other AZ in 1 m 40 s, no committed data lost.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsMulti\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Database: the RDS primary is in the other AZ.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsSingle\" and dbAz == failAz and backup and not backupsLost",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, pitrRestoreMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, pitrRestoreMin)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, pitrLagMin)"
+                  },
+                  {
+                    "log": "Database: no standby: restored from PITR into the other AZ, about 40 minutes with orders stopped.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsSingle\" and dbAz == failAz",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, azOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, azOutMin)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 0)"
+                  },
+                  {
+                    "log": "Database: no standby and no usable backups: orders stopped until the AZ came back.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsSingle\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "lucky",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Database: the Single-AZ database is in the other AZ. Lucky this time.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": []
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "not needsNat or natCount == 0",
+                "then": []
+              },
+              {
+                "when": "natOther or not computeOther",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Network: the surviving AZ kept its route to the payment processor.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, azOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Network: the only NAT gateway was in AZ {failAz}; checkout failed everywhere for the whole outage.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "cache and cacheAz == failAz",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Cache: ElastiCache promoted the replica in the other AZ in about 10 s.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": []
+              }
+            ]
+          },
+          {
+            "add": "impact",
+            "by": "down + 0.5 * deg"
+          },
+          {
+            "set": "azRank",
+            "to": "rank"
+          },
+          {
+            "set": "azDeg",
+            "to": "deg"
+          },
+          {
+            "schedule": "dbT",
+            "after": "200min"
+          }
+        ]
+      },
+      "dbT": {
+        "label": "14:10 database host failure",
+        "wait": {
+          "skipLabel": "14:10 database host failure"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "Prototype cloud.html (revised 2026-11-07), the rules this port reproduces",
+          "checkedAt": "2026-11-09"
+        },
+        "effects": [
+          {
+            "set": "rank",
+            "to": "0"
+          },
+          {
+            "set": "down",
+            "to": "0"
+          },
+          {
+            "set": "deg",
+            "to": "0"
+          },
+          {
+            "log": "14:10 database host failure",
+            "kind": "sys"
+          },
+          {
+            "cases": [
+              {
+                "when": "db == \"dynamo\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Database: DynamoDB has no single primary host to lose.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"aurora\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 1)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, 1)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 0)"
+                  },
+                  {
+                    "log": "Database: Aurora promoted the replica in about 30 s; RPO 0, RTO under 1 minute.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsMulti\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 2)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, 2)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 0)"
+                  },
+                  {
+                    "log": "Database: RDS failed over to the standby; RPO 0, RTO about 2 minutes.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsSingle\" and backup and not backupsLost",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, pitrRestoreMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, pitrRestoreMin)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, pitrLagMin)"
+                  },
+                  {
+                    "log": "Database: no standby: PITR restore took about 40 minutes and lost up to 5 minutes of orders.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "db == \"rdsSingle\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, dumpRebuildMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, dumpRebuildMin)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, 730)"
+                  },
+                  {
+                    "log": "Database: no standby and no backups: rebuilt from the 02:00 dump, every order since then lost.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "add": "impact",
+            "by": "down + 0.5 * deg"
+          },
+          {
+            "set": "dbRank",
+            "to": "rank"
+          },
+          {
+            "set": "dbDeg",
+            "to": "deg"
+          },
+          {
+            "schedule": "financeT",
+            "after": "140min"
+          }
+        ]
+      },
+      "orgT": {
+        "label": "09:30 leaked CI credential",
+        "wait": {
+          "skipLabel": "09:30 security alert"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+          "note": "A compromised deployment key in the workload account tries to delete backups and stop CloudTrail; SCPs set the maximum permissions of member-account principals (AWS Organizations, Service control policies), and a vault in compliance-mode Vault Lock cannot have its recovery points deleted by any user (AWS Backup, Vault Lock)."
+        },
+        "effects": [
+          {
+            "set": "rank",
+            "to": "0"
+          },
+          {
+            "set": "down",
+            "to": "0"
+          },
+          {
+            "set": "deg",
+            "to": "0"
+          },
+          {
+            "log": "09:30 a leaked CI key in the workload account calls DeleteRecoveryPoint and StopLogging",
+            "kind": "sys"
+          },
+          {
+            "cases": [
+              {
+                "when": "org",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Governance: the organisation's SCPs deny deleting recovery points and stopping CloudTrail in member accounts; both calls fail and GuardDuty flags the key.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "vault",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "riskSec",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Governance: no SCP stopped the key: CloudTrail logging stopped and local recovery points were deleted, but the copies in the locked vault in the backup account survived.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "backup",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "riskSec",
+                    "to": "true"
+                  },
+                  {
+                    "set": "backupsLost",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Governance: one account, no guardrails: CloudTrail stopped and every recovery point was deleted. Point-in-time restore is gone for today.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "riskSec",
+                    "to": "true"
+                  },
+                  {
+                    "log": "Governance: no guardrails: CloudTrail logging stopped before anyone noticed (there were no backups to delete).",
+                    "kind": "sys"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "set": "orgRank",
+            "to": "rank"
+          }
+        ]
+      },
+      "regionT": {
+        "label": "12:30 Region impairment",
+        "wait": {
+          "skipLabel": "12:30 Region impairment in us-east-1"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "Ascendra teaching model (authored estimate); AWS whitepaper Disaster Recovery of Workloads on AWS (backup and restore, pilot light, warm standby, multi-site)",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html",
+          "note": "Warm standby fails over in minutes; pilot light needs the application provisioned and scaled first (tens of minutes); backup and restore takes hours."
+        },
+        "effects": [
+          {
+            "set": "rank",
+            "to": "0"
+          },
+          {
+            "set": "down",
+            "to": "0"
+          },
+          {
+            "set": "deg",
+            "to": "0"
+          },
+          {
+            "log": "12:30 us-east-1 impaired: EC2 launches and the Region's endpoints failing for about 3 hours",
+            "kind": "sys"
+          },
+          {
+            "cases": [
+              {
+                "when": "drMode == \"warm\" and r53",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, warmFailMin)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, warmRtoMin)"
+                  },
+                  {
+                    "log": "App: Route 53 health checks failed the primary after three 30 s checks and DNS moved fans to the warm standby in us-west-2, which scaled out under load.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "drMode == \"warm\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, manualDnsMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, manualDnsMin)"
+                  },
+                  {
+                    "log": "App: the warm standby was running, but with no failover routing on-call changed DNS by hand.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "drMode == \"pilot\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, pilotRtoMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, pilotRtoMin)"
+                  },
+                  {
+                    "log": "App: pilot light: the application stack had to be launched and scaled in us-west-2 before fans could buy again.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, regionOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, regionOutMin)"
+                  },
+                  {
+                    "log": "App: one Region only: the site was down until us-east-1 recovered.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cases": [
+              {
+                "when": "drMode == \"none\"",
+                "then": []
+              },
+              {
+                "when": "dbGlobal and db == \"dynamo\"",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "log": "Data: DynamoDB global tables kept writing in us-west-2; replication lag was about a second.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "dbGlobal",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 1)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, globalFailoverMin)"
+                  },
+                  {
+                    "log": "Data: Aurora Global Database promoted the us-west-2 cluster; replication lag was under a second, so no committed order was lost.",
+                    "kind": "sys"
+                  }
+                ]
+              },
+              {
+                "when": "vault and not backupsLost",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, crossRestoreMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, crossRestoreMin)"
+                  },
+                  {
+                    "set": "rpo",
+                    "to": "max(rpo, backupCopyMin)"
+                  },
+                  {
+                    "log": "Data: no replica in us-west-2: orders were restored from the last cross-Region backup copy, losing the hour since it was taken.",
+                    "kind": "bad"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 2)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, regionOutMin)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, 0)"
+                  },
+                  {
+                    "set": "rto",
+                    "to": "max(rto, regionOutMin)"
+                  },
+                  {
+                    "log": "Data: the orders database had no copy outside us-east-1, so the standby could not take orders until the Region recovered.",
+                    "kind": "bad"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "add": "impact",
+            "by": "down + 0.5 * deg"
+          },
+          {
+            "set": "regionRank",
+            "to": "rank"
+          },
+          {
+            "set": "regionDown",
+            "to": "down"
+          }
+        ]
+      },
+      "migT": {
+        "label": "15:00 order-history cutover",
+        "wait": {
+          "skipLabel": "15:00 order-history migration cutover"
+        },
+        "instances": "one",
+        "source": {
+          "cite": "AWS Database Migration Service: full load plus ongoing replication (change data capture); Ascendra teaching model (authored estimate)",
+          "checkedAt": "2026-11-09",
+          "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html",
+          "note": "With CDC the cutover is a short read-only window; without it the history is reloaded from last night's dump."
+        },
+        "effects": [
+          {
+            "set": "rank",
+            "to": "0"
+          },
+          {
+            "set": "down",
+            "to": "0"
+          },
+          {
+            "set": "deg",
+            "to": "0"
+          },
+          {
+            "log": "15:00 the on-premises order-history database cuts over to AWS",
+            "kind": "sys"
+          },
+          {
+            "cases": [
+              {
+                "when": "dms",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 0)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, cdcCutoverMin)"
+                  },
+                  {
+                    "log": "Migration: DMS had been applying changes since the full load; the cutover was a 4-minute read-only window.",
+                    "kind": "good"
+                  }
+                ]
+              },
+              {
+                "when": "true",
+                "then": [
+                  {
+                    "set": "rank",
+                    "to": "max(rank, 1)"
+                  },
+                  {
+                    "set": "down",
+                    "to": "max(down, 0)"
+                  },
+                  {
+                    "set": "deg",
+                    "to": "max(deg, dumpCutoverMin)"
+                  },
+                  {
+                    "log": "Migration: no replication: order history was reloaded from last night's dump and fans saw no past orders for 90 minutes.",
+                    "kind": "sys"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "add": "impact",
+            "by": "down + 0.5 * deg"
+          },
+          {
+            "set": "migRank",
+            "to": "rank"
+          }
+        ]
+      }
+    },
+    "reasoning": {
+      "design": {
+        "question": "Before launch day: how does this design keep orders flowing through an AZ loss, a Region impairment and a leaked key, within RPO 1 minute and RTO 10 minutes, and how does the order history move off premises today?",
+        "parts": [
+          {
+            "label": "Multi-Region, governance and migration",
+            "criteria": "Names a warm standby (or active-active) in a second Region with health-checked DNS failover, a database replicated across Regions (Aurora Global Database or DynamoDB global tables) to meet RPO 1 minute, guardrails across accounts (Organizations SCPs) and backups copied to a locked vault in a separate account, and DMS with change data capture for a short cutover.",
+            "modelAnswer": "Inside us-east-1 every tier has a copy in two AZs, so either AZ can fail. For the Region, a warm standby in us-west-2 runs a small ASG behind its own ALB; Route 53 failover records with health checks move fans in about three minutes while it scales out. Orders live in an Aurora Global Database, whose secondary in us-west-2 trails by under a second, so a managed failover keeps RPO under a minute. Workloads and backups sit in separate accounts under AWS Organizations, with SCPs that deny deleting recovery points or stopping CloudTrail, and AWS Backup copies to a compliance-locked vault in the backup account. DMS runs a full load and change data capture from the on-premises database, so the afternoon cutover is a few minutes read-only."
+          }
+        ]
+      }
+    },
+    "outcome": {
+      "thresholds": {
+        "rpoMinutes": {
+          "value": 1,
+          "source": {
+            "cite": "SAP band requirement: RPO 1 minute (tighter than the SAA base's 5)",
+            "checkedAt": "2026-11-09",
+            "note": "Tightened, never loosened (band lint)."
+          }
+        },
+        "rtoMinutes": {
+          "value": 10,
+          "source": {
+            "cite": "SAP band requirement: RTO 10 minutes including a Region impairment (tighter than the base's 15)",
+            "checkedAt": "2026-11-09",
+            "note": "Tightened, never loosened (band lint)."
+          }
+        }
+      }
+    },
+    "scoring": {
+      "criteria": [
+        {
+          "id": "resilient",
+          "label": "Resilience and business continuity (SAP-C03 domain 4)",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "azRank == 2 or dbRank == 2 or regionRank == 2 or rto > rtoMinutes or rpo > rpoMinutes",
+              "score": "missed",
+              "why": "A failure broke a recovery target: RTO {rto} min against {rtoMinutes}, RPO {rpo} min against {rpoMinutes}."
+            },
+            {
+              "when": "backupsLost",
+              "score": "partial",
+              "why": "Survived the failures, but the leaked key deleted every backup: one corruption away from losing the day."
+            },
+            {
+              "when": "lucky",
+              "score": "partial",
+              "why": "Survived only because the outage hit the other AZ. A design should survive either AZ failing."
+            },
+            {
+              "when": "not backup",
+              "score": "partial",
+              "why": "Failover worked, but with no backups/PITR there is no way back from corruption or a bad deploy."
+            },
+            {
+              "when": "azDeg > 5 or dbDeg > 5",
+              "score": "partial",
+              "why": "Survived, but with more than 5 minutes of degradation during a failure."
+            },
+            {
+              "when": "riskRes",
+              "score": "partial",
+              "why": "Lost an AZ and a database host with only brief failovers, then a finance cut removed some of that resilience."
+            },
+            {
+              "when": "true",
+              "score": "met",
+              "why": "Lost an AZ, a database host and a Region within RTO {rtoMinutes} min and RPO {rpoMinutes} min."
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "multiRegion",
+          "label": "Multi-Region disaster recovery (SAP-C03 skill 4.2.4)",
+          "weight": 1,
+          "critical": true,
+          "rows": [
+            {
+              "when": "regionRank <= 1",
+              "score": "met",
+              "why": "Failed over to us-west-2 in {rto} min with no lost orders."
+            },
+            {
+              "when": "drMode != \"none\"",
+              "score": "partial",
+              "why": "A second Region existed, but the failover or the data copy missed the targets."
+            },
+            {
+              "when": "true",
+              "score": "missed",
+              "why": "One Region: the impairment took the site down for {regionDown} minutes."
+            }
+          ]
+        },
+        {
+          "id": "performing",
+          "label": "Architecture built for the cloud: scale and performance (SAP-C03 domain 1)",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "spikeRank == 2",
+              "score": "missed",
+              "why": "The on-sale overwhelmed the design."
+            },
+            {
+              "when": "spikeRank == 1 or normalRank == 1",
+              "score": "partial",
+              "why": "Degraded under load (see the event log)."
+            },
+            {
+              "when": "riskPerf",
+              "score": "partial",
+              "why": "Scaled through the spike, but a finance cut put the next on-sale at risk."
+            },
+            {
+              "when": "true",
+              "score": "met",
+              "why": "Scaled through a 10x spike without errors, assets served from the edge."
+            }
+          ]
+        },
+        {
+          "id": "secure",
+          "label": "Security, compliance and governance (SAP-C03 domain 2)",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "org and vault and waf and not riskSec and (not s3 or cf)",
+              "score": "met",
+              "why": "Separate accounts with SCP guardrails, backups locked in their own account, WAF at the edge, a private bucket."
+            },
+            {
+              "when": "(org or vault) and waf",
+              "score": "partial",
+              "why": "Some guardrails held, but {org ? \"backups were not locked away\" : \"no SCP stopped the leaked key\"}."
+            },
+            {
+              "when": "org or vault or waf",
+              "score": "partial",
+              "why": "One layer of protection; the leaked key or the bots found the gap."
+            },
+            {
+              "when": "true",
+              "score": "missed",
+              "why": "One account, no guardrails and no WAF."
+            }
+          ]
+        },
+        {
+          "id": "cost",
+          "label": "Cost-optimized architecture design (SAP-C03 domain 3)",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "designCost > budget",
+              "score": "missed",
+              "why": "The design cost ${designCost} a month, over budget before finance even asked."
+            },
+            {
+              "when": "finSave >= financeTarget * designCost and finRisks == 0",
+              "score": "met",
+              "why": "Under budget, then cut {finSave / designCost * 100|0dp}% without weakening anything."
+            },
+            {
+              "when": "finSave >= financeTarget * designCost",
+              "score": "partial",
+              "why": "Hit the 30% cut, but by removing things the requirements need."
+            },
+            {
+              "when": "true",
+              "score": "partial",
+              "why": "Under budget, but the review found {(designCost == 0 ? 0 : finSave / designCost * 100)|0dp}% of the 30% target."
+            }
+          ]
+        },
+        {
+          "id": "migration",
+          "label": "Migration with minimal downtime (SAP-C03 task 4.1)",
+          "weight": 1,
+          "rows": [
+            {
+              "when": "dms",
+              "score": "met",
+              "why": "DMS full load plus change data capture: a 4-minute cutover."
+            },
+            {
+              "when": "true",
+              "score": "missed",
+              "why": "No replication before the cutover: 90 minutes without order history."
+            }
+          ]
+        }
+      ],
+      "expertPath": [
+        {
+          "at": "Design",
+          "text": "Route 53 with failover records and health checks, CloudFront and WAF; an ALB with a NAT gateway per AZ; an ASG in both AZs (min 4, max 16, m6i.large); an Aurora Global Database with its secondary in us-west-2; a warm standby in us-west-2; ElastiCache, SQS and S3; backups with PITR copied to a locked vault in the backup account; Organizations with SCP guardrails; DMS with CDC for the order history."
+        },
+        {
+          "at": "Finance",
+          "text": "Scheduled scaling with a lower minimum, a Compute Savings Plan, reserved database and cache nodes, an S3 lifecycle rule and longer CloudFront TTLs; the second Region and the guardrails stay."
+        }
+      ],
+      "debrief": {
+        "target": {
+          "headline": "TicketBurst sold out and stayed up, in either Region",
+          "body": "Every requirement held through the leaked key, the spike, the AZ loss, the Region impairment, the database failure and the cutover, inside the budget."
+        },
+        "harm": {
+          "headline": "A rough launch, and a useful one",
+          "body": "A failure broke RPO 1 minute or RTO 10 minutes, availability fell well below the SLA, or the bill ran more than 10% over. The event log shows which tier or Region was the single point."
+        }
+      },
+      "modelReasoning": "Inside us-east-1 every tier has a copy in two AZs, so the design survives whichever AZ fails. For the Region, a warm standby in us-west-2 with Route 53 health-checked failover takes traffic in about three minutes while it scales; an Aurora Global Database (or DynamoDB global tables) keeps the data within a second, so RPO 1 minute and RTO 10 minutes hold. Separate accounts under AWS Organizations with SCP guardrails stop a leaked deployment key from deleting backups or stopping CloudTrail, and a compliance-locked vault in the backup account keeps copies no one can delete. DMS with change data capture turns the order-history migration into a short read-only cutover. A pilot light is cheaper but needs tens of minutes; backup and restore needs hours and loses up to an hour of orders."
+    }
+  }
+}

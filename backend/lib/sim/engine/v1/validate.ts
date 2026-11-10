@@ -11,6 +11,7 @@ import type {
   ActionParam,
   Command,
   CriterionScore,
+  CriterionRowScore,
   Effect,
   Id,
   OutcomeClass,
@@ -123,7 +124,7 @@ export interface GoldenPath {
     class: OutcomeClass | null;
     rating: Rating | null;
     score?: number;
-    criteria?: Record<Id, CriterionScore>;
+    criteria?: Record<Id, CriterionRowScore>;
     kpis?: Record<Id, number | string | null>;
     snapshots?: { tick: number; values: Record<string, Value> }[];
     stateHash?: string;
@@ -1179,7 +1180,7 @@ function semantic(doc: ScenarioDoc, info: DocInfo, col: Collector): void {
     c.rows.forEach((r, j) => {
       checkOne(r.when, sscope, WHERE_SCORING, `scoring.criteria[${i}].rows[${j}].when`, info, col, "bool");
       checkTemplate(r.why, sscope, WHERE_SCORING, `scoring.criteria[${i}].rows[${j}].why`, info, col);
-      if (["met", "partial", "missed"].indexOf(r.score) < 0) col.error(`scoring.criteria[${i}].rows[${j}]`, "score must be met, partial or missed");
+      if (["met", "partial", "missed", "na"].indexOf(r.score) < 0) col.error(`scoring.criteria[${i}].rows[${j}]`, "score must be met, partial, missed or na");
     });
   });
   doc.scoring.kpis.forEach((k, i) => {
@@ -1545,7 +1546,7 @@ function content(doc: ScenarioDoc, info: DocInfo, col: Collector, opts: LintOpti
   const results = opts.goldenResults ?? (opts.golden ? replayGolden(doc, opts.golden) : []);
   const reached = new Map<string, Set<string>>(); // class -> ending ids
   const endingsReached = new Set<string>();
-  const criteriaSeen: Record<string, Set<CriterionScore>> = {};
+  const criteriaSeen: Record<string, Set<CriterionRowScore>> = {};
   const ratings = new Set<string>();
   const availableEver = new Set<string>();
   let targetWithCriticalMiss: string[] = [];
