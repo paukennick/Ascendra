@@ -100,10 +100,11 @@
   (lib/auth/refreshCookie.ts), and anything that reads the cookie checks
   `cookieRequestAllowed` (Origin + platform header). A dialog or sheet uses
   `SheetModal`, never React Native's `Modal`, so it hides under the lock.
-- Account security (REQ-203, FAIL-860..870): a route that adds a sign-in
+- Account security (REQ-203, FAIL-860..871): a route that adds a sign-in
   method (authenticator, Google link) or deletes the account asks for proof
   whenever the account has one (`hasReauthProof`, then `checkReauth`), not
-  only when MFA is on, and mails the account address when a method is added.
+  only when MFA is on, mails the account address when a method is added, and ends other sessions
+  (`endOtherSessions`) in the same transaction (the Google link, FAIL-871).
   A guess limit counts wrong answers: spend the budget while checking
   (`consumeRateLimit`), give a correct one back (`refundRateLimit`). A
   single-use code gets a try limit and is dropped after the last miss. Writes

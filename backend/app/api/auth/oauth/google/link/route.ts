@@ -1,8 +1,9 @@
-import { query, queryOne } from "@/lib/db";
+import { query, queryOne, withTransaction } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyGoogleIdToken } from "@/lib/auth/oauth";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { checkReauth, hasReauthProof, reauthFailure } from "@/lib/auth/reauth";
+import { endOtherSessions } from "@/lib/auth/sessionControl";
 import { sendSecurityAlertEmail } from "@/lib/email";
 import { emailFailureHandler } from "@/lib/email-errors";
 
@@ -19,8 +20,11 @@ export const dynamic = "force-dynamic";
 // code: lib/auth/reauth.ts; `idToken` is the NEW identity, so a Google proof
 // of the existing link goes in `googleIdToken`), and the account's address is
 // mailed a security alert naming the Google address that was connected.
-// Whether the Google address must also equal the account address is a
-// product decision that has not been made; it is not enforced here.
+// Nick decided (2026-11-09) that the Google address need NOT equal the account
+// address. FAIL-871: a new link is a new way to sign in, so it also ends every
+// other session and every access token already issued (lib/auth/
+// sessionControl.ts), in the same transaction as the link; this device keeps
+// its session and gets a fresh `accessToken`.
 export async function POST(req: Request) {
   try {
     const authUser = await requireUser(req);
@@ -44,24 +48,27 @@ export async function POST(req: Request) {
       return badRequest("That Google account is already linked to a different Ascendra account.");
     }
 
-    const inserted = await query(
-      `insert into oauth_accounts (user_id, provider, provider_account_id, email)
-       values ($1, 'google', $2, $3)
-       on conflict (provider, provider_account_id) do nothing returning id`,
-      [authUser.id, identity.providerAccountId, identity.email.toLowerCase()]
-    );
+    const linked = await withTransaction(async (tx) => {
+      const inserted = await tx.query(
+        `insert into oauth_accounts (user_id, provider, provider_account_id, email)
+         values ($1, 'google', $2, $3)
+         on conflict (provider, provider_account_id) do nothing returning id`,
+        [authUser.id, identity.providerAccountId, identity.email.toLowerCase()]
+      );
+      // Linking the same identity again changes nothing, so it ends nothing.
+      if (inserted.length === 0) return null;
+      return { accessToken: await endOtherSessions(authUser, tx) };
+    });
 
-    // Only a link that was just made is news; linking the same identity again
-    // changes nothing.
-    if (inserted.length > 0) {
+    if (linked) {
       await sendSecurityAlertEmail(
         authUser.email,
         "A Google account was connected to your Ascendra account",
-        `The Google account ${identity.email.toLowerCase()} can now be used to sign in to your Ascendra account.`
+        `The Google account ${identity.email.toLowerCase()} can now be used to sign in to your Ascendra account. Your other devices have been signed out.`
       ).catch(emailFailureHandler("auth/oauth/google/link"));
     }
 
-    return ok({ message: "Google account connected." });
+    return ok({ message: "Google account connected.", ...(linked?.accessToken ? { accessToken: linked.accessToken } : {}) });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);

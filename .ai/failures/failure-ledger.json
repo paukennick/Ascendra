@@ -9220,6 +9220,31 @@
       ],
       "prevention_notes": "Destructive actions confirm with whatever proof the account has",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-871",
+      "date": "2026-11-09",
+      "title": "Connecting Google left every other session signed in",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A new Google link is a new way to sign in as the account, but the other devices' sessions and access tokens stayed live, so a session that was already stolen outlived the link.",
+      "how_detected": "owner decision on the F2 batch, checklist rule (2026-11-09)",
+      "root_cause": "The link route only inserted the oauth_accounts row; unlike change-password and enabling MFA it did not call endOtherSessions.",
+      "requirement": "REQ-203",
+      "affected": [
+        "backend/app/api/auth/oauth/google/link/route.ts"
+      ],
+      "fix_summary": "A new link ends every other refresh family and bumps token_version in the same transaction as the insert, keeps this device's session and returns a fresh accessToken; relinking the same identity ends nothing; the alert email says other devices were signed out.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/account-security.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every route that adds a sign-in method calls endOtherSessions in its own transaction",
+      "recurrence_of": ""
     }
   ]
 }

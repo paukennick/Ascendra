@@ -341,7 +341,7 @@ export default function Account() {
 
       {linking ? (
         <Card>
-          <Muted>Connecting a Google account changes how you can sign in, so confirm it's you first.</Muted>
+          <Muted>Connecting a Google account changes how you can sign in, so confirm it's you first. Your other devices will be signed out; this one stays signed in.</Muted>
           <Muted>{prompt.hint}</Muted>
           {linkError ? <ErrorBanner message={linkError} /> : null}
           {prompt.kind === "secret" ? (

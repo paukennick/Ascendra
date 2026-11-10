@@ -229,10 +229,58 @@ describe("FAIL-861: linking a Google identity needs proof and alerts the owner",
     const alert = mailsTo(u.email).find((m) => /Google account was connected/.test(m.subject));
     assert.ok(alert);
     assert.ok(alert.html.includes(gmail));
-    // Linking the same identity again changes nothing and says nothing.
+    // Linking the same identity again (with the fresh token the link handed
+    // back) changes nothing and says nothing.
     const before = mailsTo(u.email).length;
-    assert.equal((await call(googleLink, { body: { idToken: "tok", reauth: PW }, headers: s.auth })).status, 200);
+    const again = await call(googleLink, { body: { idToken: "tok", reauth: PW }, headers: { authorization: `Bearer ${r.body.accessToken}` } });
+    assert.equal(again.status, 200);
     assert.equal(mailsTo(u.email).length, before);
+    __setGoogleVerifierForTest(null);
+  });
+});
+
+describe("FAIL-871: connecting Google ends every other session and keeps this one", () => {
+  test("other devices' refresh tokens and access tokens end; the caller continues on a fresh token", async () => {
+    const u = await mkUser();
+    const s = await session(u);
+    const other = await session(u);
+    stubGoogle(`g-${run}-871`, `l871-${run}@example.test`);
+    const r = await call(googleLink, { body: { idToken: "tok", reauth: PW }, headers: s.auth });
+    assert.equal(r.status, 200);
+    assert.ok(r.body.accessToken, "the caller gets a fresh access token");
+    assert.equal(await liveInFamily(other.familyId), 0, "the other device's session is revoked");
+    assert.equal(await liveInFamily(s.familyId), 1, "this device's session is kept");
+    assert.equal((await call(unlock, { body: { reauth: PW }, headers: other.auth })).status, 401, "the other device's access token ended");
+    assert.equal((await call(unlock, { body: { reauth: PW }, headers: { authorization: `Bearer ${r.body.accessToken}` } })).status, 200);
+    assert.equal((await call(unlock, { body: { reauth: PW }, headers: s.auth })).status, 401, "the pre-link token is stale");
+    const alert = mailsTo(u.email).find((m) => /Google account was connected/.test(m.subject));
+    assert.match(alert!.html, /other devices have been signed out/i);
+    __setGoogleVerifierForTest(null);
+  });
+
+  test("a refused link (no proof) ends nothing", async () => {
+    const u = await mkUser();
+    const s = await session(u);
+    const other = await session(u);
+    stubGoogle(`g-${run}-871b`, `l871b-${run}@example.test`);
+    assert.notEqual((await call(googleLink, { body: { idToken: "tok" }, headers: s.auth })).status, 200);
+    assert.equal(await liveInFamily(other.familyId), 1);
+    __setGoogleVerifierForTest(null);
+  });
+
+  test("the link and the sign-outs are one transaction: a failure leaves no link and no one signed out", async () => {
+    const u = await mkUser();
+    const s = await session(u);
+    const other = await session(u);
+    stubGoogle(`g-${run}-871c`, `l871c-${run}@example.test`);
+    const drop = await failOnceFor(u.id, "app_users", "update", "new.id = $USER and new.token_version <> old.token_version");
+    try {
+      assert.equal((await call(googleLink, { body: { idToken: "tok", reauth: PW }, headers: s.auth })).status, 500);
+    } finally {
+      await drop();
+    }
+    assert.equal((await query(`select 1 from oauth_accounts where user_id=$1`, [u.id])).length, 0);
+    assert.equal(await liveInFamily(other.familyId), 1);
     __setGoogleVerifierForTest(null);
   });
 });
