@@ -8,8 +8,8 @@
 //   2. the seeded catalog track names no school;
 //   3. a retired objective is not served, even with a stored lesson, and
 //      nothing is generated for it;
-//   4. a reframed objective is served its authored lesson with no model call,
-//      and the "authored" fix replaces an older stored lesson.
+//   4. the removed non-CS courses (composition, religion surveys) are retired,
+//      not served, and have no authored lesson to apply.
 process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -19,16 +19,16 @@ import { query, queryOne, closePool, sslOption } from "./db";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
-import { AUTHORED_LESSON_MODEL, AUTHORED_LESSONS } from "./authored-lessons";
-import { CMPCBS_COMPOSITION, CMPCBS_THEOLOGY_SURVEY } from "./authored-lessons-cmpcbs";
-import { applyLessonFix, authoredFixes, lookupFix } from "./lesson-fixes";
-import { getLessonFor, SHARED } from "./lesson-store";
+import { authoredFixes, lookupFix } from "./lesson-fixes";
+import { SHARED } from "./lesson-store";
 import { ensureGeneration, loadObjective, RetiredObjectiveError } from "./lesson-generation";
 import { seedTrack } from "../supabase/seed/seed-lib";
 import { CMPCBS_TRACK, type SeedTrack } from "../supabase/seed/data";
 import { GET as courseGet } from "../app/api/courses/[id]/route";
 import { GET as lessonGet, POST as lessonPost } from "../app/api/objectives/[id]/lesson/route";
 
+const CMPCBS_COMPOSITION = "College composition: thesis, argument, evidence and APA/MLA citation";
+const CMPCBS_THEOLOGY_SURVEY = "Introduction to Christian theology: its main questions and how traditions answer them";
 const run = Date.now().toString(36);
 const user = randomUUID();
 const code = `T-CMP-${run}`;
@@ -102,7 +102,8 @@ describe("REQ-195: re-seeding the old shape with the new one retires and reframe
     assert.deepEqual([...after.entries()].sort(), [...before.entries()].sort(), "no objective row moved, appeared or vanished");
 
     const obj = await queryOne<{ title: string; retired_at: Date | null }>(`select title, retired_at from objectives where id = $1`, [comp]);
-    assert.deepEqual([obj!.title, obj!.retired_at], [CMPCBS_COMPOSITION, null], "composition reframed in place, still taught");
+    assert.equal(obj!.title, CMPCBS_COMPOSITION);
+    assert.ok(obj!.retired_at, "composition kept in place but retired (not CS)");
     const retired = await query<{ pos: string }>(
       `select cu.sort_order || '.' || o.sort_order as pos from objectives o join course_units cu on cu.id = o.unit_id
         where cu.track_id = $1 and o.retired_at is not null and o.retired_at <= now() order by cu.sort_order, o.sort_order`,
@@ -110,17 +111,18 @@ describe("REQ-195: re-seeding the old shape with the new one retires and reframe
     );
     const want = CMPCBS_TRACK.units.flatMap((u, i) => u.objectives.flatMap((_, j) => (u.retiredAt || u.objectiveRetiredAt?.[j] ? [`${i}.${j}`] : [])));
     assert.deepEqual(retired.map((r) => r.pos), want);
-    // The REQ-187 advising set was 20 lines; 3 are reframed, 17 retired.
-    assert.equal(want.length, 17);
+    // The REQ-187 advising set was 20 lines; all 20 are retired now.
+    assert.equal(want.length, 20);
     const units = await query<{ sort_order: number }>(`select sort_order from course_units where track_id = $1 and retired_at is not null order by sort_order`, [trackId]);
-    assert.deepEqual(units.map((u) => u.sort_order), [1, 2, 3, 4, 26, 27]);
+    assert.deepEqual(units.map((u) => u.sort_order), [0, 1, 2, 3, 4, 5, 26, 27]);
 
     const m = await query<{ objective_id: string; status: string }>(`select objective_id, status from mastery where user_id = $1 order by objective_id`, [user]);
-    assert.equal(m.length, 2, "mastery on a reframed and on a retired objective is kept");
+    assert.equal(m.length, 2, "mastery on retired objectives is kept");
 
     const c = await course(trackId);
-    assert.equal(c.units.length, 22);
-    assert.deepEqual(c.units[0].objectives.map((o) => o.title), [CMPCBS_COMPOSITION]);
+    assert.equal(c.units.length, 20);
+    assert.equal(c.units[0].title, "Introduction to Computer Science");
+    assert.ok(!c.units.some((u) => /composition|religion/i.test(u.title)), "no English or religion unit is listed");
     const listed = c.units.flatMap((u) => u.objectives.map((o) => o.id));
     assert.ok(!listed.includes(elective), "a retired objective is not listed");
     const total = CMPCBS_TRACK.units.reduce((n, u) => n + u.objectives.length, 0);
@@ -177,7 +179,7 @@ describe("REQ-195: retired objectives are not served", () => {
       await query(`delete from lesson_content where objective_id = $1`, [o.id]);
     }
   });
-  test("a single retired line inside a unit that stays is not served either", async () => {
+  test("a retired line in the composition unit is not served either", async () => {
     const o = await catalogObjective(`cu.sort_order = 0 and o.sort_order = 1`);
     assert.match(o.title, /^Communications elective/);
     const res = await lessonGet(req(), { params: Promise.resolve({ id: o.id }) });
@@ -192,49 +194,14 @@ describe("REQ-195: retired objectives are not served", () => {
   });
 });
 
-describe("REQ-195: reframed objectives are served their authored lesson", () => {
-  test("first visit stores the authored lesson with sources and no model call", async () => {
-    const o = await catalogObjective(`o.title = '${CMPCBS_COMPOSITION.replace(/'/g, "''")}'`);
-    await query(`delete from lesson_content where objective_id = $1`, [o.id]);
-    try {
-      const objRow = await loadObjective(o.id);
-      assert.deepEqual(objRow?.authored, { trackCode: "CMPCBS", objectiveTitle: CMPCBS_COMPOSITION });
-      assert.equal(objRow?.retired, false);
-      const row = await ensureGeneration(o.id, objRow!, { scope: SHARED, pending: new Map() }).fullPromise;
-      assert.equal(row.model, AUTHORED_LESSON_MODEL);
-      assert.match(row.teach, /Sources \(checked\): OpenStax, Writing Guide with Handbook/);
-      // The route serves it.
+describe("REQ-195: the removed non-CS courses are not served", () => {
+  test("composition and the theology survey answer 404, and no authored fix is listed", async () => {
+    for (const title of [CMPCBS_COMPOSITION, CMPCBS_THEOLOGY_SURVEY]) {
+      const o = await catalogObjective(`o.title = '${title.replace(/'/g, "''")}'`);
       const res = await lessonGet(req(), { params: Promise.resolve({ id: o.id }) });
-      const body = await res.json();
-      assert.equal(res.status, 200, JSON.stringify(body));
-      assert.equal(body.cached, true);
-      assert.match(JSON.stringify(body.lesson), /College composition teaches academic writing/);
-      assert.equal(modelCalls, 0);
-    } finally {
-      await query(`delete from lesson_content where objective_id = $1`, [o.id]);
+      assert.equal(res.status, 404, title);
     }
-  });
-  test("the authored fix replaces an older stored lesson (generated, or REQ-187's degree-plan one) and is not listed again", async () => {
-    const o = await catalogObjective(`o.title = '${CMPCBS_THEOLOGY_SURVEY.replace(/'/g, "''")}'`);
-    await insertLesson(o.id, "authored:degree-plan");
-    try {
-      const listed = await authoredFixes();
-      const f = listed.find((x) => x.objective === o.title);
-      assert.ok(f, "listed");
-      assert.ok(!listed.some((x) => !Object.keys(AUTHORED_LESSONS.CMPCBS).includes(x.objective as string)), "only authored objectives are listed");
-      const dry = await applyLessonFix(f!, { apply: false });
-      assert.equal(dry.status, "would_apply");
-      const r = await applyLessonFix(f!, { apply: true });
-      assert.equal(r.status, "applied", r.detail);
-      const row = (await getLessonFor(user, o.id))!.row;
-      assert.equal(row.model, AUTHORED_LESSON_MODEL);
-      assert.match(row.teach, /Sources \(checked\): OpenStax, World History Volume 2/);
-      assert.ok(!(await authoredFixes()).some((x) => x.objective === o.title), "not listed again");
-      const log = await queryOne<{ claims: string[] }>(`select claims from item_holdbacks where objective_id = $1 order by created_at desc limit 1`, [o.id]);
-      assert.match(log!.claims[0], /^REQ-195 /);
-    } finally {
-      await query(`delete from lesson_content where objective_id = $1`, [o.id]);
-      await query(`delete from item_holdbacks where objective_id = $1`, [o.id]);
-    }
+    assert.deepEqual(await authoredFixes(), []);
+    assert.equal(modelCalls, 0);
   });
 });

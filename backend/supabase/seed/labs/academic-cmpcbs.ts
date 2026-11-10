@@ -10,8 +10,8 @@ import { source } from "../sources";
 // (Introduction to Computer Science through Information Security): one lab
 // per course plus one extra in Introduction to Computer Science, the only
 // course unit with a second performance objective and room -> 21 labs. The
-// reframed general-education surveys (College Composition I, Religion
-// Surveys) have no lab yet, and the retired degree-plan units never get one.
+// removed general-education courses (College Composition I, Religion
+// Surveys) have no lab, and the retired degree-plan units never get one.
 // The content test (`lib/labs.test.ts`) checks both.
 //
 // Each lab is a task the course itself grades by doing: design an

@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { queryOne } from "@/lib/db";
 import { shufflePractice } from "@/lib/content-validator";
 import { teachFromCards, type LessonIntroContent, type LessonPracticeContent, type TeachCards } from "@/lib/prompts";
-import { CMPCBS_AUTHORED } from "@/lib/authored-lessons-cmpcbs";
 
 // REQ-195 (replaces REQ-187's lib/degree-advising.ts): lessons a person
 // wrote, with the sources each claim rests on, served instead of a generated
@@ -42,9 +41,11 @@ export interface AuthoredLesson {
 }
 
 // Track code -> objective title (exactly as seeded) -> lesson.
-export const AUTHORED_LESSONS: Readonly<Record<string, Readonly<Record<string, AuthoredLesson>>>> = {
-  CMPCBS: CMPCBS_AUTHORED,
-};
+// REQ-195 (Nick, 2026-11-09, later): the three reframed non-CS courses
+// (college composition and the two religion surveys) were removed from the
+// track, so CMPCBS has no authored lessons. The mechanism stays for future
+// authored content.
+export const AUTHORED_LESSONS: Readonly<Record<string, Readonly<Record<string, AuthoredLesson>>>> = {};
 
 export function authoredSourcesLine(sources: AuthoredSource[]): string {
   return `Sources (checked): ${sources.map((s) => `${s.title}, ${s.url} (${s.checkedAt})`).join("; ")}.`;

@@ -1865,9 +1865,10 @@ export const SECURITYX_TRACK: SeedTrack = {
 //     course codes and their gates state what the course teaches instead of
 //     the school's grade rules.
 //   - Gen-ed courses that are a real general course type are reframed in
-//     place: composition (unit 0, objective 0) and the two religion surveys
-//     (unit 5), taught as neutral academic surveys. Their lessons are
-//     authored and cite sources (lib/authored-lessons-cmpcbs.ts).
+//     place, then removed (Nick, 2026-11-09, later): "Remove English and
+//     religious courses that aren't CS." Units 0 (College Composition I) and
+//     5 (Religion Surveys) are retired whole; only CS, math and information
+//     systems courses are taught.
 //   - Everything that was degree-plan logistics is RETIRED, never deleted:
 //     elective-choice lines, the online-learning orientation course, the
 //     worldview course (a formation course with no neutral general
@@ -1913,7 +1914,7 @@ export const CMPCBS_TRACK: SeedTrack = {
   code: "CMPCBS",
   title: "Computer Science Degree Foundations",
   description:
-    "The foundation courses of a bachelor's degree in computer science and computational mathematics, taught as general courses from open textbooks: calculus through differential equations, discrete math, linear algebra, probability and statistics, numerical methods, C++ programming, data structures, information systems and security, plus college composition and introductory surveys of the Bible and Christian theology. Not affiliated with any university; your school's catalog sets its own requirements.",
+    "The foundation courses of a bachelor's degree in computer science and computational mathematics, taught as general courses from open textbooks: calculus through differential equations, discrete math, linear algebra, probability and statistics, numerical methods, C++ programming, data structures, information systems and security. Not affiliated with any university; your school's catalog sets its own requirements.",
   trackType: "graduate",
   subcategorySlug: "software-engineering",
   // REQ-195: the course outline is this seed; each unit names its own dated
@@ -1936,6 +1937,9 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Information Literacy Elective I -- satisfied by CSIS 110 (shared credit from Major Foundational Courses)",
         "Information Literacy Elective II -- choose 3 credits from ARTS 209, BUSI 201, CSIS 100, CSIS 110, CSIS 111, ENGL 102, ENGL 103, GEOG 200, HIEU 201, HIEU 202, HIUS 221, HIUS 222, HIUS 341, HIUS 360, HIUS 380, HIWD 370, or WRSP 101",
       ],
+      // REQ-195 (Nick, 2026-11-09): non-CS general-education courses removed;
+      // the whole unit is retired, ids and positions kept.
+      retiredAt: R,
       objectiveRetiredAt: [null, R, R, R],
       sources: [CMPCBS_SRC.writing, CMPCBS_SRC.apa, CMPCBS_SRC.mla],
     },
@@ -1985,6 +1989,8 @@ export const CMPCBS_TRACK: SeedTrack = {
         "Survey of the Old and New Testaments: canon, structure and literary genres",
         "Introduction to Christian theology: its main questions and how traditions answer them",
       ],
+      // REQ-195 (Nick, 2026-11-09): non-CS courses removed; unit retired.
+      retiredAt: R,
       sources: [CMPCBS_SRC.hebrewBible, CMPCBS_SRC.newTestament, CMPCBS_SRC.worldHistory1, CMPCBS_SRC.worldHistory2, CMPCBS_SRC.brooks, CMPCBS_SRC.hanneken],
     },
     // 6-25: the major courses, as general course titles.

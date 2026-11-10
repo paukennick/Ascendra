@@ -132,13 +132,14 @@ From the 2026-11-09 content audit (prompts and pipeline findings). Code:
   be reframed as general course titles. Content should be accurate to the
   course type."). Its degree-plan logistics (elective-choice lines, the
   orientation course, the worldview course, free electives, the graduation
-  checklist; 17 objectives) are retired, never deleted, and a retired
+  checklist) are retired, never deleted, and a retired
   objective is not served: the lesson route answers 404 and nothing is
-  generated for it. The three lines that are a real general course type --
-  college composition and two neutral religion surveys -- are reframed in
-  place and served authored lessons with dated sources
-  (`lib/authored-lessons-cmpcbs.ts`, model `authored:course-lesson`); a
-  regenerate returns the same lesson. Every active unit names the open
+  generated for it. Composition and the two religion surveys were briefly
+  reframed as general courses, then removed the same day (Nick: "Remove
+  English and religious courses that aren't CS"), so all 20 non-CS lines are
+  retired and CMPCBS has no authored lessons. The authored-lesson mechanism
+  (`lib/authored-lessons.ts`, model `authored:course-lesson`) stays for
+  future use. Every active unit names the open
   textbook it is taught from (`sources` in the seed), which the generation
   prompt's current-facts block lists for that unit.
 - **Chat disputes flag the key.** When a learner disputes a grade in chat,
@@ -158,8 +159,8 @@ Two manual workflows (Actions tab), both against `PROD_DATABASE_URL` in the
    the lessons with wrong keys (answers voided, mastery recomputed, lesson
    pulled), corrects the others in place with dated sources (the old content
    goes to `item_holdbacks`), and replaces any other stored lesson on an
-   objective that has an authored lesson (REQ-195: the reframed CMPCBS
-   composition and religion surveys) with the authored one. Re-running is safe: done fixes are skipped.
+   objective that has an authored lesson with the authored one (none are
+   registered after REQ-195). Re-running is safe: done fixes are skipped.
    Run it after the CompTIA objective fix is seeded or before; the SECPLUS
    fix accepts either objective title.
 2. **Re-check pre-gate content** (`.github/workflows/content-recheck.yml`,
