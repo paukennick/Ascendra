@@ -5843,6 +5843,63 @@
         "Retiring legacy builds entirely needs a separate decision since headerless requests are not version-checked",
         "iOS store link needs IOS_APP_STORE_URL"
       ]
+    },
+    {
+      "id": "REQ-186",
+      "category": "content",
+      "title": "Fix the 2026-11-09 content audit findings for Kubernetes, project management and academic/dev labs",
+      "description": "Nick 2026-11-09 (\"do the fixes\"): apply the audit's Major findings and clear Minor findings in the Kubernetes and containers labs (K1-K12: CKA, CKS, KCA, CCA, CNPE, CNPA), the PMI labs and PMP track (M1, M2, m1-m3, stale allowlist notes) and the academic and dev content (JS null-body crash and byte limit, MSCS OWASP password parameters and the increasing-scores premise, CMPCBS C-minimum gates, UNIV 104 title, a HIPAA line, the Node race example, Python free-threading and modern typing). Each fix re-checked against the current upstream source on the day and cited with a dated source. Generated lessons (M2-M4, lessons 6, 10, 13, 22) are out of scope.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/labs/k8s-cka.ts",
+        "backend/supabase/seed/labs/k8s-cks.ts",
+        "backend/supabase/seed/labs/k8s-kca.ts",
+        "backend/supabase/seed/labs/k8s-cca.ts",
+        "backend/supabase/seed/labs/k8s-cnpe.ts",
+        "backend/supabase/seed/labs/k8s-cnpa.ts",
+        "backend/supabase/seed/labs/k8s-ckad.ts",
+        "backend/supabase/seed/labs/k8s-capa.ts",
+        "backend/supabase/seed/labs/k8s-dca.ts",
+        "backend/supabase/seed/labs/k8s-pca.ts",
+        "backend/supabase/seed/labs/k8s-otca.ts",
+        "backend/supabase/seed/labs/pm-cpmai.ts",
+        "backend/supabase/seed/labs/pm-pgmp.ts",
+        "backend/supabase/seed/labs/pm-pfmp.ts",
+        "backend/supabase/seed/labs/pm-acp.ts",
+        "backend/supabase/seed/labs/dev-javascript.ts",
+        "backend/supabase/seed/labs/dev-python.ts",
+        "backend/supabase/seed/labs/academic-mscs.ts",
+        "backend/supabase/seed/labs/academic-cmpcbs.ts",
+        "backend/supabase/seed/tracks/pm.ts",
+        "backend/supabase/seed/tracks/kubernetes.ts",
+        "backend/supabase/seed/tracks/cncf-ecosystem.ts",
+        "backend/supabase/seed/data.ts",
+        "backend/lib/labs-containers.test.ts",
+        "backend/lib/labs-audit-k8s-pm-academic.test.ts",
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "acceptance_criteria": [
+        "Every Major finding in scope is fixed and pinned by a regression test",
+        "Objective titles are reworded only, never reordered, added or removed",
+        "Each corrected claim cites a source dated 2026-11-09",
+        "The JS model-answer server is executed by the test and answers null with 422 and keeps serving"
+      ],
+      "validation_required": [
+        "npm run typecheck",
+        "npm test",
+        "npm run test:db on Postgres 16 after all migrations and seed twice",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "All labs stay needs_expert_review",
+        "Three objective titles were reworded (CKA etcd, KCA failureAction, CNPE Crossplane) plus the PYTHON typing and CMPCBS UNIV 104 titles; mastery maps by sort order, so learners keep their progress",
+        "EX188 and CBA minors were not itemised in the audit and were left"
+      ]
     }
   ]
 }

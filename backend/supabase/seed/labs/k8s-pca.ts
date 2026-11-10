@@ -163,8 +163,8 @@ export const PCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Global and job settings",
-              "global: scrape_interval 30s (and scrape_timeout 10s either globally or on the job), a job_name, and kubernetes_sd_configs with role: pod; explains timeout must be below the interval.",
-              "global:\n  scrape_interval: 30s\n  scrape_timeout: 10s\nscrape_configs:\n- job_name: kubernetes-pods\n  kubernetes_sd_configs:\n  - role: pod\nThe pod role discovers one target per Pod port (or per Pod when no ports are declared) with __meta_kubernetes_* labels describing namespace, annotations, labels and the Pod's IP. scrape_timeout must be shorter than scrape_interval or the configuration is rejected."
+              "global: scrape_interval 30s (and scrape_timeout 10s either globally or on the job), a job_name, and kubernetes_sd_configs with role: pod; explains the timeout may not exceed the interval.",
+              "global:\n  scrape_interval: 30s\n  scrape_timeout: 10s\nscrape_configs:\n- job_name: kubernetes-pods\n  kubernetes_sd_configs:\n  - role: pod\nThe pod role discovers one target per Pod port (or per Pod when no ports are declared) with __meta_kubernetes_* labels describing namespace, annotations, labels and the Pod's IP. scrape_timeout may not be greater than scrape_interval (equal is allowed) or the configuration is rejected; 10s leaves headroom."
             ),
             part(
               "Keep only annotated Pods, drop kube-system",
@@ -357,7 +357,7 @@ export const PCA_LABS: SeedLabSet = {
             part(
               "The planned silence",
               "A silence created ahead of time (amtool silence add or the UI) with matchers team=payments and alertname=~\"Database.*\" (or a database component label), startsAt Saturday 02:00 UTC, endsAt 04:00 UTC, a comment and author; explains silences match labels, have start/end times, and are preferable to editing routes for a one-off window.",
-              "amtool silence add --alertmanager.url=http://alertmanager:9093 \\\n  --start=\"2026-11-15T02:00:00Z\" --end=\"2026-11-15T04:00:00Z\" \\\n  --author=\"payments-oncall\" --comment=\"CHG-4412 planned DB migration\" \\\n  team=payments alertname=~\"Database.*\"\nA silence suppresses notifications for alerts matching its matchers between its start and end; alerts still fire and show as silenced in the UI, and the silence expires on its own. Scoping it to team and alertname keeps payments' other pages live and never touches booking or platform. Editing the route tree for a two-hour window would be the wrong tool."
+              "amtool silence add --alertmanager.url=http://alertmanager:9093 \\\n  --start=\"2026-11-14T02:00:00Z\" --end=\"2026-11-14T04:00:00Z\" \\\n  --author=\"payments-oncall\" --comment=\"CHG-4412 planned DB migration\" \\\n  team=payments alertname=~\"Database.*\"\nA silence suppresses notifications for alerts matching its matchers between its start and end; alerts still fire and show as silenced in the UI, and the silence expires on its own. Scoping it to team and alertname keeps payments' other pages live and never touches booking or platform. Editing the route tree for a two-hour window would be the wrong tool."
             ),
           ],
         },

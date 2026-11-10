@@ -1004,7 +1004,7 @@ export const PYTHON_TRACK: SeedTrack = {
       objectives: [
         "Writing unit tests with pytest: assertions, fixtures, parametrization",
         "Debugging techniques: reading tracebacks, using a debugger, print-driven debugging tradeoffs",
-        "Type hints: basic annotations, Optional, List/Dict generics, and static checking with mypy",
+        "Type hints: basic annotations, optional values (X | None), built-in generics (list[int], dict[str, int]), and static checking with mypy",
         "Code style and linting (PEP 8, flake8/ruff) and why consistency matters",
       ],
     },
@@ -1852,6 +1852,11 @@ export const CMPCBS_TRACK: SeedTrack = {
   // on 2026-11-08: catalog.liberty.edu reset the connection and a fetch of the
   // catalog page returned its 2024-2025 edition, so checkedAt is the date the
   // plan was last edited here (git history, the REQ-142 backfill rule).
+  // The C-minimum gates follow the catalog page read 2026-11-09 (still the
+  // 2024-2025 edition): "Grade of 'C' Minimum required for all major
+  // foundational courses and all upper-level courses in the major". The same
+  // page titles UNIV 104 "Instructional Technology for Successful Online
+  // Learning".
   curriculum: {
     kind: "degree_plan",
     name: "Liberty University BS Computational Mathematics: Computer Science, Degree Completion Plan CMPC-BS-D",
@@ -1876,7 +1881,7 @@ export const CMPCBS_TRACK: SeedTrack = {
       rangeLabel: "3 credits",
       gate: "The Math Elective here is satisfied by MATH 131, shared with Major Foundational Courses -- don't schedule it as a second course.",
       objectives: [
-        "Instructional Technology for Online Learning (UNIV 104)",
+        "Instructional Technology for Successful Online Learning (UNIV 104)",
         "Math elective -- satisfied by MATH 131 (shared credit from Major Foundational Courses)",
       ],
     },
@@ -1950,7 +1955,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 132: Calculus and Analytic Geometry II",
       rangeLabel: "4 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this feeds directly into Discrete Mathematics and Multivariable Calculus.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but this feeds directly into Discrete Mathematics and Multivariable Calculus.",
       objectives: [
         "Integration techniques beyond basic antiderivatives",
         "Improper integrals",
@@ -1963,7 +1968,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 211: Introduction to Statistical Analysis",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but the courses after it build on it.",
       objectives: [
         "Probability theory foundations for calculus-trained students",
         "Common probability distribution models",
@@ -1975,7 +1980,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 250: Introduction to Discrete Mathematics",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Linear Algebra, Multivariable Calculus, and CSIS 215.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but this is a prerequisite for Linear Algebra, Multivariable Calculus, and CSIS 215.",
       objectives: [
         "Logic and formal proof techniques",
         "Set theory fundamentals",
@@ -1988,7 +1993,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 345: Introduction to the History of Mathematics",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. This one has a heavy upper-level-math prerequisite list, so schedule it after several 300/400-level math courses, not early.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major. This one has a heavy upper-level-math prerequisite list, so schedule it after several 300/400-level math courses, not early.",
       objectives: [
         "Ancient mathematics: Egyptian, Babylonian, and early number systems",
         "Greek geometry: Euclid, Pythagoras, and Archimedes",
@@ -2001,7 +2006,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 410: Matrix and Linear Algebra",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it underpins Numerical Methods and Abstract Algebraic Structures.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major, and this is load-bearing: it underpins Numerical Methods and Abstract Algebraic Structures.",
       objectives: [
         "Vector spaces and subspaces",
         "Systems of linear equations and Gaussian elimination",
@@ -2013,7 +2018,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 412: Numerical Methods",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major. Requires Matrix and Linear Algebra as a prerequisite.",
       objectives: [
         "Interpolation techniques",
         "Numerical differentiation and integration",
@@ -2026,7 +2031,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 423: Abstract Algebraic Structures",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Matrix and Linear Algebra as a prerequisite.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major. Requires Matrix and Linear Algebra as a prerequisite.",
       objectives: [
         "Groups and their properties",
         "Rings and fields",
@@ -2037,7 +2042,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 430: Multivariable Calculus",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is load-bearing: it's a prerequisite for both Applied Differential Equations and Mathematical Modeling and Simulation.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major, and this is load-bearing: it's a prerequisite for both Applied Differential Equations and Mathematical Modeling and Simulation.",
       objectives: [
         "Limits, continuity, and differentiation for functions of several variables",
         "Integration and power series in several variables",
@@ -2050,7 +2055,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 432: Applied Differential Equations",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Mathematical Modeling and Simulation and the Capstone.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major, and this is a prerequisite for Mathematical Modeling and Simulation and the Capstone.",
       objectives: [
         "First-order differential equations",
         "Second-order linear differential equations",
@@ -2062,7 +2067,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 441: Probability I",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major.",
       objectives: [
         "Set notation and operations applied to probability",
         "Axioms and properties of probability",
@@ -2073,7 +2078,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "MATH 460: Mathematical Modeling and Simulation",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires Applied Differential Equations as a prerequisite.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major. Requires Applied Differential Equations as a prerequisite.",
       objectives: [
         "Formulating mathematical models from real-world scenarios",
         "Analytical techniques for evaluating model behavior",
@@ -2084,7 +2089,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "STAT 420: Regression and Forecasting I",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Calculus-based, not just applied stats -- it leans on Calculus I and Intro to Statistical Analysis.",
+      gate: "Maintain a C or higher -- Liberty requires it for every upper-level course in the major. Calculus-based, not just applied stats -- it leans on Calculus I and Intro to Statistical Analysis.",
       objectives: [
         "Simple and multiple linear regression",
         "Model diagnostics and checking regression assumptions",
@@ -2105,7 +2110,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "CSIS 100: Introduction to Information Sciences and Systems",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but the courses after it build on it.",
       objectives: [
         "Evaluating and choosing business technology solutions",
         "Mapping business processes to where technology adds value",
@@ -2117,7 +2122,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "CSIS 111: Introduction to Programming Using C++",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and CSIS 112 and CSIS 215 both assume the fluency this course is supposed to build, not just a passing grade in it.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but CSIS 112 and CSIS 215 both assume the fluency this course is supposed to build, not just a passing grade in it.",
       objectives: [
         "Structured programming fundamentals in C++",
         "Object-oriented programming basics",
@@ -2129,7 +2134,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "CSIS 112: Advanced Programming Using C++",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course, and this is a prerequisite for Algorithms and Data Structures.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one, but this is a prerequisite for Algorithms and Data Structures.",
       objectives: [
         "Pointers and memory referencing",
         "Introductory data structures: arrays and lists",
@@ -2141,7 +2146,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "CSIS 215: Algorithms and Data Structures",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course. Requires both Advanced Programming Using C++ and Introduction to Discrete Mathematics as prerequisites.",
+      gate: "Aim for a C or higher -- Liberty's C minimum covers the major foundational courses and upper-level major courses, not this one. Requires both Advanced Programming Using C++ and Introduction to Discrete Mathematics as prerequisites.",
       objectives: [
         "Linked lists, stacks, and queues",
         "Trees and graphs",
@@ -2155,7 +2160,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     {
       title: "CSIS 340: Studies in Information Security",
       rangeLabel: "3 credits",
-      gate: "Maintain a C or higher -- Liberty requires it for every major course.",
+      gate: "Aim for a C or higher -- Liberty requires a C in upper-level courses in the major; confirm with your advisor whether that rule covers cognate courses such as this one.",
       objectives: [
         "Fundamental principles of information system security",
         "Security policy development and application",

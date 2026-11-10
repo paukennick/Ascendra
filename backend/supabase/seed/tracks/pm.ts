@@ -145,10 +145,11 @@ export const CAPM_TRACK: SeedTrack = {
 // PMP -- Project Management Professional. Confirmed current: July 2026 ECO
 // update (rebalanced 3-domain weights, consolidated to 26 tasks from the
 // prior 35 -- see this file's header note on why the pre-2026 ECO would have
-// been stale). Requires either a secondary credential + 5 years/60 months
-// leading projects, or a bachelor's/GAC-accredited degree + 2-3 years leading
-// projects (scaled by credential level), plus 35 hours of PM-specific
-// training (waived if the candidate already holds an active CAPM).
+// been stale). Eligibility (July 2026 ECO, "PMP Certification Eligibility
+// Requirements", re-read 2026-11-09) has four tiers of experience leading
+// projects in the past 10 years: secondary 60 months, associate's-level
+// (EQF 5) 48 months, bachelor's (EQF 6) 36 months, GAC-accredited degree
+// 24 months; plus 35 hours of PM training (waived for an active CAPM).
 //
 // 180 questions (170 scored, 10 unscored pretest): multiple choice,
 // multiple-response, drag-and-drop, matching, point-and-click, and new for
@@ -181,7 +182,7 @@ export const PMP_TRACK: SeedTrack = {
       "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf",
     lastVendorVerifiedAt: VERIFIED_AT,
     recommendedExperience:
-      "Secondary credential (HS diploma/GED-equivalent) + 60 months leading projects, or bachelor's/GAC-accredited degree + 24-36 months leading projects (scaled by credential level), all within the prior 10 years, plus 35 hours of PM-specific training (waived if the candidate holds an active CAPM).",
+      "One of four paths, with non-overlapping experience leading projects in the past 10 years: secondary diploma/GED + 60 months; associate's-level or higher-certificate program + 48 months; bachelor's degree or higher + 36 months; or a degree from a GAC-accredited program + 24 months. Plus 35 hours of project management training (waived for an active CAPM holder).",
     durationMinutes: 240,
     questionFormat:
       "180 questions (170 scored, 10 unscored pretest); multiple choice, multiple response, drag-and-drop, matching, point-and-click, case/scenario, and graphic-based questions",
