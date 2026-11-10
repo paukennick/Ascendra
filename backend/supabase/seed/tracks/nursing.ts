@@ -42,6 +42,16 @@ const VERIFIED_AT = "2026-09-18T00:00:00Z";
 const NURSING_DISCLAIMER_KEY = "nursing-clinical-content";
 
 // ---------------------------------------------------------------------------
+// Corrected 2026-11-09 (content audit; reworded in place, order unchanged so
+// mastery is kept): clozapine no longer has a REMS (FDA, effective
+// 2025-06-13; ANC monitoring per labelling); ventricular tachycardia is three
+// or more ventricular beats in a row (StatPearls NBK532954); a sentinel event
+// includes severe temporary harm (Joint Commission); newborn apnea is a pause
+// of 20 seconds or more, or shorter with bradycardia, cyanosis or pallor;
+// hypoglycaemia examples follow CDC's fast-carbohydrate list (no graham
+// crackers -- fat slows absorption).
+//
+// ---------------------------------------------------------------------------
 // Depth added 2026-11-02: sources, tiers and disagreements (all six tracks).
 //
 // What changed: new objectives were appended to the END of existing units
@@ -302,7 +312,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Identify the parts of a malpractice claim -- a duty owed, a breach of that duty, and harm caused by the breach -- and how documentation of the standard of care is used to judge it", // FN 16.3; FN 16.2
         "Discharge a client safely: review medications and follow-up, and confirm the client has the knowledge, supplies and support to manage at home", // FN 8.3
         "Use the PDSA cycle in quality improvement: plan a change, try it, study the result, then act on what was learned and run the cycle again until the change works", // FN 15.3
-        "Know that a sentinel event is an adverse event, such as a fall, that leads to death or permanent disability -- not death from the illness itself -- and that its investigation uses root cause analysis to find system causes", // FN 15.3; FN 9.1
+        "Know that a sentinel event is a patient safety event, such as a fall, that leads to death, permanent harm or severe temporary harm -- not harm from the illness itself -- and that its investigation uses root cause analysis to find system causes", // FN 15.3; FN 9.1
         "Recognise leadership styles -- autocratic for a code, democratic for a unit protocol change, laissez-faire for experienced self-directed staff -- and when each fits", // FN 18.1
         "Advocate for a client through the chain of command when concerns go unanswered, as part of the nurse's professional duty", // FN 16.4; FN 16.3
         "Run an organised, thorough admission, because what is learned at admission sets the course of care and an admission can turn emergent if the client becomes unstable", // FN 8.1
@@ -425,7 +435,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Recognise postpartum haemorrhage -- cumulative blood loss of 1,000 mL or more within 24 hours of birth, by either route -- measure blood loss quantitatively, and activate the hemorrhage team", // MN 21.2
         "Score the Apgar at 1 and 5 minutes on heart rate, respiratory effort, reflex irritability, muscle tone and colour, and repeat at 10 minutes when the 5-minute score is below 7", // MN 22.1
         "Support early newborn care: skin-to-skin contact for the stable baby, delaying the first bath to protect temperature and blood sugar, and infant security banding", // MN 24.1
-        "Teach parents the newborn warning signs that need urgent care, such as a pause in breathing of more than 10 seconds with blue colour, and safe sleep and car seat use", // MN 24.3
+        "Teach parents the newborn warning signs that need urgent care, such as a pause in breathing of 20 seconds or more, or any shorter pause with blue colour, paleness or a slow heart rate, and safe sleep and car seat use", // MN 24.3
         "Use the comprehensive geriatric assessment areas -- ADLs, IADLs, mental health, fall risk, pain, polypharmacy, nutrition, senses and care preferences -- to target health promotion for an older adult", // FN 41.4
         "Recognise that preeclampsia, gestational hypertension and gestational diabetes are conditions of pregnancy itself and are diagnosed during prenatal care", // MN 12.2
         "Take a sexual health history with the 5 Ps -- partners, practices, protection from STIs, past history of STIs, and pregnancy intention -- in a respectful, non-judgemental way", // MN 7.1
@@ -487,7 +497,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Watch for hypothyroidism in a client on long-term lithium, because lithium suppresses thyroid hormone synthesis and release", // PHARM 13.3
         "Recognise extrapyramidal effects of first-generation antipsychotics -- pseudoparkinsonism, dystonia, akathisia and tardive dyskinesia -- and report them promptly", // PHARM 13.2
         "Recognise neuroleptic malignant syndrome as a rare but potentially fatal reaction to antipsychotics that needs immediate escalation", // PHARM 13.2
-        "Know that clozapine is reserved for schizophrenia that has not responded to other drugs and is dispensed only under an FDA REMS programme that requires neutrophil count monitoring", // PHARM 13.2
+        "Know that clozapine is reserved for schizophrenia that has not responded to other drugs and needs absolute neutrophil count monitoring as its labelling directs (the FDA ended the clozapine REMS programme in June 2025)", // PHARM 13.2
         "Separate an MAOI from other serotonergic antidepressants by the required washout, because combining them risks serotonin syndrome", // PHARM 13.1
         "Screen for alcohol withdrawal on admission and use the CIWA-Ar scale to judge the need for medically supervised withdrawal management", // PMH 19.2
         "Recognise alcohol overdose -- confusion, difficulty staying conscious, vomiting, seizures, slow breathing and heart rate, low temperature -- and the added risk when combined with opioids or sedatives", // PMH 19.2
@@ -595,7 +605,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Read anticoagulant monitoring: a higher aPTT, INR or anti-Xa level means blood that clots more slowly and a client more prone to bleeding", // PHARM 20.2
         "Teach a client on warfarin to keep vitamin K intake consistent rather than avoid it, because a sudden drop in leafy greens can over-anticoagulate them", // PHARM 20.2
         "Know the insulin profile -- onset, peak and duration -- and watch most closely for hypoglycaemia when the insulin is peaking", // PHARM 28.2
-        "Treat hypoglycaemia in a conscious client with a fast carbohydrate such as orange juice, graham crackers or hard candy", // PHARM 28.2
+        "Treat hypoglycaemia in a conscious client with a fast carbohydrate such as glucose tablets, orange juice or hard candy", // PHARM 28.2
         "Monitor digoxin for toxicity -- anorexia, nausea, vomiting, visual changes and dysrhythmias -- and remember low potassium and magnesium increase the risk", // PHARM 19.6
         "Recognise the serious adverse effects of ACE inhibitors, including angioedema and a dry nonproductive cough", // PHARM 18.2
         "Report a medication error honestly and promptly, because early disclosure may allow an intervention that prevents harm", // PHARM 3.2
@@ -681,7 +691,7 @@ export const NCLEX_RN_TRACK: SeedTrack = {
         "Correct sodium at the ordered rate, because changing serum sodium too quickly shifts water into or out of brain cells with life-threatening results", // MS 10.3; MS 21.4
         "Calculate pulse pressure and recognise a narrowed or widened value as a finding that needs follow-up", // CNS 15.7
         "Calculate ventricular rate from a 6-second strip by counting QRS complexes and multiplying by ten", // MS 12.2
-        "Recognise premature ventricular contractions, unifocal or multifocal, and that more than three in a row is a run of ventricular tachycardia", // MS 12.2
+        "Recognise premature ventricular contractions, unifocal or multifocal, and that three or more in a row is a run of ventricular tachycardia", // MS 12.2
         "Know that an arteriovenous fistula for long-term hemodialysis takes months to mature, so a temporary dialysis catheter is often used first", // MS 20.7
         "Work with respiratory therapy and the provider to set oxygen saturation targets in an acute respiratory exacerbation, and monitor saturation and oxygen needs", // MS 11.4
         "Know that benign prostatic hyperplasia affects over half of men aged 51 to 60 and 70 percent of men over 60, can lead to UTI and kidney stones, and that a hard prostate nodule raises concern for cancer", // MS 20.4
@@ -1746,7 +1756,7 @@ export const LPN_TRACK: SeedTrack = {
         "Recognise mania and psychosis, and the extrapyramidal side effects of first-generation antipsychotics", // PMH 16.4; PMH 15.1; PHARM 13.2
         "Use the CIWA-Ar scale for alcohol withdrawal, and know that alcohol with opioids or sedatives raises overdose risk", // PMH 19.2
         "Give trauma-informed care that builds safety and trust and avoids re-traumatising the client", // PMH 6.5
-        "Reinforce newborn care teaching, including safe sleep, car seats and the warning signs such as a breathing pause over 10 seconds with blue colour", // MN 24.3
+        "Reinforce newborn care teaching, including safe sleep, car seats and the warning signs such as a breathing pause of 20 seconds or more, or a shorter pause with blue colour or paleness", // MN 24.3
       ],
     },
   ],
@@ -1859,7 +1869,7 @@ export const ADN_TRACK: SeedTrack = {
         "Know that the history for a young child comes mainly from the caregiver, and offer adolescents private time to discuss their health", // HP 14.5
         "Use the comprehensive geriatric assessment areas -- function, cognition, mood, falls, pain, polypharmacy, nutrition, senses -- for older adults", // FN 41.4
         "Calculate ventricular rate from a 6-second strip by counting QRS complexes and multiplying by ten", // MS 12.2
-        "Recognise premature ventricular contractions and know that more than three in a row is a run of ventricular tachycardia", // MS 12.2
+        "Recognise premature ventricular contractions and know that three or more in a row is a run of ventricular tachycardia", // MS 12.2
       ],
     },
     {
@@ -2005,7 +2015,7 @@ export const ADN_TRACK: SeedTrack = {
         // Added 2026-11-02: depth from open textbooks and Tier 1 sources (see the source header above NCLEX_RN_TRACK).
         "Assess suicide lethality: a detailed plan, access to means, prior attempts, current mental state and social support", // PMH 16.3
         "Monitor lithium's narrow safety margin and the drugs that raise its level, and watch for lithium-induced hypothyroidism", // PHARM 13.3
-        "Recognise extrapyramidal symptoms and neuroleptic malignant syndrome with antipsychotics, and know clozapine needs neutrophil monitoring under a REMS programme", // PHARM 13.2
+        "Recognise extrapyramidal symptoms and neuroleptic malignant syndrome with antipsychotics, and know clozapine needs absolute neutrophil count monitoring as its labelling directs (the FDA REMS programme ended in June 2025)", // PHARM 13.2
         "Use the CIWA-Ar scale for alcohol withdrawal and recognise alcohol overdose", // PMH 19.2
         "Provide trauma-informed care grounded in safety, trust and collaboration", // PMH 6.5
         "Use the least restrictive measure for aggression and treat emergency medication orders as interim steps", // PMH 11.2

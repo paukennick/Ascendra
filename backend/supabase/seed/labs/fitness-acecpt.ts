@@ -51,7 +51,7 @@ export const ACECPT_LABS: SeedLabSet = {
     source("https://www.acefitness.org/education-and-resources/professional/expert-articles/7531/implementing-the-ace-mover-method-using-the-ace-abc-approach", "reference", "2026-11-07"),
     source("https://digitalcommons.uri.edu/kinesiology_facpubs/180", "reference", "2026-11-07"),
     source("https://read.qxmd.com/read/32217980/physical-activity-and-exercise-during-pregnancy-and-the-postpartum-period-acog-committee-opinion-number-804", "clinical_guideline", "2026-11-07"),
-    source("https://www.nata.org/sites/default/files/heat-illness-executive-summary.pdf", "clinical_guideline", "2026-11-07"),
+    source("https://doi.org/10.4085/1062-6050-50.9.07", "clinical_guideline", "2026-11-09"),
   ],
   labs: [
     // -----------------------------------------------------------------------
@@ -454,7 +454,7 @@ export const ACECPT_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "On the day it is 33 °C (91 °F) and humid at 6 p.m. Twenty minutes in, one participant is confused, unsteady and stops sweating normally; another says they feel fine.",
+          text: "On the day it is 33 °C (91 °F) and humid at 6 p.m. Twenty minutes in, one participant is confused and unsteady though still sweating heavily; another says they feel fine.",
           ask: "What do you do?",
           parts: [
             part(

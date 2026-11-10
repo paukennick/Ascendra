@@ -98,9 +98,12 @@ What to record (2026-11-08):
   `self_defined` for a syllabus the course writes itself.
 - **A clinical or fitness lab's values.** The set's `sources` say a topic is on
   the exam; they do not make a blood-pressure limit or a dose right. Each
-  NCLEX-RN, CCRN and NASM-CPT lab names the guideline its values rest on, or
+  nursing (NCLEX, CCRN), fitness (NASM, ACE, ACSM, NCCPT, NSCA) and physical
+  therapy (NPTE, DPT, ABPTS) lab names the guideline its values rest on, or
   says why it names none, in `backend/supabase/seed/labs/value-sources.ts`
-  (`kind: "clinical_guideline"`, so the 6-month re-check applies). Check the
+  (`labs.test.ts` enforces it for every one of those track codes; NCLEX and
+  CCRN sources must be `kind: "clinical_guideline"`, so the 6-month re-check
+  applies). Check the
   guideline's own publisher page, never a summary. When a lab disagrees with
   the current guideline, do not edit the lab to match: report it for the
   clinical reviewer, because the reviewed wording and the rubric move together.

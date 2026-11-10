@@ -231,8 +231,8 @@ export const ABPTSNCS_LABS: SeedLabSet = {
             ),
             part(
               "Completeness and AIS grade",
-              "Classifies the injury as complete, AIS A, because there is no sacral sparing: S4-5 light touch and pin prick absent, no deep anal pressure and no voluntary anal contraction; notes the zone of partial preservation (C7-C8 sensory, C7 motor) that is recorded only in complete injuries.",
-              "No sacral sparing -- S4-5 sensation absent, no deep anal pressure, no voluntary anal contraction -- so the injury is complete: AIS A. Because it is complete, record the zones of partial preservation: sensory to C8 and motor to C7 on both sides."
+              "Classifies the injury as complete, AIS A, because there is no sacral sparing: S4-5 light touch and pin prick absent, no deep anal pressure and no voluntary anal contraction; notes the zones of partial preservation (sensory to C8, motor to C8 because the C8 finger flexors are 1/5) that are recorded only in complete injuries.",
+              "No sacral sparing -- S4-5 sensation absent, no deep anal pressure, no voluntary anal contraction -- so the injury is complete: AIS A. Because it is complete, record the zones of partial preservation: sensory to C8 and motor to C8 on both sides (the finger flexors, C8, still have a flicker at 1/5)."
             ),
             part(
               "What it means for planning",

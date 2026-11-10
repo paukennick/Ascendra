@@ -54,11 +54,16 @@ import { source } from "../sources";
 //   DKA_CONSENSUS_2024 -- the 2024 hyperglycemic crises consensus as
 //     summarised in Cleveland Clinic Journal of Medicine: insulin is postponed
 //     until potassium is above 3.5 mmol/L.
-//   SSC_2021 -- Surviving Sepsis Campaign 2021 (still the current adult
-//     guideline on SCCM's page): antimicrobials immediately, ideally within 1
-//     hour, for possible septic shock or high likelihood of sepsis; at least
-//     30 mL/kg crystalloid in the first 3 hours for hypoperfusion
-//     (suggestion); initial MAP target 65 mm Hg; measure lactate.
+//   SSC_ADULT_2026 -- Surviving Sepsis Campaign adult guidelines 2026 (Crit
+//     Care Med, published 2026-03-23, DOI 10.1097/CCM.0000000000007075),
+//     which replaced SSC 2021; read on SCCM's page 2026-11-09:
+//     antimicrobials immediately, ideally within 1 hour of recognition, for
+//     possible, probable or definite septic shock and for probable or
+//     definite sepsis without shock (within 3 hours after rapid
+//     investigation for possible sepsis without shock); at least 30 mL/kg
+//     crystalloid in the first 3 hours (suggestion); initial MAP target
+//     65 mm Hg; measure lactate (suggestion); norepinephrine first line. The
+//     values the labs quote are the same as in 2021.
 //   ACOG_PB222 -- gestational hypertension 140/90 mm Hg or higher; severe
 //     range 160 systolic or 110 diastolic; severe-feature symptoms
 //     (headache, visual disturbances, right upper quadrant/epigastric pain).
@@ -80,6 +85,19 @@ import { source } from "../sources";
 //     safety issue") and the two-challenge rule.
 //   AACN_ESSENTIALS -- the 2021 Essentials' ten domains the BSN course
 //     follows.
+//   ACOG_PB183 -- ACOG Practice Bulletin 183, Postpartum Hemorrhage (2017,
+//     DOI 10.1097/AOG.0000000000002351; no replacement found 2026-11-09):
+//     cumulative blood loss of 1,000 mL or more, or blood loss with signs or
+//     symptoms of hypovolemia, within 24 hours of birth; rising rates driven
+//     by atony. Read 2026-11-09 on the Oklahoma Perinatal Quality Improvement
+//     Collaborative's summary page (the full bulletin needs access).
+//   ENDOCRINE_INPATIENT_2022 -- Endocrine Society guideline, hyperglycemia in
+//     hospitalized adults in non-critical care (J Clin Endocrinol Metab 2022;
+//     107:2101, DOI 10.1210/clinem/dgac278): target glucose 100-180 mg/dL.
+//     Read 2026-11-09 in the CCJM summary (Lundholm and Morey-Vargas, CCJM
+//     2023;90:615), which says ADA's hospital standards are consistent; the
+//     ADA hospital section itself could not be read (PMC answered a
+//     browser check).
 
 export const NCSBN_PN_2026 = source("https://nclex.com/files/2026_PN_Test%20Plan-F.pdf", "exam_outline", "2026-11-07");
 export const NCSBN_RN_2026 = source("https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf", "exam_outline", "2026-11-07");
@@ -93,7 +111,11 @@ export const ISMP_ABBREVIATIONS = source("https://online.ecri.org/hubfs/ISMP/Res
 export const ISMP_HIGH_ALERT = source("https://home.ecri.org/blogs/ismp-resources/high-alert-medications-in-acute-care-settings", "clinical_guideline", "2026-11-07");
 export const ADA_HYPOGLYCEMIA = source("https://professional.diabetes.org/sites/dpro/files/2025-05/hypoglycemia-hcp-5-27-25.pdf", "clinical_guideline", "2026-11-07");
 export const DKA_CONSENSUS_2024 = source("https://www.ccjm.org/content/92/3/152", "clinical_guideline", "2026-11-07");
-export const SSC_2021 = source("https://sccm.org/sepsisguidelines", "clinical_guideline", "2026-11-07");
+export const SSC_ADULT_2026 = source(
+  "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+  "clinical_guideline",
+  "2026-11-09"
+);
 // ACOG Practice Bulletin No. 222 (June 2020), as hosted by the Kansas Perinatal Quality Collaborative (KDHE).
 export const ACOG_PB222 = source("https://kansaspqc.kdhe.ks.gov/acog-gestation-htn-and-preeclampsia-practice-bulletin", "clinical_guideline", "2026-11-07");
 export const NICHD_FHR = source("https://ncc-efm.org/filz/NICHD_Reference_from_CCPR.pdf", "clinical_guideline", "2026-11-07");
@@ -104,4 +126,6 @@ export const CHEMM_START = source("https://chemm.hhs.gov/startalgotext.htm", "cl
 export const AHRQ_TEAMSTEPPS = source("https://www.ahrq.gov/patient-safety/settings/labor-delivery/perinatal-care/modules/teamwork/implement-slides.html", "reference", "2026-11-07");
 // SCIRE Project evidence summary of autonomic dysreflexia (2025), citing the Consortium for Spinal Cord Medicine and PVA guidelines.
 export const SCIRE_AD = source("https://scireproject.com/wp-content/uploads/2025/06/AD-Executive-Summary-ES.pdf", "clinical_guideline", "2026-11-07");
+export const ACOG_PB183 = source("https://doi.org/10.1097/AOG.0000000000002351", "clinical_guideline", "2026-11-09");
+export const ENDOCRINE_INPATIENT_2022 = source("https://doi.org/10.1210/clinem/dgac278", "clinical_guideline", "2026-11-09");
 export const AACN_ESSENTIALS = source("https://www.aacnnursing.org/Portals/0/PDFs/Essentials/Essentials-Executive-Summary.pdf", "reference", "2026-11-07");

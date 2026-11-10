@@ -20,9 +20,11 @@ import { source } from "../sources";
 // limit before IV thrombolysis, MAP 65 in septic shock); local protocols
 // differ, and every lab is needs_expert_review until a critical-care nurse
 // educator approves it (docs/labs.md). The guideline each lab's values rest on
-// is in value-sources.ts (REQ-142, checked 2026-11-08); two dka-case points
-// disagree with the 2024 hyperglycemic-crises consensus (potassium threshold,
-// anion gap as the resolution marker) and are listed in PR #44 for review.
+// is in value-sources.ts (REQ-142, checked 2026-11-08). dka-case follows the
+// 2024 hyperglycemic-crises consensus (re-read 2026-11-09): insulin waits for
+// potassium above 3.5, dextrose below glucose 250, and resolution is ketones
+// below 0.6 mmol/L with pH >=7.3 or bicarbonate >=18 (anion gap only when
+// ketones can't be measured).
 
 const CCRN_SOURCES = [
   source("https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en", "exam_outline", "2026-11-07"),
@@ -196,24 +198,24 @@ export const CCRNADULT_LABS: SeedLabSet = {
             ),
             part(
               "Potassium before insulin",
-              "Explains that insulin moves potassium into cells, so with potassium below about 3.3 mEq/L the insulin infusion is held and potassium is replaced first, with cardiac monitoring.",
-              "Insulin drives potassium into the cells; at 3.1 mEq/L starting insulin could cause dangerous hypokalemia and dysrhythmias. Replace potassium first (guidelines hold insulin below about 3.3) with cardiac monitoring, then start the insulin infusion."
+              "Explains that insulin moves potassium into cells, so the insulin infusion is held and potassium is replaced first, with cardiac monitoring, until potassium is above 3.5 mEq/L.",
+              "Insulin drives potassium into the cells; at 3.1 mEq/L starting insulin could cause dangerous hypokalemia and dysrhythmias. Replace potassium first with cardiac monitoring, and start the insulin infusion only once potassium is above 3.5 mEq/L (2024 hyperglycemic crises consensus)."
             ),
           ],
         },
         {
-          text: "Four hours into the insulin infusion: glucose 230 mg/dL, anion gap 16, potassium 4.0 mEq/L.",
+          text: "Four hours into the insulin infusion: glucose 230 mg/dL, beta-hydroxybutyrate 2.4 mmol/L, venous pH 7.24, potassium 4.0 mEq/L.",
           ask: "What changes now?",
           parts: [
             part(
               "Dextrose and insulin",
-              "Adds dextrose to the IV fluids as glucose falls to about 200-250 mg/dL and continues the insulin infusion until the ketoacidosis resolves (anion gap closed), rather than stopping insulin because glucose is lower.",
-              "Add dextrose to the fluids so glucose doesn't fall too far, and keep the insulin infusion running until the anion gap closes -- the gap, not the glucose, shows the acidosis is resolving."
+              "Adds dextrose to the IV fluids once glucose falls below 250 mg/dL and continues the insulin infusion until the ketoacidosis resolves (ketones below 0.6 mmol/L and venous pH at least 7.3 or bicarbonate at least 18 mEq/L), rather than stopping insulin because glucose is lower.",
+              "Glucose is below 250, so add dextrose to the fluids so it doesn't fall too far, and keep the insulin infusion running until DKA resolves: ketones below 0.6 mmol/L plus venous pH at least 7.3 or bicarbonate at least 18. The ketones and acidosis, not the glucose, show DKA is resolving; the anion gap is used only when ketones can't be measured, because saline can leave a non-gap acidosis."
             ),
           ],
         },
         {
-          text: "Next morning the gap has closed, the patient is eating and the team plans to stop the infusion.",
+          text: "Next morning beta-hydroxybutyrate is 0.4 mmol/L and venous pH 7.34, the patient is eating and the team plans to stop the infusion.",
           ask: "How is the infusion stopped safely?",
           parts: [
             part(
