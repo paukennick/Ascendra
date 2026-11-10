@@ -7,6 +7,8 @@ on:
   # based on another PR's branch) are checked too.
   pull_request:
 
+permissions:
+  contents: read
 jobs:
   backend:
     name: Backend (typecheck, build, audit)
@@ -67,7 +69,7 @@ jobs:
         working-directory: backend
         run: |
           docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
-          docker pull node:22-slim
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
       - run: npm run test:sandbox
         working-directory: backend
 
@@ -271,18 +273,18 @@ jobs:
       # strips types natively, so no extra tooling).
       - run: npm test
         working-directory: mobile
-      # Report-only, not blocking: Expo's own CLI toolchain currently ships
-      # transitive advisories (uuid/bunyan/xcode, build-time only, not in the
-      # shipped app bundle) with no non-breaking fix available. Gating on
-      # this would make the check permanently red instead of meaningful --
-      # revisit turning this blocking once `npm audit fix` (or an Expo SDK
-      # bump) actually clears it.
-      #
-      # REQ-118: still report-only (re-checked 2026-11-07, Audit 3 LOW-11): the
-      # advisories are in Expo's CLI/build tooling, not the app bundle. Read
-      # this step's log when bumping the Expo SDK; make it blocking once it is
-      # clean.
-      - run: npm audit --audit-level=high || true
+      # REQ-207 (FAIL-951): blocking. After the non-breaking `npm audit fix`
+      # (lockfile only) three high advisories remain (expo-router and the
+      # query-string chain), and npm's only fix is expo-router 58, a breaking
+      # Expo SDK step. They are listed with reasons in mobile/audit-known.json;
+      # this fails on any OTHER high or critical advisory in the production
+      # dependencies, and on a listed one that has been fixed (so the list
+      # shrinks). Moderate and low are printed, not blocking.
+      - run: node --test .github/scripts/audit-gate.test.mjs
+      - name: npm audit (production dependencies, blocking)
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/mobile-audit.json" || true
+          node ../.github/scripts/audit-gate.mjs "$RUNNER_TEMP/mobile-audit.json" audit-known.json
         working-directory: mobile
       # REQ-118: Expo's project health checks (config, native module
       # versions, duplicate dependencies). Report-only for now: on 2026-11-07

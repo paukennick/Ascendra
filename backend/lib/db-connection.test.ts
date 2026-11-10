@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { sslOption, startupStatementTimeoutMs, isPoolerUrl, DEFAULT_STATEMENT_TIMEOUT_MS } from "./db-connection";
+import { sslOption, startupStatementTimeoutMs, isPoolerUrl, lockTimeoutSql, DEFAULT_STATEMENT_TIMEOUT_MS } from "./db-connection";
 
 const PEM = "-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----\n";
 
@@ -72,5 +72,17 @@ describe("startupStatementTimeoutMs (FAIL-943)", () => {
   });
   test("a url that cannot be parsed is treated as a pooler", () => {
     assert.equal(isPoolerUrl("not a url"), true);
+  });
+});
+
+describe("lockTimeoutSql (FAIL-944)", () => {
+  test("5s by default, overridable, 0 turns off, junk refused (it is interpolated into SQL)", () => {
+    assert.equal(lockTimeoutSql({}), "set lock_timeout = '5s'");
+    assert.equal(lockTimeoutSql({ MIGRATION_LOCK_TIMEOUT: "500ms" }), "set lock_timeout = '500ms'");
+    assert.equal(lockTimeoutSql({ MIGRATION_LOCK_TIMEOUT: "0" }), null);
+    for (const bad of ["5s'; drop table x; --", "abc", "-1s", "5 s", ""]) {
+      if (bad === "") assert.equal(lockTimeoutSql({ MIGRATION_LOCK_TIMEOUT: bad }), "set lock_timeout = '5s'");
+      else assert.throws(() => lockTimeoutSql({ MIGRATION_LOCK_TIMEOUT: bad }), /MIGRATION_LOCK_TIMEOUT/);
+    }
   });
 });

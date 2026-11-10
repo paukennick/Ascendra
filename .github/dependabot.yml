@@ -1,0 +1,45 @@
+# REQ-207 (FAIL-951): dependency and action updates arrive as pull requests,
+# weekly, instead of when someone remembers. Security updates for known
+# advisories are separate and always on once Dependabot is enabled for the
+# repository (Settings, Advanced Security).
+#
+# Grouped so a week is a handful of PRs. The Expo SDK moves as a set, so its
+# packages are grouped and major bumps of them are ignored here: take those
+# deliberately (docs/next-store-build-plan.md), not from a bot.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    groups:
+      backend-minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /mobile
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: expo
+        update-types: [version-update:semver-major]
+      - dependency-name: expo-*
+        update-types: [version-update:semver-major]
+      - dependency-name: react-native
+        update-types: [version-update:semver-major]
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+    groups:
+      expo-sdk:
+        patterns: [expo, expo-*, "@expo/*"]
+        update-types: [minor, patch]
+      mobile-minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /backend/sandbox
+    schedule: { interval: weekly, day: monday }

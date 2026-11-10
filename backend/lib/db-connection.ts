@@ -88,3 +88,18 @@ export function startupStatementTimeoutMs(connectionString: string, env: Env = p
   }
   return isPoolerUrl(connectionString) ? undefined : DEFAULT_STATEMENT_TIMEOUT_MS;
 }
+
+// Migration runner (FAIL-944). Every migration file sets `set local
+// lock_timeout = '5s'` itself, but only inside its own transaction and only
+// if the author remembered. The runner also sets a SESSION lock_timeout on the
+// connection before it opens the transaction, so a migration that waits on a
+// lock held by live traffic fails (and rolls back) instead of queueing
+// behind it and blocking every request that arrives after. It runs on the
+// session pooler (port 5432) where a session SET is the connection's own.
+// MIGRATION_LOCK_TIMEOUT overrides it ("10s", "500ms"); "0" turns it off.
+export function lockTimeoutSql(env: Env = process.env): string | null {
+  const raw = (env.MIGRATION_LOCK_TIMEOUT?.trim() || "5s");
+  if (raw === "0") return null;
+  if (!/^\d{1,6}(ms|s|min)$/.test(raw)) throw new Error('MIGRATION_LOCK_TIMEOUT must look like "5s", "500ms" or "1min" (or 0 to turn off).');
+  return `set lock_timeout = '${raw}'`;
+}
