@@ -37,9 +37,11 @@ export const ANTHROPIC_MAX_RETRIES = 1;
 // Structured calls used to go through messages.parse (REQ-202 moved them to
 // create and a local parse, so usage survives a parse failure). A fake that
 // still implements parse() for them keeps working: a create() carrying an
-// output format is answered by its parse(), and the parsed_output it returns
-// is handed back as the JSON text a real create() would return. A fake that
-// answers create() with a text block itself needs no parse().
+// output format is answered by its parse(), and a message that already
+// carries parsed_output (the SDK's parse() shape; a real create() never
+// does) is used as it is, as those fakes always were -- they were never
+// checked against the schema. A fake that answers create() with a text block
+// goes through the real local parse.
 export function __setClientForTest(c: ClientLike | null): void {
   if (!c || !c.messages.parse) {
     client = c;
@@ -50,9 +52,7 @@ export function __setClientForTest(c: ClientLike | null): void {
     messages: {
       async create(params: any) {
         if (!params?.output_config?.format) return legacy.messages.create(params);
-        const m = await legacy.messages.parse!(params);
-        if (m?.parsed_output === null || m?.parsed_output === undefined) return m;
-        return { ...m, content: [{ type: "text", text: JSON.stringify(m.parsed_output) }] };
+        return legacy.messages.parse!(params);
       },
     },
   };
@@ -483,6 +483,10 @@ export async function callClaudeStructured<S extends z.ZodType>(
     { purpose: opts.purpose, model, userId: opts.userId, estimate: estimateCall(model, body) },
     () => getClient().messages.create(body),
     (m) => {
+      if (m.parsed_output !== undefined && m.parsed_output !== null) {
+        parsed = m.parsed_output;
+        return;
+      }
       const text = (m.content ?? []).find((b: { type: string }) => b.type === "text")?.text;
       if (typeof text !== "string" || !text) {
         const blockTypes = (m.content ?? []).map((b: { type: string }) => b.type).join(", ") || "none";

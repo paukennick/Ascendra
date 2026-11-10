@@ -64,6 +64,18 @@
   cached history, never in the system blocks; a model route answers a bad or
   empty model reply with a 503, not a 500; a new grader gets a runner in
   `scripts/eval/live.ts`.
+- Model spend (REQ-202, FAIL-840..847): a model call states its learner
+  (`userId` is required on `callClaude` / `callClaudeStructured`; `null` only
+  with a reason in lib/ai-spend-gate.test.ts) and is held to the spend gate
+  in the call layer (lib/ai-spend-gate.ts) -- never a per-route check
+  someone has to remember. Shared generation is charged to the learner whose
+  request started it. A new purpose gets a pool in lib/ai-spend-ledger.ts
+  (`PURPOSE_POOL`), a new route that can reach the model is added to
+  `MODEL_ROUTES` in lib/ai-spend-gate.test.ts, and one that runs a call in
+  the request exports `maxDuration` (at most 300, Hobby with Fluid compute).
+  A spend read never ends in `.catch(() => 0)` on an enforcing path: it fails
+  closed. Anything that loops over model calls looks at the budget first
+  (`canAffordAiSpend`).
 - A change to the mastery rule, readiness, the review schedule or the plan
   (REQ-117) is run through the persona simulation (crammer, spaced, guesser,
   hinter, struggler, returning, expert ...; Audit 3 teaching harness) before
