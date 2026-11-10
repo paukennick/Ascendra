@@ -11,7 +11,8 @@ import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
-import { ActionBar, DebriefView, EventLog, PromptCard, ReasoningCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
+import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
+import { launchView, needsLaunchChoice, paceChangeable, paceOptions, simClock, teachFeedback, teachOffer, type LaunchChoice } from "@/sim/runtime/pacing.ts";
 
 // REQ-190 (docs/sims.md 8): one simulation. The brief, then the run: the
 // clock and Pause on top, the vitals (bedside) or the architecture (board),
@@ -42,6 +43,8 @@ export default function SimScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const sim = useSimRun(simId);
   const announcer = useRef(newAnnouncer());
+  // REQ-209: the launch card's pick; the scenario's default pace until changed.
+  const [pick, setPick] = useState<LaunchChoice | null>(null);
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -65,6 +68,15 @@ export default function SimScreen() {
 
   const running = sim.status === "ready" && !!view && !view.ended;
   const turns = view?.mode === "turns";
+  // REQ-209: pacing is offered only where the server says so (a running phase in
+  // a clinical or fitness track); everything below is absent otherwise.
+  const pacing = s?.pacing ?? null;
+  const launching = !!s && !!pacing && !!view && sim.status === "ready" && needsLaunchChoice(s.run, pacing);
+  const choice: LaunchChoice = pick ?? { pace: pacing?.defaultPace ?? 1, start: "full" };
+  const clock = s && pacing ? simClock(s.run, pacing) : null;
+  const teach = s && pacing && !launching && !view?.blocked ? teachOffer(s.run, pacing) : null;
+  const feedback = s && sim.teachResult ? teachFeedback(s.doc, sim.teachResult.prompt, sim.teachResult.choice) : null;
+  const chapter = launching ? null : sim.chapter;
 
   return (
     <Screen>
@@ -109,11 +121,15 @@ export default function SimScreen() {
       {s && view ? (
         <>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm }}>
-            <View accessible accessibilityLabel={`Sim time ${view.clock}. ${view.phaseLabel}.${sim.paused && view.mode === "running" ? " Paused." : ""}`}>
-              <H2>{view.clock}</H2>
-              <Muted style={{ fontSize: 12 }}>{view.phaseLabel}{view.blocked ? " · clock stopped" : sim.paused && view.mode === "running" ? " · paused" : ""}</Muted>
+            <View accessible accessibilityLabel={`${clock ? clock.spoken : `Sim time ${view.clock}`}. ${view.phaseLabel}.${sim.paused && view.mode === "running" ? " Paused." : ""}`}>
+              {clock ? <H1>{clock.text}</H1> : <H2>{view.clock}</H2>}
+              <Muted style={{ fontSize: 12 }}>
+                {clock ? `Sim time · ${clock.elapsed} · ` : ""}
+                {view.phaseLabel}{view.blocked ? " · clock stopped" : sim.paused && view.mode === "running" ? " · paused" : ""}
+                {pacing?.eligible && view.mode === "running" && s ? ` · ${s.run.pace === 3 ? "study pace 3x" : "exam realism 1x"}` : ""}
+              </Muted>
             </View>
-            {view.mode === "running" && !view.ended ? (
+            {view.mode === "running" && !view.ended && !launching ? (
               sim.paused ? (
                 <Button label="Run the clock" icon="play" fullWidth={false} disabled={!running} onPress={sim.resume} />
               ) : (
@@ -121,6 +137,27 @@ export default function SimScreen() {
               )
             ) : null}
           </View>
+          {s && pacing && launching ? (
+            <LaunchCard
+              view={launchView(s.doc, pacing, choice)}
+              choice={choice}
+              onChoice={setPick}
+              onStart={() => { sim.launch(choice); setPick(null); }}
+            />
+          ) : null}
+          {s && pacing && !launching && paceChangeable(s.run, pacing) && view.mode === "running" ? (
+            <PaceControl options={paceOptions(s.run.pace)} onPick={sim.choosePace} />
+          ) : null}
+          {chapter ? <ChapterCard offer={chapter} onContinue={() => void sim.answerChapter("continue")} onLater={() => void sim.answerChapter("later")} /> : null}
+          {sim.savedLater ? (
+            <Card elevated>
+              <View accessibilityLiveRegion="polite">
+                <Body>Saved. Your run is waiting at this point, on this or any other device. Open the simulation again and choose "Continue the run".</Body>
+              </View>
+              <Button label="Back to simulations" onPress={() => router.back()} />
+              <Button label="Keep going now" variant="link" size="sm" fullWidth={false} onPress={sim.keepGoing} />
+            </Card>
+          ) : null}
           {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
           {sim.status === "lease_lost" ? <Button label="Continue on this device" icon="smartphone" onPress={() => sim.start(false)} /> : null}
           {view.banner ? <Card><View accessibilityLiveRegion="polite"><Body>{view.banner}</Body></View></Card> : null}
@@ -140,9 +177,11 @@ export default function SimScreen() {
             />
           ) : null}
 
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} disabled={!running || (!turns && sim.paused)} onSkip={sim.skipTo} />
+          {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
+          {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
-          <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || (view.mode === "running" && sim.paused)} />
+          <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
           {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}
           <EventLog log={view.log} finding={view.finding} />
           {sim.status === "finishing" ? <Loading label="Confirming the ending with the server..." /> : null}

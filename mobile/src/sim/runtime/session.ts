@@ -8,12 +8,23 @@ import { advance, applyCommand, clockBlocked, clockMode, replay, stateHash } fro
 import type { Run } from "../engine/v1/engine.ts";
 import type { Command, ScenarioDoc } from "../engine/v1/types.ts";
 
+// REQ-209: whether this scenario offers pacing, and the paces. A server that
+// predates it sends nothing, which reads as "no pacing" (1x, no launch card).
+export interface Pacing {
+  eligible: boolean;
+  studyPace: 3;
+  examPace: 1;
+  defaultPace: 3 | 1;
+}
+export const NO_PACING: Pacing = { eligible: false, studyPace: 3, examPace: 1, defaultPace: 1 };
+
 export interface RunPayload {
   run: { id: string; simId: string; versionId: string; version: number; status: "open" | "ended" | "abandoned"; seed: number; leaseEpoch: number; lastSeq: number; lastTick: number; engineVersion: string };
   clientHash: string;
   clientDocument?: ScenarioDoc;
   commands: Command[];
   graded: string[];
+  pacing?: Pacing;
 }
 
 export interface Session {
@@ -24,6 +35,7 @@ export interface Session {
   // Applied locally, not yet accepted by the server, in seq order.
   pending: Command[];
   graded: string[];
+  pacing: Pacing;
 }
 
 // Rebuilds the server's state: the accepted commands from tick 0 with the
@@ -34,7 +46,7 @@ export function openSession(payload: RunPayload, doc: ScenarioDoc): Session {
   if (r.rejected) throw new Error(`The saved run could not be replayed (${r.rejected.reason}).`);
   const run = r.run;
   while (run.state.tick < payload.run.lastTick && !run.state.ended && clockMode(run) === "running" && !clockBlocked(run)) advance(run);
-  return { runId: payload.run.id, leaseEpoch: payload.run.leaseEpoch, doc, run, pending: [], graded: payload.graded.slice() };
+  return { runId: payload.run.id, leaseEpoch: payload.run.leaseEpoch, doc, run, pending: [], graded: payload.graded.slice(), pacing: payload.pacing ?? NO_PACING };
 }
 
 // Distributes Omit over the command union, so each member keeps its fields.

@@ -37,7 +37,7 @@ const golden = (course: string, slug: string) => read(join(seeds, course, `${slu
 
 describe("capabilities", () => {
   test("the header names the engine and both renderers at level 3", async () => {
-    assert.equal(simCaps(), "protocol=1;engine=1.0;renderers=bedside@3,board@3");
+    assert.equal(simCaps(), "protocol=1;engine=1.1;renderers=bedside@3,board@3");
     const { parseCaps, runnable } = await import("../../../backend/lib/sim/server-run.ts");
     const caps = parseCaps(simCaps());
     for (const r of SIM_RENDERERS) assert.equal(runnable({ engine_major: 1, engine_minor: 0, renderer_level: 3, screen_type: r.type }, caps), true);
