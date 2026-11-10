@@ -168,7 +168,7 @@ export const CYSAPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Prioritise remediation with CVSS, EPSS and context",
       brief:
-        "You own vulnerability management at Alder Grove Systems (fictional). This cycle has four findings; the window is tight. Use CVSS severity, EPSS, KEV and asset context -- not CVSS alone.\n\n(1) Internet-facing email gateway: pre-auth RCE. CVSS v4.0 9.3 Critical. EPSS 0.91 (93rd pct). In CISA KEV.\n(2) Internal, isolated lab segment server (no route to production or internet): RCE. CVSS v4.0 9.3 Critical. EPSS 0.02. Not in KEV.\n(3) External customer portal: authenticated privilege escalation. CVSS v4.0 8.7 High. EPSS 0.15. Not in KEV.\n(4) Internet-facing marketing site: reflected XSS. CVSS v4.0 6.9 Medium. EPSS 0.55 (88th pct). Not in KEV.",
+        "You own vulnerability management at Alder Grove Systems (fictional). This cycle has four findings; the window is tight. Use CVSS severity, EPSS, KEV and asset context -- not CVSS alone.\n\n(1) Internet-facing email gateway: pre-auth RCE. CVSS v4.0 9.3 Critical. EPSS 0.91 (99.8th pct). In CISA KEV.\n(2) Internal, isolated lab segment server (no route to production or internet): RCE. CVSS v4.0 9.3 Critical. EPSS 0.02. Not in KEV.\n(3) External customer portal: authenticated privilege escalation. CVSS v4.0 8.7 High. EPSS 0.15. Not in KEV.\n(4) Internet-facing marketing site: reflected XSS. CVSS v4.0 6.9 Medium. EPSS 0.55 (99.0th pct). Not in KEV.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -220,8 +220,8 @@ export const CYSAPLUS_LABS: SeedLabSet = {
             ),
             part(
               "The version mismatch",
-              "Identifies (C) as a likely false positive because the CVE affects 2.4.49/2.4.50 and the host banner reports 2.4.62 (patched), and says to confirm the real version (banners can mislead).",
-              "(C) CVE-2021-41773 affects Apache 2.4.49 (and 2.4.50); the host reports 2.4.62, which is patched, so this is a likely false positive from a signature keyed on the product not the exact version. Confirm the actual version (the banner could be wrong or back-ported) before dismissing, but do not spend the window patching an already-fixed flaw."
+              "Identifies (C) as a likely false positive because CVE-2021-41773 affects only 2.4.49 (its incomplete fix in 2.4.50 is the separate CVE-2021-42013, fixed in 2.4.51) and the host banner reports 2.4.62 (patched), and says to confirm the real version (banners can mislead).",
+              "(C) CVE-2021-41773 affects Apache 2.4.49 only; the incomplete fix in 2.4.50 is tracked as CVE-2021-42013, fixed in 2.4.51. The host reports 2.4.62, which is patched, so this is a likely false positive from a signature keyed on the product not the exact version. Confirm the actual version (the banner could be wrong or back-ported) before dismissing, but do not spend the window patching an already-fixed flaw."
             ),
             part(
               "The injection alert",
