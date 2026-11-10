@@ -52,7 +52,11 @@ const ENDING_FOR_PATH: Record<string, string[]> = {
   late: ["late"],
   arrest: ["code_noRosc"],
 };
-const CODE_PATHS = golden.paths.filter((p) => p.id.startsWith("code")).map((p) => p.id);
+// Paths with no recording of the prototype: the code module (REQ-190) and the
+// pacing paths (REQ-209), which use commands the prototype does not have (pace,
+// a focused start, teaching answers, chapter breaks).
+const PACING_COMMANDS = ["pace", "begin", "teach", "chapter"];
+const CODE_PATHS = golden.paths.filter((p) => p.id.startsWith("code") || p.commands.some((c) => PACING_COMMANDS.includes(c.type))).map((p) => p.id);
 
 // Clearing the tubes adds 120 mL at once; the prototype interpolates its
 // 5-second drainage ledger across that step and the engine's history keeps
