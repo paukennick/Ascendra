@@ -5893,6 +5893,58 @@
         "Not verified on a physical device",
         "Web bundles from before #76 send no app header, so they never get a 426; they rely on the banner, which only bundles with this change have. Older open tabs still need a manual reload once."
       ]
+    },
+    {
+      "id": "REQ-192",
+      "category": "security",
+      "title": "Session hardening: logout revokes server-side, web refresh token in an httpOnly cookie, lock above sheets",
+      "description": "Nick 2026-11-09 (approved via lead). (1) A plain logout revokes the session on the server on every platform; with biometric unlock it was left live up to 30 days. Native sends the refresh token, or with only a sealed token the bearer access token (POST /api/auth/logout ends that token's refresh family); the sealed copy is deleted and a per-device flag (ascendra_biometric_session = 0) sends the next launch to sign-in while the biometric preference stays on. (2) The web refresh token moves from sessionStorage to an httpOnly; Secure; SameSite=Strict browser-session cookie on Path=/api/auth/refresh, set on login, MFA verify, Google sign-in and refresh for requests with X-Ascendra-Platform: web; web responses carry no refreshToken. Cookie refresh and DELETE /api/auth/refresh (web logout) require an Origin in the allowed origins, APP_BASE_URL or the request's own origin, plus the platform header. Native keeps secure-store and body refresh. An old web tab's sessionStorage token is deleted then exchanged once in the body for the cookie; failure falls back to sign-in. Tabs serialize refresh with Web Locks. CORS allows credentials for allowed origins. (3) Every Modal goes through SheetModal, hidden while the lock overlay is up (opener stays mounted).",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/auth/refreshCookie.ts",
+        "backend/lib/auth/tokens.ts",
+        "backend/app/api/auth/refresh/route.ts",
+        "backend/app/api/auth/logout/route.ts",
+        "backend/app/api/auth/logout-all/route.ts",
+        "backend/app/api/auth/login/route.ts",
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/proxy.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/src/lib/secureStorage.ts",
+        "mobile/src/components/SheetModal.tsx",
+        "mobile/src/components",
+        "tests",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Logout revokes the session server-side on native with and without biometric unlock and on web",
+        "Web responses carry no refresh token and set an HttpOnly Secure SameSite=Strict cookie on /api/auth/refresh",
+        "Cookie refresh rotates and a replay revokes the family",
+        "A cookie refresh or web logout from a foreign or missing Origin is refused with 403 and spends nothing",
+        "An old sessionStorage token is exchanged once or falls back to sign-in without a loop",
+        "Native login/refresh/logout unchanged",
+        "Logout-all and session listing work with cookie sessions",
+        "No sheet draws above the lock"
+      ],
+      "validation_required": [
+        "npm run test:db (lib/session-cookie.dbtest.ts)",
+        "npm test both",
+        "typecheck both",
+        "omni gate",
+        "manual check on a device and browser (not done: none in this session)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Web sign-in now persists across tabs (one cookie per browser) instead of per tab",
+        "Requires Origin header on web refresh: a deployment origin outside ALLOWED_ORIGINS/APP_BASE_URL/own host gets 403",
+        "The 'Use password instead' fallback on the launch lock still cannot revoke the sealed session (token unreadable without the prompt)"
+      ]
     }
   ]
 }

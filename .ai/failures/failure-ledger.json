@@ -7660,6 +7660,90 @@
       ],
       "prevention_notes": "A 401 that means 'what you typed is wrong' carries reauthRequired and the client never refreshes on it",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-690",
+      "date": "2026-11-09",
+      "title": "Logout with biometric unlock left the server session live for up to 30 days",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "With biometric unlock on, Log out cleared the device but never called /api/auth/logout; the refresh token family stayed valid server-side until expiry (30 days)",
+      "how_detected": "review (owner security sweep, 2026-11-09)",
+      "root_cause": "endSession returned early when biometrics were on: revoking would have left the biometric-sealed copy of the token behind, and replaying a revoked token next launch reads as theft and revokes the whole family. The fix chosen was to keep the session live instead of deleting the sealed copy with it, and the launch decided 'locked' from the preference alone, so it had no way to know no session was left.",
+      "requirement": "REQ-192",
+      "affected": [
+        "mobile/src/auth/AuthContext.tsx",
+        "backend/app/api/auth/logout/route.ts"
+      ],
+      "fix_summary": "Logout always revokes server-side: with the refresh token, or with only the access token (POST /api/auth/logout ends that token's family). The sealed copy is deleted and ascendra_biometric_session=0 makes the next launch go to sign-in; the biometric preference stays and the next sign-in seals the new session.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/session-cookie.dbtest.ts",
+        "mobile/src/lib/sessionStore.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every sign-out path revokes on the server before clearing local state, whatever the device stores",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-691",
+      "date": "2026-11-09",
+      "title": "Sheets and dialogs drew above the lock screen",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An open menu, date picker, confirmation or the What's new / study notice sheet stayed visible and tappable above the lock after time away",
+      "how_detected": "review (owner security sweep, 2026-11-09)",
+      "root_cause": "React Native's Modal is its own native window (a portal on web), so no view in the main tree, the lock overlay included, can draw above it. REQ-177 drew the lock as an overlay to keep screens mounted and did not account for open Modals.",
+      "requirement": "REQ-192",
+      "affected": [
+        "mobile/src/components/ui.tsx",
+        "mobile/src/components/DatePicker.tsx",
+        "mobile/src/components/Sidebar.tsx",
+        "mobile/src/components/StudyNotice.tsx",
+        "mobile/src/components/WhatsNew.tsx"
+      ],
+      "fix_summary": "All Modals go through SheetModal, which sets visible=false while the lock is up; the component that opened the sheet stays mounted so it returns after unlock.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/sessionStore.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Static test fails if any screen or component renders a raw <Modal>",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-692",
+      "date": "2026-11-09",
+      "title": "Web refresh token readable by any injected script (sessionStorage)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The web app kept its 30-day refresh token in sessionStorage, where any script running in the page could read and exfiltrate it",
+      "how_detected": "review (owner security sweep, 2026-11-09)",
+      "root_cause": "expo-secure-store has no web implementation; secureStorage routed web to sessionStorage for its browser-session lifetime, and the backend only accepted the refresh token in a JSON body, so there was no httpOnly option.",
+      "requirement": "REQ-192",
+      "affected": [
+        "mobile/src/lib/secureStorage.ts",
+        "mobile/src/auth/AuthContext.tsx",
+        "backend/app/api/auth/refresh/route.ts"
+      ],
+      "fix_summary": "Web sign-in and refresh set an HttpOnly; Secure; SameSite=Strict browser-session cookie on /api/auth/refresh and omit refreshToken from the body; cookie use requires our Origin and the platform header; old sessionStorage tokens are deleted and exchanged once.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/session-cookie.dbtest.ts",
+        "mobile/src/lib/sessionStore.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Sign-in and refresh routes answer through sessionResponse; cookie readers check cookieRequestAllowed",
+      "recurrence_of": ""
     }
   ]
 }
