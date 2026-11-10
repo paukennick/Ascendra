@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { NextResponse } from "next/server";
 import { ok, unauthorized, forbidden, serverError } from "@/lib/http";
 import { AuthError } from "@/lib/auth/requireUser";
@@ -123,7 +124,7 @@ export async function submitLab(
     // the daily graded-answer allowance on a tier that has a count (Free);
     // given back if grading fails. At the limit the run stays open for later.
     // REQ-170: the count that applies is the learner's tier on this course.
-    const use = await consumeAllowance(userId, "graded_answer", await tierForCourse(userId, lab.track_id));
+    const use = await consumeGradedAnswer(userId, async () => consumeAllowance(userId, "graded_answer", await tierForCourse(userId, lab.track_id))); // REQ-201
     const ctx = (await coachContextForObjective(lab.objective_id)) ?? undefined;
     const graded = await gradeLabStep(
       {

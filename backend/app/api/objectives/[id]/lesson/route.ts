@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { requireAiBudget } from "@/lib/ai-budget";
+import { requireAiFeature, requireGlobalCeiling, requireSharedLessonRoom } from "@/lib/ai-access";
 import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
@@ -107,6 +108,11 @@ export async function GET(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
+    // REQ-201: a lesson nobody has opened yet is generated once and shared
+    // (open in every mode); at the global daily AI ceiling it waits for the
+    // next day instead (a 429 "being prepared"; owners exempt).
+    await requireSharedLessonRoom(user.id);
+
     // REQ-135: starting a new generation counts against a per-learner budget.
     try {
       await consumeRateLimit(GENERATE_RATE_EVENT, user.id, GENERATE_LIMIT, { userId: user.id });
@@ -187,6 +193,11 @@ export async function POST(
     const objRow = await loadObjective(id);
     if (!objRow) return notFound("Objective not found");
 
+    // REQ-201: regenerate is limited to owners and invited pilot accounts
+    // under AI_ACCESS_MODE=granted, and pauses for everyone but owners at the
+    // global daily AI ceiling. No read when neither is set.
+    await requireAiFeature(user.id, "regenerate");
+    await requireGlobalCeiling(user.id, "regenerate");
     // Audit 3 H4 / adversary finding 8: regenerations count against the
     // learner's daily AI budget (lib/ai-budget.ts), not only the 10-minute
     // window (which allowed ~720 a day).

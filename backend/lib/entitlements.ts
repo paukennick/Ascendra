@@ -468,19 +468,35 @@ export async function consumeAllowance(
     const feature = KIND_FEATURE[kind];
     throw new UpgradeRequiredError(upgradeMessage(feature), feature, FEATURES[feature].minTier, t);
   }
+  return recordCountedUse(userId, kind, limit, (used, at) =>
+    new AllowanceReachedError(allowanceMessage(kind, limit, new Date(at), t), {
+      kind,
+      window: ALLOWANCE_DEFAULTS[kind].window,
+      limit,
+      used,
+      remaining: 0,
+      resetsAt: at,
+    })
+  );
+}
+
+// The count itself: one use recorded under a lock so parallel requests can't
+// overrun, or the error `atLimit` builds when `limit` uses are already in
+// the window. REQ-201: lib/ai-access.ts counts a pilot-gated learner's
+// graded answers with this too, with its own (no-upsell) error, in the same
+// allowance_uses rows the plans use.
+export async function recordCountedUse(
+  userId: string,
+  kind: AllowanceKind,
+  limit: number,
+  atLimit: (used: number, resetsAt: string) => Error
+): Promise<AllowanceUse> {
   const id = await withTransaction(async (tx) => {
     await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [`allowance:${kind}:${userId}`]);
     const { used, resetsAt } = await countUses(async (sql, p) => (await tx.query(sql, p)) as Array<Record<string, unknown>>, userId, kind, limit);
     if (used >= limit) {
       const at = resetsAt ?? new Date(Date.now() + WINDOW_SECONDS[ALLOWANCE_DEFAULTS[kind].window] * 1000).toISOString();
-      throw new AllowanceReachedError(allowanceMessage(kind, limit, new Date(at), t), {
-        kind,
-        window: ALLOWANCE_DEFAULTS[kind].window,
-        limit,
-        used,
-        remaining: 0,
-        resetsAt: at,
-      });
+      throw atLimit(used, at);
     }
     const row = await tx.queryOne<{ id: string }>(`insert into allowance_uses (user_id, kind) values ($1, $2) returning id`, [userId, kind]);
     return row!.id;

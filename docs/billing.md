@@ -282,6 +282,8 @@ Backend (Vercel). All optional until you turn plans on.
 | `BILLING_ALLOWANCE_<KIND>_<TIER>` | Allowance overrides (above). |
 | `BILLING_FREE_COURSE_SWITCH_DAYS` | Default 7. |
 | `BILLING_PRICE_<FAMILY>_<PERIOD>_USD` | Fallback display prices, e.g. `BILLING_PRICE_ALL_ACCESS_YEARLY_USD`. |
+| `AI_ACCESS_MODE` | REQ-201: `all` (default), `granted` (full AI for owners and Settings > Access grants only) or `paid`. Independent of `BILLING_ENABLED`. See "AI access modes". |
+| `AI_GLOBAL_DAILY_CEILING_USD` | REQ-201: total AI spend per UTC day across everyone; unset = none. Recommended production value `5`. |
 
 App (EAS build env, `mobile/eas.json` `build.production.env`):
 
@@ -578,6 +580,113 @@ gates are on the server). The Settings > Access screen and the "Unrestricted
 access" plan line need the new app: on the web on the next deploy, on
 phones with the next app update. Until then Nick can grant with the CLI.
 
+## AI access modes and the global AI ceiling (REQ-201)
+
+Nick, 2026-11-09 ("Go with C right now"): everyone gets the core
+experience, invited pilot learners get full AI, and AI becomes paid-only
+once billing is on. Two server settings, read on every request, so they are
+changed in Vercel without new code. Code: `lib/ai-access-config.ts` (the
+rules and words) and `lib/ai-access.ts` (the checks).
+
+### `AI_ACCESS_MODE`
+
+| Value | Who gets full AI | Everyone else |
+| --- | --- | --- |
+| unset / empty / `all` | everyone, through the plan gates exactly as before REQ-201 (billing off: everyone is Pro; only the $0.50 daily budget limits AI) | -- |
+| `granted` | owners (`OWNER_EMAILS`) and owner-granted accounts (Settings > Access) | the Free AI experience, below |
+| `paid` | billing on: the plans decide, as designed (REQ-122, REQ-170). Billing off: owners, granted accounts and learners holding a live paid entitlement (a comp) | billing off: the Free AI experience |
+
+It is independent of `BILLING_ENABLED`. An unrecognised value is treated as
+`granted` (spend less, lock nobody out of courses) and shows as a warning in
+`/api/health`, as does `granted` left on while `BILLING_ENABLED` is on
+(paying learners outside the pilot would get the Free AI experience).
+
+**The Free AI experience** (for a learner the mode limits), with every
+course and every non-AI feature still open -- no one-course rule, no plan
+or price shown:
+
+- Coach chat: refused, 403 `{ error, aiAccess: { state: "limited_preview", feature: "coach", mode, resetsAt: null } }`, "The AI coach is in limited preview, ...". No model call.
+- Lesson regenerate (new lesson versions): the same, `feature: "regenerate"`.
+- AI-graded written answers -- grade_open, explain-back, lab written parts
+  (lab steps and lab report), sim reasoning, PBQ and unit check -- share
+  Free's daily graded-answer allowance (`BILLING_ALLOWANCE_GRADED_ANSWER_FREE`,
+  default 3, rolling 24 hours, counted in `allowance_uses` like the plan's
+  count; given back if grading fails). Past it: 429 `{ aiAccess: { state:
+  "graded_limit", feature: "written_grading", limit, used, resetsAt } }`.
+- Never counted: multiple choice, interactive labs, sim scoring, review.
+- Open (Nick, 2026-11-09, scope approved with REQ-201): shared catalog
+  lessons on first open, Quiz me, guess feedback, PBQ scenario writing, mock
+  and sprint exam items, review question writing, unit-check writing and item
+  re-checks. Every one is recorded in `ai_calls` and counts toward the global
+  ceiling's total.
+
+`GET /api/auth/me` carries `ai: { mode, full }` when the mode is `granted`
+or `paid` (absent in `all`, so the default response is unchanged); the app
+shows the coach and "Regenerate lesson" as limited preview from it.
+
+### `AI_GLOBAL_DAILY_CEILING_USD`
+
+Total model spend across all learners and shared generation per UTC day,
+summed from `ai_calls` (the `created_at` index from migration 028) and
+reused for 60 seconds per server instance. Unset, empty, `off` or 0: no
+ceiling (the code has no default). **Recommended production value: `5`**
+(Nick, 2026-11-09).
+
+When the day's total reaches it, until midnight UTC:
+
+| Blocked (everyone except owners) | Only counted, never blocked |
+| --- | --- |
+| Coach chat: 429 `aiAccess.state: "paused"` | grade_open, explain-back, lab steps and report, sim reasoning, PBQ grading, unit-check grading |
+| Lesson regenerate: 429 `paused` | review (questions and grading) |
+| First generation of a shared lesson nobody has opened: 429 `preparing`, "This lesson is being prepared. Please try again later." (prefetch-next skips it) | Quiz me, guess feedback, PBQ scenarios, exam items, unit-check writing, item re-checks, lab questions, cron and catalog jobs |
+
+Already generated lessons are served as usual. The ceiling check is one
+exported function (`globalCeilingReached()` in `lib/ai-access.ts`), outside
+the model-call layer, for REQ-202 to call.
+
+Granted accounts are capped as REQ-144 says, not by the mode: with billing
+off they have the $20 daily safety ceiling (`AI_UNRESTRICTED_DAILY_CEILING_USD`)
+instead of the $0.50 budget, so the global ceiling is the backstop for a
+large pilot group.
+
+### Inviting the pilot group
+
+Settings > Access (owners only). The email field takes one address or up to
+50 pasted at once (commas, spaces or one per line), with one end date and
+note for all of them -- use the note `AI pilot` to tell pilot grants apart
+(no schema change: it is the existing note). Every address must be valid or
+none is granted; an owner's address is reported, not granted. Each address
+is an ordinary audited grant; a bulk add uses one unit of the owner's
+access-change rate limit per 10 addresses and sends the owner one summary
+email. While the mode is `granted` or `paid`, each grant shows "Full AI
+access" (active), "Full AI access once they sign up" (waiting) or "No AI
+pilot access (ended)". API: `POST /api/access/grants { emails, until?, note? }`
+-> `{ results: [{ email, outcome: "granted" | "owner", grant }] }`;
+`GET /api/access/grants` adds `aiMode`. The CLI (`npm run access:grant`)
+still takes one address at a time.
+
+### Switching modes (runbook)
+
+Nick sets these himself in Vercel, or asks the lead to:
+
+1. Vercel -> backend project -> Settings -> Environment Variables ->
+   **Production**: `AI_ACCESS_MODE=granted` and
+   `AI_GLOBAL_DAILY_CEILING_USD=5`. (Preview: optional, same values to test.)
+2. Redeploy (Vercel applies new variables on the next deployment):
+   Deployments -> the latest production deployment -> Redeploy.
+3. Check: `/api/health` has no AI warning; signed in as an owner,
+   `GET /api/auth/me` shows `"ai": {"mode": "granted", "full": true}`; an
+   account not in Settings > Access shows `"full": false` and its coach tab
+   says "The AI coach is in limited preview".
+4. Invite the pilot learners in Settings > Access (note `AI pilot`).
+5. At billing launch: set `AI_ACCESS_MODE=paid` together with
+   `BILLING_ENABLED=true`, and redeploy.
+6. To undo: delete `AI_ACCESS_MODE` (or set `all`) and redeploy -- exactly the
+   behaviour before REQ-201. Deleting `AI_GLOBAL_DAILY_CEILING_USD` removes the
+   ceiling. No migration or data change either way; the graded answers
+   counted meanwhile are ordinary `allowance_uses` rows that age out in 24
+   hours.
+
 ## Verified discounts (REQ-166)
 
 Published group discounts for people a third party has verified: military
@@ -777,5 +886,7 @@ and [Understanding subscriptions](https://support.google.com/googleplay/android-
 - [ ] Verified discounts (REQ-166): set the percentages, the Stripe coupons,
       the Play offers and the App Store code pool, and a provider (REQ-167),
       before `VERIFIED_DISCOUNTS_ENABLED` ("Verified discounts" above).
+- [ ] Switch `AI_ACCESS_MODE` from `granted` to `paid` with `BILLING_ENABLED`
+      (REQ-201; `/api/health` warns while `granted` is left on).
 - [ ] Watch real AI spend for a month (`npm run metrics`, `ai_calls`) and tune
       the caps and allowances.

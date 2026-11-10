@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { visibleObjective } from "@/lib/visibility";
@@ -84,7 +85,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const answer = labReportAnswer(answers);
       // Nick, 2026-11-07 (decision 9): a lab report counts against the same
       // daily allowance as a graded typed answer; given back if grading fails.
-      const use = await consumeAllowance(user.id, "graded_answer", tier);
+      const use = await consumeGradedAnswer(user.id, () => consumeAllowance(user.id, "graded_answer", tier)); // REQ-201
       let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;
       try {
         graded = await gradeFreeResponse({

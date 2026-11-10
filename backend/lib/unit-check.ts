@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { isActive } from "@/lib/progress-sql";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
@@ -214,6 +215,10 @@ export async function gradeUnitCheck(
       if (err instanceof RateLimitError) throw new ReviewError(429, err.message);
       throw err;
     }
+    // REQ-201: under AI_ACCESS_MODE=granted a learner outside the pilot has
+    // Free's daily graded typed answers for this too (given back if grading
+    // fails). Nothing is counted otherwise, as before.
+    const use = await consumeGradedAnswer(userId, null);
     const ctx = await coachContextForUnit(status.unitId);
     // Audit 3 M1/L1: the shared multi-part grader (lib/pbq-grading.ts) -- the
     // PBQ prompt with its matching per-part schema and a 1,500-token cap,
@@ -226,6 +231,9 @@ export async function gradeUnitCheck(
       ctx: ctx ?? undefined,
       userId,
       purpose: "unitcheck_grade",
+    }).catch(async (err) => {
+      await use.release();
+      throw err;
     });
     const { parts, ...grade } = graded;
     // Lined up with the check's own labels; null when the grader's list can't

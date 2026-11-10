@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError, readJson } from "@/lib/http";
 import { gradeFreeResponse } from "@/lib/free-response-grader";
 import {
@@ -250,7 +251,7 @@ export async function POST(req: Request) {
       // REQ-122: Free gets a few graded typed answers a day (Plus and Pro
       // are not counted; nothing is counted while billing is off). Given
       // back if grading fails. Multiple choice above is never counted.
-      const use = await consumeAllowance(authUser.id, "graded_answer", courseTier);
+      const use = await consumeGradedAnswer(authUser.id, () => consumeAllowance(authUser.id, "graded_answer", courseTier)); // REQ-201
       // REQ-076: grade in the voice of the learner's actual track/exam.
       const ctx = await coachContextForObjective(objectiveId);
       let graded: Awaited<ReturnType<typeof gradeFreeResponse>>;

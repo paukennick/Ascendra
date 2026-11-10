@@ -12,6 +12,7 @@
 // The daily keepalive pings are hours apart, so each still reaches the
 // database, which is what keeps the Supabase project awake.
 
+import { aiAccessWarnings } from "@/lib/ai-access-config";
 import { checkSchema, migrationsToApply, type SchemaStatus } from "./schema-status";
 import { formatEnvProblems, requiredEnvProblems } from "./required-env";
 
@@ -50,7 +51,9 @@ export async function computeHealth(
     if (!schema.current) {
       return { kind: "schema_incomplete", applyMigrations: migrationsToApply(schema), missing: schema.missing };
     }
-    const warnings = [...envProblems];
+    // REQ-201: an AI_ACCESS_MODE or global ceiling that isn't doing what it
+    // looks like it does.
+    const warnings = [...envProblems, ...aiAccessWarnings(env)];
     try {
       if ((await run(JIT_SQL))[0]?.ok === true) warnings.push(JIT_WARNING);
     } catch {

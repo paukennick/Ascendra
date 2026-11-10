@@ -51,6 +51,7 @@ import {
   type TeachState,
 } from "@/lib/lessonProgress";
 import { regenerateErrorMessage } from "@/lib/regenerateError";
+import { hasFullAi, REGENERATE_PREVIEW_NOTE } from "@/lib/aiAccess";
 import { planCourseReturn } from "@/lib/courseReturn";
 import { routePath } from "@/lib/navPlan";
 import {
@@ -102,6 +103,8 @@ export default function LessonFlow() {
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
+  // REQ-201: false when AI_ACCESS_MODE keeps new lesson versions to the AI pilot.
+  const fullAi = hasFullAi(user);
   // REQ-101 (FAIL-093): no "anon" fallback. Logging out re-renders this
   // screen with no user before it is navigated away; with the fallback it
   // wrote a device copy under "anon" and sent a save that 401'd. Nothing is
@@ -780,16 +783,19 @@ export default function LessonFlow() {
                 // offers "Try again" (offerTryAgain).
                 onPress={() => setStep("teach")}
               />
-              <Button
-                label="Try a different question"
-                variant="ghost"
-                icon="refresh-cw"
-                accessibilityLabel="Try a different question (regenerates this lesson)"
-                loading={regenerating}
-                disabled={regenerating}
-                // Same guarded handler as "Regenerate lesson" below.
-                onPress={regenerateLesson}
-              />
+              {/* REQ-201: regenerating is limited preview outside the AI pilot. */}
+              {fullAi ? (
+                <Button
+                  label="Try a different question"
+                  variant="ghost"
+                  icon="refresh-cw"
+                  accessibilityLabel="Try a different question (regenerates this lesson)"
+                  loading={regenerating}
+                  disabled={regenerating}
+                  // Same guarded handler as "Regenerate lesson" below.
+                  onPress={regenerateLesson}
+                />
+              ) : null}
             </>
           ) : null}
           {next ? (
@@ -833,7 +839,7 @@ export default function LessonFlow() {
                 })
               }
             />
-            {notYet ? null : (
+            {notYet || !fullAi ? null : (
               <Button
                 label="Regenerate lesson"
                 variant="ghost"
@@ -846,6 +852,8 @@ export default function LessonFlow() {
             )}
           </View>
           {regenError ? <ErrorBanner message={regenError} /> : null}
+          {/* REQ-201: say why there is no "Regenerate lesson", without a plan or price. */}
+          {!fullAi && !notYet ? <Muted>{REGENERATE_PREVIEW_NOTE}</Muted> : null}
           {/* REQ-106 (research #7): optional lab and lab report. */}
           <LabCard objectiveId={objectiveId} userId={userId} />
         </Card>

@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { query, queryOne } from "@/lib/db";
 import { gradePbqAnswer } from "@/lib/pbq-grading";
 import { ok, badRequest, notFound, unauthorized, tooManyRequests, forbidden, conflict, serverError, readJson } from "@/lib/http";
@@ -228,6 +229,10 @@ export async function POST(req: Request) {
         throw err;
       }
 
+      // REQ-201: under AI_ACCESS_MODE=granted a learner outside the pilot has
+      // Free's daily graded typed answers for this too (given back if
+      // grading fails). Nothing is counted otherwise, as before.
+      const use = await consumeGradedAnswer(authUser.id, null);
       const ctx = await coachContextForUnit(unitId);
       // Audit 3 M1/L1: lib/pbq-grading.ts (trivial answers, verdict vs part
       // scores). REQ-107 / REQ-112 (j): per-part scores, stored with the attempt.
@@ -239,6 +244,9 @@ export async function POST(req: Request) {
         ctx: ctx ?? undefined,
         userId: authUser.id,
         purpose: "pbq_grade",
+      }).catch(async (err) => {
+        await use.release();
+        throw err;
       });
       const graded = grade;
 

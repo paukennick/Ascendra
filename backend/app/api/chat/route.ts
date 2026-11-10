@@ -16,6 +16,7 @@ import { coachContextForTrack } from "@/lib/coach-context";
 import { guardedReply, haikuLeakJudge, MOCK_IN_PROGRESS_REPLY, openItemsFor, timedMockInProgress } from "@/lib/coach-guard";
 import { loadChatHistory } from "@/lib/chat-history";
 import { requireAiBudget } from "@/lib/ai-budget";
+import { requireAiFeature, requireGlobalCeiling } from "@/lib/ai-access";
 import { learnerProfileBlock, learnerProfileFor } from "@/lib/learner-profile";
 import { consumeAllowance, requireAiAllowance, requireFeature } from "@/lib/entitlements";
 import { flagChatDisputes } from "@/lib/chat-dispute";
@@ -101,6 +102,12 @@ export async function POST(req: Request) {
     if (await timedMockInProgress(userId)) {
       return ok({ reply: MOCK_IN_PROGRESS_REPLY, blocked: "mock_exam_in_progress" });
     }
+    // REQ-201: AI_ACCESS_MODE=granted keeps the coach to owners and invited
+    // pilot accounts (a 403 { aiAccess: limited_preview }), and the global
+    // daily AI ceiling pauses it for everyone but owners (a 429 { aiAccess:
+    // paused }). Both return at once, without a read, when unset.
+    await requireAiFeature(userId, "coach");
+    await requireGlobalCeiling(userId, "coach");
     // Audit 3 H4: per-learner daily AI budget (lib/ai-budget.ts); a 429 with
     // a plain message when it is reached.
     await requireAiBudget(userId);

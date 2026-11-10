@@ -4,6 +4,7 @@ import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { pendingAcceptance } from "@/lib/legal";
 import { isLegacyClient } from "@/lib/client-version";
 import { accessSummary } from "@/lib/account-access";
+import { aiAccessSummary } from "@/lib/ai-access";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,11 @@ export async function GET(req: Request) {
     // null. The app shows Settings > Access to owners only; the server
     // checks again on every Access request.
     const access = await accessSummary(authUser.id);
-    return ok({ user: { ...toUserResponse(row), legalPending, access } });
+    // REQ-201: { mode, full } when AI_ACCESS_MODE limits AI to invited pilot
+    // accounts, so the app can show the coach and "Regenerate lesson" as
+    // limited preview before they are tried. Absent in the default mode.
+    const ai = await aiAccessSummary(authUser.id).catch(() => null);
+    return ok({ user: { ...toUserResponse(row), legalPending, access, ...(ai ? { ai } : {}) } });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
     return serverError(err);
