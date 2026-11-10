@@ -3,7 +3,7 @@ import { ok, serverError, badRequest, unauthorized, tooManyRequests, readJson } 
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { textField } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { isFavoriteSelect, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
+import { isFavoriteSelect, listedOrStarted, ownedOrCatalog, trackProgressLateral } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +56,10 @@ export async function GET(req: Request) {
        left join view_content_freshness vcf on vcf.track_id = st.id
        left join education_subcategories esc on esc.id = st.subcategory_id
        left join education_categories ec on ec.id = esc.category_id
-       where ${ownedOrCatalog("$1")}
+       -- REQ-194: hidden courses (hidden_at) stay listed only for learners
+       -- who already studied them. Every course search in the app filters
+       -- this list, so they drop out of search too.
+       where ${ownedOrCatalog("$1")} and ${listedOrStarted("$1")}
        order by st.created_at asc`,
       [user.id],
     );

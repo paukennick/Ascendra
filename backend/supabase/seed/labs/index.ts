@@ -113,6 +113,12 @@ import { PMICP_LABS } from "./pm-cp";
 import { PMIPMOCP_LABS } from "./pm-pmocp";
 import { PMICPMAI_LABS } from "./pm-cpmai";
 import { CSPP_LABS } from "./pm-cspp";
+// REQ-174: NREMT EMS courses.
+import { NREMTEMT_LABS } from "./ems-emt";
+import { NREMTEMR_LABS } from "./ems-emr";
+// REQ-182
+import { NREMTPARAMEDIC_LABS } from "./ems-paramedic";
+import { NREMTAEMT_LABS } from "./ems-aemt";
 import { withValueSources } from "./value-sources";
 
 // REQ-142: each clinical and fitness lab's own guideline sources are attached
@@ -229,4 +235,8 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PMIPMOCP_LABS,
   PMICPMAI_LABS,
   CSPP_LABS,
+  NREMTEMT_LABS,
+  NREMTEMR_LABS,
+  NREMTPARAMEDIC_LABS,
+  NREMTAEMT_LABS,
 ].map(withValueSources);

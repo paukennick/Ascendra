@@ -123,6 +123,13 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.discount_offer_codes') is not null as ok`,
   },
   {
+    // REQ-194: GET /api/courses and the start routes read it; the seed writes it.
+    migration: "065_track_hidden_at.sql",
+    what: "subject_tracks.hidden_at (course list, starting a course, seed)",
+    sql: `select exists(select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'subject_tracks' and column_name = 'hidden_at') as ok`,
+  },
+  {
     migration: "027a_lesson_progress.sql",
     what: "lesson_progress table (resume lessons across devices)",
     sql: `select to_regclass('public.lesson_progress') is not null as ok`,
@@ -326,6 +333,14 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     migration: "059_study_notice.sql",
     what: "legal_acceptances accepts the 'study_notice' document (the one-time study notice)",
     sql: `select exists(select 1 from pg_constraint where conname = 'legal_acceptances_document_059') as ok`,
+  },
+  {
+    // REQ-174: the NREMT (EMR, EMT, AEMT, Paramedic) tracks hang off this
+    // row; the seed resolves it by slug and fails without it.
+    migration: "061_ems_taxonomy.sql",
+    what: "Emergency Medical Services subcategory under Healthcare & Nursing (seed)",
+    sql: `select exists(select 1 from education_subcategories s join education_categories c on c.id = s.category_id
+                     where c.slug = 'healthcare-nursing' and s.slug = 'emergency-medical-services') as ok`,
   },
   {
     // REQ-196: lesson generation queues a writer's verification program in

@@ -34,6 +34,7 @@ import { PT_TRACKS } from "../supabase/seed/tracks/pt";
 import { CCRN_TRACKS } from "../supabase/seed/tracks/ccrn";
 import { CCRN_PEDS_NEO_TRACKS } from "../supabase/seed/tracks/ccrn-peds-neo";
 import { FITNESS_TRACKS } from "../supabase/seed/tracks/fitness";
+import { EMS_TRACKS } from "../supabase/seed/tracks/ems";
 import {
   formatSummary,
   isPerformanceObjective,
@@ -48,7 +49,8 @@ import {
   type PlanTrack,
 } from "./generate-labs-lib";
 
-const CLINICAL = new Set([...NURSING_TRACKS, ...PT_TRACKS, ...CCRN_TRACKS, ...CCRN_PEDS_NEO_TRACKS].map((t) => t.code));
+// REQ-174: the NREMT tracks sit under healthcare-nursing too, so they are clinical.
+const CLINICAL = new Set([...NURSING_TRACKS, ...PT_TRACKS, ...CCRN_TRACKS, ...CCRN_PEDS_NEO_TRACKS, ...EMS_TRACKS].map((t) => t.code));
 const FITNESS = new Set(FITNESS_TRACKS.map((t) => t.code));
 
 function familyOf(code: string): LabFamily {
