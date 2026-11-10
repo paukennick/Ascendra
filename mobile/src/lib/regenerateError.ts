@@ -15,6 +15,11 @@ export function regenerateErrorMessage(err: unknown): string {
   if ((status === 402 || status === 429) && data && (data.upgrade || data.allowance || data.aiPaused) && typeof data.error === "string") {
     return data.error;
   }
+  // REQ-201: limited preview (403) or the global daily AI pause (429), in
+  // the server's own words -- not "check your connection".
+  if ((status === 403 || status === 429) && data && data.aiAccess && typeof data.error === "string") {
+    return data.error;
+  }
   if (status === 429) return REGENERATE_RATE_LIMITED;
   return REGENERATE_FAILED;
 }

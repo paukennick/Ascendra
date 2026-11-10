@@ -13,6 +13,7 @@ import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReportCoachReply } from "@/components/ReportCoachReply";
+import { COACH_PREVIEW_BODY, COACH_PREVIEW_TITLE, aiAccessSignalOf, hasFullAi } from "@/lib/aiAccess";
 import { DictationHint } from "@/components/DictationHint";
 import { lengthProblem } from "@/lib/dictation";
 
@@ -52,6 +53,11 @@ export default function ChatScreen() {
   // course; a prefill from the lesson shortcut wins over an older draft, and
   // emptying the box (what a send does) clears it.
   const { user } = useAuth();
+  // REQ-201: the server says (GET /api/auth/me `ai`) whether the coach is open
+  // to this learner; a refusal while on screen (the mode just changed) closes
+  // it the same way.
+  const [previewRefused, setPreviewRefused] = useState(false);
+  const fullAi = hasFullAi(user) && !previewRefused;
   useStoredDraft(
     user && trackId ? chatDraftKey(user.id, trackId) : null,
     chatDraftPayload(input, prefill),
@@ -93,6 +99,7 @@ export default function ChatScreen() {
       // Take the unanswered message back out of the thread; its text goes
       // back in the box below, ready to send again.
       setMessages((prev) => (prev && prev[prev.length - 1] === userMsg ? prev.slice(0, -1) : prev));
+      if (aiAccessSignalOf(err)?.state === "limited_preview") setPreviewRefused(true);
       setSendError(friendlyError(err, { kept: true }));
       // The draft is only meant to be cleared by a *successful* send: put the
       // text back (unless they've started something new) so it isn't lost and
@@ -139,7 +146,7 @@ export default function ChatScreen() {
           <Loading />
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center" }}>
-            <EmptyState icon="message-square" title="No messages yet" message="Ask anything about this course — concepts, exam strategy, or a concept you're stuck on." />
+            <EmptyState icon="message-square" title="No messages yet" message={fullAi ? "Ask anything about this course — concepts, exam strategy, or a concept you're stuck on." : "Quiz me above still works while the coach is in limited preview."} />
           </View>
         ) : (
           <FlatList
@@ -193,46 +200,56 @@ export default function ChatScreen() {
             onClose={() => setReporting(null)}
           />
         ) : null}
-        {sendError ? <ErrorBanner message={sendError} onRetry={send} /> : null}
+        {sendError && fullAi ? <ErrorBanner message={sendError} onRetry={send} /> : null}
         {tooLong ? <ErrorBanner message={tooLong} /> : null}
         <View style={{ paddingHorizontal: spacing.md }}>
           <DictationHint />
         </View>
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.input}
-            accessibilityLabel="Message to the coach"
-            multiline
-            placeholder="Ask anything about this track..."
-            placeholderTextColor={colors.mutedDim}
-            value={input}
-            onChangeText={setInput}
-            // REQ-077: on web, Enter sends and Shift+Enter inserts a newline,
-            // the convention every chat UI on the desktop follows. Native
-            // keyboards keep their return key as a newline.
-            onKeyPress={(e) => {
-              if (Platform.OS !== "web") return;
-              const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
-              if (native.key === "Enter" && !native.shiftKey) {
-                e.preventDefault();
-                if (!busy && input.trim() && !tooLong) send();
-              }
-            }}
-          />
-          {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
-              a 48 dp touch target around the 36 dp circle. */}
-          <Pressable
-            onPress={send}
-            disabled={busy || !input.trim() || !!tooLong}
-            accessibilityRole="button"
-            accessibilityLabel="Send message"
-            accessibilityState={{ disabled: busy || !input.trim() || !!tooLong, busy }}
-            hitSlop={6}
-            style={[styles.sendButton, (busy || !input.trim() || !!tooLong) && { opacity: 0.4 }]}
-          >
-            <Feather name="send" size={17} color={colors.accentText} />
-          </Pressable>
-        </View>
+        {/* REQ-201: outside the AI pilot the coach is limited preview: say so
+            plainly in place of the message box (no plan or price). Quiz me
+            above still works. */}
+        {!fullAi ? (
+          <View style={styles.preview} accessibilityRole="text">
+            <Body style={{ fontWeight: "600" }}>{COACH_PREVIEW_TITLE}</Body>
+            <Muted>{COACH_PREVIEW_BODY}</Muted>
+          </View>
+        ) : (
+          <View style={styles.inputBar}>
+            <TextInput
+              style={styles.input}
+              accessibilityLabel="Message to the coach"
+              multiline
+              placeholder="Ask anything about this track..."
+              placeholderTextColor={colors.mutedDim}
+              value={input}
+              onChangeText={setInput}
+              // REQ-077: on web, Enter sends and Shift+Enter inserts a newline,
+              // the convention every chat UI on the desktop follows. Native
+              // keyboards keep their return key as a newline.
+              onKeyPress={(e) => {
+                if (Platform.OS !== "web") return;
+                const native = e.nativeEvent as unknown as { key: string; shiftKey?: boolean };
+                if (native.key === "Enter" && !native.shiftKey) {
+                  e.preventDefault();
+                  if (!busy && input.trim() && !tooLong) send();
+                }
+              }}
+            />
+            {/* REQ-113 (Audit 3 mobile H4): labelled, with a role and state, and
+                a 48 dp touch target around the 36 dp circle. */}
+            <Pressable
+              onPress={send}
+              disabled={busy || !input.trim() || !!tooLong}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+              accessibilityState={{ disabled: busy || !input.trim() || !!tooLong, busy }}
+              hitSlop={6}
+              style={[styles.sendButton, (busy || !input.trim() || !!tooLong) && { opacity: 0.4 }]}
+            >
+              <Feather name="send" size={17} color={colors.accentText} />
+            </Pressable>
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -266,6 +283,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   reportLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", marginTop: 6 },
+  preview: {
+    gap: spacing.xs,
+    backgroundColor: colors.cardAlt,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
   inputBar: {
     flexDirection: "row",
     gap: spacing.sm,

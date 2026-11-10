@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { randomInt } from "node:crypto";
 import { NextResponse } from "next/server";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
@@ -803,7 +804,7 @@ export async function gradeReasoning(
       if (err instanceof RateLimitError) throw new SimError(429, "rate_limited", err.message);
       throw err;
     }
-    const use = await consumeAllowance(userId, "graded_answer");
+    const use = await consumeGradedAnswer(userId, () => consumeAllowance(userId, "graded_answer")); // REQ-201
     const ctx = (await coachContextForObjective(sim.objective_id)) ?? undefined;
     const out = await gradeSimReasoning(
       {

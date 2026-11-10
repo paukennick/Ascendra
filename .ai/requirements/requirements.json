@@ -7051,6 +7051,79 @@
         "migration 067 swaps item_kind checks on three tables (brief ACCESS EXCLUSIVE)",
         "the 050 schema probe now accepts the 067 check"
       ]
+    },
+    {
+      "id": "REQ-201",
+      "category": "feature",
+      "title": "AI access modes: full AI for owners and invited pilot accounts while billing is off; global daily AI ceiling",
+      "description": "AI_ACCESS_MODE all|granted|paid (default all = behaviour before REQ-201; independent of BILLING_ENABLED; unknown values treated as granted with a health warning). granted: full AI for owners (OWNER_EMAILS) and account_access grants; everyone else keeps every course and non-AI feature but has no coach chat and no lesson regenerate (403 aiAccess limited_preview) and AI-graded written answers (grade_open, explain-back, lab steps and report, sim reasoning, PBQ, unit check) count against Free's daily graded-answer allowance (429 aiAccess graded_limit); multiple choice, interactive labs, sim scoring and review never counted; shared lessons on first open, quiz-me, guess-feedback, PBQ scenario writing, exam items, review writing, unit-check writing and item re-checks stay open (scope approved by Nick 2026-11-09). paid: billing tiers; with billing off only owners, grants and live paid entitlements get full AI. AI_GLOBAL_DAILY_CEILING_USD (unset = none; recommended 5, Nick 2026-11-09): total ai_calls spend per UTC day, cached 60 s; at it chat and regenerate pause for all but owners (429 paused) and first generation of a shared lesson answers being prepared (429 preparing); grading, review and every other AI call keep working and still count. /api/auth/me ai {mode, full} outside the default mode. Settings > Access bulk invite (up to 50 addresses) and per-grant AI line. Mobile: coach limited-preview panel, regenerate hidden with note, server words for limits, no plan or price. No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/ai-access-config.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/ai-budget.ts",
+        "backend/lib/entitlements.ts",
+        "backend/lib/health.ts",
+        "backend/lib/account-access-config.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/unit-check.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/app/api/objectives/[id]/lesson/prefetch-next/route.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/objectives/[id]/lab/report/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/auth/me/route.ts",
+        "backend/app/api/access/grants/route.ts",
+        "mobile/src/lib/aiAccess.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "mobile/src/types/index.ts",
+        "mobile/app/(app)/course/[trackId]/chat.tsx",
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/app/(app)/settings/access.tsx",
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "AI_ACCESS_MODE unset or all is byte-for-byte the previous behaviour",
+        "granted blocks coach and regenerate for an ordinary learner with a structured 403 and no model call",
+        "granted counts AI-graded written answers against Free's daily allowance and never multiple choice or review",
+        "granted never applies the one-course rule",
+        "owners and granted accounts have full AI with nothing counted",
+        "paid follows billing tiers and with billing off is paid-only",
+        "global ceiling pauses chat and regenerate for all but owners and never grading",
+        "global ceiling answers being prepared for an ungenerated shared lesson",
+        "open AI calls keep working at the ceiling and count toward it",
+        "learner-facing copy shows no plan or price",
+        "bulk invite of up to 50 addresses in Settings Access"
+      ],
+      "validation_required": [
+        "backend npm test and typecheck",
+        "mobile npm test and typecheck",
+        "npm run test:db on fresh Postgres 16 including lib/ai-access.dbtest.ts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/billing.md",
+        "docs/operations-runbook.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Open AI paths (exam items",
+        "review writing",
+        "re-checks",
+        "quiz-me",
+        "guess-feedback",
+        "PBQ scenarios) are bounded only by rate limits and continue past the ceiling",
+        "Granted pilot accounts keep the 20 USD daily safety ceiling with billing off",
+        "The 60 s per-instance cache lets spend pass the ceiling by about a minute of traffic",
+        "granted left on after billing launch limits paying learners (health warning)"
+      ]
     }
   ]
 }

@@ -198,6 +198,12 @@ now also verifies the address. Do not hand-verify accounts in production.
 - **Exam blueprint**: per course, 60 s, same in-process limits. A catalog
   edit shows within a minute.
 - **Health**: 30 s (unchanged).
+- **Global AI spend** (REQ-201, `lib/ai-access.ts`): the day's total from
+  `ai_calls`, 60 s per instance, read only when `AI_GLOBAL_DAILY_CEILING_USD`
+  is set. Each instance may run up to a minute behind, so spend can pass the
+  ceiling by about a minute of traffic before chat and regenerate pause.
+  Switching modes and the ceiling: docs/billing.md, "AI access modes and the
+  global AI ceiling".
 
 ## Upkeep
 

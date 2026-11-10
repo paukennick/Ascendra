@@ -229,3 +229,46 @@ export function parseAccessArgs(argv: string[], now = new Date()): AccessCliArgs
   if (typeof parsed === "string") throw new Error(parsed);
   return { mode: "grant", ...parsed };
 }
+
+// ---------------------------------------------------------------------------
+// REQ-201: inviting an AI pilot group -- several addresses at once
+// ---------------------------------------------------------------------------
+//
+// POST /api/access/grants also takes { emails, until?, note? }: addresses
+// separated by commas, semicolons, spaces or new lines (or an array), at most
+// BULK_GRANT_MAX, each given the same end date and note. Every address must
+// be valid or nothing is granted. Each one is an ordinary grant (audited,
+// renewing a live one rather than duplicating it).
+
+export const BULK_GRANT_MAX = 50;
+// One unit of the owner's access-change rate limit per this many addresses,
+// so a bulk invite can't hand out more per hour than GRANT_LIMIT allows x 10.
+export const BULK_GRANT_PER_RATE_UNIT = 10;
+
+export function splitEmailList(v: unknown): string[] {
+  const parts = Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : typeof v === "string" ? [v] : [];
+  return parts
+    .flatMap((p) => p.split(/[\s,;]+/))
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+export interface BulkGrantInput {
+  emails: string[];
+  until: Date | null;
+  note: string | null;
+}
+
+export function parseBulkGrantInput(body: unknown, now = new Date()): BulkGrantInput | string {
+  const b = (body ?? {}) as Record<string, unknown>;
+  const raw = splitEmailList(b.emails);
+  if (!raw.length) return "emails must list at least one email address";
+  const bad = raw.filter((e) => !normalizeEmail(e));
+  if (bad.length) return `Not an email address: ${bad.slice(0, 3).join(", ")}${bad.length > 3 ? ` and ${bad.length - 3} more` : ""}`;
+  const emails = [...new Set(raw.map((e) => normalizeEmail(e)!))];
+  if (emails.length > BULK_GRANT_MAX) return `At most ${BULK_GRANT_MAX} addresses at a time`;
+  // The end date and note are checked exactly as for one address.
+  const one = parseGrantInput({ email: emails[0], until: b.until, note: b.note }, now);
+  if (typeof one === "string") return one;
+  return { emails, until: one.until, note: one.note };
+}

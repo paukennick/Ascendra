@@ -8935,6 +8935,115 @@
       "prevention_rules": [],
       "prevention_notes": "SEND_BATCH and JOURNAL_MAX_COMMANDS are pinned to the server's SIM_LIMITS by a test that imports both",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-960",
+      "date": "2026-11-10",
+      "title": "Study paths could recommend a course REQ-194 hid",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "With REQ-198 and REQ-194 merged, GET /api/courses/:id/path still listed a catalog course whose hidden_at had passed as the step before or after",
+      "how_detected": "integration of release/2026-11-10",
+      "root_cause": "REQ-198's coursePaths resolved path codes against every catalog row; it was written before migration 065 added subject_tracks.hidden_at, so it had no hidden filter. Neither branch could see the other.",
+      "requirement": "REQ-198",
+      "affected": [
+        "backend/lib/study-paths.ts"
+      ],
+      "fix_summary": "The lookup leaves out catalog courses whose hidden_at has passed, except the course being viewed",
+      "fix_commits": [
+        "ea8e716"
+      ],
+      "regression_tests": [
+        "backend/lib/study-paths.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A dbtest pins that a hidden course is skipped as a step and still shows its own path",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-961",
+      "date": "2026-11-10",
+      "title": "GCP DevOps exam-change email said the course was not rewritten",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "backend npm test failed in exam-changes.test.ts ('' !== '2026-11-23'); the notice text told learners the course had not been rewritten for the 2026-11-23 guide",
+      "how_detected": "integration of release/2026-11-10",
+      "root_cause": "REQ-197 wrote its notice and test against the course before #81 (REQ-183) re-authored it to the new guide and removed its review date. The notice restates course state that another branch changed.",
+      "requirement": "REQ-197",
+      "affected": [
+        "backend/lib/exam-changes.ts",
+        "backend/lib/exam-changes.test.ts"
+      ],
+      "fix_summary": "courseDid says the new sections are new units and the old units retire on November 23; the test checks the effective date, retire day and new weights",
+      "fix_commits": [
+        "76205f3"
+      ],
+      "regression_tests": [
+        "backend/lib/exam-changes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The notice test reads the seed, so a later course change fails it until the notice is updated",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-962",
+      "date": "2026-11-10",
+      "title": "Sim feature gates passed env where #73 now takes the course",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "backend tsc failed in lib/sims.ts (3 calls): ProcessEnv is not assignable to CourseRef",
+      "how_detected": "integration of release/2026-11-10",
+      "root_cause": "#73 (REQ-170) inserted a course argument before env in hasFeature and requireFeature so plans are read per category; REQ-190 called the old signature. At runtime the env object would have been read as the course reference.",
+      "requirement": "REQ-190",
+      "affected": [
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "simAccess and gateSim pass sim.track_id; listSims passes its scope, as lib/labs.ts does",
+      "fix_commits": [
+        "c95bcf7"
+      ],
+      "regression_tests": [
+        "backend/lib/sims.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Typecheck on the integrated tree; course-scoped gates take a CourseRef",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-963",
+      "date": "2026-11-10",
+      "title": "The sim sheet drew above the app lock",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "mobile npm test failed: 'no screen or component opens a raw React Native Modal' listed src/sim/SimPanels.tsx",
+      "how_detected": "integration of release/2026-11-10",
+      "root_cause": "REQ-190's sim Sheet used React Native's Modal, written before REQ-192 (FAIL-691) required every sheet to go through SheetModal; a raw Modal is its own window and shows above the lock overlay",
+      "requirement": "REQ-190",
+      "affected": [
+        "mobile/src/sim/SimPanels.tsx"
+      ],
+      "fix_summary": "The sim Sheet uses SheetModal, hidden while the lock is up",
+      "fix_commits": [
+        "94599f4"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/sessionStore.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The FAIL-691 static test catches any raw Modal",
+      "recurrence_of": "FAIL-691"
     }
   ]
 }

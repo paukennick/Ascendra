@@ -1,3 +1,4 @@
+import { consumeGradedAnswer } from "@/lib/ai-access";
 import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, conflict, serverError } from "@/lib/http";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
@@ -132,7 +133,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       // Nick, 2026-11-07 (decision 9): an explanation counts against the same
       // daily allowance as a graded typed answer (only a tier with a count
       // limit is counted; given back if grading fails).
-      const use = await consumeAllowance(user.id, "graded_answer", tier);
+      const use = await consumeGradedAnswer(user.id, () => consumeAllowance(user.id, "graded_answer", tier)); // REQ-201
       let graded: Awaited<ReturnType<typeof gradeExplainBack>>;
       try {
         graded = await gradeExplainBack({

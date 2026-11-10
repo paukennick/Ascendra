@@ -18,6 +18,7 @@ import {
 } from "@/lib/lesson-generation";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { SHARED, getLessonFor, isClaimLive } from "@/lib/lesson-store";
+import { globalCeilingReached } from "@/lib/ai-access";
 import { requireCourseAccessForObjective, UpgradeRequiredError } from "@/lib/entitlements";
 
 // The objective immediately after this one in course order: same unit with
@@ -123,6 +124,10 @@ export async function POST(
 
     const objRow = await loadObjective(nextId);
     if (!objRow) return notFound("Next objective not found");
+
+    // REQ-201: at the global daily AI ceiling nothing new is warmed (the
+    // real visit answers "being prepared"). No read when no ceiling is set.
+    if (await globalCeilingReached()) return ok({ nextObjectiveId: nextId, next, status: "ceiling" });
 
     // REQ-135: a prefetch that would start a generation spends the same
     // per-learner budget as a lesson GET. Over it, the prefetch is skipped
