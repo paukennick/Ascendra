@@ -278,7 +278,7 @@ export async function createSession(opts: {
       `select id from exam_sessions where user_id = $1 and client_session_id = $2`,
       [userId, opts.clientSessionId]
     );
-    if (prior) return { sessionId: prior.id, preparation: null };
+    if (prior) return { sessionId: prior.id, preparation: null, replayed: true };
   }
 
   const profile = await examProfile(trackId);
@@ -400,7 +400,25 @@ export async function createSession(opts: {
     accuracyPercent: r.accuracyPercent,
   };
 
-  const sessionId = await withTransaction(async (tx) => {
+  const started = await withTransaction(async (tx) => {
+    // FAIL-880 / FAIL-881: one start at a time per learner, course and mode.
+    // Without it five starts at once each abandoned "the" open session, saw
+    // none of the others' inserts, and left three sessions in progress; and
+    // two starts with the same clientSessionId both passed the check above
+    // and the slower insert failed on exam_sessions_user_client_unique (a
+    // 500). Ids are lowercased so an uppercase copy shares the lock.
+    await tx.query(`select pg_advisory_xact_lock(hashtext($1))`, [
+      `exam-start:${userId.toLowerCase()}:${trackId.toLowerCase()}:${mode}`,
+    ]);
+    // The same start sent twice: the one that got the lock first made the
+    // session; this one returns it instead of making a second.
+    if (opts.clientSessionId) {
+      const prior = await tx.queryOne<{ id: string }>(
+        `select id from exam_sessions where user_id = $1 and client_session_id = $2`,
+        [userId, opts.clientSessionId]
+      );
+      if (prior) return { id: prior.id, replayed: true };
+    }
     // One open session per mode and course: starting a new one closes the
     // old one without grading it (nothing in it counts).
     await tx.query(
@@ -431,8 +449,10 @@ export async function createSession(opts: {
         [s!.id, i, picked[i].item.id, picked[i].item.objective_id, picked[i].slot.unit_id]
       );
     }
-    return s!.id;
+    return { id: s!.id, replayed: false };
   });
+  if (started.replayed) return { sessionId: started.id, preparation: null, replayed: true };
+  const sessionId = started.id;
 
   const repeats = picked.filter((p) => isSeen(rowToItem(p.item), answered)).length;
   const preparation: Preparation = {
@@ -443,7 +463,7 @@ export async function createSession(opts: {
     generatedCalls,
     generationFailed,
   };
-  return { sessionId, preparation };
+  return { sessionId, preparation, replayed: false };
 }
 
 // ---------------------------------------------------------------------------
