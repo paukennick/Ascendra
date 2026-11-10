@@ -44,6 +44,16 @@
 // widen these; every objective says "within EMT/EMR scope" rather than
 // assuming a state's protocol.
 //
+// Titles and descriptions (REQ-174, Nick's approval 2026-11-09, REQ-097
+// pattern): NREMT's trademark page (nremt.org/about/Trademarks, read
+// 2026-11-09) says its marks must not be the name or main identifier of a
+// course, allows describing a product as "preparation for the National
+// Registry EMT Certification Examination", and asks prep providers to say
+// they are independently developed, not affiliated or endorsed, and to
+// attribute the marks. So each title is "Prep for the National Registry
+// <level> Exam" and each description ends with that statement. Track codes
+// and objective order are unchanged, so mastery mapping does not move.
+//
 // requiresAcknowledgement: as for nursing and PT -- acting on wrong
 // prehospital content has patient-safety consequences.
 
@@ -80,9 +90,9 @@ const NREMT_PASSING =
 // ---------------------------------------------------------------------------
 export const NREMT_EMT_TRACK: SeedTrack = {
   code: "NREMTEMT",
-  title: "NREMT EMT Coach",
+  title: "Prep for the National Registry EMT Exam",
   description:
-    "The National Registry's EMT cognitive exam, built on its EMT test plan live since April 7 2025: scene size-up and safety, primary and secondary assessment, patient treatment and transport, and operations, weighted as the exam weights them, with pediatric care throughout.",
+    "Preparation for the National Registry EMT Certification Examination, built on the published EMT test plan in force since April 7 2025: scene size-up and safety, primary and secondary assessment, patient treatment and transport, and operations, weighted as the exam weights them, with pediatric care throughout. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
   subcategorySlug: "emergency-medical-services",
   freshnessModel: "certification_aligned",
@@ -223,9 +233,9 @@ export const NREMT_EMT_TRACK: SeedTrack = {
 // ---------------------------------------------------------------------------
 export const NREMT_EMR_TRACK: SeedTrack = {
   code: "NREMTEMR",
-  title: "NREMT Emergency Medical Responder Coach",
+  title: "Prep for the National Registry Emergency Medical Responder Exam",
   description:
-    "The National Registry's Emergency Medical Responder cognitive exam, built on its EMR test plan live since April 7 2025: the same five domains as the EMT exam at EMR scope -- make the scene safe, find and treat immediate life threats, and hand over to the transporting crew.",
+    "Preparation for the National Registry Emergency Medical Responder (EMR) Certification Examination, built on the published EMR test plan in force since April 7 2025: the same five domains as the EMT exam at EMR scope -- make the scene safe, find and treat immediate life threats, and hand over to the transporting crew. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
   subcategorySlug: "emergency-medical-services",
   freshnessModel: "certification_aligned",
@@ -363,9 +373,9 @@ const ALS_EXPERIENCE =
 // 10 / 12 / 8 / 26 / 10 / 36 (sum 102).
 export const NREMT_PARAMEDIC_TRACK: SeedTrack = {
   code: "NREMTPARAMEDIC",
-  title: "NREMT Paramedic Coach",
+  title: "Prep for the National Registry Paramedic Exam",
   description:
-    "The National Registry's Paramedic certification exam, built on its test plan in force since July 1 2024: airway, cardiology and resuscitation, trauma, medical and obstetric emergencies, EMS operations, and the Clinical Judgment domain that replaced the separate skills exam, weighted as the exam weights them.",
+    "Preparation for the National Registry Paramedic Certification Examination, built on the published test plan in force since July 1 2024: airway, cardiology and resuscitation, trauma, medical and obstetric emergencies, EMS operations, and the Clinical Judgment domain that replaced the separate skills exam, weighted as the exam weights them. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
   subcategorySlug: "emergency-medical-services",
   freshnessModel: "certification_aligned",
@@ -517,9 +527,9 @@ export const NREMT_PARAMEDIC_TRACK: SeedTrack = {
 // antiarrhythmics: the AEMT recognises those needs and calls ALS.
 export const NREMT_AEMT_TRACK: SeedTrack = {
   code: "NREMTAEMT",
-  title: "NREMT Advanced EMT Coach",
+  title: "Prep for the National Registry Advanced EMT Exam",
   description:
-    "The National Registry's Advanced EMT certification exam, built on its test plan in force since July 1 2024: the same six domains as the Paramedic exam at AEMT scope -- supraglottic airways, capnography, IV and IO access and a limited set of IV medications -- including the Clinical Judgment domain.",
+    "Preparation for the National Registry Advanced EMT (AEMT) Certification Examination, built on the published test plan in force since July 1 2024: the same six domains as the Paramedic exam at AEMT scope -- supraglottic airways, capnography, IV and IO access and a limited set of IV medications -- including the Clinical Judgment domain. Independently developed exam prep; not affiliated with or endorsed by the National Registry. National Registry of Emergency Medical Technicians and NREMT are trademarks of the National Registry of Emergency Medical Technicians.",
   trackType: "certification",
   subcategorySlug: "emergency-medical-services",
   freshnessModel: "certification_aligned",
