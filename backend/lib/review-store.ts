@@ -227,7 +227,25 @@ export async function startOrResumeSession(
          left join lateral (${LAST_SESSION_STATS_SQL}) ls on true`,
       [userId, today, trackId]
     );
-    if (head?.open_id) return { id: head.open_id, resumed: true };
+    if (head?.open_id) {
+      // FAIL-890: an objective retired since this session was planned this
+      // morning (a seed run) is taken out of it; a session left with nothing
+      // to answer is closed and a new one planned from what is still due.
+      const gone = await tx.query(
+        `delete from review_session_items si using objectives o, course_units cu
+          where si.session_id = $1 and si.answered_at is null and o.id = si.objective_id and cu.id = o.unit_id
+            and not (${isActive("o")} and ${isActive("cu")})
+          returning si.position`,
+        [head.open_id]
+      );
+      if (!gone.length) return { id: head.open_id, resumed: true };
+      const left = await tx.queryOne<{ n: number }>(
+        `select count(*)::int as n from review_session_items where session_id = $1 and answered_at is null`,
+        [head.open_id]
+      );
+      if (left && left.n > 0) return { id: head.open_id, resumed: true };
+      await tx.query(`update review_sessions set finished_at = now() where id = $1`, [head.open_id]);
+    }
 
     const due = await dueObjectives(userId, today, trackId, (t, p) => tx.query(t, p));
     if (!due.length) return null;

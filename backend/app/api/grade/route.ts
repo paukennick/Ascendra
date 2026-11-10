@@ -14,7 +14,7 @@ import {
 } from "@/lib/grading-service";
 import { ALREADY_REVISED, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
-import { visibleObjective, normUuid } from "@/lib/visibility";
+import { taughtObjective, normUuid } from "@/lib/visibility";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     // REQ-135: from here on the id is the canonical (lowercase) one the
     // visibility check returns, so lock keys, the shuffle seed and replay
     // comparisons match however the client spelled it.
-    const objective = await visibleObjective(body.objectiveId, authUser.id);
+    const objective = await taughtObjective(body.objectiveId, authUser.id);
     if (!objective) return notFound("Objective not found");
     if (unitId && objective.unit_id !== normUuid(unitId)) return badRequest("objectiveId does not belong to unitId");
     const objectiveId = objective.id;

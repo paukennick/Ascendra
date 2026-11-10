@@ -4,7 +4,7 @@ import { hasUnstorableText } from "@/lib/text-input";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { getLessonFor } from "@/lib/lesson-store";
 import { queryOne } from "@/lib/db";
@@ -39,7 +39,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const status = await masteryStatus(user.id, id);
     // REQ-122: not in this learner's plan -- shown as not open, with why.
@@ -80,7 +80,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    const objective = await visibleObjective(id, user.id);
+    const objective = await taughtObjective(id, user.id);
     if (!objective) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     const tier = await requireFeature(user.id, "explain_back", { objectiveId: objective.id }); // REQ-122, REQ-170

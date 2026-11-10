@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { ok, unauthorized, serverError } from "@/lib/http";
+import { ok, badRequest, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,15 @@ export async function GET(req: Request) {
     const unitId = searchParams.get("unitId");
     const objectiveId = searchParams.get("objectiveId");
     const kind = searchParams.get("kind");
-    const limit = Math.min(Number(searchParams.get("limit") ?? 200), 500);
+    // FAIL-892: ?limit=-1 went to Postgres as "limit -1" and came back a 500.
+    // A limit that is not a whole number of 1 or more is a 400 (as on
+    // /api/errors); a large one is capped.
+    const limitParam = searchParams.get("limit");
+    const requested = limitParam === null ? 200 : Number(limitParam);
+    if (limitParam !== null && (limitParam.trim() === "" || !Number.isSafeInteger(requested) || requested < 1)) {
+      return badRequest("limit must be a whole number of 1 or more");
+    }
+    const limit = Math.min(requested, 500);
 
     const user = await requireUser(req);
     const userId = user.id;

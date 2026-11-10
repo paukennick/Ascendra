@@ -4,6 +4,7 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { visibleObjective, visibleUnit } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
+import { isActive } from "@/lib/progress-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,16 @@ export async function GET(req: Request) {
     const user = await requireUser(req);
     const userId = user.id;
 
-    const conditions: string[] = ["e.user_id = $1", "e.resolved = false"];
+    // FAIL-890: an entry for a retired objective or unit is not reviewed (the
+    // seed also resolves them when it retires; this covers the gap before a
+    // seed run and the rows of a unit retired another way). PBQ entries have
+    // a unit and no objective, so the unit is checked too.
+    const conditions: string[] = [
+      "e.user_id = $1",
+      "e.resolved = false",
+      `(o.id is null or ${isActive("o")})`,
+      `(cu.id is null or ${isActive("cu")})`,
+    ];
     const values: unknown[] = [userId];
     if (due) conditions.push("e.next_review_at <= current_date");
     if (trackId) {

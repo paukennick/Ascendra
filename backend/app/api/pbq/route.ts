@@ -52,7 +52,8 @@ export async function GET(req: Request) {
     const scenarioId = searchParams.get("scenarioId");
     if (scenarioId) {
       const scenario = await visibleScenario(scenarioId, authUser.id);
-      if (!scenario) return notFound("PBQ scenario not found");
+      // FAIL-889: a scenario of a retired unit is no longer taught.
+      if (!scenario || scenario.retired) return notFound("PBQ scenario not found");
       await requireAcknowledgementForUnit(scenario.unit_id, authUser.id);
       await requireFeature(authUser.id, "pbq", { unitId: scenario.unit_id }); // REQ-122, REQ-170
       const row = await queryOne(`select * from pbq_scenarios where id = $1`, [scenario.id]);
@@ -67,7 +68,7 @@ export async function GET(req: Request) {
     const unit = await queryOne<{ title: string; track_title: string }>(
       `select cu.title, st.title as track_title
        from course_units cu join subject_tracks st on st.id = cu.track_id
-       where cu.id = $1 and (st.user_id is null or st.user_id = $2)`,
+       where cu.id = $1 and (st.user_id is null or st.user_id = $2) and ${isActive("cu")}`,
       [unitId, authUser.id]
     );
     if (!unit) return notFound("Unit not found");
@@ -166,7 +167,7 @@ export async function POST(req: Request) {
     // another user's private track is a 404, and gate on the scenario's own
     // unit -- not on whatever unitId the client chose to send (or omit).
     const scenario = await visibleScenario(scenarioId, authUser.id);
-    if (!scenario) return notFound("PBQ scenario not found");
+    if (!scenario || scenario.retired) return notFound("PBQ scenario not found");
     const unitId = scenario.unit_id;
     await requireAcknowledgementForUnit(unitId, authUser.id);
     // REQ-122; REQ-124 (decision 6): an answer to a scenario already on

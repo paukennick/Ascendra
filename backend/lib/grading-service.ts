@@ -531,7 +531,11 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
     // REQ-105: a revision written with the model answer on screen is
     // practice, not evidence the item has been kept.
     assistReason !== "retry" &&
-    ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId) || !!input.pbqScenarioId);
+    // FAIL-891: and not a lesson item this learner has already answered. Its
+    // answer was shown the first time, so a second answer is memory, not
+    // retrieval ("repeat", as for a lab or exam answer). A PBQ keeps counting:
+    // answering the same scenario again IS its spaced review.
+    ((input.kind === "lesson" && input.stage === "solo" && !!input.objectiveId && assistReason !== "repeat") || !!input.pbqScenarioId);
   // REQ-124 (Nick, 2026-11-07, decision 14): a finished lab run, first try
   // (not a repeat after seeing the model answers), is a retrieval of the
   // objective: correct, it moves the objective's due review on as a correct

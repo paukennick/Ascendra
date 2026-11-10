@@ -3,7 +3,7 @@ import { ok, badRequest, notFound, unauthorized, forbidden, tooManyRequests, ser
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { guessFeedbackPrompt, guessFeedbackSchema } from "@/lib/prompts";
 import { loadObjective } from "@/lib/lesson-generation";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import {
   requireAcknowledgementForObjective,
@@ -36,7 +36,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser(req);
     // REQ-129: 404 for an objective in another user's private track, before
     // anything is read, rate-limited or sent to Anthropic.
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     await requireCourseAccessForObjective(user.id, id); // REQ-122: Free studies one course
 

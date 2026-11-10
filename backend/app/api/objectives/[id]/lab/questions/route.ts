@@ -1,6 +1,6 @@
 import { ok, notFound, unauthorized, forbidden, tooManyRequests, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { coachContextForObjective } from "@/lib/coach-context";
@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireUser(req);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     await requireAcknowledgementForObjective(id, user.id);
     await requireFeature(user.id, LABS_FEATURE, { objectiveId: id }); // REQ-122, REQ-170
     const obj = await labObjective(id);
