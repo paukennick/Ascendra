@@ -28,7 +28,8 @@ import { source } from "../sources";
 //   / sAMAccountName sign-in): /entra/identity/hybrid/connect/choose-ad-authn
 //   Azure SQL vCore tiers (General Purpose 4 TB one replica; Business
 //   Critical 4 TB three replicas, one free read replica, in-memory; Hyperscale
-//   128 TB, up to 4 read replicas; backups 1-35 days PITR, up to 10 years
+//   128 TB, zero to four HA replicas (readable) plus up to 30 named
+//   replicas; backups 1-35 days PITR, up to 10 years
 //   LTR; serverless autoscale per-second billing):
 //   /azure/azure-sql/database/service-tiers-sql-database-vcore
 //   blob access tiers (hot/cool/cold/archive; 30/90/180-day minimums;
@@ -218,7 +219,7 @@ export const AZ305_LABS: SeedLabSet = {
             part(
               "Point-of-sale ledger",
               "Recommends Azure SQL Database (single database) in the Business Critical tier with zone redundancy, citing local SSD storage and low latency for high-rate OLTP, three replicas with one free read-only replica to offload the daytime reports (read scale-out), and zone-redundant HA for datacentre failure with RPO 0; may mention Hyperscale as the alternative if growth beyond 4 TB is expected.",
-              "Azure SQL Database, vCore, Business Critical, zone-redundant. Business Critical is built for OLTP with high transaction rates and low I/O latency (local SSD), keeps three replicas, and includes one read scale-out replica at no extra charge -- point the daytime reports at the read-only replica so they stop slowing sales. Zone-redundant configuration survives a datacentre (zone) failure with zero data loss. At 1.8 TB it fits the 4 TB Business Critical limit; if the ledger were heading past 4 TB, Hyperscale (up to 128 TB, up to four read replicas) would be the choice instead. General Purpose was rejected: remote storage, one replica, no read scale-out."
+              "Azure SQL Database, vCore, Business Critical, zone-redundant. Business Critical is built for OLTP with high transaction rates and low I/O latency (local SSD), keeps three replicas, and includes one read scale-out replica at no extra charge -- point the daytime reports at the read-only replica so they stop slowing sales. Zone-redundant configuration survives a datacentre (zone) failure with zero data loss. At 1.8 TB it fits the 4 TB Business Critical limit; if the ledger were heading past 4 TB, Hyperscale (up to 128 TB, zero to four high-availability replicas that also serve reads, plus up to 30 named replicas for read scale-out) would be the choice instead. General Purpose was rejected: remote storage, one replica, no read scale-out."
             ),
             part(
               "Legacy warehouse application",

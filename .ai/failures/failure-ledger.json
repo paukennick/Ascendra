@@ -7636,6 +7636,193 @@
       "recurrence_of": ""
     },
     {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-586",
+      "title": "CLF course taught support plans AWS is discontinuing",
+      "severity": "high",
+      "symptom": "The CLF-C02 objective listed Developer, Business and Enterprise On-Ramp; the guide (revisions 2026-09-24 and 2026-10-29) lists Basic Support, Business Support+, Enterprise Support and Unified Operations, and AWS ends the old plans on 2027-01-01. Lessons generated from the objective taught the old plans.",
+      "root_cause": "The track was verified on 2026-09-18 and only exam codes were re-checked after; guide revisions within the same exam code were not tracked.",
+      "affected": [
+        "backend/supabase/seed/tracks/aws.ts"
+      ],
+      "fix_summary": "Objective reworded in place to the current guide; CLF re-compared domain by domain with the live guide.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::CLF-C02 support objective lists the current plans (FAIL-586)"
+      ],
+      "prevention_notes": "Re-check a guide's revision history, not only its exam code, when re-verifying a track."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-587",
+      "title": "SAP DR lab recommended ARC readiness checks, closed to new customers",
+      "severity": "medium",
+      "symptom": "The model answer kept recovery-Region quotas verified with Route 53 ARC readiness checks, which AWS has closed to new customers.",
+      "root_cause": "Service availability changes after authoring were not checked.",
+      "affected": [
+        "backend/supabase/seed/labs/aws-sap.ts"
+      ],
+      "fix_summary": "Uses ARC Region switch plan evaluation (capacity checks several times an hour) and its service quota checks (daily), as AWS recommends.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::SAP DR lab verifies the recovery Region with ARC Region switch plan evaluation, not readiness checks (FAIL-587)"
+      ],
+      "prevention_notes": "A recommended feature is checked for availability to new customers, not only for existence."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-588",
+      "title": "DEA throttling case numbers contradicted the key",
+      "severity": "medium",
+      "symptom": "The step implied about 9,000 writes per second against a 2,000 WCU table with 900 consumed, so table capacity, not only the hot partition the key blamed, would throttle.",
+      "root_cause": "The stream rate from an earlier step was reused for table writes without checking it against the table's capacity.",
+      "affected": [
+        "backend/supabase/seed/labs/aws-dea.ts"
+      ],
+      "fix_summary": "The consumer pre-aggregates to about 1,500 writes/s; 80% (about 1,200) hit one key, over the 1,000 WCU partition limit, while the table consumes about 1,300 of 2,000.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::DEA throttling step: the hot partition is over 1,000 WCU while the table is under its 2,000 (FAIL-588)"
+      ],
+      "prevention_notes": "Every number in a multi-step case is re-derived when a later step reuses it."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-589",
+      "title": "GKE Pod range key accepted a /19 for 200 nodes",
+      "severity": "high",
+      "symptom": "The GCP Network Engineer key said a /18 Pod range fits 200 nodes and accepted a /19; at the default 110 Pods per node each node takes a /24, so a /18 holds 64 nodes and a /19 32.",
+      "root_cause": "The range was sized by Pod count instead of GKE's per-node CIDR allocation.",
+      "affected": [
+        "backend/supabase/seed/labs/gcp-net.ts"
+      ],
+      "fix_summary": "Key requires max Pods per node 32 or fewer with a /18 (256 nodes, 6,400 Pods) or a /16 at the default 110, and rejects /18 or /19 at 110; the private services access range moved outside the regional /13s.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::GKE Pod range: a /19 or /18 at 110 Pods per node is rejected; max Pods 32 with a /18 or a /16 at 110 (FAIL-589)"
+      ],
+      "prevention_notes": "Address-plan keys are checked against the platform's allocation rule (GKE flexible Pod CIDR table) with the arithmetic shown."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-590",
+      "title": "AZ-104 and DP-300 objectives drifted from the study guides",
+      "severity": "medium",
+      "symptom": "AZ-104 taught 'encryption at host' where the guide says 'Configure Azure Disk Encryption'; DP-300 said 'VBS enclaves' where the 2026-10-27 guide says 'secure enclaves'.",
+      "root_cause": "Objectives were reworded toward current product advice instead of the guide's wording, and the DP-300 change was recorded as outdated without being applied.",
+      "affected": [
+        "backend/supabase/seed/tracks/azure.ts",
+        "backend/supabase/seed/labs/microsoft-az104.ts"
+      ],
+      "fix_summary": "Both objectives reworded in place to the guides; DP-300 re-compared with the live guide and marked current.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::AZ-104 and DP-300 objectives follow the live study guides (FAIL-590)"
+      ],
+      "prevention_notes": "An outline marked OUTDATED is fixed in the next content change to that course."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-591",
+      "title": "ACE impersonation lab omitted that Data Access audit logs must be on",
+      "severity": "medium",
+      "symptom": "The key said the audit log records GenerateAccessToken; IAM logs that only when Data Access audit logs are enabled, which they are not by default.",
+      "root_cause": "Default audit-log coverage was assumed.",
+      "affected": [
+        "backend/supabase/seed/labs/gcp-ace.ts"
+      ],
+      "fix_summary": "Criteria and answer state that IAM Data Access audit logs must be enabled first.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::ACE impersonation audit needs Data Access audit logs turned on (FAIL-591)"
+      ],
+      "prevention_notes": "A key that relies on a log names the log type and whether it is on by default."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-592",
+      "title": "GCP DevOps course would teach the retired outline from 2026-11-23",
+      "severity": "high",
+      "symptom": "Google's new Professional Cloud DevOps Engineer guide applies from 2026-11-23 (18/30/18/22/12, new agent, MCP and NCC topics); the course followed the old 20/25/18/25/12 guide.",
+      "root_cause": "REQ-142 recorded the change as a review due date but nothing re-authored the course.",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/gcp-devops.ts"
+      ],
+      "fix_summary": "New units from the new guide at sort_order 5-9; the old five retired from 2026-11-23T12:00Z (kept for history), effectiveDate 2026-11-23; 11 labs re-checked and pointed at the new objectives.",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::GCP DevOps follows the guide live on 2026-11-23 and the old units retire after 2026-11-22 (FAIL-592)"
+      ],
+      "prevention_notes": "A known future outline change is re-authored with the retire-and-append pattern (as AWSSAP) before its date, not left as a review date."
+    },
+    {
+      "date": "2026-11-09",
+      "status": "fixed",
+      "how_detected": "content accuracy audit (2026-11-09), checked against the primary source",
+      "requirement": "REQ-183",
+      "fix_commits": [],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "recurrence_of": "",
+      "id": "FAIL-593",
+      "title": "Seven Google Cloud exam-guide links returned 404",
+      "severity": "low",
+      "symptom": "sourceUrl and officialObjectivesUrl for seven GCP tracks pointed at cloud.google.com/learn/certification/guides/<slug> pages that no longer exist.",
+      "root_cause": "Google moved those guides to PDFs linked from the certification pages; link health was not checked.",
+      "affected": [
+        "backend/supabase/seed/tracks/gcp.ts",
+        "backend/supabase/seed/labs/gcp-net.ts"
+      ],
+      "fix_summary": "Replaced with the live PDF links from each certification page (each returned 200 on 2026-11-09).",
+      "regression_tests": [
+        "backend/lib/labs-audit-cloud.test.ts::Google Cloud guide links point at live exam guides, not removed /guides/ pages (FAIL-593)"
+      ],
+      "prevention_notes": "Outline URLs are fetched when a track is re-verified."
+    },
+    {
       "id": "FAIL-670",
       "date": "2026-11-09",
       "title": "Email link scanners spent verification links on GET; set_password links cleared the password for the scanner",

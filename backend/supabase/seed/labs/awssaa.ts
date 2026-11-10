@@ -338,8 +338,8 @@ export const AWSSAA_LABS: SeedLabSet = {
             ),
             part(
               "Expiration",
-              "Adds an expiration action at about 7 years (2,555 days) so logs are deleted when retention ends.",
-              "Expire objects at 2,555 days (7 years) so nothing is kept, or paid for, past the retention requirement."
+              "Adds an expiration action at 7 years (2,557 days, which counts the leap days; 2,555 is accepted as 365 x 7 with a note that it can fall two days short) so logs are deleted when retention ends.",
+              "Expire objects at 2,557 days (7 years including the leap days; 365 x 7 = 2,555 would delete up to two days early) so nothing is kept, or paid for, past the retention requirement."
             ),
             part(
               "Cost catches",

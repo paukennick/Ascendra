@@ -530,8 +530,8 @@ export const AWSSOA_LABS: SeedLabSet = {
           parts: [
             part(
               "Routes and NAT placement",
-              "Adds a default route (0.0.0.0/0) in the application subnet's route table to the NAT gateway, and explains the NAT gateway itself must live in a public subnet whose route table sends 0.0.0.0/0 to the internet gateway, otherwise it has no way out either; moves or recreates it in a public subnet.",
-              "Two mistakes: the application route table never pointed 0.0.0.0/0 anywhere, and the NAT gateway sits in a subnet with no route to the internet gateway, so it is a private NAT with no exit. Create the NAT gateway in a public subnet (0.0.0.0/0 -> igw) with an Elastic IP, then add 0.0.0.0/0 -> nat-gateway to the application subnet's route table. One NAT gateway per AZ avoids cross-AZ dependency."
+              "Adds a default route (0.0.0.0/0) in the application subnet's route table to the NAT gateway, and explains that this zonal NAT gateway must live in a public subnet whose route table sends 0.0.0.0/0 to the internet gateway, otherwise it has no way out either; moves or recreates it in a public subnet (or replaces it with a regional NAT gateway, which needs no public subnet).",
+              "Two mistakes: the application route table never pointed 0.0.0.0/0 anywhere, and the NAT gateway sits in a subnet with no route to the internet gateway, so it is a private NAT with no exit. Create the zonal NAT gateway in a public subnet (0.0.0.0/0 -> igw) with an Elastic IP, then add 0.0.0.0/0 -> nat-gateway to the application subnet's route table. One zonal NAT gateway per AZ avoids cross-AZ dependency. The public-subnet rule applies to zonal NAT gateways, the kind created in a subnet; a regional NAT gateway is created for the VPC instead, needs no public subnet and expands across AZs as workloads appear, so it is the simpler alternative here."
             ),
           ],
         },

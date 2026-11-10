@@ -172,13 +172,13 @@ export const AWSDEA_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The stream is fine. The Lambda consumer's DynamoDB writes now throw ProvisionedThroughputExceededException on a table in provisioned mode with 2,000 WCU. CloudWatch shows consumed WCU averaging only 900, but ThrottledRequests is non-zero. The table's partition key is the page URL, and one landing page gets 70% of clicks.",
+          text: "The stream is fine. The Lambda consumer pre-aggregates each batch, so it writes about 1,500 items per second (each under 1 KB) to a DynamoDB table in provisioned mode with 2,000 WCU. The writes now throw ProvisionedThroughputExceededException. CloudWatch shows consumed WCU averaging about 1,300, well under 2,000, but ThrottledRequests is non-zero. The table's partition key is the page URL, and one landing page accounts for 80% of the writes.",
           ask: "Explain the DynamoDB throttling and redesign the key.",
           parts: [
             part(
               "Why DynamoDB throttles below the table's capacity",
               "Explains that throughput is spread across partitions and any one partition delivers at most 3,000 read units and 1,000 write units per second; a hot key (one page URL) concentrates writes on one partition, so it throttles while the table average looks low.",
-              "Table capacity is split across partitions, and a single partition can deliver at most 3,000 read units and 1,000 write units per second. With the page URL as the key, 70% of 9,000 writes land on one item collection, far past one partition's 1,000 WCU, so that partition throttles while the table-wide average sits at 900."
+              "Table capacity is split across partitions, and a single partition can deliver at most 3,000 read units and 1,000 write units per second. With the page URL as the key, 80% of about 1,500 writes per second -- about 1,200 -- land on one item collection, past one partition's 1,000 WCU, so that partition throttles while table-wide consumption sits at about 1,300 of the 2,000 provisioned. Raising the table's WCU would not help: the limit is per partition."
             ),
             part(
               "Key redesign",

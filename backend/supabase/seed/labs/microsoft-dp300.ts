@@ -442,7 +442,7 @@ export const DP300_LABS: SeedLabSet = {
             part(
               "Accidental deletion",
               "Sets point-in-time restore retention to 30 days (configurable up to 35; default 7), and restores to a new database at a time just before the deletion, then copies the table back.",
-              "Raise the database's backup retention for point-in-time restore from the 7-day default to 30 days (the maximum is 35). Backups are automatic: a full weekly, differentials every 12 or 24 hours and log backups every 5 to 10 minutes. To recover a dropped table, restore the database as a new database to a point just before the drop and copy the table across; the production database keeps running."
+              "Raise the database's backup retention for point-in-time restore from the 7-day default to 30 days (the maximum is 35). Backups are automatic: a full weekly, differentials every 12 or 24 hours and transaction log backups approximately every 10 minutes (the exact interval depends on compute size and activity). To recover a dropped table, restore the database as a new database to a point just before the drop and copy the table across; the production database keeps running."
             ),
             part(
               "Seven-year audit copies and testing",

@@ -11,7 +11,8 @@ import { source } from "../sources";
 // installed Google Cloud SDK (570.0.0) help on 2026-11-07.
 // Density (docs/labs.md, policy "hybrid"): 3 / 2 / 3 / 2.
 //
-// Figures: Cloud Run concurrency default 80 per instance, up to 1,000
+// Figures: Cloud Run concurrency default 80 per instance in the console, and
+// 80 x vCPUs for a new service created with gcloud or Terraform; up to 1,000
 // (docs.cloud.google.com/run/docs/about-concurrency); gcloud storage sign-url
 // allows at most 12 hours when signing with a system-managed key (SDK help).
 // Everything else is long-stable behaviour (ADC lookup order, Workload
@@ -274,8 +275,8 @@ export const GCPDEV_LABS: SeedLabSet = {
             ),
             part(
               "Scaling and concurrency",
-              "Justifies min-instances=1 (one warm instance avoids the cold start, at the cost of paying for an idle instance), max-instances=20 (protects downstream systems and the bill), and concurrency=40 below the default of 80 because requests are memory-heavy, noting Cloud Run allows up to 1,000 per instance and that lower concurrency means more instances for the same traffic.",
-              "min-instances=1 keeps one instance warm so the slow first request disappears, which costs an always-on instance. max-instances=20 stops a traffic spike from overrunning the database or the budget. concurrency=40 is half the default of 80 because each request uses a lot of memory; Cloud Run allows up to 1,000, but lower concurrency simply means more instances for the same load, which is the right trade here."
+              "Justifies min-instances=1 (one warm instance avoids the cold start, at the cost of paying for an idle instance), max-instances=20 (protects downstream systems and the bill), and concurrency=40 below the default of 80 (the console default, and the gcloud/Terraform default of 80 x vCPUs for a 1-vCPU service) because requests are memory-heavy, noting Cloud Run allows up to 1,000 per instance and that lower concurrency means more instances for the same traffic.",
+              "min-instances=1 keeps one instance warm so the slow first request disappears, which costs an always-on instance. max-instances=20 stops a traffic spike from overrunning the database or the budget. concurrency=40 is half the default of 80 (80 in the console; a new service created with gcloud or Terraform gets 80 x its vCPUs, so 80 at 1 vCPU) because each request uses a lot of memory; Cloud Run allows up to 1,000, but lower concurrency simply means more instances for the same load, which is the right trade here."
             ),
           ],
         },
