@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-160: CompTIA DataAI (DY0-001, V1; the exam formerly branded DataX).
@@ -48,11 +48,7 @@ export const DATAAI_LABS: SeedLabSet = {
               "Precision = 80 / (80 + 120) = 0.40; recall (sensitivity) = 80 / (80 + 20) = 0.80; F1 = 2 x 0.40 x 0.80 / (0.40 + 0.80) = 0.64 / 1.20 = 0.533.",
               "Precision = TP / (TP + FP) = 80 / 200 = 0.40: of every ten transactions flagged, four are fraud. Recall = TP / (TP + FN) = 80 / 100 = 0.80: the model catches 80% of actual fraud. F1 = 2PR / (P + R) = 2 x 0.40 x 0.80 / 1.20 = 0.533."
             ),
-            part(
-              "Specificity, accuracy and MCC",
-              "Specificity = 9,780 / (9,780 + 120) = 0.988; accuracy = (80 + 9,780) / 10,000 = 0.986; MCC = (80 x 9,780 - 120 x 20) / sqrt(200 x 100 x 9,900 x 9,800) = 780,000 / 1,392,982 = 0.56.",
-              "Specificity = TN / (TN + FP) = 9,780 / 9,900 = 0.988. Accuracy = (TP + TN) / N = 9,860 / 10,000 = 0.986. MCC = (TP x TN - FP x FN) / sqrt((TP + FP)(TP + FN)(TN + FP)(TN + FN)) = (782,400 - 2,400) / sqrt(200 x 100 x 9,900 x 9,800) = 780,000 / sqrt(1.9404 x 10^12) = 780,000 / 1,392,982 = 0.56. MCC runs from -1 to 1 and uses all four cells, so 0.56 says 'moderately good', unlike the flattering 0.986."
-            ),
+            numericPart("MCC", "MCC = (TP x TN - FP x FN) / sqrt((TP + FP)(TP + FN)(TN + FP)(TN + FN)) = 780,000 / 1,392,982 = 0.56. Met within 0.005; within 0.02 is partly there (a rounding slip).", "Specificity = TN / (TN + FP) = 9,780 / 9,900 = 0.988. Accuracy = (TP + TN) / N = 9,860 / 10,000 = 0.986. MCC = (TP x TN - FP x FN) / sqrt((TP + FP)(TP + FN)(TN + FP)(TN + FN)) = (782,400 - 2,400) / sqrt(200 x 100 x 9,900 x 9,800) = 780,000 / sqrt(1.9404 x 10^12) = 780,000 / 1,392,982 = 0.56. MCC runs from -1 to 1 and uses all four cells, so 0.56 says 'moderately good', unlike the flattering 0.986.", { answer: 0.56, tolerance: 0.005, partialTolerance: 0.02 }),
             part(
               "Responding to 'it's 98.6% accurate'",
               "Explains accuracy is misleading under a 1% base rate: a model that flags nothing scores 99.0% accuracy (9,900 / 10,000) and catches no fraud; the informative metrics are recall (0.80), precision (0.40) and MCC (0.56), plus the business cost of each error type.",

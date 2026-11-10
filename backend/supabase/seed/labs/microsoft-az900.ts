@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-155: Microsoft Certified: Azure Fundamentals (AZ-900).
@@ -98,21 +98,8 @@ export const AZ900_LABS: SeedLabSet = {
           text: "",
           ask: "Recommend a deployment model for each organisation and give the deciding reason.",
           parts: [
-            part(
-              "Meridian Credit Union",
-              "Recommends a private cloud (cloud-style self-service and automation on infrastructure the credit union owns and controls, for example with Azure Stack HCI / Azure Local or a similar on-premises platform) because the regulation fixes where the data lives, while still delivering the self-service the staff want.",
-              "Private cloud: the regulator fixes the location and control of the data, so public cloud is out for that workload, but a private cloud still gives staff self-service provisioning and automation on hardware the credit union owns and audits (Azure Local / Azure Stack HCI is one way to run that with Azure tooling)."
-            ),
-            part(
-              "Pine Street Bakery",
-              "Recommends public cloud, citing no capital spend, no servers to maintain, pay-as-you-go pricing and SaaS options for email and web, which fit an organisation with no IT staff.",
-              "Public cloud: no hardware, no capital outlay, no staff needed to run servers. Email and the website come as SaaS, the point-of-sale back end as PaaS, all billed for what is used."
-            ),
-            part(
-              "Northwind Hospital",
-              "Recommends hybrid cloud: the record system stays on-premises for the contract term while analytics bursts to public cloud and backups go off-site to cloud storage; names a connection (VPN or ExpressRoute) and, optionally, Azure Arc to manage both sides as one estate.",
-              "Hybrid cloud: the patient-record system stays in the hospital datacentre until the contract ends, connected to Azure over VPN or ExpressRoute; month-end analytics bursts to Azure compute and the record system is backed up to Azure Storage. Azure Arc can bring the on-premises servers under the same management and policy as the cloud resources."
-            ),
+            matchPart("Deployment model for each organisation", "Meridian: private; Pine Street: public; Northwind: hybrid. All three right is met; two is partly there.", "Meridian Credit Union -> private cloud (the data must stay in a facility it owns, with self-service on top). Pine Street Bakery -> public cloud (no IT staff, no servers, pay as you go). Northwind Hospital -> hybrid cloud (records stay on premises under contract; analytics bursts and backups go to the public cloud).", {"leftHeading": "Organisation", "rightHeading": "Deployment model", "left": ["Meridian Credit Union", "Pine Street Bakery", "Northwind Hospital"], "right": ["Private cloud", "Public cloud", "Hybrid cloud"], "pairs": [0, 1, 2]}),
+            part("Deciding reasons", "Justifies each against its stated constraint: Meridian Credit Union: Recommends a private cloud (cloud-style self-service and automation on infrastructure the credit union owns and controls, for example with Azure Stack HCI / Azure Local or a similar on-premises platform) because the regulation fixes where the data lives, while still delivering the self-service the staff want. Pine Street Bakery: Recommends public cloud, citing no capital spend, no servers to maintain, pay-as-you-go pricing and SaaS options for email and web, which fit an organisation with no IT staff. Northwind Hospital: Recommends hybrid cloud: the record system stays on-premises for the contract term while analytics bursts to public cloud and backups go off-site to cloud storage; names a connection (VPN or ExpressRoute) and, optionally, Azure Arc to manage both sides as one estate.", "Meridian Credit Union: Private cloud: the regulator fixes the location and control of the data, so public cloud is out for that workload, but a private cloud still gives staff self-service provisioning and automation on hardware the credit union owns and audits (Azure Local / Azure Stack HCI is one way to run that with Azure tooling). Pine Street Bakery: Public cloud: no hardware, no capital outlay, no staff needed to run servers. Email and the website come as SaaS, the point-of-sale back end as PaaS, all billed for what is used. Northwind Hospital: Hybrid cloud: the patient-record system stays in the hospital datacentre until the contract ends, connected to Azure over VPN or ExpressRoute; month-end analytics bursts to Azure compute and the record system is backed up to Azure Storage. Azure Arc can bring the on-premises servers under the same management and policy as the cloud resources."),
           ],
         },
       ],
@@ -170,26 +157,8 @@ export const AZ900_LABS: SeedLabSet = {
           text: "",
           ask: "Name the redundancy option for each dataset and the failure it protects against.",
           parts: [
-            part(
-              "Rendering scratch files",
-              "Chooses locally redundant storage (LRS): copies within a single datacentre in the primary region, the lowest cost, protecting against drive and rack failure but not a datacentre or regional outage.",
-              "LRS: the data is replicated within one physical datacentre in the primary region -- the cheapest option, fine for files that can be regenerated. It survives hardware failure, not the loss of the datacentre or region."
-            ),
-            part(
-              "Master archive",
-              "Chooses geo-redundant storage (GRS or GZRS), explaining that data is copied asynchronously to the paired secondary region so it survives a regional outage, and that the secondary is only readable after a failover unless an RA- option is chosen.",
-              "GRS (or GZRS for zone protection in the primary as well): replicated to the paired secondary region, which Azure determines from the primary and which cannot be changed. The data survives the loss of the whole primary region. Without the RA- variant the secondary is not readable until an account failover."
-            ),
-            part(
-              "Subscriber records",
-              "Chooses zone-redundant storage (ZRS): synchronous copies across three or more availability zones in the primary region, surviving a datacentre (zone) failure while keeping every copy inside the region to satisfy the regulator.",
-              "ZRS: replicated synchronously across three or more availability zones in the primary region, so a datacentre failure is survived, and no copy ever leaves the region -- which is what the regulator requires. Durability is designed at twelve nines a year versus eleven for LRS."
-            ),
-            part(
-              "Product catalogue",
-              "Chooses read-access geo-redundant storage (RA-GRS or RA-GZRS) because the website must read from the secondary region during an outage without waiting for a failover; mentions the -secondary endpoint.",
-              "RA-GZRS (or RA-GRS): the secondary region's copy is always readable through the account's -secondary endpoint, so the site keeps reading the catalogue during a primary-region outage, before and without an account failover. Writes still need a failover."
-            ),
+            matchPart("Redundancy for each dataset", "(1) LRS, (2) GRS or GZRS, (3) ZRS, (4) RA-GRS or RA-GZRS. All four right is met; two or three is partly there.", "(1) LRS: cheapest, copies in one datacentre -- enough for files that are regenerated. (2) GRS or GZRS: asynchronous copy to the paired region, so a regional loss is survived. (3) ZRS: synchronous copies across availability zones inside the region, never leaving it. (4) RA-GRS or RA-GZRS: the secondary is readable at the -secondary endpoint before any failover.", {"leftHeading": "Dataset", "rightHeading": "Redundancy option", "left": ["(1) Rendering scratch files, regenerated nightly", "(2) Master archive, must survive losing a region", "(3) Subscriber records, no copy may leave the region", "(4) Product catalogue, readable from the second region during an outage"], "right": ["LRS (locally redundant)", "GRS or GZRS (geo-redundant)", "ZRS (zone-redundant)", "RA-GRS or RA-GZRS (read-access geo-redundant)"], "pairs": [0, 1, 2, 3]}),
+            part("What each protects against", "Says what each option protects against: Rendering scratch files: Chooses locally redundant storage (LRS): copies within a single datacentre in the primary region, the lowest cost, protecting against drive and rack failure but not a datacentre or regional outage. Master archive: Chooses geo-redundant storage (GRS or GZRS), explaining that data is copied asynchronously to the paired secondary region so it survives a regional outage, and that the secondary is only readable after a failover unless an RA- option is chosen. Subscriber records: Chooses zone-redundant storage (ZRS): synchronous copies across three or more availability zones in the primary region, surviving a datacentre (zone) failure while keeping every copy inside the region to satisfy the regulator. Product catalogue: Chooses read-access geo-redundant storage (RA-GRS or RA-GZRS) because the website must read from the secondary region during an outage without waiting for a failover; mentions the -secondary endpoint.", "Rendering scratch files: LRS: the data is replicated within one physical datacentre in the primary region -- the cheapest option, fine for files that can be regenerated. It survives hardware failure, not the loss of the datacentre or region. Master archive: GRS (or GZRS for zone protection in the primary as well): replicated to the paired secondary region, which Azure determines from the primary and which cannot be changed. The data survives the loss of the whole primary region. Without the RA- variant the secondary is not readable until an account failover. Subscriber records: ZRS: replicated synchronously across three or more availability zones in the primary region, so a datacentre failure is survived, and no copy ever leaves the region -- which is what the regulator requires. Durability is designed at twelve nines a year versus eleven for LRS. Product catalogue: RA-GZRS (or RA-GRS): the secondary region's copy is always readable through the account's -secondary endpoint, so the site keeps reading the catalogue during a primary-region outage, before and without an account failover. Writes still need a failover."),
           ],
         },
       ],
@@ -333,31 +302,8 @@ export const AZ900_LABS: SeedLabSet = {
           text: "",
           ask: "Name the tool for each of the five needs and what it would show or do.",
           parts: [
-            part(
-              "A: paging on sustained high CPU",
-              "Uses an Azure Monitor metric alert rule on the VM's Percentage CPU metric with a threshold and window, tied to an action group that notifies (SMS, email, push, voice) or triggers automation.",
-              "An Azure Monitor metric alert rule on the VM's CPU metric (above 90 percent, evaluated over a 10-minute window), with an action group that sends the on-call engineer an SMS or push notification and could also call a webhook or runbook."
-            ),
-            part(
-              "B: searching months of logs",
-              "Uses Log Analytics (a Log Analytics workspace that collects the logs) and a Kusto Query Language (KQL) query filtered on the customer's account over the three-month range.",
-              "Azure Monitor Logs: send the App Service and web-server logs to a Log Analytics workspace with enough retention, then run a KQL query filtering on the customer's account ID across the three months."
-            ),
-            part(
-              "C: a slow checkout investigation",
-              "Uses Application Insights (application performance monitoring) to see request duration, dependency calls such as the SQL query, and the end-to-end transaction or application map for that time.",
-              "Application Insights on the web app: its performance view and end-to-end transaction details show the checkout request, each dependency call (including the SQL query) and how long each took last Tuesday, with the application map showing where the time went."
-            ),
-            part(
-              "D: Microsoft-side outages and maintenance",
-              "Uses Azure Service Health, which reports service issues, planned maintenance and health advisories affecting the customer's own regions and services, with alerts configurable.",
-              "Azure Service Health: it shows service issues, planned maintenance and advisories for the regions and services Sable Point actually uses, and a Service Health alert can notify the team when one is posted."
-            ),
-            part(
-              "E: prioritised improvement list",
-              "Uses Azure Advisor, which gives recommendations across reliability, security, performance, cost and operational excellence for existing resources.",
-              "Azure Advisor: it analyses the deployed resources and lists recommendations by category -- reliability, security, performance, cost, operational excellence -- so the team can work through the high-impact items first."
-            ),
+            matchPart("Tool for each need", "A metric alert, B Log Analytics with KQL, C Application Insights, D Service Health, E Advisor. Azure Policy enforces rules and answers none of the five. All five right is met; three or four is partly there.", "A: a metric alert rule on Percentage CPU over a ten-minute window, with an action group that pages. B: Log Analytics and a KQL query over three months. C: Application Insights request and dependency timings for that checkout. D: Azure Service Health for issues and planned maintenance in their regions. E: Azure Advisor recommendations. Azure Policy enforces rules rather than monitoring.", {"leftHeading": "Need", "rightHeading": "Tool", "left": ["A: page when a VM's CPU stays above 90% for ten minutes", "B: search three months of web-server logs for one customer", "C: why checkout was slow last Tuesday, step by step", "D: Microsoft outages or maintenance affecting our region", "E: a prioritised list of reliability and security improvements"], "right": ["Azure Monitor metric alert with an action group", "Log Analytics workspace and a KQL query", "Application Insights", "Azure Service Health", "Azure Advisor", "Azure Policy"], "pairs": [0, 1, 2, 3, 4]}),
+            part("What each shows or does", "Says what each tool would show or do here: A: paging on sustained high CPU: Uses an Azure Monitor metric alert rule on the VM's Percentage CPU metric with a threshold and window, tied to an action group that notifies (SMS, email, push, voice) or triggers automation. B: searching months of logs: Uses Log Analytics (a Log Analytics workspace that collects the logs) and a Kusto Query Language (KQL) query filtered on the customer's account over the three-month range. C: a slow checkout investigation: Uses Application Insights (application performance monitoring) to see request duration, dependency calls such as the SQL query, and the end-to-end transaction or application map for that time. D: Microsoft-side outages and maintenance: Uses Azure Service Health, which reports service issues, planned maintenance and health advisories affecting the customer's own regions and services, with alerts configurable. E: prioritised improvement list: Uses Azure Advisor, which gives recommendations across reliability, security, performance, cost and operational excellence for existing resources.", "A: paging on sustained high CPU: An Azure Monitor metric alert rule on the VM's CPU metric (above 90 percent, evaluated over a 10-minute window), with an action group that sends the on-call engineer an SMS or push notification and could also call a webhook or runbook. B: searching months of logs: Azure Monitor Logs: send the App Service and web-server logs to a Log Analytics workspace with enough retention, then run a KQL query filtering on the customer's account ID across the three months. C: a slow checkout investigation: Application Insights on the web app: its performance view and end-to-end transaction details show the checkout request, each dependency call (including the SQL query) and how long each took last Tuesday, with the application map showing where the time went. D: Microsoft-side outages and maintenance: Azure Service Health: it shows service issues, planned maintenance and advisories for the regions and services Sable Point actually uses, and a Service Health alert can notify the team when one is posted. E: prioritised improvement list: Azure Advisor: it analyses the deployed resources and lists recommendations by category -- reliability, security, performance, cost, operational excellence -- so the team can work through the high-impact items first."),
           ],
         },
       ],

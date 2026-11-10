@@ -16,6 +16,7 @@ import {
   LabError,
   checkRunStep,
   hasRun,
+  interactiveAnswerProblem,
   labAccess,
   labAnswers,
   recordStep,
@@ -76,7 +77,8 @@ export async function submitLab(
   userId: string,
   labId: string,
   body: Record<string, unknown> | null,
-  model?: LabStepModel
+  model?: LabStepModel,
+  opts: { interactive?: boolean } = {}
 ) {
   if (!isUuid(labId)) throw new LabError(404, "Lab not found");
   const b = body ?? {};
@@ -93,6 +95,9 @@ export async function submitLab(
   const parts = lab.rubric[step]?.parts ?? [];
   const answers = labAnswers(b.answers, parts.length);
   if (typeof answers === "string") throw new LabError(400, answers);
+  // REQ-189: a structured answer must name only its part's own options.
+  const badChoice = interactiveAnswerProblem(parts, answers);
+  if (badChoice) throw new LabError(400, badChoice);
   const input: SubmitInput = {
     userId,
     lab,
@@ -100,6 +105,7 @@ export async function submitLab(
     step,
     answers,
     clientAttemptId: validClientAttemptId(b.clientAttemptId),
+    interactive: opts.interactive === true,
   };
 
   const replayed = await replayStep(input);

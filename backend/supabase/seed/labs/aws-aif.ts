@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart } from "./types";
 import { source } from "../sources";
 
 // REQ-153: AWS Certified AI Practitioner (AIF-C01), foundational level.
@@ -143,11 +143,7 @@ export const AWSAIF_LABS: SeedLabSet = {
           text: "",
           ask: "Work out the monthly token cost, then propose changes that cut cost and latency.",
           parts: [
-            part(
-              "Monthly cost",
-              "Computes input tokens 200,000 x 3,500 = 700 million ($2,100) and output tokens 200,000 x 400 = 80 million ($1,200), total about $3,300 a month, and notes that output tokens cost five times more per token.",
-              "Input: 200,000 x 3,500 = 700M tokens x $3.00/M = $2,100. Output: 200,000 x 400 = 80M tokens x $15.00/M = $1,200. About $3,300 a month. Although input tokens are 90% of the volume, output tokens are priced five times higher, so both sides matter."
-            ),
+            numericPart("Monthly cost", "Input 200,000 x 3,500 = 700 million tokens at $3.00/M = $2,100; output 200,000 x 400 = 80 million tokens at $15.00/M = $1,200; total $3,300 a month. Met within $1.", "Input: 200,000 x 3,500 = 700M tokens x $3.00/M = $2,100. Output: 200,000 x 400 = 80M tokens x $15.00/M = $1,200. About $3,300 a month. Although input tokens are 90% of the volume, output tokens are priced five times higher, so both sides matter.", { answer: 3300, tolerance: 1, unit: "USD" }),
             part(
               "Cutting input cost",
               "Shortens the fixed system prompt and/or uses prompt caching so the repeated 3,000-token prefix is not charged at full price every call; shows the effect on the input line.",

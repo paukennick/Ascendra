@@ -355,7 +355,15 @@ export function seedLabContent(lab: SeedLabSet["labs"][number]): LabContent {
     brief: lab.brief,
     safetyNote: lab.safetyNote ?? null,
     steps: lab.steps.map((s) => ({ text: s.text, ask: s.ask })),
-    rubric: lab.steps.map((s) => ({ parts: s.parts.map((p) => ({ label: p.label, criteria: p.criteria, modelAnswer: p.modelAnswer })) })),
+    rubric: lab.steps.map((s) => ({
+      parts: s.parts.map((p) => ({
+        label: p.label,
+        criteria: p.criteria,
+        modelAnswer: p.modelAnswer,
+        // REQ-189: only when set, so a written part's hash is unchanged.
+        ...(p.interactive ? { interactive: p.interactive } : {}),
+      })),
+    })),
   };
 }
 

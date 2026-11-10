@@ -9,6 +9,8 @@ import { ReportProblem } from "@/components/ReportProblem";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { useLabDraft } from "@/lib/useLabDraft";
+import { InteractivePartField, InteractiveResult } from "@/components/LabInteractive";
+import { answerToSend, knownInput, partAnswered } from "@/lib/labInteractive";
 import {
   LAB_PART_MAX,
   PART_STATE_LABEL,
@@ -35,6 +37,11 @@ import {
 // Accessibility: each answer field carries its part label; results rows are
 // single accessible elements with a spoken label; buttons are >= 48 dp;
 // colours are the theme's AA-checked tokens and state is always written out.
+//
+// REQ-189: a part with an interactive control (order, match, select,
+// command, numeric; src/components/LabInteractive.tsx) is answered with it
+// and checked instantly by rule on the server. Its answer is still one
+// string in the same draft, so leaving mid-step loses nothing.
 //
 // REQ-165 (Nick, 2026-11-09): no per-lab disclaimer, no "Awaiting expert
 // review" badge and no per-family "I understand" -- the one study notice,
@@ -231,17 +238,21 @@ function StepForm({
   const draft = useLabDraft(labId, runId, step.index, step.parts.length);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputs = step.parts.map((_, i) => knownInput(step.inputs?.[i]));
+  // What is sent: an order the learner never moved is still an answer.
+  const answers = draft.parts.map((p, i) => answerToSend(p, inputs[i]));
+  const ready = canSubmit(answers) && answers.some((a, i) => partAnswered(draft.parts[i] ?? "", inputs[i]) && a.trim());
 
   async function submit() {
-    if (!canSubmit(draft.parts)) return;
+    if (!ready) return;
     setBusy(true);
     setError(null);
-    const clientAttemptId = draft.idFor(answersSignature(step.index, draft.parts), () => Crypto.randomUUID());
+    const clientAttemptId = draft.idFor(answersSignature(step.index, answers), () => Crypto.randomUUID());
     try {
       const res = await api.post<LabSubmitResult>(`/api/labs/${labId}/submit`, {
         runId,
         step: step.index,
-        answers: draft.parts,
+        answers,
         clientAttemptId,
       });
       draft.clear();
@@ -257,7 +268,16 @@ function StepForm({
   return (
     <Card elevated>
       <StepHeader step={step} stepCount={stepCount} />
-      {step.parts.map((label, i) => (
+      {step.parts.map((label, i) =>
+        inputs[i] ? (
+          <InteractivePartField
+            key={i}
+            label={step.parts.length > 1 ? `Part ${i + 1}: ${label}` : label}
+            input={inputs[i]!}
+            value={draft.parts[i] ?? ""}
+            onChange={(v) => draft.setPart(i, v)}
+          />
+        ) : (
         <TextField
           key={i}
           label={step.parts.length > 1 ? `Part ${i + 1}: ${label}` : label}
@@ -269,14 +289,15 @@ function StepForm({
           maxLength={LAB_PART_MAX}
           autoCapitalize="sentences"
         />
-      ))}
+        )
+      )}
       <Muted style={{ fontSize: 12 }}>Your answers are saved on this device until you send them. This is fictional practice; don't enter real people's details.</Muted>
       {error ? <ErrorBanner message={error} onRetry={submit} /> : null}
       <Button
         label={last ? (stepCount > 1 ? "Check my last step" : "Check my answer") : "Check this step"}
         icon="send"
         loading={busy}
-        disabled={busy || !canSubmit(draft.parts)}
+        disabled={busy || !ready}
         onPress={submit}
       />
     </Card>
@@ -285,6 +306,7 @@ function StepForm({
 
 function GradedStep({ step, result, stepCount, isFinal }: { step: LabStepView; result: LabStepResult; stepCount: number; isFinal: boolean }) {
   const rows = partRows(result, step.parts);
+  const inputs = step.parts.map((_, i) => knownInput(step.inputs?.[i]));
   return (
     <Card>
       <StepHeader step={step} stepCount={stepCount} />
@@ -307,7 +329,11 @@ function GradedStep({ step, result, stepCount, isFinal }: { step: LabStepView; r
             {PART_STATE_LABEL[row.state]}
             {row.comment ? ` · ${row.comment}` : ""}
           </Muted>
-          <Muted style={{ fontSize: 13 }}>Your answer: {row.answer.trim() || "(blank)"}</Muted>
+          {inputs[i] && result.reference[i]?.key && result.responses ? (
+            <InteractiveResult input={inputs[i]!} response={result.responses[i] ?? ""} interactiveKey={result.reference[i]?.key} />
+          ) : (
+            <Muted style={{ fontSize: 13 }}>Your answer: {row.answer.trim() || "(blank)"}</Muted>
+          )}
           <Muted style={{ fontSize: 13, color: colors.text }}>Model answer: {row.modelAnswer}</Muted>
         </View>
       ))}

@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, matchPart } from "./types";
 import { source } from "../sources";
 
 // REQ-159: CompTIA SecAI+ CY0-001 (V1) -- verifiable labs beside the
@@ -57,6 +57,7 @@ export const SECAIPLUS_LABS: SeedLabSet = {
           text: "",
           ask: "Classify each capability and give a security consideration for each.",
           parts: [
+            matchPart("Technique for each capability", "(1) supervised machine learning; (2) generative AI, a large language model; (3) unsupervised learning / anomaly detection; (4) an LLM with retrieval-augmented generation. Reinforcement learning fits none. All four right is met; two or three is partly there.", "(1) Spam filter -> supervised learning (labelled good/spam examples, a classifier). (2) Incident summariser -> generative AI, an LLM. (3) Login anomaly system -> unsupervised learning / anomaly detection (no labels). (4) Policy assistant -> an LLM with retrieval-augmented generation (RAG) over the wiki. None of them learns from rewards, so reinforcement learning is not one of them.", { leftHeading: "Capability", rightHeading: "AI type", left: ["(1) Spam filter trained on labelled good/spam email", "(2) Chat assistant that writes incident summaries", "(3) Flags logins that deviate from learned normal, no labels", "(4) Answers policy questions by pulling from the wiki"], right: ["Supervised machine learning", "Generative AI (a large language model)", "Unsupervised learning / anomaly detection", "LLM with retrieval-augmented generation", "Reinforcement learning"], pairs: [0, 1, 2, 3] }),
             part(
               "Supervised vs. unsupervised learning",
               "Identifies (1) the spam filter as supervised machine learning (labelled training data, classification) and (3) the behaviour-anomaly system as unsupervised/anomaly detection (no labels), distinguishing the two.",

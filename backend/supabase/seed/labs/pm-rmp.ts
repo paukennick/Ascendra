@@ -1,4 +1,4 @@
-import { GENERAL_SAFETY, part, type SeedLabSet } from "./types";
+import { GENERAL_SAFETY, part, type SeedLabSet, numericPart, orderPart } from "./types";
 import { source } from "../sources";
 
 // REQ-150: PMI-RMP (PMI Risk Management Professional; ECO "updated January
@@ -236,15 +236,11 @@ export const PMIRMP_LABS: SeedLabSet = {
               "Places each risk in a sensible RBS category (for example R1 external/supplier or resources; R2 technical/quality; R3 technical/site conditions; R4 external/regulatory; R5 technical/safety).",
               "R1 External > suppliers; R2 Technical > quality and design; R3 Technical > site conditions; R4 External > regulatory; R5 Technical > structural and safety."
             ),
-            part(
-              "Priority order",
-              "Orders R4 before R1 (same score, R4 more urgent -- decision in 2 weeks), then R3 before R2 or justifies otherwise, and does not ignore R5 just because its score is low (very high impact, low probability: keep watching or treat via safety controls).",
-              "1 R4 (High, decision in 2 weeks); 2 R1 (High, 4 months to trigger); 3 R3 (Medium, higher impact than R2); 4 R2 (Medium); 5 R5 (Low score, but catastrophic impact -- it stays on the register under the lifting plan's safety controls, not ignored)."
-            ),
+            orderPart("Priority order", "Highest priority first: R4, R1, R3, R2, R5. R4 before R1 (same score of 15, but the planning decision is due in 2 weeks); R3 before R2 (same score of 8, higher impact). One risk out of place is partly there.", "1 R4 (High, decision in 2 weeks); 2 R1 (High, 4 months to trigger); 3 R3 (Medium, higher impact than R2); 4 R2 (Medium); 5 R5 (Low score, but catastrophic impact -- it stays on the register under the lifting plan's safety controls, not ignored).", ["R4 noise-hour restrictions", "R1 crane hire unavailable", "R3 asbestos in the old roof", "R2 rework of steel connections", "R5 structural failure during lifting"]),
             part(
               "Limits of the matrix",
-              "Notes a limitation of P x I scoring (ordinal scales, equal scores hiding different profiles, low-probability/high-impact risks) and what to do (urgency, quantitative analysis for the top risks).",
-              "Equal scores can hide very different risks (R2 and R3 both score 8), and ordinal scales can't be multiplied precisely. Use urgency and impact as tie-breakers, and quantify the top risks (EMV or schedule simulation) before committing reserve."
+              "Notes a limitation of P x I scoring (ordinal scales, equal scores hiding different profiles, low-probability/high-impact risks) and what to do (urgency, quantitative analysis for the top risks), including that R5's low score does not mean it can be dropped (catastrophic impact).",
+              "Equal scores can hide very different risks (R2 and R3 both score 8), and ordinal scales can't be multiplied precisely. Use urgency and impact as tie-breakers, and quantify the top risks (EMV or schedule simulation) before committing reserve. R5 scores low but its impact is catastrophic, so it stays on the register under safety controls."
             ),
           ],
         },
@@ -263,16 +259,8 @@ export const PMIRMP_LABS: SeedLabSet = {
           text: "",
           ask: "Analyse the decision.",
           parts: [
-            part(
-              "Expected value of A",
-              "Calculates EMV/expected cost of A = 400,000 + 0.3 x 150,000 = $445,000.",
-              "Expected cost of A = 400,000 + (0.3 x 150,000) = 400,000 + 45,000 = $445,000."
-            ),
-            part(
-              "Expected value of B",
-              "Calculates expected cost of B = 450,000 + 0.1 x 80,000 - 0.2 x 50,000 = $448,000, treating the rebate as an opportunity that reduces cost.",
-              "Expected cost of B = 450,000 + (0.1 x 80,000) - (0.2 x 50,000) = 450,000 + 8,000 - 10,000 = $448,000."
-            ),
+            numericPart("Expected cost of A", "Expected cost of A = 400,000 + 0.3 x 150,000 = $445,000. Met within $1.", "Expected cost of A = 400,000 + (0.3 x 150,000) = 400,000 + 45,000 = $445,000.", { answer: 445000, tolerance: 1, unit: "USD" }),
+            numericPart("Expected cost of B", "Expected cost of B = 450,000 + 0.1 x 80,000 - 0.2 x 50,000 = $448,000, the rebate being an opportunity that reduces cost. Met within $1.", "Expected cost of B = 450,000 + (0.1 x 80,000) - (0.2 x 50,000) = 450,000 + 8,000 - 10,000 = $448,000.", { answer: 448000, tolerance: 1, unit: "USD" }),
             part(
               "Decision and risk attitude",
               "States that A has the lower expected cost by $3,000, but compares worst cases (A $550,000; B $530,000) and notes that a risk-averse organisation might still choose B; the difference is small relative to the uncertainty.",
@@ -378,16 +366,8 @@ export const PMIRMP_LABS: SeedLabSet = {
           text: "",
           ask: "Reconcile the reserve and report.",
           parts: [
-            part(
-              "Reserve position",
-              "Calculates reserve drawn 55,000 + 40,000 = $95,000 and remaining 180,000 - 95,000 = $85,000.",
-              "Drawn: 55,000 + 40,000 = $95,000. Remaining: 180,000 - 95,000 = $85,000."
-            ),
-            part(
-              "Exposure vs remaining reserve",
-              "Calculates open exposure 40,000 + 25,000 + 18,000 + 12,000 = $95,000 (excluding the expired risk) and a shortfall of 95,000 - 85,000 = $10,000.",
-              "Open exposure: 40,000 + 25,000 + 18,000 + 12,000 = $95,000. Against $85,000 remaining, the reserve is $10,000 short."
-            ),
+            numericPart("Reserve remaining", "Drawn 55,000 + 40,000 = $95,000, so 180,000 - 95,000 = $85,000 remains. Met within $1.", "Drawn: 55,000 + 40,000 = $95,000. Remaining: 180,000 - 95,000 = $85,000.", { answer: 85000, tolerance: 1, unit: "USD" }),
+            numericPart("Shortfall against open exposure", "Open exposure, without the expired risk, is 40,000 + 25,000 + 18,000 + 12,000 = $95,000, so the reserve is $10,000 short (95,000 - 85,000). Met within $1.", "Open exposure: 40,000 + 25,000 + 18,000 + 12,000 = $95,000. Against $85,000 remaining, the reserve is $10,000 short.", { answer: 10000, tolerance: 1, unit: "USD" }),
             part(
               "Expired risk",
               "Closes the expired $30,000 risk (its trigger date passed) and explains that leaving it open would overstate exposure (it would show $125,000 against $85,000).",
