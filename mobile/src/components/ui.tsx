@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Animated,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
+import { SheetModal } from "@/components/SheetModal";
 import Feather from "@expo/vector-icons/Feather";
 import { createPressGuard } from "@/lib/pressGuard";
 import { BADGE_WASH, blend } from "@/lib/contrast";
@@ -721,7 +721,7 @@ export function ChoiceSheet({
 }) {
   if (!visible) return null;
   return (
-    <Modal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
+    <SheetModal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
       <Pressable style={styles.choiceBackdrop} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Dismiss">
         <Pressable style={styles.choiceSheet} onPress={(e) => e.stopPropagation()}>
           <Text style={[styles.h3, { marginBottom: message ? spacing.xs : spacing.md }]} accessibilityRole="header">
@@ -744,7 +744,7 @@ export function ChoiceSheet({
           </View>
         </Pressable>
       </Pressable>
-    </Modal>
+    </SheetModal>
   );
 }
 

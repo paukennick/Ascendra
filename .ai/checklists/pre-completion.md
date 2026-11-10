@@ -93,6 +93,13 @@
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens
   mounted (an overlay, not a navigation) and cannot be skipped by a restart.
+- Sessions (REQ-192, FAIL-690..692): every sign-out path revokes on the
+  server before clearing local state, whatever the device stores (a
+  biometric-sealed token included). The web app never stores a refresh
+  token: sign-in and refresh routes answer through `sessionResponse`
+  (lib/auth/refreshCookie.ts), and anything that reads the cookie checks
+  `cookieRequestAllowed` (Origin + platform header). A dialog or sheet uses
+  `SheetModal`, never React Native's `Modal`, so it hides under the lock.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

@@ -5,6 +5,7 @@ import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, Challe
 import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
+import { sessionResponse } from "@/lib/auth/refreshCookie";
 import {
   consumeRateLimit,
   recordAuthEvent,
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       userAgent: getUserAgent(req),
       ip: getClientIp(req),
     });
-    return ok(session);
+    return sessionResponse(req, session);
   } catch (err) {
     return serverError(err);
   }
