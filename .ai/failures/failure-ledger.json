@@ -15318,6 +15318,55 @@
       ],
       "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1360",
+      "date": "2026-11-11",
+      "title": "Turn-based sim ordered actions by timeAt, which cannot order actions at one tick",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA/nat-gateway-bill-spike draft: a golden path that added the endpoint before looking at any data scored 'investigated first' met and reached the target ending.",
+      "how_detected": "golden path review while authoring (guessFirst)",
+      "root_cause": "In a turns phase the clock only moves when a wait is skipped, so every action before the first skip has the same tick; the criterion compared timeAt(ceAt) <= timeAt(firstChangeAt), which is true for equal ticks.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json"
+      ],
+      "fix_summary": "The change actions set a changedBlind flag when the investigation is not complete; the criterion and the target read the flag.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.golden.json guessFirst (investigate partial",
+        "recovered)",
+        "replayed by lib/sim/documents.test.ts and npm run sims:lint"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 records it: in a turns phase, order actions with state set by the actions, never by timeAt.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1361",
+      "date": "2026-11-11",
+      "title": "A schedule.after param is read in seconds whatever its unit says",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "AWSSAA/nat-gateway-bill-spike draft: the 'one day per step' wait (param dayWait 1440, unit min) advanced 24 minutes, so the week ended at tick 72.",
+      "how_detected": "golden output (ended at tick 72 with a 1-minute tick)",
+      "root_cause": "schedule.after evaluates an expression in seconds; a param's unit is display and lint metadata only, and the linter does not check a non-second time unit on a param used as a delay.",
+      "requirement": "REQ-233",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSAA/nat-gateway-bill-spike.sim.json"
+      ],
+      "fix_summary": "dayWait is 86400 with unit s.",
+      "fix_commits": [],
+      "regression_tests": [
+        "every nat-gateway-bill-spike golden path pins its final tick (4320 with a 1-minute tick = three days)",
+        "replayed by lib/sim/documents.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "docs/sims.md 22.7 records it. A linter rule (a param used in schedule.after must have unit s) would prevent it; not added here because it would change engine/v1/validate.ts, which this wave leaves alone.",
+      "recurrence_of": ""
     }
   ]
 }
