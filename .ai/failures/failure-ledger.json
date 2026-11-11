@@ -14740,6 +14740,304 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1260",
+      "date": "2026-11-11",
+      "title": "Merge-conflict markers left in the pre-completion checklist on master",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "<<<<<<< HEAD / ======= / >>>>>>> origin/master around the REQ-216 and REQ-217 items in .ai/checklists/pre-completion.md",
+      "how_detected": "review",
+      "root_cause": "The G1-G6 merge into feature/eppp-course (e2930c0) committed an unresolved conflict in a markdown file; no check reads text files for markers, and the checklist is prose so nothing failed",
+      "requirement": "REQ-228",
+      "affected": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "fix_summary": "Both sides kept; markers removed",
+      "fix_commits": [
+        "f9bdc11"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::no merge-conflict markers in instructions and docs"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "ship-notes.test.ts fails CI on conflict markers in .ai/, docs/ and the top-level docs",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1261",
+      "date": "2026-11-11",
+      "title": "What's new stopped at 2026-11-07 through two releases",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The in-app What's new still showed the 2026-11-07 note after releases 2026-11-10 and 2026-11-11 and batches G1-G6 and EPPP shipped about thirty learner-visible changes",
+      "how_detected": "review",
+      "root_cause": "Writing the note was left to a later docs pass; the release playbook had no ship-notes step and nothing failed when a learner-facing change shipped without a note",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/release-notes.ts"
+      ],
+      "fix_summary": "Notes 2026-11-10, 2026-11-11 and 2026-11-11-b with covers; sims and aiCeiling gates",
+      "fix_commits": [
+        "23ab5bc",
+        "e7337bb"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts",
+        "backend/lib/release-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CHANGELOG entries since REQ-228 are tagged learner-facing or internal; a learner-facing one needs a note whose covers names it, or a stated reason, or CI fails",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1262",
+      "date": "2026-11-11",
+      "title": "Lesson screen said one correct solo answer earns Independent",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Solo note: 'a correct free-response answer earns Independent'; Independent advice: 'come back tomorrow' for Transfer-ready; contradicted migration 074 (REQ-218) and 045's 72-hour, two-format Transfer-ready rule",
+      "how_detected": "review",
+      "root_cause": "REQ-218 changed the rule in SQL only (G3 touched no mobile file); the explanation lived as inline strings in the lesson screen with no test tying it to the rule",
+      "requirement": "REQ-228",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/lesson/[objectiveId].tsx",
+        "mobile/src/content/legal.ts"
+      ],
+      "fix_summary": "Text moved to mobile/src/lib/masteryAdvice.ts and rewritten; FAQ mastery answer updated",
+      "fix_commits": [
+        "2b70ea1"
+      ],
+      "regression_tests": [
+        "mobile/src/lib/masteryAdvice.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 3 names masteryAdvice.ts and the FAQ; the test pins the confirmation wording",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1263",
+      "date": "2026-11-11",
+      "title": "FAQ, About and Sources escaped the US-spelling check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "'licence' in the FAQ and Sources, 'organisation' in Sources, after REQ-220 claimed learner text was US English",
+      "how_detected": "review",
+      "root_cause": "us-spelling-scope.ts excludes mobile/src/content/legal.ts whole to leave the Terms and Privacy for their next version, but the file also holds FAQ, About, Sources, Cookies and Disclaimer",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/us-spelling-scope.ts",
+        "mobile/src/content/legal.ts"
+      ],
+      "fix_summary": "Spellings fixed; a test reads FAQ, About and Sources from legal.ts",
+      "fix_commits": [
+        "2b70ea1"
+      ],
+      "regression_tests": [
+        "backend/lib/us-spelling.test.ts::legal.ts pages that are not Terms or Privacy are US English"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "The new test covers the non-legal pages in the excluded file",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1264",
+      "date": "2026-11-11",
+      "title": "Coach and delete-account page described older behavior",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The coach had no account of REQ-218's confirmation rule; /delete-account said confirm with your password (Google-only accounts have none since REQ-203), listed course disclaimers, and omitted the study profile, labs, sims, exam results and the 18+ confirmation",
+      "how_detected": "review",
+      "root_cause": "Features that changed these behaviors (REQ-203, REQ-169, REQ-165, REQ-218, REQ-224) updated code and the inventory but not the descriptive text elsewhere",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/prompts.ts",
+        "backend/app/delete-account/page.tsx"
+      ],
+      "fix_summary": "Coach rules state the rule; delete-account page lists proof options and what is deleted",
+      "fix_commits": [
+        "aa993b0"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Descriptive prose; legal-privacy-f4.test.ts already pins the delete-account page's retention facts",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 3 lists coachRules and the backend's public pages",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1265",
+      "date": "2026-11-11",
+      "title": "Data inventory stopped at migration 070 and placed the web token in sessionStorage",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Inventory said migrations 001-070; missing totp_last_step and inbound_email_events (075) and its 7-day purge; said the web token lives in sessionStorage and there are no cookies, though REQ-192 moved it to the ascendra_rt httpOnly cookie",
+      "how_detected": "review",
+      "root_cause": "The DB test only checks tables with a user_id; columns, user-less tables and on-device storage had no check, and nothing tied the inventory to the migration count",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Inventory updated to 077; device table corrected",
+      "fix_commits": [
+        "1a2832a"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts::the data inventory is checked against every migration"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "CI fails when the inventory's 'up to migration NNN' is older than the newest migration",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1266",
+      "date": "2026-11-11",
+      "title": "content-review.md described holdbacks before REQ-216",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Doc said listed uncertain claims hold content back and a held objective waits 6 hours",
+      "how_detected": "review",
+      "root_cause": "REQ-216 changed lib/generation-gate.ts and the cooldown without updating the doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/content-review.md"
+      ],
+      "fix_summary": "Doc rewritten for the REQ-216 rules",
+      "fix_commits": [
+        "1c4fe0c"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Prose; the rule itself is tested in lib/generation-gate.test.ts",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1267",
+      "date": "2026-11-11",
+      "title": "Taxonomy doc counted 14 categories",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "education-taxonomy.md said 14 primary categories; migrations 019, 057 and 077 make 21",
+      "how_detected": "review",
+      "root_cause": "Category-adding migrations did not touch the taxonomy doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/education-taxonomy.md"
+      ],
+      "fix_summary": "Count and sources corrected",
+      "fix_commits": [
+        "fe92db5"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Prose count; checked by hand against the migrations",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1268",
+      "date": "2026-11-11",
+      "title": "Support process missed question reports, coach-reply reports, the support inbox and lesson-fixes",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "docs/support-process.md listed three request kinds and told the operator to delete lesson_content rows by hand",
+      "how_detected": "review",
+      "root_cause": "REQ-114, REQ-165, REQ-187, REQ-205 and REQ-219 added intake paths and the lesson-fixes tool without updating the process doc",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/support-process.md"
+      ],
+      "fix_summary": "Doc covers all intake paths and the lessons:fix workflow; EMS and mental health in the clinical triage",
+      "fix_commits": [
+        "4474586"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Process prose",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1269",
+      "date": "2026-11-11",
+      "title": "Play listing draft out of date with the catalog and decisions",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Listing said 'practise', a 1/7/21-day review ladder, omitted EMS, mental health, Kubernetes and programming, and left the minimum age open after Nick set 16",
+      "how_detected": "review",
+      "root_cause": "Store text is only revisited at store submission; no release step pointed at it",
+      "requirement": "REQ-228",
+      "affected": [
+        "docs/play-store/listing-draft.md"
+      ],
+      "fix_summary": "Store text, audience and health declaration updated; Data safety flagged as not re-checked",
+      "fix_commits": [
+        "9cdb7cb"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Store copy; checked at submission",
+      "prevention_rules": [
+        ".ai/playbooks/release.md"
+      ],
+      "prevention_notes": "Ship notes step 4 names the listing",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1270",
+      "date": "2026-11-11",
+      "title": "No step or check made shipments update What's new and the docs that describe them",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Learner-facing text and docs drifted across every 2026-11-10/11 shipment (FAIL-1261 to FAIL-1269)",
+      "how_detected": "review",
+      "root_cause": "The release playbook said only 'README and design docs match'; the pre-completion list had no What's new item; nothing in CI linked CHANGELOG entries to release notes",
+      "requirement": "REQ-228",
+      "affected": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md",
+        "backend/lib/ship-notes.test.ts",
+        "CHANGELOG.md"
+      ],
+      "fix_summary": "Ship notes playbook step, checklist line, CHANGELOG tag convention and the ship-notes CI test",
+      "fix_commits": [
+        "f9bdc11",
+        "e7337bb"
+      ],
+      "regression_tests": [
+        "backend/lib/ship-notes.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "CI fails on an untagged or uncovered learner-facing entry",
+      "recurrence_of": ""
     }
   ]
 }
