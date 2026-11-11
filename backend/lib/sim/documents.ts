@@ -38,6 +38,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "tamponade-after-cabg"),
   entry("AWSSAA", "ticketburst-launch-day"),
   band("AWSSAP", "ticketburst-launch-day-sap"),
+  // ---- REQ-223 (batch S2b): post-op hemorrhage (CCRN Adult), choking and a
+  // fall (CNA, nurse-aide scope). Keep these entries together. ----
+  entry("CCRNADULT", "bleeding-after-whipple"),
+  // ---- end REQ-223 (S2b) ----
 ];
 
 export interface Compiled {
