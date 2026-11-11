@@ -1,6 +1,6 @@
 # Ascendra education taxonomy and freshness model
 
-Ascendra uses the taxonomy for navigation and classification, not as a substitute for curriculum records. The database contains all 14 primary categories (13 from REQ-020, plus Healthcare & Nursing from REQ-022) and their subcategories.
+Ascendra uses the taxonomy for navigation and classification, not as a substitute for curriculum records. The database contains 21 primary categories and their subcategories: 13 from REQ-020 (migration 007), Healthcare & Nursing (REQ-022, 013), six certification-vendor categories (AWS, Azure, Google Cloud, CompTIA, project management and Cloud Native & Kubernetes; migrations 019 and 057), and Mental Health (REQ-224, 077), whose courses are behind a one-time 18+ confirmation (`lib/mature-content.ts`). Physical therapy (020), health informatics (024) and emergency medical services (061) are subcategories, not categories. Count checked against the migrations on 2026-11-11 (REQ-228).
 
 The home screen (`mobile/app/(app)/index.tsx`) groups a learner's courses by category, favorites pulled out on top, since `GET /api/courses` now joins each track's subcategory, category, and freshness status onto the row it returns (REQ-036). Each course card also shows a freshness badge -- Verified, Review due, or Unverified -- driven directly by the freshness status below.
 
