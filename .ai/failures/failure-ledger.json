@@ -15293,6 +15293,31 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1272",
+      "date": "2026-11-11",
+      "title": "What's new seen-route tests assumed the newest written note is shown",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "whats-new.dbtest: POST /api/whats-new/seen with LATEST_RELEASE_NOTE_ID answered 400 'That release note doesn't exist.' in CI",
+      "how_detected": "CI Database job on PR #135",
+      "root_cause": "The newest note (2026-11-11-c) is gated on sims, off in CI; the seen route correctly accepts only a note the server shows, but the tests sent the newest written id",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "fix_summary": "Seen-route tests use the newest shown note; sign-up tests keep the newest written id (new accounts start past every note, gated or not)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
+      "recurrence_of": ""
     }
   ]
 }
