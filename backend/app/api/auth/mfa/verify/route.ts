@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { getLoginChallenge, getChallengeEmailCode, consumeLoginChallenge, ChallengeError } from "@/lib/auth/mfaChallenge";
-import { verifyTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
+import { spendTotpCode, verifyBackupCode, verifyEmailCode } from "@/lib/auth/mfa";
 import { decrypt } from "@/lib/auth/crypto";
 import { completeLogin } from "@/lib/auth/session";
 import { sessionResponse } from "@/lib/auth/refreshCookie";
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       throw err;
     }
 
-    let matched = user.totp_secret_enc ? await verifyTotpCode(decrypt(user.totp_secret_enc), code) : false;
+    let matched = user.totp_secret_enc ? await spendTotpCode(user.id, decrypt(user.totp_secret_enc), code) : false;
 
     if (!matched && user.email_mfa_enabled) {
       const emailCode = await getChallengeEmailCode(challenge.id);

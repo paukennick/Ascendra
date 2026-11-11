@@ -3,7 +3,7 @@ import { UserFacingError } from "@/lib/http";
 import { accessFor } from "@/lib/account-access";
 import { globalSpendSinceUsd } from "@/lib/ai-budget";
 import { allowanceLimit, billingEnabled } from "@/lib/billing-config";
-import { recordCountedUse, whenPhrase, type AllowanceUse } from "@/lib/entitlements";
+import { recordCountedUse, whenPhrase, GIVES_ACCESS, type AllowanceUse } from "@/lib/entitlements";
 import {
   CEILING_CACHE_MS,
   COACH_PREVIEW_MESSAGE,
@@ -43,9 +43,10 @@ export class AiAccessError extends UserFacingError {
 // Who the learner is
 // ---------------------------------------------------------------------------
 
-const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
-       and (period_end is null or period_end + make_interval(hours => 24) > now())`;
-
+// REQ-219 (FAIL-1118): the paid-access rule is lib/entitlements.ts's (status and
+// the grace hours after a period ends). It was copied here with the grace
+// hard-coded as 24, so changing the grace in one place left "paying" in
+// paid AI mode disagreeing with the learner's actual tier.
 export async function aiUserKind(userId: string, env: Env = process.env): Promise<AiUserKind> {
   const access = await accessFor(userId, env).catch(() => null);
   if (access?.level === "owner") return "owner";

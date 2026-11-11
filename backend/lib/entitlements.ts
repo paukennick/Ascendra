@@ -86,7 +86,7 @@ import {
 // Hours past period_end that a paid entitlement still counts, in case a
 // renewal's webhook arrives late. An EXPIRATION, refund or deletion event
 // ends access at once regardless.
-const GRACE_HOURS = 24;
+export const GRACE_HOURS = 24;
 
 export class UpgradeRequiredError extends UserFacingError {
   constructor(
@@ -136,7 +136,9 @@ export interface EntitlementRow {
   customer_ref: string | null;
 }
 
-const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
+// REQ-219 (FAIL-1118): also read by lib/ai-access.ts (paid AI mode), so the grace
+// hours are defined once.
+export const GIVES_ACCESS = `status in ('active', 'canceled', 'billing_issue')
        and (period_end is null or period_end + make_interval(hours => ${GRACE_HOURS}) > now())`;
 
 // The entitlement that sets this learner's tier (highest tier, then latest end).

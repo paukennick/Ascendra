@@ -103,7 +103,7 @@ export default function Sessions() {
           ))}
         </Card>
       ) : null}
-      <Muted>Signing out a device ends that session immediately — it will need to sign in again.</Muted>
+      <Muted>Signing out a device stops it from renewing its sign-in. It can keep working for up to 15 more minutes, then it will need to sign in again.</Muted>
     </Screen>
   );
 }
