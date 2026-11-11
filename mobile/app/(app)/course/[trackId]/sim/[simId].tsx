@@ -6,12 +6,12 @@ import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen 
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { capsHeaders } from "@/sim/runtime/caps.ts";
-import { alarmTexts, runView, vitalsSentence } from "@/sim/runtime/view.ts";
+import { alarmTexts, runView, sessionAlarmTexts, sessionNews, vitalsSentence, type SessionView } from "@/sim/runtime/view.ts";
 import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
-import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
+import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow, sessionSentence } from "@/sim/SimPanels";
 import { launchView, needsLaunchChoice, paceChangeable, paceOptions, simClock, teachFeedback, teachOffer, type LaunchChoice } from "@/sim/runtime/pacing.ts";
 import { useGoBack } from "@/lib/useGoBack";
 import { isNotFound } from "@/lib/notFound";
@@ -21,9 +21,10 @@ import { LoadError } from "@/components/LoadError";
 // clock and Pause on top, the vitals (bedside) or the architecture (board),
 // skips while something is pending, the action groups, decision cards and
 // the written-reasoning box (both stop the clock), the event log; then the
-// server's debrief. Content is served under the one study notice (REQ-165):
-// the server refuses a clinical sim until it is accepted, and its message is
-// shown as is.
+// server's debrief. REQ-225: a client session shows the client
+// (SessionPanel) where the vitals or the architecture would be. Content is
+// served under the one study notice (REQ-165): the server refuses a clinical
+// sim until it is accepted, and its message is shown as is.
 
 interface SimInfo {
   sim: {
@@ -47,6 +48,8 @@ export default function SimScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const sim = useSimRun(simId);
   const announcer = useRef(newAnnouncer());
+  // REQ-225: the client session as last announced, to speak what changed.
+  const lastSession = useRef<SessionView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
 
@@ -69,7 +72,9 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const r = announce(announcer.current, { alarms: alarmTexts(view.tiles), log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning });
+    const news = sessionNews(lastSession.current, view.session);
+    lastSession.current = view.session;
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -171,6 +176,7 @@ export default function SimScreen() {
           {view.banner ? <Card><View accessibilityLiveRegion="polite"><Body>{view.banner}</Body></View></Card> : null}
 
           <VitalsPanel tiles={view.tiles} onRead={() => AccessibilityInfo.announceForAccessibility(vitalsSentence(view.tiles))} />
+          <SessionPanel v={view.session} said={view.finding} onRead={() => view.session && AccessibilityInfo.announceForAccessibility(sessionSentence(view.session, view.finding))} />
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}
           <TopologyPanel zones={view.board.zones} meters={view.board.meters} />
 
@@ -187,7 +193,7 @@ export default function SimScreen() {
 
           {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
           {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
           <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
           {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}

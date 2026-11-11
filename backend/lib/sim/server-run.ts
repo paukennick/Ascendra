@@ -30,8 +30,10 @@ export function simsEnabled(env: Record<string, string | undefined> = process.en
 
 // SIMS_RENDERERS: the screen types that are on. The design's default was
 // "bedside"; Nick's first flagship is the TicketBurst board (19.4 item 1),
-// so the default is both renderers this release ships.
-export const DEFAULT_RENDERERS = ["bedside", "board"] as const;
+// so the default is both renderers this release ships. REQ-225 adds the
+// client session (the people layer) to the default so testers see it;
+// SIMS_RENDERERS=bedside,board turns it off again without a release.
+export const DEFAULT_RENDERERS = ["bedside", "board", "session"] as const;
 export function renderersOn(env: Record<string, string | undefined> = process.env): string[] {
   const raw = env.SIMS_RENDERERS;
   if (raw === undefined || raw.trim() === "") return [...DEFAULT_RENDERERS];

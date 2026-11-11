@@ -138,7 +138,7 @@ export const reasoningMomentSchema = z.object({
 export const outcomeClassSchema = z.enum(["target", "recovered", "harm"]);
 
 export const outcomeSpecSchema = z.object({
-  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data"]),
+  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session"]),
   thresholds: z.record(id, z.object({ value: z.number(), source: sourceSchema })),
   noProgress: z.object({ when: expr, class: outcomeClassSchema, rationale: z.string(), source: sourceSchema }),
 });
@@ -181,6 +181,16 @@ export const screenSpecSchema = z.object({
     .object({
       zones: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), items: z.array(z.object({ label: template, when: expr })) })),
       meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
+    })
+    .optional(),
+  session: z
+    .object({
+      client: z.object({ name: z.string(), presentation: template }),
+      gauges: z.array(
+        z.object({ id, label: z.string(), spokenLabel: z.string(), value: expr, max: z.number(), bands: z.array(z.number()), words: z.array(z.string()) }),
+      ),
+      notes: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional(), alert: expr.optional() })).optional(),
+      record: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
     })
     .optional(),
 });
