@@ -64,6 +64,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("SECPLUSV8", "phish-to-account-takeover-v8"),
   entry("SECPLUS", "ransomware-file-server"),
   band("SECPLUSV8", "ransomware-file-server-v8"),
+  entry("SECPLUS", "cloud-iam-backdoor"),
+  band("SECPLUSV8", "cloud-iam-backdoor-v8"),
   // ---- end REQ-231 ------------------------------------------------------
 ];
 
