@@ -639,6 +639,53 @@ The log never contains prompts, lesson text or claims (the held-back claims are 
 `item_holdbacks`). To rehearse without cost, `npm run pregen -- --submit
 --tracks ... --max-usd 110 --dry-run` builds every request and sends nothing.
 
+## Generating sims (REQ-230)
+
+`npm run sims:generate` (backend) drafts one sim at a time for a course
+sub-objective and a screen (bedside, board or session), runs every gate and
+an independent fact check, and writes a draft that passes as files for a
+person to register. It never registers a sim, never touches the database,
+and sends nothing without `--run`. Design and gates: docs/sims.md 12.2.
+
+**Key and spend.** It uses only `ANTHROPIC_PREGEN_API_KEY`, the
+pre-generation workspace's key (set up under "Pre-generating lessons"
+(a)), so its spend sits under that workspace's limit and shows on its usage
+page, not in the app's `ai_calls` or daily ceiling. With no key, `--run`
+stops before any call and says so. Each run is also capped by `--max-usd`
+(default $3): before every call it adds the largest that call could cost
+(prompt plus the full output limit) and stops instead of passing the cap.
+Nick's plan: measure the first 20 drafts, then set a separate monthly sim
+budget from `--cost-summary`.
+
+**Steps** (from `backend/`, locally, with the key in the shell or in
+`backend/.env.local`):
+
+1. Pick objectives: `npm run sims:generate -- --select --course CCRNADULT`.
+   The list is a keyword screen with the reason recorded for each; a person
+   chooses. Objectives that already have a sim are listed last (breadth
+   before variants).
+2. Estimate: the same command with `--objective "<exact title>" --screen
+   bedside` and no `--run`. Read the prompt it writes under
+   `sim-drafts/prompts/` once per screen type.
+3. Generate: add `--run` (and `--idea "<seed idea>"` if you have one).
+   Exit 0 is ready, 2 is held, 1 is an error (no key, unknown objective,
+   bad arguments).
+4. Ready: read `sim-drafts/ready/<COURSE>/<slug>.sim.json`, then follow
+   `<slug>.register.md` (two `mv` lines, one `entry(...)` line in
+   `lib/sim/documents.ts`, then `npm run sims:lint`, `npm test` and
+   `npm run sim:cross-runtime -- engine-print`). It seeds as
+   `needs_expert_review` like every sim.
+5. Held: `sim-drafts/held/<COURSE>/<time>-<slug>/reasons.json` says which
+   gate failed on each attempt. `check_did_not_run` means the fact-check
+   call failed (not a verdict): run the same command again. `budget` means
+   the next call could have passed `--max-usd`.
+6. After each batch: `npm run sims:generate -- --cost-summary` (drafts,
+   ready, held, mean, median and highest cost per draft, cost per ready
+   sim). Every draft's own report is in `sim-drafts/reports/`.
+
+`sim-drafts/` is git-ignored; nothing in it is committed until a ready draft
+is moved into the seed.
+
 ## CI
 
 - `backfill` job: applies 001-028, loads `scripts/ci/synthetic-history.sql`

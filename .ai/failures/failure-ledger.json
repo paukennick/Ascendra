@@ -15318,6 +15318,31 @@
       ],
       "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1300",
+      "date": "2026-11-11",
+      "title": "Generator key-order gate reversed the teaching map and failed every paced clinical draft",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The first key-order gate replayed golden paths with every object reversed; the Whipple bleed's expert path was rejected in reversed order ('teaching prompt bridge is not offered now'), so a valid clinical draft with two or more teaching prompts could never pass.",
+      "how_detected": "lib/sim/generator/generator.test.ts during development (mocked pipeline run on the Whipple case), before any commit",
+      "root_cause": "teachingDue still offers the first due teaching prompt in key order (FAIL-1250, open). lib/sim/storage-order.test.ts already leaves that one map out of its reversal; the generator's copy of the check was written from the lint rule (endingOrderProblems) instead of from the storage-order test, so it missed the known exception.",
+      "requirement": "REQ-230",
+      "affected": [
+        "backend/lib/sim/generator/gates.ts::storageKeyProblems"
+      ],
+      "fix_summary": "The reversed copy keeps the teaching map as written, exactly as storage-order.test.ts does; the jsonb order (what the app and server read) is still checked in full.",
+      "fix_commits": [
+        "69b4f2f"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/generator/generator.test.ts::key order (FAIL-1300)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A regression test replays the Whipple case (teaching prompts) through the gate and was confirmed to fail without the exception; docs/sims.md 12.2 gate 6 names FAIL-1250 so the exception is removed together with the fix for FAIL-1250.",
+      "recurrence_of": ""
     }
   ]
 }
