@@ -178,7 +178,70 @@
 //     possible. Objective 4/39 now says so; MAP target 65 mm Hg is that
 //     guideline's initial target but was left out as before.
 
-import type { SeedTrack } from "../data";
+import type { SeedTrack, UnitSource } from "../data";
+
+// REQ-235 (batch H wave 1): dated key values for the units that had none.
+// Respiratory and endocrine values were read on 2026-11-11 (the ARDS
+// guideline in ATS's own PDF; the hyperglycemic-crises consensus through the
+// Cleveland Clinic Journal of Medicine's 2025 summary of it, since the
+// Diabetes Care full text refused automated access). The cardiovascular
+// values are carried from the audit recorded in this file's header (read
+// 2026-10-31, not re-read in this batch), dated as read.
+export const CCRN_ADULT_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  // The test plan itself (handbook pp.10-13), read 2026-10-31 per the header.
+  "Professional Caring & Ethical Practice": [
+    {
+      title: "AACN CCRN Exam Handbook - Direct Care (July 2026), Adult CCRN Test Plan (exams on and after 2025-11-12) and Synergy Model competencies",
+      url: "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      kind: "exam_outline",
+      checkedAt: "2026-10-31",
+    },
+  ],
+  Cardiovascular: [
+    {
+      title: "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease (Circulation, doi:10.1161/CIR.0000000000001106)",
+      url: "https://doi.org/10.1161/CIR.0000000000001106",
+      kind: "clinical_guideline",
+      checkedAt: "2026-10-31",
+      keyValues: [
+        "acute aortic dissection: immediate IV beta blockade first; systolic BP below 120 mm Hg (or the lowest that preserves end-organ perfusion) and heart rate 60-80 bpm; type A goes to emergency surgery, uncomplicated type B starts with medical therapy",
+      ],
+    },
+    {
+      title: "2025 AHA/ACC et al. Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults (Circulation, doi:10.1161/CIR.0000000000001356)",
+      url: "https://doi.org/10.1161/CIR.0000000000001356",
+      kind: "clinical_guideline",
+      checkedAt: "2026-10-31",
+      keyValues: [
+        "above 180/120 mm Hg with acute target-organ damage is a hypertensive emergency (hospital, IV agents); without it the guideline says severe hypertension, managed with oral drugs, not 'urgency'",
+      ],
+    },
+  ],
+  Respiratory: [
+    {
+      title: "ATS/ESICM/SCCM Clinical Practice Guideline: Mechanical Ventilation in Adult Patients with ARDS (Am J Respir Crit Care Med 2017)",
+      url: "https://www.thoracic.org/statements/resources/cc/ards-guidelines.pdf",
+      kind: "clinical_guideline",
+      checkedAt: "2026-11-11",
+      keyValues: [
+        "all ARDS: lower tidal volumes, 4-8 mL/kg predicted body weight, and plateau pressure below 30 cm H2O (strong recommendation)",
+        "severe ARDS: prone positioning for more than 12 hours a day (strong recommendation)",
+      ],
+    },
+  ],
+  "Endocrine, Hematology/Immunology, GI, Renal/GU, Integumentary": [
+    {
+      title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report (Diabetes Care 2024;47(8):1257-1275, doi:10.2337/dci24-0032)",
+      url: "https://doi.org/10.2337/dci24-0032",
+      kind: "clinical_guideline",
+      checkedAt: "2026-11-11",
+      keyValues: [
+        "DKA: glucose 200 mg/dL or more or known diabetes; beta-hydroxybutyrate 3.0 mmol/L or more (or urine ketones 2+ or more); pH below 7.3 and/or bicarbonate below 18 mmol/L",
+        "HHS: glucose 600 mg/dL or more; calculated effective serum osmolality above 300 mOsm/kg (or total above 320); beta-hydroxybutyrate below 3.0 mmol/L; pH 7.3 or more and bicarbonate 15 mmol/L or more",
+      ],
+    },
+  ],
+};
 
 const VERIFIED_AT = "2026-10-31T00:00:00Z";
 const REVIEW_DUE_AT = "2027-10-31T00:00:00Z";
@@ -241,6 +304,7 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
   units: [
     {
       title: "Cardiovascular",
+      sources: CCRN_ADULT_UNIT_SOURCES["Cardiovascular"],
       weight: 13,
       gate: "Given a critically ill adult's rhythm strip, hemodynamic numbers and bedside findings, name the cardiovascular problem, spot falling cardiac output early, and choose the nursing priority and the device or procedure care it calls for.",
       objectives: [
@@ -290,6 +354,7 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
     },
     {
       title: "Respiratory",
+      sources: CCRN_ADULT_UNIT_SOURCES["Respiratory"],
       weight: 12,
       gate: "Given a deteriorating adult's breathing, gases and ventilator or oxygen settings, identify the respiratory problem, choose the right level of support, and prevent or catch the complications that support brings.",
       objectives: [
@@ -341,6 +406,7 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
     },
     {
       title: "Endocrine, Hematology/Immunology, GI, Renal/GU, Integumentary",
+      sources: CCRN_ADULT_UNIT_SOURCES["Endocrine, Hematology/Immunology, GI, Renal/GU, Integumentary"],
       weight: 21,
       gate: "Given a critically ill adult with a metabolic, blood, abdominal, kidney or skin problem, identify it from labs and findings, pick the priority intervention, and manage the therapy it needs -- insulin, blood products, nutrition, dialysis or wound devices.",
       objectives: [
@@ -430,9 +496,17 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
           title: "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (Stroke, 2026)",
           url: "https://professional.heart.org/en/guidelines-statements/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-strokestr0000000000000513",
           kind: "clinical_guideline",
-          checkedAt: "2026-11-08",
+          // REQ-235 (G5 follow-up), re-checked 2026-11-11: the guideline is
+          // Prabhakaran et al., Stroke, online 2026-01-26,
+          // doi:10.1161/STR.0000000000000513 (PubMed 41582814), replacing the
+          // 2018 guideline and 2019 update. The full text refused automated
+          // access; 185/110 and 180/105 were confirmed through the UIC Drug
+          // Information Group's summary of it (April 2026), and the <140 mm Hg
+          // line from AHA's own "Top Things to Know" page. Unchanged values.
+          checkedAt: "2026-11-11",
           keyValues: [
             "blood pressure below 185/110 mm Hg before IV thrombolysis, and below 180/105 mm Hg for at least 24 hours after it",
+            "intensive systolic lowering to below 140 mm Hg is not recommended after reperfusion, even when reperfusion is complete",
           ],
         },
       ],
@@ -503,12 +577,18 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
           title: "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
           url: "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
           kind: "clinical_guideline",
-          checkedAt: "2026-11-08",
+          // REQ-235 (G5 follow-up), re-read on the SCCM page 2026-11-11
+          // (Prescott et al., Crit Care Med 2026, doi:10.1097/CCM.0000000000007075,
+          // co-published in Intensive Care Med). One wording fixed: the
+          // guideline says blood cultures "as soon as possible and ideally
+          // before" antimicrobials, not strictly before; the 3-hour window
+          // runs from when sepsis was first suspected. Numbers unchanged.
+          checkedAt: "2026-11-11",
           keyValues: [
             "initial MAP target 65 mm Hg (60-65 suggested from age 65)",
-            "at least 30 mL/kg IV crystalloid within the first 3 hours for sepsis-induced hypoperfusion",
+            "at least 30 mL/kg IV crystalloid within the first 3 hours for sepsis-induced hypoperfusion or septic shock (a conditional suggestion)",
             "norepinephrine as the first-line vasopressor",
-            "blood cultures before antimicrobials; antimicrobials within 1 hour for possible, probable or definite septic shock and for probable or definite sepsis, and within 3 hours, after rapid assessment, when sepsis without shock is only possible",
+            "blood cultures as soon as possible and ideally before antimicrobials (do not delay the antimicrobials for them); antimicrobials immediately, ideally within 1 hour, for possible, probable or definite septic shock and for probable or definite sepsis; within 3 hours of first suspicion, after rapid assessment, when sepsis without shock is only possible",
           ],
         },
       ],
@@ -576,6 +656,7 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
     },
     {
       title: "Professional Caring & Ethical Practice",
+      sources: CCRN_ADULT_UNIT_SOURCES["Professional Caring & Ethical Practice"],
       weight: 20,
       gate: "Given a critical-care situation with an ethical, family, team or system dimension, choose the nursing response that fits the Synergy Model -- advocating, teaching, collaborating or navigating the system as the patient's needs require.",
       objectives: [

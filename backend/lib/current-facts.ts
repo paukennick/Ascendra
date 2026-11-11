@@ -42,7 +42,7 @@ export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): 
     lines.push(`- ${kind}: ${k.name}, version ${k.version}.`);
     checked = checked ?? dayOf(k.checkedAt);
   }
-  lines.push(...unitReferenceLines(track, unitTitle));
+  lines.push(...(unitTitle ? unitReferenceLines(track, unitTitle) : courseOutlineLines(track)));
   if (!lines.length) return null;
   return [
     `Current facts for this course (from its recorded outline${checked ? `, last checked ${checked}` : ""}):`,
@@ -57,10 +57,34 @@ export function currentFactsBlock(track: SeedTrack, unitTitle?: string | null): 
 // batch that spans units).
 export function unitReferenceLines(track: SeedTrack, unitTitle?: string | null): string[] {
   const unit = unitTitle ? track.units.find((u) => u.title === unitTitle && !u.retiredAt) : undefined;
-  return (unit?.sources ?? []).map((r) => {
-    const values = r.keyValues?.length ? ` Key values (use these over any older value you remember): ${r.keyValues.join("; ")}.` : "";
-    return `- Reference for this unit: ${r.title} (${r.url}), checked ${r.checkedAt}.${values}`;
-  });
+  const sources = unit?.sources ?? [];
+  // REQ-235: the official outline statements come first, so the writer and
+  // the checker read the outline's own wording before any reference.
+  const outline = sources
+    .filter((r) => r.outline?.length)
+    .map((r) => `- Official outline for this unit (${r.title}, checked ${r.checkedAt}; teach and test to these statements): ${r.outline!.map(endSentence).join(" ")}`);
+  const refs = sources
+    .filter((r) => !r.outline?.length || r.keyValues?.length)
+    .map((r) => {
+      const values = r.keyValues?.length ? ` Key values (use these over any older value you remember): ${r.keyValues.join("; ")}.` : "";
+      return `- Reference for this unit: ${r.title} (${r.url}), checked ${r.checkedAt}.${values}`;
+    });
+  return [...outline, ...refs];
+}
+
+const endSentence = (s: string) => (/[.!?]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
+
+// REQ-235: with no unit in context (a whole-course prompt: comparison cards,
+// a review batch's framing, chat), the official outline headings of every
+// taught unit, so a course-wide writer and its checker still see the
+// outline's wording. Headings only; a unit's key values stay with the unit.
+export function courseOutlineLines(track: SeedTrack): string[] {
+  const units = track.units.filter((u) => !u.retiredAt && u.sources?.some((r) => r.outline?.length));
+  if (!units.length) return [];
+  return [
+    "- Official outline, by unit (teach and test to these statements):",
+    ...units.map((u) => `  - ${u.title}: ${u.sources!.flatMap((r) => r.outline ?? []).map(endSentence).join(" ")}`),
+  ];
 }
 
 let byCode: Promise<Map<string, SeedTrack>> | null = null;

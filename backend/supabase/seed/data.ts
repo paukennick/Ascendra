@@ -43,6 +43,15 @@ export interface UnitSource extends SourceRef {
   // (lib/current-facts.ts), so a lesson cannot teach an older value than the
   // course's own lab.
   keyValues?: string[];
+  // REQ-235: the official outline statements this unit is built on, as
+  // printed at this source on checkedAt (an exam guide's task statements, an
+  // exam objective's numbered heading, a regulation's curriculum line). The
+  // lesson writer and the fact-checker are given the same statements
+  // (lib/current-facts.ts), so both work from the outline's own wording, not
+  // from our paraphrased objective titles. Headings only where the outline is
+  // copyrighted (the repo's paraphrase rule, e.g. tracks/nursing.ts header);
+  // full text where it is public domain (42 CFR).
+  outline?: string[];
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*
@@ -442,6 +451,80 @@ const COMPTIA_VERIFIED_AT = "2026-11-07T00:00:00Z";
 // REQ-220 (FAIL-1130): two IAM lines sat outside SY0-701's 4.6; retired in
 // place (row ids and history kept) and taught by the appended 4.6 lines.
 const SECPLUS_V7_PLACEMENT_RETIRED_AT = "2026-11-10T00:00:00Z";
+// REQ-235 (batch H wave 1): each unit names the SY0-701 objectives it covers,
+// by CompTIA's numbered headings (headings only; the bullets stay
+// paraphrased in the objectives, the repo's copyright rule). Read 2026-11-11
+// from "CompTIA Security+ SY0-701 Certification Exam: Exam Objectives
+// Version 5.0" (Copyright 2023 CompTIA), the unaltered PDF republished at the
+// URL below (CompTIA serves its copy behind a form on
+// https://www.comptia.org/en-us/certifications/security/v7/). The writer and
+// the fact-checker get these statements (lib/current-facts.ts).
+const SY0701_PDF = "https://laurelridgeworkforce.com/wp-content/uploads/2025/01/CompTIA-Security-SY0-701-Exam-Objectives-1.pdf";
+const sy0701 = (domain: string, outline: string[]): UnitSource => ({
+  title: `CompTIA Security+ SY0-701 Exam Objectives V5.0, domain ${domain}`,
+  url: SY0701_PDF,
+  kind: "exam_outline",
+  checkedAt: "2026-11-11",
+  outline,
+});
+export const SECPLUS_UNIT_SOURCES: Record<string, UnitSource[]> = {
+  "General Security Concepts": [
+    sy0701("1.0", [
+      "1.1 Compare and contrast various types of security controls.",
+      "1.2 Summarize fundamental security concepts.",
+      "1.3 Explain the importance of change management processes and the impact to security.",
+      "1.4 Explain the importance of using appropriate cryptographic solutions.",
+    ]),
+  ],
+  "Threats, Vulnerabilities, and Mitigations": [
+    sy0701("2.0", [
+      "2.1 Compare and contrast common threat actors and motivations.",
+      "2.2 Explain common threat vectors and attack surfaces.",
+      "2.3 Explain various types of vulnerabilities.",
+      "2.4 Given a scenario, analyze indicators of malicious activity.",
+      "2.5 Explain the purpose of mitigation techniques used to secure the enterprise.",
+    ]),
+  ],
+  "Security Architecture": [
+    sy0701("3.0", [
+      "3.1 Compare and contrast security implications of different architecture models.",
+      "3.2 Given a scenario, apply security principles to secure enterprise infrastructure.",
+      "3.3 Compare and contrast concepts and strategies to protect data.",
+      "3.4 Explain the importance of resilience and recovery in security architecture.",
+    ]),
+  ],
+  "Security Operations": [
+    sy0701("4.0", [
+      "4.1 Given a scenario, apply common security techniques to computing resources.",
+      "4.2 Explain the security implications of proper hardware, software, and data asset management.",
+      "4.3 Explain various activities associated with vulnerability management.",
+      "4.4 Explain security alerting and monitoring concepts and tools.",
+      "4.5 Given a scenario, modify enterprise capabilities to enhance security.",
+      "4.6 Given a scenario, implement and maintain identity and access management.",
+      "4.7 Explain the importance of automation and orchestration related to secure operations.",
+      "4.8 Explain appropriate incident response activities.",
+      "4.9 Given a scenario, use data sources to support an investigation.",
+    ]),
+  ],
+  "Security Program Management and Oversight": [
+    sy0701("5.0", [
+      "5.1 Summarize elements of effective security governance.",
+      "5.2 Explain elements of the risk management process.",
+      "5.3 Explain the processes associated with third-party risk assessment and management.",
+      "5.4 Summarize elements of effective security compliance.",
+      "5.5 Explain types and purposes of audits and assessments.",
+      "5.6 Given a scenario, implement security awareness practices.",
+    ]),
+  ],
+};
+// REQ-235 (G5 follow-up, Nick-approved): SY0-701 covers business impact
+// analysis (RTO, RPO, MTTR, MTBF) in 5.2 and backups, sites and continuity in
+// 3.4, not in domain 4. Security Operations' "Business continuity and
+// disaster recovery" line is retired in place (row id and history kept); the
+// material is taught by the 3.4 line in Security Architecture and the 5.2
+// line in Program Management, which already name every term, and the BIA lab
+// moves to the 5.2 line.
+const SECPLUS_BCDR_MOVED_AT = "2026-11-11T00:00:00Z";
 export const SECPLUS_TRACK: SeedTrack = {
   code: "SECPLUS",
   title: "Prep for CompTIA Security+",
@@ -480,6 +563,7 @@ export const SECPLUS_TRACK: SeedTrack = {
   units: [
     {
       title: "General Security Concepts",
+      sources: SECPLUS_UNIT_SOURCES["General Security Concepts"],
       weight: 12,
       gate: "Given an unfamiliar scenario, name which CIA-triad property and which control type/category apply, and explain a PKI or authentication choice without hand-waving the mechanism.",
       objectives: [
@@ -522,6 +606,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Threats, Vulnerabilities, and Mitigations",
+      sources: SECPLUS_UNIT_SOURCES["Threats, Vulnerabilities, and Mitigations"],
       weight: 22,
       gate: "Given a log excerpt, alert, or short scenario, name the specific threat/attack/vulnerability at work, name the indicator that gives it away, and recommend a concrete mitigation.",
       objectives: [
@@ -546,6 +631,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Architecture",
+      sources: SECPLUS_UNIT_SOURCES["Security Architecture"],
       weight: 18,
       gate: "Given a system design, identify a missing architectural control and explain what specific failure it prevents.",
       objectives: [
@@ -586,8 +672,12 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Operations",
+      sources: SECPLUS_UNIT_SOURCES["Security Operations"],
       weight: 28,
-      gate: "Given an incident scenario, correctly sequence the response, prioritize a vulnerability, or reason about an RTO/RPO or forensics constraint -- not just name the vocabulary.",
+      // REQ-235: RTO/RPO left the gate with the BCDR line (now 3.4 and 5.2).
+      gate: "Given an incident scenario, correctly sequence the response, prioritize a vulnerability, or reason about a forensics constraint -- not just name the vocabulary.",
+      // REQ-235: index 6 (business continuity and DR) moved to 3.4 / 5.2.
+      objectiveRetiredAt: [null, null, null, null, null, null, SECPLUS_BCDR_MOVED_AT, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
       objectives: [
         "Security monitoring, log analysis, and SIEM/SOAR fundamentals",
         "Incident response process and the NIST incident response lifecycle",
@@ -620,7 +710,7 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Look up a recent published CVE for an app/OS you use (nvd.nist.gov) and note its CVSS score.",
         "Write a short chain-of-custody log template for a hypothetical piece of evidence.",
         null,
-        "Draft a one-page BIA outline for a small hypothetical business.",
+        null, // REQ-235: the BIA lab moved to 5.2 (Program Management)
         null,
         null,
         null,
@@ -640,6 +730,7 @@ export const SECPLUS_TRACK: SeedTrack = {
     },
     {
       title: "Security Program Management and Oversight",
+      sources: SECPLUS_UNIT_SOURCES["Security Program Management and Oversight"],
       weight: 20,
       gate: "Given a governance or compliance scenario, name the right instrument and correctly reason about risk math or third-party exposure.",
       objectives: [
@@ -659,7 +750,8 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Audits and assessments: attestation; internal audit (compliance, audit committee, self-assessments); external audit (regulatory, examinations, assessment, independent third-party audit); penetration testing (physical, offensive, defensive, integrated; known environment, partially known environment, unknown environment; reconnaissance, passive and active)",
         "Security awareness practices: phishing campaigns, recognizing a phishing attempt, and responding to reported suspicious messages; anomalous behavior recognition (risky, unexpected, unintentional); user guidance and training (policy/handbooks, situational awareness, insider threat, password management, removable media and cables, social engineering, operational security, hybrid/remote work environments); reporting and monitoring (initial, recurring); program development and execution",
       ],
-      labs: [null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+      // REQ-235: the BIA lab sits on the 5.2 line (index 9), where SY0-701 tests BIA.
+      labs: [null, null, null, null, null, null, null, null, null, "Draft a one-page BIA outline for a small hypothetical business.", null, null, null, null],
     },
   ],
 };
