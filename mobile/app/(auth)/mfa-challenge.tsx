@@ -91,6 +91,10 @@ export default function MfaChallenge() {
           placeholder={useBackupCode ? "XXXX-XXXX" : "123456"}
           keyboardType={useBackupCode ? "default" : "number-pad"}
           textContentType={useBackupCode ? undefined : "oneTimeCode"}
+          // REQ-212 (FAIL-1004): textContentType is iOS-only. Without
+          // autoComplete, react-native marks the field not important for
+          // autofill on Android, so a code could never be offered there.
+          autoComplete={useBackupCode ? "off" : "one-time-code"}
           maxLength={useBackupCode ? 9 : 6}
           icon="shield"
           returnKeyType="go"
