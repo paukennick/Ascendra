@@ -423,6 +423,19 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
     {
       title: "Musculoskeletal, Neurological, Behavioral/Psychosocial",
       weight: 18,
+      // REQ-220 (FAIL-1141): as recorded in seed/labs/value-sources.ts
+      // (AIS_2026, read in the guideline PDF).
+      sources: [
+        {
+          title: "AHA/ASA 2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke (Stroke, 2026)",
+          url: "https://professional.heart.org/en/guidelines-statements/2026-guideline-for-the-early-management-of-patients-with-acute-ischemic-strokestr0000000000000513",
+          kind: "clinical_guideline",
+          checkedAt: "2026-11-08",
+          keyValues: [
+            "blood pressure below 185/110 mm Hg before IV thrombolysis, and below 180/105 mm Hg for at least 24 hours after it",
+          ],
+        },
+      ],
       gate: "Given a critically ill adult with an injury, a change in neurological status or a behavioral crisis, identify the cause, pick the protective or monitoring intervention it needs, and keep the patient and staff safe.",
       objectives: [
         // Musculoskeletal
@@ -481,6 +494,24 @@ export const CCRN_ADULT_TRACK: SeedTrack = {
     {
       title: "Multisystem",
       weight: 16,
+      // REQ-220 (FAIL-1141): key values the lesson writer and fact-checker
+      // are given, as recorded in seed/labs/value-sources.ts (SSC_ADULT_2026,
+      // read on the SCCM page 2026-11-08) and in the header above (the
+      // antibiotic timing, objective 4/39).
+      sources: [
+        {
+          title: "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2026 (adults)",
+          url: "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
+          kind: "clinical_guideline",
+          checkedAt: "2026-11-08",
+          keyValues: [
+            "initial MAP target 65 mm Hg (60-65 suggested from age 65)",
+            "at least 30 mL/kg IV crystalloid within the first 3 hours for sepsis-induced hypoperfusion",
+            "norepinephrine as the first-line vasopressor",
+            "blood cultures before antimicrobials; antimicrobials within 1 hour for possible, probable or definite septic shock and for probable or definite sepsis, and within 3 hours, after rapid assessment, when sepsis without shock is only possible",
+          ],
+        },
+      ],
       gate: "Given a critically ill adult whose problem crosses organ systems, prioritize the assessment data, recognize the emergency and its trajectory (sepsis, shock, MODS), and manage the cross-cutting care -- fluids, pain, sedation, devices, medications, end of life.",
       objectives: [
         "Early sepsis identification and sepsis management",

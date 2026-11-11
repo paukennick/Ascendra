@@ -5,6 +5,7 @@ import { gradeFreeResponse } from "@/lib/free-response-grader";
 import { getSharedLesson } from "@/lib/lesson-store";
 import { refresherExcerpt } from "@/lib/understanding";
 import { coachContextForObjective, coachContextForTrack } from "@/lib/coach-context";
+import { unitReferencesFor } from "@/lib/current-facts";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
 import { reviewBatchPrompt, reviewBatchSchema, type ReviewBatchObjective } from "@/lib/review-prompts";
@@ -246,6 +247,7 @@ async function writeQuestions(
   const mixups = await Promise.all(
     group.map((g) => misconceptionPromptBlock(userId, g.item.objective_id).catch(() => ""))
   );
+  const references = await Promise.all(group.map((g) => unitReferencesFor(ctx?.trackCode, g.item.unit_title)));
   const objectives: ReviewBatchObjective[] = group.map((g, i) => ({
     key: `o${i + 1}`,
     title: g.item.objective_title,
@@ -254,6 +256,7 @@ async function writeQuestions(
     knownTerms: g.known,
     targetTerms: g.target,
     mixups: mixups[i],
+    references: references[i],
   }));
   const { system, user } = reviewBatchPrompt({
     trackTitle: group[0].item.track_title,
@@ -294,6 +297,7 @@ async function writeQuestions(
     format: "single",
     options: gen.choices,
     expected: [gen.correctIndex],
+    references: objectives.find((o) => o.key === gen.key)?.references,
   }));
   const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId, purpose: "fact_check" });
   for (const { g, gen } of ready) {

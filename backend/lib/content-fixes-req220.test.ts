@@ -112,3 +112,41 @@ describe("REQ-220 CCRN pneumonia terms (FAIL-1139)", () => {
     assert.doesNotMatch(lines[0], /community-acquired, healthcare-associated,/);
   });
 });
+
+describe("REQ-220 dated key values reach the writer and the checker (FAIL-1141)", () => {
+  test("the CNA unit with the Heimlich objective carries the AHA 2025 5-and-5 sequence, and the current-facts block names it", async () => {
+    const { currentFactsBlock, unitReferenceLines } = await import("./current-facts");
+    const cna = track("CNA");
+    const unit = cna.units.find((u) => u.objectives.some((o) => /Heimlich/.test(o)))!;
+    const block = currentFactsBlock(cna, unit.title)!;
+    assert.match(block, /5 back blows, then 5 abdominal thrusts/);
+    assert.match(block, /checked 2026-11-08/);
+    assert.deepEqual(unitReferenceLines(cna, "no such unit"), []);
+  });
+
+  test("the fact-checker prompt carries an item's references and says to judge against them", async () => {
+    const { factCheckPrompt } = await import("./fact-check");
+    const { system, user } = factCheckPrompt({
+      items: [{ key: "i1", objectiveTitle: "Heimlich", question: "Q?", format: "single", options: ["a", "b"], expected: [0], references: ["- Reference for this unit: AHA 2025 (u), checked 2026-11-08. Key values: 5 back blows, then 5 abdominal thrusts."] }],
+    });
+    assert.match(user, /References \(dated, from the course outline\):\n- Reference for this unit: AHA 2025/);
+    assert.match(system.task, /judge the item against them, not against an older value you remember/);
+  });
+
+  test("the review writer gets each objective's unit references", async () => {
+    const { reviewBatchPrompt } = await import("./review-prompts");
+    const { user } = reviewBatchPrompt({
+      trackTitle: "T",
+      objectives: [{ key: "o1", title: "O", unitTitle: "U", teach: "t", knownTerms: [], targetTerms: [], references: ["- Reference for this unit: X (u), checked 2026-11-08. Key values: v."] }],
+    });
+    assert.match(user, /References \(dated; use these values over older ones you remember\):\n- Reference for this unit: X/);
+  });
+
+  test("the CCRN sepsis and stroke units carry their guideline values", () => {
+    const units = track("CCRNADULT").units;
+    const multi = units.find((u) => u.title === "Multisystem")!;
+    assert.ok(multi.sources?.some((s) => s.keyValues?.some((v) => /30 mL\/kg/.test(v))));
+    const neuro = units.find((u) => /Neurological/.test(u.title))!;
+    assert.ok(neuro.sources?.some((s) => s.keyValues?.some((v) => /185\/110/.test(v))));
+  });
+});

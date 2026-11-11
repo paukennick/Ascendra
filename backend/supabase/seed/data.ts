@@ -37,6 +37,12 @@ export interface SeedUnit {
 
 export interface UnitSource extends SourceRef {
   title: string;
+  // REQ-220 (FAIL-1141): the values this unit's lessons and checks must use,
+  // as read at the source on checkedAt (a dose, a sequence, a threshold).
+  // The lesson writer and the fact-checker are given them
+  // (lib/current-facts.ts), so a lesson cannot teach an older value than the
+  // course's own lab.
+  keyValues?: string[];
 }
 
 // Vendor exam a certification track is aligned to. Mirrors the credential_*

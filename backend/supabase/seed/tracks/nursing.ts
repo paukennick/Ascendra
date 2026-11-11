@@ -1311,6 +1311,22 @@ export const CNA_TRACK: SeedTrack = {
       title: "Before resident contact",
       rangeLabel: "At least 16 hours, federally required first",
       weight: 18,
+      // REQ-220 (FAIL-1141): the lesson writer and fact-checker get this
+      // value, so a lesson on "the Heimlich maneuver" teaches the same
+      // sequence as the CNA choking lab (seed/labs/nursing-cna.ts), not the
+      // older abdominal-thrusts-only rule. Value as recorded in
+      // seed/labs/ems-sources.ts (AHA_2025_ADULT_BLS, read on cpr.heart.org).
+      sources: [
+        {
+          title: "AHA 2025 Guidelines for CPR and ECC, Part 7: Adult Basic Life Support (Circulation 2025;152(suppl 2):S448-S478)",
+          url: "https://doi.org/10.1161/CIR.0000000000001369",
+          kind: "clinical_guideline",
+          checkedAt: "2026-11-08",
+          keyValues: [
+            "severe foreign-body airway obstruction in a responsive adult: repeated cycles of 5 back blows, then 5 abdominal thrusts, until the object comes out or the person becomes unresponsive",
+          ],
+        },
+      ],
       gate: "Demonstrate the five things federal law says you must know before you are allowed near a resident at all.",
       objectives: [
         "Why this block exists: federal law bars resident contact until it is complete",
