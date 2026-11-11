@@ -93,7 +93,9 @@ export async function readJson(req: Request): Promise<any> {
 // are still logged, under the request id, in case one ever comes from our
 // own code.
 // 22001 is a value longer than its varchar column.
-const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001"]);
+// REQ-216: 22007 (invalid datetime format) and 22008 (datetime out of range) are
+// the same kind of thing -- a date the client typed.
+const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001", "22007", "22008"]);
 
 // Audit 2 (REQ-135): this used to send err.message to the client. That is
 // Postgres text (constraint names, "invalid input syntax for type uuid",

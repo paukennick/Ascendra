@@ -85,6 +85,21 @@ export async function requireAiFeature(userId: string, feature: "coach" | "regen
 
 const NO_USE: AllowanceUse = { release: async () => {} };
 
+// REQ-216 (low): a counted use is given back on EVERY path that stores no
+// graded answer (the grader throws, the write fails, a copy of the same answer
+// was stored first), and never twice. `release` of the use itself is not
+// idempotent: two give-backs would hand the learner a free answer.
+export function releaseOnce(use: AllowanceUse): AllowanceUse {
+  let given = false;
+  return {
+    release: async () => {
+      if (given) return;
+      given = true;
+      await use.release();
+    },
+  };
+}
+
 // An AI-graded written answer (grade_open, explain-back, lab written parts,
 // sim reasoning, PBQ, unit check). When the mode gives this learner the Free
 // AI experience it is counted against Free's daily graded-answer allowance

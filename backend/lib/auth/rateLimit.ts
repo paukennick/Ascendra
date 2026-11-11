@@ -1,5 +1,10 @@
 import { query, queryOne, withTransaction } from "../db";
 
+// REQ-216 (low, FAIL-1018): what a learner reads when a limit is reached. The
+// message used to name the internal event ("Too many lesson_regenerate
+// attempts"), which means nothing to a learner and leaks our event names.
+export const RATE_LIMIT_MESSAGE = "You're doing that a bit too often. Please wait a few minutes and try again.";
+
 export class RateLimitError extends Error {}
 
 // Writes one row to auth_events. Every auth-adjacent action (register
@@ -33,7 +38,7 @@ export async function checkRateLimit(
   );
   const count = row ? parseInt(row.count, 10) : 0;
   if (count >= opts.max) {
-    throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+    throw new RateLimitError(RATE_LIMIT_MESSAGE);
   }
 }
 
@@ -93,7 +98,7 @@ export async function consumeRateLimit(
     );
     return row?.id ?? null;
   });
-  if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+  if (!recorded) throw new RateLimitError(RATE_LIMIT_MESSAGE);
   return recorded;
 }
 
