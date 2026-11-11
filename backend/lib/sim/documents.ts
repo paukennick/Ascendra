@@ -58,6 +58,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("EPPP", "duty-to-protect-threat"),
   entry("EPPP", "diagnostic-intake-mood"),
   // ---- end REQ-225 (EPPP-B) -------------------------------------------
+  // ---- REQ-233 (bedside wave 1): CCRN Pediatric, CCRN Neonatal, NCLEX-RN
+  // and NCLEX-PN bedside cases, and a second AWS SAA board case. Keep these
+  // entries together. ----
+  entry("CCRNPEDS", "pediatric-septic-shock-fluids"),
+  // ---- end REQ-233 ----
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
