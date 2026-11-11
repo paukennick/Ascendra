@@ -8271,6 +8271,40 @@
         "A sign-in code now adds up to five mails an hour on top of five other mails an hour to the same address (ten an hour in total per address); the per-challenge cap of 3 per 10 minutes is unchanged",
         "Implemented and verified on fix/g4b-followups; awaiting Nick's review and merge."
       ]
+    },
+    {
+      "id": "REQ-229",
+      "category": "documentation",
+      "title": "README as the product page; developer docs moved; Dependabot ignore rules",
+      "description": "Nick: the README markets and illustrates what the app is, with no architecture or development material, pointing to where that lives near the end. README keeps the product sections (opening, who it's for with 116 visible courses by area from backend/supabase/seed/catalog.ts, how learning works, progress, screenshots, safety and trust, content and legal, license) and ends with a short For developers section. Architecture, tech stack, repository layout, getting started, testing and CI, production settings, deployment, documentation index, project status, the former feature list and the screenshot TODO move verbatim to docs/development.md with links fixed; two stale facts in the moved text (two sims live, SIMS_RENDERERS default) are corrected in a separate commit. Dependabot ignores semver-major bumps of @expo/*, babel-preset-expo, @babel/core and typescript in /mobile, typescript, react, react-dom, @types/react, @types/react-dom and @types/bcryptjs in /backend, and minor and major python bumps of the /backend/sandbox image, because those bumps failed CI and are taken deliberately.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "README.md",
+        "docs/development.md",
+        ".github/dependabot.yml",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "README has no architecture or development sections and ends with a For developers section linking docs/development.md and the key docs",
+        "Course counts and features in the README match master",
+        "Moved sections appear verbatim in docs/development.md with working relative links",
+        "dependabot.yml ignores the listed major bumps and the sandbox python minor bumps"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "omni gate",
+        "relative link check of README.md and docs/development.md"
+      ],
+      "documentation_required": [
+        "README.md",
+        "docs/development.md"
+      ],
+      "risk_notes": [
+        "Production facts in docs/development.md (settings set",
+        "project status) are as reported by Nick on 2026-11-11 and were not re-read from Vercel",
+        "@types/react-dom is not a direct backend dependency so its ignore rule is a no-op today"
+      ]
     }
   ]
 }
