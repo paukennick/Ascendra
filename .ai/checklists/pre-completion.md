@@ -199,6 +199,18 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
+- Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
+  writes the biometric-sealed key (Android prompts for every write); it is
+  written at sign-in, unlock and when the app goes to the background, and a
+  failed seal keeps the session on the plain key, never signs out. Only a 401
+  from `/api/auth/refresh` signs the device out; any other failure keeps the
+  token and shows a retry. Only signed-out `/api/auth/` routes are exempt from
+  refresh-and-retry (`isSignedOutAuthRoute`, src/lib/sessionStore.ts); a new
+  signed-out route is added there. A request that ends other sessions reports
+  success only on a 200. A client id sent for replay is kept in a ref until the
+  request succeeds (`pendingIdFor`). A screen a learner can leave with the back
+  gesture flushes its work through a `beforeRemove` guard. A button that throws
+  work away asks first. A catch on a load shows the error, never an empty state.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

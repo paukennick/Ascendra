@@ -7626,6 +7626,37 @@
       "risk_notes": [
         "none: no production behaviour changes"
       ]
+    },
+    {
+      "id": "REQ-217",
+      "category": "mobile",
+      "title": "G2: phone sessions and app screens (audit 2026-11-11)",
+      "description": "Fixes from the 2026-11-11 audit for the mobile app's session handling and screens: biometric re-seal on every silent refresh (H4), any refresh failure signing out (H5), all /api/auth routes skipping refresh-and-retry and sign-out-everywhere reporting success on failure (H6), plus M9, M11-M14 and the lower-priority list. JavaScript only: ships as an over-the-air update. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/",
+        "CHANGELOG.md",
+        ".ai/"
+      ],
+      "acceptance_criteria": [
+        "Silent refresh never prompts for or writes the sealed key",
+        "Only a 401 from refresh signs the device out",
+        "Only signed-out /api/auth routes skip refresh-and-retry",
+        "Sign out of all devices reports success only on 200",
+        "Each listed screen finding fixed or documented as accepted"
+      ],
+      "validation_required": [
+        "cd mobile && npx tsc --noEmit",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Two items accepted and documented (FAIL-1065, FAIL-1066); export file share deferred (FAIL-1055). Several fixes need a phone check."
+      ]
     }
   ]
 }
