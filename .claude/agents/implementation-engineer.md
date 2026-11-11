@@ -6,7 +6,7 @@ tools: Read, Glob, Grep, Bash, Write, Edit
 model: sonnet
 effort: high
 permissionMode: default
-maxTurns: 60
+maxTurns: 150
 skills:
   - codebase-discovery
 ---

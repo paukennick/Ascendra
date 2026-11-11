@@ -7658,6 +7658,30 @@
         "needs a new EAS build",
         "the Play app signing fingerprint must be added to assetlinks.json by Nick for Play installs"
       ]
+    },
+    {
+      "id": "REQ-215",
+      "category": "chore",
+      "title": "Raise the repo's agent turn limits (60/80 to 150/200)",
+      "description": "Nick, 2026-11-10: fix what makes agents stop at their limit. Every reviewer and builder in .claude/agents/ was capped at 60 turns (coordinator and release-validator at 80); on this codebase four of six audit reviewers and several fix-batch builders stopped before reporting and had to be resumed. Reviewers and builders now allow 150 turns, coordinator and release-validator 200.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".claude/agents/*.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every .claude/agents file sets maxTurns 150 or 200"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
+      ]
     }
   ]
 }
