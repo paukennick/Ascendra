@@ -132,17 +132,77 @@ transport is a plain `fetch` to Sentry's store endpoint; replacing it with
 reach Next's `onRequestError` hook in `instrumentation.ts`, which passes them
 to the same tracker with the route path only.
 
+## After SQL applied by hand (FAIL-1162)
+
+Use `npm run migrate` for schema changes: it records each file in the ledger
+and sets a lock timeout. Migrations are not all safe to run twice, so never
+re-run one on the assumption that they are. If SQL has to be applied by hand
+anyway (a re-run, a file pasted into the Supabase SQL editor, a one-off fix),
+finish with both of these, in this order, against the same database:
+
+```sql
+select app_runtime_sync();
+```
+
+then `npm run migrate -- --status` (it must end with "Schema is current").
+`app_runtime_sync()` gives the app's least-privilege role (`app_runtime`) the
+grants and policies for any table, view, sequence or function the hand-applied
+SQL added, and puts back the `search_path` and the revoked PUBLIC EXECUTE on
+any function it replaced; without it the app can fail on the new object while
+checks run as the owner look fine.
+
 ## Health check: required settings
 
 `GET /api/health` now also checks that the settings the backend needs are
 present (names only, never values): `DATABASE_URL`, `AUTH_JWT_SECRET`,
 `AUTH_ENCRYPTION_KEY` (and that it decodes to 32 bytes), `APP_BASE_URL`,
-`RESEND_API_KEY`, `CHOICE_ORDER_SECRET` (production), and Anthropic
-credentials (an API key, or both federation ids). In production a missing one
+`RESEND_API_KEY`, `CHOICE_ORDER_SECRET` and `CRON_SECRET` (both production;
+without `CRON_SECRET` every `/api/cron/*` route answers 503 and the daily
+jobs stop, FAIL-1161), and Anthropic credentials (an API key, or both
+federation ids). In production a missing one
 answers 503 `{ status: "misconfigured", env: [...] }`, so a bad deploy turns
 the health check red straight away instead of failing on a learner's first
 sign-in. Outside production it is a `warnings` entry. Open `/api/health`
 once after every deploy (the daily cron only runs at 09:00 UTC).
+
+## Optional settings (FAIL-1163)
+
+Each is read by the code, optional, and listed with its default in
+`backend/.env.example`. Set them in Vercel -> Project Settings ->
+Environment Variables and redeploy: Vercel applies a changed value to the
+next deployment only.
+
+- `AI_ACCESS_MODE` (`all`, `granted`, `paid`; unset = `all`). Who gets full AI
+  (REQ-201). A typo is treated as `granted`, the cheapest safe mode, and
+  reported.
+- `AI_GLOBAL_DAILY_CEILING_USD` (unset or `off` = none). Total model spend per
+  UTC day; at it coach chat and lesson regenerate pause for everyone but
+  owners.
+- `ERROR_TRACKER_DSN`: see "Error tracker" above. Unset = nothing is sent.
+- `MIN_APP_VERSION` (semver; unset = no minimum). App builds below it get a
+  426 "update required". `IOS_APP_STORE_URL` (an `https://apps.apple.com/`
+  link) is the iOS update screen's button; unset = no button. Android uses the
+  Play Store link in code.
+- `DATABASE_CA_CERT` or `PGSSLROOTCERT`: pin the database's CA so TLS is
+  verified, not only encrypted ([ops/db-tls.md](ops/db-tls.md)). A value that
+  cannot be read is an error, never a silent fall back. `PGSSLMODE=disable`
+  turns TLS off: a throwaway local or CI Postgres only.
+- `DB_STATEMENT_TIMEOUT_MS` (0 = off, at most 600000). Unset = 25 s on a direct
+  or local connection and none sent through the pooler, where the
+  `app_runtime` role carries its own 25 s limit.
+- `MIGRATION_LOCK_TIMEOUT` (default `5s`; `0` = off). The lock wait
+  `npm run migrate` allows before a migration fails and rolls back.
+- `SIMS_ENABLED` (off unless set), `SIMS_RENDERERS` (default
+  `bedside,board`), `SIMS_SERVE_UNREVIEWED` (on unless `off`): simulations.
+  `LABS_SERVE_UNREVIEWED` (on unless `off`): labs waiting for expert review.
+- `ITEM_FACT_CHECK` (on unless `off`): the second-model check before generated
+  items publish. Off lets them publish unchecked.
+- `CSP_REPORT_ONLY=true`: send the Content-Security-Policy as report-only
+  (browser console logs, nothing blocked). Use it to trial a stricter policy;
+  leave it unset in production.
+- `APP_URL`: only a fallback for `BILLING_WEB_RETURN_URL` (Stripe Checkout and
+  the discount verification return address). `APP_BASE_URL` builds email
+  links.
 
 ## Email sender (REQ-191)
 
@@ -375,19 +435,35 @@ and treat every artifact from the last 30 days as exposed.
    `backend/scripts/restore-drill.sh <file>.dump.age ascendra-backup.key`
    (details in [restore-drill.md](restore-drill.md)).
 4. To restore for real into a new Supabase project (it already has the
-   `extensions` schema with uuid-ossp that the tables' defaults call):
-   `age -d -i ascendra-backup.key <file>.dump.age | pg_restore --no-owner
-   --no-privileges --schema=public --dbname="$TARGET_DIRECT_URL"`, then
-   re-apply migration 071, because a dump holds no roles or grants (the
-   `app_runtime` role, PUBLIC's revoked EXECUTE and the role's grants are
-   not in it): `psql "$TARGET_DIRECT_URL" --single-transaction -f
-   backend/supabase/migrations/071_app_runtime_role.sql` (safe to run twice;
-   `npm run migrate -- 071...` would skip it, the restored ledger says it is
-   applied). The role is new and cannot log in: set its password again if the
-   app is to connect as it (docs/ops/2026-11-10-lockdown-and-db-rotation.md,
-   step 5). Then `npm run migrate -- --status` against it and the checks in
-   [restore-drill.md](restore-drill.md). Point Vercel's `DATABASE_URL` at it
-   last.
+   `extensions` schema with uuid-ossp that the tables' defaults call), in
+   this order (FAIL-1160; a dump holds no roles and no grants, and its
+   policies are written `TO app_runtime` and `TO content_recheck`, so a
+   restore into a cluster without those roles fails with about 120 errors):
+   1. Create the two roles, NOLOGIN, before the restore:
+      `psql "$TARGET_DIRECT_URL" -f backend/scripts/restore/01-roles-before-restore.sql`
+      (safe to run twice; a new Supabase project does not
+      have them).
+   2. `age -d -i ascendra-backup.key <file>.dump.age | pg_restore --no-owner
+      --no-privileges --schema=public --dbname="$TARGET_DIRECT_URL"`. It must
+      finish with no errors.
+   3. Re-apply migration 071 (`app_runtime`'s grants and settings, PUBLIC's
+      revoked EXECUTE): `psql "$TARGET_DIRECT_URL" --single-transaction -f
+      backend/supabase/migrations/071_app_runtime_role.sql` (safe to run
+      twice; `npm run migrate -- 071...` would skip it, the restored ledger
+      says it is applied).
+   4. Re-apply `content_recheck`'s grants, which are migration 064's grant
+      block: `psql "$TARGET_DIRECT_URL" --single-transaction -f
+      backend/scripts/restore/02-recheck-grants-after-restore.sql`. Do not
+      re-run the whole of 064 instead: its policies would undo 071's
+      narrowing of what `content_recheck` can read.
+   The roles are new and cannot log in: set `app_runtime`'s password again
+   if the app is to connect as it (docs/ops/2026-11-10-lockdown-and-db-rotation.md,
+   step 5), and create the LOGIN user for the re-check jobs again
+   (docs/content-review.md, "Re-check database user"). Then `npm run migrate
+   -- --status` against it and the checks in [restore-drill.md](restore-drill.md).
+   Point Vercel's `DATABASE_URL` at it last. The drill runs those four steps in
+   the same order, and CI runs it on a second Postgres server that has never
+   had the roles (`backend/scripts/ci/backup-drill-test.sh`).
 5. Delete the key file copy and the downloaded files when done.
 
 ### What this does not cover

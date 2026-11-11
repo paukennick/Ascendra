@@ -39,7 +39,10 @@
   branch made required is satisfied by every call site the other added (FAIL-966); a
   migration that adds roles, grants or other things a database dump does not
   hold names the step that restores them, and the restore drill runs it
-  (FAIL-897); and a
+  (FAIL-897) on a cluster that has never had the role, because roles belong
+  to the cluster and the source's own cluster hides the gap (FAIL-1160;
+  backend/scripts/restore/); a setting the code reads is in
+  backend/.env.example and, if operational, in the runbook (FAIL-1163); and a
   field one branch reads as "who is charged" and another as "whose scope" is
   split, not shared (FAIL-967); and when one branch changes how a screen is
   entered (REQ-206: the MFA and verify-email handoffs), every caller another
