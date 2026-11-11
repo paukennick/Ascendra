@@ -113,6 +113,8 @@ import { PMICP_LABS } from "./pm-cp";
 import { PMIPMOCP_LABS } from "./pm-pmocp";
 import { PMICPMAI_LABS } from "./pm-cpmai";
 import { CSPP_LABS } from "./pm-cspp";
+// REQ-173: ABPTS Clinical Electrophysiologic Specialist.
+import { ABPTSECS_LABS } from "./pt-abpts-ecs";
 // REQ-174: NREMT EMS courses.
 import { NREMTEMT_LABS } from "./ems-emt";
 import { NREMTEMR_LABS } from "./ems-emr";
@@ -235,6 +237,7 @@ export const LAB_SETS: readonly SeedLabSet[] = [
   PMIPMOCP_LABS,
   PMICPMAI_LABS,
   CSPP_LABS,
+  ABPTSECS_LABS,
   NREMTEMT_LABS,
   NREMTEMR_LABS,
   NREMTPARAMEDIC_LABS,
