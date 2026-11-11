@@ -1,0 +1,44 @@
+# Builds ONE installable Android app (EAS "preview" profile: an APK with an
+# install link and QR code) whenever someone pushes to ops/build-android-preview.
+# Needs the EXPO_TOKEN repository secret (expo.dev -> Account settings ->
+# Access tokens). The build runs on Expo's servers; this job waits for it and
+# prints the install link in the job summary. See docs/deploy-runbook-integration.md.
+name: Build Android preview
+on:
+  push:
+    branches: [ops/build-android-preview]
+concurrency:
+  group: build-android-preview
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -n "${{ secrets.EXPO_TOKEN }}" || { echo "EXPO_TOKEN secret is not set"; exit 1; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Build (waits for Expo's build servers)
+        run: eas build --platform android --profile preview --non-interactive --wait --json > build.json
+      - name: Install link
+        run: |
+          node -e '
+            const b = JSON.parse(require("fs").readFileSync("build.json","utf8"))[0];
+            const url = b.artifacts && (b.artifacts.applicationArchiveUrl || b.artifacts.buildUrl);
+            const page = `https://expo.dev/accounts/${b.project.ownerAccount.name}/projects/${b.project.slug}/builds/${b.id}`;
+            const out = `Status: ${b.status}\nVersion: ${b.appVersion} (${b.appBuildVersion})\nInstall page (QR code): ${page}\nAPK: ${url}\n`;
+            console.log(out);
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, "### Android preview build\n\n" + out.replace(/\n/g, "  \n"));
+          '
