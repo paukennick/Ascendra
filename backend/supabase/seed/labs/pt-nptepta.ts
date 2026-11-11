@@ -20,6 +20,10 @@ import { source } from "../sources";
 // 2026-11-07): "PTAs may not provide evaluative or assessment services, make
 // clinical judgments or decisions; develop, manage, or furnish skilled
 // maintenance program services; or take responsibility for the service."
+// REQ-220: the "furnish ... maintenance" clause predates CMS MLN Matters
+// MM12071 (effective 2021-01-01; CY 2021 PFS final rule, 85 FR 84472),
+// under which the PT may delegate furnishing maintenance therapy to a PTA;
+// the PT still establishes the program. No rubric here relies on that clause.
 // Rubrics therefore mark an answer down when the learner evaluates,
 // re-plans or discharges on their own, and up when they hold, report and
 // defer to the PT. Supervision levels are left to "state law and the
@@ -34,7 +38,7 @@ import { source } from "../sources";
 // Values quoted as standards, verified 2026-11-07 (details and DOIs in the
 // pt-nptept.ts header): autonomic dysreflexia actions and the >20 mm Hg
 // systolic rise (PVA Consortium for Spinal Cord Medicine, 2020); exercise
-// stopping criteria and the 1.8 kg (3 lb) weight-gain flag in heart failure
+// stopping criteria and the 1.8 kg (4 lb) weight-gain flag in heart failure
 // (Taylor, Myers, Bonikowske, Heart Fail Rev 2024, adapted from ACSM GETP
 // 11th ed.); hypoglycemia levels and the 15 g / 15 minute rule (ADA
 // hypoglycemia guide, Standards of Care); 2026 APTA TKA CPG (no CPM for
@@ -539,8 +543,8 @@ export const NPTEPTA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises signs of worsening heart failure (weight gain of 1.8 kg/3 lb or more over 1-3 days, increased oedema, orthopnea).",
-              "A 2.3 kg gain in 2 days (over the 1.8 kg / 3 lb flag), more ankle swelling and needing an extra pillow suggest her heart failure is worsening."
+              "Recognises signs of worsening heart failure (weight gain of 1.8 kg/4 lb or more over 1-3 days, increased oedema, orthopnea).",
+              "A 2.3 kg gain in 2 days (over the 1.8 kg / 4 lb flag), more ankle swelling and needing an extra pillow suggest her heart failure is worsening."
             ),
             part(
               "Act within scope",

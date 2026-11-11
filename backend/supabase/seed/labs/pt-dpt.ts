@@ -31,7 +31,7 @@ import { source } from "../sources";
 //   rotation 45 degrees left and right.
 // - Heart failure exercise screening and intensity: Taylor, Myers,
 //   Bonikowske, Heart Fail Rev 2024 (adapted from ACSM GETP 11th ed.):
-//   weight gain of 1.8 kg (3 lb) or more over 1-3 days is a relative
+//   weight gain of 1.8 kg (4 lb) or more over 1-3 days is a relative
 //   contraindication; without an exercise test (or with marked chronotropic
 //   limitation) use RPE 11-14 and a heart rate 20-30 /min above rest.
 // - ODI minimal important change 10 points or 30% (Ostelo 2008).
@@ -121,8 +121,8 @@ export const DPT_LABS: SeedLabSet = {
             ),
             part(
               "Daily screening",
-              "Builds in daily screening for decompensation: daily weights (flag a gain of 1.8 kg / 3 lb or more over 1-3 days), new oedema, orthopnea, worsening breathlessness or fatigue, and what to do if present (hold and contact the team).",
-              "He weighs himself every morning; a gain of 1.8 kg (3 lb) or more in 1-3 days, new swelling, needing more pillows, or more breathlessness means no exercise that day and a call to his heart failure team."
+              "Builds in daily screening for decompensation: daily weights (flag a gain of 1.8 kg / 4 lb or more over 1-3 days), new oedema, orthopnea, worsening breathlessness or fatigue, and what to do if present (hold and contact the team).",
+              "He weighs himself every morning; a gain of 1.8 kg (4 lb) or more in 1-3 days, new swelling, needing more pillows, or more breathlessness means no exercise that day and a call to his heart failure team."
             ),
             part(
               "Other drug effects",

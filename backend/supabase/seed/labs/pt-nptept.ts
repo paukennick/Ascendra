@@ -69,7 +69,7 @@ import { source } from "../sources";
 //   ACSM's Guidelines for Exercise Testing and Prescription, 11th ed.: stop
 //   for angina, SBP >= 250 or DBP >= 115 mm Hg, a fall in SBP of more than
 //   10 mm Hg with increasing workload, signs of poor perfusion; weight gain
-//   of 1.8 kg (3 lb) or more over 1-3 days is a relative contraindication.
+//   of 1.8 kg (4 lb) or more over 1-3 days is a relative contraindication.
 //   ACSM's own site returned HTTP 403, so the ACSM values are cited through
 //   this peer-reviewed table.
 // - Hypoglycemia: ADA, Hypoglycemia guidelines for health care
@@ -455,8 +455,8 @@ export const NPTEPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Does not progress exercise today; recognises signs of worsening heart failure (weight gain of 1.8 kg/3 lb or more over 1-3 days, orthopnea, new oedema, dyspnoea at rest) as reasons to hold or limit exercise.",
-              "No walk today. A 2 kg gain overnight (above the 1.8 kg / 3 lb in 1-3 days flag), new orthopnea, new ankle oedema and breathlessness at rest are signs his heart failure is worsening."
+              "Does not progress exercise today; recognises signs of worsening heart failure (weight gain of 1.8 kg/4 lb or more over 1-3 days, orthopnea, new oedema, dyspnoea at rest) as reasons to hold or limit exercise.",
+              "No walk today. A 2 kg gain overnight (above the 1.8 kg / 4 lb in 1-3 days flag), new orthopnea, new ankle oedema and breathlessness at rest are signs his heart failure is worsening."
             ),
             part(
               "Action",

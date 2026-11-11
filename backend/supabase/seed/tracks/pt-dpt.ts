@@ -35,7 +35,7 @@
 //
 // Inline tag key: CAPTE-PT 7xn = PT required element; CMS-BPM15 n =
 // Medicare Benefit Policy Manual ch. 15 section; CFR 410.60 = 42 CFR
-// 410.60; APTA-COE = APTA Code of Ethics for the Physical Therapist;
+// 410.60; APTA-COE = APTA Code of Ethics for the Physical Therapy Profession (2026); MM12071 = CMS MLN Matters MM12071;
 // FSBPT-PT pN = page of the 2024 NPTE-PT content outline; CPG-xxx =
 // guideline below; SP-xxx = StatPearls chapter below; AP n.n = OpenStax
 // Anatomy and Physiology 2e section.
@@ -49,9 +49,19 @@
 // - FSBPT, "NPTE-PT Test Content Outline, effective January 2024" (bullets
 //   edition), page 10, for the system-interactions scope.
 //   https://www.fsbpt.org/Portals/0/documents/free-resources/2024-PT-Test-Content-Outline-Bullets.pdf
-// - APTA, "Code of Ethics for the Physical Therapist", HOD S06-20-28-25.
-//   Copyright 2020 APTA; scope only.
-//   https://www.apta.org/siteassets/pdfs/policies/codeofethicshods06-20-28-25.pdf
+// - APTA, "Code of Ethics for the Physical Therapy Profession", adopted by
+//   the House of Delegates 2025-07-14, effective 2026-01-01; one code for
+//   PTs and PTAs, replacing the Code of Ethics for the Physical Therapist
+//   (HOD S06-20-28-25) and the Standards of Ethical Conduct for the PTA.
+//   Read 2026-11-10 (REQ-220): six ethical principles, nine Ethical
+//   Commitments with Standards of Conduct; pro bono is aspirational
+//   example 9.E. Scope only.
+//   https://www.apta.org/siteassets/pdfs/policies/apta-code-ethics-physical-therapy-profession.pdf
+//   https://www.apta.org/article/2026/01/02/new-code-of-ethics-for-the-physical-therapy-profession
+// - CMS, MLN Matters MM12071 (effective 2021-01-01): a PT may delegate
+//   furnishing maintenance therapy to a PTA, as clinically appropriate.
+//   Read 2026-11-10 (REQ-220).
+//   https://www.hhs.gov/guidance/sites/default/files/hhs-guidance-documents/MM12071.pdf
 // - CMS, Medicare Benefit Policy Manual, ch. 15, Rev. 13889 (issued
 //   2026-07-30), sec. 220.1.2, 220.1.3, 220.2, 220.3, 230.1. Public domain.
 //   https://www.cms.gov/Regulations-and-Guidance/Guidance/Manuals/downloads/bp102c15.pdf
@@ -115,6 +125,10 @@ const CAPTE_PROVIDER = {
 
 const VERIFIED_AT = "2026-10-08T00:00:00Z";
 const PT_DISCLAIMER_KEY = "pt-clinical-content";
+
+// REQ-220: superseded or wrong lines retired in place (ids and history kept);
+// their replacements are appended to the same unit.
+const PT_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
 
 export const DPT_TRACK: SeedTrack = {
   code: "DPT",
@@ -180,11 +194,14 @@ export const DPT_TRACK: SeedTrack = {
         "Breathing mechanics: the diaphragm and intercostal muscles create the pressure changes that move air, while the lungs themselves stay passive", // AP 22.3
         "The lymphatic system's role in returning excess interstitial fluid to the bloodstream and the lymph nodes' role in filtering and immune staging, as the basis for lymphedema care", // AP 21.1
         "The four hypersensitivity types and how autoimmune disease breaks immune self-tolerance, as background for autoimmune conditions seen in rehabilitation", // AP 21.6; FSBPT-PT p10
+        // REQ-220 (FAIL-1137): replaces the sarcopenia line, which said ageing changes only the protein of existing fibres; OpenStax A&P 2e 10.6 says ageing fibres die. // AP 10.6
+        "Hypertrophy and atrophy as structural protein added to or lost from existing muscle fibres (no new cells form), and age-related sarcopenia, in which muscle fibres also die and are replaced by connective and adipose tissue",
       ],
+      objectiveRetiredAt: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null, null, null, null],
     },
     {
       title: "Ethics, values, service and leadership (7B)",
-      gate: "Given a practice dilemma, name the principle of the APTA Code of Ethics or Core Value at stake and the action it requires.",
+      gate: "Given a practice dilemma, name the ethical principle or Ethical Commitment of APTA's Code of Ethics for the Physical Therapy Profession at stake and the Standard of Conduct or action it requires.",
       objectives: [
         "The APTA Code of Ethics and Core Values for the physical therapist and physical therapist assistant, applied to real practice decisions",
         "Service and leadership: advocacy, community collaboration and responding to health care disparity",
@@ -196,7 +213,10 @@ export const DPT_TRACK: SeedTrack = {
         "Informed consent as an ongoing conversation about the nature, risks, benefits and alternatives of an intervention, which the patient may refuse or withdraw at any time", // SP-CONSENT
         "HIPAA obligations for protected health information, including the Privacy Rule, Security Rule and breach notification requirements", // SP-HIPAA
         "The clinician's duty as a mandated reporter of suspected child abuse, and recognising physical, psychological, financial and neglect forms of elder abuse", // SP-CHILDABUSE; SP-ELDERABUSE
+        // REQ-220 (FAIL-1133): the 2020 Code's eight principles were superseded on 2026-01-01. // APTA-COE
+        "APTA's Code of Ethics for the Physical Therapy Profession (effective 2026-01-01, one code for PTs and PTAs): the ethical principles of autonomy, beneficence, nonmaleficence, justice, veracity and fidelity, and the nine Ethical Commitments -- respect, integrity, accountability, maintaining professional relationships, compassion and trust, responsible business and organizational practices, direction and supervision, professional expertise, and societal responsibility -- with their enforceable Standards of Conduct",
       ],
+      objectiveRetiredAt: [null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null, null],
     },
     {
       title: "Lifelong learning, education and health care disparities (7C)",
@@ -259,7 +279,10 @@ export const DPT_TRACK: SeedTrack = {
         "PTA supervision rules: since 2025 Medicare allows general supervision of a PTA by a PT in private practice, but state law, other payers or facility policy may require closer supervision, and the PT stays responsible for the care", // CFR 410.60(c)(2); CAPTE-PT 7D7
         "Design a maintenance program when a patient's skilled need is to maintain function or slow decline rather than to improve, which Medicare covers when it needs a therapist's skill", // CMS-BPM15 220.2
         "Write a discharge note covering care since the last progress report, as the final record that the whole episode was medically necessary", // CMS-BPM15 220.3; CAPTE-PT 7D9
+        // REQ-220 (FAIL-1134): replaces the pre-2021 rule that a PTA could not deliver skilled maintenance programs (CMS MLN Matters MM12071, effective 2021-01-01). // MM12071; CMS-BPM15 230.1; CAPTE-PT 7D7
+        "What a PTA may not do under Medicare -- evaluate or assess, make clinical judgments, or establish the maintenance program -- and that since 2021 the PT may delegate furnishing a maintenance program the PT established to a PTA when clinically appropriate, as for rehabilitative care",
       ],
+      objectiveRetiredAt: [null, null, null, null, null, null, null, null, null, null, null, PT_REQ220_RETIRED_AT, null, null, null, null],
     },
     {
       title: "Interventions and management of the delivery of care (7D10-7D16)",
