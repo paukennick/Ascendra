@@ -338,7 +338,7 @@ describe("FAIL-1105: a per-IP ceiling on login", () => {
     const ip = freshIp();
     const key = ipCounterKey(ip);
     const count = async () => Number((await queryOne<{ n: string }>(`select count(*) n from auth_events where event_type=$1 and identifier=$2`, [LOGIN_IP_EVENT, key]))!.n);
-    for (let i = 0; i < 3; i++) await call(login, { body: { email: `nobody-${i}-${run}@x.test`, password: "wrong-password" }, headers: { "x-forwarded-for": ip } });
+    for (let i = 0; i < 3; i++) await call(login, { body: { email: `nobody-${i}-${run}@x.test`, password: testPw("wrong-guess-" + i) }, headers: { "x-forwarded-for": ip } });
     assert.equal(await count(), 3);
     assert.equal((await call(login, { body: { email: u.email, password: PW }, headers: { "x-forwarded-for": ip } })).status, 200);
     assert.equal(await count(), 3, "the correct sign-in did not use budget");
