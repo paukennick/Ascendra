@@ -141,6 +141,13 @@ describe("H2: only low confidence or a disagreeing check holds an item back", ()
     assert.match(steerText(["a port", "a limit"]), /- a port\n- a limit/);
     assert.equal(GATE_ATTEMPTS, 2);
   });
+
+  test("a lab held for a content rule says so, alone or with the facts (FAIL-1026)", () => {
+    assert.match(heldMessage("lab", ["invalid"]), /didn't meet our content rules/);
+    assert.doesNotMatch(heldMessage("lab", ["invalid"]), /confident|second check/);
+    assert.match(heldMessage("lab", ["disagree", "invalid"]), /different answer.* and it didn't meet our content rules/);
+    assert.deepEqual(new HeldForAccuracyError("lab", ["invalid", "invalid", "disagree"]).reasons, ["invalid", "disagree"]);
+  });
 });
 
 describe("M6 (FAIL-1012): the distractor lint no longer rejects correct questions", () => {

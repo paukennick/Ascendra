@@ -530,26 +530,81 @@ describe("generated labs: every gate before storing", () => {
   });
   const pass = async () => ({ referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: [] });
 
-  test("uncertain, malformed, disputed or unchecked content is held back; clean content is stored for expert review once", async () => {
-    const base = { objectiveId: OBJ_SIBLING, kind: "build" as const, model: "test" };
-    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ uncertainClaims: ["a quota"] }), checker: pass }), "held_uncertain");
+  const base = { objectiveId: OBJ_SIBLING, kind: "build" as const, model: "test" };
+  const labHoldbacks = async () =>
+    (await query<{ reason: string }>(`select reason from item_holdbacks where item_kind = 'lab' and objective_id = $1 order by created_at, id`, [OBJ_SIBLING])).map((h) => h.reason);
+  const clearLabs = () => query(`delete from labs where objective_id = $1`, [OBJ_SIBLING]);
+  const wrong = async () => ({ referenceAnswersCorrect: false, safe: true, problems: ["wrong"], unsupportedClaims: [] });
+
+  // REQ-216 (FAIL-1026): labs hold only on the writer's low confidence, a content rule or a
+  // disagreeing check; claims merely listed or unconfirmed are logged; one steered retry.
+  test("low confidence, malformed or disputed content is held back; clean content is stored for expert review once", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ confidence: "low", uncertainClaims: ["a quota"] }), checker: pass }), "held_uncertain");
     assert.equal(await saveGeneratedLab({ ...base, generated: gen({ steps: [] }), checker: pass }), "held_invalid");
-    assert.equal(
-      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => ({ referenceAnswersCorrect: false, safe: true, problems: ["wrong"], unsupportedClaims: [] }) }),
-      "held_check"
-    );
-    assert.equal(
-      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => { throw new Error("network"); } }),
-      "held_check_error"
-    );
-    const held = await query(`select reason from item_holdbacks where item_kind = 'lab' and objective_id = $1 order by created_at`, [OBJ_SIBLING]);
-    assert.deepEqual(held.map((h: any) => h.reason), ["uncertain", "fact_check", "fact_check", "fact_check_error"]);
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: wrong }), "held_check");
+    assert.deepEqual((await labHoldbacks()).slice(before), ["uncertain", "fact_check", "fact_check"]);
     assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "saved");
     assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "exists");
     const row = await queryOne<{ source: string; review_status: string; slug: string }>(`select source, review_status, slug from labs where objective_id = $1`, [OBJ_SIBLING]);
     assert.deepEqual({ source: row!.source, review_status: row!.review_status }, { source: "generated", review_status: "needs_expert_review" });
     assert.match(row!.slug, /^gen-[0-9a-f]{12}$/);
-    await query(`delete from labs where objective_id = $1`, [OBJ_SIBLING]);
+    await clearLabs();
+  });
+
+  test("claims the writer merely listed, or the checker could not confirm, do not hold a lab back", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ confidence: "medium", uncertainClaims: ["the scenario is invented"] }), checker: pass }), "saved");
+    await clearLabs();
+    const unconfirmed = async () => ({ referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: ["a quota"] });
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: unconfirmed }), "saved");
+    assert.equal((await labHoldbacks()).length, before, "nothing was logged as a holdback");
+    await clearLabs();
+  });
+
+  test("a held lab is written once more, steered with the claims, and the retry is what is stored", async () => {
+    const before = (await labHoldbacks()).length;
+    const steers: (string | null)[] = [];
+    const regenerate = async (steer: string | null) => {
+      steers.push(steer);
+      return gen({ title: "Second draft of the lab" });
+    };
+    assert.equal(
+      await saveGeneratedLab({ ...base, generated: gen({ confidence: "low", uncertainClaims: ["the quota is 40"] }), checker: pass, regenerate }),
+      "saved"
+    );
+    assert.equal(steers.length, 1);
+    assert.match(steers[0]!, /the quota is 40/);
+    assert.equal((await queryOne<{ title: string }>(`select title from labs where objective_id = $1`, [OBJ_SIBLING]))!.title, "Second draft of the lab");
+    assert.deepEqual((await labHoldbacks()).slice(before), ["uncertain"]);
+    await clearLabs();
+
+    // a checker that disagrees with the first draft steers the retry too; only one retry is made
+    let checks = 0;
+    const secondOk = async () => (++checks === 1 ? wrong() : pass());
+    steers.length = 0;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: secondOk, regenerate }), "saved");
+    assert.match(steers[0]!, /wrong/);
+    await clearLabs();
+    steers.length = 0;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: wrong, regenerate }), "held_check");
+    assert.equal(steers.length, 1, "exactly one retry");
+    // a draft that breaks a content rule is retried the same way
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen({ steps: [] }), checker: pass, regenerate }), "saved");
+    await clearLabs();
+  });
+
+  test("a checker call that fails is retryable: nothing is logged as held back, and the next run can store the lab", async () => {
+    const before = (await labHoldbacks()).length;
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: async () => { throw new Error("network"); } }), "held_check_error");
+    assert.equal(
+      await saveGeneratedLab({ ...base, generated: gen(), checker: async () => ({ safe: true, problems: [], unsupportedClaims: [] }) as never }),
+      "held_check_error",
+      "a reply with no verdict is not a verdict"
+    );
+    assert.equal((await labHoldbacks()).length, before);
+    assert.equal(await saveGeneratedLab({ ...base, generated: gen(), checker: pass }), "saved");
+    await clearLabs();
   });
 });
 

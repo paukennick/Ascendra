@@ -3,22 +3,29 @@ import { query, queryOne } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
 import { systemWithRules, uncertaintySchemaFields, UNCERTAINTY_JSON, type SystemPrompt } from "@/lib/prompts";
 import { factCheckEnabled } from "@/lib/fact-check";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
+import { type CheckVerdict } from "@/lib/fact-check";
+import { FactCheckUnavailableError, generateGated, HeldForAccuracyError, type GateCheckResult } from "@/lib/generation-gate";
 import type { CoachContext } from "@/lib/coach-context";
 import { labContentHash, labContentProblems, type LabContent, type LabKind } from "@/lib/lab-content";
 import type { LabSafetyFamily } from "@/lib/lab-grading";
 
 // REQ-123: writing a lab with the model, for scale-out beyond the authored
 // pilot (scripts/generate-labs.ts, Batch API). Shared content, so it goes
-// through every REQ-114 gate before it is stored:
-//   1. the writer's own uncertainty (confidence / uncertainClaims) holds it back;
+// through the REQ-216 generation gate (lib/generation-gate.ts) before it is stored:
+//   1. the writer rating its own confidence LOW holds it back (claims it merely
+//      listed are logged, never block);
 //   2. the content rules (lib/labs.ts labContentProblems) reject a malformed lab;
 //   3. an independent fast-model check reads the whole lab -- scenario, steps,
-//      criteria and reference answers -- and must find every reference answer
-//      correct for the exam and nothing unsafe or unsupported. It fails CLOSED.
-// A lab that passes is stored as source 'generated', review_status
-// 'needs_expert_review': like the authored pilot it is not served in
-// production until a person approves it (lib/labs.ts servedReviewStatuses).
+//      criteria and reference answers -- and holds it back when it finds a
+//      reference answer wrong, something unsafe, or a step that depends on the
+//      learner's earlier answer. Claims it could not confirm are logged only.
+// A held lab is written once more, steered with what held the first one back;
+// held twice, it is logged and the operator is told why in plain words
+// (describeSaveOutcome). A checker CALL that fails says nothing about the lab:
+// no holdback row, the outcome is retryable. A lab that passes is stored as
+// source 'generated', review_status 'needs_expert_review': like the authored
+// pilot it is not served in production until a person approves it
+// (lib/labs.ts servedReviewStatuses).
 
 const SAFETY: Record<LabSafetyFamily, string> = {
   clinical:
@@ -61,6 +68,8 @@ export function labGenerationPrompt(params: {
   kind: LabKind;
   family: LabSafetyFamily;
   ctx?: CoachContext;
+  // REQ-216: what held the previous draft back, for the one steered retry
+  steer?: string | null;
 }): { system: SystemPrompt; user: string } {
   const shape =
     params.kind === "build"
@@ -78,7 +87,7 @@ that two graders would agree; the reference answer must meet its own criteria. $
   );
   const user = `Track: ${params.trackTitle}
 Unit: ${params.unitTitle}
-Objective: ${params.objectiveTitle}
+Objective: ${params.objectiveTitle}${params.steer ? `\n\n${params.steer}` : ""}
 
 Produce ONLY a JSON object, no markdown fence:
 {
@@ -132,6 +141,26 @@ export function judgeLabCheck(out: Partial<LabCheckOutput> | null | undefined): 
   return { publish: reasons.length === 0, reasons };
 }
 
+// REQ-216: the gate's reading of the checker. It disagrees with the lab when it
+// says a reference answer is wrong, something is unsafe, or lists a problem; what
+// it merely could not support is carried as unsupportedClaims (logged, not held).
+// A reply missing either verdict is not a verdict at all: 'missing', retryable.
+export function labCheckVerdict(out: Partial<LabCheckOutput> | null | undefined, key = "lab"): CheckVerdict {
+  const unsupported = Array.isArray(out?.unsupportedClaims)
+    ? out!.unsupportedClaims.filter((p): p is string => typeof p === "string" && p.trim() !== "").map((p) => p.trim())
+    : [];
+  if (!out || typeof out.referenceAnswersCorrect !== "boolean" || typeof out.safe !== "boolean") {
+    return { key, publish: false, answer: null, unsupportedClaims: [], outcome: "missing" };
+  }
+  const problems = [
+    ...(out.referenceAnswersCorrect ? [] : ["a reference answer was judged wrong"]),
+    ...(out.safe ? [] : ["judged unsafe"]),
+    ...(Array.isArray(out.problems) ? out.problems.filter((p): p is string => typeof p === "string" && p.trim() !== "").map((p) => p.trim()) : []),
+  ];
+  if (problems.length) return { key, publish: false, answer: [], unsupportedClaims: problems, outcome: "disagree" };
+  return { key, publish: unsupported.length === 0, answer: [], unsupportedClaims: unsupported, outcome: unsupported.length ? "unsupported" : "agree" };
+}
+
 export function labCheckPrompt(lab: LabContent, objectiveTitle: string, ctx?: CoachContext): { system: SystemPrompt; user: string } {
   const system = systemWithRules(
     `You are an independent subject-matter checker. You did not write this lab. Read it as an examiner would:
@@ -177,9 +206,53 @@ export const modelLabChecker: LabChecker = async (lab, meta) => {
 
 export type SaveOutcome = "saved" | "exists" | "held_uncertain" | "held_invalid" | "held_check" | "held_check_error";
 
+// What the operator reads for an outcome (scripts/generate-labs.ts). Labs have no
+// learner request path -- they are written offline -- so the REQ-216 "tell them
+// why" is this sentence. 'held_check_error' is retryable and is not a verdict.
+export const SAVE_OUTCOME_TEXT: Record<SaveOutcome, string> = {
+  saved: "stored (needs_expert_review)",
+  exists: "an identical lab is already on the objective",
+  held_uncertain: "held back twice: the writer rated its own confidence low",
+  held_invalid: "held back twice: the lab broke a content rule",
+  held_check: "held back twice: the independent check found a wrong reference answer, something unsafe, or a step that depends on an earlier answer",
+  held_check_error: "not stored, retryable: the independent check could not run (nothing was held back; run --collect again)",
+};
+
+export const describeSaveOutcome = (o: SaveOutcome): string => SAVE_OUTCOME_TEXT[o];
+
+// A thrown or unusable checker call is retryable and not a verdict on the lab.
+export const isRetryableOutcome = (o: SaveOutcome): boolean => o === "held_check_error";
+
+// The one steered retry: a live (non-batch) writer for one objective. Used only
+// by scripts/generate-labs.ts after the batch's draft was held.
+export function modelLabWriter(params: {
+  trackTitle: string;
+  unitTitle: string;
+  objectiveTitle: string;
+  kind: LabKind;
+  family: LabSafetyFamily;
+  ctx?: CoachContext;
+}): (steer: string | null) => Promise<GeneratedLab> {
+  return async (steer) => {
+    const { system, user } = labGenerationPrompt({ ...params, steer });
+    return callClaudeStructured({
+      system,
+      messages: [{ role: "user", content: user }],
+      schema: labGenerationSchema,
+      maxTokens: 4000,
+      effort: "medium",
+      thinking: "off",
+      purpose: "lab_generate",
+      // Run by scripts/generate-labs.ts (an operator), never for a learner.
+      userId: null,
+    });
+  };
+}
+
 // Stores one generated lab after the gates above, or logs why not
 // (item_holdbacks, kind 'lab'). Never replaces a lab already on the
-// objective with the same content.
+// objective with the same content. `regenerate` writes the one steered retry; without it
+// a held lab is held after the first draft.
 export async function saveGeneratedLab(params: {
   objectiveId: string;
   kind: LabKind;
@@ -188,34 +261,41 @@ export async function saveGeneratedLab(params: {
   sources?: string[];
   ctx?: CoachContext;
   checker?: LabChecker;
+  regenerate?: (steer: string | null) => Promise<GeneratedLab>;
 }): Promise<SaveOutcome> {
   const obj = await queryOne<{ title: string }>(`select title from objectives where id = $1`, [params.objectiveId]);
   if (!obj) return "held_invalid";
-  const holdback = (reason: "uncertain" | "fact_check" | "fact_check_error", claims: string[]) =>
-    recordHoldback({ kind: "lab", objectiveId: params.objectiveId, reason, claims, content: params.generated, model: params.model });
-  const unsure = uncertaintyOf(params.generated);
-  if (unsure) {
-    await holdback("uncertain", unsure);
-    return "held_uncertain";
-  }
-  const content = toLabContent(params.generated, params.kind);
-  const problems = labContentProblems(content);
-  if (problems.length) {
-    await holdback("fact_check", problems.map((p) => `content check: ${p}`));
-    return "held_invalid";
-  }
-  if (factCheckEnabled()) {
-    let verdict: LabCheckVerdict;
-    try {
-      verdict = judgeLabCheck(await (params.checker ?? modelLabChecker)(content, { objectiveTitle: obj.title, ctx: params.ctx }));
-    } catch (err) {
-      await holdback("fact_check_error", [(err as Error).message ?? "check failed"]);
-      return "held_check_error";
+  const toContent = (g: GeneratedLab) => toLabContent(g, params.kind);
+  let content: LabContent;
+  try {
+    const gated = await generateGated<GeneratedLab>({
+      kind: "lab",
+      objectiveId: params.objectiveId,
+      model: params.model,
+      subject: "lab",
+      attempts: params.regenerate ? undefined : 1,
+      generate: async (steer) => (steer === null || !params.regenerate ? params.generated : params.regenerate(steer)),
+      uncertainty: (g) => g,
+      problemsOf: (g) => labContentProblems(toContent(g)),
+      check: factCheckEnabled()
+        ? async (g): Promise<GateCheckResult> => {
+            try {
+              const out = await (params.checker ?? modelLabChecker)(toContent(g), { objectiveTitle: obj.title, ctx: params.ctx });
+              return { verdict: labCheckVerdict(out), error: null };
+            } catch (err) {
+              return { verdict: undefined, error: (err as Error).message ?? "check failed" };
+            }
+          }
+        : undefined,
+      content: (g, verdict) => ({ lab: g, checker: verdict }),
+    });
+    content = toContent(gated);
+  } catch (err) {
+    if (err instanceof HeldForAccuracyError) {
+      return err.reasons.includes("disagree") ? "held_check" : err.reasons.includes("invalid") ? "held_invalid" : "held_uncertain";
     }
-    if (!verdict.publish) {
-      await holdback("fact_check", verdict.reasons);
-      return "held_check";
-    }
+    if (err instanceof FactCheckUnavailableError) return "held_check_error";
+    throw err;
   }
   const hash = labContentHash(content);
   const rows = await query<{ id: string }>(

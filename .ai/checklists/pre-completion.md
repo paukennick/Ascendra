@@ -203,7 +203,7 @@
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
 <<<<<<< HEAD
-- Generated learner-facing content (REQ-216, FAIL-1010..1025): a new kind of
+- Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
   generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
   a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
   `verdictUnchecked`, `steerText`): it is held back ONLY on the writer's low

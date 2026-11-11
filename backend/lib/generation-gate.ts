@@ -20,16 +20,22 @@ import { verdictClaims, verdictHolds, verdictUnchecked, type CheckVerdict } from
 
 export const GATE_ATTEMPTS = 2;
 
-export type HoldReason = "uncertain" | "disagree";
+// "invalid": the draft broke a content rule (REQ-216: labs) -- held and steered like the others.
+export type HoldReason = "uncertain" | "disagree" | "invalid";
 
 // The words a learner reads when an item was held back, naming the reason.
 export function reasonPhrase(reasons: Iterable<HoldReason>): string {
   const set = new Set(reasons);
-  return set.has("uncertain") && set.has("disagree")
-    ? "the writer wasn't sure it had the facts right and a second check picked a different answer"
-    : set.has("disagree")
-      ? "a second check picked a different answer from the one it was written with"
-      : "the writer wasn't confident it had the facts right";
+  const facts =
+    set.has("uncertain") && set.has("disagree")
+      ? "the writer wasn't sure it had the facts right and a second check picked a different answer"
+      : set.has("disagree")
+        ? "a second check picked a different answer from the one it was written with"
+        : set.has("uncertain")
+          ? "the writer wasn't confident it had the facts right"
+          : "";
+  const rules = set.has("invalid") ? "it didn't meet our content rules" : "";
+  return [facts, rules].filter(Boolean).join(" and ") || "the writer wasn't confident it had the facts right";
 }
 
 export function heldMessage(subject: string, reasons: Iterable<HoldReason>): string {
@@ -37,8 +43,11 @@ export function heldMessage(subject: string, reasons: Iterable<HoldReason>): str
 }
 
 export class HeldForAccuracyError extends UserFacingError {
+  readonly reasons: HoldReason[];
   constructor(subject: string, reasons: Iterable<HoldReason>) {
-    super(heldMessage(subject, reasons), 409, { held: true, retryable: true });
+    const list = [...new Set(reasons)];
+    super(heldMessage(subject, list), 409, { held: true, retryable: true });
+    this.reasons = list;
     this.name = "HeldForAccuracyError";
   }
 }
@@ -82,6 +91,9 @@ export async function generateGated<T>(o: {
   generate: (steer: string | null) => Promise<T>;
   uncertainty: (t: T) => UncertaintyFields;
   check?: (t: T) => Promise<GateCheckResult>;
+  // REQ-216 (labs): content rules the draft must meet. A draft that breaks one is held
+  // back and the retry is steered with the problems, like a low-confidence draft.
+  problemsOf?: (t: T) => string[];
   content?: (t: T, verdict: CheckVerdict | undefined) => unknown;
   attempts?: number;
 }): Promise<T> {
@@ -96,6 +108,14 @@ export async function generateGated<T>(o: {
       reasons.add("uncertain");
       await recordHoldback({ kind: o.kind, objectiveId: o.objectiveId, unitId: o.unitId, trackId: o.trackId, reason: "uncertain", claims: low, content: made, model: o.model });
       steer = steerText(low);
+      continue;
+    }
+    const broken = o.problemsOf ? o.problemsOf(made) : [];
+    if (broken.length) {
+      reasons.add("invalid");
+      const claims = broken.map((p) => `content check: ${p}`);
+      await recordHoldback({ kind: o.kind, objectiveId: o.objectiveId, unitId: o.unitId, trackId: o.trackId, reason: "fact_check", claims, content: made, model: o.model });
+      steer = steerText(claims);
       continue;
     }
     if (o.check) {

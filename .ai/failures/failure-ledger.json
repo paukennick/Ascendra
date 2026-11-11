@@ -13380,6 +13380,35 @@
       ],
       "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1026",
+      "date": "2026-11-10",
+      "title": "Generated labs were held back on any listed claim, and a failed checker call was logged as a holdback",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lab whose writer listed a harmless claim (or whose checker could not confirm one) was held back with no retry; a checker call that threw was written to item_holdbacks as fact_check_error, as if the lab had failed",
+      "how_detected": "Nick asked on 2026-11-10 for labs to follow the same rule as the other generated items",
+      "root_cause": "lab-generation.ts predated the REQ-216 gate: saveGeneratedLab used uncertaintyOf (any listed claim), judgeLabCheck published only on zero reasons including unsupportedClaims, had no steered retry, and treated a thrown checker as a verdict on the lab",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "backend/lib/generation-gate.ts"
+      ],
+      "fix_summary": "saveGeneratedLab runs on generateGated: holds only on low confidence, a content rule (new problemsOf, reason invalid) or a checker disagreement (labCheckVerdict); one steered retry via modelLabWriter; held twice returns a plain-words outcome (describeSaveOutcome); a failed or empty checker call is held_check_error, retryable, no holdback row",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts",
+        "backend/lib/labs.dbtest.ts",
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "labs.dbtest.ts: listed and unconfirmed claims store, the retry is steered once, a thrown checker leaves no holdback row; ai-spend-gate.test.ts registers the new operator-only writer call",
+      "recurrence_of": ""
     }
   ]
 }
