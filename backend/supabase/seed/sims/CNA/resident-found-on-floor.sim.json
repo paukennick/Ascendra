@@ -1,0 +1,1735 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 1
+  },
+  "slug": "resident-found-on-floor",
+  "title": "A resident found on the floor",
+  "screen": {
+    "type": "bedside",
+    "level": 1,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "pulse",
+          "label": "Pulse",
+          "spokenLabel": "Radial pulse you counted",
+          "value": "pulse",
+          "unit": "/min",
+          "alarm": {
+            "high": 100,
+            "low": 60
+          },
+          "announce": {
+            "bands": [
+              100,
+              110
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure you took",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              140,
+              160
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "resp",
+          "label": "Resp",
+          "spokenLabel": "Respirations you counted",
+          "value": "resp",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature you took",
+          "value": "tempD",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              36,
+              35.5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Her own pain rating out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "announce": {
+            "bands": [
+              7,
+              9
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(askedAt)"
+        }
+      ],
+      "banner": [
+        {
+          "when": "phase == \"after\"",
+          "text": "She has left for the hospital. Your note and the huddle."
+        },
+        {
+          "when": "changed",
+          "text": "Mrs. Lindqvist is on the floor, drowsier, asking the same question again."
+        },
+        {
+          "when": "nurseHere and not nurseLeft",
+          "text": "Mrs. Lindqvist is on the floor; the nurse is checking her."
+        },
+        {
+          "when": "true",
+          "text": "Room 12, 06:10. Mrs. Lindqvist is on the floor beside her bed, awake."
+        }
+      ]
+    }
+  },
+  "objective": "Safety and emergency procedures",
+  "secondaryObjectives": [
+    "Recognising an emergency and summoning help correctly",
+    "Reporting changes to the nurse: what, when and in what words",
+    "Observation versus interpretation, and why the aide reports the first",
+    "Taking and recording temperature, pulse, respiration and blood pressure",
+    "Recognising abnormal changes in body functioning"
+  ],
+  "sources": [
+    {
+      "cite": "42 CFR 483.152(b): nurse aide training program content",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.law.cornell.edu/cfr/text/42/483.152",
+      "note": "Read 2026-11-10 (Cornell LII copy): (b)(1)(iii) 'Safety/emergency procedures, including the Heimlich maneuver' is in the 16 hours before any resident contact; (b)(2)(iv) 'Recognizing abnormal changes in body functioning and the importance of reporting such changes to a supervisor.'"
+    },
+    {
+      "cite": "Credentia, 2024 National Nurse Aide Assessment Program (NNAAP) Written (Oral) Examination Content Outline (effective April 2024)",
+      "checkedAt": "2026-11-10",
+      "url": "https://kb-pa.credentia.com/en/article/the-2024-national-nurse-aide-assessment-program-nnaap",
+      "note": "Read 2026-11-10: Basic Nursing Skills (35% of the exam) includes Safety/Emergency and Data Collection and Reporting; Role of the Nurse Aide includes Communication and Member of the Health Care Team. The outline does not name choking."
+    },
+    {
+      "cite": "Prometric, Nurse Aide Written Test Content Outline (version 20160129)",
+      "checkedAt": "2026-11-10",
+      "url": "https://prometric.com/media/1136/download",
+      "note": "Read 2026-11-10: IV.B acute situations include choking/aspiration and changes in level of consciousness; I.A the legal obligation to report incidents and observations to the licensed nurse. FLAG: dated 2016; no newer Prometric outline was found, and states using Prometric may publish their own."
+    },
+    {
+      "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+      "checkedAt": "2026-11-10",
+      "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+      "note": "Read 2026-11-10: after a fall, 'do not move them unless they are in immediate danger of further injury'; 'Notify the nurse as soon as you observe the situation so the resident can be assessed and treated'; a mechanical lift is typically used to raise the resident from the floor."
+    },
+    {
+      "cite": "AHRQ, Preventing Falls in Hospitals: A Toolkit for Improving Quality of Care (Publication No. 13-0015-EF, January 2013), 3.2.1 universal fall precautions",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.mass.gov/doc/agency-for-healthcare-research-and-quality-preventing-falls-in-hospitals/download",
+      "note": "Read 2026-11-10 (Massachusetts copy of the AHRQ toolkit): call light within reach, bed in low position with brakes locked, nonslip well-fitting footwear, night lights, clean dry uncluttered floors, safe patient handling; post-fall procedures include a clinical review (tools 3N, 3O). Written for hospitals; the same universal precautions are applied here in a nursing home."
+    },
+    {
+      "cite": "StatPearls, Hip Fractures (updated 2023-08-08)",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.statpearls.com/point-of-care/22890",
+      "note": "Read 2026-11-10: 'The classically described presentation is a shortened and externally rotated limb.'"
+    },
+    {
+      "cite": "NICE guideline NG232, Head injury: assessment and early management (2023), recommendation 1.5.13 as reproduced by St Emlyn's",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.stemlynsblog.org/nice-head-injury-guidelines-2023/",
+      "note": "Read 2026-11-10: for people on anticoagulants (including DOACs) with a head injury and no other indication, consider a CT head scan within 8 hours of the injury. FLAG: a UK guideline read through a secondary summary; it is used only for why a head bump on a blood thinner is reported at once, which is the nurse's and provider's decision to act on, not the aide's."
+    },
+    {
+      "cite": "Johns Hopkins Medicine, Vital Signs (Body Temperature, Pulse Rate, Respiration Rate, Blood Pressure)",
+      "checkedAt": "2026-11-10",
+      "url": "https://hopkinsmedicine.org/health/conditions-and-diseases/vital-signs-body-temperature-pulse-rate-respiration-rate-blood-pressure",
+      "note": "Read 2026-11-10: adult pulse 60-100/min, respirations 12-16/min at rest, blood pressure normal under 120/80."
+    },
+    {
+      "cite": "42 CFR 483.12(c): reporting alleged violations, including injuries of unknown source, immediately and not later than 2 hours when serious bodily injury is involved",
+      "checkedAt": "2026-11-07",
+      "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-G/part-483/subpart-B/section-483.12",
+      "note": "FLAG: not re-read for this scenario; the wording is the CNA course seed's (CFR 483.12, read 2026-11-07). The aide's part is to tell the nurse at once; the facility reports."
+    }
+  ],
+  "brief": {
+    "situation": "06:10 on the night-to-day round in a nursing home. You are the nurse aide. You open the door of room 12 and find Mrs. Lindqvist, 84, on the floor beside her bed.",
+    "handover": [
+      "Care plan: high fall risk. Bed in the low position, call light within reach, nonslip socks, toileting help on the 06:00 round.",
+      "Care plan alert: on a blood thinner. Report any fall or bump to the nurse at once.",
+      "Mild memory loss; usually knows where she is. Full code.",
+      "The nurse is at the far end of the hall."
+    ],
+    "howItWorks": [
+      "The clock runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Your actions are a nurse aide's: observe, ask, call, comfort, measure vital signs, report, write it down. The nurse assesses and decides; no medicines or orders.",
+      "While you wait for the nurse or the paramedics, Skip jumps ahead and logs it; she keeps changing at the same pace.",
+      "Early on you are asked to write what you would do. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "06:10",
+    "tick": "1s",
+    "maxDuration": "1h",
+    "calendar": "clock"
+  },
+  "params": {
+    "nurseResp": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse reaches the room about 2 min after the call light and a shout. No published standard was found for this interval."
+      }
+    },
+    "leaveSec": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Leaving to find the nurse and coming back with her takes about 2 min. No published standard was found for this interval."
+      }
+    },
+    "aloneUp": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Left alone without being told to stay still, she tries to get up after about a minute."
+      }
+    },
+    "aloneUpTold": {
+      "value": 150,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Told to stay still and that help is coming, she waits about 2.5 min before trying."
+      }
+    },
+    "nurseRounds": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "If nobody calls, the nurse comes past on her 06:25 round."
+      }
+    },
+    "assessSec": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse's head-to-toe check on the floor takes about 3 min. No published standard was found for this interval."
+      }
+    },
+    "changeAfter": {
+      "value": 360,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. New drowsiness and repeated questions about 6 min after the nurse's assessment. FLAG: the timing of a change after a head injury varies from minutes to hours; this is chosen to fall inside the run."
+      }
+    },
+    "emsSec": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Paramedics arrive about 20 min after the nurse calls 911. No published standard was found for this interval."
+      }
+    },
+    "promptAt": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "She asks to be helped up 45 s after you find her."
+      }
+    },
+    "reasonAt": {
+      "value": 20,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "The written question opens 20 s in, before she asks to be helped up."
+      }
+    },
+    "helpWindow": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+        "checkedAt": "2026-11-10",
+        "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+        "note": "Notify the nurse as soon as you observe the situation: within 1 min of finding her (the expert path calls at about 10 s)."
+      }
+    },
+    "changePartial": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "A change reported 3-10 min after it appears: partial."
+      }
+    },
+    "pain0": {
+      "value": 7,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "She rates her right hip pain 7 out of 10."
+      }
+    }
+  },
+  "state": {
+    "helpAt": {
+      "type": "time",
+      "init": null
+    },
+    "shouted": {
+      "type": "bool",
+      "init": false
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "away": {
+      "type": "bool",
+      "init": false
+    },
+    "stayTold": {
+      "type": "bool",
+      "init": false
+    },
+    "stayToldAt": {
+      "type": "time",
+      "init": null
+    },
+    "nurseCalled": {
+      "type": "bool",
+      "init": false
+    },
+    "nurseHere": {
+      "type": "bool",
+      "init": false
+    },
+    "nurseLeft": {
+      "type": "bool",
+      "init": false
+    },
+    "reportedNurse": {
+      "type": "bool",
+      "init": false
+    },
+    "reportFull": {
+      "type": "bool",
+      "init": false
+    },
+    "askedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lookedAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "vitalsReported": {
+      "type": "bool",
+      "init": false
+    },
+    "blanketAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "movedHer": {
+      "type": "bool",
+      "init": false
+    },
+    "gotUp": {
+      "type": "bool",
+      "init": false
+    },
+    "liftAlone": {
+      "type": "bool",
+      "init": false
+    },
+    "pain": {
+      "type": "number",
+      "init": 7,
+      "min": 0,
+      "max": 10
+    },
+    "temp": {
+      "type": "number",
+      "init": 36.4,
+      "min": 34,
+      "max": 38,
+      "unit": "degC"
+    },
+    "changeAt": {
+      "type": "time",
+      "init": null
+    },
+    "changeReportedAt": {
+      "type": "time",
+      "init": null
+    },
+    "emsArrived": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "docObjective": {
+      "type": "bool",
+      "init": false
+    },
+    "prevDone": {
+      "type": "bool",
+      "init": false
+    },
+    "prevGood": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "live": {
+      "expr": "phase == \"live\""
+    },
+    "pulse": {
+      "expr": "round(96 + pain + (isNull(blanketAt) ? 2 : 0) + sin(t / 41))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(150 + pain + sin(t / 29))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(84 + pain / 2)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "resp": {
+      "expr": "round(18 + pain / 2)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "tempD": {
+      "expr": "round(temp * 10) / 10",
+      "unit": "degC",
+      "precision": 1
+    },
+    "changed": {
+      "expr": "not isNull(changeAt)"
+    },
+    "here": {
+      "expr": "live and not away"
+    }
+  },
+  "processes": [
+    {
+      "id": "cooling",
+      "when": "live",
+      "update": {
+        "temp": "temp + (isNull(blanketAt) ? -0.6 : 0.3) * dt / 3600"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "In room 12",
+      "clock": "running",
+      "actions": [
+        "ask",
+        "lookOver",
+        "watch",
+        "vitals",
+        "callLight",
+        "leave",
+        "stayStill",
+        "blanket",
+        "pressure",
+        "helpUp",
+        "report",
+        "reportVitals",
+        "tellChange"
+      ]
+    },
+    "after": {
+      "label": "After she leaves",
+      "clock": "stopped",
+      "actions": [
+        "document",
+        "prevent"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "ask": {
+      "label": "Ask her what happened and where it hurts",
+      "group": "Assess",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "if": "isNull(askedAt)",
+          "then": [
+            {
+              "set": "askedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "changed",
+              "then": [
+                {
+                  "log": "\"What happened? Where am I?\" She asks again a minute later. Her eyes keep closing.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "\"I needed the bathroom and the floor was wet. My right hip hurts, about a 7. I think I hit my head on the nightstand. Just help me up, dear.\"",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "lookOver": {
+      "label": "Look her over without moving her",
+      "group": "Assess",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "if": "isNull(lookedAt)",
+          "then": [
+            {
+              "set": "lookedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "On her right side beside the bed, awake. Right leg looks shorter than the left and turned outward. Red bump on the right forehead. Skin tear on the right forearm, oozing a little. Bare feet, puddle of urine by the bed, call light clipped to the far rail, bed in the high position.",
+          "kind": "find"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Watch her: alertness, breathing, color",
+      "group": "Assess",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "changed",
+              "then": [
+                {
+                  "log": "Drowsier than 10 minutes ago: eyes closing, slow to answer, asking the same question again. Breathing steady, color unchanged.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Awake, answering, knows where she is. Breathing easily. Pale, a little cold to touch.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Take her vital signs (pulse, respirations, blood pressure, temperature)",
+      "group": "Assess",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "set": "vitalsAt",
+          "to": "t"
+        },
+        {
+          "log": "Without moving her: radial pulse {pulse}, respirations {resp}, blood pressure {sbp}/{dbp} on the left arm, temperature {tempD} C.",
+          "kind": "find"
+        }
+      ]
+    },
+    "callLight": {
+      "label": "Press the call light and call out for the nurse (stay with her)",
+      "group": "Call",
+      "available": "here and not nurseCalled",
+      "why": "Help is already coming, or you are out of the room.",
+      "effects": [
+        {
+          "if": "isNull(helpAt)",
+          "then": [
+            {
+              "set": "helpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "shouted",
+          "to": "true"
+        },
+        {
+          "set": "nurseCalled",
+          "to": "true"
+        },
+        {
+          "schedule": "nurseT",
+          "after": "nurseResp"
+        },
+        {
+          "log": "You unclip the call light, press it and call out: \"I need the nurse in room 12, resident on the floor.\" You stay with her.",
+          "kind": "good"
+        }
+      ]
+    },
+    "leave": {
+      "label": "Leave the room to find the nurse",
+      "group": "Call",
+      "available": "here and not nurseCalled",
+      "why": "Help is already coming.",
+      "effects": [
+        {
+          "if": "isNull(helpAt)",
+          "then": [
+            {
+              "set": "helpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "away",
+          "to": "true"
+        },
+        {
+          "set": "nurseCalled",
+          "to": "true"
+        },
+        {
+          "schedule": "nurseT",
+          "after": "leaveSec"
+        },
+        {
+          "schedule": "aloneT",
+          "after": "stayTold ? aloneUpTold : aloneUp"
+        },
+        {
+          "log": "You go out to look for the nurse. Mrs. Lindqvist is alone on the floor.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "stayStill": {
+      "label": "Tell her to stay still: the nurse is coming and you are staying with her",
+      "group": "Act",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "set": "stayTold",
+          "to": "true"
+        },
+        {
+          "if": "isNull(stayToldAt)",
+          "then": [
+            {
+              "set": "stayToldAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "\"Please stay still, Mrs. Lindqvist. The nurse is coming to check you, and I'm right here.\"",
+          "kind": "good"
+        }
+      ]
+    },
+    "blanket": {
+      "label": "Cover her with a blanket",
+      "group": "Act",
+      "available": "here and isNull(blanketAt)",
+      "why": "She is already covered.",
+      "effects": [
+        {
+          "set": "blanketAt",
+          "to": "t"
+        },
+        {
+          "log": "Blanket over her without moving her. She says that's better.",
+          "kind": "good"
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Gloves on: gentle pressure on the skin tear with gauze",
+      "group": "Act",
+      "available": "here and isNull(pressureAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "pressureAt",
+          "to": "t"
+        },
+        {
+          "log": "Gloves on; clean gauze held gently on the forearm. The oozing slows.",
+          "kind": "good"
+        }
+      ]
+    },
+    "helpUp": {
+      "label": "Help her up into the chair",
+      "group": "Act",
+      "available": "here",
+      "why": "You are out of the room.",
+      "effects": [
+        {
+          "set": "movedHer",
+          "to": "true"
+        },
+        {
+          "add": "pain",
+          "by": "2"
+        },
+        {
+          "log": "As you lift, she screams and her right leg gives way. You lower her back to the floor.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "report": {
+      "label": "Tell the nurse what you found",
+      "group": "Call",
+      "available": "live and nurseHere and not reportedNurse and not nurseLeft",
+      "why": "Once the nurse is in the room.",
+      "params": [
+        {
+          "id": "rep",
+          "kind": "form",
+          "label": "Report",
+          "fields": [
+            {
+              "id": "found",
+              "label": "What you found",
+              "options": [
+                {
+                  "value": "obj",
+                  "label": "Found at 06:10 on her right side beside the bed; right leg shorter and turned out; bump on the right forehead; skin tear right forearm"
+                },
+                {
+                  "value": "interp",
+                  "label": "She fell out of bed because she didn't use the call light"
+                }
+              ]
+            },
+            {
+              "id": "said",
+              "label": "What she said",
+              "options": [
+                {
+                  "value": "quote",
+                  "label": "\"I needed the bathroom, the floor was wet, my right hip hurts about a 7, I think I hit my head\""
+                },
+                {
+                  "value": "vague",
+                  "label": "She seems fine, just sore"
+                }
+              ]
+            },
+            {
+              "id": "flag",
+              "label": "Care plan",
+              "options": [
+                {
+                  "value": "thinner",
+                  "label": "Her care plan says blood thinner: report any fall or bump at once"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing to add"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "reportedNurse",
+          "to": "true"
+        },
+        {
+          "set": "reportFull",
+          "to": "found == \"obj\" and said == \"quote\" and flag == \"thinner\""
+        },
+        {
+          "log": "You tell the nurse what you found.",
+          "kind": "good"
+        }
+      ]
+    },
+    "reportVitals": {
+      "label": "Tell the nurse her vital signs",
+      "group": "Call",
+      "available": "live and nurseHere and not isNull(vitalsAt) and not vitalsReported",
+      "why": "Take them first, with the nurse here.",
+      "effects": [
+        {
+          "set": "vitalsReported",
+          "to": "true"
+        },
+        {
+          "log": "\"Pulse {pulse}, respirations {resp}, blood pressure {sbp}/{dbp}, temperature {tempD}.\" The pulse is above 100.",
+          "kind": "good"
+        }
+      ]
+    },
+    "tellChange": {
+      "label": "Call the nurse back now: tell her about a change",
+      "group": "Call",
+      "available": "live and nurseLeft and not emsArrived",
+      "why": "The nurse is in the room or has not left yet.",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "changed and isNull(changeReportedAt)",
+              "then": [
+                {
+                  "set": "changeReportedAt",
+                  "to": "t"
+                },
+                {
+                  "log": "\"She's drowsier and keeps asking the same question.\" The nurse comes straight back, starts neuro checks and calls the paramedics and the provider with the change.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Nurse (on the phone): \"Thanks. Keep watching her and tell me the moment anything changes.\"",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "document": {
+      "label": "Write your note",
+      "group": "Record",
+      "available": "phase == \"after\" and not documented",
+      "why": "Already written.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "choice",
+          "label": "Your note",
+          "options": [
+            {
+              "value": "obj",
+              "label": "06:10 found on floor beside bed, right side, awake; her words; right leg shorter and turned out; forehead bump; skin tear; what you did and the times; vital signs; who you told"
+            },
+            {
+              "value": "opinion",
+              "label": "\"Resident fell out of bed again, probably didn't use call light. Seemed OK. Nurse aware.\""
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "set": "docObjective",
+          "to": "note == \"obj\""
+        },
+        {
+          "log": "Note written per facility policy; the nurse completes the incident report."
+        }
+      ]
+    },
+    "prevent": {
+      "label": "Post-fall huddle: what would you change?",
+      "group": "Record",
+      "available": "phase == \"after\" and not prevDone",
+      "why": "Already discussed.",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "choice",
+          "label": "Your suggestion",
+          "options": [
+            {
+              "value": "universal",
+              "label": "Call light clipped within her reach, bed low and locked, nonslip socks, night light, floor kept dry, toileting rounds before 06:00"
+            },
+            {
+              "value": "rails",
+              "label": "Raise all the bed rails and ask for a restraint at night"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing; it was an accident"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "prevDone",
+          "to": "true"
+        },
+        {
+          "set": "prevGood",
+          "to": "plan == \"universal\""
+        },
+        {
+          "log": "Added to the post-fall huddle."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "nurseT": {
+      "label": "the nurse arriving",
+      "wait": {
+        "skipLabel": "the nurse arriving (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse reaches the room about 2 min after the call light and a shout. No published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "nurseHere",
+              "to": "true"
+            },
+            {
+              "set": "away",
+              "to": "false"
+            },
+            {
+              "cancel": "aloneT"
+            },
+            {
+              "schedule": "assessT",
+              "after": "assessSec"
+            },
+            {
+              "log": "The nurse arrives and kneels beside her. \"Don't move, Mrs. Lindqvist. Tell me what you found.\"",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "aloneT": {
+      "label": "her alone",
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Left alone without being told to stay still, she tries to get up after about a minute."
+      },
+      "effects": [
+        {
+          "if": "live and away",
+          "then": [
+            {
+              "set": "gotUp",
+              "to": "true"
+            },
+            {
+              "add": "pain",
+              "by": "2"
+            },
+            {
+              "log": "Alone, she grabs the bed rail and tries to stand. Her right leg gives way and she falls again.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "roundsT": {
+      "label": "the nurse's round",
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "If nobody calls, the nurse comes past on her 06:25 round."
+      },
+      "effects": [
+        {
+          "if": "live and not nurseCalled",
+          "then": [
+            {
+              "set": "nurseCalled",
+              "to": "true"
+            },
+            {
+              "set": "nurseHere",
+              "to": "true"
+            },
+            {
+              "schedule": "assessT",
+              "after": "assessSec"
+            },
+            {
+              "log": "The nurse comes past on her round and finds you both. \"Why didn't you call me?\"",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "assessT": {
+      "label": "the nurse's assessment",
+      "wait": {
+        "skipLabel": "the nurse's assessment (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The nurse's head-to-toe check on the floor takes about 3 min. No published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "vitalsAsked",
+              "to": "true"
+            },
+            {
+              "set": "nurseLeft",
+              "to": "true"
+            },
+            {
+              "schedule": "changeT",
+              "after": "changeAfter"
+            },
+            {
+              "schedule": "emsT",
+              "after": "emsSec"
+            },
+            {
+              "log": "Nurse: \"Possible right hip fracture, and she hit her head on a blood thinner. I'm calling the provider and 911. Take a full set of vital signs and tell me, then stay with her: keep her still and warm and call me the moment anything changes.\" She steps out to the phone.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "changeT": {
+      "label": "a change",
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. New drowsiness and repeated questions about 6 min after the nurse's assessment. FLAG: the timing of a change after a head injury varies from minutes to hours; this is chosen to fall inside the run."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "changeAt",
+              "to": "t"
+            },
+            {
+              "log": "Mrs. Lindqvist asks what happened, then asks again. Her eyes keep closing.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "emsT": {
+      "label": "the paramedics",
+      "wait": {
+        "skipLabel": "the paramedics arriving (about 20 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Nursing home practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Paramedics arrive about 20 min after the nurse calls 911. No published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "emsArrived",
+              "to": "true"
+            },
+            {
+              "log": "Paramedics arrive, splint her leg and move her onto the stretcher with the team. She leaves for the hospital.",
+              "kind": "sys"
+            },
+            {
+              "phase": "after"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "rounds",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "roundsT",
+          "after": "nurseRounds"
+        }
+      ]
+    },
+    {
+      "id": "asksUp",
+      "when": "live and t >= promptAt and not nurseHere and not away and not movedHer",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "\"Just help me up, dear. I'm fine, really.\" She reaches for your arm.",
+          "kind": "alarm"
+        },
+        {
+          "prompt": "helpMeUp"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "helpMeUp": {
+      "title": "\"Help me up, dear\"",
+      "context": "She is reaching for your arm and starting to push herself up.",
+      "choices": [
+        {
+          "id": "up",
+          "label": "Help her up: she says she's fine",
+          "effects": [
+            {
+              "set": "movedHer",
+              "to": "true"
+            },
+            {
+              "add": "pain",
+              "by": "2"
+            },
+            {
+              "log": "As you lift, she screams and her right leg gives way. You lower her back to the floor.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Moving her before the nurse checks her can turn a hip fracture into a worse one."
+        },
+        {
+          "id": "stay",
+          "label": "\"Please stay still; the nurse is coming to check you. I'm staying right here.\"",
+          "effects": [
+            {
+              "set": "stayTold",
+              "to": "true"
+            },
+            {
+              "if": "isNull(stayToldAt)",
+              "then": [
+                {
+                  "set": "stayToldAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "She sighs and lies back. \"All right.\"",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Don't move a resident after a fall until the nurse has checked her."
+        },
+        {
+          "id": "lift",
+          "label": "Get the mechanical lift and do it yourself",
+          "effects": [
+            {
+              "set": "liftAlone",
+              "to": "true"
+            },
+            {
+              "log": "A lift needs two staff and the nurse's check first. You stay.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A lift is how she will get up, but only after the nurse's check and with two people."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "firstMoves": {
+      "trigger": "live and t >= reasonAt",
+      "question": "You have found Mrs. Lindqvist on the floor. What do you do first, and what will you tell the nurse?",
+      "parts": [
+        {
+          "label": "First moves",
+          "criteria": "Does not move her or help her up; calls for the nurse without leaving her (call light, calling out); tells her to stay still and reassures her; keeps her warm and covers bleeding with gentle pressure; observes. Stays within the aide's role (no assessment conclusions, no medications).",
+          "modelAnswer": "Leave her where she is and don't help her up. Press the call light and call out for the nurse while I stay with her. Tell her to stay still, cover her with a blanket and put gentle pressure on the skin tear with gloves on. Watch how alert she is and how she is breathing."
+        },
+        {
+          "label": "What to tell the nurse",
+          "criteria": "Reports in objective words: when and where she was found and her position, her own words (wet floor, right hip pain about 7, hit her head), what is seen (right leg shorter and turned out, forehead bump, skin tear), the care plan's blood-thinner flag, and any change, without diagnosing.",
+          "modelAnswer": "Found at 06:10 on her right side beside the bed. She said she needed the bathroom, the floor was wet, her right hip hurts about a 7 and she thinks she hit her head. Her right leg looks shorter and turned out, there is a bump on her forehead and a skin tear on her right forearm. Her care plan says she is on a blood thinner."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "callWindow": {
+        "value": 60,
+        "source": {
+          "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+          "checkedAt": "2026-11-10",
+          "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+          "note": "Nurse called within 1 min of finding her (expert path about 10 s)."
+        }
+      },
+      "changeWindow": {
+        "value": 180,
+        "source": {
+          "cite": "42 CFR 483.152(b): nurse aide training program content",
+          "checkedAt": "2026-11-10",
+          "url": "https://www.law.cornell.edu/cfr/text/42/483.152",
+          "note": "A new change in alertness reported to the nurse within 3 min of it appearing (483.152(b)(2)(iv): recognizing abnormal changes and reporting them). The number is authored."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "phase == \"after\" and not (documented and prevDone)",
+      "class": "recovered",
+      "rationale": "She reached the hospital safely, but without the aide's note and huddle input the facility loses what happened and how to prevent the next fall; a gap, not harm in itself.",
+      "source": {
+        "cite": "AHRQ, Preventing Falls in Hospitals: A Toolkit for Improving Quality of Care (Publication No. 13-0015-EF, January 2013), 3.2.1 universal fall precautions",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.mass.gov/doc/agency-for-healthcare-research-and-quality-preventing-falls-in-hospitals/download",
+        "note": "Read 2026-11-10 (Massachusetts copy of the AHRQ toolkit): call light within reach, bed in low position with brakes locked, nonslip well-fitting footwear, night lights, clean dry uncluttered floors, safe patient handling; post-fall procedures include a clinical review (tools 3N, 3O). Written for hospitals; the same universal precautions are applied here in a nursing home."
+      }
+    }
+  },
+  "endings": {
+    "moved": {
+      "label": "Moved before she was checked",
+      "class": "harm",
+      "when": "movedHer or gotUp",
+      "terminal": true,
+      "narrative": "She was moved, or got up, before the nurse checked her. The x-ray at the hospital shows a displaced hip fracture, which now needs a bigger operation."
+    },
+    "safeHandoff": {
+      "label": "Kept still, help called, change reported, handed over",
+      "class": "target",
+      "when": "phase == \"after\" and documented and prevDone and docObjective and prevGood and shouted and isNull(leftAt) and timeAt(helpAt) <= callWindow and reportFull and vitalsReported and not isNull(changeReportedAt) and timeAt(changeReportedAt) - timeAt(changeAt) <= changeWindow",
+      "terminal": true,
+      "narrative": "She leaves for the hospital without having been moved, warm, with the change in her alertness already reported. The x-ray shows a hip fracture; the paramedics knew about the head bump and the blood thinner. Your note and huddle suggestions are in the record."
+    },
+    "handoffGaps": {
+      "label": "Handed over, with gaps",
+      "class": "recovered",
+      "when": "phase == \"after\" and documented and prevDone",
+      "terminal": true,
+      "narrative": "She reached the hospital without being moved, but something was late or missing: the call for help, the report, the vital signs, the change in her alertness, or the note."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "notMoved",
+        "label": "Did not move her or let her get up before the nurse's check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "movedHer",
+            "score": "missed",
+            "why": "You helped her up before the nurse checked her."
+          },
+          {
+            "when": "gotUp",
+            "score": "missed",
+            "why": "Left alone, she tried to get up and fell again."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "She stayed where she was until the nurse and the paramedics moved her."
+          }
+        ]
+      },
+      {
+        "id": "callHelp",
+        "label": "Called the nurse at once without leaving her",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(helpAt)",
+            "score": "missed",
+            "why": "The nurse was not called; she found you on her round."
+          },
+          {
+            "when": "not isNull(leftAt)",
+            "score": "partial",
+            "why": "You left her alone to find the nurse."
+          },
+          {
+            "when": "timeAt(helpAt) <= callWindow",
+            "score": "met",
+            "why": "Call light and call-out at {timeAt(helpAt)|clock}, staying with her."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Nurse called {timeAt(helpAt)|duration} after you found her; call at once."
+          }
+        ]
+      },
+      {
+        "id": "stayed",
+        "label": "Stayed with her and told her to stay still",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(leftAt)",
+            "score": "missed",
+            "why": "You left her alone."
+          },
+          {
+            "when": "stayTold",
+            "score": "met",
+            "why": "You stayed and told her to stay still while help came."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "You stayed, but never told her to stay still."
+          }
+        ]
+      },
+      {
+        "id": "comfort",
+        "label": "Kept her warm and covered the skin tear",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(blanketAt) and not isNull(pressureAt)",
+            "score": "met",
+            "why": "Blanket on, gentle pressure on the skin tear."
+          },
+          {
+            "when": "not isNull(blanketAt) or not isNull(pressureAt)",
+            "score": "partial",
+            "why": "One of the two: a blanket, or gentle pressure on the skin tear."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No blanket and nothing on the skin tear: temperature {tempD|1dp} C."
+          }
+        ]
+      },
+      {
+        "id": "report",
+        "label": "Reported to the nurse in objective words, with the blood-thinner flag",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not reportedNurse",
+            "score": "missed",
+            "why": "You did not tell the nurse what you found."
+          },
+          {
+            "when": "reportFull",
+            "score": "met",
+            "why": "Time and position found, her own words, what you saw and the care plan's blood-thinner flag."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Reported, but with opinion or missing her words or the blood-thinner flag."
+          }
+        ]
+      },
+      {
+        "id": "vitals",
+        "label": "Took her vital signs and told the nurse",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "vitalsReported",
+            "score": "met",
+            "why": "Vital signs taken without moving her and reported (pulse above 100)."
+          },
+          {
+            "when": "not isNull(vitalsAt)",
+            "score": "partial",
+            "why": "Vital signs taken but not told to the nurse."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No vital signs, although the nurse asked."
+          }
+        ]
+      },
+      {
+        "id": "reportChange",
+        "label": "Reported the change in her alertness at once",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(changeAt)",
+            "score": "na",
+            "why": "No change appeared before she left."
+          },
+          {
+            "when": "isNull(changeReportedAt)",
+            "score": "missed",
+            "why": "She became drowsy and repeated questions, and the nurse was not told."
+          },
+          {
+            "when": "timeAt(changeReportedAt) - timeAt(changeAt) <= changeWindow",
+            "score": "met",
+            "why": "Reported {(timeAt(changeReportedAt) - timeAt(changeAt))|duration} after it appeared."
+          },
+          {
+            "when": "timeAt(changeReportedAt) - timeAt(changeAt) <= changePartial",
+            "score": "partial",
+            "why": "Reported {(timeAt(changeReportedAt) - timeAt(changeAt))|duration} after it appeared; report at once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Reported more than 10 min after it appeared."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote an objective note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not documented",
+            "score": "missed",
+            "why": "No note written."
+          },
+          {
+            "when": "docObjective",
+            "score": "met",
+            "why": "Times, position, her words, what you saw and did, vital signs, who you told."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "A note, but opinion and blame instead of observations."
+          }
+        ]
+      },
+      {
+        "id": "prevention",
+        "label": "Suggested the right prevention",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not prevDone",
+            "score": "missed",
+            "why": "No suggestion for the huddle."
+          },
+          {
+            "when": "prevGood",
+            "score": "met",
+            "why": "Call light in reach, bed low and locked, nonslip socks, light, dry floor, toileting rounds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Bed rails and restraints are not fall prevention (and need alternatives tried first); 'nothing' misses what caused this fall."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "firstMoves",
+        "label": "Written reasoning: first moves and the report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Found to calling the nurse",
+        "value": "isNull(helpAt) ? -1 : timeAt(helpAt)",
+        "format": "duration",
+        "expert": "about 10 s"
+      },
+      {
+        "id": "toChange",
+        "label": "Change in alertness to telling the nurse",
+        "value": "isNull(changeAt) or isNull(changeReportedAt) ? -1 : timeAt(changeReportedAt) - timeAt(changeAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:10",
+        "text": "Don't move her. Press the call light and call out for the nurse, staying with her. Tell her to stay still."
+      },
+      {
+        "at": "06:10",
+        "text": "Ask what happened and look her over without moving her: right leg shorter and turned out, forehead bump, skin tear. Blanket on; gloves and gentle pressure on the skin tear."
+      },
+      {
+        "at": "06:11",
+        "text": "She asks to be helped up: no, the nurse is coming to check her."
+      },
+      {
+        "at": "06:12",
+        "text": "Nurse arrives: report the time and position, her words, what you saw and the blood-thinner flag."
+      },
+      {
+        "at": "06:15",
+        "text": "Vital signs without moving her, told to the nurse. Stay, keep her still and warm, and watch."
+      },
+      {
+        "at": "06:21",
+        "text": "Drowsy and repeating questions: call the nurse back at once."
+      },
+      {
+        "at": "06:35",
+        "text": "Paramedics take her. Write an objective note; at the huddle suggest the universal fall precautions she was missing."
+      }
+    ],
+    "debrief": {
+      "safeHandoff": {
+        "headline": "Kept still, help called, change reported, handed over",
+        "body": "You left her where she was, got the nurse without leaving, reported in objective words and caught the change in her alertness. That is the expert path."
+      },
+      "handoffGaps": {
+        "headline": "Handed over, with gaps",
+        "body": "She was not moved, which mattered most. Look at what was late or missing: the call, the report, the vital signs, the change in her alertness, or the note."
+      },
+      "moved": {
+        "headline": "Moved before she was checked",
+        "body": "The most useful kind of run to learn from. A resident on the floor stays on the floor until the nurse has checked her, however much she asks; the lift and the team get her up."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The hour ran out before the note and the huddle were done."
+      }
+    },
+    "modelReasoning": "A resident found on the floor stays there until the nurse has checked her: possible hip fracture (a right leg shorter and turned out) and a head bump on a blood thinner. The aide calls the nurse at once without leaving (call light, calling out), tells her to stay still and stays, keeps her warm, puts gentle pressure on the skin tear, and observes. To the nurse: when and where she was found, her own words, what is seen, and the care plan's blood-thinner flag, in objective words. Vital signs without moving her when asked (pulse above 100 is reported). A new change in alertness is told to the nurse at once. Afterward: an objective note, and the universal fall precautions she was missing (call light in reach, bed low, nonslip socks, light, dry floor, toileting rounds), not rails or restraints."
+  },
+  "chapters": [
+    {
+      "id": "nurseHere",
+      "label": "The nurse is here",
+      "when": "nurseHere"
+    },
+    {
+      "id": "handedOver",
+      "label": "The paramedics take her",
+      "when": "phase == \"after\""
+    }
+  ],
+  "teaching": {
+    "whyNotUp": {
+      "during": "nurseT",
+      "when": "not movedHer",
+      "ask": "While the nurse is on the way: she says she's fine. Why not just help her up?",
+      "choices": [
+        {
+          "id": "injury",
+          "label": "She may have a fracture or head injury; the nurse checks before anyone moves her"
+        },
+        {
+          "id": "policy",
+          "label": "Only because of paperwork"
+        },
+        {
+          "id": "ok",
+          "label": "It's fine if she says she is fine"
+        }
+      ],
+      "expect": "injury",
+      "explain": "After a fall, don't move the resident unless she is in immediate danger, and tell the nurse at once so she can be assessed. When it is time, a mechanical lift and the team raise her from the floor.",
+      "source": {
+        "cite": "Chippewa Valley Technical College, Nursing Assistant (Open RN, CC BY 4.0), 3.2 Emergency Situations",
+        "checkedAt": "2026-11-10",
+        "url": "https://wtcs.pressbooks.pub/nurseassist/chapter/3-2-emergency-situations/",
+        "note": "Read 2026-11-10: after a fall, 'do not move them unless they are in immediate danger of further injury'; 'Notify the nurse as soon as you observe the situation so the resident can be assessed and treated'; a mechanical lift is typically used to raise the resident from the floor."
+      }
+    },
+    "hipSign": {
+      "during": "emsT",
+      "ask": "Her right leg looks shorter than the left and turned outward. What could that mean?",
+      "choices": [
+        {
+          "id": "hip",
+          "label": "A possible hip fracture"
+        },
+        {
+          "id": "cramp",
+          "label": "A cramp from lying on the floor"
+        },
+        {
+          "id": "normal",
+          "label": "Nothing; legs are often uneven"
+        }
+      ],
+      "expect": "hip",
+      "explain": "A shortened, outward-turned leg is the classic picture of a hip fracture. The aide reports what is seen; the nurse and provider decide what it is.",
+      "source": {
+        "cite": "StatPearls, Hip Fractures (updated 2023-08-08)",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.statpearls.com/point-of-care/22890",
+        "note": "Read 2026-11-10: 'The classically described presentation is a shortened and externally rotated limb.'"
+      }
+    },
+    "headThinner": {
+      "during": "emsT",
+      "ask": "She hit her head and her care plan says blood thinner. Why does that change what you watch for?",
+      "choices": [
+        {
+          "id": "bleed",
+          "label": "Bleeding inside the head is more likely and can show up later, so any change is reported at once"
+        },
+        {
+          "id": "none",
+          "label": "It doesn't; a bump is a bump"
+        }
+      ],
+      "expect": "bleed",
+      "explain": "People on anticoagulants who hit their head are watched closely: UK guidance suggests considering a head scan within 8 hours even without other signs. For the aide that means watching alertness and telling the nurse the moment anything changes.",
+      "source": {
+        "cite": "NICE guideline NG232, Head injury: assessment and early management (2023), recommendation 1.5.13 as reproduced by St Emlyn's",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.stemlynsblog.org/nice-head-injury-guidelines-2023/",
+        "note": "Read 2026-11-10: for people on anticoagulants (including DOACs) with a head injury and no other indication, consider a CT head scan within 8 hours of the injury. FLAG: a UK guideline read through a secondary summary; it is used only for why a head bump on a blood thinner is reported at once, which is the nurse's and provider's decision to act on, not the aide's."
+      }
+    }
+  }
+}

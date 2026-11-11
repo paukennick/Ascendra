@@ -8007,6 +8007,48 @@
         "teaching-model numbers are authored and flagged",
         "SSC 2026 read only through secondary summaries"
       ]
+    },
+    {
+      "id": "REQ-223",
+      "category": "content",
+      "title": "Sim library batch S2b: CCRN post-op hemorrhage, CNA choking and fall",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three scenarios on the existing bedside renderer and engine 1.1, no engine or renderer change: CCRNADULT/bleeding-after-whipple (hemorrhagic shock after a Whipple: recognition from trends, blood early, MTP, crystalloid as a bridge, calcium, warming, escalation), CNA/resident-chokes-at-lunch and CNA/resident-found-on-floor (nurse-aide scope only). Sourced params with checkedAt, reasoning moment, endings for every class, critical criteria, KPIs, expert path, debriefs, teaching prompts, chapters and a focused start where useful, golden paths Good/Mediocre/Bad. Seed fix: re-check dates clamp to the month's end (FAIL-1190).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.golden.json",
+        "backend/supabase/seed/sims/CNA/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/content-hash.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "CNA sims are classified clinical and get study pace by default",
+        "npm run seed is idempotent on a fresh database"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime engine-print",
+        "npm run seed twice plus lib/sims.dbtest.ts",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "authored timing and physiology estimates are flagged in their source notes",
+        "the European trauma bleeding guideline 2023 full text could not be read; its points are confirmed from summaries",
+        "at 3x the choking crisis is fast; learners can switch to 1x"
+      ]
     }
   ]
 }

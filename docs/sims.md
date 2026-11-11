@@ -3725,3 +3725,56 @@ so study pace (3x) and the skip offer apply as in 5.4a and 5.4c.
   (sepsis: fluid effect fading within the hour; DKA: the 100 mg/dL per hour
   limit and the ketone fall rate; stroke: a bleed made certain by BP above
   the thresholds, labetalol and nicardipine effect sizes).
+
+### 22.4 Batch S2b: post-op hemorrhage (CCRN Adult), choking and a fall (CNA) (REQ-223)
+
+Three new documents on the existing bedside renderer and engine 1.1; no
+engine, renderer or schema change. Each has sourced params with `checkedAt`
+2026-11-10 (or an older date where a number was relayed from the course seed
+and not re-read, said in its note), a reasoning moment, every outcome class
+reachable, critical criteria inside the `target` condition, KPIs, an expert
+path, debriefs, teaching prompts with sources (indirect evidence marked
+`FLAG` in the note), and goldens built by `npm run sim:golden -- steps
+<bleeding-whipple|resident-chokes|resident-floor>`.
+
+- **CCRNADULT/bleeding-after-whipple** (objective: tracing shock through its
+  stages). A slipped tie in the operative bed bleeds 40 mL/min, faster with
+  dilutional and hypothermic coagulopathy. Vital signs follow the ATLS class
+  anchors; the hemoglobin lags (whole-blood loss, then refill and dilution).
+  The learner checks the drains, pages the surgeon (SBAR), requests
+  emergency-release blood, activates the massive transfusion protocol
+  (blocked without the surgeon's order), keeps crystalloid to a short bridge,
+  gives plasma with red cells, warms him and replaces calcium. Blood products
+  and norepinephrine need the surgeon's order; crystalloid up to 1 L is a
+  standing order. Endings: arrest (harm), to the OR early (target), to the OR
+  by a slower route (recovered); `time_up` is harm. Focused start at 18:08;
+  chapters at the surgeon's arrival and the first cooler. The permissive
+  target is taught as a prompt, not scored: the 80-90 mmHg evidence is from
+  trauma.
+- **CNA/resident-chokes-at-lunch** (objective: the Heimlich maneuver). Aide
+  scope only, as a stand-alone scenario: a band (4.7) patches another
+  course's scenario, and no aide-scope base exists. Mild choking (let him
+  cough), then severe: call for help without leaving, cycles of 5 back blows
+  and 5 abdominal thrusts (AHA 2025), CPR from compressions and look before
+  breaths if he goes limp, blind sweeps and water penalized, objective report
+  and note. Endings: cleared while awake with help called (target),
+  breathing again by a harder route (recovered), too long without air (harm).
+- **CNA/resident-found-on-floor** (objective: safety and emergency
+  procedures). Don't move her, call the nurse without leaving, tell her to
+  stay still, blanket and gentle pressure on a skin tear, objective report
+  with the care plan's blood-thinner flag, vital signs when the nurse asks,
+  report a change in alertness at once, then an objective note and the
+  universal fall precautions at the huddle (a stopped `after` phase).
+  Endings: moved or got up (harm), safe handoff (target), handoff with gaps
+  (recovered).
+- **Pacing.** CNA sits under `nursing-licensure` in `healthcare-nursing`, so
+  `labFamilySql` gives `clinical` and both CNA sims get study pace (3x) by
+  default (checked on a seeded database). At 3x the choking crisis (about
+  100 s from a silent cough to collapse) plays in about 35 s of real time;
+  Exam realism (1x) and pause stay available.
+- **Seed fix (FAIL-1190).** `earliestRecheck` added months without clamping
+  the day, so a source checked on 2026-10-31 gave 2027-04-31 and Postgres
+  stopped the seed. `addMonths` in `lib/sim/content-hash.ts` now clamps to
+  the month's end. The engine's own copy in `validate.ts` (staleness warning
+  only, string comparison) has the same arithmetic and was left alone, since
+  engine changes were out of scope.

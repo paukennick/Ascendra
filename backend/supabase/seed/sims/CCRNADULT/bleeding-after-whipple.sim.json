@@ -1,0 +1,2971 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 1
+  },
+  "slug": "bleeding-after-whipple",
+  "title": "Bleeding after a Whipple",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              100,
+              110,
+              130
+            ]
+          },
+          "colour": "ecg",
+          "trend": {
+            "history": "hrH",
+            "window": "5min",
+            "threshold": 3
+          }
+        },
+        {
+          "id": "abp",
+          "label": "ABP",
+          "spokenLabel": "Arterial blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "map",
+          "label": "MAP",
+          "spokenLabel": "Mean arterial pressure",
+          "value": "map",
+          "unit": "mmHg",
+          "alarm": {
+            "low": 65
+          },
+          "trend": {
+            "history": "mapH",
+            "window": "5min",
+            "threshold": 3
+          },
+          "announce": {
+            "bands": [
+              65,
+              55
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "cvp",
+          "label": "CVP",
+          "spokenLabel": "Central venous pressure",
+          "value": "cvp",
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              4,
+              2
+            ]
+          },
+          "colour": "cvp"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "uo",
+          "label": "Urine",
+          "spokenLabel": "Urine output",
+          "value": "uo",
+          "unit": "mL/h",
+          "announce": {
+            "bands": [
+              40,
+              20
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Core temperature",
+          "value": "tempD",
+          "unit": "C",
+          "announce": {
+            "bands": [
+              36,
+              35
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "drain",
+          "label": "L drain",
+          "spokenLabel": "Left drain output in the last 15 minutes",
+          "value": "drain15",
+          "unit": "mL/15min",
+          "announce": {
+            "bands": [
+              50,
+              100
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "drainsChecked"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "art",
+          "from": {
+            "hr": "hr",
+            "sys": "sbp",
+            "dia": "dbp"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Crystalloid {crystLeft|0dp} mL left in the bag; blood products {prodPending|0dp} mL running; norepinephrine {neDose} mcg/kg/min",
+      "banner": [
+        {
+          "when": "mtpArrived",
+          "text": "Massive transfusion protocol active: products through the rapid infuser."
+        }
+      ]
+    }
+  },
+  "objective": "Trace shock through its compensated, decompensated and irreversible stages, and link vital-sign changes to the body's compensation",
+  "secondaryObjectives": [
+    "Transfusion of blood products, exchange transfusion and massive transfusion",
+    "Care after GI surgery such as Whipple, esophagectomy and bowel resection",
+    "Distinguish absolute from relative hypovolemia and name their common causes",
+    "Pre- and post-operative care and procedural care"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation, CCRN Exam Handbook - Direct Care (July 2026 edition): Adult CCRN Test Plan (applies to exams on and after November 12, 2025), Multisystem and Hematology categories",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "Read for the CCRN course seed on 2026-10-31 (backend/supabase/seed/tracks/ccrn.ts); not re-read for this scenario. The plan lists shock states, transfusion of blood products and massive transfusion, and pre- and post-operative care."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 11th edition (American College of Surgeons, 2025), as summarized in: Advanced trauma life support 2025: a brief review of updates. Injury 2026;57(4):113079. doi:10.1016/j.injury.2026.113079",
+      "checkedAt": "2026-11-10",
+      "url": "https://journalfeed.org/article-a-day/2026/new-atls-update-what-you-need-to-know/",
+      "note": "Read through a secondary summary (JournalFeed, 2026) on 2026-11-10, not the course manual: minimize crystalloid as a bridging fluid until blood is available, balanced 1:1:1 component therapy or low-titer O whole blood, early massive transfusion protocol activation, permissive hypotension until hemorrhage control. The summary gives no numeric hemorrhage BP target and does not reproduce the hemorrhage class table."
+    },
+    {
+      "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume) and adult blood volume about 7% of body weight",
+      "checkedAt": "2026-11-10",
+      "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+      "note": "FLAG: the class table was not re-read for this scenario (OpenAnesthesia, updated 2023-03-22, confirms the ATLS-10 table and that it added pulse pressure and base deficit, but shows it only as an image). The heart-rate, blood-pressure, respiratory-rate and urine-output anchors in this model follow the classic table (HR about 100/120/140, urine about 30/20-30/5-15 mL/h/negligible) and are a teaching simplification."
+    },
+    {
+      "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+      "checkedAt": "2026-11-10",
+      "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+      "note": "Read 2026-11-10: activation on one or more of ABC score of 2 or more, persistent hemodynamic instability, active bleeding requiring operation or angioembolization, or transfusion in the trauma bay; plasma to red cells between 1:1 and 1:2; one apheresis platelet pool per six red cell units; subsequent coolers at 15-minute intervals; ionized calcium at baseline and at least hourly, correct hypocalcemia; assess and treat hypothermia. Written for trauma; this scenario applies the instability and bleeding-needing-operation criteria to a post-operative bleed. No newer ACS massive transfusion guideline was found on 2026-11-10."
+    },
+    {
+      "cite": "Holcomb JB, Tilley BC, Baraniuk S, et al. Transfusion of plasma, platelets, and red blood cells in a 1:1:1 vs a 1:1:2 ratio and mortality in patients with severe trauma: the PROPPR randomized clinical trial. JAMA 2015;313(5):471-482",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.wikem.org/wiki/PROPPR",
+      "note": "Results read 2026-11-10 from a summary (WikEM): 24-h mortality 12.7% vs 17.0% (p=0.12), 30-day 22.4% vs 26.1% (p=0.26), hemostasis 86.1% vs 78.1% (p=0.006), exsanguination deaths in 24 h 9.2% vs 14.6% (p=0.03). Trauma patients."
+    },
+    {
+      "cite": "Carson JL, et al. Red blood cell transfusion: 2023 AABB international guidelines. JAMA 2023;330(19):1892-1902. doi:10.1001/jama.2023.12914",
+      "checkedAt": "2026-11-10",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37824153/",
+      "note": "Abstract read 2026-11-10: a restrictive threshold of 7 g/dL (7.5 cardiac surgery, 8 orthopedic or cardiovascular disease) for hospitalized adults who are hemodynamically stable. It does not apply to active hemorrhage, which is the point this scenario teaches."
+    },
+    {
+      "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80. doi:10.1186/s13054-023-04327-7",
+      "checkedAt": "2026-11-10",
+      "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+      "note": "FLAG: only the abstract and a news summary (HealthManagement.org, 2023-03-07) could be read on 2026-11-10; the full text was not reachable. The points used here (a target systolic pressure of 80-90 mmHg until major bleeding stops in trauma without brain injury, restricted crystalloid, hemoglobin as a marker only when repeated, keep ionized calcium in the normal range, keep the patient warm) are confirmed from a summary of the fifth edition (Spahn 2019, McMaster Textbook of Internal Medicine) and from the 2014 TQIP guideline, not from the sixth edition's own wording. Trauma population."
+    },
+    {
+      "cite": "Wente MN, Veit JA, Bassi C, et al. Postpancreatectomy hemorrhage (PPH): an International Study Group of Pancreatic Surgery (ISGPS) definition. Surgery 2007;142(1):20-25",
+      "checkedAt": "2026-11-10",
+      "url": "https://trialsjournal.biomedcentral.com/articles/10.1186/s13063-020-4167-9/tables/1",
+      "note": "Read 2026-11-10 as adapted in Trials 2020 (table 1): early PPH is within 24 h of the operation; early bleeding that needs relaparotomy is grade B. The scenario's bleed is early, from the operative bed, and is treated by return to the OR."
+    },
+    {
+      "cite": "KDIGO Clinical Practice Guideline for Acute Kidney Injury (2012): urine output under 0.5 mL/kg/h for 6-12 h is stage 1",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.merckmanuals.com/professional/multimedia/table/staging-criteria-for-acute-kidney-injury-kdigo-2012",
+      "note": "FLAG: confirmed on 2026-11-10 from search-result summaries of the KDIGO staging table (Merck Manual, QxMD), not from the guideline PDF. 0.5 mL/kg/h for 80 kg is 40 mL/h, used here as the urine-output alarm."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 18:00 in the surgical ICU. Bed 4, 66-year-old man, 80 kg, open pancreaticoduodenectomy (Whipple) for a pancreatic head mass, finished at 13:00. Extubated in the OR. Arterial line, central line, urinary catheter, NG tube, two abdominal drains (left drain beside the pancreatic anastomosis). Hydromorphone PCA.",
+    "handover": [
+      "HR 84, ABP 128/72 (MAP 91), CVP 8, SpO2 98% on 2 L, RR 14, urine 60 mL/h, temperature 36.4 C.",
+      "Drains: thin pink fluid, about 30 mL/h together. Dressing dry.",
+      "Post-op Hgb 11.2 g/dL at 15:00, lactate 1.4, ionized calcium 1.15. Type and screen from this morning.",
+      "Standing order: lactated Ringer's boluses up to 1 L for MAP under 65 or urine under 0.5 mL/kg/h, then call the surgeon. Blood products and vasoactive drugs need the surgeon's order."
+    ],
+    "howItWorks": [
+      "The clock runs in real time at the pace you choose: study pace (3x) or exam realism (1x). Pause any time.",
+      "Assessments examine him; orders act. Some ask for a volume or a dose.",
+      "Everything takes as long as it would on a real unit: boluses and units run in over minutes, the surgeon calls back and walks over, blood and labs take time.",
+      "While you wait on something, Skip jumps ahead, says how much time it skips and logs it. The bleeding keeps going at the same rate.",
+      "Partway through you are asked to write what you think is happening. Then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "18:00",
+    "tick": "1s",
+    "maxDuration": "3h",
+    "calendar": "clock"
+  },
+  "params": {
+    "onset": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "The bleeding starts at 18:02, two minutes after handover."
+      }
+    },
+    "tbv": {
+      "value": 5600,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 10th edition (American College of Surgeons, 2018): classes of hemorrhage (I under 15%, II 15-30%, III 31-40%, IV over 40% of blood volume) and adult blood volume about 7% of body weight",
+        "checkedAt": "2026-11-10",
+        "url": "https://openanesthesia.org/keywords/hemorrhagic-shock-in-trauma",
+        "note": "80 kg x 70 mL/kg (about 7% of body weight). FLAG: the class table was not re-read for this scenario (OpenAnesthesia, updated 2023-03-22, confirms the ATLS-10 table and that it added pulse pressure and base deficit, but shows it only as an image). The heart-rate, blood-pressure, respiratory-rate and urine-output anchors in this model follow the classic table (HR about 100/120/140, urine about 30/20-30/5-15 mL/h/negligible) and are a teaching simplification."
+      }
+    },
+    "bleedRate": {
+      "value": 40,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. A slipped tie on a branch vessel in the operative bed: untreated, the blood volume deficit reaches class II (15%) about 21 min after onset, class III (30%) about 40 min, and the arrest threshold (50%) a little over an hour, sooner with dilutional coagulopathy."
+      }
+    },
+    "drainFrac": {
+      "value": 0.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. About a fifth of the bleeding leaves through the left drain; the rest pools in the abdomen."
+      }
+    },
+    "baseDrain": {
+      "value": 0.5,
+      "unit": "mL/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Thin serosanguinous drainage before the bleed (about 30 mL/h)."
+      }
+    },
+    "retain": {
+      "value": 0.33,
+      "source": {
+        "cite": "Classic '3 mL of crystalloid for each 1 mL of blood lost' teaching",
+        "checkedAt": "2026-11-10",
+        "url": "https://empendium.com/mcmtextbook/chapter/B31.II.2.2.1.1",
+        "note": "About a third of an isotonic crystalloid stays in the vessels after it redistributes; McMaster Textbook of Internal Medicine (summarizing the 2019 European trauma bleeding guideline) gives about 3 mL crystalloid per 1 mL blood lost. Read 2026-11-10."
+      }
+    },
+    "redistTau": {
+      "value": 15,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Time constant for crystalloid to leave the vessels: most of a bolus has redistributed within the hour."
+      }
+    },
+    "refillK": {
+      "value": 0.15,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Transcapillary refill: about 15% of the deficit per hour moves back into the vessels, which dilutes the hemoglobin even without fluids."
+      }
+    },
+    "crystFlow": {
+      "value": 50,
+      "unit": "mL/min",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "A crystalloid bolus on a pressure bag runs at about 50 mL/min. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "infuseRate": {
+      "value": 100,
+      "unit": "mL/min",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Blood products through a rapid infuser with a warmer at about 100 mL/min (a red cell and plasma pair in about 5.5 min). Local times vary; no published standard was found for this interval."
+      }
+    },
+    "rbcVol": {
+      "value": 300,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Volume of one red cell unit, rounded."
+      }
+    },
+    "plasmaVol": {
+      "value": 250,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Volume of one plasma unit, rounded."
+      }
+    },
+    "pltVol": {
+      "value": 250,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Volume of one apheresis platelet unit, rounded."
+      }
+    },
+    "rbcHgb": {
+      "value": 60,
+      "unit": "g",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Hemoglobin mass in one red cell unit; chosen so one unit raises the hemoglobin of a stable 80 kg adult by about 1 g/dL. FLAG: not checked against the AABB Circular of Information."
+      }
+    },
+    "hgb0": {
+      "value": 11.2,
+      "unit": "g/dL",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Post-op hemoglobin at 15:00 (handover)."
+      }
+    },
+    "coagCryst": {
+      "value": 1.2,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Dilutional coagulopathy: each blood volume of crystalloid raises the bleeding rate by 120%; restricted crystalloid is recommended in the trauma guideline (see sources)."
+      }
+    },
+    "coagRbcOnly": {
+      "value": 0.06,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Each red cell unit given without plasma adds 6% to the bleeding rate (dilution of clotting factors)."
+      }
+    },
+    "coagTemp": {
+      "value": 0.3,
+      "unit": "/degC",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Each degree below 36 C adds 30% to the bleeding rate (hypothermic coagulopathy)."
+      }
+    },
+    "temp0": {
+      "value": 36.4,
+      "unit": "degC",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Core temperature at handover."
+      }
+    },
+    "coldCryst": {
+      "value": 0.3,
+      "unit": "degC",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Core temperature drop per liter of room-temperature crystalloid given without a warmer."
+      }
+    },
+    "coldUnit": {
+      "value": 0.1,
+      "unit": "degC",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Core temperature drop per unwarmed blood product unit."
+      }
+    },
+    "shockCool": {
+      "value": 0.6,
+      "unit": "degC/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Heat loss in shock with an open-ish abdomen and no warming."
+      }
+    },
+    "warmRate": {
+      "value": 0.5,
+      "unit": "degC/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Rewarming with a forced-air blanket and fluid warmer."
+      }
+    },
+    "ica0": {
+      "value": 1.15,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Ionized calcium at handover."
+      }
+    },
+    "icaPerUnit": {
+      "value": 0.05,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Citrate in each red cell or plasma unit binds calcium; about 0.05 mmol/L per unit when given fast. TQIP 2014 asks for ionized calcium monitoring and correction."
+      }
+    },
+    "icaDose": {
+      "value": 0.25,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Rise in ionized calcium after 1 g calcium chloride."
+      }
+    },
+    "neTau": {
+      "value": 3,
+      "unit": "min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Norepinephrine reaches its effect with a time constant of about 3 min."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Page to callback about 2 min. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "surgeonWalk": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Surgeon from the ward to the ICU bedside about 10 min. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "orPrep": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "OR and anesthesia ready about 15 min after the surgeon books an emergency return. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "erTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Emergency-release (uncrossmatched) O-negative red cells reach the bedside about 10 min after the request. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "mtpTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "First cooler about 15 min after activation (authored); TQIP 2014 asks that later coolers follow at 15-minute intervals."
+      }
+    },
+    "coolerEvery": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "Subsequent coolers at 15-minute intervals."
+      }
+    },
+    "pocTime": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Point-of-care blood gas, hemoglobin, lactate and ionized calcium in about 5 min. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "labTime": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Central lab INR, fibrinogen and platelets in about 45 min. Local times vary; no published standard was found for this interval."
+      }
+    },
+    "phoneRecheck": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Phone orders: 'call me back in 30 minutes if he is not better'."
+      }
+    },
+    "arrestF": {
+      "value": 0.5,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Arrest when the effective blood volume deficit reaches half the blood volume (beyond class IV)."
+      }
+    },
+    "reasonF": {
+      "value": 0.1,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. The written question opens once the deficit reaches 10%, or 16 min after onset, whichever is first."
+      }
+    },
+    "reasonAt": {
+      "value": 1080,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "16 min after onset."
+      }
+    },
+    "recognizeWindow": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Expert: the drains are looked at within 15 min of the bleed starting (the HR creeping up prompts it)."
+      }
+    },
+    "recognizePartialWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Within 30 min: partial."
+      }
+    },
+    "recognizeExpertAt": {
+      "value": 420,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "The expert path looks at the drains at 18:07, 5 min after onset."
+      }
+    },
+    "callPartialWindow": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Surgeon paged 20-35 min after onset: partial."
+      }
+    },
+    "bloodPartial": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "First blood 25-40 min after onset: partial."
+      }
+    },
+    "mtpWindow": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "Activation once there is persistent instability or bleeding that needs an operation; the expert path activates about 8 min after onset, and the window allows 30 min."
+      }
+    },
+    "crystLimit": {
+      "value": 1000,
+      "unit": "mL",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 11th edition (American College of Surgeons, 2025), as summarized in: Advanced trauma life support 2025: a brief review of updates. Injury 2026;57(4):113079. doi:10.1016/j.injury.2026.113079",
+        "checkedAt": "2026-11-10",
+        "url": "https://journalfeed.org/article-a-day/2026/new-atls-update-what-you-need-to-know/",
+        "note": "Crystalloid as a short bridge only: up to 1 L met (the 10th edition's initial 1 L; the 11th says minimize bridging crystalloid). The unit's standing order in the brief also stops at 1 L."
+      }
+    },
+    "crystPartial": {
+      "value": 2000,
+      "unit": "mL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. 1-2 L partial; over 2 L missed."
+      }
+    },
+    "nadirTarget": {
+      "value": 60,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. Target outcome: the MAP never fell below 60 mmHg after the bleed started."
+      }
+    }
+  },
+  "state": {
+    "lost": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "drainCum": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "drainsChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "drainsAt": {
+      "type": "time",
+      "init": null
+    },
+    "crystInfused": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "crystLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "mL"
+    },
+    "crystIV": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "crystAt": {
+      "type": "time",
+      "init": null
+    },
+    "prodPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "hgbPending": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5000,
+      "unit": "g"
+    },
+    "productIV": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "hgbMass": {
+      "type": "number",
+      "init": 627.2,
+      "min": 0,
+      "max": 5000,
+      "unit": "g"
+    },
+    "refilled": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10000,
+      "unit": "mL"
+    },
+    "temp": {
+      "type": "number",
+      "init": 36.4,
+      "min": 30,
+      "max": 40,
+      "unit": "degC"
+    },
+    "warming": {
+      "type": "bool",
+      "init": false
+    },
+    "warmAt": {
+      "type": "time",
+      "init": null
+    },
+    "ica": {
+      "type": "number",
+      "init": 1.15,
+      "min": 0.5,
+      "max": 1.5,
+      "unit": "mmol/L"
+    },
+    "calciumAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbcGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "plasmaGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "pltGiven": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "erRequested": {
+      "type": "bool",
+      "init": false
+    },
+    "erArrived": {
+      "type": "bool",
+      "init": false
+    },
+    "erLeft": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "mtpAt": {
+      "type": "time",
+      "init": null
+    },
+    "mtpArrived": {
+      "type": "bool",
+      "init": false
+    },
+    "rbcStock": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "plasmaStock": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "pltStock": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "bloodAt": {
+      "type": "time",
+      "init": null
+    },
+    "neDose": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.5
+    },
+    "neEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.5
+    },
+    "pressorAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "labsN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "hasCall": {
+      "type": "bool",
+      "init": false
+    },
+    "bestEffective": {
+      "type": "bool",
+      "init": false
+    },
+    "bestFull": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "bloodOrdered": {
+      "type": "bool",
+      "init": false
+    },
+    "pressorOrdered": {
+      "type": "bool",
+      "init": false
+    },
+    "phoneOrders": {
+      "type": "bool",
+      "init": false
+    },
+    "arrivalSet": {
+      "type": "bool",
+      "init": false
+    },
+    "surgeonEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "surgeonArrived": {
+      "type": "bool",
+      "init": false
+    },
+    "recognizedAt": {
+      "type": "time",
+      "init": null
+    },
+    "orAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftForOr": {
+      "type": "bool",
+      "init": false
+    },
+    "mapNadir": {
+      "type": "number",
+      "init": 91,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    }
+  },
+  "history": {
+    "drainH": {
+      "of": "drainCum",
+      "every": "5s",
+      "keep": "20min"
+    },
+    "mapH": {
+      "of": "map",
+      "every": "30s",
+      "keep": "10min"
+    },
+    "hrH": {
+      "of": "hr",
+      "every": "30s",
+      "keep": "10min"
+    }
+  },
+  "derived": {
+    "live": {
+      "expr": "phase == \"live\""
+    },
+    "crystOrdered": {
+      "expr": "crystInfused + crystLeft",
+      "unit": "mL",
+      "precision": 0
+    },
+    "intravasc": {
+      "expr": "tbv - lost + crystIV + productIV + refilled",
+      "unit": "mL",
+      "precision": 0
+    },
+    "f": {
+      "expr": "clamp((tbv - intravasc) / tbv, 0, 1)",
+      "precision": 2
+    },
+    "coag": {
+      "expr": "clamp(coagCryst * crystInfused / tbv + coagRbcOnly * max(0, rbcGiven - plasmaGiven) + coagTemp * max(0, 36 - temp), 0, 1.5)",
+      "precision": 2
+    },
+    "rate": {
+      "expr": "bleedRate * (1 + coag)",
+      "unit": "mL/min",
+      "precision": 0
+    },
+    "hgbRaw": {
+      "expr": "hgbMass / (max(intravasc, 500) / 100)",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "hgb": {
+      "expr": "round(hgbRaw * 10) / 10",
+      "unit": "g/dL",
+      "precision": 1
+    },
+    "neS": {
+      "expr": "150 * neEff * (1 - f)",
+      "unit": "mmHg"
+    },
+    "neD": {
+      "expr": "80 * neEff * (1 - f)",
+      "unit": "mmHg"
+    },
+    "hr": {
+      "expr": "round(clamp(84 + 107 * min(f, 0.15) + 133 * clamp(f - 0.15, 0, 0.15) + 200 * clamp(f - 0.3, 0, 0.2) + 1.5 * sin(t / 37), 50, 170))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(128 - 107 * clamp(f - 0.15, 0, 0.15) - 270 * clamp(f - 0.3, 0, 0.1) - 300 * clamp(f - 0.4, 0, 0.2) + neS + 1.5 * sin(t / 23))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(min(72 + 27 * clamp(f - 0.15, 0, 0.15) - 160 * clamp(f - 0.3, 0, 0.1) - 220 * clamp(f - 0.4, 0, 0.2) + neD, sbp - 12))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "cvp": {
+      "expr": "round(clamp(8 - 25 * f, 0, 20))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(14 + 40 * clamp(f - 0.15, 0, 0.35))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(98 - 8 * clamp(f - 0.35, 0, 0.3))",
+      "unit": "%",
+      "precision": 0
+    },
+    "uo": {
+      "expr": "round(clamp(60 - 200 * clamp(f - 0.1, 0, 0.3), 2, 80))",
+      "unit": "mL/h",
+      "precision": 0
+    },
+    "lactate": {
+      "expr": "round((1.4 + 12 * clamp(f - 0.08, 0, 0.5)) * 10) / 10",
+      "unit": "mmol/L",
+      "precision": 1
+    },
+    "inr": {
+      "expr": "round((1.1 + 1.4 * coag) * 10) / 10",
+      "precision": 1
+    },
+    "fib": {
+      "expr": "round(320 * (1 - 0.55 * min(coag, 1)))",
+      "unit": "mg/dL",
+      "precision": 0
+    },
+    "plt": {
+      "expr": "round(190 * (1 - 0.5 * min(coag, 1)))",
+      "unit": "x10^9/L",
+      "precision": 0
+    },
+    "drain15": {
+      "expr": "round(drainCum - past(drainH, 900))",
+      "unit": "mL",
+      "precision": 0
+    },
+    "tempD": {
+      "expr": "round(temp * 10) / 10",
+      "unit": "degC",
+      "precision": 1
+    },
+    "icaD": {
+      "expr": "round(ica * 100) / 100",
+      "unit": "mmol/L",
+      "precision": 2
+    }
+  },
+  "processes": [
+    {
+      "id": "bleed",
+      "when": "live",
+      "update": {
+        "lost": "lost + (t >= onset ? rate : 0) * dt / 60",
+        "drainCum": "drainCum + ((t >= onset ? drainFrac * rate : 0) + baseDrain) * dt / 60",
+        "hgbMass": "hgbMass - (t >= onset ? rate : 0) * dt / 60 * hgbRaw / 100"
+      }
+    },
+    {
+      "id": "crystalloid",
+      "when": "live",
+      "update": {
+        "crystInfused": "crystInfused + min(crystLeft, crystFlow * dt / 60)",
+        "crystLeft": "crystLeft - min(crystLeft, crystFlow * dt / 60)",
+        "crystIV": "crystIV + min(crystLeft, crystFlow * dt / 60) - (crystIV - retain * crystInfused) * (1 - exp(-dt / (redistTau * 60)))"
+      }
+    },
+    {
+      "id": "products",
+      "when": "live and prodPending > 0",
+      "update": {
+        "productIV": "productIV + min(prodPending, infuseRate * dt / 60)",
+        "hgbMass": "hgbMass + min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "hgbPending": "hgbPending - min(prodPending, infuseRate * dt / 60) * hgbPending / prodPending",
+        "prodPending": "prodPending - min(prodPending, infuseRate * dt / 60)"
+      }
+    },
+    {
+      "id": "refill",
+      "when": "live",
+      "update": {
+        "refilled": "refilled + refillK * max(0, tbv - intravasc) * dt / 3600"
+      }
+    },
+    {
+      "id": "thermal",
+      "when": "live",
+      "update": {
+        "temp": "temp + (warming ? (temp < 37 ? warmRate : 0) : (f > 0.25 ? -shockCool : 0)) * dt / 3600"
+      }
+    },
+    {
+      "id": "drips",
+      "when": "live",
+      "update": {
+        "neEff": "neEff + (neDose - neEff) * (1 - exp(-dt / (neTau * 60)))"
+      }
+    },
+    {
+      "id": "nadir",
+      "when": "live and t >= onset",
+      "update": {
+        "mapNadir": "min(mapNadir, map)"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "look",
+        "drains",
+        "labs",
+        "crystalloid",
+        "transfuse",
+        "calcium",
+        "warm",
+        "norepi",
+        "erBlood",
+        "mtp",
+        "surgeon"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look at him (skin, mental status, abdomen)",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "f < 0.06",
+              "then": [
+                {
+                  "log": "Awake and a little drowsy from the PCA. Warm hands, capillary refill under 2 s. Abdomen soft, mildly distended, dressing dry.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "f < 0.2",
+              "then": [
+                {
+                  "log": "Restless; says he feels 'not right' and thirsty. Hands cooler, capillary refill 3 s. Abdomen fuller and firmer than at handover; fresh blood at the edge of the dressing near the left drain.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "f < 0.35",
+              "then": [
+                {
+                  "log": "Anxious, pale and sweaty. Cool, mottled knees; capillary refill 4 s. Abdomen tense and distended.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Confused and grey, barely answering. Cold to the elbows, weak thready radial pulse. Abdomen tight and distended.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "drains": {
+      "label": "Check the drains and dressing",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "drainsChecked",
+          "to": "true"
+        },
+        {
+          "if": "t >= onset",
+          "then": [
+            {
+              "if": "isNull(drainsAt)",
+              "then": [
+                {
+                  "set": "drainsAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "if": "isNull(recognizedAt)",
+              "then": [
+                {
+                  "set": "recognizedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "t < onset",
+              "then": [
+                {
+                  "log": "Both drains: thin pink fluid, {drain15} mL in the last 15 min together. Dressing dry.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Left drain (beside the pancreatic anastomosis): bright red, warm blood, {drain15} mL in the last 15 min, after thin pink fluid all afternoon. Right drain unchanged. Fresh blood at the dressing edge. The drain now shows the last 15 minutes on the monitor.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "labs": {
+      "label": "Draw labs (blood gas, Hgb, lactate, ionized calcium, coags, type and crossmatch)",
+      "group": "Orders",
+      "available": "isNull(labsAt) or t - timeAt(labsAt) >= 600",
+      "why": "Labs were drawn less than 10 minutes ago.",
+      "effects": [
+        {
+          "set": "labsAt",
+          "to": "t"
+        },
+        {
+          "add": "labsN",
+          "by": "1"
+        },
+        {
+          "schedule": "pocResultT",
+          "after": "pocTime",
+          "with": {
+            "hgb": "hgb",
+            "lac": "lactate",
+            "ica": "icaD"
+          }
+        },
+        {
+          "if": "labsN == 1",
+          "then": [
+            {
+              "schedule": "coagResultT",
+              "after": "labTime",
+              "with": {
+                "inr": "inr",
+                "fib": "fib",
+                "plt": "plt"
+              }
+            },
+            {
+              "log": "Blood gas with lactate, hemoglobin and ionized calcium run at the point of care (about 5 min). INR, fibrinogen and platelets go to the central lab (about 45 min). Type and crossmatch sent."
+            }
+          ],
+          "else": [
+            {
+              "log": "Repeat blood gas, hemoglobin, lactate and ionized calcium at the point of care (about 5 min)."
+            }
+          ]
+        }
+      ]
+    },
+    "crystalloid": {
+      "label": "Crystalloid bolus (lactated Ringer's)",
+      "group": "Orders",
+      "available": "crystLeft <= 0",
+      "why": "A bolus is already running.",
+      "params": [
+        {
+          "id": "ml",
+          "kind": "choice",
+          "label": "Volume",
+          "options": [
+            {
+              "value": "500",
+              "label": "500 mL"
+            },
+            {
+              "value": "1000",
+              "label": "1000 mL"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "add": "crystLeft",
+          "by": "num(ml)"
+        },
+        {
+          "if": "isNull(crystAt)",
+          "then": [
+            {
+              "set": "crystAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "not warming",
+          "then": [
+            {
+              "add": "temp",
+              "by": "-coldCryst * num(ml) / 1000"
+            }
+          ]
+        },
+        {
+          "schedule": "crystDoneT",
+          "after": "num(ml) / crystFlow * 60"
+        },
+        {
+          "log": "{num(ml)} mL lactated Ringer's running on a pressure bag (about {round(num(ml) / crystFlow)} min)."
+        },
+        {
+          "if": "crystOrdered > 1000",
+          "then": [
+            {
+              "log": "Crystalloid ordered so far: {crystOrdered} mL. The unit's standing order stops at 1 L; more needs a call.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "transfuse": {
+      "label": "Transfuse",
+      "group": "Orders",
+      "available": "(erArrived and erLeft > 0) or (mtpArrived and (rbcStock > 0 or pltStock > 0))",
+      "why": "No blood is at the bedside yet.",
+      "params": [
+        {
+          "id": "product",
+          "kind": "choice",
+          "label": "Product",
+          "options": [
+            {
+              "value": "er2",
+              "label": "2 units emergency-release O-negative red cells"
+            },
+            {
+              "value": "pair",
+              "label": "1 red cells + 1 plasma (MTP cooler)"
+            },
+            {
+              "value": "rbc",
+              "label": "1 red cells only (MTP cooler)"
+            },
+            {
+              "value": "plt",
+              "label": "1 apheresis platelets (MTP cooler)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "product == \"er2\" and erLeft > 0",
+              "then": [
+                {
+                  "add": "prodPending",
+                  "by": "2 * rbcVol"
+                },
+                {
+                  "add": "hgbPending",
+                  "by": "2 * rbcHgb"
+                },
+                {
+                  "set": "erLeft",
+                  "to": "0"
+                },
+                {
+                  "add": "rbcGiven",
+                  "by": "2"
+                },
+                {
+                  "add": "ica",
+                  "by": "-2 * icaPerUnit"
+                },
+                {
+                  "if": "not warming",
+                  "then": [
+                    {
+                      "add": "temp",
+                      "by": "-2 * coldUnit"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(bloodAt)",
+                  "then": [
+                    {
+                      "set": "bloodAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Two units of emergency-release O-negative red cells checked at the bedside and running through the rapid infuser."
+                }
+              ]
+            },
+            {
+              "when": "product == \"pair\" and rbcStock > 0 and plasmaStock > 0",
+              "then": [
+                {
+                  "add": "prodPending",
+                  "by": "rbcVol + plasmaVol"
+                },
+                {
+                  "add": "hgbPending",
+                  "by": "rbcHgb"
+                },
+                {
+                  "add": "rbcStock",
+                  "by": "-1"
+                },
+                {
+                  "add": "plasmaStock",
+                  "by": "-1"
+                },
+                {
+                  "add": "rbcGiven",
+                  "by": "1"
+                },
+                {
+                  "add": "plasmaGiven",
+                  "by": "1"
+                },
+                {
+                  "add": "ica",
+                  "by": "-2 * icaPerUnit"
+                },
+                {
+                  "if": "not warming",
+                  "then": [
+                    {
+                      "add": "temp",
+                      "by": "-2 * coldUnit"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(bloodAt)",
+                  "then": [
+                    {
+                      "set": "bloodAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "One red cell unit and one plasma checked and running. Cooler: {rbcStock} red cells, {plasmaStock} plasma, {pltStock} platelets left."
+                }
+              ]
+            },
+            {
+              "when": "product == \"rbc\" and rbcStock > 0",
+              "then": [
+                {
+                  "add": "prodPending",
+                  "by": "rbcVol"
+                },
+                {
+                  "add": "hgbPending",
+                  "by": "rbcHgb"
+                },
+                {
+                  "add": "rbcStock",
+                  "by": "-1"
+                },
+                {
+                  "add": "rbcGiven",
+                  "by": "1"
+                },
+                {
+                  "add": "ica",
+                  "by": "-icaPerUnit"
+                },
+                {
+                  "if": "not warming",
+                  "then": [
+                    {
+                      "add": "temp",
+                      "by": "-1 * coldUnit"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(bloodAt)",
+                  "then": [
+                    {
+                      "set": "bloodAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "One red cell unit checked and running. Cooler: {rbcStock} red cells, {plasmaStock} plasma, {pltStock} platelets left."
+                }
+              ]
+            },
+            {
+              "when": "product == \"plt\" and pltStock > 0",
+              "then": [
+                {
+                  "add": "prodPending",
+                  "by": "pltVol"
+                },
+                {
+                  "add": "pltStock",
+                  "by": "-1"
+                },
+                {
+                  "add": "pltGiven",
+                  "by": "1"
+                },
+                {
+                  "if": "not warming",
+                  "then": [
+                    {
+                      "add": "temp",
+                      "by": "-1 * coldUnit"
+                    }
+                  ]
+                },
+                {
+                  "if": "isNull(bloodAt)",
+                  "then": [
+                    {
+                      "set": "bloodAt",
+                      "to": "t"
+                    }
+                  ]
+                },
+                {
+                  "log": "Apheresis platelets checked and running."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "That product is not at the bedside.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "prodPending > 0",
+          "then": [
+            {
+              "schedule": "prodDoneT",
+              "after": "prodPending / infuseRate * 60"
+            }
+          ]
+        }
+      ]
+    },
+    "calcium": {
+      "label": "Calcium chloride 1 g IV (MTP protocol)",
+      "group": "Orders",
+      "available": "bloodOrdered",
+      "why": "Needs an order: call the surgeon first.",
+      "effects": [
+        {
+          "add": "ica",
+          "by": "icaDose"
+        },
+        {
+          "if": "isNull(calciumAt)",
+          "then": [
+            {
+              "set": "calciumAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Calcium chloride 1 g given through the central line."
+        }
+      ]
+    },
+    "warm": {
+      "label": "Warm him (fluid warmer on every line, forced-air blanket)",
+      "group": "Orders",
+      "available": "not warming",
+      "why": "Warming is already on.",
+      "effects": [
+        {
+          "set": "warming",
+          "to": "true"
+        },
+        {
+          "set": "warmAt",
+          "to": "t"
+        },
+        {
+          "log": "Fluid warmer on the rapid infuser and the crystalloid line; forced-air blanket on. Temperature {tempD} C."
+        }
+      ]
+    },
+    "norepi": {
+      "label": "Norepinephrine",
+      "group": "Orders",
+      "available": "pressorOrdered",
+      "why": "Needs an order: call the surgeon first.",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Dose",
+          "options": [
+            {
+              "value": "0",
+              "label": "Off"
+            },
+            {
+              "value": "0.05",
+              "label": "0.05 mcg/kg/min"
+            },
+            {
+              "value": "0.1",
+              "label": "0.1 mcg/kg/min"
+            },
+            {
+              "value": "0.2",
+              "label": "0.2 mcg/kg/min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "neDose",
+          "to": "num(dose)"
+        },
+        {
+          "if": "num(dose) > 0",
+          "then": [
+            {
+              "if": "isNull(pressorAt)",
+              "then": [
+                {
+                  "set": "pressorAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Norepinephrine at {num(dose)} mcg/kg/min."
+            }
+          ],
+          "else": [
+            {
+              "log": "Norepinephrine off."
+            }
+          ]
+        },
+        {
+          "if": "num(dose) > 0 and isNull(bloodAt)",
+          "then": [
+            {
+              "log": "The number on the monitor will rise, but the bleeding has not stopped and no blood has gone in.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "erBlood": {
+      "label": "Request emergency-release blood (2 units O-negative)",
+      "group": "Escalate",
+      "available": "bloodOrdered and not erRequested",
+      "why": "Needs an order (call the surgeon), or already requested.",
+      "effects": [
+        {
+          "set": "erRequested",
+          "to": "true"
+        },
+        {
+          "schedule": "erT",
+          "after": "erTime"
+        },
+        {
+          "log": "Blood bank: two units of uncrossmatched O-negative red cells released; porter on the way (about 10 min)."
+        }
+      ]
+    },
+    "mtp": {
+      "label": "Activate the massive transfusion protocol",
+      "group": "Escalate",
+      "available": "isNull(mtpAt)",
+      "why": "The protocol is already active.",
+      "effects": [
+        {
+          "if": "bloodOrdered",
+          "then": [
+            {
+              "set": "mtpAt",
+              "to": "t"
+            },
+            {
+              "schedule": "coolerT",
+              "after": "mtpTime"
+            },
+            {
+              "log": "Blood bank: massive transfusion protocol activated. First cooler (6 red cells, 6 plasma, 1 apheresis platelets) in about 15 min, then one every 15 min."
+            }
+          ],
+          "else": [
+            {
+              "log": "Blood bank: activation needs the responsible provider's order. Call the surgeon.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "surgeon": {
+      "label": "Call the surgeon (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Surgeon already paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "bleed",
+                  "label": "Left drain now bright red, about 100 mL in 15 min; HR up 20 since handover, pulse pressure narrowing, abdomen firmer"
+                },
+                {
+                  "value": "soft",
+                  "label": "BP is a little soft"
+                },
+                {
+                  "value": "routine",
+                  "label": "Routine update, comfortable on the PCA"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "66 y, Whipple finished at 13:00, post-op Hgb 11.2; thin pink drain fluid until now"
+                },
+                {
+                  "value": "min",
+                  "label": "Post-op Whipple"
+                }
+              ]
+            },
+            {
+              "id": "asmt",
+              "label": "Assessment",
+              "options": [
+                {
+                  "value": "bleed",
+                  "label": "I think he is bleeding into the abdomen and going into hemorrhagic shock"
+                },
+                {
+                  "value": "dry",
+                  "label": "Probably needs more fluid"
+                },
+                {
+                  "value": "unsure",
+                  "label": "Not sure what is going on"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "come",
+                  "label": "Please come now; I want to give blood and activate the MTP, and he may need the OR"
+                },
+                {
+                  "value": "fluid",
+                  "label": "Can I give more fluid?"
+                },
+                {
+                  "value": "pressor",
+                  "label": "Can I start norepinephrine?"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "not hasCall or ((sit == \"bleed\" or asmt == \"bleed\" or rec == \"come\") and not bestEffective)",
+          "then": [
+            {
+              "set": "hasCall",
+              "to": "true"
+            },
+            {
+              "set": "bestEffective",
+              "to": "sit == \"bleed\" or asmt == \"bleed\" or rec == \"come\""
+            },
+            {
+              "set": "bestFull",
+              "to": "sit == \"bleed\" and bg == \"full\" and asmt == \"bleed\" and rec == \"come\""
+            }
+          ]
+        },
+        {
+          "if": "(sit == \"bleed\" or asmt == \"bleed\" or rec == \"come\") and isNull(surgeonEffAt)",
+          "then": [
+            {
+              "set": "surgeonEffAt",
+              "to": "t"
+            },
+            {
+              "if": "isNull(recognizedAt) and t >= onset",
+              "then": [
+                {
+                  "set": "recognizedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"bleed\" or asmt == \"bleed\" or rec == \"come\"",
+            "pressor": "rec == \"pressor\""
+          }
+        },
+        {
+          "log": "Paged the surgeon. Callback expected in about 2 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "callbackT": {
+      "label": "the surgeon's callback",
+      "wait": {
+        "skipLabel": "the surgeon's callback (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        },
+        "pressor": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Page to callback about 2 min. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "live",
+          "then": [
+            {
+              "if": "timer.with.effective",
+              "then": [
+                {
+                  "set": "bloodOrdered",
+                  "to": "true"
+                },
+                {
+                  "set": "pressorOrdered",
+                  "to": "true"
+                },
+                {
+                  "if": "not arrivalSet",
+                  "then": [
+                    {
+                      "set": "arrivalSet",
+                      "to": "true"
+                    },
+                    {
+                      "schedule": "arriveT",
+                      "after": "surgeonWalk"
+                    },
+                    {
+                      "log": "Surgeon: \"Coming now. Get the emergency-release blood, activate the massive transfusion protocol, keep him warm and check calcium with the gases. Hold the crystalloid to what is running. Aim for a MAP of about 65 for now; don't chase a normal pressure. I'll be there in about 10 minutes.\"",
+                      "kind": "good"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "log": "Surgeon: \"I'm already on my way.\"",
+                      "kind": "good"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "set": "phoneOrders",
+                  "to": "true"
+                },
+                {
+                  "if": "timer.with.pressor",
+                  "then": [
+                    {
+                      "set": "pressorOrdered",
+                      "to": "true"
+                    }
+                  ]
+                },
+                {
+                  "schedule": "recheckT",
+                  "after": "phoneRecheck"
+                },
+                {
+                  "log": "Surgeon (phone orders): \"Give another liter of LR and recheck the hemoglobin. Call me back in 30 minutes if he is not better.\"",
+                  "kind": "sys"
+                },
+                {
+                  "if": "timer.with.pressor",
+                  "then": [
+                    {
+                      "log": "Surgeon: \"You can start norepinephrine at 0.05 if the MAP stays under 65.\"",
+                      "kind": "sys"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "recheckT": {
+      "label": "the surgeon's 30-min recheck",
+      "wait": {
+        "skipLabel": "the surgeon's 30-minute recheck"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Scenario timing (authored)",
+        "checkedAt": "2026-11-10",
+        "note": "Phone orders: 'call me back in 30 minutes if he is not better'."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "log": "30 minutes since the phone orders. Not better.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "surgeon arrival",
+      "wait": {
+        "skipLabel": "the surgeon's arrival (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Surgeon from the ward to the ICU bedside about 10 min. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "surgeonArrived",
+              "to": "true"
+            },
+            {
+              "schedule": "orReadyT",
+              "after": "orPrep"
+            },
+            {
+              "log": "Surgeon at the bedside: tense abdomen, bright red drain output. \"He is bleeding from the operative bed. We're going back to the OR.\" OR and anesthesia called; about 15 minutes.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "orReadyT": {
+      "label": "the OR being ready",
+      "wait": {
+        "skipLabel": "the OR being ready (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "OR and anesthesia ready about 15 min after the surgeon books an emergency return. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "leftForOr",
+              "to": "true"
+            },
+            {
+              "set": "orAt",
+              "to": "t"
+            },
+            {
+              "log": "OR ready. He leaves for the OR with the transfusion running through the rapid infuser.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "erT": {
+      "label": "emergency-release blood",
+      "wait": {
+        "skipLabel": "the emergency-release blood (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Emergency-release (uncrossmatched) O-negative red cells reach the bedside about 10 min after the request. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "erArrived",
+              "to": "true"
+            },
+            {
+              "set": "erLeft",
+              "to": "2"
+            },
+            {
+              "log": "Two units of emergency-release O-negative red cells at the bedside.",
+              "kind": "good"
+            }
+          ]
+        }
+      ]
+    },
+    "coolerT": {
+      "label": "an MTP cooler",
+      "wait": {
+        "skipLabel": "the next MTP cooler (about 15 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "First cooler about 15 min after activation (authored); TQIP 2014 asks that later coolers follow at 15-minute intervals."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "set": "mtpArrived",
+              "to": "true"
+            },
+            {
+              "add": "rbcStock",
+              "by": "6"
+            },
+            {
+              "add": "plasmaStock",
+              "by": "6"
+            },
+            {
+              "add": "pltStock",
+              "by": "1"
+            },
+            {
+              "log": "MTP cooler at the bedside: {rbcStock} red cells, {plasmaStock} plasma, {pltStock} apheresis platelets.",
+              "kind": "good"
+            },
+            {
+              "schedule": "coolerT",
+              "after": "coolerEvery"
+            }
+          ]
+        }
+      ]
+    },
+    "pocResultT": {
+      "label": "point-of-care results",
+      "wait": {
+        "skipLabel": "the blood gas and hemoglobin (about 5 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "hgb": {
+          "type": "number"
+        },
+        "lac": {
+          "type": "number"
+        },
+        "ica": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Point-of-care blood gas, hemoglobin, lactate and ionized calcium in about 5 min. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "log": "Point-of-care results: Hgb {timer.with.hgb|1dp} g/dL (post-op 11.2), lactate {timer.with.lac|1dp} mmol/L, ionized calcium {timer.with.ica|2dp} mmol/L.",
+          "kind": "find"
+        }
+      ]
+    },
+    "coagResultT": {
+      "label": "central lab coags",
+      "wait": {
+        "skipLabel": "the central lab coags (about 45 min)",
+        "routine": true
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "inr": {
+          "type": "number"
+        },
+        "fib": {
+          "type": "number"
+        },
+        "plt": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Central lab INR, fibrinogen and platelets in about 45 min. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "log": "Central lab (drawn 45 min ago): INR {timer.with.inr|1dp}, fibrinogen {timer.with.fib|0dp} mg/dL, platelets {timer.with.plt|0dp} x10^9/L.",
+          "kind": "find"
+        }
+      ]
+    },
+    "crystDoneT": {
+      "label": "the bolus",
+      "wait": {
+        "skipLabel": "the bolus running in",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "A crystalloid bolus on a pressure bag runs at about 50 mL/min. Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "log": "Bolus in. Crystalloid so far {crystInfused|0dp} mL.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "prodDoneT": {
+      "label": "the units running in",
+      "wait": {
+        "skipLabel": "the units running in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "ICU and blood bank practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Blood products through a rapid infuser with a warmer at about 100 mL/min (a red cell and plasma pair in about 5.5 min). Local times vary; no published standard was found for this interval."
+      },
+      "effects": [
+        {
+          "if": "live",
+          "then": [
+            {
+              "log": "Units in: {rbcGiven} red cells, {plasmaGiven} plasma, {pltGiven} platelets so far.",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hrHigh",
+      "when": "live and hr >= 110",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: HR 110 or more.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "sbpLow",
+      "when": "live and sbp < 90",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: arterial systolic below 90.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "mapLow",
+      "when": "live and map < 65",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: MAP below 65.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "uoLow",
+      "when": "live and t >= onset and uo < 40",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: urine output under 40 mL/h (0.5 mL/kg/h for 80 kg).",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "whatIsHappening": {
+      "trigger": "live and (f >= reasonF or t >= reasonAt)",
+      "question": "He has changed since handover. What do you think is happening, and what will you do first?",
+      "parts": [
+        {
+          "label": "What is happening",
+          "criteria": "Names post-operative hemorrhage (bleeding into the abdomen) with early hemorrhagic shock and supports it with at least two of: rising heart rate, narrowing pulse pressure, bright red drain output, a firmer or more distended abdomen, falling urine output, cool skin or restlessness, rising lactate. Recognizes that a near-normal blood pressure or first hemoglobin does not rule it out.",
+          "modelAnswer": "Post-operative bleeding into the abdomen with compensated hemorrhagic shock: HR up 20 or more since handover, pulse pressure narrowing, the left drain turning bright red, a firmer abdomen, restlessness and cooler hands. The blood pressure is held up by compensation and the first hemoglobin lags behind acute blood loss, so neither rules it out."
+        },
+        {
+          "label": "What first",
+          "criteria": "Calls the surgeon to the bedside now (an early bleed from the operative bed needs a return to the OR); gives blood early (emergency-release units, massive transfusion protocol) rather than more crystalloid; mentions at least one of warming, calcium, or labs including type and crossmatch; does not plan to chase a normal pressure with fluid or a vasopressor.",
+          "modelAnswer": "Page the surgeon with an SBAR asking them to come now, because the fix is surgical. Get emergency-release blood and activate the massive transfusion protocol, give plasma with the red cells, keep crystalloid to a short bridge, warm him, check ionized calcium and replace it, and send labs with a type and crossmatch. Agree a pressure target with the surgeon rather than chasing a normal one."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "callWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-10",
+          "note": "Surgeon paged to the bedside within 20 min of the bleed starting (the expert path pages at about 6 min)."
+        }
+      },
+      "definitiveWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Clinical outcome profile (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-10",
+          "note": "Leaves for the OR within 45 min of the bleed starting (expert path about 33 min)."
+        }
+      },
+      "bloodWindow": {
+        "value": 1500,
+        "source": {
+          "cite": "Advanced Trauma Life Support, 11th edition (American College of Surgeons, 2025), as summarized in: Advanced trauma life support 2025: a brief review of updates. Injury 2026;57(4):113079. doi:10.1016/j.injury.2026.113079",
+          "checkedAt": "2026-11-10",
+          "url": "https://journalfeed.org/article-a-day/2026/new-atls-update-what-you-need-to-know/",
+          "note": "First blood product within 25 min of the bleed starting (expert path about 18 min); the 11th edition's point is blood early and crystalloid only as a short bridge."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not leftForOr and t >= 10799",
+      "class": "harm",
+      "rationale": "An early bleed from the operative bed does not stop on its own: a patient who has not gone back to the OR by the time limit is still bleeding, so no progress here is harm, not a safe pause.",
+      "source": {
+        "cite": "Wente MN, Veit JA, Bassi C, et al. Postpancreatectomy hemorrhage (PPH): an International Study Group of Pancreatic Surgery (ISGPS) definition. Surgery 2007;142(1):20-25",
+        "checkedAt": "2026-11-10",
+        "url": "https://trialsjournal.biomedcentral.com/articles/10.1186/s13063-020-4167-9/tables/1",
+        "note": "Read 2026-11-10 as adapted in Trials 2020 (table 1): early PPH is within 24 h of the operation; early bleeding that needs relaparotomy is grade B. The scenario's bleed is early, from the operative bed, and is treated by return to the OR."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Cardiac arrest from blood loss",
+      "class": "harm",
+      "when": "live and f >= arrestF",
+      "terminal": true,
+      "narrative": "The monitor shows a narrow-complex rhythm, but there is no pulse on the arterial line. He has lost about half his blood volume: a PEA arrest from hemorrhage. The code team starts compressions and the surgeon is called to the bedside."
+    },
+    "orTarget": {
+      "label": "To the OR early, resuscitated with blood",
+      "class": "target",
+      "when": "leftForOr and not isNull(surgeonEffAt) and timeAt(surgeonEffAt) - onset <= callWindow and t - onset <= definitiveWindow and not isNull(bloodAt) and timeAt(bloodAt) - onset <= bloodWindow and not isNull(mtpAt) and crystOrdered <= crystPartial and mapNadir >= nadirTarget",
+      "terminal": true,
+      "narrative": "He leaves for the OR {(t - onset)|duration} after the bleeding started, warm, perfused and on balanced blood products, with the surgeon already there. The bleeding point is found and tied."
+    },
+    "orRecovered": {
+      "label": "To the OR, by a slower route",
+      "class": "recovered",
+      "when": "leftForOr",
+      "terminal": true,
+      "narrative": "He reaches the OR {(t - onset)|duration} after the bleeding started, but deeper in shock, with more crystalloid or later blood than an early call would have needed. The bleeding is controlled; the extra hours of shock raise the risk of kidney injury and coagulopathy."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its three-hour limit and he never went back to the OR."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "recognize",
+        "label": "Looked at the drains and dressing soon after the vital signs started to drift",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "focusedAt > recognizeExpertAt",
+            "score": "na",
+            "why": "You joined the case after the point where the expert path checks the drains, so this is left out of your score."
+          },
+          {
+            "when": "isNull(drainsAt)",
+            "score": "missed",
+            "why": "The drains were not looked at after the bleeding started."
+          },
+          {
+            "when": "timeAt(drainsAt) - onset <= recognizeWindow",
+            "score": "met",
+            "why": "Drains checked at {timeAt(drainsAt)|clock}, {(timeAt(drainsAt) - onset)|duration} after the bleeding started. Expert: within 15 min."
+          },
+          {
+            "when": "timeAt(drainsAt) - onset <= recognizePartialWindow",
+            "score": "partial",
+            "why": "Drains checked at {timeAt(drainsAt)|clock}, {(timeAt(drainsAt) - onset)|duration} after the bleeding started. Expert: within 15 min."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Drains first checked at {timeAt(drainsAt)|clock}, more than 30 min after the bleeding started."
+          }
+        ]
+      },
+      {
+        "id": "callEarly",
+        "label": "Called the surgeon to the bedside early",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(surgeonEffAt) and hasCall",
+            "score": "missed",
+            "why": "The calls ended with phone orders only; nobody came to the bedside."
+          },
+          {
+            "when": "isNull(surgeonEffAt)",
+            "score": "missed",
+            "why": "The surgeon was never called."
+          },
+          {
+            "when": "timeAt(surgeonEffAt) - onset <= callWindow",
+            "score": "met",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, {(timeAt(surgeonEffAt) - onset)|duration} after the bleeding started; expert target 20 min or less."
+          },
+          {
+            "when": "timeAt(surgeonEffAt) - onset <= callPartialWindow",
+            "score": "partial",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, {(timeAt(surgeonEffAt) - onset)|duration} after the bleeding started; expert target 20 min or less."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Paged at {timeAt(surgeonEffAt)|clock}, more than 35 min after the bleeding started."
+          }
+        ]
+      },
+      {
+        "id": "sbar",
+        "label": "SBAR named the problem and asked for what was needed",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not hasCall",
+            "score": "missed",
+            "why": "No SBAR call made."
+          },
+          {
+            "when": "bestFull",
+            "score": "met",
+            "why": "Clear situation, background, a named suspicion of bleeding and a direct ask."
+          },
+          {
+            "when": "bestEffective",
+            "score": "partial",
+            "why": "The surgeon came, but the SBAR was missing the named suspicion, the full background or a direct ask."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The call sounded routine, so it ended in phone orders."
+          }
+        ]
+      },
+      {
+        "id": "bloodEarly",
+        "label": "Gave blood early instead of more crystalloid",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(bloodAt)",
+            "score": "missed",
+            "why": "No blood product was given."
+          },
+          {
+            "when": "timeAt(bloodAt) - onset <= bloodWindow",
+            "score": "met",
+            "why": "First blood at {timeAt(bloodAt)|clock}, {(timeAt(bloodAt) - onset)|duration} after the bleeding started; expert within 25 min."
+          },
+          {
+            "when": "timeAt(bloodAt) - onset <= bloodPartial",
+            "score": "partial",
+            "why": "First blood at {timeAt(bloodAt)|clock}, {(timeAt(bloodAt) - onset)|duration} after the bleeding started; expert within 25 min."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "First blood more than 40 min after the bleeding started."
+          }
+        ]
+      },
+      {
+        "id": "mtp",
+        "label": "Activated the massive transfusion protocol",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(mtpAt)",
+            "score": "missed",
+            "why": "The massive transfusion protocol was not activated, although he was unstable and bleeding that needed an operation (TQIP activation criteria)."
+          },
+          {
+            "when": "timeAt(mtpAt) - onset <= mtpWindow",
+            "score": "met",
+            "why": "Activated at {timeAt(mtpAt)|clock}, {(timeAt(mtpAt) - onset)|duration} after the bleeding started."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Activated at {timeAt(mtpAt)|clock}, more than 30 min after the bleeding started."
+          }
+        ]
+      },
+      {
+        "id": "crystalloid",
+        "label": "Kept crystalloid to a short bridge",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "crystOrdered <= crystLimit",
+            "score": "met",
+            "why": "{crystOrdered|0dp} mL of crystalloid in all."
+          },
+          {
+            "when": "crystOrdered <= crystPartial",
+            "score": "partial",
+            "why": "{crystOrdered|0dp} mL of crystalloid: more than a 1 L bridge, which dilutes clotting factors and cools him."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{crystOrdered|0dp} mL of crystalloid: the pressure was chased with fluid that does not carry oxygen or clot."
+          }
+        ]
+      },
+      {
+        "id": "ratio",
+        "label": "Gave plasma with the red cells (1:1 to 1:2)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rbcGiven <= 2",
+            "score": "na",
+            "why": "No cooler units were given, so the ratio does not apply."
+          },
+          {
+            "when": "2 * plasmaGiven >= rbcGiven - 2",
+            "score": "met",
+            "why": "{rbcGiven} red cells and {plasmaGiven} plasma: within 1:1 to 1:2 after the two emergency units."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rbcGiven} red cells and only {plasmaGiven} plasma: red cells alone dilute the clotting factors."
+          }
+        ]
+      },
+      {
+        "id": "calcium",
+        "label": "Replaced calcium during the transfusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "rbcGiven + plasmaGiven < 4",
+            "score": "na",
+            "why": "Fewer than four units were given, so calcium is left out."
+          },
+          {
+            "when": "not isNull(calciumAt)",
+            "score": "met",
+            "why": "Calcium given at {timeAt(calciumAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rbcGiven + plasmaGiven} citrated units and no calcium: ionized calcium fell to {icaD|2dp} mmol/L."
+          }
+        ]
+      },
+      {
+        "id": "warming",
+        "label": "Kept him warm",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(warmAt)",
+            "score": "missed",
+            "why": "No warming: temperature {tempD|1dp} C at the end."
+          },
+          {
+            "when": "isNull(bloodAt) or timeAt(warmAt) <= timeAt(bloodAt) + 300",
+            "score": "met",
+            "why": "Fluid warmer and forced-air blanket at {timeAt(warmAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Warming started at {timeAt(warmAt)|clock}, more than 5 min after the first cold units."
+          }
+        ]
+      },
+      {
+        "id": "pressorFirst",
+        "label": "Did not use a vasopressor in place of volume",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(pressorAt)",
+            "score": "met",
+            "why": "No vasopressor was used to hold up the pressure."
+          },
+          {
+            "when": "not isNull(bloodAt) and timeAt(pressorAt) >= timeAt(bloodAt)",
+            "score": "met",
+            "why": "Norepinephrine only after blood was running."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Norepinephrine at {timeAt(pressorAt)|clock}, before any blood: it raised the number while the bleeding went on."
+          }
+        ]
+      },
+      {
+        "id": "labs",
+        "label": "Sent labs with a type and crossmatch",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(labsAt)",
+            "score": "missed",
+            "why": "No labs drawn."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Labs drawn, including ionized calcium and a type and crossmatch."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "whatIsHappening",
+        "label": "Written reasoning: named the bleed and the first moves",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "recognition",
+        "label": "Bleeding start to recognition",
+        "value": "isNull(recognizedAt) ? -1 : timeAt(recognizedAt) - onset",
+        "format": "duration",
+        "expert": "about 5 min"
+      },
+      {
+        "id": "page",
+        "label": "Bleeding start to paging the surgeon to the bedside",
+        "value": "isNull(surgeonEffAt) ? -1 : timeAt(surgeonEffAt) - onset",
+        "format": "duration",
+        "expert": "20 min or less"
+      },
+      {
+        "id": "firstBlood",
+        "label": "Bleeding start to first blood",
+        "value": "isNull(bloodAt) ? -1 : timeAt(bloodAt) - onset",
+        "format": "duration",
+        "expert": "25 min or less"
+      },
+      {
+        "id": "toOr",
+        "label": "Bleeding start to leaving for the OR",
+        "value": "isNull(orAt) ? -1 : timeAt(orAt) - onset",
+        "format": "duration",
+        "expert": "about 33 min"
+      },
+      {
+        "id": "crystalloid",
+        "label": "Crystalloid given",
+        "value": "crystOrdered",
+        "format": "number",
+        "expert": "1,000 mL or less"
+      },
+      {
+        "id": "nadir",
+        "label": "Lowest MAP after the bleeding started",
+        "value": "mapNadir",
+        "format": "number",
+        "expert": "60 mmHg or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "~18:07",
+        "text": "HR has crept up about 7 since handover and he is restless. Look at him and check the drains: the left drain is bright red, about 70 mL in 15 min."
+      },
+      {
+        "at": "~18:08",
+        "text": "Draw labs with a type and crossmatch. Page the surgeon with an SBAR naming bleeding and asking them to come now."
+      },
+      {
+        "at": "~18:10",
+        "text": "Callback: blood ordered. Request emergency-release units, activate the massive transfusion protocol, warm him, start a 500 mL crystalloid bridge only."
+      },
+      {
+        "at": "~18:20",
+        "text": "Emergency units at the bedside: transfuse both through the warmer. The first hemoglobin is close to baseline: it lags."
+      },
+      {
+        "at": "~18:20",
+        "text": "Surgeon at the bedside: back to the OR, about 15 min."
+      },
+      {
+        "at": "~18:25",
+        "text": "First cooler: red cells with plasma 1:1 and platelets; calcium chloride as the citrated units run in."
+      },
+      {
+        "at": "~18:35",
+        "text": "Leaves for the OR about 33 min after the bleeding started, MAP never below 60."
+      }
+    ],
+    "debrief": {
+      "orTarget": {
+        "headline": "To the OR early, resuscitated with blood",
+        "body": "You saw the drift, found the bleeding, got the surgeon there and gave blood instead of more crystalloid. That is the expert path."
+      },
+      "orRecovered": {
+        "headline": "To the OR, by a slower route",
+        "body": "He made it, but later or deeper in shock than he needed to. Look at the minutes before the call, the first blood and how much crystalloid went in: the vital signs were drifting before the pressure fell."
+      },
+      "arrest": {
+        "headline": "Cardiac arrest from blood loss",
+        "body": "The bleeding outran the response. The most useful kind of run to learn from: find the point where the HR, pulse pressure and drain output first told the story, and what a call then would have changed."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The run reached its time limit without a return to the OR."
+      }
+    },
+    "modelReasoning": "Early post-operative hemorrhage after a Whipple, from the operative bed, with compensated hemorrhagic shock. The clues: the heart rate creeping up, the pulse pressure narrowing while the systolic pressure still looks acceptable, the left drain turning bright red, a firmer abdomen, restlessness and cooler hands, then falling urine output and a rising lactate. The first hemoglobin is close to baseline because whole blood is being lost; it falls only as the vessels refill and fluid is given. The fix is surgical, so the surgeon comes now. Until then: blood early (emergency-release units, then the massive transfusion protocol with plasma and platelets), crystalloid only as a short bridge, warming, calcium as citrated units go in, and a pressure target agreed with the surgeon rather than a normal number chased with fluid or a vasopressor."
+  },
+  "focusedStart": {
+    "label": "Start as the vital signs drift",
+    "summary": "Join at 18:08, six minutes after the bleeding started: the heart rate has crept up a few beats and nothing has alarmed yet.",
+    "at": "8min",
+    "source": {
+      "cite": "Scenario timing (authored)",
+      "checkedAt": "2026-11-10",
+      "note": "Tick 480 is 6 min after onset. With no learner action the first alarm (HR 110) comes at about 26 min and the written question at about 14 min, so the start is reached with nothing open and leaves recognition to the learner. The drains criterion is left out of a focused run, because the expert path checks the drains at 18:07 (recognizeExpertAt, tick 420)."
+    }
+  },
+  "chapters": [
+    {
+      "id": "surgeonAtBedside",
+      "label": "Surgeon at the bedside",
+      "when": "surgeonArrived"
+    },
+    {
+      "id": "transfusionRunning",
+      "label": "Massive transfusion running",
+      "when": "mtpArrived"
+    }
+  ],
+  "teaching": {
+    "hgbLags": {
+      "during": "pocResultT",
+      "ask": "The first hemoglobin is about to come back. If it is close to his post-op 11.2, does that rule out bleeding?",
+      "choices": [
+        {
+          "id": "rules",
+          "label": "Yes: bleeding would have dropped it"
+        },
+        {
+          "id": "lags",
+          "label": "No: the hemoglobin lags behind acute blood loss"
+        }
+      ],
+      "expect": "lags",
+      "explain": "Whole blood is lost at the same hemoglobin concentration, so the number barely moves at first. It falls as fluid refills the vessels and as crystalloid is given. The trauma bleeding guideline recommends repeated hemoglobin measurements because a normal first value can mask early bleeding.",
+      "source": {
+        "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80. doi:10.1186/s13054-023-04327-7",
+        "checkedAt": "2026-11-10",
+        "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+        "note": "FLAG: the guideline's point that a single normal hemoglobin can mask early bleeding is confirmed here from summaries (see the document sources), not the sixth edition's own text. The mechanism (whole-blood loss, then dilution) is the scenario's model."
+      }
+    },
+    "bridge": {
+      "during": "erT",
+      "ask": "The emergency-release blood is about 10 minutes away. How much crystalloid until it arrives?",
+      "choices": [
+        {
+          "id": "normalize",
+          "label": "As much as it takes to get the pressure back to normal"
+        },
+        {
+          "id": "bridge",
+          "label": "A short bridge only (about 1 L or less), then blood"
+        }
+      ],
+      "expect": "bridge",
+      "explain": "Crystalloid carries no oxygen and no clotting factors; most of it leaves the vessels within the hour and it dilutes and cools. ATLS (11th edition) asks for crystalloid only as a minimal bridge until blood is available.",
+      "source": {
+        "cite": "Advanced Trauma Life Support, 11th edition (American College of Surgeons, 2025), as summarized in: Advanced trauma life support 2025: a brief review of updates. Injury 2026;57(4):113079. doi:10.1016/j.injury.2026.113079",
+        "checkedAt": "2026-11-10",
+        "url": "https://journalfeed.org/article-a-day/2026/new-atls-update-what-you-need-to-know/",
+        "note": "Read through a secondary summary (JournalFeed, 2026) on 2026-11-10, not the course manual: minimize crystalloid as a bridging fluid until blood is available, balanced 1:1:1 component therapy or low-titer O whole blood, early massive transfusion protocol activation, permissive hypotension until hemorrhage control. The summary gives no numeric hemorrhage BP target and does not reproduce the hemorrhage class table."
+      }
+    },
+    "ratio": {
+      "during": "coolerT",
+      "when": "not isNull(mtpAt)",
+      "ask": "The first cooler is coming. How should the red cells be given?",
+      "choices": [
+        {
+          "id": "rbcOnly",
+          "label": "Red cells alone until the coags come back"
+        },
+        {
+          "id": "balanced",
+          "label": "With plasma (1:1 to 1:2) and platelets"
+        }
+      ],
+      "expect": "balanced",
+      "explain": "Massive transfusion guidance gives plasma with red cells between 1:1 and 1:2, plus one apheresis platelet unit per six red cells, without waiting 45 minutes for coags. In PROPPR (trauma), 1:1:1 had more hemostasis and fewer deaths from exsanguination in 24 h than 1:1:2, with no difference in 24-h or 30-day mortality.",
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014); Holcomb JB, Tilley BC, Baraniuk S, et al. Transfusion of plasma, platelets, and red blood cells in a 1:1:1 vs a 1:1:2 ratio and mortality in patients with severe trauma: the PROPPR randomized clinical trial. JAMA 2015;313(5):471-482",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "TQIP 2014 ratios read 2026-11-10; PROPPR results from a summary read 2026-11-10. Both are trauma evidence applied to a surgical bleed."
+      }
+    },
+    "target": {
+      "during": "arriveT",
+      "ask": "Trauma guidelines suggest a systolic of 80-90 mmHg until bleeding is controlled. Does that number carry straight over to him?",
+      "choices": [
+        {
+          "id": "same",
+          "label": "Yes, use the same numbers"
+        },
+        {
+          "id": "agree",
+          "label": "Not directly: it comes from trauma; agree a target with the surgeon"
+        },
+        {
+          "id": "normal",
+          "label": "No: aim for a systolic over 120"
+        }
+      ],
+      "expect": "agree",
+      "explain": "The permissive target comes from trauma patients without brain injury, before surgical control. There is no equivalent trial for a bleed after abdominal surgery in an older adult, so the target is agreed with the surgeon (here a MAP of about 65). What does carry over is the direction: don't chase a normal pressure with crystalloid or a vasopressor while the bleeding goes on.",
+      "source": {
+        "cite": "Rossaint R, Afshari A, Bouillon B, et al. The European guideline on management of major bleeding and coagulopathy following trauma: sixth edition. Crit Care 2023;27:80. doi:10.1186/s13054-023-04327-7",
+        "checkedAt": "2026-11-10",
+        "url": "https://doaj.org/article/386a9af4d27a4d728daba16bef6d1cc0",
+        "note": "FLAG: indirect evidence. The 80-90 mmHg systolic target is the trauma guideline's (confirmed from a summary of the fifth edition); no guideline was found that sets a pressure target for post-operative abdominal hemorrhage, which is why the prompt asks the learner to agree one with the surgeon."
+      }
+    },
+    "calcium": {
+      "during": "prodDoneT",
+      "when": "rbcGiven + plasmaGiven >= 2",
+      "ask": "Citrated red cells and plasma are running in fast. What happens to his ionized calcium?",
+      "choices": [
+        {
+          "id": "falls",
+          "label": "It falls"
+        },
+        {
+          "id": "same",
+          "label": "It stays the same"
+        },
+        {
+          "id": "rises",
+          "label": "It rises"
+        }
+      ],
+      "expect": "falls",
+      "explain": "Each unit carries citrate anticoagulant, which binds calcium. Low ionized calcium weakens clotting and the heart, so massive transfusion guidance checks it at baseline and at least hourly and replaces it.",
+      "source": {
+        "cite": "American College of Surgeons TQIP, Massive Transfusion in Trauma Guidelines (October 2014)",
+        "checkedAt": "2026-11-10",
+        "url": "https://ww2.facs.org/media/zcjdtrd1/transfusion_guildelines.pdf",
+        "note": "Monitoring and correction of hypocalcemia read 2026-11-10; the citrate mechanism is the scenario's model (FLAG: not quoted from the guideline)."
+      }
+    }
+  }
+}
