@@ -151,6 +151,13 @@ export function guessDraftKey(userId: string, objectiveId: string): string {
   return `ascendra.draft.guess.${userId}.${objectiveId.replace(/\./g, "_")}`;
 }
 
+// REQ-217 (FAIL-1050): the written reasoning a learner is typing in a
+// simulation, kept on the device (same envelope; the logout sweep removes it).
+// One per run and moment; cleared once the answer is graded.
+export function reasoningDraftKey(userId: string, runId: string, momentId: string): string {
+  return `ascendra.draft.simreason.${userId}.${`${runId}_${momentId}`.replace(/\./g, "_")}`;
+}
+
 export interface AnswerDraft {
   text: string;
   // clientAttemptId sent with `sentText`, reused if that same text is resent.

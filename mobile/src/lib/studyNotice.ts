@@ -132,3 +132,14 @@ export function studyNoticeDecision(state: { notice?: { needed?: boolean } } | n
   if (state?.notice && state.notice.needed === false) return "go";
   return "ask";
 }
+
+// REQ-217 (FAIL-1061): the server refuses a request with 403 and this code when
+// the learner has not accepted the current study notice (backend
+// requireStudyNotice). The app's own copy of the launch state said otherwise
+// (the first onboarding request failed, or the notice version moved on while the
+// app was open), so the learner got the error text and no way to the notice.
+// The client hands this to the onboarding provider, which reloads the state so
+// the launch gate opens the notice screen.
+export function isStudyNoticeRequired(status: number, data: unknown): boolean {
+  return status === 403 && !!data && typeof data === "object" && (data as { code?: unknown }).code === "study_notice_required";
+}

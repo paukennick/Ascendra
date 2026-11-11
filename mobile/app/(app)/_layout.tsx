@@ -12,7 +12,7 @@ export default function AppLayout() {
   // /account/sessions and others answered 401. The screens wait; the splash
   // screen is still up for exactly this long (app/_layout.tsx), so nothing
   // visible changes.
-  if (status === "loading" || status === "locked") return <Loading label="Restoring your session..." />;
+  if (status === "loading" || status === "locked" || status === "retry") return <Loading label="Restoring your session..." />;
   // REQ-122: the plan (inert while paid plans are off) for every signed-in screen.
   return (
     <BillingProvider>

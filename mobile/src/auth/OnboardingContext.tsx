@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api } from "@/api/client";
+import { api, registerStudyNoticeRequiredHook } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { launchGate, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
 import { syncRemindersFor, watchAppForeground } from "@/lib/reminderScheduler";
@@ -58,6 +58,32 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     return () => {
       live = false;
     };
+  }, [userId]);
+
+  // REQ-217 (FAIL-1061): a request the server refused with "study notice
+  // required" means this copy of the state is out of date (or never loaded).
+  // Reload it; the launch gate then opens the notice screen. One reload at a
+  // time, so a burst of refused requests is one request.
+  const reloading = useRef(false);
+  useEffect(() => {
+    if (!userId) {
+      registerStudyNoticeRequiredHook(null);
+      return;
+    }
+    registerStudyNoticeRequiredHook(() => {
+      if (reloading.current) return;
+      reloading.current = true;
+      api
+        .get<OnboardingState>("/api/onboarding")
+        .then((s) => {
+          if (loadedFor.current === userId) setState(s);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          reloading.current = false;
+        });
+    });
+    return () => registerStudyNoticeRequiredHook(null);
   }, [userId]);
 
   // Reminders follow the account: sign-in schedules this account's, a

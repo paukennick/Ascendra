@@ -6,9 +6,9 @@ import { useAuth } from "@/auth/AuthContext";
 import { TERMS_VERSION } from "@/lib/legal";
 import { ageCheckError } from "@/lib/ageConfirmation";
 import { AgeCheckbox } from "@/components/AgeCheckbox";
-import { ApiError } from "@/api/client";
 import { colors, fonts } from "@/lib/theme";
 import { setVerifyEmailHandoff } from "@/lib/handoff";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function Register() {
   const router = useRouter();
@@ -54,7 +54,7 @@ export default function Register() {
       setVerifyEmailHandoff(email.trim());
       router.replace({ pathname: "/verify-email-pending", params: { from: "register" } });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(messageOr(err, "Something went wrong. Try again."));
     } finally {
       setSubmitting(false);
     }
