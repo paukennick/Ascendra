@@ -112,6 +112,19 @@ export function domainFraming(ctx?: CoachContext): string {
         "practice). Where real guidelines vary by jurisdiction or institution, say so rather than asserting one."
     );
   }
+  // REQ-224: mental health licensure (EPPP first). Frank clinical material
+  // is allowed (the learner confirmed 18+, lib/mature-content.ts), but it is
+  // exam preparation, and duties such as warning and reporting vary by law.
+  if (ctx.categorySlug === "mental-health") {
+    lines.push(
+      "This is mental health licensure exam-preparation content (psychology, counseling, social work), not clinical, " +
+        "legal or crisis advice for a real person. Align to the published content outline and the current ethics code " +
+        "and DSM-5-TR terminology. Discuss suicide, abuse, violence and trauma factually and clinically, as the exam " +
+        "tests them, without gratuitous detail. Where a duty (to warn or protect, to report abuse, consent for minors) " +
+        "differs by jurisdiction, say so rather than asserting one rule. If the learner seems to be writing about their " +
+        "own crisis, stop the exercise and point them to local emergency services or a crisis line such as 988 in the US."
+    );
+  }
   // REQ-114 (Audit 3 M7): fitness tracks teach exercise for special
   // populations and nutrition, where acting on a wrong generated detail can
   // hurt a learner or their client. Same exam-prep framing as nursing.
