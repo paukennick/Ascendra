@@ -7626,6 +7626,46 @@
       "risk_notes": [
         "none: no production behaviour changes"
       ]
+    },
+    {
+      "id": "REQ-220",
+      "category": "content",
+      "title": "Course content fixes from the 2026-11-11 audit (batch G5) and a US English spelling sweep",
+      "description": "Nick approved batch G5 on 2026-11-10 (audit https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh, H7, M18, M19 and the content lows), plus the US spelling sweep (Nick, 2026-11-10, via the lead session). Security+ V7 covers every SY0-701 sub-objective; its practice exams offer multi-select and drag-and-drop; its incident-response lab leads with the exam's seven steps. PT: the 2026 APTA Code of Ethics, the 2021 Medicare maintenance-therapy rule, 1.8 kg = 4 lb, sarcopenia wording. Study-emphasis weights (CNA, LPN/VN, ADN, BSN) are never shown as an exam blueprint. The lesson writer and fact-checker get each unit's dated key values. CCRN: HAP/VAP instead of the retired HCAP category. Clinical framing follows the profession. Tamponade sim version 2 (focused start, brief pace, CVP per bolus). Learner-facing text is US English, except the Terms/Privacy text (Nick, 2026-11-10: converted with the next legal version, see backend/lib/legal.ts) and published sim text. AWS MLA-C02 question format verified against AWS's exam guide and certification page on 2026-11-10: unchanged. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/",
+        "mobile/app/",
+        "mobile/src/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "lib/secplus-v7-coverage.test.ts: every SY0-701 sub-objective's topics are in its domain's unit",
+        "existing objectives are only retired in place and appended to, never reworded under the same id (spelling-only retitles excepted and kept as the same objective)",
+        "a study-emphasis course shows no exam weights on any app build (server-side)",
+        "lib/us-spelling.test.ts passes; legal text and published sims excluded with reasons",
+        "sims:lint 0 errors; goldens keep every outcome, rating and score",
+        "seed twice, test:db, npm test and mobile tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "npm run sims:lint",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/lib/legal.ts (legal spelling note)"
+      ],
+      "risk_notes": [
+        "Clinical values were taken from official or cited sources where reachable; the heart-failure table's own pound figure (PMC10847087) and the full APTA policy page could not be opened; see the commit messages.",
+        "Tamponade version 2 is needs_expert_review: if version 1 is approved in production, version 1 keeps being served until version 2 is approved.",
+        "The spelling sweep retitles many objectives; the seed keeps their lessons because the change is spelling-only."
+      ]
     }
   ]
 }
