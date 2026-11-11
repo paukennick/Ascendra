@@ -40,6 +40,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "tamponade-after-cabg"),
   entry("CCRNADULT", "sepsis-to-septic-shock"),
   entry("CCRNADULT", "dka-first-six-hours"),
+  entry("CCRNADULT", "acute-ischemic-stroke-lvo"),
   entry("AWSSAA", "ticketburst-launch-day"),
   band("AWSSAP", "ticketburst-launch-day-sap"),
 ];
