@@ -110,6 +110,24 @@ describe("wiring (static)", () => {
     assert.match(auth, /multiRemove\(\[LOCKED_KEY, LAST_SEEN_KEY\]\)/);
   });
   test("the lock is an overlay over mounted screens, not a navigation", () => {
-    assert.match(layout, /status === "signedIn" && appLocked \? <AppLock \/>/);
+    assert.match(layout, /const locked = status === "signedIn" && appLocked/);
+    assert.match(layout, /locked \? <AppLock \/>/);
+  });
+  // REQ-206 (FAIL-920): the overlay only covered the screens to the eye; Tab
+  // and Enter still reached them and a screen reader still read them.
+  test("the screens under the lock are inert and hidden from assistive tech", () => {
+    assert.match(layout, /setAttribute\("inert", ""\)/);
+    assert.match(layout, /no-hide-descendants/);
+    assert.match(layout, /accessibilityElementsHidden=\{locked\}/);
+    assert.match(layout, /aria-hidden=\{locked \? true : undefined\}/);
+  });
+  test("the lock takes focus, traps Tab, and returns focus on unlock", () => {
+    const lock = readFileSync(new URL("../components/AppLock.tsx", import.meta.url), "utf8");
+    assert.match(lock, /role="dialog"/);
+    assert.match(lock, /aria-modal/);
+    assert.match(lock, /e\.key !== "Tab"/);
+    assert.match(lock, /focusableIn\(node\)\[0\]\?\.focus\(\)/);
+    assert.match(readFileSync(new URL("../../app/_layout.tsx", import.meta.url), "utf8"), /back\.focus\(\)/);
+    assert.match(lock, /onSubmitEditing/);
   });
 });

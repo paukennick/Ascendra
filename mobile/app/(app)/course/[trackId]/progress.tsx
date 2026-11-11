@@ -110,8 +110,10 @@ export default function ProgressScreen() {
                         params: { unitId: u.id, objectiveTitle: o.title },
                       })
                     }
+                    accessibilityRole="button"
+                    accessibilityLabel={`${o.title}, ${status}. Open lesson`}
                     style={({ pressed }) => [
-                      { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
+                      { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm, minHeight: 48 },
                       pressed && { opacity: 0.7 },
                     ]}
                   >

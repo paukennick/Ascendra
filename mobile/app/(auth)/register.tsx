@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import { useRouter } from "expo-router";
-import Feather from "@expo/vector-icons/Feather";
-import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
+import { Text } from "react-native";
+import { Link, useRouter } from "expo-router";
+import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner, Checkbox } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
 import { TERMS_VERSION } from "@/lib/legal";
 import { ageCheckError } from "@/lib/ageConfirmation";
 import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { ApiError } from "@/api/client";
 import { colors, fonts } from "@/lib/theme";
+import { setVerifyEmailHandoff } from "@/lib/handoff";
 
 export default function Register() {
   const router = useRouter();
@@ -23,6 +23,7 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async () => {
+    if (submitting) return;
     setError(null);
     if (!email || !password) {
       setError("Email and password are required.");
@@ -50,7 +51,8 @@ export default function Register() {
     try {
       // REQ-119: the version agreed to is recorded with the account.
       await register(email.trim(), password, displayName.trim() || undefined, TERMS_VERSION, ageOk);
-      router.replace({ pathname: "/verify-email-pending", params: { email: email.trim(), from: "register" } });
+      setVerifyEmailHandoff(email.trim());
+      router.replace({ pathname: "/verify-email-pending", params: { from: "register" } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
     } finally {
@@ -76,6 +78,8 @@ export default function Register() {
           textContentType="name"
           autoComplete="name"
           icon="user"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <TextField
           label="Email"
@@ -86,6 +90,8 @@ export default function Register() {
           textContentType="username"
           autoComplete="username"
           icon="mail"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <TextField
           label="Password"
@@ -96,6 +102,8 @@ export default function Register() {
           textContentType="newPassword"
           autoComplete="new-password"
           icon="lock"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <TextField
           label="Confirm password"
@@ -106,37 +114,27 @@ export default function Register() {
           textContentType="newPassword"
           autoComplete="new-password"
           icon="lock"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
-        <Pressable
-          onPress={() => setAgreed((v) => !v)}
-          style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, marginTop: 4 }}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: agreed }}
+        {/* REQ-206: its own 48 dp checkbox; the links sit beside it, not inside the toggle. */}
+        <Checkbox
+          checked={agreed}
+          onChange={setAgreed}
+          label="I agree to the Terms and Disclaimer and the Privacy Policy"
         >
-          <Feather
-            name={agreed ? "check-square" : "square"}
-            size={18}
-            color={agreed ? colors.accent : colors.mutedDim}
-            style={{ marginTop: 2 }}
-          />
-          <Text style={{ color: colors.mutedDim, fontFamily: fonts.body, flex: 1, fontSize: 13, lineHeight: 18 }}>
+          <Text style={{ color: colors.mutedDim, fontFamily: fonts.body, fontSize: 13, lineHeight: 18 }}>
             I agree to the{" "}
-            <Text
-              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
-              onPress={() => router.push("/terms")}
-            >
+            <Link href="/terms" style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}>
               Terms & Disclaimer
-            </Text>{" "}
+            </Link>{" "}
             and{" "}
-            <Text
-              style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}
-              onPress={() => router.push("/privacy")}
-            >
+            <Link href="/privacy" style={{ color: colors.link, fontFamily: fonts.bodySemiBold }}>
               Privacy Policy
-            </Text>
+            </Link>
             .
           </Text>
-        </Pressable>
+        </Checkbox>
         <AgeCheckbox checked={ageOk} onToggle={() => setAgeOk((v) => !v)} />
         <Button label="Create account" onPress={onSubmit} loading={submitting} icon="user-plus" />
       </Card>

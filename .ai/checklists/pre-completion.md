@@ -38,7 +38,9 @@
   the new one the gate can now raise (FAIL-965); a purpose, option or map one
   branch made required is satisfied by every call site the other added (FAIL-966); and a
   field one branch reads as "who is charged" and another as "whose scope" is
-  split, not shared (FAIL-967).
+  split, not shared (FAIL-967); and when one branch changes how a screen is
+  entered (REQ-206: the MFA and verify-email handoffs), every caller another
+  branch added is moved too (FAIL-895).
 - When two lines changed the same function, write down each side's rule and
   check both survived the merge, not only the text (REQ-139): the parallel
   lesson calls kept the speed and dropped "practice sees the teaching text"
@@ -164,6 +166,20 @@
   on every path that stores nothing (FAIL-887, FAIL-888). A seed that rewrites
   a field generated content was made from invalidates that content
   (FAIL-893).
+- Web screens and accessibility (REQ-206, FAIL-920..939): an overlay that
+  hides the app (the lock) also makes it `inert` and hidden from assistive
+  tech, takes focus and traps Tab -- covering it to the eye is not enough
+  (FAIL-920). A "Back" control uses `useGoBack(parent)`, never
+  `router.back()` (a reload leaves nothing to go back to; FAIL-921, enforced
+  by mobile/src/lib/f5WebA11y.test.ts). A single-line form field passes
+  `onSubmitEditing`. A checkbox is `Checkbox` from ui.tsx, with any links
+  beside it, not inside it. Nothing sensitive (an email, a challenge token)
+  goes in route params (src/lib/handoff.ts). A new route has an entry in
+  src/lib/routeTitles.ts and in app/(app)/_layout.tsx; a change to a web
+  screen's layout or controls is checked with mobile/e2e/tab-order.e2e.mjs
+  (Tab order, focus ring, traps, hidden focus; see mobile/e2e/README.md). A
+  result that appears without moving focus goes through `LiveAnnouncement`. A signed-in screen
+  never sends a request before the session is restored.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

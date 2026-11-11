@@ -10,6 +10,7 @@ export default function ForgotPassword() {
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    if (status === "submitting") return;
     if (!email) {
       setError("Enter your email.");
       return;
@@ -56,6 +57,8 @@ export default function ForgotPassword() {
           textContentType="emailAddress"
           autoComplete="email"
           icon="mail"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <Button label="Send reset link" onPress={onSubmit} loading={status === "submitting"} icon="send" />
       </Card>

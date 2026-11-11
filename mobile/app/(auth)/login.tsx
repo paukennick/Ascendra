@@ -8,6 +8,7 @@ import { Text } from "react-native";
 import { ageCheckError, isAgeConfirmationRequired } from "@/lib/ageConfirmation";
 import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { colors } from "@/lib/theme";
+import { mfaHandoffFrom, setMfaHandoff, setVerifyEmailHandoff } from "@/lib/handoff";
 
 export default function Login() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function Login() {
   };
 
   const onSubmit = async () => {
+    if (submitting) return;
     setError(null);
     if (!email || !password) {
       setError("Enter your email and password.");
@@ -43,16 +45,15 @@ export default function Login() {
     try {
       const result = await login(email.trim(), password);
       if (result.emailVerificationRequired) {
-        router.replace({ pathname: "/verify-email-pending", params: { email: email.trim(), from: "login" } });
-      } else if (result.mfaRequired && result.challengeToken) {
-        router.push({
-          pathname: "/mfa-challenge",
-          params: {
-            challengeToken: result.challengeToken,
-            totp: result.mfaMethods?.totp ? "1" : "0",
-            email: result.mfaMethods?.email ? "1" : "0",
-          },
-        });
+        // REQ-206: the email is handed over in memory, not in the URL.
+        setVerifyEmailHandoff(email.trim());
+        router.replace({ pathname: "/verify-email-pending", params: { from: "login" } });
+      } else {
+        const mfa = mfaHandoffFrom(result);
+        if (mfa) {
+          setMfaHandoff(mfa);
+          router.push("/mfa-challenge");
+        }
       }
       // Otherwise the root layout's own redirect effect (driven by auth status) handles navigation.
     } catch (err) {
@@ -65,15 +66,11 @@ export default function Login() {
   const finishGoogle = async (idToken: string, ageConfirmed: boolean) => {
     const result = await loginWithGoogle(idToken, ageConfirmed);
     setGoogleToken(null);
-    if (result.mfaRequired && result.challengeToken) {
-      router.push({
-        pathname: "/mfa-challenge",
-        params: {
-          challengeToken: result.challengeToken,
-          totp: result.mfaMethods?.totp ? "1" : "0",
-          email: result.mfaMethods?.email ? "1" : "0",
-        },
-      });
+    // REQ-206: the challenge is handed over in memory, not in the URL.
+    const mfa = mfaHandoffFrom(result);
+    if (mfa) {
+      setMfaHandoff(mfa);
+      router.push("/mfa-challenge");
     }
   };
 
@@ -139,6 +136,8 @@ export default function Login() {
           autoComplete="username"
           importantForAutofill="yes"
           icon="mail"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         <TextField
           label="Password"
@@ -150,6 +149,8 @@ export default function Login() {
           autoComplete="current-password"
           importantForAutofill="yes"
           icon="lock"
+          returnKeyType="go"
+          onSubmitEditing={onSubmit}
         />
         {biometricAvailable && biometricEnabled ? (
           <Button

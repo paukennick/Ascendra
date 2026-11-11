@@ -137,7 +137,7 @@ export default function Explore() {
   const empty = exploreEmpty(query);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]} role="main">
       <Stack.Screen options={{ title: "Explore" }} />
       <SectionList
         sections={sections}
@@ -152,8 +152,8 @@ export default function Explore() {
             <TextField label="Search" placeholder="Course name or code" value={query} onChangeText={setQuery} icon="search" />
 
             {categories.length ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                <Chip label="All" active={!categorySlug} onPress={() => setCategorySlug(null)} />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }} role="group" aria-label="Filter by category">
+                <Chip label="All" accessibilityLabel="All categories" active={!categorySlug} onPress={() => setCategorySlug(null)} />
                 {categories.map((c) => (
                   <Chip
                     key={c.slug}
@@ -166,8 +166,8 @@ export default function Explore() {
             ) : null}
 
             {tracks && tracks.length ? (
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                <Chip label="All" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
+              <View style={{ flexDirection: "row", gap: spacing.sm }} role="group" aria-label="Filter by verification">
+                <Chip label="All" accessibilityLabel="All verification states" active={freshnessFilter === "all"} onPress={() => setFreshnessFilter("all")} />
                 <Chip
                   label="Verified"
                   active={freshnessFilter === "current"}

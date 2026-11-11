@@ -29,7 +29,7 @@ export default function WhatsNewHistory() {
   useFocusEffect(load);
 
   return (
-    <Screen>
+    <Screen scrollFocusable>
       {error ? <ErrorBanner message={error} onRetry={load} /> : null}
       {!entries && !error ? <Loading label="Loading updates..." /> : null}
       {entries && entries.length === 0 ? (

@@ -20,6 +20,9 @@ import {
   type Diagnosis,
   type ExplainRubric,
 } from "@/lib/understanding";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-111 explain-it-back: once an objective is at Guided or above, the
 // learner explains it to a beginner in their own words. Graded on the server
@@ -52,6 +55,8 @@ export default function ExplainBackScreen() {
     objectiveTitle?: string;
   }>();
   const router = useRouter();
+  const goBackToLesson = useGoBack(`/course/${encodeURIComponent(trackId)}/lesson/${encodeURIComponent(objectiveId)}`);
+  const [notFound, setNotFound] = useState(false);
   const [info, setInfo] = useState<Info | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
@@ -65,10 +70,14 @@ export default function ExplainBackScreen() {
 
   const load = useCallback(() => {
     setLoadError(null);
+    setNotFound(false);
     api
       .get<Info>(`/api/objectives/${objectiveId}/explain-back`)
       .then(setInfo)
-      .catch((err) => setLoadError(friendlyError(err)));
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      });
   }, [objectiveId]);
 
   useEffect(load, [load]);
@@ -95,13 +104,13 @@ export default function ExplainBackScreen() {
     <Screen>
       <H1>Explain it back</H1>
       {objectiveTitle ? <Muted style={{ color: colors.link }}>{objectiveTitle}</Muted> : null}
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {error ? <ErrorBanner message={error} /> : null}
       {!info && !loadError ? <Loading /> : null}
       {info && !info.eligible ? (
         <Card>
           <Body>{explainBackLockedNote(info.status)}</Body>
-          <Button label="Back to the lesson" variant="ghost" icon="arrow-left" onPress={() => router.back()} />
+          <Button label="Back to the lesson" variant="ghost" icon="arrow-left" onPress={goBackToLesson} />
         </Card>
       ) : null}
       {info?.eligible ? (

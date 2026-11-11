@@ -29,10 +29,12 @@ import {
   ErrorBanner,
   H1,
   H2,
+  LiveAnnouncement,
   Loading,
   Muted,
   Screen,
   SectionHeader,
+  VERDICT_LABEL,
   VerdictBadge,
 } from "@/components/ui";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
@@ -362,6 +364,7 @@ export default function PBQScreen() {
             </Card>
           ) : (
             <Card elevated>
+              <LiveAnnouncement message={`${VERDICT_LABEL[result.verdict] ?? result.verdict}. ${result.feedback}`} />
               {firstResult ? (
                 <Collapsible label="Feedback on your first answer">
                   <FeedbackPanel result={firstResult} />

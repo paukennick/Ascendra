@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Badge, Card, FavoriteButton, H2, Muted, ProgressBar } from "@/components/ui";
 import { colors, getCourseIcon, spacing } from "@/lib/theme";
@@ -39,8 +39,20 @@ export function CourseCard({
 }) {
   const { emoji, icon, accent, iconColor } = getCourseIcon(track);
   return (
-    <Card onPress={onPress}>
+    // REQ-206 (FAIL-933): the star used to sit inside a pressable Card, a
+    // button inside a button (43 axe "nested-interactive" hits on Explore, and
+    // a screen reader could not reach the star). The card is now a plain
+    // surface: the title area is the one button that opens the course, the
+    // star is its sibling, and the lower half is a mouse/touch extension of the
+    // same button that is left out of the tab order and the reading order.
+    <Card>
       <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }}>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`${track.title}, ${track.code}. ${track.mastered_objectives ?? 0} of ${track.total_objectives ?? 0} objectives at Independent or above.`}
+          style={({ pressed }) => [{ flex: 1, flexDirection: "row", gap: spacing.md, alignItems: "flex-start", minHeight: 48 }, pressed && { opacity: 0.75 }]}
+        >
         <View style={[styles.iconWrap, { backgroundColor: withAlpha(accent) }]}>
           {emoji ? (
             <Text style={{ fontSize: 20 }}>{emoji}</Text>
@@ -55,9 +67,11 @@ export function CourseCard({
             {track.subcategory_name ? ` · ${track.subcategory_name}` : ""}
           </Muted>
         </View>
-        <FavoriteButton active={!!track.is_favorite} onPress={onToggleFavorite} size={32} />
         <Feather name="chevron-right" size={20} color={colors.mutedDim} />
+        </Pressable>
+        <FavoriteButton active={!!track.is_favorite} onPress={onToggleFavorite} size={32} />
       </View>
+      <Pressable onPress={onPress} accessible={false} focusable={false} style={{ gap: spacing.sm }}>
       <ProgressBar percent={track.percent_progress ?? 0} />
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Muted>
@@ -77,6 +91,7 @@ export function CourseCard({
           />
         </View>
       </View>
+      </Pressable>
     </Card>
   );
 }

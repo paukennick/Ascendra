@@ -7,7 +7,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import type { ChatMessage } from "@/types";
-import { Body, Button, EmptyState, ErrorBanner, H1, Loading, Muted } from "@/components/ui";
+import { Body, Button, CONTENT_MAX_WIDTH, EmptyState, ErrorBanner, H1, LiveAnnouncement, Loading, Muted } from "@/components/ui";
 import { CHAT_DRAFT_MAX, chatDraftKey, chatDraftPayload, chatDraftText } from "@/lib/drafts";
 import { colors, radius, spacing } from "@/lib/theme";
 import { useStoredDraft } from "@/lib/useStoredDraft";
@@ -68,6 +68,8 @@ export default function ChatScreen() {
     }
   );
 
+  const [announce, setAnnounce] = useState<string | null>(null);
+
   const load = useCallback(() => {
     setLoadError(null);
     api
@@ -83,6 +85,7 @@ export default function ChatScreen() {
   async function send() {
     if (!input.trim() || lengthProblem(input, CHAT_DRAFT_MAX)) return;
     setSendError(null);
+    setAnnounce(null);
     const userMsg: ChatMessage = { role: "user", content: input };
     setMessages((prev) => [...(prev ?? []), userMsg]);
     const text = input;
@@ -95,6 +98,7 @@ export default function ChatScreen() {
       const res = await api.post<{ reply: string }>("/api/chat", { trackId, unitId, message: text, clientMessageId });
       pendingRef.current = null;
       setMessages((prev) => [...(prev ?? []), { role: "assistant", content: res.reply }]);
+      setAnnounce(`Coach replied: ${res.reply.slice(0, 400)}`);
     } catch (err) {
       // Take the unanswered message back out of the thread; its text goes
       // back in the box below, ready to send again.
@@ -116,7 +120,12 @@ export default function ChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={{ padding: spacing.lg, paddingBottom: spacing.lg + insets.bottom, gap: spacing.xs, flex: 1 }}>
+      <View
+        role="main"
+        style={{ padding: spacing.lg, paddingBottom: spacing.lg + insets.bottom, gap: spacing.xs, flex: 1, width: "100%", maxWidth: CONTENT_MAX_WIDTH, alignSelf: "center" }}
+      >
+        {/* REQ-206 (FAIL-929): a new coach reply is read out (a screen reader got nothing). */}
+        <LiveAnnouncement message={announce} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <View style={styles.headerIcon}>
             <Feather name="message-circle" size={16} color={colors.accent} />

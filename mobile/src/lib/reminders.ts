@@ -83,6 +83,14 @@ export function reminderError(p: ReminderPrefs): string | null {
   return null;
 }
 
+// REQ-206: the Settings row's value -- what is saved, not a fixed "Off".
+// `prefs` is null until the saved choice has loaded (then no value shows).
+export function reminderRowValue(prefs: ReminderPrefs | null, supported: boolean): string {
+  if (!supported) return "Phone app only";
+  if (!prefs) return "";
+  return prefs.enabled ? `On, ${formatTime(prefs.time)}` : "Off";
+}
+
 // Anything stored that doesn't parse cleanly falls back to the defaults
 // (reminders off), never to something the learner didn't choose.
 export function parseReminderPrefs(raw: string | null | undefined): ReminderPrefs {

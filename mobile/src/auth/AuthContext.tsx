@@ -581,9 +581,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         persistLastSeen(webLastActivityRef.current);
       }
       const remaining = WEB_IDLE_LIMIT_MS - idleFor;
-      setWebIdleWarningSecondsLeft(
-        !appLockedRef.current && remaining <= WEB_IDLE_WARNING_LEAD_MS ? Math.ceil(remaining / 1000) : null
-      );
+      // REQ-206 (FAIL-931): counted while locked too. The lock comes after a
+      // few minutes idle, long before the 30-minute sign-out, so the
+      // warning used to be suppressed for the whole time it mattered. The
+      // lock screen shows it (src/components/AppLock.tsx); the banner in the
+      // root layout shows it only while unlocked.
+      setWebIdleWarningSecondsLeft(remaining <= WEB_IDLE_WARNING_LEAD_MS ? Math.ceil(remaining / 1000) : null);
     }, 1000);
     return () => {
       activityEvents.forEach((evt) => window.removeEventListener(evt, markActive));

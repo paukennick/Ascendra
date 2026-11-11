@@ -8,7 +8,7 @@ import type { LegalDoc } from "@/content/legal";
 
 export function LegalPage({ doc }: { doc: LegalDoc }) {
   return (
-    <Screen>
+    <Screen scrollFocusable>
       <H1>{doc.title}</H1>
       <Muted style={{ marginTop: spacing.xs }}>
         Last updated {doc.updated}.

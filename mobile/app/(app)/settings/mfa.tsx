@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Image, Platform, Share, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import {
@@ -26,11 +26,12 @@ import { installWebLeaveGuard } from "@/lib/webLeaveGuard";
 import { colors, radius } from "@/lib/theme";
 import { needsReauth, reauthFields, reauthPromptFor } from "@/lib/reauth";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
+import { useGoBack } from "@/lib/useGoBack";
 
 type MfaMethod = "totp" | "email";
 
 export default function MfaSettings() {
-  const router = useRouter();
+  const goBack = useGoBack("/settings");
   const navigation = useNavigation();
   const { user, refreshUser, status } = useAuth();
   // Read inside the beforeRemove listener: a sign-out or lock must never be
@@ -168,13 +169,13 @@ export default function MfaSettings() {
 
   // Tapping this is the learner's confirmation that the codes are saved. The
   // view ref is set at once (state only updates on the next render, which
-  // would be after router.back() has already hit the guard), and the codes
+  // would be after goBack() has already hit the guard), and the codes
   // are dropped from memory.
   function finishBackupCodes() {
     viewRef.current = "status";
     setBackupCodes([]);
     setView("status");
-    router.back();
+    goBack();
   }
 
   // REQ-203 (FAIL-860): the server asks the learner to confirm it's them

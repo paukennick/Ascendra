@@ -254,7 +254,7 @@ export function Sidebar({ visible, onClose, tracks, trackId, track, units }: Sid
           <View style={styles.divider} />
           <NavRow
             icon="log-out"
-            label="Log out"
+            label="Sign out"
             onPress={() => {
               onClose();
               logout();

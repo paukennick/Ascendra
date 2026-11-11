@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, View } from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";
@@ -12,6 +12,9 @@ import { useSimRun } from "@/sim/useSimRun";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, DebriefView, EventLog, PromptCard, ReasoningCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
+import { useGoBack } from "@/lib/useGoBack";
+import { isNotFound } from "@/lib/notFound";
+import { LoadError } from "@/components/LoadError";
 
 // REQ-190 (docs/sims.md 8): one simulation. The brief, then the run: the
 // clock and Pause on top, the vitals (bedside) or the architecture (board),
@@ -36,8 +39,9 @@ interface SimInfo {
 }
 
 export default function SimScreen() {
-  const router = useRouter();
-  const { simId, title } = useLocalSearchParams<{ trackId: string; simId: string; title?: string }>();
+  const { trackId, simId, title } = useLocalSearchParams<{ trackId: string; simId: string; title?: string }>();
+  const goBack = useGoBack(`/course/${encodeURIComponent(trackId)}/sims`);
+  const [notFound, setNotFound] = useState(false);
   const [info, setInfo] = useState<SimInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const sim = useSimRun(simId);
@@ -45,10 +49,14 @@ export default function SimScreen() {
 
   const load = useCallback(() => {
     setLoadError(null);
+    setNotFound(false);
     api
       .get<SimInfo>(`/api/sims/${simId}`, { headers: capsHeaders() })
       .then(setInfo)
-      .catch((err) => setLoadError(friendlyError(err)));
+      .catch((err) => {
+        setLoadError(friendlyError(err));
+        setNotFound(isNotFound(err));
+      });
   }, [simId]);
   useEffect(load, [load]);
 
@@ -69,7 +77,7 @@ export default function SimScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: info?.sim.title ?? title ?? "Simulation" }} />
-      {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
+      {loadError ? <LoadError message={loadError} notFound={notFound} onRetry={load} /> : null}
       {!info && !loadError ? <Loading label="Opening the simulation..." /> : null}
 
       {info && !s && sim.status !== "loading" ? (
@@ -159,7 +167,7 @@ export default function SimScreen() {
       {sim.status === "done" && sim.debrief ? (
         <>
           {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
-          <DebriefView d={sim.debrief} onAgain={() => sim.start(true)} onBack={() => router.back()} />
+          <DebriefView d={sim.debrief} onAgain={() => sim.start(true)} onBack={goBack} />
           <ReportProblem key={`report-${sim.debrief.runId}`} target={{ kind: "sim", runId: sim.debrief.runId }} />
         </>
       ) : null}

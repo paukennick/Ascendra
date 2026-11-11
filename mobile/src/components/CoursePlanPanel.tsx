@@ -131,7 +131,7 @@ export function CoursePlanPanel({ trackId, trackTitle }: { trackId: string; trac
                   <Muted style={{ color: colors.text, fontFamily: fonts.bodyBold }}>{c.label}</Muted>
                   <Muted style={{ fontSize: 13 }}>{c.detail}</Muted>
                 </View>
-                {isDefault ? <Badge label="Suggested" /> : null}
+                {isDefault ? <Badge label="Suggested" on={colors.accentDim} /> : null}
               </Pressable>
             );
           })}

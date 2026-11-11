@@ -3,15 +3,17 @@ import { Pressable, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { friendlyError } from "@/lib/errorMessage";
 import * as Crypto from "expo-crypto";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
-import { Body, Button, Card, EmptyState, ErrorBanner, H1, Loading, Muted, Screen, VerdictBadge } from "@/components/ui";
+import { Body, Button, Card, EmptyState, ErrorBanner, H1, LiveAnnouncement, Loading, Muted, Screen, VERDICT_LABEL, VerdictBadge } from "@/components/ui";
 import { ComparisonCard, MisconceptionNote } from "@/components/Understanding";
 import { assistNote } from "@/lib/lessonFeedback";
 import { colors, fonts, radius, spacing } from "@/lib/theme";
 import type { ComparisonSet, Diagnosis } from "@/lib/understanding";
 import { COMPARE_EMPTY } from "@/lib/emptyStates";
+import { useGoBack } from "@/lib/useGoBack";
+import { courseHome } from "@/lib/goBack";
 
 // REQ-111: comparison cards for look-alike concepts. A card shows 2-4
 // concepts side by side on the dimensions that tell them apart; "Test
@@ -44,7 +46,7 @@ export default function CompareScreen() {
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const router = useRouter();
+  const goBack = useGoBack(courseHome(trackId));
 
   const load = useCallback(() => {
     const q = objectiveId ? `?objectiveId=${encodeURIComponent(objectiveId)}` : "";
@@ -92,7 +94,7 @@ export default function CompareScreen() {
             icon="columns"
             title={COMPARE_EMPTY.title}
             message={COMPARE_EMPTY.message}
-            action={{ label: COMPARE_EMPTY.action!.label, icon: "arrow-left", onPress: () => router.back() }}
+            action={{ label: COMPARE_EMPTY.action!.label, icon: "arrow-left", onPress: goBack }}
           />
         ) : null}
         {sets?.map((set) => (
@@ -226,6 +228,7 @@ function Quiz({ set, onClose }: { set: ComparisonSet; onClose: () => void }) {
               );
             })}
           </View>
+          <LiveAnnouncement message={result ? `${VERDICT_LABEL[result.verdict] ?? result.verdict}. ${result.feedback}` : null} />
           {!result ? (
             <>
               <Button label="Check" icon="check" loading={busy} disabled={picked === null || busy} onPress={submit} />

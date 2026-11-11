@@ -32,7 +32,7 @@ export function pendingCopy(reason: PendingReason, email: string | undefined): P
 }
 
 export const RESENT_MESSAGE =
-  "If this address has an unverified account, a new link is on its way. Older links still work for 24 hours. Check spam or junk too.";
+  "If this address has an unverified account, a new link is on its way. Each link works for 24 hours from when it was sent. Check spam or junk too.";
 
 export const RESET_ALSO_VERIFIES =
   "No email after a few minutes? Resetting your password from \"Forgot password\" also verifies your address.";

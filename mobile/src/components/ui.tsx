@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  Platform,
   Animated,
   Image,
   Pressable,
@@ -58,12 +60,20 @@ function useScalePress(target = 0.97) {
 
 // scrollRef (REQ-106): lets a screen bring new content into view, e.g. the
 // top of the next Teach card after "Next card" at the bottom of a long one.
+// REQ-206: the screen is the page's `main` landmark (web), its content is
+// capped at CONTENT_MAX_WIDTH so a desktop window doesn't stretch a lesson
+// across 1,200 px, and `scrollFocusable` puts a screen with nothing to tab to
+// (the legal pages) in the tab order so the keyboard can scroll it.
+export const CONTENT_MAX_WIDTH = 720;
+
 export function Screen({
   children,
   scrollRef,
+  scrollFocusable,
 }: {
   children: React.ReactNode;
   scrollRef?: React.Ref<ScrollView>;
+  scrollFocusable?: boolean;
 }) {
   return (
     <ScrollView
@@ -74,6 +84,8 @@ export function Screen({
       // REQ-113 (M10): with the keyboard open, the first tap on a button
       // (e.g. "Check my answer") used to only close the keyboard.
       keyboardShouldPersistTaps="handled"
+      role="main"
+      {...(scrollFocusable && Platform.OS === "web" ? { tabIndex: 0 } : {})}
     >
       {children}
     </ScrollView>
@@ -115,14 +127,34 @@ export function Card({
   );
 }
 
+// REQ-206: a heading is announced as one with its level (react-native-web
+// draws it as <h1>..<h3>). `role` alone gave every heading level 1.
+// react-native-web ignores `accessibilityState` and `accessibilityValue`, so a
+// control's state reached a screen reader on a phone but not on the web. These
+// are the aria attributes it does pass through (ignored on a phone).
+const webState = (attrs: Record<string, unknown>): object => attrs;
+const headingProps = (level: 1 | 2 | 3): object => ({ role: "heading", "aria-level": level });
+
 export function H1({ children, style }: { children: React.ReactNode; style?: TextStyleProp }) {
-  return <Text style={[styles.h1, style]}>{children}</Text>;
+  return (
+    <Text style={[styles.h1, style]} {...headingProps(1)}>
+      {children}
+    </Text>
+  );
 }
 export function H2({ children, style }: { children: React.ReactNode; style?: TextStyleProp }) {
-  return <Text style={[styles.h2, style]}>{children}</Text>;
+  return (
+    <Text style={[styles.h2, style]} {...headingProps(2)}>
+      {children}
+    </Text>
+  );
 }
 export function H3({ children, style }: { children: React.ReactNode; style?: TextStyleProp }) {
-  return <Text style={[styles.h3, style]}>{children}</Text>;
+  return (
+    <Text style={[styles.h3, style]} {...headingProps(3)}>
+      {children}
+    </Text>
+  );
 }
 export function Body({ children, style }: { children: React.ReactNode; style?: TextStyleProp }) {
   return <Text style={[styles.body, style]}>{children}</Text>;
@@ -145,7 +177,7 @@ export function Muted({
 
 export function SectionHeader({ label, style }: { label: string; style?: ViewStyle }) {
   return (
-    <Text style={[styles.sectionHeader, style]} accessibilityRole="header">
+    <Text style={[styles.sectionHeader, style]} {...headingProps(2)}>
       {label}
     </Text>
   );
@@ -210,15 +242,20 @@ export function Badge({
   label,
   color,
   icon,
+  on,
 }: {
   label: string;
   color?: string;
   icon?: IconName;
+  // REQ-206: the surface the badge sits on, when it isn't a card. "Suggested"
+  // sits on the accent-tinted plan option, where its wash is lighter than on
+  // a card and the text measured 4.05:1.
+  on?: string;
 }) {
   const c = color ?? colors.accent;
   // REQ-113 (M1): text lifted to 4.5:1 on its own wash (accent and muted
   // badges were 3.2:1).
-  const wash = c.startsWith("#") && c.length === 7 ? blend(c, BADGE_WASH, colors.card) : null;
+  const wash = c.startsWith("#") && c.length === 7 ? blend(c, BADGE_WASH, on ?? colors.card) : null;
   const fg = wash ? readableOn(c, wash) : c;
   return (
     <View style={[styles.badge, { backgroundColor: withAlpha(c, BADGE_WASH) }]}>
@@ -256,11 +293,15 @@ export function Chip({
   active,
   onPress,
   icon,
+  accessibilityLabel,
 }: {
   label: string;
   active?: boolean;
   onPress: () => void;
   icon?: IconName;
+  // REQ-206: when two chips in a screen read the same ("All" for the category
+  // and "All" for the verified filter), the spoken name says which.
+  accessibilityLabel?: string;
 }) {
   // REQ-113 (M8, M9): a role and selected state (the selection was colour
   // only), and a 48 dp target.
@@ -268,8 +309,9 @@ export function Chip({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: !!active }}
+      {...webState({ "aria-pressed": !!active })}
       hitSlop={{ top: 7, bottom: 7 }}
       style={({ pressed }) => [
         styles.chip,
@@ -298,8 +340,12 @@ export function Button({
   icon,
   fullWidth = true,
   accessibilityLabel,
+  selected,
 }: {
   label: string;
+  // REQ-206: the current choice in a list of buttons. Announced as selected
+  // and drawn with a check mark, so it isn't colour alone.
+  selected?: boolean;
   // Spoken instead of `label` when the visible text alone is ambiguous.
   accessibilityLabel?: string;
   // May return a promise; the button then ignores further presses until it
@@ -314,6 +360,7 @@ export function Button({
 }) {
   const { scale, onPressIn, onPressOut } = useScalePress(0.96);
   const isDisabled = disabled || loading;
+  const shownIcon = icon ?? (selected ? "check" : undefined);
   // REQ-131: `disabled`/`loading` only take effect on the next render, so two
   // taps delivered in the same frame both reached onPress (a double
   // submit). The guard lives in a ref, which updates synchronously. The
@@ -337,7 +384,8 @@ export function Button({
       // new lesson actions aren't plain text to a screen reader.
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
+      accessibilityState={{ disabled: !!isDisabled, busy: !!loading, ...(selected !== undefined ? { selected } : {}) }}
+      {...webState({ "aria-busy": loading ? true : undefined, "aria-pressed": selected })}
       style={[
         variant === "link" ? styles.linkButton : styles.button,
         size === "sm" && variant !== "link" && styles.buttonSm,
@@ -354,10 +402,11 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={iconColor} />
+        // The button itself says it is busy (accessibilityState), so the spinner is decoration.
+        <ActivityIndicator size="small" color={iconColor} aria-hidden importantForAccessibility="no-hide-descendants" />
       ) : (
         <>
-          {icon ? <Feather name={icon} size={16} color={disabled && variant !== "link" ? colors.muted : iconColor} style={{ marginRight: 8 }} /> : null}
+          {shownIcon ? <Feather name={shownIcon} size={16} color={disabled && variant !== "link" ? colors.muted : iconColor} style={{ marginRight: 8 }} /> : null}
           <Text
             style={[
               variant === "link" ? styles.linkText : styles.buttonText,
@@ -448,6 +497,7 @@ export function FavoriteButton({
       accessibilityRole="button"
       accessibilityLabel={active ? "Remove from favorites" : "Add to favorites"}
       accessibilityState={{ selected: active }}
+      {...webState({ "aria-pressed": active })}
     >
       <Feather name="star" size={size * 0.5} color={active ? colors.warn : colors.mutedDim} />
     </AnimatedPressable>
@@ -465,6 +515,8 @@ export function TextField({
   autoCapitalize = "none",
   keyboardType,
   minHeight,
+  onSubmitEditing,
+  returnKeyType,
   ...rest
 }: {
   label: string;
@@ -477,9 +529,22 @@ export function TextField({
   // For multiline fields -- a bare `multiline` still renders one line tall,
   // which reads as a single-line box the text scrolls inside of.
   minHeight?: number;
+  // REQ-206: Enter in a single-line field runs this (submits the form).
+  // `returnKeyType` labels the keyboard's action key on a phone and sets the
+  // browser's enterkeyhint; it is passed as `enterKeyHint`, the one prop both
+  // react-native and react-native-web accept without a deprecation warning.
+  onSubmitEditing?: () => void;
+  returnKeyType?: "go" | "done" | "next" | "search" | "send";
 } & Pick<
   TextInputProps,
-  "autoCapitalize" | "keyboardType" | "textContentType" | "autoComplete" | "importantForAutofill" | "maxLength" | "multiline"
+  | "autoCapitalize"
+  | "keyboardType"
+  | "textContentType"
+  | "autoComplete"
+  | "importantForAutofill"
+  | "maxLength"
+  | "multiline"
+  | "autoFocus"
 >) {
   // REQ-113 (M8): the visible label was separate text, not linked to the
   // input, so a screen reader announced an unnamed field. The input now
@@ -505,6 +570,8 @@ export function TextField({
           placeholderTextColor={colors.mutedDim}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
+          onSubmitEditing={onSubmitEditing}
+          enterKeyHint={returnKeyType}
           accessibilityLabel={error ? `${label}. ${error}` : label}
           aria-labelledby={`lbl-${labelId}`}
           style={[styles.input, minHeight ? { minHeight, textAlignVertical: "top" } : null]}
@@ -517,6 +584,62 @@ export function TextField({
           <Text style={{ color: colors.bad, fontSize: 12 }}>{error}</Text>
         </View>
       ) : null}
+    </View>
+  );
+}
+
+// REQ-206: an accessible checkbox. The box is its own 48 dp control (role
+// checkbox, checked state, a name from `label`), and `children` is the
+// visible wording beside it -- which may hold links. The links used to sit
+// inside the toggle, so a tap on "Privacy Policy" also flipped the box and
+// the box itself was an 18 px icon.
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  children,
+  error,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  // The spoken name, e.g. "I agree to the Terms and the Privacy Policy".
+  label: string;
+  children?: React.ReactNode;
+  error?: boolean;
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+      <Pressable
+        onPress={() => onChange(!checked)}
+        accessibilityRole="checkbox"
+        accessibilityLabel={label}
+        accessibilityState={{ checked }}
+        // react-native-web ignores accessibilityState, so web needs the aria
+        // attribute itself (a checkbox without aria-checked is an axe "critical").
+        aria-checked={checked}
+        // ...and its Pressable only answers Space for role "button", so a
+        // keyboard user could not tick the box with Space (Enter worked).
+        {...webState({
+          onKeyDown: (e: { key?: string; preventDefault?: () => void }) => {
+            if (e.key === " " || e.key === "Spacebar") {
+              e.preventDefault?.();
+              onChange(!checked);
+            }
+          },
+        })}
+        style={styles.checkboxHit}
+      >
+        <View
+          style={[
+            styles.checkboxBox,
+            checked && { backgroundColor: colors.accent, borderColor: colors.accent },
+            error && !checked && { borderColor: colors.bad },
+          ]}
+        >
+          {checked ? <Feather name="check" size={16} color={colors.accentText} /> : null}
+        </View>
+      </Pressable>
+      <View style={{ flex: 1 }}>{children ?? <Text style={styles.checkboxLabel}>{label}</Text>}</View>
     </View>
   );
 }
@@ -563,6 +686,7 @@ export function ProgressBar({
       accessibilityRole={accessibilityLabel ? "progressbar" : undefined}
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={accessibilityLabel ? { min: 0, max: 100, now: Math.round(clamped) } : undefined}
+      {...(accessibilityLabel ? webState({ "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": Math.round(clamped) }) : {})}
     >
       <Animated.View
         style={[
@@ -580,9 +704,27 @@ export function ProgressBar({
 
 export function Loading({ label }: { label?: string }) {
   return (
-    <View style={{ padding: spacing.xl, alignItems: "center", gap: spacing.sm }}>
-      <ActivityIndicator color={colors.accent} />
+    <View style={{ padding: spacing.xl, alignItems: "center", gap: spacing.sm }} accessibilityLiveRegion="polite">
+      <ActivityIndicator color={colors.accent} accessibilityLabel={label ?? "Loading"} />
       {label ? <Muted>{label}</Muted> : null}
+    </View>
+  );
+}
+
+// REQ-206 (FAIL-929): a graded answer, a coach reply and a "sent again" notice
+// appear on screen without moving focus, so a screen reader said nothing. This
+// is a live region that is always mounted (a region added together with its
+// text is often not announced), holding `message` for a screen reader and
+// nothing to look at. On a phone `announceForAccessibility` does the same job
+// (iOS has no live regions). Pass null/"" while there is nothing to say; the
+// same text twice in a row is announced once.
+export function LiveAnnouncement({ message }: { message: string | null | undefined }) {
+  React.useEffect(() => {
+    if (Platform.OS !== "web" && message) AccessibilityInfo.announceForAccessibility(message);
+  }, [message]);
+  return (
+    <View accessibilityLiveRegion="polite" role="status" style={styles.visuallyHidden} pointerEvents="none">
+      {Platform.OS === "web" && message ? <Text>{message}</Text> : null}
     </View>
   );
 }
@@ -594,10 +736,14 @@ export function ErrorBanner({
   message,
   onRetry,
   retryLabel,
+  escape,
 }: {
   message: string;
   onRetry?: () => void | Promise<unknown>;
   retryLabel?: string;
+  // REQ-206: for an error Retry can't fix (the thing doesn't exist): a way
+  // out in its place.
+  escape?: { label: string; onPress: () => void };
 }) {
   return (
     <View
@@ -609,7 +755,9 @@ export function ErrorBanner({
         <Feather name="alert-triangle" size={16} color={colors.bad} />
         <Text style={{ color: colors.bad, flex: 1, fontFamily: fonts.body, fontSize: 14, lineHeight: 20 }}>{message}</Text>
       </View>
-      {onRetry ? (
+      {escape ? (
+        <Button label={escape.label} icon="arrow-left" variant="ghost" size="sm" fullWidth={false} onPress={escape.onPress} />
+      ) : onRetry ? (
         <Button
           label={retryLabel ?? t("error.retry")}
           icon="refresh-cw"
@@ -704,6 +852,9 @@ export interface ChoiceOption {
   label: string;
   onPress: () => void;
   variant?: "primary" | "ghost" | "danger";
+  // REQ-206: marks the current choice (a check mark and "selected", not
+  // only the primary colour).
+  selected?: boolean;
 }
 
 export function ChoiceSheet({
@@ -724,7 +875,7 @@ export function ChoiceSheet({
     <SheetModal transparent visible animationType={isReducedMotion() ? "none" : "fade"} onRequestClose={onCancel}>
       <Pressable style={styles.choiceBackdrop} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Dismiss">
         <Pressable style={styles.choiceSheet} onPress={(e) => e.stopPropagation()}>
-          <Text style={[styles.h3, { marginBottom: message ? spacing.xs : spacing.md }]} accessibilityRole="header">
+          <Text style={[styles.h3, { marginBottom: message ? spacing.xs : spacing.md }]} {...headingProps(2)}>
             {title}
           </Text>
           {message ? <Body style={{ marginBottom: spacing.md }}>{message}</Body> : null}
@@ -734,6 +885,7 @@ export function ChoiceSheet({
                 key={opt.label}
                 label={opt.label}
                 variant={opt.variant ?? "ghost"}
+                selected={opt.selected}
                 fullWidth
                 onPress={() => {
                   onCancel();
@@ -773,7 +925,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderBottomWidth: 0,
   },
-  screenContent: { padding: spacing.lg, paddingBottom: 48, gap: spacing.md },
+  screenContent: {
+    padding: spacing.lg,
+    paddingBottom: 48,
+    gap: spacing.md,
+    width: "100%",
+    maxWidth: CONTENT_MAX_WIDTH,
+    alignSelf: "center",
+  },
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -855,6 +1014,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  visuallyHidden: { position: "absolute", width: 1, height: 1, margin: -1, overflow: "hidden", opacity: 0 },
+  checkboxHit: { width: MIN_TOUCH, height: MIN_TOUCH, alignItems: "center", justifyContent: "center" },
+  checkboxBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.inputBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxLabel: { color: colors.muted, fontFamily: fonts.body, fontSize: 13, lineHeight: 18 },
   fieldLabel: { color: colors.muted, fontFamily: fonts.bodySemiBold, fontSize: 13 },
   inputWrap: {
     flexDirection: "row",

@@ -137,6 +137,20 @@ export function answerDraftKey(thread: AnswerDraftThread, userId: string, id: st
   return `ascendra.draft.${thread}.${userId}.${id.replace(/\./g, "_")}`;
 }
 
+// REQ-206 (FAIL-939): the "Dispute or ask about this verdict" text lived only
+// in React state, so a reload after a long message lost it. Same envelope, and
+// the same key shape the logout sweep removes. One per objective and check.
+export function followUpDraftKey(userId: string, objectiveId: string, kind: string): string {
+  return `ascendra.draft.followup.${userId}.${`${objectiveId}_${kind}`.replace(/\./g, "_")}`;
+}
+
+// REQ-206 (FAIL-939): the guess typed before a lesson is taught. The lesson
+// position is not saved at "guess" (nothing to resume), so a reload emptied
+// the box. The text itself is now kept, per objective.
+export function guessDraftKey(userId: string, objectiveId: string): string {
+  return `ascendra.draft.guess.${userId}.${objectiveId.replace(/\./g, "_")}`;
+}
+
 export interface AnswerDraft {
   text: string;
   // clientAttemptId sent with `sentText`, reused if that same text is resent.
