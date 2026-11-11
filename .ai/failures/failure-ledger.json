@@ -13409,6 +13409,391 @@
       ],
       "prevention_notes": "labs.dbtest.ts: listed and unconfirmed claims store, the retry is steered once, a thrown checker leaves no holdback row; ai-spend-gate.test.ts registers the new operator-only writer call",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1070",
+      "date": "2026-11-10",
+      "title": "Review sessions could pick a pulled (quarantined or confirmed wrong) question",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Review sessions could pick a pulled (quarantined or confirmed wrong) question (Audit 2026-11-11 H1)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "prepareContext (the session builder's one-query read of unseen cached questions) had no pulled-item filter; unseenItems(), which had it, was no longer called",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/review-store.ts"
+      ],
+      "fix_summary": "review-store.ts prepareContext adds servableSql('review', ri.id); unseenItems removed",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/item-quality.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A query that replaces another carries over every filter of the one it replaces; item-quality.dbtest.ts now checks the filter on the live read path",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1071",
+      "date": "2026-11-10",
+      "title": "A review was 'due' minutes after the last one and a correct answer then climbed a rung",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A review was 'due' minutes after the last one and a correct answer then climbed a rung (Audit H8)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "Due dates are UTC calendar days: an answer at 23:50 was due at 00:00. Nothing required elapsed time, so a correct answer counted as a spaced review",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/review-store.ts"
+      ],
+      "fix_summary": "A review is due only when its date has come and 24 h (MIN_REVIEW_GAP_HOURS; first set at 18, changed to a full day by Nick, 2026-11-10) have passed since the last review or enrolment: scheduler, advanceDueSchedule, dueObjectives, nextDueOn. Elapsed time, not the learner's local date, because the app sends that date and the server only checks it to within a day",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/review-scheduler.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A spacing rule is stated in elapsed time; a test enrols at 23:50",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1072",
+      "date": "2026-11-10",
+      "title": "One correct unassisted answer in the first sitting made an objective Independent",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "One correct unassisted answer in the first sitting made an objective Independent (Owner decision)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "mastery_detail opened Independent on a single format win with accuracy over the threshold; no later evidence was required (Nick, 2026-11-10: a follow-up session is needed)",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/supabase/migrations/074_independent_confirmation.sql"
+      ],
+      "fix_summary": "Migration 074 restates mastery_detail: Independent and Transfer-ready need a second unassisted correct format win spacing_gap_hours (24 h) after the first; 074b backs up and recomputes every learner",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "backend/lib/mastery-model.dbtest.ts",
+        "backend/lib/mastery-integrity.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A change to the mastery rule is a migration with a recompute and a test that a stored level follows",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1073",
+      "date": "2026-11-10",
+      "title": "Exam submit read a snapshot while saves were still accepted, and recorded attempts before flipping the session out of in_progress",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Exam submit read a snapshot while saves were still accepted, and recorded attempts before flipping the session out of in_progress (Audit M1, M5)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submitSession read the items, recorded each attempt in its own transaction, and only then locked the session. A save in that window was acknowledged and never graded; an abandoned session's answers were counted",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "submitIn: one transaction that locks the session row, flips it to submitted, then reads, grades and records; saveItem takes the row FOR SHARE so a save is refused after the claim",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "State changes that decide what a later read may see are claimed under a row lock before the read",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1074",
+      "date": "2026-11-10",
+      "title": "An exam attempt was recorded for an item already confirmed wrong",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An exam attempt was recorded for an item already confirmed wrong (Audit M2)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submit recorded every answered item without looking at item_status",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "submit skips items with a confirmed_wrong status; the exam item rows are locked FOR SHARE and confirmWrongIn takes the conflicting lock, so a confirm in flight is waited for",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A recorder reads the pulled state under the same lock the puller takes",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1075",
+      "date": "2026-11-10",
+      "title": "Confirming an item wrong left the voided attempts' error_log rows and learner misconceptions",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Confirming an item wrong left the voided attempts' error_log rows and learner misconceptions (Audit M4)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "confirmWrongIn voided the attempts and recomputed mastery only",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "confirmWrongIn resolves the error_log rows and deletes learner_misconceptions of the voided attempts in the same transaction",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Anything derived from an answer is cleared with the answer",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1076",
+      "date": "2026-11-10",
+      "title": "An exam submit could get stuck after a partial failure, and ran without a duration limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An exam submit could get stuck after a partial failure, and ran without a duration limit (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "Attempts were committed one at a time; a retry after the answer was edited hit the exam: client id conflict. The route had no maxDuration",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts"
+      ],
+      "fix_summary": "The submit is one transaction (a failure rolls the claim back); an attempt already stored under the client id is reused; the submit route exports maxDuration = 120",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A multi-step write that a retry must repeat is one transaction",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1077",
+      "date": "2026-11-10",
+      "title": "Exam submit wrote evidence to an objective retired mid-session",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Exam submit wrote evidence to an objective retired mid-session (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "submit recorded attempts without the retired_at check",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "submit skips objectives or units retired by now (isActive); the answer still counts in the score",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every writer of evidence applies retired_at (FAIL-889)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1078",
+      "date": "2026-11-10",
+      "title": "An expired timed exam session was discarded unmarked by the next start",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "An expired timed exam session was discarded unmarked by the next start (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "createSession abandoned any in_progress session of the course and mode, whatever its deadline",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "The start submits sessions past their deadline (savepoint, falling back to abandon on failure) before abandoning the rest",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Old state is destroyed only after its value is kept (FAIL-887)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1079",
+      "date": "2026-11-10",
+      "title": "An automated re-check claim never expired",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "An automated re-check claim never expired (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "item_flags_one_recheck kept a claim forever if the process died between claim and result, so the item could never be re-checked",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "A claim with no result older than RECHECK_CLAIM_MINUTES (15) is taken over; a finished one is never re-run",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A claim row has an expiry",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1080",
+      "date": "2026-11-10",
+      "title": "Two first answers to one PBQ or unit-check item were both counted as unassisted",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Two first answers to one PBQ or unit-check item were both counted as unassisted (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "The first-answer check for a unit-wide answer ran with no lock, because only an objective was locked",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "recordAttemptTx takes a per-(learner, scenario or item) advisory transaction lock before deciding the assist reason",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A first-answer decision is made under a lock",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1081",
+      "date": "2026-11-10",
+      "title": "Explain-back replay by client id was not bound to the answer text",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Explain-back replay by client id was not bound to the answer text (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "replayMatches compared objective, kind and stage only, so a reused id with a different explanation returned the first verdict and never graded the new text",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts"
+      ],
+      "fix_summary": "replayMatches takes the answer (trimmed); the route binds it and a different text is a 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts",
+        "backend/lib/security-a3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A replay by client id is bound to everything that was submitted (REQ-135)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1082",
+      "date": "2026-11-10",
+      "title": "A lab restart racing a graded last step let the abandoned run finish and record an attempt",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lab restart racing a graded last step let the abandoned run finish and record an attempt (Audit low)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "recordStep inserted the step and finished the run without locking it or checking abandoned_at",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/labs.ts"
+      ],
+      "fix_summary": "recordStep locks the run row and refuses a finished or abandoned run; openRun only abandons a run not yet completed",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The writer of a terminal state locks the row it ends",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1083",
+      "date": "2026-11-10",
+      "title": "A sim reasoning answer was stored after the run had ended",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A sim reasoning answer was stored after the run had ended (Audit M3)",
+      "how_detected": "Audit of 2026-11-11 (reproduced in a DB test first)",
+      "root_cause": "The insert after grading did not lock the run or check its status, so an answer graded while finish ran was stored against an ended run",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "The insert takes the run row FOR SHARE and refuses with 409 run_ended unless it is open (finishRun holds it FOR UPDATE); the graded-answer use is given back",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sims.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A write that follows a slow external call re-checks the state it depends on under a lock",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1084",
+      "date": "2026-11-10",
+      "title": "The reminder plan announced a review before the review screen served it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A reminder could fire for a review whose date had come but whose 24 h minimum gap had not (Nick's follow-up to FAIL-1071)",
+      "how_detected": "Coordinator review of PR #127",
+      "root_cause": "dueThrough in reminder-plan-store.ts read due_on only; FAIL-1071 added the elapsed-time floor to the due queue and not to the reminder plan",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/reminder-plan-store.ts"
+      ],
+      "fix_summary": "dueThrough plans a scheduled objective for the later of its date and the day its 24 h gap ends",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every reader of review_schedule.due_on applies the floor: dueObjectives, nextDueOn, advanceDueSchedule, dueThrough (service-emails count is approximate by design)",
+      "recurrence_of": ""
     }
   ]
 }

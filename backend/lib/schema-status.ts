@@ -428,6 +428,18 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conrelid = 'sim_run_commands'::regclass and conname = 'sim_run_commands_type_073') as ok`,
   },
   {
+    // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
+    migration: "074_independent_confirmation.sql",
+    what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",
+    sql: `select exists(select 1 from pg_proc where proname = 'mastery_detail' and prosrc like '%last_open_win%') as ok`,
+  },
+  {
+    // Remove this probe when the backup is dropped (runbook).
+    migration: "074b_independent_confirmation_backfill.sql",
+    what: "mastery_backup_074 table (074b backup and recompute under the 074 rule ran)",
+    sql: `select to_regclass('public.mastery_backup_074') is not null as ok`,
+  },
+  {
     migration: "032_lesson_progress_tombstone.sql",
     what: "lesson_progress_tombstones table (saving and finishing a lesson position)",
     sql: `select to_regclass('public.lesson_progress_tombstones') is not null as ok`,

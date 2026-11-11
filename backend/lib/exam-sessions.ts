@@ -1,8 +1,9 @@
 import { randomInt } from "node:crypto";
-import { query, queryOne, withTransaction } from "@/lib/db";
+import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
+import { isActive } from "@/lib/progress-sql";
 import { examBlueprintForTrack } from "@/lib/exam-blueprint";
 import { courseReadiness } from "@/lib/readiness";
-import { recordAttemptIdempotent } from "@/lib/grading-service";
+import { recordAttemptTx } from "@/lib/grading-service";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getModel, THINKING_HEADROOM_TOKENS } from "@/lib/anthropic";
 import { canAffordAiSpend } from "@/lib/ai-spend-gate";
@@ -487,8 +488,31 @@ export async function createSession(opts: {
       );
       if (prior) return { id: prior.id, replayed: true };
     }
+    // REQ-218: an open timed session whose deadline has passed is submitted
+    // with the answers it holds, not discarded by this start (the learner
+    // who left a mock running and came back to start another lost it). A
+    // submit that fails is rolled back to a savepoint and the old rule
+    // applies, so a bad session never blocks a new start.
+    const expired = await tx.query<{ id: string }>(
+      `select id from exam_sessions
+        where user_id = $1 and track_id = $2 and mode = $3 and status = 'in_progress'
+          and deadline_at is not null and deadline_at + make_interval(secs => $4::int) <= now()
+        order by id`,
+      [userId, trackId, mode, DEADLINE_GRACE_SECONDS]
+    );
+    for (const e of expired) {
+      await tx.query(`savepoint exam_expired`);
+      try {
+        await submitIn(tx, e.id, userId);
+        await tx.query(`release savepoint exam_expired`);
+      } catch (err) {
+        await tx.query(`rollback to savepoint exam_expired`);
+        // eslint-disable-next-line no-console
+        console.warn(`[exam-sessions] could not submit expired session ${e.id}: ${(err as Error).message}`);
+      }
+    }
     // One open session per mode and course: starting a new one closes the
-    // old one without grading it (nothing in it counts).
+    // old one (an unexpired one is not graded; nothing in it counts).
     await tx.query(
       `update exam_sessions set status = 'abandoned'
         where user_id = $1 and track_id = $2 and mode = $3 and status = 'in_progress'`,
@@ -576,8 +600,8 @@ async function loadSession(sessionId: string, userId: string): Promise<SessionRo
   return s;
 }
 
-async function loadItems(sessionId: string): Promise<SessionItemRow[]> {
-  return query<SessionItemRow>(
+async function loadItems(sessionId: string, q: TxClient["query"] = query): Promise<SessionItemRow[]> {
+  return q<SessionItemRow>(
     `select si.position, si.unit_id, cu.title as unit_title, cu.weight as unit_weight,
             si.response, si.flagged, si.confidence, si.time_spent_ms, si.save_seq, si.verdict, si.credited, si.partial_score,
             si.attempt_id, a.assist_reason,
@@ -773,10 +797,17 @@ export async function saveItem(
   // The status check is repeated in the UPDATE so a save racing a submit
   // can't change an answer after it was graded; the sequence check in the
   // same statement so two saves of one question can't both win.
+  // REQ-218 (M1): the session row is locked FOR SHARE while the save is applied.
+  // submitSession claims it FOR UPDATE before it reads the answers, so a save
+  // either lands before the claim (and is graded) or is refused here; before,
+  // a save arriving while a submit was recording its attempts was acknowledged
+  // and then never graded. READ COMMITTED re-checks the status once the claim
+  // commits, so the refused save finds no row.
   const updated = await queryOne<{ position: number }>(
-    `update exam_session_items si set ${sets.join(", ")}
-       from exam_sessions s
-      where si.session_id = $1 and si.position = $2 and s.id = si.session_id and s.status = 'in_progress'${seqCheck}
+    `with s as (select id from exam_sessions where id = $1 and status = 'in_progress' for share)
+     update exam_session_items si set ${sets.join(", ")}
+       from s
+      where si.session_id = s.id and si.position = $2${seqCheck}
       returning si.position`,
     params
   );
@@ -798,52 +829,111 @@ export async function submitSession(sessionId: string, userId: string) {
   const s = await loadSession(sessionId, userId);
   if (s.status === "abandoned") throw new ExamSessionError("This session was replaced by a newer one.", 409);
   if (s.status === "submitted") return;
-  const rows = await loadItems(sessionId);
-  const graded: { position: number; verdict: string; credited: boolean; partial: number; attemptId: string | null }[] = [];
+  await withTransaction((tx) => submitIn(tx, sessionId, userId));
+}
+
+// REQ-218 (M1, M5): the whole submit is one transaction that starts by
+// claiming the session. The session row is locked and flipped out of
+// 'in_progress' BEFORE the answers are read, so
+//   - a save cannot land after the read (saveItem takes the same row FOR
+//     SHARE and finds the session ended), where before it was acknowledged
+//     and never graded;
+//   - a session a newer start abandoned meanwhile records nothing (it used to
+//     record every answer as an attempt and only then find the status gone);
+//   - a failure anywhere (a grading write, a deadlock) rolls the claim back
+//     with everything else: the session is still in progress, its answers
+//     intact, and the learner can submit again. Attempts were committed one
+//     by one before, so a half-failed submit left some counted and the retry
+//     stuck on the id conflict.
+// Attempts are written in objective order, the order the per-objective grading
+// locks are taken in everywhere, so two submits of one learner's sessions
+// cannot deadlock each other.
+async function submitIn(tx: TxClient, sessionId: string, userId: string): Promise<void> {
+  const locked = await tx.queryOne<{ status: string; mode: ExamMode }>(
+    `select status, mode from exam_sessions where id = $1 and user_id = $2 for update`,
+    [sessionId, userId]
+  );
+  if (!locked) throw new ExamSessionError("Session not found", 404);
+  if (locked.status === "abandoned") throw new ExamSessionError("This session was replaced by a newer one.", 409);
+  if (locked.status === "submitted") return; // another copy of this submit won the claim
+  await tx.query(`update exam_sessions set status = 'submitted', submitted_at = now() where id = $1`, [sessionId]);
+
+  const rows = await loadItems(sessionId, (t, p) => tx.query(t, p));
+  const itemIds = [...new Set(rows.map((r) => r.id))].sort();
+  // REQ-218 (M2): the exam item rows are locked FOR SHARE, then a confirmed-wrong
+  // verdict is read. item-quality confirmWrongIn takes the conflicting lock on
+  // the row first, so a confirm either finished before this read (the item is
+  // seen as pulled and records nothing) or waits for this commit and voids the
+  // attempts recorded here.
+  await tx.query(`select 1 from exam_items where id = any($1::uuid[]) order by id for share`, [itemIds]);
+  const wrongRows = await tx.query<{ item_id: string }>(
+    `select item_id from item_status where item_kind = 'exam' and status = 'confirmed_wrong' and item_id = any($1::text[])`,
+    [itemIds]
+  );
+  const confirmedWrong = new Set(wrongRows.map((w) => w.item_id));
+  // REQ-218: an objective (or its unit) retired during the session takes no new
+  // evidence (FAIL-889: every reader of retired_at applies it).
+  const objectiveIds = [...new Set(rows.map((r) => r.objective_id).filter((o): o is string => !!o))];
+  const retiredRows = objectiveIds.length
+    ? await tx.query<{ id: string }>(
+        `select o.id from objectives o join course_units cu on cu.id = o.unit_id
+          where o.id = any($1::uuid[]) and not (${isActive("o")} and ${isActive("cu")})`,
+        [objectiveIds]
+      )
+    : [];
+  const retired = new Set(retiredRows.map((r) => r.id));
+  // An attempt an earlier, failed submit of this session already stored under
+  // the same client id (code before this change committed them one by one) is
+  // reused, not recorded again: the unique id would abort this transaction.
+  const clientId = (position: number) => `exam:${sessionId}:${position}`;
+  const storedRows = await tx.query<{ id: string; client_attempt_id: string }>(
+    `select id, client_attempt_id from attempts where user_id = $1 and client_attempt_id like $2`,
+    [userId, `exam:${sessionId}:%`]
+  );
+  const stored = new Map(storedRows.map((a) => [a.client_attempt_id, a.id]));
+
+  const graded = new Map<number, { verdict: string; credited: boolean; partial: number; attemptId: string | null }>();
+  const toRecord: { r: SessionItemRow; g: ReturnType<typeof gradeItem>; item: StoredExamItem }[] = [];
   for (const r of rows) {
     const item: StoredExamItem = rowToItem(r);
     const g = gradeItem(item, r.response);
-    let attemptId: string | null = null;
+    graded.set(r.position, { verdict: g.verdict, credited: g.credited, partial: g.partial, attemptId: stored.get(clientId(r.position)) ?? null });
     // A blank is wrong for the score but is no evidence about the learner
     // (often the clock ran out), so only answered items become attempts.
-    if (r.response != null && hasAnyAnswer(r.response)) {
-      const lead = g.verdict === "correct" ? "That's right." : g.verdict === "partial" ? "Partly right." : "Not quite.";
-      const { attempt, prior } = await recordAttemptIdempotent({
-        userId,
-        unitId: r.unit_id,
-        objectiveId: r.objective_id,
-        kind: "quiz",
-        stage: s.mode,
-        format: "mc",
-        question: attemptQuestionText(item),
-        answer: answerText(item, r.response),
-        verdict: g.verdict,
-        feedback: `${lead} ${item.explanation}`.trim(),
-        classification: "none",
-        confidence: r.confidence,
-        clientAttemptId: `exam:${sessionId}:${r.position}`,
-        assessmentType: item.format,
-        repeatAnySetting: true,
-      });
-      attemptId = (attempt?.id ?? (prior?.attempt as { id?: string } | undefined)?.id ?? null) as string | null;
-    }
-    graded.push({ position: r.position, verdict: g.verdict, credited: g.credited, partial: g.partial, attemptId });
+    if (graded.get(r.position)!.attemptId) continue;
+    if (r.response == null || !hasAnyAnswer(r.response)) continue;
+    if (confirmedWrong.has(r.id) || (r.objective_id && retired.has(r.objective_id))) continue;
+    toRecord.push({ r, g, item });
   }
-  await withTransaction(async (tx) => {
-    const locked = await tx.queryOne<{ status: string }>(
-      `select status from exam_sessions where id = $1 and user_id = $2 for update`,
-      [sessionId, userId]
+  toRecord.sort((a, b) => (a.r.objective_id ?? "").localeCompare(b.r.objective_id ?? "") || a.r.position - b.r.position);
+  for (const { r, g, item } of toRecord) {
+    const lead = g.verdict === "correct" ? "That's right." : g.verdict === "partial" ? "Partly right." : "Not quite.";
+    const attempt = (await recordAttemptTx(tx, {
+      userId,
+      unitId: r.unit_id,
+      objectiveId: r.objective_id,
+      kind: "quiz",
+      stage: locked.mode,
+      format: "mc",
+      question: attemptQuestionText(item),
+      answer: answerText(item, r.response!),
+      verdict: g.verdict,
+      feedback: `${lead} ${item.explanation}`.trim(),
+      classification: "none",
+      confidence: r.confidence,
+      clientAttemptId: clientId(r.position),
+      assessmentType: item.format,
+      repeatAnySetting: true,
+    })) as { id: string };
+    graded.get(r.position)!.attemptId = attempt.id;
+  }
+  for (const [position, g] of graded) {
+    await tx.query(
+      `update exam_session_items set verdict = $3, credited = $4, partial_score = $5, attempt_id = $6
+        where session_id = $1 and position = $2`,
+      [sessionId, position, g.verdict, g.credited, g.partial, g.attemptId]
     );
-    if (!locked || locked.status !== "in_progress") return;
-    for (const g of graded) {
-      await tx.query(
-        `update exam_session_items set verdict = $3, credited = $4, partial_score = $5, attempt_id = $6
-          where session_id = $1 and position = $2`,
-        [sessionId, g.position, g.verdict, g.credited, g.partial, g.attemptId]
-      );
-    }
-    await tx.query(`update exam_sessions set status = 'submitted', submitted_at = now() where id = $1`, [sessionId]);
-  });
+  }
 }
 
 function hasAnyAnswer(r: StoredResponse): boolean {

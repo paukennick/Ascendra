@@ -1,6 +1,6 @@
 import { query } from "@/lib/db";
 import { isActive } from "@/lib/progress-sql";
-import { addDays } from "@/lib/review-scheduler";
+import { addDays, MIN_REVIEW_GAP_HOURS } from "@/lib/review-scheduler";
 import { wasRough } from "@/lib/review-plan";
 import { lastSessionStats } from "@/lib/review-store";
 import { studyNoticeAcceptedSql } from "@/lib/study-notice";
@@ -33,9 +33,16 @@ export async function dueThrough(userId: string, today: string, lastDay: string)
     unit_weight: string | number | null;
     unit_objectives: string | number;
   }>(
+    // REQ-218 (H8): a scheduled objective appears in Today's review only
+    // MIN_REVIEW_GAP_HOURS after its last review, so it is planned for the
+    // later of its date and the day that gap ends -- the day the review
+    // screen will actually serve it, not the (earlier) day the date says.
     `with sched as (
-       select objective_id, due_on, step, lapses from review_schedule
-        where user_id = $1 and due_on <= $3::date
+       select objective_id, due_on, step, lapses from (
+         select objective_id, step, lapses,
+                greatest(due_on, ((coalesce(last_reviewed_at, enrolled_at) + make_interval(hours => $4::int)) at time zone 'UTC')::date) as due_on
+           from review_schedule where user_id = $1
+       ) rs where rs.due_on <= $3::date
      ), err as (
        select e.objective_id, min(e.next_review_at)::date as due_on from error_log e
         where e.user_id = $1 and not e.resolved and e.objective_id is not null and e.next_review_at <= $3::date
@@ -63,7 +70,7 @@ export async function dueThrough(userId: string, today: string, lastDay: string)
            where s.user_id = $1 and si.answered_at is not null
              and si.answered_at >= ($2::date)::timestamp at time zone 'UTC'
              and si.answered_at < ($2::date + 1)::timestamp at time zone 'UTC')`,
-    [userId, today, lastDay]
+    [userId, today, lastDay, MIN_REVIEW_GAP_HOURS]
   );
   return rows.map((r) => {
     const n = Math.max(1, Number(r.unit_objectives));

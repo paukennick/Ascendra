@@ -309,8 +309,10 @@ describe("mastery evidence (REQ-123)", () => {
     );
     assert.deepEqual(a, { kind: "labtask", assessment_type: "lab_build", objective_id: OBJ_BUILD, format: "open", assisted: false });
     const m = await mastery(u, OBJ_BUILD);
-    assert.equal(m!.status, "Independent", m!.evidence);
+    // REQ-218: one correct unassisted run is Guided until a later sitting confirms it.
+    assert.equal(m!.status, "Guided", m!.evidence);
     assert.match(m!.evidence, /unassisted formats: performance/);
+    assert.match(m!.evidence, /Independent needs a second correct unassisted answer/);
     assert.equal(await mastery(u, OBJ_SIBLING), null, "not unit-wide");
     const detail = await queryOne<{ weighted_accuracy: string; evidence_weight: string }>(`select * from mastery_detail($1, $2)`, [u, OBJ_BUILD]);
     assert.equal(Number(detail!.weighted_accuracy), 1);
@@ -457,11 +459,44 @@ describe("client attempt ids", () => {
   });
 });
 
+describe("REQ-218 (FAIL-1082): a restart cannot race a graded last step", () => {
+  test("a last step graded while the run is restarted is refused: no attempt, the old run stays abandoned", async () => {
+    const u = await newUser();
+    const r = await startRun(u, BUILD);
+    gradeDelayMs = 400; // the restart lands after the step was checked, before it is stored
+    const body = { runId: r.body.run.id, step: 0, answers: ["Execution role", "GetObject on uploads only"], clientAttemptId: randomUUID() };
+    const inFlight = submit(u, BUILD, body);
+    await new Promise((res) => setTimeout(res, 150));
+    const restarted = await startRun(u, BUILD, true);
+    assert.equal(restarted.status, 200);
+    assert.notEqual(restarted.body.run.id, r.body.run.id);
+    const out = await inFlight;
+    assert.equal(out.status, 409, JSON.stringify(out.body));
+    const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and lab_id = $2`, [u, BUILD]);
+    assert.equal(n!.n, 0, "no attempt for a run that was abandoned");
+    const run1 = await queryOne<{ completed_at: string | null; abandoned_at: string | null }>(`select completed_at, abandoned_at from lab_runs where id = $1`, [r.body.run.id]);
+    assert.equal(run1!.completed_at, null);
+    assert.ok(run1!.abandoned_at);
+    assert.equal((await query(`select 1 from lab_run_steps where run_id = $1`, [r.body.run.id])).length, 0);
+  });
+
+  test("a restart racing a last step that finishes first leaves the run finished, not abandoned", async () => {
+    const u = await newUser();
+    const r = await startRun(u, BUILD);
+    const done = await submit(u, BUILD, { runId: r.body.run.id, step: 0, answers: ["Execution role", "GetObject on uploads only"], clientAttemptId: randomUUID() });
+    assert.equal(done.status, 200);
+    await startRun(u, BUILD, true);
+    const row = await queryOne<{ completed_at: string | null; abandoned_at: string | null }>(`select completed_at, abandoned_at from lab_runs where id = $1`, [r.body.run.id]);
+    assert.ok(row!.completed_at);
+    assert.equal(row!.abandoned_at, null);
+  });
+});
+
 describe("Report a problem, quarantine and voiding", () => {
   test("a lab can be reported; enough reports pull it; confirming it wrong voids its attempts and recomputes mastery", async () => {
     const learner = await newUser();
     await finishBuild(learner);
-    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Independent");
+    assert.equal((await mastery(learner, OBJ_BUILD))!.status, "Guided"); // REQ-218: one sitting
     const threshold = await quarantineThreshold();
     for (let i = 0; i < threshold; i++) {
       const u = i === 0 ? learner : await newUser();
@@ -475,7 +510,7 @@ describe("Report a problem, quarantine and voiding", () => {
     const voided = await confirmItemWrong({ kind: "lab", itemId: BUILD, objectiveId: OBJ_BUILD, question: "Lab build" }, "test");
     assert.ok(voided >= 1);
     const m = await mastery(learner, OBJ_BUILD);
-    assert.notEqual(m!.status, "Independent", "the voided lab no longer counts");
+    assert.notEqual(m!.status, "Guided", "the voided lab no longer counts");
     await query(`delete from item_status where item_kind = 'lab' and item_id = $1`, [BUILD]);
     await query(`delete from item_flags where item_kind = 'lab' and item_id = $1`, [BUILD]);
   });

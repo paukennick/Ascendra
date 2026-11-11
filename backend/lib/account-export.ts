@@ -50,6 +50,7 @@ export const EXPORT_EXCLUDED_TABLES: Record<string, string> = {
   mastery_backup_031: "rollback backup, dropped after 30 days",
   mastery_backup_041: "rollback backup, dropped after 30 days",
   mastery_backup_045: "rollback backup, dropped after 30 days",
+  mastery_backup_074: "rollback backup, dropped after 30 days",
   grading_claims: "a seconds-long grading lease (REQ-117), no content",
 };
 

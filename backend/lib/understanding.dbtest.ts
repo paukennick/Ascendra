@@ -370,6 +370,27 @@ describe("explain-it-back", () => {
     assert.equal(res.diagnosis.sentence, "You may be mixing up roles with labels.");
   });
 
+  // REQ-218 (FAIL-1081): the replay was bound to the objective, kind and stage
+  // only, so an id reused with a different explanation answered with the first
+  // explanation's verdict and the new text was never graded.
+  test("a replayed client id is bound to the explanation text: the same text replays, another text is a 409", async () => {
+    const u = await newUser();
+    await giveGuided(u, o[1]);
+    respond = () => graded("correct");
+    const cid = randomUUID();
+    const first = await explainPost(post(u, { answer: OWN, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(first.status, 200);
+    const calls = sent.length;
+    const same = await explainPost(post(u, { answer: `  ${OWN}  `, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(same.status, 200);
+    assert.equal(sent.length, calls, "the replay made no model call");
+    const other = await explainPost(post(u, { answer: `${OWN} But I would also add that roles can be nested in some systems.`, clientAttemptId: cid }), ctx("id", o[1]));
+    assert.equal(other.status, 409);
+    assert.equal(sent.length, calls);
+    const n = await queryOne<{ n: number }>(`select count(*)::int as n from attempts where user_id = $1 and assessment_type = 'explain_back'`, [u]);
+    assert.equal(n!.n, 1);
+  });
+
   test("too short is refused kindly without a model call", async () => {
     const u = await newUser();
     await giveGuided(u, o[1]);
