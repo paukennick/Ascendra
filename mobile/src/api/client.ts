@@ -2,7 +2,7 @@
 // set in .env.local for local dev or in eas.json for production builds — see mobile/.env.example.
 
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
-import { LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
+import { isTermsRequired, LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
 import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
 import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
 import { askMatureConfirmation, hasMatureContentHandler, MatureContentDeclinedError, matureRefusalCategory } from "../lib/matureContent.ts";
@@ -127,6 +127,17 @@ export function registerStudyNoticeRequiredHook(hook: (() => void) | null): void
   onStudyNoticeRequired = hook;
 }
 
+// REQ-226 (FAIL-1241): the server says the Terms and Privacy Policy are not
+// accepted (403 terms_required). Same shape as the study notice above: the
+// onboarding provider registers this to reload the launch state, whose gate
+// opens the Terms screen. The request is not retried; the screen still gets
+// its ApiError.
+let onTermsRequired: (() => void) | null = null;
+
+export function registerTermsRequiredHook(hook: (() => void) | null): void {
+  onTermsRequired = hook;
+}
+
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MODEL_TIMEOUT_MS = 180_000;
 
@@ -242,6 +253,13 @@ async function rawRequest<T>(path: string, options: RequestInit, timeoutMs: numb
     if (isStudyNoticeRequired(status, data) && onStudyNoticeRequired) {
       try {
         onStudyNoticeRequired();
+      } catch {
+        /* never let the reload break the request's own error handling */
+      }
+    }
+    if (isTermsRequired(status, data) && onTermsRequired) {
+      try {
+        onTermsRequired();
       } catch {
         /* never let the reload break the request's own error handling */
       }

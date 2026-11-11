@@ -28,6 +28,8 @@ import { POST as googleSignIn } from "../app/api/auth/oauth/google/route";
 import { POST as googleLink } from "../app/api/auth/oauth/google/link/route";
 import { POST as mfaVerify } from "../app/api/auth/mfa/verify/route";
 import { POST as sendEmailCode } from "../app/api/auth/mfa/challenge/send-email-code/route";
+import { POST as forgotPassword } from "../app/api/auth/forgot-password/route";
+import { POST as resendVerification } from "../app/api/auth/resend-verification/route";
 import { POST as changePassword } from "../app/api/auth/change-password/route";
 import { POST as resetPassword } from "../app/api/auth/reset-password/route";
 import { POST as register } from "../app/api/auth/register/route";
@@ -446,6 +448,57 @@ describe("FAIL-1114: emailed sign-in codes count against the per-address mail li
     assert.equal(blocked.status, 429);
     assert.match(blocked.body.error, /authenticator app or a backup code/);
     assert.equal(mailsTo(u.email).length - before, 5);
+  });
+});
+
+// --- FAIL-1240 (REQ-226) ---------------------------------------------------
+describe("FAIL-1240: sign-in codes have their own hourly mail budget", () => {
+  const MAX = 5;
+  const codeMails = (to: string) => mailsTo(to).filter((m) => /is your Ascendra verification code/.test(m.subject));
+  const otherMails = (to: string) => mailsTo(to).filter((m) => !/is your Ascendra verification code/.test(m.subject));
+  const count = async (event: string, email: string) =>
+    Number((await queryOne<{ n: string }>(`select count(*)::text as n from auth_events where event_type = $1 and identifier = $2`, [event, email]))!.n);
+
+  test("reset and verification mails that used up their budget do not block a sign-in code", async () => {
+    const u = await mkUser({ emailMfa: true });
+    await query(`update app_users set email_verified_at = null where id = $1`, [u.id]);
+    // Anyone who knows the address can do this; no password needed.
+    for (let i = 0; i < 3; i++) assert.equal((await call(forgotPassword, { body: { email: u.email } })).status, 200);
+    for (let i = 0; i < 2; i++) assert.equal((await call(resendVerification, { body: { email: u.email } })).status, 200);
+    assert.equal(otherMails(u.email).length, MAX, "five reset and verification mails went out");
+    // The sixth is skipped (and answers the same), proving the shared budget really is spent.
+    assert.equal((await call(forgotPassword, { body: { email: u.email } })).status, 200);
+    assert.equal(otherMails(u.email).length, MAX, "the sixth reset mail was skipped");
+
+    const send = async () => call(sendEmailCode, { body: { challengeToken: await createLoginChallenge(u.id, {}) } });
+    for (let i = 0; i < MAX; i++) assert.equal((await send()).status, 200, `code ${i + 1} is sent`);
+    assert.equal(codeMails(u.email).length, MAX);
+  });
+
+  test("sign-in codes that used up their budget do not block reset or verification mails, and cap themselves", async () => {
+    const u = await mkUser({ emailMfa: true });
+    await query(`update app_users set email_verified_at = null where id = $1`, [u.id]);
+    const send = async () => call(sendEmailCode, { body: { challengeToken: await createLoginChallenge(u.id, {}) } });
+    for (let i = 0; i < MAX; i++) assert.equal((await send()).status, 200, `code ${i + 1} is sent`);
+    const blocked = await send();
+    assert.equal(blocked.status, 429, "the sixth code in the hour is refused");
+    assert.match(blocked.body.error, /authenticator app or a backup code/);
+    assert.equal(codeMails(u.email).length, MAX, "nothing was mailed for the refused one");
+    assert.equal(await count("mfa_code_mail_to", u.email), MAX, "a refused code records nothing");
+
+    await call(forgotPassword, { body: { email: u.email } });
+    await call(resendVerification, { body: { email: u.email } });
+    assert.equal(otherMails(u.email).length, 2, "reset and verification mails still go out");
+    assert.equal(await count("mail_to_address", u.email), 2, "and are counted on their own budget");
+  });
+
+  test("the budget is per address: another account's codes are unaffected", async () => {
+    const a = await mkUser({ emailMfa: true });
+    const b = await mkUser({ emailMfa: true });
+    const send = async (u: { id: string }) => call(sendEmailCode, { body: { challengeToken: await createLoginChallenge(u.id, {}) } });
+    for (let i = 0; i < MAX; i++) await send(a);
+    assert.equal((await send(a)).status, 429);
+    assert.equal((await send(b)).status, 200);
   });
 });
 
