@@ -13,11 +13,20 @@
 # synthetic history (scripts/ci/synthetic-history.sql), so the dump has real
 # rows in app_users, attempts and mastery.
 #
+# FAIL-1160: the restore runs on a SECOND cluster that has never seen the
+# app's roles. Roles belong to the cluster, not the database, so a restore
+# into the cluster the source was migrated on finds `app_runtime` and
+# `content_recheck` already there and hides that a dump cannot restore
+# without them (its policies are `TO app_runtime` / `TO content_recheck`).
+# The test refuses a restore cluster that is the same server as the source or
+# already has either role, and first shows the plain restore failing there.
+#
 # Usage: ADMIN_URL=postgres://postgres:postgres@localhost:5432/postgres \
+#        RESTORE_ADMIN_URL=postgres://postgres:postgres@localhost:5433/postgres \
 #          backend/scripts/ci/backup-drill-test.sh
-# Refuses a non-local ADMIN_URL. Run in CI by .github/workflows/ci.yml job
-# "backup-drill". Needs age, jq, psql/pg_dump/pg_restore (pg_dump >= server),
-# node and backend/node_modules.
+# Refuses a non-local URL. Run in CI by .github/workflows/ci.yml job
+# "backup-drill" (two Postgres service containers). Needs age, jq,
+# psql/pg_dump/pg_restore (pg_dump >= server), node and backend/node_modules.
 
 set +x
 set -euo pipefail
@@ -26,6 +35,12 @@ ADMIN_URL="${ADMIN_URL:-postgres://postgres:postgres@localhost:5432/postgres}"
 case "$ADMIN_URL" in
   *@localhost[:/]*|*@127.0.0.1[:/]*) ;;
   *) echo "Refusing: ADMIN_URL must point at a local cluster." >&2; exit 2 ;;
+esac
+RESTORE_ADMIN_URL="${RESTORE_ADMIN_URL:-}"
+[[ -n "$RESTORE_ADMIN_URL" ]] || { echo "Refusing: RESTORE_ADMIN_URL is not set. The restore must run on a second, fresh cluster (FAIL-1160)." >&2; exit 2; }
+case "$RESTORE_ADMIN_URL" in
+  *@localhost[:/]*|*@127.0.0.1[:/]*) ;;
+  *) echo "Refusing: RESTORE_ADMIN_URL must point at a local cluster." >&2; exit 2 ;;
 esac
 BACKEND="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRIPTS="$BACKEND/scripts"
@@ -36,6 +51,9 @@ psql_q() { psql -X -q -v ON_ERROR_STOP=1 "$@"; }
 cleanup() {
   rm -rf "$WORK"
   psql_q "$ADMIN_URL" -c "drop database if exists $SRC_DB with (force)" 2>/dev/null || true
+  for d in $(psql_q "$RESTORE_ADMIN_URL" -At -c "select datname from pg_database where datname like 'restore_drill_%' or datname like 'backup_drill_canary_%'" 2>/dev/null); do
+    psql_q "$RESTORE_ADMIN_URL" -c "drop database if exists $d with (force)" 2>/dev/null || true
+  done
 }
 trap cleanup EXIT
 step() { printf '\n=== %s\n' "$*"; }
@@ -49,6 +67,14 @@ refuses() {
   if out="$("$@" 2>&1)"; then echo "$out"; fail "expected a refusal ($phrase), but it succeeded"; fi
   grep -qF -- "$phrase" <<<"$out" || { echo "$out"; fail "refused, but not with \"$phrase\""; }
 }
+
+step "The restore cluster is a different server and has never seen the app's roles"
+src_id="$(psql_q "$ADMIN_URL" -At -c 'select system_identifier from pg_control_system()')"
+dst_id="$(psql_q "$RESTORE_ADMIN_URL" -At -c 'select system_identifier from pg_control_system()')"
+[[ "$src_id" != "$dst_id" ]] || fail "RESTORE_ADMIN_URL is the same server as ADMIN_URL; a restore there finds the source's roles and hides the missing-role failure."
+seen="$(psql_q "$RESTORE_ADMIN_URL" -At -c "select string_agg(rolname, ',') from pg_roles where rolname in ('app_runtime', 'content_recheck')")"
+[[ -z "$seen" ]] || fail "the restore cluster already has role(s) $seen; use a fresh cluster (a throwaway one per run)."
+ok "restore cluster is a second server with neither app_runtime nor content_recheck"
 
 step "Throwaway keypair"
 age-keygen -o "$WORK/test.key" 2>/dev/null
@@ -158,13 +184,81 @@ done
 grep -Eqai -- 'row_counts|public_table_count|server_version' "$MAN_AGE" && fail "manifest.json.age shows field names without the key"
 ok "plaintext side (checksums.json, the run's output) holds no counts, table names or versions"
 
-step "Restore drill: decrypt -> restore -> verify"
-ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE" \
-  || fail "the restore drill did not pass on a good backup"
-ok "restore drill passed"
+step "A plain restore into the fresh cluster fails: the dump needs the roles (FAIL-1160)"
+# What the drill did before: create the database and pg_restore, no roles.
+# This is the failure a real restore into a new Supabase project hit. It must
+# keep failing here, or the fresh-cluster check above has stopped proving anything.
+psql_q "$RESTORE_ADMIN_URL" -c "create database backup_drill_canary_$$"
+canary_url="${RESTORE_ADMIN_URL%/*}/backup_drill_canary_$$"
+psql_q "$canary_url" -f "$SCRIPTS/ci/supabase-roles.sql"
+psql_q "$canary_url" -c 'create schema if not exists extensions' -c 'create extension if not exists "uuid-ossp" with schema extensions'
+canary_log="$WORK/canary.log"
+if age --decrypt --identity "$WORK/test.key" "$BACKUP" \
+     | pg_restore --no-owner --no-privileges --schema=public --dbname="$canary_url" 2>"$canary_log"; then
+  fail "a restore without the roles succeeded, so this cluster is not proving the roles are needed"
+fi
+grep -q 'role "app_runtime" does not exist' "$canary_log" || { cat "$canary_log"; fail "the plain restore failed, but not because app_runtime is missing"; }
+grep -q 'role "content_recheck" does not exist' "$canary_log" || { cat "$canary_log"; fail "the plain restore failed, but not because content_recheck is missing"; }
+[[ -z "$(psql_q "$RESTORE_ADMIN_URL" -At -c "select 1 from pg_roles where rolname in ('app_runtime', 'content_recheck')")" ]] \
+  || fail "the plain restore created a role"
+psql_q "$RESTORE_ADMIN_URL" -c "drop database backup_drill_canary_$$ with (force)"
+ok "a restore into a cluster without app_runtime and content_recheck fails on both"
+
+step "Restore drill: decrypt -> restore -> verify (on the fresh cluster)"
+ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE" \
+  || fail "the restore drill did not pass on a good backup into a fresh cluster"
+ok "restore drill passed on a cluster that had never seen the roles"
+
+step "The restored roles carry the same privileges as the source's"
+# Roles and grants are not in a dump, so the drill rebuilds them (roles first,
+# then 071, then 064's grants). Compare what each role can do, table by
+# column, sequence, function and policy, source against restored copy.
+fingerprint() {
+  psql_q "$1" -At <<'SQL' | LC_ALL=C sort
+select 'col|' || r.rolname || '|' || c.relname || '.' || a.attname
+  from pg_roles r, pg_class c join pg_attribute a on a.attrelid = c.oid and a.attnum > 0 and not a.attisdropped
+ where r.rolname in ('app_runtime', 'content_recheck') and c.relnamespace = 'public'::regnamespace
+   and c.relkind in ('r', 'p', 'v', 'm') and has_column_privilege(r.rolname, c.oid, a.attnum, 'select');
+select 'tbl|' || r.rolname || '|' || c.relname || '|' || p.priv
+  from pg_roles r, pg_class c, (values ('insert'), ('update'), ('delete'), ('truncate'), ('references'), ('trigger')) p(priv)
+ where r.rolname in ('app_runtime', 'content_recheck') and c.relnamespace = 'public'::regnamespace
+   and c.relkind in ('r', 'p') and has_table_privilege(r.rolname, c.oid, p.priv);
+select 'seq|' || r.rolname || '|' || c.relname
+  from pg_roles r, pg_class c
+ where r.rolname in ('app_runtime', 'content_recheck') and c.relnamespace = 'public'::regnamespace
+   and c.relkind = 'S' and has_sequence_privilege(r.rolname, c.oid, 'usage');
+select 'fn|' || r.rolname || '|' || p.oid::regprocedure::text
+  from pg_roles r, pg_proc p
+ where r.rolname in ('app_runtime', 'content_recheck', 'anon', 'authenticated') and p.pronamespace = 'public'::regnamespace
+   and p.prokind in ('f', 'p') and has_function_privilege(r.rolname, p.oid, 'execute')
+   and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e');
+select 'fnpath|' || p.oid::regprocedure::text || '|' || coalesce(array_to_string(p.proconfig, ','), '')
+  from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind in ('f', 'p')
+   and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e');
+select 'schema|' || r.rolname || '|' || has_schema_privilege(r.rolname, 'public', 'usage') || has_schema_privilege(r.rolname, 'public', 'create')
+  from pg_roles r where r.rolname in ('app_runtime', 'content_recheck');
+select 'policy|' || tablename || '|' || policyname || '|' || cmd || '|' || roles::text || '|' || coalesce(qual, '') || '|' || coalesce(with_check, '')
+  from pg_policies where schemaname = 'public';
+select 'role|' || rolname || '|' || rolcanlogin || rolsuper || rolbypassrls || '|' || coalesce(array_to_string(rolconfig, ','), '')
+  from pg_roles where rolname in ('app_runtime', 'content_recheck');
+SQL
+}
+out_kept="$(ADMIN_URL="$RESTORE_ADMIN_URL" KEEP_DB=1 "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE")" \
+  || { echo "$out_kept"; fail "the second drill (KEEP_DB=1) did not pass"; }
+kept_db="$(sed -n 's/^KEEP_DB=1: left database //p' <<<"$out_kept")"
+[[ -n "$kept_db" ]] || fail "KEEP_DB=1 did not name the database it left"
+fingerprint "$SRC_URL" > "$WORK/fp-src.txt"
+fingerprint "${RESTORE_ADMIN_URL%/*}/$kept_db" > "$WORK/fp-restored.txt"
+psql_q "$RESTORE_ADMIN_URL" -c "drop database if exists $kept_db with (force)"
+[[ "$(wc -l < "$WORK/fp-src.txt")" -gt 200 ]] || fail "the privilege fingerprint of the source is suspiciously small ($(wc -l < "$WORK/fp-src.txt") lines)"
+grep -q '^col|content_recheck|item_holdbacks\.' "$WORK/fp-restored.txt" || fail "content_recheck cannot read item_holdbacks in the restored copy"
+grep -q '^tbl|content_recheck|exec_check_runs|insert$' "$WORK/fp-restored.txt" || fail "content_recheck cannot insert exec_check_runs in the restored copy"
+grep -q '^tbl|app_runtime|app_users|update$' "$WORK/fp-restored.txt" || fail "app_runtime cannot update app_users in the restored copy"
+diff "$WORK/fp-src.txt" "$WORK/fp-restored.txt" > "$WORK/fp.diff" || { head -40 "$WORK/fp.diff"; fail "the restored copy's roles, grants or policies differ from the source's"; }
+ok "app_runtime and content_recheck: same columns, tables, sequences, functions, policies and settings as the source ($(wc -l < "$WORK/fp-src.txt") facts)"
 
 step "The drill catches a wrong key, a changed file and a count mismatch"
-refuses "age could not decrypt" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/other.key" "$CK" "$MAN_AGE"
+refuses "age could not decrypt" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/other.key" "$CK" "$MAN_AGE"
 ok "wrong key fails"
 # A changed manifest is re-encrypted to the same key straight from a pipe, then
 # checksums.json is pointed at it, so only the check under test can fail.
@@ -173,24 +267,24 @@ rebuild() { # $1 = jq filter on the manifest, $2 = suffix for the new files
   jq --arg h "$(sha256sum "$WORK/man-$2.age" | cut -d' ' -f1)" '.sha256["manifest.json.age"] = $h' "$CK" > "$WORK/ck-$2.json"
 }
 rebuild '.row_counts.attempts += 1' count
-refuses "attempts has $attempts rows, manifest says $((attempts + 1))" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-count.json" "$WORK/man-count.age"
+refuses "attempts has $attempts rows, manifest says $((attempts + 1))" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-count.json" "$WORK/man-count.age"
 ok "a row-count mismatch fails"
 rebuild '.public_table_count += 1' tables
-refuses "table count" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-tables.json" "$WORK/man-tables.age"
+refuses "table count" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-tables.json" "$WORK/man-tables.age"
 ok "a table-count mismatch fails"
 rebuild '.sha256 = ("0" * 64)' other
-refuses "written for a different dump" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-other.json" "$WORK/man-other.age"
+refuses "written for a different dump" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$WORK/ck-other.json" "$WORK/man-other.age"
 ok "a manifest that belongs to a different dump fails"
 cp "$BACKUP" "$WORK/tampered.age"; printf 'x' >> "$WORK/tampered.age"
 jq --arg n "tampered.age" --arg h "$(jq -r --arg n "$name" '.sha256[$n]' "$CK")" '.sha256 = {($n): $h, "manifest.json.age": .sha256["manifest.json.age"]}' "$CK" > "$WORK/ck-tampered.json"
-refuses "does not match checksums.json" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$WORK/tampered.age" "$WORK/test.key" "$WORK/ck-tampered.json" "$MAN_AGE"
+refuses "does not match checksums.json" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$WORK/tampered.age" "$WORK/test.key" "$WORK/ck-tampered.json" "$MAN_AGE"
 ok "a changed backup file fails the sha256 check"
 cp "$MAN_AGE" "$WORK/tampered-man.age"; printf 'x' >> "$WORK/tampered-man.age"
-refuses "does not match checksums.json" env ADMIN_URL="$ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$WORK/tampered-man.age"
+refuses "does not match checksums.json" env ADMIN_URL="$RESTORE_ADMIN_URL" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$WORK/tampered-man.age"
 ok "a changed manifest file fails the sha256 check"
 refuses "must point at a local cluster" env ADMIN_URL="postgres://u:p@db.example.com:5432/postgres" "$SCRIPTS/restore-drill.sh" "$BACKUP" "$WORK/test.key" "$CK" "$MAN_AGE"
 ok "a non-local target is refused"
-left="$(psql_q "$ADMIN_URL" -At -c "select count(*) from pg_database where datname like 'restore_drill_%'")"
+left="$(psql_q "$RESTORE_ADMIN_URL" -At -c "select count(*) from pg_database where datname like 'restore_drill_%'")"
 [[ "$left" == 0 ]] || fail "$left restore_drill_ database(s) left behind"
 ok "every drill database was dropped"
 
