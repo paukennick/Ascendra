@@ -65,6 +65,19 @@ describe("release notes are well formed", () => {
   });
 });
 
+describe("gated items (FAIL-1271)", () => {
+  test("with every gate closed, a note that still shows keeps at least the minimum number of items", () => {
+    // A note whose items are mostly gated would show one or two items when a
+    // flag is off (the first sims-wave note did, and whats-new.dbtest caught it):
+    // gate such a note whole instead.
+    for (const n of RELEASE_NOTES) {
+      if (n.requires) continue;
+      const open = n.items.filter((i) => !i.requires).length;
+      assert.ok(open >= L.itemsMin, `${n.id}: only ${open} items show with every gate closed; gate the note whole`);
+    }
+  });
+});
+
 describe("gates", () => {
   const notes: ReleaseNote[] = [
     {

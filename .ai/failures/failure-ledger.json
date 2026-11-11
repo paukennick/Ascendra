@@ -15267,6 +15267,32 @@
       "prevention_rules": [],
       "prevention_notes": "A refusal code the server adds for a state the app's launch gate owns (terms_required, study_notice_required) gets a client hook in the same change; the checklist's legal-version line says so, and mobile/src/lib/termsRequired.test.ts checks the wiring.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1271",
+      "date": "2026-11-11",
+      "title": "What's new note shrank to one item with sims off",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "whats-new.dbtest: newest note had fewer than 3 items in CI (SIMS_ENABLED off)",
+      "how_detected": "CI Database job on PR #135",
+      "root_cause": "Three of the four items in note 2026-11-11-c were gated on sims item by item, so with the flag off the note showed one item",
+      "requirement": "REQ-228",
+      "affected": [
+        "backend/lib/release-notes.ts"
+      ],
+      "fix_summary": "Gate the sims note whole; the sign-in item joins note 2026-11-11-b (covers REQ-226)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/release-notes.test.ts",
+        "backend/lib/whats-new.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }

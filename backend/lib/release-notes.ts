@@ -85,10 +85,12 @@ export const RELEASE_NOTE_LIMITS = {
 // Newest first.
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
-    // REQ-222, REQ-223, REQ-225, REQ-226 and REQ-227, merged 2026-11-11 (UTC).
+    // REQ-222, REQ-223, REQ-225 and REQ-227, merged 2026-11-11 (UTC). The whole
+    // note is about sims, so it is gated as one; REQ-226 rides in 2026-11-11-b.
     id: "2026-11-11-c",
     date: "2026-11-11",
-    covers: ["REQ-222", "REQ-223", "REQ-225", "REQ-226", "REQ-227"],
+    covers: ["REQ-222", "REQ-223", "REQ-225", "REQ-227"],
+    requires: "sims",
     title: "Nine new practice scenarios",
     items: [
       {
@@ -97,7 +99,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         body:
           "Critical care: sepsis, diabetic ketoacidosis, stroke and bleeding after surgery. " +
           "Nurse aide: a resident who chokes and a resident found on the floor.",
-        requires: "sims",
       },
       {
         icon: "compass",
@@ -105,7 +106,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         body:
           "The EPPP course has three scenarios where you lead a session with a fictional client: " +
           "a suicide risk assessment, a duty-to-warn decision and a diagnostic intake. Take them at your own pace.",
-        requires: "sims",
       },
       {
         icon: "tool",
@@ -113,14 +113,6 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         body:
           "Each scenario now reaches the same ending in the app and on our servers. " +
           "In the tamponade case, a full-dose epinephrine choice now ends as the harm it causes.",
-        requires: "sims",
-      },
-      {
-        icon: "shield",
-        headline: "Sign-in codes always get through",
-        body:
-          "Emailed sign-in codes have their own hourly limit, so password reset emails can't use it up. " +
-          "If you still need to accept the updated Terms, the app takes you straight there.",
       },
     ],
   },
@@ -128,7 +120,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // REQ-212/213, REQ-216 to REQ-220 and REQ-224, merged 2026-11-11 (UTC).
     id: "2026-11-11-b",
     date: "2026-11-11",
-    covers: ["REQ-212", "REQ-213", "REQ-216", "REQ-217", "REQ-218", "REQ-219", "REQ-220", "REQ-224"],
+    covers: ["REQ-212", "REQ-213", "REQ-216", "REQ-217", "REQ-218", "REQ-219", "REQ-220", "REQ-224", "REQ-226"],
     title: "A new course, and progress you can trust",
     items: [
       {
@@ -170,8 +162,8 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icon: "shield",
         headline: "Safer sign-in, steadier on your phone",
         body:
-          "Authenticator codes work once, we email you when Google sign-in is linked, biometric unlock stays on, " +
-          "and a lost connection shows Try again instead of signing you out.",
+          "Authenticator codes work once, emailed sign-in codes have their own limit, we email you when Google is linked, " +
+          "biometric unlock stays on, and a lost connection shows Try again.",
       },
     ],
   },
