@@ -234,3 +234,14 @@ describe("biometric unlock is offered only where sealing can work (FAIL-1063)", 
     assert.match(enable, /catch \{[\s\S]*setItem\(REFRESH_TOKEN_KEY, refreshTokenRef\.current\)[\s\S]*return \{ ok: false/);
   });
 });
+
+describe("the web lock marker (FAIL-1066, accepted as documented)", () => {
+  test("clearing the lock marker alone, or the last-seen time, still locks a resumed session", async () => {
+    const { shouldLockOnColdStart } = await import("./autoLock.ts");
+    const now = 10_000_000;
+    const away = String(now - 20 * 60_000);
+    assert.equal(shouldLockOnColdStart({ now, lastSeenAt: away, lockedFlag: null, setting: "5" }), true, "marker cleared, last-seen stale");
+    assert.equal(shouldLockOnColdStart({ now, lastSeenAt: null, lockedFlag: null, setting: "15" }), true, "both cleared");
+    assert.equal(shouldLockOnColdStart({ now, lastSeenAt: String(now - 1000), lockedFlag: null, setting: "5" }), false, "only editing both gets past it");
+  });
+});

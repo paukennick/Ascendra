@@ -851,6 +851,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // go to the normal sign-in flow. REQ-212 (FAIL-1002): the biometric
   // preference stays on (Settings turns it off), so signing in again -- or
   // creating an account from the login screen -- doesn't switch it off.
+  //
+  // REQ-217 (FAIL-1065, accepted, not fixed): the sealed token is deleted here
+  // without being revoked on the server, because reading it to revoke it needs
+  // the biometric prompt the learner is choosing not to use. That session stays
+  // live until its refresh token expires (30 days) and shows in Account >
+  // Active sessions, where it can be ended, or with "Sign out of all devices".
+  // Nothing on the phone can use it any more. Revoking it after the next
+  // password sign-in would need a server route that ends a named session from
+  // the new one; that is a backend change and is left for a later release.
   const useFallbackSignIn = useCallback(async () => {
     await endSealedSession("passwordInstead");
     await clearAuth();
