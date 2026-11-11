@@ -26,6 +26,8 @@ the 1.9-million-attempt fixture timings further down are for scale only.
 Every step was rehearsed end to end on a copy of that state
 (`backend/scripts/rehearse-production-migration.sh`, CI job "Database
 (production-state rehearsal and rollback)") before it ran in production.
+That rehearsal and `scripts/rollback-release-2026-11-07.sql` are historical
+since 2026-11-10 (REQ-214): they apply only to the 11-07 release.
 
 `$DATABASE_URL` is the production database over the Supabase **Session
 pooler** (`postgres.<project-ref>@aws-...pooler.supabase.com:5432`). The
