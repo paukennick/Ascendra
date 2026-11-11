@@ -10,6 +10,8 @@
 
 import { queryOne } from "@/lib/db";
 import { listedOrStarted } from "@/lib/progress-sql";
+import { isMatureCategory, matureContentNeededSql } from "@/lib/mature-content";
+import { MatureContentError } from "@/lib/auth/requireAcknowledgement";
 
 // An id that isn't a UUID can't match any row; asking Postgres anyway raises
 // "invalid input syntax for type uuid" and surfaces as a 500. Treat it as
@@ -95,13 +97,21 @@ export async function visibleTrack(trackId: string, userId: string): Promise<{ i
 // studied answers null (404, as for any course they can't see). Only the
 // start routes use this; the study routes keep visibleTrack so a learner
 // part-way through a hidden course keeps full access.
+//
+// REQ-224: starting a mental health course also needs the learner's 18+
+// confirmation (lib/mature-content.ts); without it this throws
+// MatureContentError, which every route answers with a 403 (serverError
+// included), so the app can show the notice and try again.
 export async function startableTrack(trackId: string, userId: string): Promise<{ id: string; title: string } | null> {
   if (!isUuid(trackId)) return null;
-  return queryOne<{ id: string; title: string }>(
-    `select st.id, st.title from subject_tracks st
+  const row = await queryOne<{ id: string; title: string; mature_needed: string | null }>(
+    `select st.id, st.title, ${matureContentNeededSql("st", "$2")} as mature_needed from subject_tracks st
       where st.id = $1 and (st.user_id is null or st.user_id = $2) and ${listedOrStarted("$2")}`,
     [trackId, userId]
   );
+  if (!row) return null;
+  if (isMatureCategory(row.mature_needed)) throw new MatureContentError(row.mature_needed);
+  return { id: row.id, title: row.title };
 }
 
 export interface VisibleScenario {

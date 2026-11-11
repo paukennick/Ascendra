@@ -32,6 +32,7 @@ import { DOCKER_TRACKS } from "./tracks/docker";
 import { CNCF_ECOSYSTEM_TRACKS } from "./tracks/cncf-ecosystem";
 import { REDHAT_TRACKS } from "./tracks/redhat-openshift";
 import { EMS_TRACKS } from "./tracks/ems";
+import { EPPP_TRACKS } from "./tracks/eppp";
 
 export const CATALOG_TRACKS: readonly SeedTrack[] = [
   MSCS_TRACK,
@@ -69,6 +70,8 @@ export const CATALOG_TRACKS: readonly SeedTrack[] = [
   ...REDHAT_TRACKS,
   // REQ-174: NREMT EMS certification exams (migration 061 subcategory).
   ...EMS_TRACKS,
+  // REQ-224: mental health licensure, EPPP first (migration 077 category).
+  ...EPPP_TRACKS,
 ];
 
 // Units the learner is still taught: everything not marked retired in the

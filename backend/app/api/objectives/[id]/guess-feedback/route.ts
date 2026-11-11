@@ -87,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok({ feedback, guessMatch: guessMatch ?? null });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

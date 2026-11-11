@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return ok({ turn: result.turn });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof RateLimitError) return tooManyRequests("That's a lot of new questions for one hour. Take a breather and try again soon.");
     return serverError(err);
   }

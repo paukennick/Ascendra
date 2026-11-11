@@ -149,6 +149,13 @@
   learner text to the model calls `requireStudyNotice` (lib/study-notice.ts).
   No bracketed placeholder ships in legal text, and the contact address is the
   `support-contact.ts` constant.
+- Mature content (REQ-224, FAIL-1200): a route that opens, starts or teaches
+  a course goes through `requireAcknowledgementFor*` or `startableTrack`, so
+  a mental health course is refused without the 18+ confirmation
+  (lib/mature-content.ts) with 403 `mature_content_required`; a new mature
+  category is added to `MATURE_CATEGORIES`, 077's check and the app's list
+  together. A 403 the learner can act on carries a stable `code` (pass
+  `err.extra` to `forbidden`).
 - A 401 that means "what you typed is wrong" (a reauth refusal) carries
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens
@@ -226,7 +233,6 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
-<<<<<<< HEAD
 - Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
   generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
   a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
@@ -240,7 +246,6 @@
   A counted use is released with `releaseOnce` on every path that stores
   nothing. A route that calls the model for a replayable id takes a
   `withGradingClaim` first.
-=======
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
@@ -253,7 +258,6 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
->>>>>>> origin/master
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

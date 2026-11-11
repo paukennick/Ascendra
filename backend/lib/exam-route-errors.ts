@@ -16,7 +16,7 @@ function isSessionStartConflict(err: unknown): boolean {
 export function examError(err: unknown) {
   if (isSessionStartConflict(err)) return ok({ error: SESSION_ALREADY_STARTED }, 409);
   if (err instanceof AuthError) return unauthorized(err.message);
-  if (err instanceof AcknowledgementError) return forbidden(err.message);
+  if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
   if (err instanceof ExamSessionError) {
     if (err.status === 404) return notFound(err.message);
     if (err.status === 409) return ok({ error: err.message }, 409);

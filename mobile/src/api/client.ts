@@ -5,6 +5,7 @@ import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "
 import { isTermsRequired, LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
 import { isSignedOutAuthRoute, refreshOutcome, type RefreshResult } from "../lib/sessionStore.ts";
 import { isStudyNoticeRequired, studyNoticeGate } from "../lib/studyNotice.ts";
+import { askMatureConfirmation, hasMatureContentHandler, MatureContentDeclinedError, matureRefusalCategory } from "../lib/matureContent.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
@@ -293,11 +294,17 @@ export function isReauthRefusal(data: unknown): boolean {
 // ended the session) signs the device out. Anything else -- offline, a
 // timeout, a 5xx -- throws that failure to the screen, which shows its calm
 // message and a retry, and the session stays.
+//
+// REQ-224: a 403 { code: "mature_content_required" } (a mental health course
+// opened or started without the 18+ confirmation) shows the mature-content
+// notice and, once it is confirmed and recorded, sends the request once more.
+// Closing the notice throws MatureContentDeclinedError; nothing else is sent.
 async function request<T>(
   path: string,
   options: RequestInit = {},
   opts: RequestOptions = {},
-  alreadyRetried = false
+  alreadyRetried = false,
+  matureAsked = false
 ): Promise<T> {
   const timeoutMs = requestTimeoutMs(path, opts.timeoutMs);
   // REQ-165: the study notice (with its AI data disclosure) comes before the first request
@@ -321,13 +328,18 @@ async function request<T>(
       const result = await refreshAccessToken!();
       const outcome = refreshOutcome(result);
       if (outcome === "refreshed") {
-        return request<T>(path, options, opts, true);
+        return request<T>(path, options, opts, true, matureAsked);
       }
       if (outcome === "expired") {
         onAuthExpired?.();
       } else if (typeof result === "object" && result.error instanceof Error) {
         throw result.error;
       }
+    }
+    const mature = err instanceof ApiError ? matureRefusalCategory(err.status, err.data) : null;
+    if (mature && !matureAsked && hasMatureContentHandler() && !path.startsWith("/api/mature-content")) {
+      if (!(await askMatureConfirmation(mature, path.startsWith("/api/intake") ? "intake" : "course"))) throw new MatureContentDeclinedError();
+      return request<T>(path, options, opts, alreadyRetried, true);
     }
     throw err;
   }
