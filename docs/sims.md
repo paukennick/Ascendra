@@ -41,7 +41,7 @@ engine and the practice-lab acknowledgement).
 19. Decisions
 20. Sims for every subject family
 21. Review resolution
-22. Phase 1b as built (REQ-190)
+22. Phase 1b as built (REQ-190), pacing (REQ-209) and more CCRN cases (REQ-222)
 
 ---
 
@@ -3685,3 +3685,43 @@ Design in 5.4a to 5.4f. What was built:
   client trainer is turns with a 1-day tick, so it needs nothing); the
   engine features apply to a new one by declaring them. A family
   interruption: no people layer.
+
+### 22.3 Three more CCRN Adult cases (REQ-222, batch S2a)
+
+Nick, 2026-11-10: "Sims seem to be vital to learning", quality over speed.
+Three scenarios on the existing bedside renderer and engine 1.1, with no
+engine, renderer or schema change and no migration. Each has a reasoning
+moment, every outcome class reachable, critical criteria inside its
+`target` condition, KPIs, an expert path, a debrief per ending, sourced
+teaching prompts (unscored) and chapters. All run in one `running` phase,
+so study pace (3x) and the skip offer apply as in 5.4a and 5.4c.
+
+| Scenario | Objective | Endings (class) | Critical criteria |
+|---|---|---|---|
+| `sepsis-to-septic-shock` | Early sepsis identification and sepsis management | arrest (harm), stabilized (target), stabilizedLate (recovered), time_up: still in shock at 2.5 h (harm) | antibiotic within 1 h; early SBAR |
+| `dka-first-six-hours` | Diabetic ketoacidosis (DKA) | arrhythmia, seizure (harm), resolving (target), time_up at 6 h (recovered) | K 3.5 or more before insulin; dextrose below 250 with insulin kept running |
+| `acute-ischemic-stroke-lvo` | Stroke, hemorrhagic and ischemic, and neuroendovascular interventions such as coiling and thrombectomy | bleed (harm), toThrombectomy (target), toThrombectomyLate (recovered), time_up: no thrombectomy at 3 h (harm) | glucose before thrombolysis; BP below 185/110 before it; thrombectomy call at the CTA read |
+
+- **Registration.** Documents are listed in `lib/sim/documents.ts`
+  (`ALL_DOCUMENTS`); section 12's `seed/sims/index.ts` does not exist. The
+  objectives already exist in `seed/tracks/ccrn.ts`; none was added.
+- **Golden paths** are driver scripts (`scripts/sim-golden/sepsis.steps.ts`,
+  `dka.steps.ts`, `stroke.steps.ts`; `npm run sim:golden -- steps <name>`),
+  five per case: the expert path (Good), a slow-but-safe path (Mediocre) and
+  failure paths covering Mediocre and Bad. Expectations are the engine's own
+  results; there is no prototype to compare with.
+- **No focused start.** In all three the patient needs action from the
+  first minute (falling MAP, a potassium trap, a stroke alert), so there is
+  no quiet stretch to skip; an evolved start would only remove the
+  learner's first decisions.
+- **Sources** carry `checkedAt` 2026-11-10 and say how each number was
+  read. Read in primary text: the 2024 hyperglycemic-crises consensus
+  (Diabetologia copy), parts of the 2026 AHA/ASA acute ischemic stroke
+  guideline, the JBDS 2023 pathway and the Target: Stroke Phase III goals.
+  Read through secondary summaries only: the 2026 Surviving Sepsis Campaign
+  guideline (the publisher refused the fetch) and the SSC 2021 and Hour-1
+  bundle details. Authored teaching-model numbers say so, and the ones that
+  stand in for a probability or a missing guideline number carry `FLAG`
+  (sepsis: fluid effect fading within the hour; DKA: the 100 mg/dL per hour
+  limit and the ketone fall rate; stroke: a bleed made certain by BP above
+  the thresholds, labetalol and nicardipine effect sizes).

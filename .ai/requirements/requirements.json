@@ -7694,6 +7694,43 @@
       "risk_notes": [
         "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
       ]
+    },
+    {
+      "id": "REQ-222",
+      "category": "content",
+      "title": "Sim library batch S2a: CCRN Adult sepsis, DKA and acute ischemic stroke scenarios",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three CCRN Adult bedside scenarios on engine 1.1 with no engine, renderer or schema change: sepsis to septic shock, DKA first six hours, acute ischemic stroke (in-hospital alert, LVO). Each: sourced params with checkedAt 2026-11-10, clinical outcome profile with noProgress, a reasoning moment, every class reachable, critical criteria in the target condition, KPIs, expert path, debrief, unscored teaching prompts with sources, chapters, five golden paths. Registered in lib/sim/documents.ts under existing CCRN objectives. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "sims:lint clean for the three documents",
+        "golden replays match",
+        "each document has Good Mediocre and Bad golden paths",
+        "seed twice is idempotent",
+        "sims dbtest passes"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "npm run seed twice on a throwaway Postgres",
+        "lib/sims.dbtest.ts",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "teaching-model numbers are authored and flagged",
+        "SSC 2026 read only through secondary summaries"
+      ]
     }
   ]
 }

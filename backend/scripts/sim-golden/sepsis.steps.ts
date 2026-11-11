@@ -125,7 +125,7 @@ export function spec(): StepsSpec {
       },
       {
         id: "fluidOverload",
-        title: "On time, but six more litres of fluid: pulmonary edema and a breathing tube",
+        title: "On time, but 6 liters of fluid on the unit: pulmonary edema and a breathing tube",
         reasoning: "met",
         drive: (c) => {
           until(c, 30);
