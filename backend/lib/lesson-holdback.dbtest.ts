@@ -26,11 +26,12 @@ import { SHARED } from "./lesson-store";
 import { saveLessonProgress } from "./lesson-progress-store";
 import { consumeAllowance, grantEntitlement } from "./entitlements";
 import { serverError } from "./http";
+import { FactCheckUnavailableError } from "./generation-gate";
 
 const run = Date.now().toString(36);
 const track = randomUUID();
 const unit = randomUUID();
-const objs = Array.from({ length: 8 }, () => randomUUID());
+const objs = Array.from({ length: 11 }, () => randomUUID());
 const users: string[] = [];
 const CHOICES = ["Port 80", "Port 443", "Port 8080", "Port 22"];
 const objRow = (i: number): ObjectiveRow => ({ title: `Objective ${i + 1}`, unit_title: "Ports", track_title: "Web basics", ctx: null });
@@ -251,5 +252,59 @@ describe("FAIL-888: a regenerate that stored nothing gives its weekly use back",
     } finally {
       delete process.env.BILLING_ENABLED;
     }
+  });
+});
+
+describe("REQ-216 (M5, H2): the accepted intro is kept; only a verdict on the content holds a lesson back", () => {
+  test("FAIL-1013: the practice half fails after the intro was handed out: the retry reuses the intro and writes only practice", async () => {
+    const o = objs[8];
+    const counts = { intro: 0, practice: 0 };
+    let practiceFails = 1;
+    const gen: LessonGenerator = {
+      intro: async () => (counts.intro++, { guessPrompt: "g", teach: "the same teaching text" }),
+      practice: async () => {
+        counts.practice++;
+        if (practiceFails-- > 0) throw new Error("model down");
+        return practice("kept");
+      },
+      model: () => "test",
+    };
+    const kept = new Map();
+    const first = ensureGeneration(o, objRow(8), { scope: SHARED, generator: gen, pending: fresh(), keptIntros: kept });
+    assert.equal((await first.introPromise)?.teach, "the same teaching text");
+    await assert.rejects(first.fullPromise, /model down/);
+    const second = ensureGeneration(o, objRow(8), { scope: SHARED, generator: gen, pending: fresh(), keptIntros: kept });
+    assert.equal((await second.introPromise)?.teach, "the same teaching text", "the learner reads the same words");
+    const row = await second.fullPromise;
+    assert.equal(row.teach, "the same teaching text");
+    assert.deepEqual(counts, { intro: 1, practice: 2 }, "no second intro");
+    assert.equal(kept.size, 0, "forgotten once the lesson is stored");
+  });
+
+  test("FAIL-1010: listed claims with medium confidence serve the lesson on the first draft", async () => {
+    const o = objs[9];
+    const counter = { n: 0 };
+    const gen: LessonGenerator = {
+      intro: async () => (counter.n++, { guessPrompt: "g", teach: "t", confidence: "medium" as const, uncertainClaims: ["may differ by version"] }),
+      practice: async () => (counter.n++, practice("listed", { confidence: "medium" as const, uncertainClaims: ["a vendor default"] })),
+      model: () => "test",
+    };
+    assert.equal(await outcome(ensureGeneration(o, objRow(9), { scope: SHARED, generator: gen, pending: fresh(), keptIntros: new Map() }).fullPromise), "served");
+    assert.equal(counter.n, 2, "one call per half, no retry");
+    assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1`, [o]))?.n, 0);
+  });
+
+  test("FAIL-1014: a fact-check CALL that fails is a retryable refusal, no holdback and no cooldown", async () => {
+    const o = objs[10];
+    const counter = { n: 0 };
+    const broken: LessonGenerator = { ...goodGen("fc", counter), factCheck: async () => { throw new Error("provider down"); } };
+    const res = ensureGeneration(o, objRow(10), { scope: SHARED, generator: broken, pending: fresh(), keptIntros: new Map() });
+    await assert.rejects(res.fullPromise, FactCheckUnavailableError);
+    assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1`, [o]))?.n, 0);
+    const working: LessonGenerator = {
+      ...goodGen("fc", counter),
+      factCheck: async (items) => items.map((i) => ({ key: i.key, publish: true, answer: i.expected, unsupportedClaims: [], outcome: "agree" as const })),
+    };
+    assert.equal(await outcome(ensureGeneration(o, objRow(10), { scope: SHARED, generator: working, pending: fresh(), keptIntros: new Map() }).fullPromise), "served", "the next request tries again at once");
   });
 });
