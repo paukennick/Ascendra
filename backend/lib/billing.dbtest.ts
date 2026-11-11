@@ -725,7 +725,7 @@ describe("REQ-124: downgrades keep the paid plan until the period ends (decision
     assert.equal((await ent(v)).length, 1);
   });
 
-  test("Stripe: cancelling at once keeps the paid period; non-payment ends it now; a refund ends the held period too", async () => {
+  test("Stripe: canceling at once keeps the paid period; non-payment ends it now; a refund ends the held period too", async () => {
     const t = Math.floor(Date.now() / 1000) - 100;
     // Cancelled immediately from the portal: Pro to the period end.
     const a = await newUser();

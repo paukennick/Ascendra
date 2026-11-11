@@ -165,7 +165,7 @@ describe("select", () => {
 });
 
 describe("command (checked, never run)", () => {
-  test("whitespace, prompt, flag order and value forms are normalised", () => {
+  test("whitespace, prompt, flag order and value forms are normalized", () => {
     for (const ok of [
       "kubectl get pods -n prod",
       "  kubectl   get pods  -n  prod ",
@@ -276,9 +276,9 @@ describe("content rules for interactive parts", () => {
     assert.ok(ok({ ...SELECT, lines: ["a", "b", "a"], correct: [0] }).some((p) => p.includes("same text")));
     assert.ok(ok({ ...SELECT, display: "pdf" }).some((p) => p.includes("display")));
   });
-  test("command: unreadable, duplicate after normalising, model answer must quote it", () => {
+  test("command: unreadable, duplicate after normalizing, model answer must quote it", () => {
     assert.ok(ok({ ...COMMAND, accepted: ["echo 'x"] }, "echo 'x").some((p) => p.includes("can't be read")));
-    assert.ok(ok({ ...COMMAND, accepted: ["ls -la", "ls -al"] }, "ls -la").some((p) => p.includes("same after normalising")));
+    assert.ok(ok({ ...COMMAND, accepted: ["ls -la", "ls -al"] }, "ls -la").some((p) => p.includes("same after normalizing")));
     assert.ok(ok(COMMAND, "Use kubectl.").some((p) => p.includes("quote the first accepted command")));
     assert.ok(ok({ ...COMMAND, valueFlags: ["n"] }, "kubectl get pods -n prod").some((p) => p.includes("valueFlags")));
   });

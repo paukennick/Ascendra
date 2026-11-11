@@ -212,7 +212,7 @@ const SECPLUS_V8_TERMS: Record<string, string[]> = {
   ],
   "5.4": [
     "Compliance training", "Data handling", "Anti-money laundering/counter-terrorism financing (AML/CTF)", "Anti-bribery",
-    "Compliance monitoring", "Attestations", "Acknowledgements",
+    "Compliance monitoring", "Attestations", "Acknowledgments", // the PDF prints "Acknowledgements"; the course is in US spelling (REQ-220)
     "Reputational damage", "Financial", "Legal", "Contractual", "Sanctions", "Loss of license",
     "Right to be forgotten", "Opt-in or opt-out", "Data correction", "Processing restrictions", "Processing prevention",
     "Controller vs. processor", "Ownership", "Legal hold", "Legal orders", "Data retention requirements",

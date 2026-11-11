@@ -79,7 +79,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             ),
             part(
               "Usage segments",
-              "Chooses clustering with KMEANS (unsupervised, no label), standardises the consumption features, picks the number of clusters with the Davies-Bouldin index / elbow and interprets centroids with ML.CENTROIDS.",
+              "Chooses clustering with KMEANS (unsupervised, no label), standardizes the consumption features, picks the number of clusters with the Davies-Bouldin index / elbow and interprets centroids with ML.CENTROIDS.",
               "Clustering: CREATE MODEL rookwood.segments OPTIONS(model_type='KMEANS', num_clusters=5, standardize_features=TRUE) AS SELECT avg_night_kwh, avg_day_kwh, weekend_ratio, peak_hour FROM profiles. No label is needed. Try several num_clusters values and compare the Davies-Bouldin index from ML.EVALUATE, then read ML.CENTROIDS to name each segment (for example 'night-heavy EV chargers') for marketing."
             ),
           ],
@@ -97,7 +97,7 @@ export const GCPMLE_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the optimisation plan for the interactive assistant and the nightly job.",
+          ask: "Write the optimization plan for the interactive assistant and the nightly job.",
           parts: [
             part(
               "Repeated context",
@@ -131,16 +131,16 @@ export const GCPMLE_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose the preprocessing tool for four feature pipelines",
       brief:
-        "Cinder Finance's ML team must prepare features for four models. (1) Aggregates over 5 TB of transactions already in BigQuery: sums, counts and ratios per customer per month. (2) A stream of card events needing features computed in seconds for a fraud model, the same code to be reused for backfilling training data from history. (3) A 2 TB set of PDFs in Cloud Storage that need text extraction, tokenisation and custom Python NLP libraries, run once a week. (4) A 300 MB CSV a data scientist explores daily to try new features before anything is productionised. Choose the tool for each and give the reason.",
+        "Cinder Finance's ML team must prepare features for four models. (1) Aggregates over 5 TB of transactions already in BigQuery: sums, counts and ratios per customer per month. (2) A stream of card events needing features computed in seconds for a fraud model, the same code to be reused for backfilling training data from history. (3) A 2 TB set of PDFs in Cloud Storage that need text extraction, tokenization and custom Python NLP libraries, run once a week. (4) A 300 MB CSV a data scientist explores daily to try new features before anything is productionized. Choose the tool for each and give the reason.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
           ask: "Choose BigQuery, Dataflow, Spark or an in-memory Python framework for each pipeline and explain the choice.",
           parts: [
-            part("Transaction aggregates", "Chooses BigQuery SQL (the data is already there, aggregations are what SQL does, and BigQuery ML can read the result directly).", "BigQuery: write the per-customer-per-month aggregates as SQL (or Dataform) and materialise them into a features table; 5 TB of grouping and joining is BigQuery's strength, nothing moves, and the table feeds BigQuery ML or Agent Platform training directly."),
+            part("Transaction aggregates", "Chooses BigQuery SQL (the data is already there, aggregations are what SQL does, and BigQuery ML can read the result directly).", "BigQuery: write the per-customer-per-month aggregates as SQL (or Dataform) and materialize them into a features table; 5 TB of grouping and joining is BigQuery's strength, nothing moves, and the table feeds BigQuery ML or Agent Platform training directly."),
             part("Card event features", "Chooses Dataflow with Apache Beam because one Beam pipeline runs both streaming (seconds) and batch (backfill) with the same code, avoiding training-serving skew.", "Dataflow (Apache Beam): the same windowed aggregation code runs as a streaming job on Pub/Sub for live features and as a batch job over historical events for the training backfill, so the features are computed identically in both and skew is designed out."),
-            part("PDF text processing", "Chooses Apache Spark (Dataproc / Serverless Spark) for distributed processing of large unstructured files with custom Python libraries, run as a weekly batch.", "Spark on Dataproc or Serverless for Apache Spark: distribute 2 TB of PDFs across executors, run the custom Python extraction and tokenisation libraries in PySpark UDFs, and tear the cluster down when the weekly job ends. BigQuery is the wrong tool for binary files and bespoke Python."),
+            part("PDF text processing", "Chooses Apache Spark (Dataproc / Serverless Spark) for distributed processing of large unstructured files with custom Python libraries, run as a weekly batch.", "Spark on Dataproc or Serverless for Apache Spark: distribute 2 TB of PDFs across executors, run the custom Python extraction and tokenization libraries in PySpark UDFs, and tear the cluster down when the weekly job ends. BigQuery is the wrong tool for binary files and bespoke Python."),
             part("Daily exploration", "Chooses an in-memory Python framework (pandas / Polars) in a notebook on Agent Platform Workbench or Colab Enterprise because 300 MB fits in memory and iteration speed matters more than scale.", "pandas (or Polars) in a Colab Enterprise or Workbench notebook: 300 MB fits comfortably in memory, the scientist iterates in seconds, and a distributed engine would add overhead for no benefit. When a feature proves useful, port it to BigQuery or Beam for production."),
           ],
         },
@@ -152,7 +152,7 @@ export const GCPMLE_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose how to evaluate three very different models",
       brief:
-        "Wexcombe Insurance is about to launch three models and asks you to define the evaluation for each before launch. (1) A fraud-claim classifier where 0.8% of claims are fraudulent and each missed fraud costs about 40 times as much as a false alarm investigated. (2) A monthly claims-volume forecast used to staff call centres, where under-forecasting causes long waits and over-forecasting wastes salary roughly equally. (3) A Gemini-based summariser that turns a 20-page claim file into a one-page summary for adjusters; there is no single correct summary, and a factual error in a summary is unacceptable.",
+        "Wexcombe Insurance is about to launch three models and asks you to define the evaluation for each before launch. (1) A fraud-claim classifier where 0.8% of claims are fraudulent and each missed fraud costs about 40 times as much as a false alarm investigated. (2) A monthly claims-volume forecast used to staff call centers, where under-forecasting causes long waits and over-forecasting wastes salary roughly equally. (3) A Gemini-based summarizer that turns a 20-page claim file into a one-page summary for adjusters; there is no single correct summary, and a factual error in a summary is unacceptable.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -167,7 +167,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Volume forecast",
               "Uses a symmetric error metric such as MAE or RMSE (or MAPE if scale-free comparison is needed) on a rolling time-based backtest, compares against a seasonal-naive baseline, and rejects a model that does not beat it.",
-              "Since under- and over-forecasting cost about the same, use MAE (or RMSE if large misses matter more) measured by rolling-origin backtesting over the last 12 months, and report MAPE for comparability across centres of different sizes. Always compare with a seasonal naive forecast (same month last year adjusted for trend); a model that does not beat that baseline is rejected."
+              "Since under- and over-forecasting cost about the same, use MAE (or RMSE if large misses matter more) measured by rolling-origin backtesting over the last 12 months, and report MAPE for comparability across centers of different sizes. Always compare with a seasonal naive forecast (same month last year adjusted for trend); a model that does not beat that baseline is rejected."
             ),
             part(
               "Summariser",
@@ -196,7 +196,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Tabular trees",
               "Chooses CPU machines (a larger-memory CPU worker, possibly a few vCPUs more) because tree boosting on 20 GB is not accelerator-bound, and avoids GPUs/TPUs as wasted cost.",
-              "A single CPU training job on a high-memory machine type (for example 16-32 vCPUs with the data in memory): gradient-boosted trees parallelise well across cores and gain little from GPUs at this size. Scheduling it on Agent Platform gets it off the laptop and into the nightly pipeline; accelerators would cost more and finish no sooner."
+              "A single CPU training job on a high-memory machine type (for example 16-32 vCPUs with the data in memory): gradient-boosted trees parallelize well across cores and gain little from GPUs at this size. Scheduling it on Agent Platform gets it off the laptop and into the nightly pipeline; accelerators would cost more and finish no sooner."
             ),
             part(
               "Vision model",
@@ -228,7 +228,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Cause and fix",
               "Attributes the OOM to the batch size exceeding GPU memory and offers options: reduce batch size, use gradient accumulation to keep the effective batch, mixed precision (fp16/bf16) to halve activation memory, or a larger-memory accelerator.",
-              "A batch of 256 sequences plus their activations no longer fits the GPU's memory. Options in order of cost: drop the batch back toward 32-64 and use gradient accumulation over several steps to keep an effective batch of 256; turn on mixed precision (bf16) to cut activation memory roughly in half; or pick a larger-memory GPU. Throughput from a bigger batch only helps if the data loader keeps up, so check GPU utilisation before chasing it."
+              "A batch of 256 sequences plus their activations no longer fits the GPU's memory. Options in order of cost: drop the batch back toward 32-64 and use gradient accumulation over several steps to keep an effective batch of 256; turn on mixed precision (bf16) to cut activation memory roughly in half; or pick a larger-memory GPU. Throughput from a bigger batch only helps if the data loader keeps up, so check GPU utilization before chasing it."
             ),
           ],
         },
@@ -239,7 +239,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Diagnosis",
               "Attributes NaN loss to divergence from an over-large learning rate (and possibly bad inputs: empty sequences producing division by zero / log(0)), and fixes with a lower learning rate or warm-up schedule, gradient clipping, and input validation that drops or flags empty/invalid records.",
-              "A tenfold learning rate makes updates overshoot until a weight or logit overflows, and from the first NaN everything is NaN. Lower the learning rate (scale it with the square root or linearly with batch size, not 10x), add warm-up and gradient clipping, and validate inputs so empty notes are dropped before tokenisation rather than producing zero-length sequences that yield NaN in normalisation or loss. Log the step at which loss first becomes non-finite and stop early."
+              "A tenfold learning rate makes updates overshoot until a weight or logit overflows, and from the first NaN everything is NaN. Lower the learning rate (scale it with the square root or linearly with batch size, not 10x), add warm-up and gradient clipping, and validate inputs so empty notes are dropped before tokenization rather than producing zero-length sequences that yield NaN in normalization or loss. Log the step at which loss first becomes non-finite and stop early."
             ),
           ],
         },
@@ -250,12 +250,12 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Leakage",
               "Identifies target leakage (discharge code written after the outcome leaks the label) and must remove that feature; identifies the patient-level split issue (same patients in both splits) and switches to a group split by patient (and time-based if deployment predicts the future).",
-              "First, the discharge code is written after the outcome, so at prediction time it will not exist: that is target leakage, and the feature must be removed (and the feature list audited for anything else recorded after the prediction moment). Second, splitting by note puts the same patient in train and validation, so the model memorises patients; split by patient ID (GroupKFold-style), and by time if the model will predict future admissions."
+              "First, the discharge code is written after the outcome, so at prediction time it will not exist: that is target leakage, and the feature must be removed (and the feature list audited for anything else recorded after the prediction moment). Second, splitting by note puts the same patient in train and validation, so the model memorizes patients; split by patient ID (GroupKFold-style), and by time if the model will predict future admissions."
             ),
             part(
               "Overfitting",
-              "Reads the 98% vs 71% gap as overfitting as well and adds regularisation (dropout, weight decay), early stopping on the corrected validation set, and more or augmented data; re-evaluates after the split and feature fixes before trusting any number.",
-              "Even after fixing leakage, the gap says the model is memorising: add dropout and weight decay, use early stopping on the patient-split validation set, and reduce model capacity or add data. Re-run the evaluation on the corrected split before quoting any accuracy, because the 98% and 71% were both measured on contaminated data."
+              "Reads the 98% vs 71% gap as overfitting as well and adds regularization (dropout, weight decay), early stopping on the corrected validation set, and more or augmented data; re-evaluates after the split and feature fixes before trusting any number.",
+              "Even after fixing leakage, the gap says the model is memorizing: add dropout and weight decay, use early stopping on the patient-split validation set, and reduce model capacity or add data. Re-run the evaluation on the corrected split before quoting any accuracy, because the 98% and 71% were both measured on contaminated data."
             ),
           ],
         },
@@ -315,7 +315,7 @@ export const GCPMLE_LABS: SeedLabSet = {
           parts: [
             part("Nightly credit score", "Chooses Agent Platform batch prediction (or BigQuery ML ML.PREDICT if the model lives in BigQuery) rather than an online endpoint, since there is no real-time reader and batch is cheaper for 30 million rows.", "Agent Platform batch prediction: point a batch job at the customer table in BigQuery and write scores back to a table; it provisions compute for the run and releases it. Keeping an online endpoint up all night to be called 30 million times would be slower and far more expensive. If the model is a BigQuery ML model, ML.PREDICT in a scheduled query is simpler still."),
             part("Fraud model", "Chooses an Agent Platform online endpoint with autoscaling on a prebuilt (or custom) container, with Explainable AI enabled for feature attributions, and private endpoint if the caller is in the VPC.", "An Agent Platform online endpoint: deploy with autoscaling replicas sized for 2,000 requests a second and a 50 ms budget, enable Explainable AI so disputed decisions can return feature attributions (for example sampled Shapley), and expose it as a private endpoint via Private Service Connect so the fraud service calls it inside the VPC."),
-            part("Low-traffic FastAPI model", "Chooses Cloud Run for a containerised service that scales to zero and bills per request, which fits a few requests a minute.", "Cloud Run: containerise the FastAPI app with the scikit-learn model, deploy with min instances 0 so it costs nothing between requests, and let it scale up if the tool gets busier. An always-on Agent Platform endpoint would bill for a node around the clock for a trickle of traffic."),
+            part("Low-traffic FastAPI model", "Chooses Cloud Run for a containerized service that scales to zero and bills per request, which fits a few requests a minute.", "Cloud Run: containerize the FastAPI app with the scikit-learn model, deploy with min instances 0 so it costs nothing between requests, and let it scale up if the tool gets busier. An always-on Agent Platform endpoint would bill for a node around the clock for a trickle of traffic."),
             part("Open-weights LLM on GPUs", "Chooses GKE (with GPU node pools, custom networking and the team's own autoscaling), optionally deploying the model from Model Garden to GKE, because the team's requirements are infrastructure-level control.", "GKE with GPU node pools: the platform team keeps its Kubernetes tooling, custom networking policies and its own autoscaler rules, and can deploy the open-weights model from Model Garden to GKE with a serving container such as vLLM. Agent Platform endpoints would be simpler but take away the control they asked for."),
           ],
         },
@@ -329,7 +329,7 @@ export const GCPMLE_LABS: SeedLabSet = {
       kind: "build",
       title: "Set the retraining policy for three production models",
       brief:
-        "Osprey Marketplace runs three models and asks for a retraining policy for each. (1) A demand-forecast model whose accuracy decays steadily as seasons change; training takes 20 minutes and the data arrives daily. (2) A fraud model where attackers change tactics unpredictably; retraining costs about 6 hours of GPU time and the team wants it retrained only when there is evidence it is needed. (3) A product-image classifier whose catalogue adds a new category a few times a year, with no drift between additions. For each, define when retraining happens, what triggers it, what gates the new model, and how it is deployed.",
+        "Osprey Marketplace runs three models and asks for a retraining policy for each. (1) A demand-forecast model whose accuracy decays steadily as seasons change; training takes 20 minutes and the data arrives daily. (2) A fraud model where attackers change tactics unpredictably; retraining costs about 6 hours of GPU time and the team wants it retrained only when there is evidence it is needed. (3) A product-image classifier whose catalog adds a new category a few times a year, with no drift between additions. For each, define when retraining happens, what triggers it, what gates the new model, and how it is deployed.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -343,13 +343,13 @@ export const GCPMLE_LABS: SeedLabSet = {
             ),
             part(
               "Fraud model",
-              "Chooses trigger-based retraining driven by Model Monitoring (feature drift or prediction drift alerts) and by performance monitoring on labelled outcomes (precision/recall dropping below a threshold as chargebacks arrive), not a fixed schedule, with a human review gate before deployment.",
+              "Chooses trigger-based retraining driven by Model Monitoring (feature drift or prediction drift alerts) and by performance monitoring on labeled outcomes (precision/recall dropping below a threshold as chargebacks arrive), not a fixed schedule, with a human review gate before deployment.",
               "Event-driven: Model Monitoring on the endpoint alerts on input-feature drift and prediction-distribution drift, and a weekly job computes recall and precision on the transactions whose outcome (chargeback or not) is now known. Either signal crossing its threshold publishes a Pub/Sub message that triggers the training pipeline. Because 6 GPU-hours is costly and fraud labels are noisy, the pipeline's evaluation plus a fraud analyst's sign-off gates deployment, which goes out as a canary on the endpoint."
             ),
             part(
               "Image classifier",
-              "Chooses retraining on a data/schema change event (a new category added to the catalogue) rather than on a schedule or drift, with a pipeline that validates the new label set and the per-class metrics before deployment.",
-              "Change-triggered: adding a category to the catalogue triggers the pipeline (a Pub/Sub event from the catalogue service). The pipeline validates that the new category has enough labelled images, retrains, checks per-class precision and recall including the old classes (to catch regressions), and deploys via the endpoint's traffic split. No scheduled runs: between additions nothing changes, so retraining would only add cost and risk."
+              "Chooses retraining on a data/schema change event (a new category added to the catalog) rather than on a schedule or drift, with a pipeline that validates the new label set and the per-class metrics before deployment.",
+              "Change-triggered: adding a category to the catalog triggers the pipeline (a Pub/Sub event from the catalog service). The pipeline validates that the new category has enough labeled images, retrains, checks per-class precision and recall including the old classes (to catch regressions), and deploys via the endpoint's traffic split. No scheduled runs: between additions nothing changes, so retraining would only add cost and risk."
             ),
           ],
         },
@@ -378,7 +378,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Action",
               "Fixes the app or adds a server-side transformation so serving features match training (ideally the same preprocessing code in both), considers rolling back the release, and reviews decisions made since the release for harm.",
-              "Hotfix: multiply by 12 in a shared preprocessing step or roll the app back, and move income normalisation into a preprocessing component used by both the training pipeline and the serving container so they cannot diverge again. Pull the list of applications scored since the release and have them re-scored or reviewed, since many will have been wrongly declined."
+              "Hotfix: multiply by 12 in a shared preprocessing step or roll the app back, and move income normalization into a preprocessing component used by both the training pipeline and the serving container so they cannot diverge again. Pull the list of applications scored since the release and have them re-scored or reviewed, since many will have been wrongly declined."
             ),
           ],
         },
@@ -388,8 +388,8 @@ export const GCPMLE_LABS: SeedLabSet = {
           parts: [
             part(
               "Classification and response",
-              "Identifies concept drift (the relationship between features and the outcome changed because of the rate rise; inputs look similar but the mapping to default risk moved) and responds by retraining on recent labelled data, possibly adding rate-related features, with a validation gate before deployment.",
-              "Concept drift: the inputs are the same kind of applicants, but what those inputs mean for default risk changed when rates rose, so the learned mapping is stale. Retrain on the most recent labelled loans (and consider adding interest-rate or affordability features), validate against a recent holdout, and deploy through a canary. Monitoring on inputs alone would not catch this; outcome monitoring did."
+              "Identifies concept drift (the relationship between features and the outcome changed because of the rate rise; inputs look similar but the mapping to default risk moved) and responds by retraining on recent labeled data, possibly adding rate-related features, with a validation gate before deployment.",
+              "Concept drift: the inputs are the same kind of applicants, but what those inputs mean for default risk changed when rates rose, so the learned mapping is stale. Retrain on the most recent labeled loans (and consider adding interest-rate or affordability features), validate against a recent holdout, and deploy through a canary. Monitoring on inputs alone would not catch this; outcome monitoring did."
             ),
           ],
         },
@@ -427,7 +427,7 @@ export const GCPMLE_LABS: SeedLabSet = {
             part(
               "Prompt injection and jailbreaks",
               "Uses Model Armor's prompt injection and jailbreak detection on user input, plus system-prompt design and least-privilege tool access so a hijack cannot reach another customer's data.",
-              "Model Armor's prompt injection and jailbreak detection screens each user message and blocks attempts like 'ignore your rules'. Pair it with defence in depth: the assistant's tools run with the authenticated customer's identity only, so even a successful injection cannot fetch another customer's bill."
+              "Model Armor's prompt injection and jailbreak detection screens each user message and blocks attempts like 'ignore your rules'. Pair it with defense in depth: the assistant's tools run with the authenticated customer's identity only, so even a successful injection cannot fetch another customer's bill."
             ),
             part(
               "Harmful outputs",
@@ -436,8 +436,8 @@ export const GCPMLE_LABS: SeedLabSet = {
             ),
             part(
               "Ticket IDs and consistency",
-              "Uses a custom regex rule (SH-\\d{6}) on responses for the deterministic, well-defined pattern, and uses Model Armor templates (with organisation floor settings) so one policy applies to all three teams.",
-              "Ticket IDs are a fixed, known pattern, so a response regex SH-\\d{6} redacting or blocking matches is the right, cheap tool; no model is needed. For consistency, define the filters above in a Model Armor template and apply it in front of every team's calls, with floor settings at the organisation level so no team can deploy below the minimum policy."
+              "Uses a custom regex rule (SH-\\d{6}) on responses for the deterministic, well-defined pattern, and uses Model Armor templates (with organization floor settings) so one policy applies to all three teams.",
+              "Ticket IDs are a fixed, known pattern, so a response regex SH-\\d{6} redacting or blocking matches is the right, cheap tool; no model is needed. For consistency, define the filters above in a Model Armor template and apply it in front of every team's calls, with floor settings at the organization level so no team can deploy below the minimum policy."
             ),
           ],
         },

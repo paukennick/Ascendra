@@ -226,7 +226,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Design resilience to meet an RTO and RPO",
       brief:
-        "Northwind Billing (fictional) runs a customer portal and its billing database in one data-centre rack: one web server, one database server, one internet circuit, one power feed. The business sets a recovery time objective (RTO) of 2 hours and a recovery point objective (RPO) of 15 minutes for the billing service, and asks for the least-cost design that meets both. Nightly backups to tape currently take about 10 hours to restore and lose up to a day of data.",
+        "Northwind Billing (fictional) runs a customer portal and its billing database in one data-center rack: one web server, one database server, one internet circuit, one power feed. The business sets a recovery time objective (RTO) of 2 hours and a recovery point objective (RPO) of 15 minutes for the billing service, and asks for the least-cost design that meets both. Nightly backups to tape currently take about 10 hours to restore and lose up to a day of data.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -321,7 +321,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       slug: "vuln-prioritization-cvss-epss-kev",
       objective: "Vulnerability management: scanning, CVSS scoring, and remediation prioritization",
       kind: "build",
-      title: "Prioritise four scan findings with CVSS, EPSS and KEV",
+      title: "Prioritize four scan findings with CVSS, EPSS and KEV",
       brief:
         "You run vulnerability management at Fairwind Insurance (fictional). This week's authenticated scan returns four findings. The maintenance window is small, so you must rank them and justify the order using severity, real-world exploitation and asset context -- not CVSS alone.\n\n(1) Internet-facing VPN gateway: unauthenticated remote code execution. CVSS v4.0 9.3 Critical. EPSS 0.93 (99.8th percentile). Listed in CISA KEV.\n(2) Internal HR database server: SQL injection reachable only by an authenticated internal user. CVSS v4.0 8.6 High. EPSS 0.04. Not in KEV.\n(3) Office printers: an information-disclosure flaw leaking device config. CVSS v4.0 6.9 Medium. EPSS 0.01. Not in KEV.\n(4) Public marketing website (static, no customer data): reflected cross-site scripting. CVSS v4.0 6.9 Medium. EPSS 0.6 (99.1st percentile). Not in KEV.",
       safetyNote: GENERAL_SAFETY,
@@ -384,7 +384,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Legal hold",
-              "Honours the litigation hold: preserve relevant data and suspend any routine deletion/retention that would destroy it; collect without tipping off or altering scope beyond the hold.",
+              "Honors the litigation hold: preserve relevant data and suspend any routine deletion/retention that would destroy it; collect without tipping off or altering scope beyond the hold.",
               "The litigation hold means normal deletion and retention policies are suspended for anything potentially relevant -- the laptop image, the USB, the employee's mailbox and file-share activity -- and must be preserved until legal releases the hold. Document that the hold was applied."
             ),
           ],
@@ -403,7 +403,7 @@ export const SECPLUS_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Compute the single loss expectancy, annualised rate of occurrence and annualised loss expectancy for the data-breach risk, then decide whether the control is worth it.",
+          ask: "Compute the single loss expectancy, annualized rate of occurrence and annualized loss expectancy for the data-breach risk, then decide whether the control is worth it.",
           parts: [
             part(
               "SLE",
@@ -412,7 +412,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "ARO",
-              "Derives the annualised rate of occurrence of a data-exposing loss: 20 losses a year times the 1-in-4 chance the device held regulated data = 5 data-breach events per year.",
+              "Derives the annualized rate of occurrence of a data-exposing loss: 20 losses a year times the 1-in-4 chance the device held regulated data = 5 data-breach events per year.",
               "ARO = 20 lost laptops per year x 1/4 that held regulated data = 5 data-breach events per year."
             ),
             part(
@@ -449,7 +449,7 @@ export const SECPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Evidence to request",
-              "Lists concrete due-diligence evidence: a recognised audit/attestation (SOC 2 Type II or ISO/IEC 27001), a penetration-test summary, data-handling and subprocessor details, breach-notification commitments, and encryption of data in transit and at rest.",
+              "Lists concrete due-diligence evidence: a recognized audit/attestation (SOC 2 Type II or ISO/IEC 27001), a penetration-test summary, data-handling and subprocessor details, breach-notification commitments, and encryption of data in transit and at rest.",
               "Request a SOC 2 Type II report or ISO/IEC 27001 certificate, a recent penetration-test summary, a list of subprocessors and data locations, their breach-notification timeline, and confirmation that customer data is encrypted in transit and at rest. A 'trust page' with no evidence is not an attestation."
             ),
             part(

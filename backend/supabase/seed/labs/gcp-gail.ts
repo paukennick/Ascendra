@@ -34,7 +34,7 @@ export const GCPGAIL_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose a foundation model for three business needs",
       brief:
-        "You lead digital products at Greywell Insurance. Three teams want a generative AI model and each has written down what matters. Claims: 'We need to read a whole 300-page claim file including photos of damage and answer questions about it; accuracy matters more than speed; the data is confidential and must stay in our cloud tenancy.' Marketing: 'Thousands of short product descriptions a day, cheap and fast, tone must match our brand guide; we can give you 2,000 examples of approved copy.' Contact centre: 'Live voice assistance for agents in six languages, must respond in well under a second, and must be available during every shift with a vendor commitment.' Write a recommendation that applies the selection criteria to each team.",
+        "You lead digital products at Greywell Insurance. Three teams want a generative AI model and each has written down what matters. Claims: 'We need to read a whole 300-page claim file including photos of damage and answer questions about it; accuracy matters more than speed; the data is confidential and must stay in our cloud tenancy.' Marketing: 'Thousands of short product descriptions a day, cheap and fast, tone must match our brand guide; we can give you 2,000 examples of approved copy.' Contact center: 'Live voice assistance for agents in six languages, must respond in well under a second, and must be available during every shift with a vendor commitment.' Write a recommendation that applies the selection criteria to each team.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -43,23 +43,23 @@ export const GCPGAIL_LABS: SeedLabSet = {
           parts: [
             part(
               "Claims",
-              "Prioritises multimodal capability (documents and images), a long context window large enough for the whole file, and security (enterprise platform with data kept in the company's tenancy, not a consumer app), accepting higher cost and latency for accuracy; recommends a larger multimodal Gemini-class model through the enterprise platform.",
+              "Prioritizes multimodal capability (documents and images), a long context window large enough for the whole file, and security (enterprise platform with data kept in the company's tenancy, not a consumer app), accepting higher cost and latency for accuracy; recommends a larger multimodal Gemini-class model through the enterprise platform.",
               "Deciding criteria: modality (text plus images), context window (the full 300-page file in one prompt rather than fragments), security and privacy (an enterprise deployment on the Agent Platform where prompts are not used to train the vendor's models and data stays in Greywell's project), and performance over cost. Recommend a large multimodal Gemini model with a long context window on the Agent Platform; latency and price per call are acceptable because accuracy decides claims."
             ),
             part(
               "Marketing",
-              "Prioritises cost and speed for high volume plus customisation: a smaller, faster model, with the 2,000 approved examples used for fine-tuning (or few-shot prompting / a style guide) to lock in brand tone.",
-              "Deciding criteria: cost and latency at thousands of calls a day, and customisation for brand tone. Recommend a smaller, faster Gemini model (a Flash-class model) and use the 2,000 approved descriptions: start with few-shot examples and a brand style prompt, and if tone is still inconsistent, fine-tune the model on those examples so the style is baked in and prompts get shorter and cheaper."
+              "Prioritizes cost and speed for high volume plus customization: a smaller, faster model, with the 2,000 approved examples used for fine-tuning (or few-shot prompting / a style guide) to lock in brand tone.",
+              "Deciding criteria: cost and latency at thousands of calls a day, and customization for brand tone. Recommend a smaller, faster Gemini model (a Flash-class model) and use the 2,000 approved descriptions: start with few-shot examples and a brand style prompt, and if tone is still inconsistent, fine-tune the model on those examples so the style is baked in and prompts get shorter and cheaper."
             ),
             part(
-              "Contact centre",
-              "Prioritises latency (sub-second), availability and reliability (an enterprise SLA, provisioned capacity), multilingual and speech modality; recommends the Customer Engagement Suite's Agent Assist or a low-latency model with provisioned throughput rather than a consumer tool.",
+              "Contact center",
+              "Prioritizes latency (sub-second), availability and reliability (an enterprise SLA, provisioned capacity), multilingual and speech modality; recommends the Customer Engagement Suite's Agent Assist or a low-latency model with provisioned throughput rather than a consumer tool.",
               "Deciding criteria: performance in the sense of latency (well under a second for live assistance), availability and reliability (a vendor service-level commitment and reserved capacity for every shift), and modality (speech in six languages). Recommend Agent Assist from Google's Customer Engagement Suite, which is built for real-time agent support, or a low-latency Gemini model on the Agent Platform with Provisioned Throughput for guaranteed capacity; a consumer chat app has no such commitments."
             ),
             part(
               "What you did not choose and why",
-              "Explains at least one rejected option per team or overall (for example one biggest model for everyone, which fails marketing on cost and the contact centre on latency; or consumer tools, which fail claims on confidentiality).",
-              "Not one model for everyone: the largest model would fail marketing on cost and the contact centre on latency, and the smallest would fail claims on reasoning over a long multimodal file. Not consumer AI apps for claims or the contact centre: they do not offer the data-handling guarantees, tenancy controls or service commitments the teams need."
+              "Explains at least one rejected option per team or overall (for example one biggest model for everyone, which fails marketing on cost and the contact center on latency; or consumer tools, which fail claims on confidentiality).",
+              "Not one model for everyone: the largest model would fail marketing on cost and the contact center on latency, and the smallest would fail claims on reasoning over a long multimodal file. Not consumer AI apps for claims or the contact center: they do not offer the data-handling guarantees, tenancy controls or service commitments the teams need."
             ),
           ],
         },
@@ -131,17 +131,17 @@ export const GCPGAIL_LABS: SeedLabSet = {
       kind: "build",
       title: "Match four employee needs to Google Cloud gen AI offerings",
       brief:
-        "Castlemere Bank's COO asks you to recommend 'the right Google AI for each team' and warns against buying everything. Four needs: (1) Every employee wants help drafting emails, summarising long documents and building slides inside the tools they already use all day. (2) The compliance team wants to ask questions across policies, regulator letters, recorded meetings and internal wikis in one place, with answers that cite the source, and to build a few of their own assistants without engineers. (3) The contact centre wants virtual agents on phone and chat that can check a balance and hand off to a human with the conversation history. (4) The payments engineering team wants to build a custom agent into their own application that calls internal APIs, using a model they choose and tune. Name the offering for each and the business value.",
+        "Castlemere Bank's COO asks you to recommend 'the right Google AI for each team' and warns against buying everything. Four needs: (1) Every employee wants help drafting emails, summarizing long documents and building slides inside the tools they already use all day. (2) The compliance team wants to ask questions across policies, regulator letters, recorded meetings and internal wikis in one place, with answers that cite the source, and to build a few of their own assistants without engineers. (3) The contact center wants virtual agents on phone and chat that can check a balance and hand off to a human with the conversation history. (4) The payments engineering team wants to build a custom agent into their own application that calls internal APIs, using a model they choose and tune. Name the offering for each and the business value.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
           ask: "Name the Google Cloud offering for each need, what it does for that team, and why not a different one.",
           parts: [
-            part("Every employee", "Chooses Gemini for Google Workspace, because the need is assistance inside the productivity tools people already use (Gmail, Docs, Slides, Meet).", "Gemini for Google Workspace: drafting in Gmail and Docs, summarising documents and threads, generating slides in Slides, all inside the apps staff already use, with enterprise data protections. Value: broad productivity gains with no new tool to learn. Gemini Enterprise would be more than most employees need for this."),
+            part("Every employee", "Chooses Gemini for Google Workspace, because the need is assistance inside the productivity tools people already use (Gmail, Docs, Slides, Meet).", "Gemini for Google Workspace: drafting in Gmail and Docs, summarizing documents and threads, generating slides in Slides, all inside the apps staff already use, with enterprise data protections. Value: broad productivity gains with no new tool to learn. Gemini Enterprise would be more than most employees need for this."),
             part("Compliance", "Chooses Gemini Enterprise for multimodal search across connected enterprise sources with cited answers and no-code custom agents (and its Notebook capability for working over a set of documents).", "Gemini Enterprise: it connects policies, regulator letters, meeting recordings and wikis into one searchable, multimodal corpus, answers with citations to the source, and lets the compliance team build their own agents without engineers; the notebook capability lets them reason over a chosen set of documents. Value: faster, auditable answers and self-service assistants."),
-            part("Contact centre", "Chooses the Customer Engagement Suite (Conversational Agents for the virtual agent, Agent Assist for the human hand-off, Contact Center as a Service for telephony), because it is purpose-built for customer conversations with transactional actions and escalation.", "Customer Engagement Suite: Conversational Agents handle balance checks on phone and chat and hand off to a person with the transcript, Agent Assist supports the human after hand-off, and Google Cloud Contact Center as a Service provides the channels. Value: deflection of routine contacts and better hand-offs, with the hand-off requirement met out of the box."),
-            part("Payments engineering", "Chooses the Agent Platform (Model Garden for model choice, tuning, and the agent-building tools) because the need is a custom-built agent with developer control over the model and tool calls into internal APIs.", "The Agent Platform: pick a model from Model Garden, tune it, and build a custom agent whose tools call the payments APIs, embedded in their own application. Value: full control over model, data and behaviour for a regulated, bespoke workflow. The packaged offerings above would not give that control."),
+            part("Contact center", "Chooses the Customer Engagement Suite (Conversational Agents for the virtual agent, Agent Assist for the human hand-off, Contact Center as a Service for telephony), because it is purpose-built for customer conversations with transactional actions and escalation.", "Customer Engagement Suite: Conversational Agents handle balance checks on phone and chat and hand off to a person with the transcript, Agent Assist supports the human after hand-off, and Google Cloud Contact Center as a Service provides the channels. Value: deflection of routine contacts and better hand-offs, with the hand-off requirement met out of the box."),
+            part("Payments engineering", "Chooses the Agent Platform (Model Garden for model choice, tuning, and the agent-building tools) because the need is a custom-built agent with developer control over the model and tool calls into internal APIs.", "The Agent Platform: pick a model from Model Garden, tune it, and build a custom agent whose tools call the payments APIs, embedded in their own application. Value: full control over model, data and behavior for a regulated, bespoke workflow. The packaged offerings above would not give that control."),
           ],
         },
       ],
@@ -188,9 +188,9 @@ export const GCPGAIL_LABS: SeedLabSet = {
       objective:
         "Recognizing the functionality, use cases, and business value of Google's Customer Engagement Suite: Conversational Agents, Agent Assist, Conversational Insights, Google Cloud Contact Center as a Service",
       kind: "build",
-      title: "Map a contact centre's problems to the Customer Engagement Suite",
+      title: "Map a contact center's problems to the Customer Engagement Suite",
       brief:
-        "Brackenridge Energy's contact centre has four problems the director wants solved in one programme. (1) 60% of calls are simple: meter readings, balance queries, payment dates; wait times are long. (2) Agents handling the complex calls spend minutes searching knowledge articles while the customer waits, and new agents take months to become confident. (3) Leadership has no idea why customers call, how sentiment trends, or which scripts fail, beyond a monthly survey. (4) The telephony platform is a 15-year-old on-premises system that cannot connect to modern AI. Map each problem to a component of Google's Customer Engagement Suite and the business value you would promise.",
+        "Brackenridge Energy's contact center has four problems the director wants solved in one program. (1) 60% of calls are simple: meter readings, balance queries, payment dates; wait times are long. (2) Agents handling the complex calls spend minutes searching knowledge articles while the customer waits, and new agents take months to become confident. (3) Leadership has no idea why customers call, how sentiment trends, or which scripts fail, beyond a monthly survey. (4) The telephony platform is a 15-year-old on-premises system that cannot connect to modern AI. Map each problem to a component of Google's Customer Engagement Suite and the business value you would promise.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -198,9 +198,9 @@ export const GCPGAIL_LABS: SeedLabSet = {
           ask: "Name the component for each problem, what it does, and the measurable value.",
           parts: [
             part("Simple, high-volume calls", "Chooses Conversational Agents (virtual agents on voice and chat) to resolve meter readings, balances and payment dates end to end, with hand-off to humans for anything else; value in containment and shorter waits.", "Conversational Agents: virtual agents that take meter readings, read balances and payment dates on phone and chat, authenticating the customer and completing the task, and escalating to a person with context when needed. Value: a large share of the 60% simple calls contained, cutting queue times for everyone else."),
-            part("Agent knowledge and ramp-up", "Chooses Agent Assist to surface knowledge articles and suggested responses to agents in real time during the call and to summarise it afterwards; value in handle time and faster onboarding.", "Agent Assist: listens to the live conversation and surfaces the right knowledge article and suggested replies as the customer talks, then drafts the after-call summary. Value: shorter handle times, fewer holds, and new agents performing like experienced ones sooner."),
-            part("No insight into why customers call", "Chooses Conversational Insights to analyse every conversation for topics, sentiment and script outcomes; value in data-driven decisions replacing the monthly survey.", "Conversational Insights: analyses all calls and chats for topic, sentiment trend and where conversations go wrong, so leadership sees why customers call and which scripts fail across 100% of interactions rather than a survey sample. Value: prioritised fixes to products and processes, not just the contact centre."),
-            part("Legacy telephony", "Chooses Google Cloud Contact Center as a Service to replace the on-premises platform with a cloud contact-centre that the other components plug into; value in retiring the legacy system and enabling the rest.", "Google Cloud Contact Center as a Service: a cloud telephony and omnichannel platform that replaces the 15-year-old system and natively hosts the virtual agents, Agent Assist and Insights above. Value: the legacy platform is retired and the AI capabilities become possible at all."),
+            part("Agent knowledge and ramp-up", "Chooses Agent Assist to surface knowledge articles and suggested responses to agents in real time during the call and to summarize it afterwards; value in handle time and faster onboarding.", "Agent Assist: listens to the live conversation and surfaces the right knowledge article and suggested replies as the customer talks, then drafts the after-call summary. Value: shorter handle times, fewer holds, and new agents performing like experienced ones sooner."),
+            part("No insight into why customers call", "Chooses Conversational Insights to analyze every conversation for topics, sentiment and script outcomes; value in data-driven decisions replacing the monthly survey.", "Conversational Insights: analyses all calls and chats for topic, sentiment trend and where conversations go wrong, so leadership sees why customers call and which scripts fail across 100% of interactions rather than a survey sample. Value: prioritized fixes to products and processes, not just the contact center."),
+            part("Legacy telephony", "Chooses Google Cloud Contact Center as a Service to replace the on-premises platform with a cloud contact-center that the other components plug into; value in retiring the legacy system and enabling the rest.", "Google Cloud Contact Center as a Service: a cloud telephony and omnichannel platform that replaces the 15-year-old system and natively hosts the virtual agents, Agent Assist and Insights above. Value: the legacy platform is retired and the AI capabilities become possible at all."),
           ],
         },
       ],
@@ -294,9 +294,9 @@ export const GCPGAIL_LABS: SeedLabSet = {
       slug: "measure-gen-ai-impact",
       objective: "Identifying techniques to measure the impact of a gen AI initiative",
       kind: "build",
-      title: "Define how a support-summarisation pilot will be measured",
+      title: "Define how a support-summarization pilot will be measured",
       brief:
-        "Allerton Software plans a three-month pilot: a generative AI tool that summarises each customer-support ticket's history so engineers can start work faster. The CFO will fund a full rollout only on evidence. Before the pilot starts, write the measurement plan: the business outcomes and their metrics, how you will know the tool caused any change, the quality and risk measures, and what result would count as success or failure.",
+        "Allerton Software plans a three-month pilot: a generative AI tool that summarizes each customer-support ticket's history so engineers can start work faster. The CFO will fund a full rollout only on evidence. Before the pilot starts, write the measurement plan: the business outcomes and their metrics, how you will know the tool caused any change, the quality and risk measures, and what result would count as success or failure.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -348,7 +348,7 @@ export const GCPGAIL_LABS: SeedLabSet = {
             part(
               "Managing the Christmas expectation",
               "Resets the expectation to a phased plan (pilot, evaluate, scale) with visible milestones, explaining that broad rollout without pilots risks cost, security and reputation.",
-              "Offer the CEO a phased plan: two or three pilots live within a quarter, measured results by Christmas, and scaling of what works in the new year. Explain that putting unproven AI into every department at once spreads thin budget, creates uncontrolled data exposure and risks a public failure that sets the programme back a year."
+              "Offer the CEO a phased plan: two or three pilots live within a quarter, measured results by Christmas, and scaling of what works in the new year. Explain that putting unproven AI into every department at once spreads thin budget, creates uncontrolled data exposure and risks a public failure that sets the program back a year."
             ),
           ],
         },
@@ -365,12 +365,12 @@ export const GCPGAIL_LABS: SeedLabSet = {
         },
         {
           text: "Both pilots run for a quarter. Invoice matching cuts processing time substantially with few errors; the sales assistant is liked but gives occasionally wrong product specifications.",
-          ask: "What are the next steps for each, and how does the organisation scale from here?",
+          ask: "What are the next steps for each, and how does the organization scale from here?",
           parts: [
             part(
               "Scale what works, fix what does not",
-              "Scales invoice matching with change management (training, process redesign, monitoring in production), fixes the sales assistant's accuracy (grounding on the product catalogue, evaluation) before expanding it, and builds reusable platform, governance and skills so later use cases start faster.",
-              "Invoice matching: move to production with monitoring, train the finance team, redesign the process around the tool and track the metric monthly. Sales assistant: do not scale yet; ground it on the authoritative product catalogue and add an evaluation set of specification questions it must pass, then re-pilot. Organisationally, turn the pilot team into a centre of excellence that owns the platform, the governance checklist, the evaluation methods and training, so the next ideas from the 27 go through a repeatable path rather than starting from zero."
+              "Scales invoice matching with change management (training, process redesign, monitoring in production), fixes the sales assistant's accuracy (grounding on the product catalog, evaluation) before expanding it, and builds reusable platform, governance and skills so later use cases start faster.",
+              "Invoice matching: move to production with monitoring, train the finance team, redesign the process around the tool and track the metric monthly. Sales assistant: do not scale yet; ground it on the authoritative product catalog and add an evaluation set of specification questions it must pass, then re-pilot. Organisationally, turn the pilot team into a center of excellence that owns the platform, the governance checklist, the evaluation methods and training, so the next ideas from the 27 go through a repeatable path rather than starting from zero."
             ),
           ],
         },

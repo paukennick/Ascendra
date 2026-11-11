@@ -32,7 +32,7 @@ export const DCA_LABS: SeedLabSet = {
       kind: "build",
       title: "Turn two docker run commands into a swarm stack",
       brief:
-        "The fictional bakery chain Hollis & Crumb runs its ordering app on one host with two commands: docker run -d --name redis -v redis-data:/data redis:7-alpine and docker run -d --name web -p 8080:8080 -e REDIS_HOST=redis --link redis registry.hollis.example/orders-web:2.4. They now have a three-node swarm (one manager, two workers; the workers are labelled tier=app) and want the web tier to run three copies spread over the app nodes, Redis to run exactly one copy on the manager (which has the fast disk), and a single command to deploy or update the whole thing.",
+        "The fictional bakery chain Hollis & Crumb runs its ordering app on one host with two commands: docker run -d --name redis -v redis-data:/data redis:7-alpine and docker run -d --name web -p 8080:8080 -e REDIS_HOST=redis --link redis registry.hollis.example/orders-web:2.4. They now have a three-node swarm (one manager, two workers; the workers are labeled tier=app) and want the web tier to run three copies spread over the app nodes, Redis to run exactly one copy on the manager (which has the fast disk), and a single command to deploy or update the whole thing.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -78,13 +78,13 @@ export const DCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Cause",
-              "Reads the task error: the placement constraint node.labels.region==eu-west matches no node because the nodes are labelled region=eu-west-1 (exact string match), and wrk-3 is drained and unlabelled; the swarm itself is healthy -- the scheduler simply has nowhere allowed to put the tasks.",
+              "Reads the task error: the placement constraint node.labels.region==eu-west matches no node because the nodes are labeled region=eu-west-1 (exact string match), and wrk-3 is drained and unlabeled; the swarm itself is healthy -- the scheduler simply has nowhere allowed to put the tasks.",
               "Every task is Pending with 'scheduling constraints not satisfied on 4 nodes'. The constraint requires node.labels.region == eu-west, but three nodes carry region=eu-west-1 -- constraints compare the whole string, so they do not match -- and wrk-3 has no label and is drained anyway. Nothing is broken in the swarm: no node is eligible."
             ),
             part(
               "Smallest fix",
-              "Either fix the service's constraint to the real label value (docker service update --constraint-rm 'node.labels.region==eu-west' --constraint-add 'node.labels.region==eu-west-1' quotes) or, if the team's convention is eu-west, relabel nodes; prefers changing the one service over relabelling three nodes other services may depend on, and verifies tasks move to Running.",
-              "docker service update --constraint-rm 'node.labels.region==eu-west' --constraint-add 'node.labels.region==eu-west-1' quotes\ndocker service ps quotes   # tasks move to Preparing then Running on mgr-1/wrk-1/wrk-2\nChanging one service's constraint touches nothing else; relabelling the nodes could break other services that already match region=eu-west-1. Also check the stack file so the next docker stack deploy does not put the typo back."
+              "Either fix the service's constraint to the real label value (docker service update --constraint-rm 'node.labels.region==eu-west' --constraint-add 'node.labels.region==eu-west-1' quotes) or, if the team's convention is eu-west, relabel nodes; prefers changing the one service over relabeling three nodes other services may depend on, and verifies tasks move to Running.",
+              "docker service update --constraint-rm 'node.labels.region==eu-west' --constraint-add 'node.labels.region==eu-west-1' quotes\ndocker service ps quotes   # tasks move to Preparing then Running on mgr-1/wrk-1/wrk-2\nChanging one service's constraint touches nothing else; relabeling the nodes could break other services that already match region=eu-west-1. Also check the stack file so the next docker stack deploy does not put the typo back."
             ),
           ],
         },
@@ -123,7 +123,7 @@ export const DCA_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Rewrite the Dockerfile (and the .dockerignore) and explain how each change affects size, cache behaviour or security, then show the commands that prove the result.",
+          ask: "Rewrite the Dockerfile (and the .dockerignore) and explain how each change affects size, cache behavior or security, then show the commands that prove the result.",
           parts: [
             part(
               ".dockerignore and build context",
@@ -405,8 +405,8 @@ export const DCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Keys and signers",
-              "docker trust key generate <name> to create a signer key, docker trust signer add --key <name>.pub <name> registry.larkin.example/<repo> to add the signer to the repository (initialising the repository's root and targets keys, protected by passphrases), and keeping the root key offline; explains root, targets, snapshot and timestamp roles briefly.",
-              "docker trust key generate larkin-release                     # creates larkin-release.pub and a private key in ~/.docker/trust/private\ndocker trust signer add --key larkin-release.pub larkin-release registry.larkin.example/dispense\nThe first signer add initialises the repository's trust metadata: a root key (keep it offline -- it can re-key everything), a targets key (per repository), and snapshot/timestamp keys managed by the Notary server. Passphrases protect the local keys; DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE and DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE let CI sign without prompts."
+              "docker trust key generate <name> to create a signer key, docker trust signer add --key <name>.pub <name> registry.larkin.example/<repo> to add the signer to the repository (initializing the repository's root and targets keys, protected by passphrases), and keeping the root key offline; explains root, targets, snapshot and timestamp roles briefly.",
+              "docker trust key generate larkin-release                     # creates larkin-release.pub and a private key in ~/.docker/trust/private\ndocker trust signer add --key larkin-release.pub larkin-release registry.larkin.example/dispense\nThe first signer add initializes the repository's trust metadata: a root key (keep it offline -- it can re-key everything), a targets key (per repository), and snapshot/timestamp keys managed by the Notary server. Passphrases protect the local keys; DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE and DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE let CI sign without prompts."
             ),
             part(
               "Signing and verifying",
@@ -448,7 +448,7 @@ export const DCA_LABS: SeedLabSet = {
             part(
               "Subject",
               "An organisation/team in UCP (MKE) named claims-platform whose membership is synced from the LDAP group DN (team LDAP sync with the group's distinguished name), so joiners and leavers are handled by Active Directory, not by hand.",
-              "Create the organisation bramwell with team claims-platform, and enable LDAP sync on the team with the group DN CN=claims-platform,OU=Groups,DC=bramwell,DC=local (member attribute member). UCP/MKE's LDAP integration already syncs users; the team sync makes group membership in AD the source of truth, so nobody edits the team by hand and a leaver loses access when IT removes them from the group."
+              "Create the organization bramwell with team claims-platform, and enable LDAP sync on the team with the group DN CN=claims-platform,OU=Groups,DC=bramwell,DC=local (member attribute member). UCP/MKE's LDAP integration already syncs users; the team sync makes group membership in AD the source of truth, so nobody edits the team by hand and a leaver loses access when IT removes them from the group."
             ),
             part(
               "Resource set and role",
@@ -457,7 +457,7 @@ export const DCA_LABS: SeedLabSet = {
             ),
             part(
               "Grant and default collection",
-              "A grant = subject claims-platform + role Restricted Control + resource set /Shared/claims; plus setting the team members' default collection to /Shared/claims so resources they create land there (otherwise they land in the user's private collection), and labelling stack files with com.docker.ucp.access.label if needed.",
+              "A grant = subject claims-platform + role Restricted Control + resource set /Shared/claims; plus setting the team members' default collection to /Shared/claims so resources they create land there (otherwise they land in the user's private collection), and labeling stack files with com.docker.ucp.access.label if needed.",
               "Grant: subject = team claims-platform, role = Restricted Control, resource set = /Shared/claims. Then set each team member's default collection (or the team's) to /Shared/claims so docker service create puts the service in that collection; stack files can also pin it with the label com.docker.ucp.access.label: /Shared/claims. Without a default collection, their services land in /Shared/Private/<user> where teammates cannot manage them. No grant exists on / or on nodes, so cluster settings and other teams' collections are invisible."
             ),
           ],
@@ -559,13 +559,13 @@ export const DCA_LABS: SeedLabSet = {
           parts: [
             part(
               "Volume lifecycle",
-              "Volumes are independent of containers: a named volume outlives the containers that mount it and is 'in use' only while something mounts it; between QA runs qa-testdb is unused but valuable, which is exactly why volume cleanup must be by name or label, never by 'unused'; suggests labelling volumes (keep=true) and using prune filters, and backing up qa-testdb.",
+              "Volumes are independent of containers: a named volume outlives the containers that mount it and is 'in use' only while something mounts it; between QA runs qa-testdb is unused but valuable, which is exactly why volume cleanup must be by name or label, never by 'unused'; suggests labeling volumes (keep=true) and using prune filters, and backing up qa-testdb.",
               "A named volume is a first-class object: docker rm of the container does not touch it, and 'active' in docker system df only means a container currently mounts it. qa-testdb sits idle between test runs, so to Docker it is unused -- to QA it is weeks of fixtures. Cleanup therefore selects by name or label, never by unused-ness: docker volume create --label keep=true qa-testdb, and prune with --filter 'label!=keep=true'. Back it up (tar from a throwaway container) so a mistake is recoverable."
             ),
             part(
               "Ongoing cleanup on the runner",
-              "A scheduled job (cron or systemd timer) running docker container prune, docker image prune -a --filter until=48h, docker builder prune --keep-storage, and labelled-volume pruning; CI jobs that name their scratch volumes with a prefix and remove them at job end; log rotation in daemon.json; disk alerts at 70%.",
-              "Nightly timer: docker container prune -f; docker image prune -a -f --filter 'until=48h'; docker builder prune -f --keep-storage 10GB; docker volume prune -f --filter 'label!=keep=true' (only after every long-lived volume is labelled). CI pipelines create scratch volumes as ci-test-tmp-<job> and remove them in their cleanup step. Make sure daemon.json caps container logs (json-file max-size/max-file), and alert at 70% so nobody pages at 96% again."
+              "A scheduled job (cron or systemd timer) running docker container prune, docker image prune -a --filter until=48h, docker builder prune --keep-storage, and labeled-volume pruning; CI jobs that name their scratch volumes with a prefix and remove them at job end; log rotation in daemon.json; disk alerts at 70%.",
+              "Nightly timer: docker container prune -f; docker image prune -a -f --filter 'until=48h'; docker builder prune -f --keep-storage 10GB; docker volume prune -f --filter 'label!=keep=true' (only after every long-lived volume is labeled). CI pipelines create scratch volumes as ci-test-tmp-<job> and remove them in their cleanup step. Make sure daemon.json caps container logs (json-file max-size/max-file), and alert at 70% so nobody pages at 96% again."
             ),
             part(
               "MSR/DTR",

@@ -2140,7 +2140,7 @@ export const AWS_SCS_TRACK: SeedTrack = {
         "Inter-resource encryption in transit: inter-node encryption for Amazon EMR, Amazon EKS, and SageMaker AI, and Nitro encryption",
         "Encryption at rest: choosing between AWS KMS and AWS CloudHSM, and client-side against server-side encryption",
         "Protecting data integrity: S3 Object Lock, S3 Glacier Vault Lock, versioning, digital code signing, file validation",
-        "Automatic lifecycle management and retention: S3 Lifecycle policies, Amazon EFS lifecycle policies, Amazon FSx for Lustre backup policies",
+        "Automatic lifecycle management and retention: S3 Lifecycle policies, Amazon EFS lifecycle policies, Amazon FSx for Luster backup policies",
         "Secure replication and backup, including ransomware protection, with AWS Backup, Amazon Data Lifecycle Manager, and AWS DataSync",
         "Managing and rotating credentials and secrets with AWS Secrets Manager",
         "Managing and rotating imported key material, and configuring external key stores",

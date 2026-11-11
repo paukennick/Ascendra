@@ -68,13 +68,13 @@ export const DPT_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Findings: left calf circumference 3 cm larger than the right, pitting oedema at the ankle, warmth and diffuse tenderness along the deep veins of the calf, pain on walking. No chest pain or breathlessness.",
+          text: "Findings: left calf circumference 3 cm larger than the right, pitting edema at the ankle, warmth and diffuse tenderness along the deep veins of the calf, pain on walking. No chest pain or breathlessness.",
           ask: "What are your differential diagnoses, and what do you decide?",
           parts: [
             part(
               "Differential",
-              "Lists deep vein thrombosis as the condition to rule out first (risk factors: recent long flight, recent surgery; signs: unilateral swelling, pitting oedema, warmth, deep-vein tenderness), alongside gastrocnemius/soleus strain and others (e.g. ruptured Baker cyst, cellulitis).",
-              "DVT first -- recent surgery and a long flight, with one-sided swelling, pitting oedema, warmth and deep-vein tenderness. Also a calf muscle strain from tennis, a ruptured Baker cyst or cellulitis."
+              "Lists deep vein thrombosis as the condition to rule out first (risk factors: recent long flight, recent surgery; signs: unilateral swelling, pitting edema, warmth, deep-vein tenderness), alongside gastrocnemius/soleus strain and others (e.g. ruptured Baker cyst, cellulitis).",
+              "DVT first -- recent surgery and a long flight, with one-sided swelling, pitting edema, warmth and deep-vein tenderness. Also a calf muscle strain from tennis, a ruptured Baker cyst or cellulitis."
             ),
             part(
               "Decision",
@@ -89,7 +89,7 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Plan for the strain",
-              "Sets a staged plan for a calf strain: protect/relative rest early with pain-guided activity, progressive loading (isometric to isotonic heel raises, eccentric work), gait normalisation and a graded return to tennis with criteria.",
+              "Sets a staged plan for a calf strain: protect/relative rest early with pain-guided activity, progressive loading (isometric to isotonic heel raises, eccentric work), gait normalization and a graded return to tennis with criteria.",
               "Pain-guided walking, gentle range, then progressive loading -- double- to single-leg heel raises, eccentric lowering, then hopping and court drills -- returning to tennis when single-leg heel raises and hopping match the other side."
             ),
             part(
@@ -121,7 +121,7 @@ export const DPT_LABS: SeedLabSet = {
             ),
             part(
               "Daily screening",
-              "Builds in daily screening for decompensation: daily weights (flag a gain of 1.8 kg / 4 lb or more over 1-3 days), new oedema, orthopnea, worsening breathlessness or fatigue, and what to do if present (hold and contact the team).",
+              "Builds in daily screening for decompensation: daily weights (flag a gain of 1.8 kg / 4 lb or more over 1-3 days), new edema, orthopnea, worsening breathlessness or fatigue, and what to do if present (hold and contact the team).",
               "He weighs himself every morning; a gain of 1.8 kg (4 lb) or more in 1-3 days, new swelling, needing more pillows, or more breathlessness means no exercise that day and a call to his heart failure team."
             ),
             part(
@@ -161,12 +161,12 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Assess safely",
-              "Uses the moment to ask her privately, in a non-leading way, whether she feels safe and how she got the bruises, checks for immediate danger, and documents objective findings (location, pattern, colour/stages of bruises, her words in quotes, behaviour, medication count).",
-              "Ask her privately and gently: \"Do you feel safe at home?\" and \"How did you get these bruises?\" Check whether she is in immediate danger. Document the bruise pattern and colours, her exact words, her behaviour and the near-empty bottle."
+              "Uses the moment to ask her privately, in a non-leading way, whether she feels safe and how she got the bruises, checks for immediate danger, and documents objective findings (location, pattern, colour/stages of bruises, her words in quotes, behavior, medication count).",
+              "Ask her privately and gently: \"Do you feel safe at home?\" and \"How did you get these bruises?\" Check whether she is in immediate danger. Document the bruise pattern and colors, her exact words, her behavior and the near-empty bottle."
             ),
             part(
               "Report",
-              "Recognises a legal duty to report suspected elder abuse/neglect/financial exploitation per state law (Adult Protective Services, or police/911 if in immediate danger), notifies the agency/supervisor per policy, and does not investigate or confront the nephew.",
+              "Recognizes a legal duty to report suspected elder abuse/neglect/financial exploitation per state law (Adult Protective Services, or police/911 if in immediate danger), notifies the agency/supervisor per policy, and does not investigate or confront the nephew.",
               "Report the suspected physical abuse and possible drug diversion to Adult Protective Services today as state law requires (911 if she's in immediate danger), and tell my agency supervisor. I don't confront the nephew or investigate myself."
             ),
           ],
@@ -191,7 +191,7 @@ export const DPT_LABS: SeedLabSet = {
       kind: "case",
       title: "Consent for thrust manipulation",
       brief:
-        "You are a PT treating a fictional 29-year-old graduate student with acute low back pain and a mobility deficit, no red flags and a normal neurological screen. You think lumbopelvic thrust manipulation could help reduce pain and disability, and the 2021 low back pain guideline supports thrust or non-thrust mobilisation for acute LBP. She has never had manual therapy.",
+        "You are a PT treating a fictional 29-year-old graduate student with acute low back pain and a mobility deficit, no red flags and a normal neurological screen. You think lumbopelvic thrust manipulation could help reduce pain and disability, and the 2021 low back pain guideline supports thrust or non-thrust mobilization for acute LBP. She has never had manual therapy.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -200,8 +200,8 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Elements",
-              "Explains the nature of the procedure in plain language, expected benefits, material risks (e.g. temporary soreness; rare serious events), alternatives (non-thrust mobilisation, exercise, no treatment), and that she may refuse or stop at any time; checks understanding and obtains and documents consent.",
-              "What it is (a quick, small-amplitude movement while lying on her side), likely benefit (short-term pain relief to help her move), risks (soreness for a day or two, rare serious problems), alternatives (gentler mobilisation, exercise only, or nothing), and that she can say no or stop at any point. Check she understands; document her consent."
+              "Explains the nature of the procedure in plain language, expected benefits, material risks (e.g. temporary soreness; rare serious events), alternatives (non-thrust mobilization, exercise, no treatment), and that she may refuse or stop at any time; checks understanding and obtains and documents consent.",
+              "What it is (a quick, small-amplitude movement while lying on her side), likely benefit (short-term pain relief to help her move), risks (soreness for a day or two, rare serious problems), alternatives (gentler mobilization, exercise only, or nothing), and that she can say no or stop at any point. Check she understands; document her consent."
             ),
           ],
         },
@@ -212,7 +212,7 @@ export const DPT_LABS: SeedLabSet = {
             part(
               "Withdrawal",
               "Stops immediately without pressure, respects the withdrawal, explores concerns only to inform her, offers the alternatives, and documents the withdrawal and the change of plan.",
-              "Stop straight away -- \"That's fine, we won't do it.\" Ask if she'd like to say what worried her, offer gentle mobilisation or exercise instead, and document that she withdrew consent and what we did."
+              "Stop straight away -- \"That's fine, we won't do it.\" Ask if she'd like to say what worried her, offer gentle mobilization or exercise instead, and document that she withdrew consent and what we did."
             ),
             part(
               "Ongoing consent",
@@ -232,7 +232,7 @@ export const DPT_LABS: SeedLabSet = {
       kind: "build",
       title: "Is a statistically significant result clinically important?",
       brief:
-        "A fictional randomised trial of 120 adults with chronic low back pain compared 8 weeks of a new core program with usual physical therapy. Outcome: Oswestry Disability Index (0-100). Result at 8 weeks: mean between-group difference 4.0 points favouring the new program (95% confidence interval 1.2 to 6.8; p = 0.006). Outcome assessors were not blinded, 18% of participants dropped out, and there was no follow-up after 8 weeks. A fictional 45-year-old nurse you are treating for chronic LBP asks if she should switch.",
+        "A fictional randomized trial of 120 adults with chronic low back pain compared 8 weeks of a new core program with usual physical therapy. Outcome: Oswestry Disability Index (0-100). Result at 8 weeks: mean between-group difference 4.0 points favoring the new program (95% confidence interval 1.2 to 6.8; p = 0.006). Outcome assessors were not blinded, 18% of participants dropped out, and there was no follow-up after 8 weeks. A fictional 45-year-old nurse you are treating for chronic LBP asks if she should switch.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -250,7 +250,7 @@ export const DPT_LABS: SeedLabSet = {
     {
       slug: "dpt-motivational-interviewing-adherence",
       objective:
-        "Motivational interviewing for behaviour change: open-ended questions, empathy, and working through the patient's ambivalence instead of directing them",
+        "Motivational interviewing for behavior change: open-ended questions, empathy, and working through the patient's ambivalence instead of directing them",
       kind: "case",
       title: "\"I just don't have time for the exercises\"",
       brief:
@@ -298,7 +298,7 @@ export const DPT_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Systems review: resting BP 182/108 mm Hg on two readings 5 minutes apart (above the facility's hold limit), no headache, chest pain or visual change; on the back of his right shoulder an irregular dark mole with uneven colour that he says has grown over the last few months; neuromuscular and communication screens normal.",
+          text: "Systems review: resting BP 182/108 mm Hg on two readings 5 minutes apart (above the facility's hold limit), no headache, chest pain or visual change; on the back of his right shoulder an irregular dark mole with uneven color that he says has grown over the last few months; neuromuscular and communication screens normal.",
           ask: "What do these findings mean for today's plan?",
           parts: [
             part(
@@ -308,8 +308,8 @@ export const DPT_LABS: SeedLabSet = {
             ),
             part(
               "Skin",
-              "Recognises a changing, irregular, multicoloured mole as suspicious for melanoma (ABCDE features) and refers to the physician/dermatology, explaining without diagnosing.",
-              "An irregular, multicoloured mole that is growing has ABCDE warning features -- refer to his physician or a dermatologist for assessment, telling him it should be checked, without naming a diagnosis."
+              "Recognizes a changing, irregular, multicolored mole as suspicious for melanoma (ABCDE features) and refers to the physician/dermatology, explaining without diagnosing.",
+              "An irregular, multicolored mole that is growing has ABCDE warning features -- refer to his physician or a dermatologist for assessment, telling him it should be checked, without naming a diagnosis."
             ),
           ],
         },
@@ -357,7 +357,7 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Re-screen and refer",
-              "Recognises new bilateral upper-limb paresthesias and lower-limb clumsiness as possible spinal cord involvement (a red flag), stops treatment, performs a neurological screen including upper motor neuron signs, and refers urgently for medical evaluation and imaging; documents.",
+              "Recognizes new bilateral upper-limb paresthesias and lower-limb clumsiness as possible spinal cord involvement (a red flag), stops treatment, performs a neurological screen including upper motor neuron signs, and refers urgently for medical evaluation and imaging; documents.",
               "Bilateral hand tingling and clumsy legs could mean the spinal cord is involved. Stop treatment, check reflexes, Hoffmann and Babinski signs and gait, and send her for urgent medical evaluation and imaging today; document it."
             ),
           ],
@@ -382,7 +382,7 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part("ICF problem list", "Classifies findings into body structure/function impairments (dorsiflexion, plantarflexion strength, balance, swelling), activity limitations (gait speed, stairs, single-leg stance), participation restrictions (library volunteering, bus use) and contextual factors (lives alone, fear of falling).", "Impairments: dorsiflexion 0 degrees, plantarflexor weakness 3+/5, poor right single-leg balance, swelling. Activity: slow gait (0.75 m/s) with a cane, can't do steps without a rail. Participation: not volunteering or using the bus. Context: lives alone, fear of falling."),
             part("PT diagnosis", "States a movement/impairment-based PT diagnosis linking the impairments to the activity limits (e.g. impaired gait and balance due to ankle mobility and plantarflexor deficits after fracture fixation).", "Impaired gait, balance and stair negotiation from restricted ankle dorsiflexion and plantarflexor weakness after right ankle ORIF."),
-            part("Prognosis", "Gives a reasoned prognosis with a time frame, citing favourable (healed fixation, WBAT, motivated) and unfavourable factors (age, fear of falling, living alone).", "Good prognosis to walk without a device and manage stairs in about 8-10 weeks: fracture fixed and weight-bearing, motivated; slowed by age, fear of falling and living alone."),
+            part("Prognosis", "Gives a reasoned prognosis with a time frame, citing favorable (healed fixation, WBAT, motivated) and unfavorable factors (age, fear of falling, living alone).", "Good prognosis to walk without a device and manage stairs in about 8-10 weeks: fracture fixed and weight-bearing, motivated; slowed by age, fear of falling and living alone."),
             part("Goals", "Writes measurable, time-bound goals across activity and participation (e.g. gait speed, stairs without rail, return to volunteering by bus).", "In 4 weeks: climb her 3 front steps with one rail, step-over-step. In 8 weeks: walk 400 m without a device at 1.0 m/s or faster and take the bus to the library twice a week."),
           ],
         },
@@ -440,7 +440,7 @@ export const DPT_LABS: SeedLabSet = {
       kind: "case",
       title: "Chronic back pain and fear of moving",
       brief:
-        "A fictional 48-year-old forklift driver has had low back pain for 9 months, with no leg symptoms and no generalised pain elsewhere. Red-flag screen and neurological screen are negative. Oswestry Disability Index 46%. He has stopped lifting anything heavy because a previous provider told him his MRI showed \"a crumbling spine\", and he spends much of the day lying down. He wants to get back to work.",
+        "A fictional 48-year-old forklift driver has had low back pain for 9 months, with no leg symptoms and no generalized pain elsewhere. Red-flag screen and neurological screen are negative. Oswestry Disability Index 46%. He has stopped lifting anything heavy because a previous provider told him his MRI showed \"a crumbling spine\", and he spends much of the day lying down. He wants to get back to work.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -449,12 +449,12 @@ export const DPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Exercise",
-              "Prescribes active, progressive exercise -- trunk strengthening/endurance and general/aerobic exercise -- at moderate to high intensity (appropriate because he has chronic LBP without generalised pain), progressed by graded exposure to lifting.",
+              "Prescribes active, progressive exercise -- trunk strengthening/endurance and general/aerobic exercise -- at moderate to high intensity (appropriate because he has chronic LBP without generalized pain), progressed by graded exposure to lifting.",
               "Progressive trunk strengthening and endurance plus aerobic exercise at moderate-to-high intensity -- fine for chronic LBP without widespread pain -- building to graded lifting practice for his job."
             ),
             part(
               "Education",
-              "Uses active pain-science education combined with exercise (not as a stand-alone), reassuring about spine strength and favourable prognosis, encouraging activity and return to work, and avoiding threatening pathoanatomical explanations or bed rest.",
+              "Uses active pain-science education combined with exercise (not as a stand-alone), reassuring about spine strength and favorable prognosis, encouraging activity and return to work, and avoiding threatening pathoanatomical explanations or bed rest.",
               "Explain that the spine is strong, that MRI changes are common and don't mean damage, and that pain can be turned up by fear and inactivity; encourage him to move more, not rest. Paired with exercise, never on its own."
             ),
           ],
@@ -479,11 +479,11 @@ export const DPT_LABS: SeedLabSet = {
     },
     {
       slug: "dpt-subacute-stroke-monitor-adjust",
-      objective: "Monitoring and adjusting the plan of care to optimise health outcomes",
+      objective: "Monitoring and adjusting the plan of care to optimize health outcomes",
       kind: "case",
       title: "Gait speed after stroke: progress, plateau, plan",
       brief:
-        "A fictional 63-year-old retired pharmacist had a right hemisphere ischaemic stroke 20 days ago and starts outpatient physical therapy 3 times a week. Comfortable gait speed on the 10-metre walk test is 0.22 m/s with a quad cane and minimal assistance. Her goal is to walk around her home and garden independently.",
+        "A fictional 63-year-old retired pharmacist had a right hemisphere ischemic stroke 20 days ago and starts outpatient physical therapy 3 times a week. Comfortable gait speed on the 10-meter walk test is 0.22 m/s with a quad cane and minimal assistance. Her goal is to walk around her home and garden independently.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -537,7 +537,7 @@ export const DPT_LABS: SeedLabSet = {
           ask: "Design the measures and the first test of change.",
           parts: [
             part("Donabedian measures", "Names at least one structure measure (e.g. height-adjustable tables, gait belts available), one process measure (e.g. % of high-risk patients screened and flagged, % of transfers with gait belt/staff present) and one outcome measure (falls per 1,000 visits).", "Structure: number of height-adjustable tables and gait belts at each station. Process: % of patients screened for fall risk and flagged, % of flagged transfers done with a gait belt and staff in place. Outcome: falls per 1,000 visits."),
-            part("Plan", "States a specific change and prediction (e.g. a 'stay with flagged patients during transfers' rule plus a visual flag), who/where/when, and the data to collect.", "Plan: for 4 weeks, every patient with a positive fall screen gets a coloured wristband and is never left alone on or near a table; prediction: no table-related falls and 90% adherence. Track adherence on a daily checklist."),
+            part("Plan", "States a specific change and prediction (e.g. a 'stay with flagged patients during transfers' rule plus a visual flag), who/where/when, and the data to collect.", "Plan: for 4 weeks, every patient with a positive fall screen gets a colored wristband and is never left alone on or near a table; prediction: no table-related falls and 90% adherence. Track adherence on a daily checklist."),
             part("Do and Study", "Runs it on a small scale first, then compares the data with the prediction, including a balancing measure (e.g. waiting times, staff workload).", "Run it with one team for 4 weeks, then compare falls and adherence with the prediction, and watch a balancing measure -- session delays and staff overtime."),
             part("Act", "Decides to adopt, adapt or abandon based on the study and plans the next cycle/spread.", "If adherence is high and falls drop without big delays, adopt it and spread to all teams; if adherence is low, adapt (e.g. scheduling changes) and test again."),
           ],
@@ -549,7 +549,7 @@ export const DPT_LABS: SeedLabSet = {
     {
       slug: "dpt-safety-incident-response",
       objective:
-        "Assessing, documenting and minimising safety risks for patients and providers, including facility safety policies",
+        "Assessing, documenting and minimizing safety risks for patients and providers, including facility safety policies",
       kind: "build",
       title: "After a near-miss with a hot pack",
       brief:

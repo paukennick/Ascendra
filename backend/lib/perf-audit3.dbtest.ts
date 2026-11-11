@@ -233,7 +233,7 @@ describe("course view (FAIL-376, FAIL-377)", () => {
     const view = async () => (await coursesGet(get(u, "http://t/x"), { params: Promise.resolve({ id: track }) })).json();
     assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false });
     await query(`insert into track_acknowledgements (user_id, track_id, disclaimer_version, disclaimer_key) values ($1, $2, 2, 'k')`, [u, track]);
-    assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false }, "a per-course acknowledgement no longer counts");
+    assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: false }, "a per-course acknowledgment no longer counts");
     await query(`insert into legal_acceptances (user_id, document, version, source) values ($1, 'study_notice', $2, 'prompt')`, [u, STUDY_NOTICE_VERSION]);
     assert.deepEqual((await view()).acknowledgement, { required: true, acknowledged: true });
   });

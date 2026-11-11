@@ -172,7 +172,7 @@ describe("REQ-117 mastery rule (045)", () => {
     assert.equal(d.status, "Independent");
   });
 
-  test("FAIL-354: one rough first lesson is not labelled Needs review; a placement guess is not Guided", async () => {
+  test("FAIL-354: one rough first lesson is not labeled Needs review; a placement guess is not Guided", async () => {
     const u = await newUser();
     await lesson(u, objs[2], "incorrect", "fade");
     await lesson(u, objs[2], "incorrect", "solo");

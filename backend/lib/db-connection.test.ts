@@ -10,7 +10,7 @@ import { sslOption, startupStatementTimeoutMs, isPoolerUrl, lockTimeoutSql, DEFA
 const PEM = "-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----\n";
 
 describe("sslOption (FAIL-942)", () => {
-  test("unset: unchanged behaviour (encrypted, not verified)", () => {
+  test("unset: unchanged behavior (encrypted, not verified)", () => {
     assert.deepEqual(sslOption({}), { rejectUnauthorized: false });
   });
   test("PGSSLMODE=disable turns TLS off, even with a CA configured", () => {

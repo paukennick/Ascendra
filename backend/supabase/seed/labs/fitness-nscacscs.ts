@@ -215,8 +215,8 @@ export const NSCACSCS_LABS: SeedLabSet = {
             ),
             part(
               "Arousal regulation",
-              "Chooses a calming technique suited to over-arousal (for example slow diaphragmatic breathing or a short relaxation routine) and practises it in training first.",
-              "Two slow breaths with a long exhale before approaching the bar, practised in every heavy training session for three weeks."
+              "Chooses a calming technique suited to over-arousal (for example slow diaphragmatic breathing or a short relaxation routine) and practices it in training first.",
+              "Two slow breaths with a long exhale before approaching the bar, practiced in every heavy training session for three weeks."
             ),
             part(
               "Self-talk and attention",

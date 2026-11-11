@@ -229,7 +229,7 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
 };
 
 export const QUIZ_HELD_MESSAGE =
-  "We couldn't write a question we're confident in for this topic just now. Try again, or pick a lesson to practise instead.";
+  "We couldn't write a question we're confident in for this topic just now. Try again, or pick a lesson to practice instead.";
 
 // Holds back (and logs) a new Quiz-me question that lists uncertain claims or
 // fails the fact-check gate; throws a message the app shows. Passes otherwise.

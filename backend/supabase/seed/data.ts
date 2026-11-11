@@ -596,7 +596,7 @@ export const SECPLUS_TRACK: SeedTrack = {
         "Wireless and mobile hardening: wireless devices and installation considerations (site surveys, heat maps); mobile device management (MDM), deployment models (bring your own device (BYOD), corporate-owned, personally enabled (COPE), choose your own device (CYOD)) and connection methods (cellular, Wi-Fi, Bluetooth); wireless security settings (WPA3, AAA/RADIUS, cryptographic protocols, authentication protocols)",
         "Application security techniques: input validation, secure cookies, static code analysis, code signing, sandboxing, and monitoring",
         "Hardware, software, and data asset management: acquisition/procurement process, assignment/accounting (ownership, classification), monitoring/asset tracking (inventory, enumeration), and disposal/decommissioning (sanitization, destruction, certification, data retention)",
-        "Finding and analysing vulnerabilities: vulnerability scan; application security (static analysis, dynamic analysis, package monitoring); threat feed sources (open-source intelligence (OSINT), proprietary/third-party, information-sharing organization, dark web); penetration testing; responsible disclosure program and bug bounty; system/process audit; confirming a false positive or false negative; prioritizing with CVSS and CVE, vulnerability classification, exposure factor, environmental variables, industry/organizational impact, and risk tolerance",
+        "Finding and analyzing vulnerabilities: vulnerability scan; application security (static analysis, dynamic analysis, package monitoring); threat feed sources (open-source intelligence (OSINT), proprietary/third-party, information-sharing organization, dark web); penetration testing; responsible disclosure program and bug bounty; system/process audit; confirming a false positive or false negative; prioritizing with CVSS and CVE, vulnerability classification, exposure factor, environmental variables, industry/organizational impact, and risk tolerance",
         "Vulnerability response and remediation: patching, insurance, segmentation, compensating controls, exceptions and exemptions; validation of remediation (rescanning, audit, verification) and reporting",
         "Security alerting and monitoring: monitoring systems, applications, and infrastructure; log aggregation, alerting, scanning, reporting, archiving, and alert response and remediation/validation (quarantine, alert tuning); tools (Security Content Automation Protocol (SCAP), benchmarks, agents/agentless, SIEM, antivirus, data loss prevention (DLP), SNMP traps, NetFlow, vulnerability scanners)",
         "Tuning network defenses: firewall rules, access lists, ports/protocols, screened subnets; IDS/IPS trends and signatures; web filter (agent-based, centralized proxy, URL scanning, content categorization, block rules, reputation); DNS filtering",
@@ -649,7 +649,7 @@ export const SECPLUS_TRACK: SeedTrack = {
         "The risk management process: risk identification; risk assessment (ad hoc, recurring, one-time, continuous); risk analysis (single loss expectancy (SLE), annualized loss expectancy (ALE), annualized rate of occurrence (ARO), probability, likelihood, exposure factor, impact); risk register (key risk indicators, risk owners, risk threshold); risk tolerance and risk appetite (expansionary, conservative, neutral)",
         "Risk management strategies and business impact analysis: transfer, accept (exemption, exception), avoid, mitigate; risk reporting; business impact analysis with recovery time objective (RTO), recovery point objective (RPO), mean time to repair (MTTR), and mean time between failures (MTBF)",
         "Third-party risk assessment and management: vendor assessment (penetration testing, right-to-audit clause, evidence of internal audits, independent assessments, supply chain analysis), vendor selection (due diligence, conflict of interest), agreement types (service-level agreement (SLA), memorandum of agreement (MOA), memorandum of understanding (MOU), master service agreement (MSA), work order (WO)/statement of work (SOW), non-disclosure agreement (NDA), business partners agreement (BPA)), vendor monitoring, questionnaires, and rules of engagement",
-        "Security compliance: compliance reporting (internal, external); consequences of non-compliance (fines, sanctions, reputational damage, loss of license, contractual impacts); compliance monitoring (due diligence/care, attestation and acknowledgement, internal and external, automation); privacy (legal implications, data subject, controller vs. processor, ownership, data inventory and retention, right to be forgotten)",
+        "Security compliance: compliance reporting (internal, external); consequences of non-compliance (fines, sanctions, reputational damage, loss of license, contractual impacts); compliance monitoring (due diligence/care, attestation and acknowledgment, internal and external, automation); privacy (legal implications, data subject, controller vs. processor, ownership, data inventory and retention, right to be forgotten)",
         "Audits and assessments: attestation; internal audit (compliance, audit committee, self-assessments); external audit (regulatory, examinations, assessment, independent third-party audit); penetration testing (physical, offensive, defensive, integrated; known environment, partially known environment, unknown environment; reconnaissance, passive and active)",
         "Security awareness practices: phishing campaigns, recognizing a phishing attempt, and responding to reported suspicious messages; anomalous behavior recognition (risky, unexpected, unintentional); user guidance and training (policy/handbooks, situational awareness, insider threat, password management, removable media and cables, social engineering, operational security, hybrid/remote work environments); reporting and monitoring (initial, recurring); program development and execution",
       ],
@@ -970,7 +970,7 @@ export const SECPLUSV8_TRACK: SeedTrack = {
         "Vendor monitoring (right to audit, service-level monitoring, vendor registry, vendor assessment, compliance attestation, penetration testing) and rules of engagement",
         "Third-party limitations/constraints: staffing limitations, resource availability, environment, legal and regulatory factors, geography/jurisdiction, financial/return on investment (ROI), vendor lock-in, assurance mechanisms",
         // 5.4
-        "Compliance training (data handling, anti-money laundering/counter-terrorism financing (AML/CTF), anti-bribery) and compliance monitoring (attestations, acknowledgements)",
+        "Compliance training (data handling, anti-money laundering/counter-terrorism financing (AML/CTF), anti-bribery) and compliance monitoring (attestations, acknowledgments)",
         "Consequences of non-compliance: reputational damage, financial, legal, contractual, sanctions, loss of license",
         "Privacy (right to be forgotten, opt-in or opt-out, data correction, processing restrictions, processing prevention, controller vs. processor, ownership) and legal compliance (legal hold, legal orders, data retention requirements)",
         // 5.5
@@ -2090,7 +2090,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     // say, never which is true).
     {
       title: "Religion Surveys: The Bible and Christian Thought",
-      gate: "Describe how the Bible's canons are organised and differ between traditions, and explain how Christian traditions answer the same theological questions differently, attributing each position to those who hold it.",
+      gate: "Describe how the Bible's canons are organized and differ between traditions, and explain how Christian traditions answer the same theological questions differently, attributing each position to those who hold it.",
       objectives: [
         "Survey of the Old and New Testaments: canon, structure and literary genres",
         "Introduction to Christian theology: its main questions and how traditions answer them",
@@ -2115,7 +2115,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     },
     {
       title: "Calculus I",
-      gate: "Given a function, find its limits and derivative with the rules, and use the derivative to solve an optimisation problem and evaluate an indeterminate limit.",
+      gate: "Given a function, find its limits and derivative with the rules, and use the derivative to solve an optimization problem and evaluate an indeterminate limit.",
       objectives: [
         "Functions and graphs, including exponential, logarithmic, and inverse trig forms",
         "Limits and continuity",
@@ -2250,7 +2250,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     },
     {
       title: "Mathematical Modeling and Simulation",
-      gate: "Turn a described situation into a mathematical model, state its assumptions, analyse or simulate it, and say where it stops being reliable.",
+      gate: "Turn a described situation into a mathematical model, state its assumptions, analyze or simulate it, and say where it stops being reliable.",
       objectives: [
         "Formulating mathematical models from real-world scenarios",
         "Analytical techniques for evaluating model behavior",
@@ -2282,7 +2282,7 @@ export const CMPCBS_TRACK: SeedTrack = {
     },
     {
       title: "Introduction to Information Systems",
-      gate: "Given an organisation's process, say where technology adds value, compare candidate systems against stated criteria, and document the choice.",
+      gate: "Given an organization's process, say where technology adds value, compare candidate systems against stated criteria, and document the choice.",
       objectives: [
         "Evaluating and choosing business technology solutions",
         "Mapping business processes to where technology adds value",

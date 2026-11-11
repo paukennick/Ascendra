@@ -84,7 +84,7 @@ describe("study notice (REQ-165)", () => {
     assert.equal((await json(await onboardingGet(req(u, "/api/onboarding")))).notice.needed, true);
   });
 
-  test("a gated course requires the notice on the server; an old per-course acknowledgement does not count", async () => {
+  test("a gated course requires the notice on the server; an old per-course acknowledgment does not count", async () => {
     const u = await newUser();
     await query(
       `insert into track_acknowledgements (user_id, track_id, disclaimer_version, disclaimer_key) values ($1, $2, 3, 'nursing-clinical')`,

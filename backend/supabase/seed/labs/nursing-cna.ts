@@ -46,7 +46,7 @@ export const CNA_LABS: SeedLabSet = {
           parts: [
             part(
               "Mild choking",
-              "Recognises a mild (partial) obstruction because he can cough forcefully and speak; encourages him to keep coughing, does not slap his back or give thrusts, stays with him and watches for signs it is getting worse, and lets the nurse know.",
+              "Recognizes a mild (partial) obstruction because he can cough forcefully and speak; encourages him to keep coughing, does not slap his back or give thrusts, stays with him and watches for signs it is getting worse, and lets the nurse know.",
               "He can cough and talk, so the airway is only partly blocked. Encourage him to keep coughing, don't hit his back or do thrusts yet, stay right with him watching for it getting worse, and have someone tell the nurse."
             ),
           ],
@@ -157,7 +157,7 @@ export const CNA_LABS: SeedLabSet = {
     },
     {
       slug: "cna-out-of-range-vitals",
-      objective: "Recognising a measurement that falls outside the expected range",
+      objective: "Recognizing a measurement that falls outside the expected range",
       kind: "case",
       title: "A blood pressure that doesn't fit",
       brief:
@@ -170,7 +170,7 @@ export const CNA_LABS: SeedLabSet = {
           parts: [
             part(
               "Check the measurement",
-              "Recognises a cuff that is too small can read falsely high, rechecks with a correctly sized cuff after a short rest with the arm supported at heart level, and still reports promptly if the repeat is outside the range.",
+              "Recognizes a cuff that is too small can read falsely high, rechecks with a correctly sized cuff after a short rest with the arm supported at heart level, and still reports promptly if the repeat is outside the range.",
               "A cuff that's too small reads high. Let him rest a few minutes, then recheck with the right-size cuff, arm supported at heart level. If it's still over the range, I report it right away."
             ),
           ],
@@ -274,7 +274,7 @@ export const CNA_LABS: SeedLabSet = {
             ),
             part(
               "While eating",
-              "Offers small bites and sips slowly, one at a time, letting him swallow fully before the next, places food on his stronger (right) side, checks the weaker side of the mouth for pocketed food, minimises distractions, and does not thin his drinks or use a straw unless the plan allows.",
+              "Offers small bites and sips slowly, one at a time, letting him swallow fully before the next, places food on his stronger (right) side, checks the weaker side of the mouth for pocketed food, minimizes distractions, and does not thin his drinks or use a straw unless the plan allows.",
               "Small spoonfuls, one at a time, waiting until he has swallowed; food into the right side of his mouth; check his left cheek for food left behind; keep the TV off; never thin his drink or give a straw unless the plan says so."
             ),
             part(
@@ -337,7 +337,7 @@ export const CNA_LABS: SeedLabSet = {
     },
     {
       slug: "cna-depression-report",
-      objective: "Recognising depression and withdrawal, and reporting it",
+      objective: "Recognizing depression and withdrawal, and reporting it",
       kind: "build",
       title: "A resident who has gone quiet",
       brief:
@@ -350,7 +350,7 @@ export const CNA_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises these changes as possible signs of depression (not just normal ageing or ordinary sadness) after a major loss.",
+              "Recognizes these changes as possible signs of depression (not just normal aging or ordinary sadness) after a major loss.",
               "Stopping things she loved, eating less, not caring about her hair, crying at night and saying there's no point can be signs of depression after losing her husband -- not just 'getting old'."
             ),
             part(
@@ -393,7 +393,7 @@ export const CNA_LABS: SeedLabSet = {
             ),
             part(
               "Look for causes",
-              "Checks for needs that may drive the behaviour (toileting, hunger, thirst, pain, fatigue, noise) and reports the pattern so the care plan can address the late-afternoon restlessness (sundowning).",
+              "Checks for needs that may drive the behavior (toileting, hunger, thirst, pain, fatigue, noise) and reports the pattern so the care plan can address the late-afternoon restlessness (sundowning).",
               "Offer the toilet and a drink, check whether she seems in pain or tired, and lower the noise. Tell the nurse it happens every day around 16:00 so the care plan can plan for it."
             ),
           ],

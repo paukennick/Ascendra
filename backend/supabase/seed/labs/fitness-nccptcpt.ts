@@ -81,7 +81,7 @@ export const NCCPTCPT_LABS: SeedLabSet = {
             part(
               "Size principle",
               "Explains the size principle: motor units are recruited from smaller (slow-twitch, type I) to larger (fast-twitch, type II) as force demand rises, so heavier loads (or light loads taken close to fatigue) recruit the larger units.",
-              "Muscles recruit small, fatigue-resistant fibres first and bring in the larger fast-twitch fibres as the effort gets harder -- heavy weights, or lighter ones taken close to failure."
+              "Muscles recruit small, fatigue-resistant fibers first and bring in the larger fast-twitch fibers as the effort gets harder -- heavy weights, or lighter ones taken close to failure."
             ),
             part(
               "Myth correction",
@@ -120,8 +120,8 @@ export const NCCPTCPT_LABS: SeedLabSet = {
             ),
             part(
               "Shortfalls",
-              "Identifies quality shortfalls: very low fruit and vegetable intake (and so fibre and micronutrients), frequent takeaway and sugar-sweetened drinks.",
-              "Only about one serving of fruit and vegetables a day, lots of takeaway and sweetened drinks -- likely low in fibre and several vitamins and minerals."
+              "Identifies quality shortfalls: very low fruit and vegetable intake (and so fiber and micronutrients), frequent takeaway and sugar-sweetened drinks.",
+              "Only about one serving of fruit and vegetables a day, lots of takeaway and sweetened drinks -- likely low in fiber and several vitamins and minerals."
             ),
             part(
               "Within scope",

@@ -41,7 +41,7 @@ export const DATAAI_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Compute precision, recall, F1, specificity, accuracy and MCC; interpret them for this problem; respond to the product manager; and say which metric you would optimise and how a threshold change trades off.",
+          ask: "Compute precision, recall, F1, specificity, accuracy and MCC; interpret them for this problem; respond to the product manager; and say which metric you would optimize and how a threshold change trades off.",
           parts: [
             part(
               "Precision, recall and F1",
@@ -55,8 +55,8 @@ export const DATAAI_LABS: SeedLabSet = {
               "Flagging nothing at all would be 99.0% accurate (9,900 correct of 10,000) and catch zero fraud, so 98.6% accuracy is worse than doing nothing by that measure -- accuracy is the wrong lens when 1% of cases are positive. The real picture: the model finds 80% of fraud (recall) at the cost of 120 false alarms, with 40% precision, and an MCC of 0.56. Whether that is good depends on what a missed fraud costs versus a wrongly held payment."
             ),
             part(
-              "What to optimise and the threshold trade-off",
-              "Chooses to maximise recall subject to the review capacity: 200 flags per day fit within the 250-review budget, so the threshold can be lowered to flag up to 250 (raising recall, lowering precision) until the budget is hit; explains lowering the threshold trades precision for recall and would use a precision-recall curve (not ROC, given imbalance) to pick the point; mentions cost-weighted evaluation.",
+              "What to optimize and the threshold trade-off",
+              "Chooses to maximize recall subject to the review capacity: 200 flags per day fit within the 250-review budget, so the threshold can be lowered to flag up to 250 (raising recall, lowering precision) until the budget is hit; explains lowering the threshold trades precision for recall and would use a precision-recall curve (not ROC, given imbalance) to pick the point; mentions cost-weighted evaluation.",
               "With a hard review budget of 250 a day and 200 currently flagged, lower the decision threshold until about 250 are flagged: recall rises (more of the 20 missed frauds get caught) while precision falls, which the business accepts because reviewers absorb the extra false alarms. Pick the point on the precision-recall curve (the right curve for a 1% positive rate; ROC would look deceptively good) where flags hit the capacity, and weight the choice by the cost of a missed fraud versus a reviewed legitimate payment. Report recall, precision at the chosen threshold and MCC -- not accuracy -- in the model card."
             ),
           ],
@@ -120,13 +120,13 @@ export const DATAAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Categorical and sparse features",
-              "store_city with 400 levels: one-hot encoding creates 400 sparse columns -- use target/frequency encoding, grouping into regions, or embeddings, or geocode to latitude/longitude; promotion_type with 9 rare levels: sparse categories -- collapse rare levels into 'other' (or use regularised target encoding) before one-hot encoding the remaining few.",
-              "store_city: one-hot encoding 400 cities gives a huge, sparse matrix most models handle badly; instead geocode the city to latitude/longitude (continuous, two columns) or group cities into regions, or use frequency/target encoding with cross-fold regularisation. promotion_type: nine of twelve levels are so rare that their one-hot columns are almost all zeros -- merge them into 'other_promo' and one-hot encode the resulting four levels, which keeps the information that mattered without sparse noise."
+              "store_city with 400 levels: one-hot encoding creates 400 sparse columns -- use target/frequency encoding, grouping into regions, or embeddings, or geocode to latitude/longitude; promotion_type with 9 rare levels: sparse categories -- collapse rare levels into 'other' (or use regularized target encoding) before one-hot encoding the remaining few.",
+              "store_city: one-hot encoding 400 cities gives a huge, sparse matrix most models handle badly; instead geocode the city to latitude/longitude (continuous, two columns) or group cities into regions, or use frequency/target encoding with cross-fold regularization. promotion_type: nine of twelve levels are so rare that their one-hot columns are almost all zeros -- merge them into 'other_promo' and one-hot encode the resulting four levels, which keeps the information that mattered without sparse noise."
             ),
             part(
               "Skew, scale and the address",
-              "household_income: heavy right skew -- apply a log (or Box-Cox) transform, and consider winsorising extreme values; the three differently scaled features: standardise or min-max scale so regularised/distance-based models do not let the 0-1,000,000 feature dominate; store_address: free text is useless as-is -- geocode to coordinates (and derive distance to competitors or city centre), or drop in favour of store_city coordinates.",
-              "household_income: log-transform it (log1p) so the 2.4 million tail stops dominating the fit; check skewness drops toward zero and winsorise the top 0.5% if a few values remain extreme. Scaling: standardise (z-score) or min-max scale the three numeric features; for linear models with regularisation and for anything distance-based (k-NN, k-means, SVM) the 0-1,000,000 column would otherwise swamp the 0-1 one. Tree models do not need it, but it costs nothing. store_address: geocode it to latitude/longitude and derive useful numeric features (distance to nearest competitor, urban/rural); raw text strings carry nothing a model can use."
+              "household_income: heavy right skew -- apply a log (or Box-Cox) transform, and consider winsorizing extreme values; the three differently scaled features: standardize or min-max scale so regularised/distance-based models do not let the 0-1,000,000 feature dominate; store_address: free text is useless as-is -- geocode to coordinates (and derive distance to competitors or city center), or drop in favor of store_city coordinates.",
+              "household_income: log-transform it (log1p) so the 2.4 million tail stops dominating the fit; check skewness drops toward zero and winsorize the top 0.5% if a few values remain extreme. Scaling: standardize (z-score) or min-max scale the three numeric features; for linear models with regularization and for anything distance-based (k-NN, k-means, SVM) the 0-1,000,000 column would otherwise swamp the 0-1 one. Tree models do not need it, but it costs nothing. store_address: geocode it to latitude/longitude and derive useful numeric features (distance to nearest competitor, urban/rural); raw text strings carry nothing a model can use."
             ),
             part(
               "Non-linearity, trend and seasonality",
@@ -149,7 +149,7 @@ export const DATAAI_LABS: SeedLabSet = {
       kind: "build",
       title: "Present a churn model's results to executives, operators and peers",
       brief:
-        "You built a customer-churn model for Lindenwood Telecom. On the holdout: recall 0.74, precision 0.61, PR-AUC 0.68 versus 0.21 for random; the top drivers are contract type, number of support calls in the last 90 days, and price increases. A retention offer sent to the top 10% risk scores in a pilot reduced churn in that group from 18% to 14%. Three audiences: the executive committee (fund the retention programme?), the retention operations team (who to call and why), and the data-science peer review. A draft slide shows a bar chart of churn 18% vs 14% with the y-axis running from 13% to 19%, in red and green.",
+        "You built a customer-churn model for Lindenwood Telecom. On the holdout: recall 0.74, precision 0.61, PR-AUC 0.68 versus 0.21 for random; the top drivers are contract type, number of support calls in the last 90 days, and price increases. A retention offer sent to the top 10% risk scores in a pilot reduced churn in that group from 18% to 14%. Three audiences: the executive committee (fund the retention program?), the retention operations team (who to call and why), and the data-science peer review. A draft slide shows a bar chart of churn 18% vs 14% with the y-axis running from 13% to 19%, in red and green.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -158,8 +158,8 @@ export const DATAAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Executive committee",
-              "Leads with the business outcome and decision (churn in the targeted group cut from 18% to 14%, a 4-point / 22% relative reduction; expected customers retained and revenue protected vs programme cost), one honest chart, the confidence/limits of the pilot, and the ask; omits PR-AUC and model internals except in an appendix.",
-              "One slide: 'Targeting the top 10% risk cut churn from 18% to 14% in the pilot -- about 4 in 100 targeted customers kept, worth $X a year against $Y in offers. Recommendation: fund the programme for all regions.' Show the two bars on a zero-based axis with the difference labelled, state the pilot size and that it ran in two regions over one quarter, and list the next decision. PR-AUC, recall and feature attributions live in the appendix for anyone who asks."
+              "Leads with the business outcome and decision (churn in the targeted group cut from 18% to 14%, a 4-point / 22% relative reduction; expected customers retained and revenue protected vs program cost), one honest chart, the confidence/limits of the pilot, and the ask; omits PR-AUC and model internals except in an appendix.",
+              "One slide: 'Targeting the top 10% risk cut churn from 18% to 14% in the pilot -- about 4 in 100 targeted customers kept, worth $X a year against $Y in offers. Recommendation: fund the program for all regions.' Show the two bars on a zero-based axis with the difference labeled, state the pilot size and that it ran in two regions over one quarter, and list the next decision. PR-AUC, recall and feature attributions live in the appendix for anyone who asks."
             ),
             part(
               "Retention operations",
@@ -168,13 +168,13 @@ export const DATAAI_LABS: SeedLabSet = {
             ),
             part(
               "Peer review",
-              "Provides full methodology: data window and leakage checks, time-based split, class balance, the precision-recall curve with the random baseline (0.21), calibration plot, threshold choice for the top-10% cut, feature attributions and their stability, pilot design and its limits (not randomised? selection effects), code and seeds for reproducibility.",
+              "Provides full methodology: data window and leakage checks, time-based split, class balance, the precision-recall curve with the random baseline (0.21), calibration plot, threshold choice for the top-10% cut, feature attributions and their stability, pilot design and its limits (not randomized? selection effects), code and seeds for reproducibility.",
               "A notebook and write-up: feature definitions and the 90-day windows with a leakage audit; time-based train/validation/holdout; prevalence (21%) and how imbalance was handled; the precision-recall curve against the 0.21 random baseline and why PR-AUC rather than ROC-AUC; calibration by decile; how the top-10% threshold maps to recall 0.74 / precision 0.61; SHAP-style attributions with stability across folds; the pilot's design -- whether the comparison group was randomly held out or merely untreated, and what that does to the 18% vs 14% claim; environment, seeds and code to rerun everything."
             ),
             part(
               "Fixing the chart and accessibility",
-              "Starts the bar chart's axis at 0% (the truncated 13-19% axis makes a 4-point change look like a collapse), labels values directly, uses a colour-blind-safe palette rather than red/green (or adds pattern/labels so colour is not the only cue), adds alt text and sufficient contrast, readable font sizes, and states the sample size and period on the chart.",
-              "Redraw with the y-axis from 0% to 20%: the bars then show an honest 18% vs 14%, still clearly different, instead of a cliff. Label each bar with its value and the difference. Drop red/green -- about 8% of men cannot tell them apart -- for a colour-blind-safe pair (e.g. blue/orange) and put the labels on the bars so colour is never the only signal. Add a text alternative ('Churn fell from 18% to 14% among targeted customers, pilot of 12,000 customers, Q2'), 4.5:1 contrast for text, fonts large enough for a projector, and the sample size and period in the subtitle."
+              "Starts the bar chart's axis at 0% (the truncated 13-19% axis makes a 4-point change look like a collapse), labels values directly, uses a color-blind-safe palette rather than red/green (or adds pattern/labels so color is not the only cue), adds alt text and sufficient contrast, readable font sizes, and states the sample size and period on the chart.",
+              "Redraw with the y-axis from 0% to 20%: the bars then show an honest 18% vs 14%, still clearly different, instead of a cliff. Label each bar with its value and the difference. Drop red/green -- about 8% of men cannot tell them apart -- for a color-blind-safe pair (e.g. blue/orange) and put the labels on the bars so color is never the only signal. Add a text alternative ('Churn fell from 18% to 14% among targeted customers, pilot of 12,000 customers, Q2'), 4.5:1 contrast for text, fonts large enough for a projector, and the sample size and period in the subtitle."
             ),
           ],
         },
@@ -199,19 +199,19 @@ export const DATAAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "Identifies high variance / overfitting: near-perfect training performance with a large gap to validation (log-loss 0.01 vs 0.31) means the model memorises the training set; adding features would make it worse, not better; also flags that 96.2% validation accuracy is below the 97% that always-predict-pass would achieve.",
+              "Identifies high variance / overfitting: near-perfect training performance with a large gap to validation (log-loss 0.01 vs 0.31) means the model memorizes the training set; adding features would make it worse, not better; also flags that 96.2% validation accuracy is below the 97% that always-predict-pass would achieve.",
               "The model has learned the training data, not the process: training log-loss 0.01 against validation 0.31 is a classic high-variance gap, driven by 2,000 very deep trees. More features add capacity and will widen the gap. And note the second problem hiding in plain sight: with 3% defects, a model that predicts 'pass' for everything is 97% accurate, so 96.2% validation accuracy is worse than doing nothing -- accuracy is not telling us anything useful here."
             ),
             part(
               "Remedies",
-              "Reduces variance with regularisation and simpler structure: shallower trees (depth 3-6), fewer trees with early stopping on a validation set, learning-rate shrinkage, subsampling of rows/features, L1/L2 penalties on leaves; selects hyperparameters by k-fold cross-validation (stratified, grouped by production batch) rather than one split; more data helps if available.",
-              "Constrain the model: max depth 4-6, learning rate 0.05 with early stopping when validation log-loss stops improving (likely a few hundred trees, not 2,000), row and column subsampling, and L2 regularisation on leaf weights. Choose those settings by stratified k-fold cross-validation, grouping folds by production batch so a batch never spans train and validation. Keep the holdout untouched for the final number. More training data from other lines helps variance too; more features do not."
+              "Reduces variance with regularization and simpler structure: shallower trees (depth 3-6), fewer trees with early stopping on a validation set, learning-rate shrinkage, subsampling of rows/features, L1/L2 penalties on leaves; selects hyperparameters by k-fold cross-validation (stratified, grouped by production batch) rather than one split; more data helps if available.",
+              "Constrain the model: max depth 4-6, learning rate 0.05 with early stopping when validation log-loss stops improving (likely a few hundred trees, not 2,000), row and column subsampling, and L2 regularization on leaf weights. Choose those settings by stratified k-fold cross-validation, grouping folds by production batch so a batch never spans train and validation. Keep the holdout untouched for the final number. More training data from other lines helps variance too; more features do not."
             ),
           ],
         },
         {
           text:
-            "Checkpoint 2. After regularisation the validation log-loss is 0.09 and the validation accuracy 97.4%. The confusion matrix on 20,000 validation parts (600 defective): true positives 180, false negatives 420, false positives 100, true negatives 19,300. The plant manager wants at least 80% of defects caught before shipping.",
+            "Checkpoint 2. After regularization the validation log-loss is 0.09 and the validation accuracy 97.4%. The confusion matrix on 20,000 validation parts (600 defective): true positives 180, false negatives 420, false positives 100, true negatives 19,300. The plant manager wants at least 80% of defects caught before shipping.",
           ask: "Evaluate this honestly and fix the class-imbalance problem the right way.",
           parts: [
             part(
@@ -221,8 +221,8 @@ export const DATAAI_LABS: SeedLabSet = {
             ),
             part(
               "Imbalance mitigations",
-              "Lowers the decision threshold (the cheapest lever) to trade precision for recall; uses class weights (scale_pos_weight / cost-sensitive loss) so the loss penalises missed defects more; resampling -- oversampling or SMOTE applied only inside the training folds, never to validation or test -- or undersampling the majority; evaluates with PR curves; considers an ensemble; warns that SMOTE on the full data before splitting leaks and inflates validation scores.",
-              "First move the threshold: the model outputs probabilities, and the default 0.5 cut is arbitrary -- pick the threshold on the validation precision-recall curve where recall reaches 0.80 and see what precision costs. Then retrain with the loss weighted toward the minority class (class weights or scale_pos_weight around 32, the negative-to-positive ratio) so missed defects hurt more during training. If still short, oversample defects or generate SMOTE examples inside each training fold only -- resampling the validation or test set, or the whole dataset before splitting, leaks synthetic neighbours across the split and produces scores that collapse in production. Undersampling the 97% can also work and speeds training. Report recall, precision and PR-AUC at the chosen threshold."
+              "Lowers the decision threshold (the cheapest lever) to trade precision for recall; uses class weights (scale_pos_weight / cost-sensitive loss) so the loss penalizes missed defects more; resampling -- oversampling or SMOTE applied only inside the training folds, never to validation or test -- or undersampling the majority; evaluates with PR curves; considers an ensemble; warns that SMOTE on the full data before splitting leaks and inflates validation scores.",
+              "First move the threshold: the model outputs probabilities, and the default 0.5 cut is arbitrary -- pick the threshold on the validation precision-recall curve where recall reaches 0.80 and see what precision costs. Then retrain with the loss weighted toward the minority class (class weights or scale_pos_weight around 32, the negative-to-positive ratio) so missed defects hurt more during training. If still short, oversample defects or generate SMOTE examples inside each training fold only -- resampling the validation or test set, or the whole dataset before splitting, leaks synthetic neighbors across the split and produces scores that collapse in production. Undersampling the 97% can also work and speeds training. Report recall, precision and PR-AUC at the chosen threshold."
             ),
           ],
         },
@@ -252,9 +252,9 @@ export const DATAAI_LABS: SeedLabSet = {
       slug: "merge-standardise-winsorise-sql",
       objective: "Data-wrangling techniques: merging and combining datasets, date/time standardization, and winsorization",
       kind: "build",
-      title: "Merge three sources, standardise their timestamps and winsorise amounts in SQL",
+      title: "Merge three sources, standardize their timestamps and winsorize amounts in SQL",
       brief:
-        "Juniper Marketplace needs one analysis table from three sources. orders (1,200 rows for the week): order_id, customer_id, order_ts as ISO-8601 UTC text like '2026-11-03T14:05:00Z', amount. customers (1,150 of the ordering customers exist; 50 orders belong to guest checkouts with no customer row): customer_id, signup_date as text in day/month/year form like '03/11/2026', region. web_events: customer_id, event_time as Unix epoch milliseconds (e.g. 1762178700000), event_type. Analysts want: every order kept even without a customer; all times as UTC timestamps; a per-customer last_event_time; and order amounts winsorised at the 5th and 95th percentiles, which for this week are 12.00 and 480.00 (the raw maximum is 12,500.00). Write it in SQL (any mainstream dialect; name it).",
+        "Juniper Marketplace needs one analysis table from three sources. orders (1,200 rows for the week): order_id, customer_id, order_ts as ISO-8601 UTC text like '2026-11-03T14:05:00Z', amount. customers (1,150 of the ordering customers exist; 50 orders belong to guest checkouts with no customer row): customer_id, signup_date as text in day/month/year form like '03/11/2026', region. web_events: customer_id, event_time as Unix epoch milliseconds (e.g. 1762178700000), event_type. Analysts want: every order kept even without a customer; all times as UTC timestamps; a per-customer last_event_time; and order amounts winsorized at the 5th and 95th percentiles, which for this week are 12.00 and 480.00 (the raw maximum is 12,500.00). Write it in SQL (any mainstream dialect; name it).",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -267,14 +267,14 @@ export const DATAAI_LABS: SeedLabSet = {
               "FROM orders o LEFT JOIN customers c ON c.customer_id = o.customer_id -- 1,200 rows out, 50 of them with NULL customer fields. An INNER JOIN would silently return 1,150. web_events is many per customer, so aggregate it first (CTE last_evt AS (SELECT customer_id, MAX(event_time) AS last_event_ms FROM web_events GROUP BY customer_id)) and LEFT JOIN that; joining the raw events table would fan each order out to one row per event."
             ),
             part(
-              "Timestamp standardisation",
+              "Timestamp standardization",
               "Parses order_ts from ISO text to a UTC timestamp (e.g. PostgreSQL: order_ts::timestamptz), signup_date with an explicit day-first format (to_date(signup_date, 'DD/MM/YYYY')) because '03/11/2026' is ambiguous, and event_time from epoch milliseconds by dividing by 1000 (to_timestamp(event_time / 1000.0)); stores everything in UTC with a timezone-aware type.",
               "PostgreSQL:\n  o.order_ts::timestamptz AS order_time_utc,  -- ISO 8601 with Z parses directly as UTC\n  to_date(c.signup_date, 'DD/MM/YYYY') AS signup_date, -- explicit day-first; the default parser might read 03/11 as March 11\n  to_timestamp(e.last_event_ms / 1000.0) AT TIME ZONE 'UTC' AS last_event_time_utc -- epoch is in milliseconds, so divide by 1000\nKeep the session time zone at UTC and store timestamptz, so every downstream comparison (order before or after last web event) is on one clock."
             ),
             part(
               "Winsorisation",
-              "Caps amounts into [12.00, 480.00] with GREATEST(LEAST(amount, 480.00), 12.00) (or CASE), so 12,500.00 becomes 480.00 and anything under 12 becomes 12; keeps the raw amount in another column; explains winsorisation keeps the rows but limits the influence of extremes, unlike trimming which drops them; notes the percentiles came from PERCENTILE_CONT(0.05/0.95).",
-              "  o.amount AS amount_raw,\n  GREATEST(LEAST(o.amount, 480.00), 12.00) AS amount_winsorized\nThe 12,500.00 order stays in the table but counts as 480.00 in means and models; values below 12.00 rise to 12.00. Winsorising keeps every observation and only limits leverage, where trimming would delete the extreme rows. The bounds were computed on the week's data with PERCENTILE_CONT(0.05) and PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY amount); recompute them per period rather than hard-coding forever."
+              "Caps amounts into [12.00, 480.00] with GREATEST(LEAST(amount, 480.00), 12.00) (or CASE), so 12,500.00 becomes 480.00 and anything under 12 becomes 12; keeps the raw amount in another column; explains winsorization keeps the rows but limits the influence of extremes, unlike trimming which drops them; notes the percentiles came from PERCENTILE_CONT(0.05/0.95).",
+              "  o.amount AS amount_raw,\n  GREATEST(LEAST(o.amount, 480.00), 12.00) AS amount_winsorized\nThe 12,500.00 order stays in the table but counts as 480.00 in means and models; values below 12.00 rise to 12.00. Winsorizing keeps every observation and only limits leverage, where trimming would delete the extreme rows. The bounds were computed on the week's data with PERCENTILE_CONT(0.05) and PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY amount); recompute them per period rather than hard-coding forever."
             ),
             part(
               "Checks on the result",
@@ -295,17 +295,17 @@ export const DATAAI_LABS: SeedLabSet = {
       kind: "build",
       title: "Compute TF-IDF by hand and pick the NLP method for each ticket task",
       brief:
-        "Alderney Software's support team has 50,000 tickets. To explain the pipeline to a new analyst you use a three-document toy corpus:\nD1: \"Server down again\"\nD2: \"Server slow\"\nD3: \"Password reset again\"\nConventions: lowercase, split on whitespace, no stop-word removal; term frequency = raw count in the document; IDF = ln(N / df) with N = 3 and df = number of documents containing the term; TF-IDF = TF x IDF. The team then wants four things from the real corpus: find the main themes without labelled data; automatically pull product and customer names out of tickets; flag angry tickets; and draft a first reply for agents to edit.",
+        "Alderney Software's support team has 50,000 tickets. To explain the pipeline to a new analyst you use a three-document toy corpus:\nD1: \"Server down again\"\nD2: \"Server slow\"\nD3: \"Password reset again\"\nConventions: lowercase, split on whitespace, no stop-word removal; term frequency = raw count in the document; IDF = ln(N / df) with N = 3 and df = number of documents containing the term; TF-IDF = TF x IDF. The team then wants four things from the real corpus: find the main themes without labeled data; automatically pull product and customer names out of tickets; flag angry tickets; and draft a first reply for agents to edit.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Tokenise the corpus and give the vocabulary with document frequencies, compute the TF-IDF vector for D1 and name its most distinctive term, explain when embeddings beat TF-IDF, and assign an NLP technique to each of the four tasks.",
+          ask: "Tokenize the corpus and give the vocabulary with document frequencies, compute the TF-IDF vector for D1 and name its most distinctive term, explain when embeddings beat TF-IDF, and assign an NLP technique to each of the four tasks.",
           parts: [
             part(
-              "Tokenisation and document frequency",
+              "Tokenization and document frequency",
               "Vocabulary of six tokens -- server (df 2), down (1), again (2), slow (1), password (1), reset (1) -- from lowercasing and whitespace splitting; notes that stemming/lemmatisation and stop-word removal would be applied on the real corpus.",
-              "Tokens after lowercasing and splitting: D1 = [server, down, again]; D2 = [server, slow]; D3 = [password, reset, again]. Vocabulary and df: server 2, again 2, down 1, slow 1, password 1, reset 1. On the real corpus the pipeline would also strip punctuation, remove stop words ('the', 'is'), and lemmatise ('resetting' -> 'reset'), and would probably use sub-word tokenisation if feeding a neural model."
+              "Tokens after lowercasing and splitting: D1 = [server, down, again]; D2 = [server, slow]; D3 = [password, reset, again]. Vocabulary and df: server 2, again 2, down 1, slow 1, password 1, reset 1. On the real corpus the pipeline would also strip punctuation, remove stop words ('the', 'is'), and lemmatize ('resetting' -> 'reset'), and would probably use sub-word tokenization if feeding a neural model."
             ),
             part(
               "TF-IDF for D1",
@@ -315,12 +315,12 @@ export const DATAAI_LABS: SeedLabSet = {
             part(
               "TF-IDF versus embeddings",
               "Explains TF-IDF vectors are sparse and treat 'down' and 'slow' as unrelated, so D1 and D2 share only 'server'; word or sentence embeddings are dense vectors learned from context so semantically similar words/tickets ('server down', 'site unavailable') land close together, which matters for search, clustering and classification with varied wording; TF-IDF remains strong for keyword search and as a fast, interpretable baseline.",
-              "TF-IDF knows nothing about meaning: 'down', 'slow' and 'unavailable' are three unrelated columns, so a ticket saying 'site unavailable' looks nothing like 'server down'. Embeddings (word2vec/GloVe for words, sentence-transformer models for whole tickets) place words and sentences used in similar contexts near each other in a dense space, so those tickets would be neighbours -- better for semantic search, clustering and classifiers facing varied phrasing. TF-IDF is still the right first tool for keyword retrieval and an interpretable baseline, and it trains in seconds."
+              "TF-IDF knows nothing about meaning: 'down', 'slow' and 'unavailable' are three unrelated columns, so a ticket saying 'site unavailable' looks nothing like 'server down'. Embeddings (word2vec/GloVe for words, sentence-transformer models for whole tickets) place words and sentences used in similar contexts near each other in a dense space, so those tickets would be neighbors -- better for semantic search, clustering and classifiers facing varied phrasing. TF-IDF is still the right first tool for keyword retrieval and an interpretable baseline, and it trains in seconds."
             ),
             part(
               "Technique per task",
-              "Themes without labels: topic modelling (LDA or embedding-based clustering such as BERTopic); product and customer names: named-entity recognition (NER), possibly fine-tuned with custom entity types; angry tickets: sentiment analysis (a classifier or a fine-tuned transformer, with 'anger' as a label or negative-sentiment threshold); drafting replies: text generation with a large language model, retrieval-augmented from the knowledge base, with agents editing and never auto-sending.",
-              "1) Main themes: topic modelling -- LDA over TF-IDF/bag-of-words, or clustering sentence embeddings (BERTopic-style) -- which groups tickets into 'login problems', 'billing', 'outages' without any labels. 2) Product and customer names: named-entity recognition, starting from a pre-trained NER model and fine-tuning with custom entity types (PRODUCT, CUSTOMER) on a few hundred annotated tickets. 3) Angry tickets: sentiment analysis, a fine-tuned text classifier scoring negative sentiment or a dedicated 'frustrated' label, with a threshold tuned for recall so no furious customer is missed. 4) Draft replies: text generation with an LLM grounded by retrieval from the help centre (RAG), presented to the agent as a draft to edit -- never sent automatically, and evaluated for accuracy and tone before rollout."
+              "Themes without labels: topic modeling (LDA or embedding-based clustering such as BERTopic); product and customer names: named-entity recognition (NER), possibly fine-tuned with custom entity types; angry tickets: sentiment analysis (a classifier or a fine-tuned transformer, with 'anger' as a label or negative-sentiment threshold); drafting replies: text generation with a large language model, retrieval-augmented from the knowledge base, with agents editing and never auto-sending.",
+              "1) Main themes: topic modeling -- LDA over TF-IDF/bag-of-words, or clustering sentence embeddings (BERTopic-style) -- which groups tickets into 'login problems', 'billing', 'outages' without any labels. 2) Product and customer names: named-entity recognition, starting from a pre-trained NER model and fine-tuning with custom entity types (PRODUCT, CUSTOMER) on a few hundred annotated tickets. 3) Angry tickets: sentiment analysis, a fine-tuned text classifier scoring negative sentiment or a dedicated 'frustrated' label, with a threshold tuned for recall so no furious customer is missed. 4) Draft replies: text generation with an LLM grounded by retrieval from the help center (RAG), presented to the agent as a draft to edit -- never sent automatically, and evaluated for accuracy and tone before rollout."
             ),
           ],
         },
@@ -330,7 +330,7 @@ export const DATAAI_LABS: SeedLabSet = {
       slug: "optimisation-framing-and-bandit-allocation",
       objective: "Optimization concepts compared and contrasted: constrained vs. unconstrained optimization, and multi-armed bandit problems",
       kind: "build",
-      title: "Frame three optimisation problems and allocate traffic with a bandit",
+      title: "Frame three optimization problems and allocate traffic with a bandit",
       brief:
         "Three problems land on your desk at Thornfield Logistics the same week. (A) Choose how many parcels to route through each of three depots to minimise total cost, where each depot has a maximum daily capacity and every parcel must be assigned. (B) Fit the parameters of a delivery-time regression by minimising mean squared error on the training data. (C) Pick which of five versions of the 'track my parcel' page headline to show so that click-through is maximised over the coming month, while still learning which headline is best; the site gets 10,000 visits a day. For (C) the marketing team proposes an epsilon-greedy bandit with epsilon = 0.10.",
       safetyNote: GENERAL_SAFETY,
@@ -341,18 +341,18 @@ export const DATAAI_LABS: SeedLabSet = {
           parts: [
             part(
               "Problem A",
-              "Constrained optimisation: minimise total routing cost subject to depot capacity constraints (inequalities) and the assignment constraint that all parcels are routed (equality) with non-negativity; a linear program (simplex/interior point) or integer program if parcels are indivisible; mentions Lagrange multipliers/KKT conditions as the theory behind constrained optima.",
-              "Constrained. Decision variables x_i = parcels to depot i; minimise sum of cost_i x x_i subject to x_i <= capacity_i for each depot (inequality constraints), x_1 + x_2 + x_3 = total parcels (equality constraint) and x_i >= 0. With linear costs that is a linear program solved by simplex or an interior-point method; if parcels cannot be split, an integer program. The KKT conditions (Lagrange multipliers for the constraints) characterise the optimum, and the multiplier on a depot's capacity tells you what another unit of capacity there is worth."
+              "Constrained optimization: minimize total routing cost subject to depot capacity constraints (inequalities) and the assignment constraint that all parcels are routed (equality) with non-negativity; a linear program (simplex/interior point) or integer program if parcels are indivisible; mentions Lagrange multipliers/KKT conditions as the theory behind constrained optima.",
+              "Constrained. Decision variables x_i = parcels to depot i; minimize sum of cost_i x x_i subject to x_i <= capacity_i for each depot (inequality constraints), x_1 + x_2 + x_3 = total parcels (equality constraint) and x_i >= 0. With linear costs that is a linear program solved by simplex or an interior-point method; if parcels cannot be split, an integer program. The KKT conditions (Lagrange multipliers for the constraints) characterize the optimum, and the multiplier on a depot's capacity tells you what another unit of capacity there is worth."
             ),
             part(
               "Problem B",
-              "Unconstrained optimisation: minimise the MSE loss over the parameter vector with no restrictions on the parameters; solved by gradient descent (or in closed form for ordinary least squares via the normal equations); notes that adding an L1/L2 penalty would turn it into a constrained/regularised problem (ridge/LASSO).",
-              "Unconstrained: the parameters can take any real values, and we minimise the MSE loss by setting its gradient to zero -- for ordinary least squares that has a closed form (the normal equations), and for larger or non-linear models gradient descent or its variants walk downhill using partial derivatives of the loss. The moment you add a ridge (L2) or LASSO (L1) penalty you are solving an equivalent constrained problem -- minimise MSE subject to a budget on the coefficient norm."
+              "Unconstrained optimization: minimize the MSE loss over the parameter vector with no restrictions on the parameters; solved by gradient descent (or in closed form for ordinary least squares via the normal equations); notes that adding an L1/L2 penalty would turn it into a constrained/regularised problem (ridge/LASSO).",
+              "Unconstrained: the parameters can take any real values, and we minimize the MSE loss by setting its gradient to zero -- for ordinary least squares that has a closed form (the normal equations), and for larger or non-linear models gradient descent or its variants walk downhill using partial derivatives of the loss. The moment you add a ridge (L2) or LASSO (L1) penalty you are solving an equivalent constrained problem -- minimize MSE subject to a budget on the coefficient norm."
             ),
             part(
               "Why a bandit, and the epsilon-greedy allocation",
               "Explains the explore-exploit trade-off: a fixed A/B test splits traffic evenly for the whole test (20% each) and keeps showing poor headlines until it ends, while a bandit shifts traffic toward winners as evidence arrives, reducing regret; computes epsilon-greedy with epsilon = 0.10 and five arms: 90% of visits to the current best arm plus 10% spread evenly over all five (2% each), so the best arm gets 92% (9,200 visits a day) and each of the other four gets 2% (200 visits a day).",
-              "A fixed A/B/n test would send 2,000 visits a day to each headline for the whole month, including the ones that are clearly losing -- that lost click-through is the 'regret' a bandit minimises by exploiting what it has learned while still exploring. Epsilon-greedy with epsilon = 0.10: with probability 0.90 show the headline with the best observed click-through; with probability 0.10 pick one of the five uniformly at random. Each arm's share of the random 10% is 0.10 / 5 = 2%. So the current leader receives 90% + 2% = 92% of traffic (9,200 of 10,000 daily visits) and each other headline 2% (200 visits) -- enough to keep estimating them and to switch if one overtakes."
+              "A fixed A/B/n test would send 2,000 visits a day to each headline for the whole month, including the ones that are clearly losing -- that lost click-through is the 'regret' a bandit minimizes by exploiting what it has learned while still exploring. Epsilon-greedy with epsilon = 0.10: with probability 0.90 show the headline with the best observed click-through; with probability 0.10 pick one of the five uniformly at random. Each arm's share of the random 10% is 0.10 / 5 = 2%. So the current leader receives 90% + 2% = 92% of traffic (9,200 of 10,000 daily visits) and each other headline 2% (200 visits) -- enough to keep estimating them and to switch if one overtakes."
             ),
             part(
               "An alternative strategy",

@@ -58,12 +58,12 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "The child",
-              "Opens the airway and, because he is a child, gives two rescue breaths; if he then breathes, places him on his side and categorises him immediate; if not, categorises dead/expectant and moves on.",
+              "Opens the airway and, because he is a child, gives two rescue breaths; if he then breathes, places him on his side and categorizes him immediate; if not, categorizes dead/expectant and moves on.",
               "Open his airway and, since he's a child, two rescue breaths. If he starts breathing he goes on his side as immediate; if not, he's tagged dead and I move on."
             ),
             part(
               "The man",
-              "Applies a tourniquet above the spurting leg wound as a life-saving intervention (or directs a walking bystander to hold firm pressure), then categorises him immediate.",
+              "Applies a tourniquet above the spurting leg wound as a life-saving intervention (or directs a walking bystander to hold firm pressure), then categorizes him immediate.",
               "A tourniquet above the wound right away, then he's immediate."
             ),
           ],
@@ -83,7 +83,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     },
     {
       slug: "emr-wires-down-crash",
-      objective: "Recognise an electrical or hazardous-materials hazard and keep yourself and bystanders out of danger until trained responders arrive",
+      objective: "Recognize an electrical or hazardous-materials hazard and keep yourself and bystanders out of danger until trained responders arrive",
       kind: "case",
       title: "A car against a power pole",
       brief:
@@ -101,7 +101,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
             ),
             part(
               "Resources",
-              "Requests the power company to de-energise the lines and fire, plus a transporting ambulance, through dispatch.",
+              "Requests the power company to de-energize the lines and fire, plus a transporting ambulance, through dispatch.",
               "Dispatch: power company to cut the power, fire, and an ambulance."
             ),
           ],
@@ -118,18 +118,18 @@ export const NREMTEMR_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The power company confirms the lines are de-energised and fire declares the scene safe. The driver is alert, complaining of neck pain, and moving all limbs.",
+          text: "The power company confirms the lines are de-energized and fire declares the scene safe. The driver is alert, complaining of neck pain, and moving all limbs.",
           ask: "What do you do now within EMR scope, and what do you hand over?",
           parts: [
             part(
               "Care",
-              "Approaches only after the scene is declared safe, provides manual spinal stabilisation if indicated by her neck pain, assesses airway, breathing, circulation and mental status, and checks for any electrical contact injury.",
+              "Approaches only after the scene is declared safe, provides manual spinal stabilization if indicated by her neck pain, assesses airway, breathing, circulation and mental status, and checks for any electrical contact injury.",
               "Now I go in: hold her head still, check airway, breathing, circulation and her level of consciousness, and ask whether she touched anything metal."
             ),
             part(
               "Handover",
               "Hands over to the transporting crew: mechanism, the electrical hazard and that she stayed in the car, her complaints, findings and what was done.",
-              "'Driver versus pole, lines down on the car; she stayed inside until power was cut. Neck pain, alert, moving everything. I've held manual stabilisation.'"
+              "'Driver versus pole, lines down on the car; she stayed inside until power was cut. Neck pain, alert, moving everything. I've held manual stabilization.'"
             ),
           ],
         },
@@ -139,7 +139,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     // ---- Primary Assessment (3) ----
     {
       slug: "emr-arrest-at-the-gym",
-      objective: "Recognise cardiac arrest and perform high-quality CPR with an AED",
+      objective: "Recognize cardiac arrest and perform high-quality CPR with an AED",
       kind: "case",
       title: "Down on the treadmill",
       brief:
@@ -157,8 +157,8 @@ export const NREMTEMR_LABS: SeedLabSet = {
             ),
             part(
               "CPR",
-              "Starts compressions in the centre of the chest at 100-120/min, at least 2 inches (5 cm) deep without exceeding 6 cm, full recoil, and 30 compressions to 2 breaths with the pocket mask.",
-              "Hands in the centre of the chest, 100 to 120 a minute, at least 2 inches deep, letting the chest come back up. 30 compressions, then 2 breaths with the pocket mask."
+              "Starts compressions in the center of the chest at 100-120/min, at least 2 inches (5 cm) deep without exceeding 6 cm, full recoil, and 30 compressions to 2 breaths with the pocket mask.",
+              "Hands in the center of the chest, 100 to 120 a minute, at least 2 inches deep, letting the chest come back up. 30 compressions, then 2 breaths with the pocket mask."
             ),
           ],
         },
@@ -201,7 +201,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises a severe airway obstruction (unable to cry or cough, cyanosis) in a responsive infant.",
+              "Recognizes a severe airway obstruction (unable to cry or cough, cyanosis) in a responsive infant.",
               "She can't cry or cough and she's turning blue: a severe obstruction."
             ),
             part(
@@ -237,7 +237,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     },
     {
       slug: "emr-opioid-naloxone-intranasal",
-      objective: "Recognise suspected opioid overdose, ventilate, and give naloxone within EMR scope",
+      objective: "Recognize suspected opioid overdose, ventilate, and give naloxone within EMR scope",
       kind: "case",
       title: "Slumped in a parked car",
       brief:
@@ -256,7 +256,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "After a minute of ventilation his colour improves, but he still breathes only 4-6 times a minute on his own.",
+          text: "After a minute of ventilation his color improves, but he still breathes only 4-6 times a minute on his own.",
           ask: "Do you give naloxone, how, and what are you aiming for?",
           parts: [
             part(
@@ -293,7 +293,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     // ---- Secondary Assessment (2) ----
     {
       slug: "emr-older-fall-anticoagulant",
-      objective: "Recognise when an older adult's fall needs trauma-centre evaluation, such as a head strike while taking an anticoagulant",
+      objective: "Recognize when an older adult's fall needs trauma-center evaluation, such as a head strike while taking an anticoagulant",
       kind: "case",
       title: "\"I only slipped in the bathroom\"",
       brief:
@@ -317,13 +317,13 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Significance",
-              "Recognises that a head strike in an older adult taking an anticoagulant puts him at risk of bleeding inside the skull even if he looks well, and that the field triage guideline lists anticoagulant use and low-level falls with a significant head impact at 65 or older as reasons to consider a trauma centre.",
-              "A head strike on a blood thinner at 79: he could be bleeding inside his head even though he looks fine now. That's a reason to go to a trauma centre."
+              "Recognizes that a head strike in an older adult taking an anticoagulant puts him at risk of bleeding inside the skull even if he looks well, and that the field triage guideline lists anticoagulant use and low-level falls with a significant head impact at 65 or older as reasons to consider a trauma center.",
+              "A head strike on a blood thinner at 79: he could be bleeding inside his head even though he looks fine now. That's a reason to go to a trauma center."
             ),
             part(
               "Report",
               "Tells the crew the head strike, the anticoagulant, the headache, and baseline mental status and vital signs, and supports them in persuading him to go.",
-              "'Fall with head strike on the sink, takes an anticoagulant, mild headache, alert and oriented, P 80, BP 156/90. He wants to stay, but I think he needs a trauma centre.'"
+              "'Fall with head strike on the sink, takes an anticoagulant, mild headache, alert and oriented, P 80, BP 156/90. He wants to stay, but I think he needs a trauma center.'"
             ),
           ],
         },
@@ -333,7 +333,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Reassess",
-              "Reassesses mental status and vital signs, recognises a worsening head injury, updates the transporting crew so they come with urgency, and keeps him safe from another fall.",
+              "Reassesses mental status and vital signs, recognizes a worsening head injury, updates the transporting crew so they come with urgency, and keeps him safe from another fall.",
               "Recheck his orientation and vitals -- he's getting worse. Update dispatch that he's deteriorating, lie him down safely and stay with him."
             ),
           ],
@@ -342,7 +342,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     },
     {
       slug: "emr-heat-stroke-runner",
-      objective: "Recognise heat stroke from altered mental status and hot skin, and begin active cooling",
+      objective: "Recognize heat stroke from altered mental status and hot skin, and begin active cooling",
       kind: "case",
       title: "Mile 12 of a hot half-marathon",
       brief:
@@ -406,7 +406,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Escalate",
-              "Recognises that direct pressure is not controlling the bleeding and applies a commercial tourniquet on the upper arm, 2-3 inches above the wound and not over the elbow, tightening until the bleeding stops.",
+              "Recognizes that direct pressure is not controlling the bleeding and applies a commercial tourniquet on the upper arm, 2-3 inches above the wound and not over the elbow, tightening until the bleeding stops.",
               "Pressure isn't working, so the tourniquet goes on high on the arm, 2 to 3 inches above the cut and not on the elbow, tightened until the bleeding stops."
             ),
           ],
@@ -455,7 +455,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises imminent delivery from crowning, the urge to push and the urge to move the bowels, so delivery happens on scene rather than waiting for transport.",
+              "Recognizes imminent delivery from crowning, the urge to push and the urge to move the bowels, so delivery happens on scene rather than waiting for transport.",
               "Yes -- the head is crowning and she has the urge to push. The baby will be born here."
             ),
             part(
@@ -502,7 +502,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
       kind: "build",
       title: "Hand over a fall from a ladder",
       brief:
-        "Fictional call. 14:02 you arrived as a fire-department EMR at a home where a 46-year-old man fell about 8 feet from a ladder onto grass at 13:55. He is alert and oriented, complains of right wrist pain (8/10) and a deformed right wrist, and denies hitting his head or neck pain. He takes no regular medications and has no allergies. You stabilised the wrist with a padded splint at 14:08; circulation, movement and sensation in the right hand were present before and after. Vital signs at 14:05: pulse 96, respirations 18, manual BP 138/86. At 14:15: pulse 90, respirations 16, BP 134/84. The ambulance crew arrives at 14:18.",
+        "Fictional call. 14:02 you arrived as a fire-department EMR at a home where a 46-year-old man fell about 8 feet from a ladder onto grass at 13:55. He is alert and oriented, complains of right wrist pain (8/10) and a deformed right wrist, and denies hitting his head or neck pain. He takes no regular medications and has no allergies. You stabilized the wrist with a padded splint at 14:08; circulation, movement and sensation in the right hand were present before and after. Vital signs at 14:05: pulse 96, respirations 18, manual BP 138/86. At 14:15: pulse 90, respirations 16, BP 134/84. The ambulance crew arrives at 14:18.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -535,7 +535,7 @@ export const NREMTEMR_LABS: SeedLabSet = {
     },
     {
       slug: "emr-injured-child-no-parent",
-      objective: "Apply implied consent for a patient who cannot consent, and recognise when a patient lacks the capacity to refuse",
+      objective: "Apply implied consent for a patient who cannot consent, and recognize when a patient lacks the capacity to refuse",
       kind: "case",
       title: "A 12-year-old off his bike",
       brief:
@@ -559,8 +559,8 @@ export const NREMTEMR_LABS: SeedLabSet = {
           parts: [
             part(
               "Scope of treatment",
-              "Gives only the treatment the emergency needs -- manual spinal stabilisation, airway and breathing support if needed, bleeding control for the chin -- and reassesses mental status, acting in his best interest.",
-              "Manual stabilisation of his head, check airway and breathing, pressure on the chin cut, and recheck how alert he is. Just what the emergency needs."
+              "Gives only the treatment the emergency needs -- manual spinal stabilization, airway and breathing support if needed, bleeding control for the chin -- and reassesses mental status, acting in his best interest.",
+              "Manual stabilization of his head, check airway and breathing, pressure on the chin cut, and recheck how alert he is. Just what the emergency needs."
             ),
           ],
         },

@@ -82,7 +82,7 @@ export const PCA_TRACK: SeedTrack = {
       objectives: [
         "System architecture: the Prometheus server (retrieval, TSDB, HTTP API), Alertmanager, exporters, Pushgateway and the pull model, and how they fit together",
         "Configuration and scraping: prometheus.yml global settings, scrape_configs, scrape_interval and timeout, relabel_configs and metric_relabel_configs, and target health",
-        "Service discovery: static_configs, file_sd and the kubernetes_sd roles (node, pod, service, endpoints), and relabelling discovered metadata into target labels",
+        "Service discovery: static_configs, file_sd and the kubernetes_sd roles (node, pod, service, endpoints), and relabeling discovered metadata into target labels",
         "Understanding Prometheus limitations: single-node storage, no long-term durability by default, cardinality, no cross-server queries without federation or remote write, and what remote write and Thanos/Cortex-style systems add",
         "Data model and labels: metric names, labels and the time series they identify, sample values and timestamps, and how cardinality grows",
         "Exposition format: the text format's HELP and TYPE lines, sample lines with labels and timestamps, and how a scrape is parsed",
@@ -164,7 +164,7 @@ export const OTCA_TRACK: SeedTrack = {
     {
       title: "Fundamentals of Observability",
       weight: 18,
-      gate: "Given a system and a question about its behaviour, name the telemetry signal and the semantic conventions that would answer it, and describe how it would be instrumented and analysed.",
+      gate: "Given a system and a question about its behavior, name the telemetry signal and the semantic conventions that would answer it, and describe how it would be instrumented and analyzed.",
       objectives: [
         "Telemetry data: traces, metrics and logs as signals, resources and attributes, and how OpenTelemetry's model relates them",
         "Semantic conventions: standard attribute names for HTTP, databases, messaging, resources and more, and why consistency across services matters",
@@ -207,7 +207,7 @@ export const OTCA_TRACK: SeedTrack = {
       objectives: [
         "Diagnose context propagation problems: broken traces from missing propagators or headers, and how to find where a trace splits",
         "Debugging pipelines: the debug exporter, Collector internal telemetry (zpages, metrics), logging levels and checking each stage",
-        "Error handling: exporter failures, retries and queue behaviour, backpressure, and what is dropped when",
+        "Error handling: exporter failures, retries and queue behavior, backpressure, and what is dropped when",
         "Schema management: telemetry schemas, schema URLs and evolving semantic conventions without breaking dashboards",
       ],
     },
@@ -257,7 +257,7 @@ export const CGOA_TRACK: SeedTrack = {
         "State drift and state reconciliation: how the actual state diverges and how an agent detects and corrects the difference",
         "GitOps managed software system and the state store: what is under GitOps control and the versioned, immutable store that holds its desired state",
         "Feedback loop and rollback: how observed state informs operators, and how rollback is a change to desired state rather than a manual intervention",
-        "Recognise GitOps terminology misuse: 'GitOps' claimed for a CI pipeline that pushes with kubectl, or for a system with no reconciler",
+        "Recognize GitOps terminology misuse: 'GitOps' claimed for a CI pipeline that pushes with kubectl, or for a system with no reconciler",
       ],
     },
     {
@@ -300,13 +300,13 @@ export const CGOA_TRACK: SeedTrack = {
     {
       title: "Tooling",
       weight: 14,
-      gate: "Given an organisation's stack, choose the manifest format, state store and reconciliation engine, and describe how they interoperate with notifications, observability and CI.",
+      gate: "Given an organization's stack, choose the manifest format, state store and reconciliation engine, and describe how they interoperate with notifications, observability and CI.",
       objectives: [
         "Select a manifest format and packaging: plain YAML, Kustomize, Helm and OCI artifacts as inputs to a reconciler",
         "State store systems: Git and its alternatives (OCI registries, object storage) and what makes a store suitable as a GitOps state store",
         "Configure a reconciliation engine: Argo CD, Flux and alternatives -- their models (Applications, Kustomizations/HelmReleases), sync and health",
         "Interoperability with notifications, observability and continuous integration tools: alerts on drift and sync failure, metrics, and CI that updates desired state",
-        "Choose tooling for a given organisation and justify the choice",
+        "Choose tooling for a given organization and justify the choice",
       ],
     },
   ],
@@ -504,7 +504,7 @@ export const CCA_TRACK: SeedTrack = {
     {
       title: "BGP and External Networking",
       weight: 6,
-      gate: "Given a cluster that must exchange routes with the data centre network, configure Cilium's BGP control plane and explain how Pod and Service addresses reach external systems.",
+      gate: "Given a cluster that must exchange routes with the data center network, configure Cilium's BGP control plane and explain how Pod and Service addresses reach external systems.",
       objectives: [
         "Egress connectivity requirements: masquerading, Egress Gateway for predictable source IPs, and routing Pod traffic to external networks",
         "Understand options to connect Cilium-managed clusters with external networks: the BGP control plane (peering policies, advertised Pod CIDRs and LoadBalancer IPs) and LB IPAM",
@@ -550,18 +550,18 @@ export const ICA_TRACK: SeedTrack = {
     {
       title: "Installation, Upgrades, and Configuration",
       weight: 20,
-      gate: "Given a cluster and requirements, install Istio in the right mode with istioctl or Helm, customise the installation, and upgrade it without breaking traffic.",
+      gate: "Given a cluster and requirements, install Istio in the right mode with istioctl or Helm, customize the installation, and upgrade it without breaking traffic.",
       objectives: [
         "Install and configure Istio with istioctl or Helm: profiles, IstioOperator overlays, Helm charts (base, istiod, gateway) and verifying the installation",
         "Install Istio in sidecar or ambient mode: namespace injection labels and the ztunnel/waypoint model, and when each fits",
-        "Customise your Istio installation: mesh config, component settings, gateway deployments and resource tuning",
+        "Customize your Istio installation: mesh config, component settings, gateway deployments and resource tuning",
         "Plan and perform an Istio upgrade, canary (revision-based) or in-place, and move workloads between revisions safely",
       ],
     },
     {
       title: "Traffic Management",
       weight: 35,
-      gate: "Given routing and resilience requirements, write the Gateway, VirtualService and DestinationRule objects that implement them, shift traffic between versions, and verify the behaviour.",
+      gate: "Given routing and resilience requirements, write the Gateway, VirtualService and DestinationRule objects that implement them, shift traffic between versions, and verify the behavior.",
       objectives: [
         "Configure ingress and egress traffic: Istio Gateway and VirtualService for inbound traffic, egress gateways and ServiceEntry for outbound",
         "Configure routing within the service mesh: VirtualService match rules on host, path, headers and weights, and route to subsets",
@@ -637,7 +637,7 @@ export const KCA_TRACK: SeedTrack = {
       objectives: [
         "Interpret Kyverno policies and rules: ClusterPolicy and Policy, rule types (validate, mutate, generate, verifyImages, cleanup), match and exclude blocks, and how rules are evaluated",
         "YAML manifests as the unit of policy: how Kyverno treats Kubernetes resources, the admission request it sees, and how policies are themselves Kubernetes resources",
-        "Recognise how admission controllers work: validating and mutating admission webhooks, how Kyverno registers them, failure policies and the admission request lifecycle",
+        "Recognize how admission controllers work: validating and mutating admission webhooks, how Kyverno registers them, failure policies and the admission request lifecycle",
         "OCI images in Kyverno: image references in Pod specs, how verifyImages resolves digests and signatures, and what registry access Kyverno needs",
       ],
     },
@@ -648,7 +648,7 @@ export const KCA_TRACK: SeedTrack = {
       objectives: [
         "Install and configure Kyverno with Helm: chart values for the admission, background, cleanup and reports controllers, resource filters and webhook settings",
         "Kyverno Custom Resource Definitions: ClusterPolicy, Policy, PolicyException, CleanupPolicy, UpdateRequest and the report CRDs, and what each stores",
-        "Configure the controllers with flags and the kyverno ConfigMap: webhook timeouts, excluded namespaces and resource filters, and generate/background behaviour",
+        "Configure the controllers with flags and the kyverno ConfigMap: webhook timeouts, excluded namespaces and resource filters, and generate/background behavior",
         "Configure Kyverno RBAC, roles and permissions: what the controllers may read and write, and the extra ClusterRoles a generate rule needs",
         "Plan a highly available installation: replica counts per controller, pod disruption budgets, leader election and webhook failurePolicy",
         "Upgrade Kyverno: Helm upgrade order, CRD updates, compatibility between versions, and verifying policies still load",
@@ -716,7 +716,7 @@ export const CBA_TRACK: SeedTrack = {
   code: "CBA",
   title: "Prep for the Certified Backstage® Associate (CBA) Exam",
   description:
-    "CBA: building and running a Backstage developer portal. The local development workflow with TypeScript, Yarn and Docker, the framework and its client-server architecture and configuration, the Software Catalog and how entities are ingested, and customising the app with frontend and backend plugins, React and Material UI. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Backstage is a registered trademark of The Linux Foundation.",
+    "CBA: building and running a Backstage developer portal. The local development workflow with TypeScript, Yarn and Docker, the framework and its client-server architecture and configuration, the Software Catalog and how entities are ingested, and customizing the app with frontend and backend plugins, React and Material UI. Independently developed exam prep; not affiliated with or endorsed by The Linux Foundation. Backstage is a registered trademark of The Linux Foundation.",
   trackType: "certification",
   subcategorySlug: "cncf-certifications",
   freshnessModel: "certification_aligned",
@@ -733,7 +733,7 @@ export const CBA_TRACK: SeedTrack = {
     status: "active",
     officialObjectivesUrl: `${CURRICULUM}/CBA_Curriculum.pdf`,
     lastVendorVerifiedAt: VERIFIED_AT,
-    recommendedExperience: "No prerequisites. Beginner level: for platform engineers and developers who build, customise or operate a Backstage portal; TypeScript and React familiarity helps.",
+    recommendedExperience: "No prerequisites. Beginner level: for platform engineers and developers who build, customize or operate a Backstage portal; TypeScript and React familiarity helps.",
     durationMinutes: 90,
     questionFormat: MC_FORMAT,
     passingScorePolicy: MC_PASS,
@@ -765,7 +765,7 @@ export const CBA_TRACK: SeedTrack = {
     {
       title: "Backstage Catalog",
       weight: 22,
-      gate: "Given an organisation's software, model it as catalog entities, register and ingest them, annotate them for plugins, and fix an entity that will not appear.",
+      gate: "Given an organization's software, model it as catalog entities, register and ingest them, annotate them for plugins, and fix an entity that will not appear.",
       objectives: [
         "Understand how and why to use the Backstage Catalog: entity kinds (Component, API, Resource, System, Domain, Group, User, Location, Template), ownership and relations",
         "Populate the Backstage Catalog: catalog-info.yaml files, static locations in app-config, and the entity model's apiVersion, kind, metadata and spec",
@@ -829,7 +829,7 @@ export const CNPA_TRACK: SeedTrack = {
     {
       title: "Platform Engineering Core Fundamentals",
       weight: 36,
-      gate: "Given an organisation's delivery problems, explain what a platform is for, how declarative management, DevOps practice, environments and CI/CD fit together, and sketch the platform's architecture and capabilities.",
+      gate: "Given an organization's delivery problems, explain what a platform is for, how declarative management, DevOps practice, environments and CI/CD fit together, and sketch the platform's architecture and capabilities.",
       objectives: [
         "Declarative resource management: describing desired state, reconciliation, idempotency, and why platforms are built from declarative APIs",
         "DevOps practices in platform engineering: shared ownership, automation, feedback loops, and how a platform team serves product teams",
@@ -958,7 +958,7 @@ export const CNPE_TRACK: SeedTrack = {
     {
       title: "Platform APIs and Self-Service Capabilities",
       weight: 25,
-      gate: "Given a self-service requirement, design and create the CRD, implement the workflow that provisions it through platform APIs, and wire operators or automation frameworks to fulfil it.",
+      gate: "Given a self-service requirement, design and create the CRD, implement the workflow that provisions it through platform APIs, and wire operators or automation frameworks to fulfill it.",
       objectives: [
         "Design and create CustomResourceDefinitions for platform services: OpenAPI schemas, validation rules, defaults, status subresources and versions",
         "Implement workflows for self-service provisioning using platform APIs: composite resources and compositions in Crossplane, or custom resources reconciled by operators",

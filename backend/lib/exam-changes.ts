@@ -35,7 +35,7 @@ export const EXAM_CHANGES: readonly ExamChange[] = [
     whatChanges:
       "SAP-C03 replaces SAP-C02. The last day to take SAP-C02 is November 16, 2026. SAP-C03 has five restructured domains, and its minimum passing score is 720 (SAP-C02's was 750).",
     courseDid:
-      "The course added the five SAP-C03 domains as new units. The SAP-C02 units stay listed until November 17 so anyone sitting SAP-C02 before then can finish them; after that they are hidden, and your answers on them are kept. Progress is not copied from SAP-C02 objectives to SAP-C03 ones, because the domains were reorganised and there is no one-to-one match.",
+      "The course added the five SAP-C03 domains as new units. The SAP-C02 units stay listed until November 17 so anyone sitting SAP-C02 before then can finish them; after that they are hidden, and your answers on them are kept. Progress is not copied from SAP-C02 objectives to SAP-C03 ones, because the domains were reorganized and there is no one-to-one match.",
     sourceUrl:
       "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/sap-03-comparison.html",
   },

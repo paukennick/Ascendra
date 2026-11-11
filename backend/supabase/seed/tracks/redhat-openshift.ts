@@ -131,7 +131,7 @@ export const EX188_TRACK: SeedTrack = {
         "Configure environment variables for each service in a multi-container application",
         "Manage secrets with podman secret and mount them into containers instead of baking them into images",
         "Configure volumes for persistent data shared between services and across restarts",
-        "Configure application configuration files mounted into containers, including SELinux relabelling options",
+        "Configure application configuration files mounted into containers, including SELinux relabeling options",
       ],
     },
     {
@@ -218,7 +218,7 @@ export const EX280_TRACK: SeedTrack = {
         "Deploy applications from OpenShift templates with oc process and oc new-app, and from Helm charts with helm install and upgrade",
         "Manage application deployments: scaling, rollouts, pausing and resuming, and deployment strategies",
         "Work with ReplicaSets and understand how a Deployment owns and replaces them",
-        "Apply labels and selectors to connect Services, Deployments and Routes and to organise resources",
+        "Apply labels and selectors to connect Services, Deployments and Routes and to organize resources",
         "Configure Services: ClusterIP, NodePort and the ports and selectors that connect them to pods",
         "Expose applications to external access with Routes and understand the difference from Services",
       ],

@@ -678,8 +678,8 @@ free-response question on their own AND carry a matching multiple-choice version
 question (fadeChoices/soloChoices) — the learner picks which format to answer in, every time they see it,
 so neither version can depend on the other to make sense.
 
-Both questions must make the learner apply the idea, not recognise a word from the teaching. Before
-finalising, check every clue in each question against the right answer: if any detail would point a
+Both questions must make the learner apply the idea, not recognize a word from the teaching. Before
+finalizing, check every clue in each question against the right answer: if any detail would point a
 knowledgeable reader to a different answer, change the detail. Stay within what the teaching text below
 covers and what is accurate for this course.
 
@@ -975,7 +975,7 @@ export const CHAT_GUARDRAILS = `Guardrails for this thread, always:
 - Stay on this course's subject. If asked about something unrelated, say briefly that you are here
   for this course and steer back to it.
 - Keep an encouraging tone: treat a mistake as information about what to practice next, never as a
-  judgement of the learner. Be honest about errors, specific about the fix, and keep the next step small.`;
+  judgment of the learner. Be honest about errors, specific about the fix, and keep the next step small.`;
 
 // REQ-106 (research #7): the optional hands-on lab on a lesson's Done card.
 // After doing it the learner answers up to three short report questions.

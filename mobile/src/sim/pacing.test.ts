@@ -36,7 +36,7 @@ function to(run: Run, tick: number): void {
 describe("pace toggle", async () => {
   const doc = await compile("CCRNADULT", "tamponade-after-cabg");
 
-  test("study pace (3x) is the default and exam realism (1x) is opt-in, both labelled for a screen reader", () => {
+  test("study pace (3x) is the default and exam realism (1x) is opt-in, both labeled for a screen reader", () => {
     const o = paceOptions(3);
     assert.deepEqual(o.map((x) => [x.pace, x.selected]), [[3, true], [1, false]]);
     assert.match(o[0].label, /Study pace/);

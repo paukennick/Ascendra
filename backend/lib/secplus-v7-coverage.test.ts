@@ -206,7 +206,7 @@ const SECPLUS_V7_TERMS: Record<string, string[]> = {
   ],
   "5.4": [
     "compliance reporting", "internal", "external", "fines", "sanctions", "reputational damage", "loss of license",
-    "contractual impacts", "due diligence/care", "attestation and acknowledgement", "automation",
+    "contractual impacts", "due diligence/care", "attestation and acknowledgment", "automation",
     "privacy", "data subject", "controller vs. processor", "data inventory and retention", "right to be forgotten",
   ],
   "5.5": [

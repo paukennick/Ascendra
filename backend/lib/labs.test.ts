@@ -66,7 +66,7 @@ describe("lab content rules (REQ-123)", () => {
     assert.ok(labContentProblems({ ...CASE, steps: CASE.steps.slice(0, 1), rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("2-4 steps")));
     assert.ok(labContentProblems({ ...CASE, rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("one entry per step")));
     const dup = { ...BUILD, rubric: [{ parts: [BUILD.rubric[0].parts[0], BUILD.rubric[0].parts[0]] }] };
-    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labelled")));
+    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labeled")));
     assert.ok(labContentProblems({ ...BUILD, title: "x\u0000y z" }).some((p) => p.includes("can't be stored")));
   });
   test("the hash moves with anything a learner sees or is graded against, and only then", () => {
@@ -387,7 +387,7 @@ describe("content audit corrections (2026-11-09)", () => {
   test("objectives carry the corrected clinical facts (FAIL-598)", () => {
     const rn = objectives("NCLEXRN") + objectives("NCLEXPN") + objectives("LPNVN") + objectives("ADNRN") + objectives("BSNRN");
     assert.doesNotMatch(rn, /more than three in a row/);
-    assert.doesNotMatch(rn, /under an FDA REMS programme that requires|under a REMS programme"/);
+    assert.doesNotMatch(rn, /under an FDA REMS program that requires|under a REMS program"/);
     assert.doesNotMatch(rn, /graham crackers/);
     const pt = CATALOG_TRACKS.filter((t) => /^(ABPTS|NPTE|DPT$)/.test(t.code)).map((t) => t.units.flatMap((u) => u.objectives).join("\n")).join("\n");
     assert.doesNotMatch(pt, /ANC below 1500/);

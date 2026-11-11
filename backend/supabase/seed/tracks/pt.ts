@@ -304,7 +304,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
         "Managing common neurological diagnoses: stroke, spinal cord injury, traumatic brain injury, and peripheral neuropathy",
         "Recognizing signs of neurological decline or emergency (e.g., cauda equina, increasing ICP) that require immediate referral",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
-        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognise that ALS shows both together", // SP-ALS; AP 16.4
+        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognize that ALS shows both together", // SP-ALS; AP 16.4
         "Recognize autonomic dysreflexia when the spinal cord lesion is at T6 or higher -- a sudden severe headache with a blood pressure surge -- sit the patient up with legs down, loosen anything tight, and look for a trigger such as a full bladder or bowel", // SP-AD
         "Document spinal cord injury level and completeness with the ISNCSCI examination from ASIA and ISCoS, and recognize central cord syndrome by arm weakness greater than leg weakness", // SP-SCI
         "Offer supervised vestibular therapy for unilateral or bilateral peripheral vestibular hypofunction using gaze-stabilization and balance exercise, and do not rely on saccadic or smooth-pursuit drills for gaze stability", // CPG-VEST

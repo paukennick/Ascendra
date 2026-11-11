@@ -58,10 +58,10 @@ describe("REQ-220 PT content", () => {
     }
   });
 
-  test("sarcopenia is taught as fibre loss, not only protein change (FAIL-1137)", () => {
+  test("sarcopenia is taught as fiber loss, not only protein change (FAIL-1137)", () => {
     const lines = active("DPT").filter((o) => /sarcopenia/i.test(o));
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /muscle fibres also die/);
+    assert.match(lines[0], /muscle fibers also die/);
     assert.doesNotMatch(lines[0], /rather than the number of cells/);
   });
 });

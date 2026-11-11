@@ -98,7 +98,7 @@ describe("explain-it-back", () => {
     assert.equal(explainBackQuestion("X"), explainBackQuestion("X"));
   });
   test("copied share: pasted teaching is high, own words low", () => {
-    const teach = "Role based access control grants permissions to roles and users get permissions by being assigned roles in the organisation.";
+    const teach = "Role based access control grants permissions to roles and users get permissions by being assigned roles in the organization.";
     assert.ok(copiedShare(teach, teach) > 0.9);
     assert.ok(copiedShare("You give each job a set of rights, then put people in jobs so they inherit what that job can do.", teach) < 0.1);
     assert.equal(copiedShare("too short", teach), 0);
@@ -108,7 +108,7 @@ describe("explain-it-back", () => {
   // full paste from 1.0 to 0.0.
   const lesson =
     "Role-based access control assigns permissions to roles rather than to individual users. " +
-    "A user receives permissions only by being assigned one or more roles in the organisation. " +
+    "A user receives permissions only by being assigned one or more roles in the organization. " +
     "When a person changes jobs, an administrator removes the old role and assigns the new one, " +
     "so permissions follow the job instead of piling up on the account. " +
     "This makes least privilege easier to enforce and access reviews faster, because auditors check a handful of roles " +
@@ -125,7 +125,7 @@ describe("explain-it-back", () => {
     assert.ok(copiedShare(lesson.split(" ").join(" um "), lesson) >= COPIED_SHARE_LIMIT, "filler after every word");
   });
 
-  test("FAIL-357: reordered sentences and swapped neighbours are still copied", () => {
+  test("FAIL-357: reordered sentences and swapped neighbors are still copied", () => {
     const sentences = lesson.split(". ");
     const reordered = [...sentences].reverse().join(". ");
     assert.ok(copiedShare(reordered, lesson) >= COPIED_SHARE_LIMIT, String(copiedShare(reordered, lesson)));

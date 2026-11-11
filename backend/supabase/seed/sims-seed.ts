@@ -2,7 +2,8 @@
 //
 // For each document in lib/sim/documents.ts ALL_DOCUMENTS (scenarios and
 // bands, compiled with their modules):
-//   - the objective is found by its exact title in the document's course;
+//   - the objective is found by its exact title in the document's course
+//     (or that title in US spelling, REQ-220);
 //   - `sims` is upserted by (objective, slug), with the safety family derived
 //     from the course category (the labs rule), never read from the file;
 //   - a sim_versions row is inserted only when the content hash is new; an
@@ -16,6 +17,7 @@ import { canonicalJson, clientDocument, clientHash, contentHash, earliestRecheck
 import { validateScenario } from "../../lib/sim/engine/v1/index";
 import type { ScenarioDoc } from "../../lib/sim/engine/v1/types";
 import { labFamilySql } from "../../lib/labs";
+import { toUsSpelling } from "../../lib/us-spelling";
 
 export interface SeedSimResult {
   course: string;
@@ -30,8 +32,11 @@ async function seedOne(c: PoolClient, entry: DocumentEntry, doc: ScenarioDoc): P
   const obj = await c.query<{ id: string; family: string }>(
     `select o.id, ${labFamilySql("st")} as family
        from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
-      where st.code = $1 and st.user_id is null and o.title = $2 and o.retired_at is null and cu.retired_at is null`,
-    [entry.course, doc.objective]
+      where st.code = $1 and st.user_id is null and o.title = any($2::text[]) and o.retired_at is null and cu.retired_at is null`,
+    // REQ-220: a published sim version keeps its text (docs/sims.md), so its
+    // objective title may still be in British spelling after the course's
+    // title moved to US spelling; both spellings name the same objective.
+    [entry.course, [...new Set([doc.objective, toUsSpelling(doc.objective)])]]
   );
   if (obj.rows.length !== 1) {
     throw new Error(`sims: ${entry.course} has ${obj.rows.length} active objectives titled "${doc.objective}" (sim ${entry.slug}); expected exactly one`);

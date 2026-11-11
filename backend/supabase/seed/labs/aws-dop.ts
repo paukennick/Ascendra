@@ -171,7 +171,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             ),
             part(
               "Drift and template hygiene",
-              "Runs stack set drift detection to find accounts where someone changed the baseline by hand and re-applies via an update; parameterises the template with Region/account-aware values (for example pseudo parameters, SSM parameters) rather than hardcoding bucket names or ARNs.",
+              "Runs stack set drift detection to find accounts where someone changed the baseline by hand and re-applies via an update; parameterizes the template with Region/account-aware values (for example pseudo parameters, SSM parameters) rather than hardcoding bucket names or ARNs.",
               "Schedule drift detection on the stack set and treat drifted instances as findings to remediate with an update operation. In the template, use AWS::AccountId / AWS::Region pseudo parameters and SSM parameter references for the central bucket name and KMS key so one template works in every account and Region."
             ),
           ],
@@ -198,7 +198,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             ),
             part(
               "Patch baselines and groups",
-              "Creates patch baselines per OS (Amazon Linux 2023, Windows Server, Ubuntu) with auto-approval rules for Critical/Important (or Security) classifications after 0-7 days, and assigns instances by the Patch Group tag (or uses a Quick Setup patch policy across the organisation).",
+              "Creates patch baselines per OS (Amazon Linux 2023, Windows Server, Ubuntu) with auto-approval rules for Critical/Important (or Security) classifications after 0-7 days, and assigns instances by the Patch Group tag (or uses a Quick Setup patch policy across the organization).",
               "Three custom baselines: Amazon Linux 2023 and Ubuntu approving Security/Critical and Important updates 3 days after release; Windows approving CriticalUpdates and SecurityUpdates with severity Critical/Important after 3 days. Tag instances Patch Group = web, app-windows, build and register each group with its baseline -- or use a Quick Setup patch policy from the management account to push the same configuration to all four accounts."
             ),
             part(
@@ -224,7 +224,7 @@ export const AWSDOP_LABS: SeedLabSet = {
       kind: "build",
       title: "Design a two-Region active-active deployment for a ticketing API",
       brief:
-        "Cobalt Events sells tickets worldwide. Its API runs on ECS Fargate behind an ALB in us-east-1 with a DynamoDB table for orders, an Aurora PostgreSQL cluster for the event catalogue, and media in S3 served by CloudFront. A Region-wide outage last year cost a weekend of sales. The business wants both us-east-1 and eu-west-1 to serve traffic at the same time, users routed to the nearer healthy Region, and no Region to be a single point of failure for data. Write the cross-Region design, naming the capability used for each component and its consistency trade-off.",
+        "Cobalt Events sells tickets worldwide. Its API runs on ECS Fargate behind an ALB in us-east-1 with a DynamoDB table for orders, an Aurora PostgreSQL cluster for the event catalog, and media in S3 served by CloudFront. A Region-wide outage last year cost a weekend of sales. The business wants both us-east-1 and eu-west-1 to serve traffic at the same time, users routed to the nearer healthy Region, and no Region to be a single point of failure for data. Write the cross-Region design, naming the capability used for each component and its consistency trade-off.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -237,9 +237,9 @@ export const AWSDOP_LABS: SeedLabSet = {
               "Make the orders table a global table with replicas in us-east-1 and eu-west-1; both accept writes. Replication is asynchronous (typically about a second) with last-writer-wins on conflict, so order ids are generated to be globally unique and a user's session is kept in one Region so their own writes read back consistently."
             ),
             part(
-              "Catalogue (Aurora)",
-              "Uses Aurora Global Database with a primary in one Region and a secondary cluster in the other for reads, noting only the primary accepts writes (or write forwarding from the secondary), so catalogue writes are routed to the primary and the secondary is promoted (managed failover or switchover) if the primary Region fails.",
-              "Aurora Global Database: primary cluster in us-east-1, secondary in eu-west-1 serving local reads with sub-second replication lag. Only the primary accepts writes; the EU API sends catalogue writes to the primary (or uses write forwarding). On a us-east-1 failure, perform a managed failover to promote eu-west-1; for planned maintenance use a switchover with no data loss."
+              "Catalog (Aurora)",
+              "Uses Aurora Global Database with a primary in one Region and a secondary cluster in the other for reads, noting only the primary accepts writes (or write forwarding from the secondary), so catalog writes are routed to the primary and the secondary is promoted (managed failover or switchover) if the primary Region fails.",
+              "Aurora Global Database: primary cluster in us-east-1, secondary in eu-west-1 serving local reads with sub-second replication lag. Only the primary accepts writes; the EU API sends catalog writes to the primary (or uses write forwarding). On a us-east-1 failure, perform a managed failover to promote eu-west-1; for planned maintenance use a switchover with no data loss."
             ),
             part(
               "Media (S3 and CloudFront)",
@@ -286,8 +286,8 @@ export const AWSDOP_LABS: SeedLabSet = {
           parts: [
             part(
               "Readiness and pre-warming",
-              "Uses a scheduled scaling action (or predictive scaling) to raise desired/minimum capacity before 20:00, and a warm pool of pre-initialised stopped or running instances so scale-out takes seconds; longer term, bakes the packages into the AMI (EC2 Image Builder) so boot time drops.",
-              "Add a scheduled action at 19:45 raising the minimum to the typical evening capacity (or enable predictive scaling, which learns the daily pattern and launches ahead of it). Add a warm pool so pre-initialised instances in Stopped state join in well under a minute. And fix the root cause: bake the packages into the AMI with EC2 Image Builder so a cold launch no longer installs anything."
+              "Uses a scheduled scaling action (or predictive scaling) to raise desired/minimum capacity before 20:00, and a warm pool of pre-initialized stopped or running instances so scale-out takes seconds; longer term, bakes the packages into the AMI (EC2 Image Builder) so boot time drops.",
+              "Add a scheduled action at 19:45 raising the minimum to the typical evening capacity (or enable predictive scaling, which learns the daily pattern and launches ahead of it). Add a warm pool so pre-initialized instances in Stopped state join in well under a minute. And fix the root cause: bake the packages into the AMI with EC2 Image Builder so a cold launch no longer installs anything."
             ),
           ],
         },
@@ -298,7 +298,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             part(
               "Bottleneck beyond the web tier",
               "Identifies the database connection limit as the constraint (each new instance opens more connections, so scaling the web tier makes it worse) and addresses it with RDS Proxy (connection pooling and multiplexing), a read replica for read traffic, and caching (ElastiCache) for hot reads; notes the scaling metric must track the real constraint.",
-              "The web tier scaled fine; the database's connection limit did not. Put Amazon RDS Proxy between the application and the database to pool and share connections, move read traffic to a read replica, and cache hot catalogue reads in ElastiCache. Then scaling the web tier no longer multiplies database connections, and the 503s stop."
+              "The web tier scaled fine; the database's connection limit did not. Put Amazon RDS Proxy between the application and the database to pool and share connections, move read traffic to a read replica, and cache hot catalog reads in ElastiCache. Then scaling the web tier no longer multiplies database connections, and the 503s stop."
             ),
           ],
         },
@@ -348,19 +348,19 @@ export const AWSDOP_LABS: SeedLabSet = {
       slug: "centralised-logging-multi-account",
       objective: "Processing log data with CloudWatch Logs subscriptions into Amazon Kinesis, Lambda, or Amazon OpenSearch Service",
       kind: "build",
-      title: "Centralise logs from forty accounts into one searchable store",
+      title: "Centralize logs from forty accounts into one searchable store",
       brief:
         "Rydal Software has 40 member accounts, each with hundreds of CloudWatch Logs groups (Lambda, ECS, application logs). Security wants a copy of every log line in a single logging account within about a minute of being written, searchable for 90 days in Amazon OpenSearch Service and retained for 7 years in S3 at the lowest cost. Application teams must keep their own log groups unchanged, and new log groups must be picked up without a ticket. Design the pipeline.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Write the centralised logging design.",
+          ask: "Write the centralized logging design.",
           parts: [
             part(
               "Cross-account transport",
-              "Creates a CloudWatch Logs destination in the logging account backed by a Kinesis Data Stream (or Firehose), with a destination access policy allowing the member accounts (or the organisation via aws:PrincipalOrgID) to subscribe; member log groups get subscription filters pointing at the destination ARN.",
-              "In the logging account: a Kinesis Data Stream, an IAM role CloudWatch Logs can assume to put records into it, and a CloudWatch Logs destination wrapping the stream with a destination policy that allows logs:PutSubscriptionFilter from the organisation's accounts (condition aws:PrincipalOrgID). In each member account, a subscription filter on each log group targets the destination ARN; the data arrives in the logging account's stream within seconds."
+              "Creates a CloudWatch Logs destination in the logging account backed by a Kinesis Data Stream (or Firehose), with a destination access policy allowing the member accounts (or the organization via aws:PrincipalOrgID) to subscribe; member log groups get subscription filters pointing at the destination ARN.",
+              "In the logging account: a Kinesis Data Stream, an IAM role CloudWatch Logs can assume to put records into it, and a CloudWatch Logs destination wrapping the stream with a destination policy that allows logs:PutSubscriptionFilter from the organization's accounts (condition aws:PrincipalOrgID). In each member account, a subscription filter on each log group targets the destination ARN; the data arrives in the logging account's stream within seconds."
             ),
             part(
               "Automatic coverage of new log groups",
@@ -370,7 +370,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             part(
               "Hot search and cold archive",
               "Consumes the stream with Amazon Data Firehose (or Lambda) delivering to OpenSearch Service with an index-per-day and a 90-day index lifecycle, and in parallel to S3 (Firehose can deliver to S3 as backup/all documents) with a lifecycle rule moving objects to Glacier Deep Archive and expiring at 7 years; decompresses the gzip-compressed subscription records in a Firehose transformation.",
-              "Firehose reads the stream, runs a transformation Lambda (subscription records arrive gzip-compressed and wrapped; unpack and normalise them), and delivers to the OpenSearch domain with daily indices managed by Index State Management to delete after 90 days, while also delivering all records to S3 (Parquet via record format conversion). The S3 bucket's lifecycle transitions to Glacier Deep Archive after 90 days and expires at 7 years."
+              "Firehose reads the stream, runs a transformation Lambda (subscription records arrive gzip-compressed and wrapped; unpack and normalize them), and delivers to the OpenSearch domain with daily indices managed by Index State Management to delete after 90 days, while also delivering all records to S3 (Parquet via record format conversion). The S3 bucket's lifecycle transitions to Glacier Deep Archive after 90 days and expires at 7 years."
             ),
             part(
               "Security of the pipeline",
@@ -400,7 +400,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             part(
               "Reading the trace",
               "Isolates the DynamoDB call (not the third-party API or Lambda cold starts) as where the time goes, using the subsegment timings, and rules out Lambda concurrency throttling from the Throttles metric.",
-              "The slow traces spend their time inside the DynamoDB subsegment, so the cause is the Orders table interaction, not the payments provider (300 ms, normal) and not Lambda concurrency (Throttles is 0). Cold starts would show as initialisation time, not a 6-9 s DynamoDB call."
+              "The slow traces spend their time inside the DynamoDB subsegment, so the cause is the Orders table interaction, not the payments provider (300 ms, normal) and not Lambda concurrency (Throttles is 0). Cold starts would show as initialization time, not a 6-9 s DynamoDB call."
             ),
             part(
               "Next evidence",
@@ -442,8 +442,8 @@ export const AWSDOP_LABS: SeedLabSet = {
           parts: [
             part(
               "Detection",
-              "Uses AWS Config managed rules -- restricted-ssh (or vpc-sg-open-only-to-authorized-ports) for the security group and s3-bucket-public-read-prohibited / s3-bucket-public-write-prohibited (or s3-bucket-level-public-access-prohibited) for buckets -- evaluated on configuration change so detection is near real time, deployed to all accounts via a conformance pack or organisation rules.",
-              "AWS Config rules evaluated on configuration change: restricted-ssh for 0.0.0.0/0 on port 22 (vpc-sg-open-only-to-authorized-ports to cover other ports), and s3-bucket-level-public-access-prohibited plus s3-bucket-public-read-prohibited and s3-bucket-public-write-prohibited for buckets. Deploy them as organisation Config rules or a conformance pack so every account is covered."
+              "Uses AWS Config managed rules -- restricted-ssh (or vpc-sg-open-only-to-authorized-ports) for the security group and s3-bucket-public-read-prohibited / s3-bucket-public-write-prohibited (or s3-bucket-level-public-access-prohibited) for buckets -- evaluated on configuration change so detection is near real time, deployed to all accounts via a conformance pack or organization rules.",
+              "AWS Config rules evaluated on configuration change: restricted-ssh for 0.0.0.0/0 on port 22 (vpc-sg-open-only-to-authorized-ports to cover other ports), and s3-bucket-level-public-access-prohibited plus s3-bucket-public-read-prohibited and s3-bucket-public-write-prohibited for buckets. Deploy them as organization Config rules or a conformance pack so every account is covered."
             ),
             part(
               "Remediation",
@@ -508,7 +508,7 @@ export const AWSDOP_LABS: SeedLabSet = {
       slug: "security-hub-org-automation",
       objective: "Automating security controls across multi-account and multi-Region environments with AWS Security Hub, AWS Organizations, AWS Control Tower, and Systems Manager",
       kind: "build",
-      title: "Run security findings centrally across an organisation",
+      title: "Run security findings centrally across an organization",
       brief:
         "Kelso Logistics has 60 accounts in two Regions, managed with AWS Control Tower. Findings are scattered: each account team looks at its own Security Hub (if enabled), GuardDuty is on in some accounts, and nobody owns the picture. The CISO wants: every account and both Regions covered automatically, including new accounts; one place to see and triage findings; critical findings about public exposure fixed automatically; and low-value findings from a known test account suppressed without hiding them from the audit trail. Design it.",
       safetyNote: GENERAL_SAFETY,
@@ -520,7 +520,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             part(
               "Delegated administration and coverage",
               "Designates the Security Tooling (audit) account as the delegated administrator for Security Hub and GuardDuty (and Inspector, Macie as needed) through Organizations, enables auto-enable for new accounts, and uses Security Hub central configuration to apply a policy (standards and controls) to all accounts and both Regions from the home Region, with cross-Region aggregation to a single view.",
-              "From the management account, delegate administration of Security Hub and GuardDuty to the audit account (Control Tower's Audit account is the natural choice). In Security Hub, turn on central configuration from the home Region with a configuration policy that enables the chosen standards (for example AWS Foundational Security Best Practices) for the whole organisation in both Regions, and set a finding aggregation Region so both Regions' findings appear in one place. Auto-enable covers accounts created later."
+              "From the management account, delegate administration of Security Hub and GuardDuty to the audit account (Control Tower's Audit account is the natural choice). In Security Hub, turn on central configuration from the home Region with a configuration policy that enables the chosen standards (for example AWS Foundational Security Best Practices) for the whole organization in both Regions, and set a finding aggregation Region so both Regions' findings appear in one place. Auto-enable covers accounts created later."
             ),
             part(
               "Automatic remediation of critical exposure",
@@ -530,7 +530,7 @@ export const AWSDOP_LABS: SeedLabSet = {
             part(
               "Suppression with an audit trail",
               "Uses Security Hub automation rules to set workflow status SUPPRESSED (and a note) for findings from the test account matching defined criteria, rather than disabling controls or deleting findings, so they remain in the record and in exports.",
-              "An automation rule: criteria AwsAccountId = the test account and the specific low-value control ids; action: set WorkflowStatus to SUPPRESSED and add a note naming the approver and the review date. The findings stay in Security Hub and in the data exported to the security lake, they just leave the active queue. Disabling the control organisation-wide would hide real findings elsewhere."
+              "An automation rule: criteria AwsAccountId = the test account and the specific low-value control ids; action: set WorkflowStatus to SUPPRESSED and add a note naming the approver and the review date. The findings stay in Security Hub and in the data exported to the security lake, they just leave the active queue. Disabling the control organization-wide would hide real findings elsewhere."
             ),
             part(
               "Guardrails and evidence",

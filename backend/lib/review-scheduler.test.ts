@@ -14,7 +14,7 @@ const state = (over: Partial<ScheduleState> = {}): ScheduleState => ({
 });
 
 describe("fixed_v1 review scheduler (REQ-108)", () => {
-  test("enrolment is due the next UTC day at step 0", () => {
+  test("enrollment is due the next UTC day at step 0", () => {
     const s = fixedScheduler.enrol(at("2026-11-07T23:30:00Z"));
     assert.equal(s.step, 0);
     assert.equal(s.dueOn, "2026-11-08");
