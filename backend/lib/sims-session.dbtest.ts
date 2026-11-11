@@ -38,8 +38,8 @@ const users: string[] = [];
 let pool: Pool;
 let simIds: Record<string, string> = {};
 
-const CAPS = "protocol=1;engine=1.1;renderers=bedside@3,board@3,session@1";
-const NO_SESSION = "protocol=1;engine=1.1;renderers=bedside@3,board@3";
+const CAPS = "protocol=1;engine=1.2;renderers=bedside@3,board@3,session@1";
+const NO_SESSION = "protocol=1;engine=1.2;renderers=bedside@3,board@3";
 
 const entriesFor = (course: string): DocumentEntry[] => EPPP_SESSION_DOCUMENTS.map((e) => ({ ...e, course }));
 const docOf = (slug: string): ScenarioDoc => loadDocument(EPPP_SESSION_DOCUMENTS.find((e) => e.slug === slug)!);
