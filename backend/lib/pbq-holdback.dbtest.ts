@@ -1,4 +1,4 @@
-// FAIL-1000, FAIL-1001: generating a PBQ scenario. The first two live
+// FAIL-1000, FAIL-1001, FAIL-1005: generating a PBQ scenario. The first two live
 // attempts (2026-11-10) were both held back for "uncertain" claims that were
 // only caveats about wording, and the learner saw "something went wrong on
 // our side" (a 503) instead of the held-back message. Now a held-back
@@ -72,8 +72,16 @@ after(async () => {
 });
 
 describe("FAIL-1000/1001: generating a PBQ scenario", () => {
-  test("a held-back first scenario is written once more and the second is served", async () => {
-    replies = [{ confidence: "medium", uncertainClaims: ["Control type labels may differ from the textbook taxonomy"] }];
+  test("FAIL-1005: listed claims with medium confidence are served on the first call, not held back", async () => {
+    replies = [{ confidence: "medium", uncertainClaims: ["The clinic scenario is invented; no regulation is claimed."] }];
+    const res = await generate(await newUser());
+    assert.equal(res.status, 200);
+    assert.equal(calls, 1);
+    assert.equal(await holdbacks(), 0);
+  });
+
+  test("a low-confidence first scenario is written once more and the second is served", async () => {
+    replies = [{ confidence: "low", uncertainClaims: ["unsure of the port"] }];
     const res = await generate(await newUser());
     assert.equal(res.status, 200);
     const body = (await res.json()) as { scenario: { title: string } };
@@ -82,7 +90,7 @@ describe("FAIL-1000/1001: generating a PBQ scenario", () => {
     assert.equal(await holdbacks(), 1, "the held-back one is still logged");
   });
 
-  test("two held-back scenarios: a 409 with the real message, nothing stored, both logged", async () => {
+  test("two low-confidence scenarios: a 409 with the real message, nothing stored, both logged", async () => {
     const unsure = { confidence: "low", uncertainClaims: ["unsure"] };
     replies = [unsure, unsure];
     const before = (await query<{ n: number }>(`select count(*)::int as n from pbq_scenarios where unit_id = $1`, [unit]))[0].n;
