@@ -33,7 +33,7 @@ export const dynamic = "force-dynamic";
 // caller's access tokens stop at once because requireUser finds no row.
 export async function DELETE(req: Request) {
   try {
-    const authUser = await requireUser(req);
+    const authUser = await requireUser(req, { termsOptional: true });
     const row = await queryOne<{ password_hash: string | null; email: string }>(
       "select password_hash, email from app_users where id = $1",
       [authUser.id]

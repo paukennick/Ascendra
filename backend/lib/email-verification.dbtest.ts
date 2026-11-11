@@ -26,10 +26,21 @@ import { POST as emailChange } from "../app/api/account/email/route";
 import { POST as mfaEmailSetup } from "../app/api/auth/mfa/email/setup/route";
 import VerifyEmailPage from "../app/verify-email/page";
 import { confirmVerifyEmail } from "../app/verify-email/actions";
+import { __setResetHandoffForTest } from "./reset-handoff";
 import ConfirmEmailChangePage from "../app/confirm-email-change/page";
 import { confirmEmailChange } from "../app/confirm-email-change/actions";
 import CancelEmailChangePage from "../app/cancel-email-change/page";
 import { cancelEmailChange } from "../app/cancel-email-change/actions";
+
+// REQ-219 (FAIL-1107): the reset token is handed to the result page in a
+// cookie, which a server action can't set outside a request; a stand-in keeps it.
+let handoff: string | null = null;
+__setResetHandoffForTest({
+  set: async (t) => {
+    handoff = t;
+  },
+  get: async () => handoff,
+});
 
 const testPw = (s: string) => s;
 const run = Date.now().toString(36);
@@ -221,8 +232,11 @@ describe("mail scanners (FAIL-670)", () => {
   });
 
   test("result codes in the URL render fixed text only; a malformed reset token is not linked", async () => {
-    const r = await page(VerifyEmailPage, { result: "set_password", reset: 'x"><script>' });
-    assert.equal(r.links.length, 0);
+    handoff = 'x"><script>';
+    const r = await page(VerifyEmailPage, { result: "set_password", reset: "ignored-" + "a".repeat(30) });
+    assert.equal(r.links.length, 0, "neither a malformed cookie nor a URL parameter is linked");
+    assert.match(r.text, /Forgot password/);
+    handoff = null;
     assert.match((await page(VerifyEmailPage, { result: "bogus" })).text, /Missing verification token/);
   });
 });
@@ -302,17 +316,19 @@ describe("REQ-116 set_password (squatting) path scanner-safe (FAIL-670)", () => 
     const to = await post(confirmVerifyEmail, link);
     const p = paramsOf(to);
     assert.equal(p.result, "set_password");
-    assert.ok(p.reset);
+    assert.deepEqual(p, { result: "set_password" }, "FAIL-1107: no token in the redirect URL");
+    assert.ok(handoff, "the token was handed over out of band");
+    const resetToken = handoff!;
     const done = await page(VerifyEmailPage, p);
     assert.match(done.text, /any password set before has been removed/);
-    assert.deepEqual(done.links, [`/reset-password?token=${encodeURIComponent(p.reset)}`], "the page that spent it shows the reset link");
+    assert.deepEqual(done.links, [`/reset-password?token=${encodeURIComponent(resetToken)}`], "the page that spent it shows the reset link");
 
     const row = (await userRow(squat.id))!;
     assert.equal(row.password_hash, null);
     assert.ok(row.email_verified_at);
     assert.equal(await openTokens(squat.id), 0, "every other verification link spent");
     assert.equal((await call(login, { email: squat.email, password: testPw("Squatter-Pw-123") })).status, 401);
-    assert.equal((await call(reset, { token: p.reset, newPassword: testPw("Owner-Final-Pw-1") })).status, 200);
+    assert.equal((await call(reset, { token: resetToken, newPassword: testPw("Owner-Final-Pw-1") })).status, 200);
     assert.equal((await call(login, { email: squat.email, password: testPw("Owner-Final-Pw-1") })).status, 200);
   });
 });

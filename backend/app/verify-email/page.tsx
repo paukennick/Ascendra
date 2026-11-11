@@ -1,11 +1,11 @@
 import { inspectVerifyToken, VERIFY_MESSAGES, type VerifyCode } from "@/lib/auth/emailTokens";
 import { LinkPage, ConfirmForm, oneOf } from "../_components/LinkPage";
 import { confirmVerifyEmail } from "./actions";
+import { readResetToken } from "@/lib/reset-handoff";
 
 export const dynamic = "force-dynamic";
 
 const CODES: readonly VerifyCode[] = ["missing", "invalid", "verified", "set_password", "already_verified"];
-const RESET_TOKEN = /^[A-Za-z0-9_-]{20,128}$/;
 
 // REQ-191: opening the link (GET) changes nothing -- mail scanners open it
 // too. The button posts to confirmVerifyEmail, which spends the token and
@@ -13,19 +13,26 @@ const RESET_TOKEN = /^[A-Za-z0-9_-]{20,128}$/;
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string; result?: string; reset?: string }>;
+  searchParams: Promise<{ token?: string; result?: string }>;
 }) {
-  const { token, result, reset } = await searchParams;
+  const { token, result } = await searchParams;
 
   const code = oneOf(result, CODES);
   if (code) {
+    // REQ-219 (FAIL-1107): the reset token comes from a cookie the button's
+    // action set, not from this page's URL.
+    const reset = code === "set_password" ? await readResetToken() : null;
     return (
       <LinkPage>
         <p>{VERIFY_MESSAGES[code]}</p>
-        {code === "set_password" && reset && RESET_TOKEN.test(reset) ? (
-          <p>
-            <a href={`/reset-password?token=${encodeURIComponent(reset)}`}>Choose your password</a>
-          </p>
+        {code === "set_password" ? (
+          reset ? (
+            <p>
+              <a href={`/reset-password?token=${encodeURIComponent(reset)}`}>Choose your password</a>
+            </p>
+          ) : (
+            <p>If there is no link here, use &ldquo;Forgot password&rdquo; on the sign-in screen to choose one.</p>
+          )
         ) : null}
       </LinkPage>
     );

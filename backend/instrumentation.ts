@@ -16,6 +16,7 @@ export async function register() {
 // the report is not lost to a frozen function. (reportError() is the
 // after()-based path for code inside a route handler.)
 export const onRequestError: Instrumentation.onRequestError = async (err, request) => {
-  const { sendErrorReport } = await import("./lib/error-tracker");
-  await sendErrorReport(err, { route: request.path });
+  const { sendErrorReport, routeOnly } = await import("./lib/error-tracker");
+  // FAIL-1106: the path without its query string (one-time tokens ride there).
+  await sendErrorReport(err, { route: routeOnly(request.path) });
 };
