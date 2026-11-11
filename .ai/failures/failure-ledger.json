@@ -14729,6 +14729,31 @@
       "prevention_rules": [],
       "prevention_notes": "Each kind of mail that someone other than the account holder can trigger, and each that the holder needs in order to get in, has its own named per-address budget in lib/auth/mailLimit.ts; a new mail kind picks one on purpose. The checklist's auth-and-abuse line names it.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1241",
+      "date": "2026-11-10",
+      "title": "A 403 terms_required showed as error text with no way to the Terms screen",
+      "status": "open",
+      "severity": "medium",
+      "symptom": "Since REQ-219 the server answers signed-in routes with 403 { code: terms_required } until the account accepts the current Terms and Privacy Policy. A build whose launch prompt never ran (the onboarding request failed or the state was stale) showed the server's sentence as error text on every screen and never opened the Terms screen, so the learner could not act on it.",
+      "how_detected": "Review of batch G4 (REQ-219); approved follow-up",
+      "root_cause": "Only the launch gate (GET /api/onboarding, read once per sign-in) opened the Terms screen. The API client had a hook for study_notice_required (FAIL-1061) that reloads that state, but nothing for terms_required, added server-side in REQ-219 without the matching client path.",
+      "requirement": "REQ-226",
+      "affected": [
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "fix_summary": "isTermsRequired and registerTermsRequiredHook: the client hands a 403 terms_required to the onboarding provider, which reloads the launch state (one reload at a time, and none when the state already says the Terms are waiting); the gate then opens /agree. Nothing is retried. JavaScript only.",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/termsRequired.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A refusal code the server adds for a state the app's launch gate owns (terms_required, study_notice_required) gets a client hook in the same change; the checklist's legal-version line says so, and mobile/src/lib/termsRequired.test.ts checks the wiring.",
+      "recurrence_of": ""
     }
   ]
 }

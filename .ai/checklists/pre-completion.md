@@ -132,7 +132,10 @@
   older one must not be stranded), and leave `UNDECLARED_LEGAL_VERSIONS` and
   `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
   REQ-219 (FAIL-1109): the server enforces agreement in `requireUser` (403
-  `terms_required`, per the same header rules). A new signed-in route is
+  `terms_required`, per the same header rules; the app's client hands it to
+  the onboarding provider, which reloads the launch state so the Terms screen
+  opens, REQ-226 FAIL-1241 -- a refusal code the server adds for a state the
+  launch gate owns gets a client hook in the same change). A new signed-in route is
   enforced by default; one a person needs in order to agree, leave or ask for
   help passes `{ termsOptional: true }` and is added to the list in
   lib/terms-enforcement.dbtest.ts. Integration suites run with enforcement off
