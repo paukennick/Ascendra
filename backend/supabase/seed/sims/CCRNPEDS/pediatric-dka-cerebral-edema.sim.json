@@ -1,0 +1,2005 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pediatric-dka-cerebral-edema",
+  "title": "Pediatric DKA: the first six hours",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 70,
+            "high": 140
+          },
+          "trend": {
+            "history": "hrH",
+            "window": "10min",
+            "threshold": 10
+          },
+          "announce": {
+            "bands": [
+              100,
+              80,
+              60
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "nibp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "Diastolic {dbp}",
+          "alarm": {
+            "high": 90
+          },
+          "announce": {
+            "bands": [
+              80,
+              90,
+              100
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              30,
+              20
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last glucose result",
+          "value": "gluLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              300,
+              250,
+              150,
+              70
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gluLast > 0"
+        },
+        {
+          "id": "k",
+          "label": "K",
+          "spokenLabel": "Last potassium result",
+          "value": "kLast",
+          "unit": "mmol/L",
+          "announce": {
+            "bands": [
+              3.5,
+              3,
+              5.5
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "kLast > 0"
+        },
+        {
+          "id": "hco3",
+          "label": "HCO3",
+          "spokenLabel": "Last bicarbonate result",
+          "value": "hco3Last",
+          "unit": "mmol/L",
+          "sub": "pH {phLast|2dp}",
+          "announce": {
+            "bands": [
+              5,
+              10,
+              15,
+              18
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "hco3Last > 0"
+        },
+        {
+          "id": "gcs",
+          "label": "GCS",
+          "spokenLabel": "Last Glasgow Coma Scale score",
+          "value": "gcsLast",
+          "unit": "",
+          "announce": {
+            "bands": [
+              14,
+              12,
+              9
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gcsLast > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Insulin {insRate} U/kg/h. Fluid plan running: {fluidOn|yesno}. Potassium in the fluid: {kAdded|yesno}. Dextrose in the fluid: {not isNull(dexAt)|yesno}.",
+      "banner": [
+        {
+          "when": "ctAway",
+          "text": "Off the unit for a head CT."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize cerebral edema in DKA -- headache, falling heart rate, rising blood pressure, declining consciousness, new incontinence -- and treat with mannitol or hypertonic saline without waiting for a CT",
+  "secondaryObjectives": [
+    "Resuscitate a child in DKA with isotonic fluid first, replace the remaining deficit gradually, then start a weight-based continuous insulin infusion without a bolus",
+    "Add dextrose to IV fluids as glucose falls during DKA treatment, and overlap subcutaneous insulin before stopping the infusion",
+    "Monitor potassium and phosphate during DKA treatment, because insulin drives both into cells",
+    "Apply the biochemical criteria for pediatric DKA (hyperglycemia, venous acidosis or low bicarbonate, and ketosis) and grade its severity by the acidosis"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "The objective and its secondary objectives are the course's own titles (backend/supabase/seed/tracks/ccrn-peds-neo.ts, read there from the handbook 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+      "checkedAt": "2026-11-11",
+      "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+      "note": "Primary text read 2026-11-11 (a hosted copy of the published chapter): DKA needs glucose >200 mg/dL, venous pH <7.3 or bicarbonate <18 and ketosis; severe is pH <7.1 or bicarbonate <5; initial 0.9% saline 10-20 mL/kg over 20-30 min, deficit replaced over 24-48 h; insulin 0.05-0.1 U/kg/h starting 1 h after fluids begin, 'An IV insulin bolus should not be used at the start of therapy'; potassium 40 mmol/L in the fluid once K is below 5.5, insulin deferred for a low K (the executive summary says <3.0, section 6.3.4 says <3.5: the text is inconsistent); 5% dextrose added at about 250-300 mg/dL, or sooner if glucose falls faster than 90 mg/dL (5 mmol/L) per hour; expected fall 2-5 mmol/L (36-90 mg/dL) per hour; glucose hourly, electrolytes every 2-4 h, hourly vital signs and neurological checks; cerebral injury usually within 12 h of starting treatment; major signs altered mentation, sustained heart rate fall of more than 20 not explained by volume or sleep, age-inappropriate incontinence; minor signs vomiting, headache, lethargy, diastolic BP >90; mannitol 0.5-1 g/kg over 10-15 min (effect from about 15 min, lasting about 120 min) or 3% saline 2.5-5 mL/kg over 10-15 min; 'treatment of the clinically symptomatic patient should not be delayed in order to obtain imaging'; bicarbonate not recommended except for life-threatening hyperkalemia or pH below 6.9 with compromised contractility; PECARN FLUID found no difference in cerebral injury between faster and slower rehydration."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 20:00 in the pediatric ICU. Bed 3, a 9-year-old boy, 30 kg, new-onset type 1 diabetes. Two weeks of thirst and weight loss, vomiting today. ED venous gas: pH 7.06, bicarbonate 7, glucose 560 mg/dL, potassium 4.6, ketones high. The ED gave 10 mL/kg of 0.9% saline from 19:30 to 20:00. Insulin is ordered at 0.05-0.1 U/kg/h; it has not started.",
+    "handover": [
+      "HR 118, BP 108/66, RR 32 and deep, SpO2 99% on room air. Awake, tired, answers questions. GCS 15.",
+      "Warm hands, capillary refill 2 s. He passed urine in the ED.",
+      "Orders: deficit and maintenance fluid over 48 hours, potassium 40 mmol/L in the fluid once K is below 5.5 and he is passing urine, hourly glucose and neuro checks, gas and electrolytes every 2 hours."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Results take minutes; hourly checks are waits you can skip to. The skip stops early at an alarm or a result.",
+      "Look at the child yourself: some changes show on the monitor before anyone tells you.",
+      "Partway through you are asked to write your plan. The case ends at the six-hour review, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "20:00",
+    "tick": "1s",
+    "maxDuration": "6h",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 30,
+      "unit": "kg"
+    },
+    "insStartMin": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Insulin starts 1 h after IV fluids begin; the ED bolus began at 19:30, half an hour before handover."
+      }
+    },
+    "insFall": {
+      "value": 85,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Glucose fall at 0.1 U/kg/h of insulin, inside the 36-90 mg/dL per hour ISPAD expects; 0.05 gives half of it. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dilFall": {
+      "value": 30,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Extra glucose fall from rehydration over the first two hours of the fluid plan. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dexRise": {
+      "value": 55,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Glucose added by 5% dextrose in the fluid at this rate. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "hco3Rise": {
+      "value": 1.5,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Bicarbonate recovery with insulin running at 0.1 U/kg/h and glucose kept up. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kFall": {
+      "value": 0.6,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Potassium driven into cells by insulin at 0.1 U/kg/h. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kGain": {
+      "value": 0.5,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Potassium added by 40 mmol/L in the fluid plan. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kArrest": {
+      "value": 2.5,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Potassium at which this child has a dangerous arrhythmia. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ceOnset": {
+      "value": 15600,
+      "unit": "s",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "FLAG: the case is written so cerebral edema starts at 4 h 20 min (00:20), inside ISPAD's 'usually ... within the first 12 h after treatment has started'. Its timing does not depend on the care given: ISPAD notes PECARN FLUID found no difference in cerebral injury with faster or slower fluids."
+      }
+    },
+    "ceRise": {
+      "value": 1,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Untreated, the edema reaches herniation about 60 min after the first sign. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ceFall": {
+      "value": 2,
+      "unit": "/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Hyperosmolar therapy reverses the edema while it acts. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "osmoLast": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Mannitol's effect lasts about 120 min (ISPAD)."
+      }
+    },
+    "injuryAt": {
+      "value": 0.8,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Edema severity (about GCS 9) past which this case counts a brain injury. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ceWindow": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "FLAG: Authored target: hyperosmolar therapy within 20 min of the first sign. ISPAD sets no minute count; it says treat as soon as the condition is suspected and do not wait for imaging. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "labTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Gas and electrolytes from the lab: about 20 min."
+      }
+    },
+    "gluTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      }
+    },
+    "callback": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Attending callback about 2 min."
+      }
+    },
+    "ctTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Transport, a head CT and the trip back: about 30 min."
+      }
+    },
+    "dexAt300": {
+      "value": 300,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Primary text read 2026-11-11 (a hosted copy of the published chapter): DKA needs glucose >200 mg/dL, venous pH <7.3 or bicarbonate <18 and ketosis; severe is pH <7.1 or bicarbonate <5; initial 0.9% saline 10-20 mL/kg over 20-30 min, deficit replaced over 24-48 h; insulin 0.05-0.1 U/kg/h starting 1 h after fluids begin, 'An IV insulin bolus should not be used at the start of therapy'; potassium 40 mmol/L in the fluid once K is below 5.5, insulin deferred for a low K (the executive summary says <3.0, section 6.3.4 says <3.5: the text is inconsistent); 5% dextrose added at about 250-300 mg/dL, or sooner if glucose falls faster than 90 mg/dL (5 mmol/L) per hour; expected fall 2-5 mmol/L (36-90 mg/dL) per hour; glucose hourly, electrolytes every 2-4 h, hourly vital signs and neurological checks; cerebral injury usually within 12 h of starting treatment; major signs altered mentation, sustained heart rate fall of more than 20 not explained by volume or sleep, age-inappropriate incontinence; minor signs vomiting, headache, lethargy, diastolic BP >90; mannitol 0.5-1 g/kg over 10-15 min (effect from about 15 min, lasting about 120 min) or 3% saline 2.5-5 mL/kg over 10-15 min; 'treatment of the clinically symptomatic patient should not be delayed in order to obtain imaging'; bicarbonate not recommended except for life-threatening hyperkalemia or pH below 6.9 with compromised contractility; PECARN FLUID found no difference in cerebral injury between faster and slower rehydration."
+      }
+    },
+    "reasonDelay": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The written question opens 10 min after insulin starts. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reviewAt": {
+      "value": 21600,
+      "unit": "s",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The six-hour review, when the case ends."
+      }
+    }
+  },
+  "state": {
+    "glucose": {
+      "type": "number",
+      "init": 560,
+      "min": 20,
+      "max": 1200,
+      "unit": "mg/dL"
+    },
+    "hco3": {
+      "type": "number",
+      "init": 7,
+      "min": 2,
+      "max": 30,
+      "unit": "mmol/L"
+    },
+    "k": {
+      "type": "number",
+      "init": 4.6,
+      "min": 1,
+      "max": 8,
+      "unit": "mmol/L"
+    },
+    "ce": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "ceMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 2
+    },
+    "needDexAt": {
+      "type": "time",
+      "init": null
+    },
+    "osmoAt": {
+      "type": "time",
+      "init": null
+    },
+    "osmoN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 5
+    },
+    "insRate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.2
+    },
+    "insAt": {
+      "type": "time",
+      "init": null
+    },
+    "insBolus": {
+      "type": "bool",
+      "init": false
+    },
+    "insStopped": {
+      "type": "bool",
+      "init": false
+    },
+    "fluidAt": {
+      "type": "time",
+      "init": null
+    },
+    "fluidOn": {
+      "type": "bool",
+      "init": false
+    },
+    "kAdded": {
+      "type": "bool",
+      "init": false
+    },
+    "kAt": {
+      "type": "time",
+      "init": null
+    },
+    "dexAt": {
+      "type": "time",
+      "init": null
+    },
+    "bicarb": {
+      "type": "bool",
+      "init": false
+    },
+    "gluLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1200,
+      "unit": "mg/dL"
+    },
+    "gluN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "lowGlu": {
+      "type": "bool",
+      "init": false
+    },
+    "kLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 8,
+      "unit": "mmol/L"
+    },
+    "hco3Last": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 30,
+      "unit": "mmol/L"
+    },
+    "phLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 8
+    },
+    "labsPending": {
+      "type": "bool",
+      "init": false
+    },
+    "labsN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "gcsLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 15
+    },
+    "neuroN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 50
+    },
+    "lastNeuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "maxNeuroGap": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "ceSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "callEffAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "orderOsmo": {
+      "type": "bool",
+      "init": false
+    },
+    "ctAt": {
+      "type": "time",
+      "init": null
+    },
+    "ctAway": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "history": {
+    "hrH": {
+      "of": "hr",
+      "every": "30s",
+      "keep": "15min"
+    }
+  },
+  "derived": {
+    "insEff": {
+      "expr": "insRate / 0.1"
+    },
+    "ph": {
+      "expr": "round((7.40 - 0.02 * (24 - hco3)) * 100) / 100",
+      "precision": 2
+    },
+    "ceActive": {
+      "expr": "t >= ceOnset and t < ceOnset + 9000"
+    },
+    "osmoOn": {
+      "expr": "not isNull(osmoAt) and t >= timeAt(osmoAt) + 900 and t < timeAt(osmoAt) + 900 + osmoLast"
+    },
+    "gcs": {
+      "expr": "clamp(15 - round(7 * ce), 3, 15)",
+      "precision": 0
+    },
+    "hr": {
+      "expr": "round(clamp(118 - 14 * min(1, (t / 3600) / 4) - 40 * ce + 2 * sin(t / 31), 40, 180))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(108 + 28 * ce + 1.5 * sin(t / 43))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(66 + 30 * ce)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(14 + 1.2 * (24 - hco3) - 6 * max(0, ce - 0.6), 6, 50))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(clamp(99 - 8 * max(0, ce - 0.7), 80, 100))",
+      "unit": "%",
+      "precision": 0
+    },
+    "fluidDrop": {
+      "expr": "fluidOn and t < timeAt(fluidAt) + 7200 ? dilFall : 0",
+      "unit": "mg/dL/h"
+    }
+  },
+  "processes": [
+    {
+      "id": "sugar",
+      "update": {
+        "glucose": "glucose + (-(fluidDrop) - insFall * insEff * (insBolus and t < timeAt(insAt) + 3600 ? 1.4 : 1) + (isNull(dexAt) ? 0 : dexRise)) * dt / 3600"
+      }
+    },
+    {
+      "id": "acid",
+      "update": {
+        "hco3": "hco3 + (glucose > 90 ? hco3Rise * min(1, insEff) : 0) * dt / 3600"
+      }
+    },
+    {
+      "id": "potassium",
+      "update": {
+        "k": "k + (-kFall * insEff + (kAdded ? kGain : 0) - (fluidOn and not kAdded ? 0.1 : 0)) * dt / 3600"
+      }
+    },
+    {
+      "id": "edema",
+      "update": {
+        "ce": "max(0, ce + (osmoOn ? -ceFall : (ceActive ? ceRise : 0)) * dt / 3600)"
+      }
+    },
+    {
+      "id": "peak",
+      "update": {
+        "ceMax": "max(ceMax, ce)"
+      }
+    },
+    {
+      "id": "watch",
+      "update": {
+        "maxNeuroGap": "max(maxNeuroGap, isNull(lastNeuroAt) ? t : t - timeAt(lastNeuroAt))"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "neuro",
+        "glucoseCheck",
+        "labs",
+        "fluids",
+        "insulin",
+        "potassium",
+        "dextrose",
+        "bicarb",
+        "osmo",
+        "ct",
+        "call"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "neuro": {
+      "label": "Neuro check (GCS, pupils, headache, behavior)",
+      "group": "Assess",
+      "effects": [
+        {
+          "add": "neuroN",
+          "by": "1"
+        },
+        {
+          "set": "lastNeuroAt",
+          "to": "t"
+        },
+        {
+          "set": "gcsLast",
+          "to": "gcs"
+        },
+        {
+          "cases": [
+            {
+              "when": "ce >= 0.6",
+              "then": [
+                {
+                  "log": "GCS {gcs}: opens eyes only to pain, confused words. Pupils equal but sluggish. HR {hr}, BP {sbp}/{dbp}. He has wet the bed.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "ce >= 0.2",
+              "then": [
+                {
+                  "log": "GCS {gcs}: drowsy, confused about where he is, says his head hurts. HR {hr}, down from earlier; diastolic {dbp}. New incontinence.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "ce > 0",
+              "then": [
+                {
+                  "log": "GCS {gcs}: says his head hurts badly now, irritable. HR {hr}.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "GCS {gcs}: awake, oriented, tired. No headache. Pupils equal and reactive.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "ce > 0",
+          "then": [
+            {
+              "if": "isNull(ceSeenAt)",
+              "then": [
+                {
+                  "set": "ceSeenAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucoseCheck": {
+      "label": "Hourly glucose (point of care)",
+      "group": "Labs",
+      "effects": [
+        {
+          "schedule": "gluT",
+          "after": "gluTime",
+          "with": {
+            "v": "round(glucose)"
+          }
+        },
+        {
+          "log": "Fingerstick glucose (about 1 min)."
+        }
+      ]
+    },
+    "labs": {
+      "label": "Send gas and electrolytes",
+      "group": "Labs",
+      "available": "not labsPending",
+      "why": "Labs already pending.",
+      "effects": [
+        {
+          "set": "labsPending",
+          "to": "true"
+        },
+        {
+          "add": "labsN",
+          "by": "1"
+        },
+        {
+          "schedule": "labsT",
+          "after": "labTime",
+          "with": {
+            "k": "round(k * 10) / 10",
+            "b": "round(hco3)",
+            "p": "ph"
+          }
+        },
+        {
+          "log": "Venous gas and electrolytes sent (about 20 min)."
+        }
+      ]
+    },
+    "fluids": {
+      "label": "Start the deficit and maintenance fluid plan (48 h)",
+      "group": "Orders",
+      "available": "not fluidOn",
+      "why": "The fluid plan is running.",
+      "effects": [
+        {
+          "set": "fluidOn",
+          "to": "true"
+        },
+        {
+          "set": "fluidAt",
+          "to": "t"
+        },
+        {
+          "log": "0.9% saline at the planned rate: deficit over 48 hours plus maintenance."
+        }
+      ]
+    },
+    "insulin": {
+      "label": "Insulin infusion",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "ins",
+          "kind": "choice",
+          "label": "Insulin",
+          "options": [
+            {
+              "value": "std",
+              "label": "0.1 U/kg/h, no bolus"
+            },
+            {
+              "value": "low",
+              "label": "0.05 U/kg/h, no bolus"
+            },
+            {
+              "value": "bolus",
+              "label": "0.1 U/kg IV bolus, then 0.1 U/kg/h"
+            },
+            {
+              "value": "stop",
+              "label": "Stop the infusion"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "ins == \"bolus\"",
+              "then": [
+                {
+                  "set": "insBolus",
+                  "to": "true"
+                },
+                {
+                  "set": "insRate",
+                  "to": "0.1"
+                },
+                {
+                  "log": "Insulin 0.1 U/kg IV bolus pushed, then the infusion at 0.1 U/kg/h.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "when": "ins == \"low\"",
+              "then": [
+                {
+                  "set": "insRate",
+                  "to": "0.05"
+                },
+                {
+                  "log": "Insulin infusion at 0.05 U/kg/h, no bolus."
+                }
+              ]
+            },
+            {
+              "when": "ins == \"std\"",
+              "then": [
+                {
+                  "set": "insRate",
+                  "to": "0.1"
+                },
+                {
+                  "log": "Insulin infusion at 0.1 U/kg/h, no bolus."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "insRate",
+                  "to": "0"
+                },
+                {
+                  "set": "insStopped",
+                  "to": "true"
+                },
+                {
+                  "log": "Insulin infusion stopped.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "insRate > 0",
+          "then": [
+            {
+              "if": "isNull(insAt)",
+              "then": [
+                {
+                  "set": "insAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "potassium": {
+      "label": "Add potassium to the fluid (40 mmol/L)",
+      "group": "Orders",
+      "available": "fluidOn and not kAdded",
+      "why": "Start the fluid plan first (or potassium is already in).",
+      "effects": [
+        {
+          "set": "kAdded",
+          "to": "true"
+        },
+        {
+          "set": "kAt",
+          "to": "t"
+        },
+        {
+          "log": "Potassium 40 mmol/L added to the fluid plan."
+        }
+      ]
+    },
+    "dextrose": {
+      "label": "Add 5% dextrose to the fluid",
+      "group": "Orders",
+      "available": "fluidOn and isNull(dexAt)",
+      "why": "Start the fluid plan first (or dextrose is already in).",
+      "effects": [
+        {
+          "set": "dexAt",
+          "to": "t"
+        },
+        {
+          "log": "5% dextrose added to the fluid, insulin unchanged."
+        }
+      ]
+    },
+    "bicarb": {
+      "label": "Give sodium bicarbonate",
+      "group": "Orders",
+      "available": "not bicarb",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bicarb",
+          "to": "true"
+        },
+        {
+          "add": "hco3",
+          "by": "2"
+        },
+        {
+          "log": "Sodium bicarbonate given. The bicarbonate on the next gas will be a little higher; it does not treat the cause.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "osmo": {
+      "label": "Hyperosmolar therapy",
+      "group": "Orders",
+      "available": "orderOsmo and not ctAway and (isNull(osmoAt) or t >= timeAt(osmoAt) + 1800)",
+      "why": "Needs the attending's order, and he must be on the unit; a repeat dose waits 30 min.",
+      "params": [
+        {
+          "id": "drug",
+          "kind": "choice",
+          "label": "Drug",
+          "options": [
+            {
+              "value": "mannitol",
+              "label": "Mannitol 0.5 g/kg over 10-15 min"
+            },
+            {
+              "value": "hts",
+              "label": "3% saline 5 mL/kg over 10-15 min"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "osmoAt",
+          "to": "t"
+        },
+        {
+          "add": "osmoN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "drug == \"mannitol\"",
+              "then": [
+                {
+                  "log": "Mannitol 0.5 g/kg (15 g) IV over 10-15 min. Effect expected from about 15 min."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "3% saline 5 mL/kg (150 mL) IV over 10-15 min. Effect expected from about 15 min."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ct": {
+      "label": "Send him for a head CT",
+      "group": "Orders",
+      "available": "isNull(ctAt)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "ctAt",
+          "to": "t"
+        },
+        {
+          "set": "ctAway",
+          "to": "true"
+        },
+        {
+          "schedule": "ctT",
+          "after": "ctTime"
+        },
+        {
+          "log": "He goes to CT with a nurse and a monitor (about 30 min there and back).",
+          "kind": "sys"
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the PICU attending (SBAR)",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "sbar",
+          "kind": "form",
+          "label": "SBAR",
+          "fields": [
+            {
+              "id": "sit",
+              "label": "Situation",
+              "options": [
+                {
+                  "value": "brain",
+                  "label": "New headache, falling heart rate, rising diastolic, GCS down, incontinent: I think this is cerebral edema"
+                },
+                {
+                  "value": "glucose",
+                  "label": "Update on his glucose"
+                },
+                {
+                  "value": "tired",
+                  "label": "He seems tired"
+                }
+              ]
+            },
+            {
+              "id": "bg",
+              "label": "Background",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "9 y, new-onset DKA, pH 7.06 at the start, insulin since the first hour, fluids over 48 h"
+                },
+                {
+                  "value": "min",
+                  "label": "DKA admission"
+                }
+              ]
+            },
+            {
+              "id": "rec",
+              "label": "Recommendation",
+              "options": [
+                {
+                  "value": "osmo",
+                  "label": "Please come now: I need an order for mannitol or 3% saline"
+                },
+                {
+                  "value": "ct",
+                  "label": "Should we get a CT?"
+                },
+                {
+                  "value": "wait",
+                  "label": "I'll keep watching him"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "if": "sit == \"brain\" and ce > 0 and isNull(callEffAt)",
+          "then": [
+            {
+              "set": "callEffAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "effective": "sit == \"brain\" and ce > 0"
+          }
+        },
+        {
+          "log": "Paged the attending. Callback in about 2 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "gluT": {
+      "label": "the glucose result",
+      "wait": {
+        "skipLabel": "the glucose (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "v": {
+          "type": "number",
+          "unit": "mg/dL"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Point-of-care glucose: about 1 min."
+      },
+      "effects": [
+        {
+          "set": "gluLast",
+          "to": "timer.with.v"
+        },
+        {
+          "add": "gluN",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "timer.with.v < 70",
+              "then": [
+                {
+                  "set": "lowGlu",
+                  "to": "true"
+                },
+                {
+                  "log": "Glucose {timer.with.v} mg/dL: hypoglycemia.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "timer.with.v <= dexAt300 and isNull(dexAt)",
+              "then": [
+                {
+                  "log": "Glucose {timer.with.v} mg/dL: at or below 300 with no dextrose in the fluid yet.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Glucose {timer.with.v} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "labsT": {
+      "label": "gas and electrolytes",
+      "wait": {
+        "skipLabel": "the gas and electrolytes (about 20 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "k": {
+          "type": "number",
+          "unit": "mmol/L"
+        },
+        "b": {
+          "type": "number",
+          "unit": "mmol/L"
+        },
+        "p": {
+          "type": "number"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Gas and electrolytes from the lab: about 20 min."
+      },
+      "effects": [
+        {
+          "set": "labsPending",
+          "to": "false"
+        },
+        {
+          "set": "kLast",
+          "to": "timer.with.k"
+        },
+        {
+          "set": "hco3Last",
+          "to": "timer.with.b"
+        },
+        {
+          "set": "phLast",
+          "to": "timer.with.p"
+        },
+        {
+          "log": "Venous pH {timer.with.p|2dp}, bicarbonate {timer.with.b}, potassium {timer.with.k|1dp}.",
+          "kind": "find"
+        },
+        {
+          "if": "timer.with.k < 3.5",
+          "then": [
+            {
+              "log": "Potassium below 3.5.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "neuroDue": {
+      "label": "hourly neuro check due",
+      "wait": {
+        "skipLabel": "the next hourly neuro check",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Hourly vital signs and neurological checks (ISPAD)."
+      },
+      "effects": [
+        {
+          "log": "Hourly neuro check due.",
+          "kind": "sys"
+        },
+        {
+          "schedule": "neuroDue",
+          "after": "3600"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the attending's callback",
+      "wait": {
+        "skipLabel": "the attending's callback (about 2 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "effective": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Attending callback about 2 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.effective",
+          "then": [
+            {
+              "set": "orderOsmo",
+              "to": "true"
+            },
+            {
+              "log": "Attending: \"That's cerebral edema until proven otherwise. Mannitol 0.5 to 1 g/kg or 3% saline 2.5 to 5 mL/kg now, don't wait for a CT. Keep the fluids to hold a normal pressure. I'm on my way.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Attending: \"Thanks. Keep up the hourly checks and call me if anything changes.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "ctT": {
+      "label": "back from CT",
+      "wait": {
+        "skipLabel": "the CT trip (about 30 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "Transport, a head CT and the trip back: about 30 min."
+      },
+      "effects": [
+        {
+          "set": "ctAway",
+          "to": "false"
+        },
+        {
+          "log": "Back from CT. The scan was read as early or no clear swelling; the clinical signs were the diagnosis.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "reviewT": {
+      "label": "the six-hour review",
+      "wait": {
+        "skipLabel": "the six-hour review",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "PICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-11",
+        "note": "The six-hour review, when the case ends."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "reviewT",
+          "after": "reviewAt"
+        },
+        {
+          "schedule": "neuroDue",
+          "after": "3600"
+        }
+      ]
+    },
+    {
+      "id": "dexNeed",
+      "when": "glucose <= dexAt300",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "needDexAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "headache",
+      "when": "t >= ceOnset",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "He calls out: his head hurts. He has vomited once.",
+          "kind": "find"
+        }
+      ]
+    },
+    {
+      "id": "hrDrop",
+      "when": "ce >= 0.3",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Heart rate falling without a reason: {hr}.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "dbpHigh",
+      "when": "dbp > 90",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Diastolic above 90.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "lowK",
+      "when": "k < 3",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Rhythm change: flattened T waves and U waves on the monitor.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "hypo",
+      "when": "glucose < 70",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lowGlu",
+          "to": "true"
+        },
+        {
+          "log": "He is sweaty and shaky.",
+          "kind": "find"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "plan": {
+      "trigger": "not isNull(insAt) and t >= timeAt(insAt) + reasonDelay",
+      "question": "Insulin is running. What will you watch for over the next hours, and what would you do about each?",
+      "parts": [
+        {
+          "label": "Severity and the plan",
+          "criteria": "Grades this as severe DKA (pH below 7.1 or bicarbonate below 5; here pH 7.06) and states the plan: fluid deficit over 24-48 h, insulin 0.05-0.1 U/kg/h without a bolus started an hour after fluids, potassium in the fluid, dextrose added as glucose falls toward 250-300 while insulin continues.",
+          "modelAnswer": "Severe DKA by the acidosis (pH 7.06). Fluids replace the deficit over 48 hours, insulin runs at 0.05-0.1 U/kg/h with no bolus from an hour after fluids began, potassium goes in the fluid because insulin drives it into cells, and dextrose goes in when glucose reaches about 250-300 so the insulin can keep clearing ketones."
+        },
+        {
+          "label": "What to watch for",
+          "criteria": "Names cerebral edema with at least three warning signs (headache, falling heart rate, rising diastolic pressure, falling GCS, new incontinence, vomiting) and the response: hyperosmolar therapy (mannitol or 3% saline) at once without waiting for imaging; also hypokalemia and hypoglycemia with hourly glucose and electrolytes every 2-4 h.",
+          "modelAnswer": "Cerebral edema: a new headache, a heart rate that falls without reason, a rising diastolic, a dropping GCS or new incontinence. If I see that, call and give mannitol or 3% saline straight away, not after a CT. Also low potassium (electrolytes every 2 hours) and low glucose (hourly)."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "callWindow": {
+        "value": 900,
+        "source": {
+          "cite": "PICU unit practice (authored estimate)",
+          "checkedAt": "2026-11-11",
+          "note": "Attending called within 15 min of the first sign of cerebral edema."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= reviewAt and ceMax >= injuryAt",
+      "class": "harm",
+      "rationale": "Cerebral edema left long enough to reach a GCS of about 9 has injured the brain even if he is waking at six hours, so this case calls it harm.",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Cerebral injury mortality 21%-24% (ISPAD). The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "herniation": {
+      "label": "Brain herniation",
+      "class": "harm",
+      "when": "ce >= 1",
+      "terminal": true,
+      "narrative": "His pupils became unequal and his breathing irregular, and his heart rate slowed further: the brain swelling has caused herniation. The team intubates; the outlook is grave."
+    },
+    "arrhythmia": {
+      "label": "Arrhythmia from low potassium",
+      "class": "harm",
+      "when": "k <= kArrest",
+      "terminal": true,
+      "narrative": "Ventricular ectopy, then a run of ventricular tachycardia: the insulin drove his potassium down to {k|1dp} with nothing replacing it."
+    },
+    "resolving": {
+      "label": "Cerebral edema caught and treated; DKA resolving",
+      "class": "target",
+      "when": "t >= reviewAt and ceMax < injuryAt and not isNull(osmoAt) and timeAt(osmoAt) <= ceOnset + ceWindow and isNull(ctAt) and kAdded and (isNull(insAt) or timeAt(kAt) <= timeAt(insAt) + 3600) and not insBolus and not isNull(insAt) and timeAt(insAt) >= insStartMin and (isNull(needDexAt) or (not isNull(dexAt) and timeAt(dexAt) <= timeAt(needDexAt) + 3600)) and not insStopped and not lowGlu",
+      "terminal": true,
+      "narrative": "Six hours in he is awake, GCS {gcs}, the headache settling. Hyperosmolar therapy went in within minutes of the first sign, without a trip to CT, and the DKA is resolving with insulin, potassium and dextrose in the right order."
+    },
+    "resolvingLate": {
+      "label": "Alive and improving, by a slower route",
+      "class": "recovered",
+      "when": "t >= reviewAt and ceMax < injuryAt",
+      "terminal": true,
+      "narrative": "He is improving at six hours, but something cost time or safety: a late or CT-delayed treatment of the edema, an insulin bolus or early start, potassium late, a stopped insulin, or a low glucose."
+    },
+    "time_up": {
+      "label": "Neurological injury",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Six hours in he is waking, GCS {gcs}, but the swelling went untreated long enough to drop his GCS to about {15 - round(7 * ceMax)}: an MRI and a neurology review will show what it cost him."
+    }
+  },
+  "endingOrder": [
+    "herniation",
+    "arrhythmia",
+    "resolving",
+    "resolvingLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cerebral",
+        "label": "Hyperosmolar therapy promptly, without waiting for a CT",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(osmoAt)",
+            "score": "missed",
+            "why": "No mannitol or hypertonic saline was given."
+          },
+          {
+            "when": "not isNull(ctAt) and timeAt(ctAt) < timeAt(osmoAt)",
+            "score": "missed",
+            "why": "Treatment waited for a CT trip."
+          },
+          {
+            "when": "timeAt(osmoAt) <= ceOnset + ceWindow",
+            "score": "met",
+            "why": "Given at {timeAt(osmoAt)|clock}, {timeAt(osmoAt) - ceOnset|duration} after the first sign."
+          },
+          {
+            "when": "timeAt(osmoAt) <= ceOnset + 2700",
+            "score": "partial",
+            "why": "Given at {timeAt(osmoAt)|clock}, {timeAt(osmoAt) - ceOnset|duration} after the first sign."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Given more than 45 minutes after the first sign."
+          }
+        ]
+      },
+      {
+        "id": "potassium",
+        "label": "Potassium in the fluid with the insulin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not kAdded",
+            "score": "missed",
+            "why": "Potassium was never added while insulin drove it down."
+          },
+          {
+            "when": "kAdded and (isNull(insAt) or timeAt(kAt) <= timeAt(insAt) + 3600)",
+            "score": "met",
+            "why": "Potassium added at {timeAt(kAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Potassium added at {timeAt(kAt)|clock}, more than an hour after insulin started."
+          }
+        ]
+      },
+      {
+        "id": "insulin",
+        "label": "Insulin by infusion, no bolus, an hour after fluids began",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(insAt)",
+            "score": "missed",
+            "why": "Insulin was never started."
+          },
+          {
+            "when": "insBolus",
+            "score": "missed",
+            "why": "An IV insulin bolus was given at the start."
+          },
+          {
+            "when": "timeAt(insAt) >= insStartMin",
+            "score": "met",
+            "why": "Insulin infusion from {timeAt(insAt)|clock}, no bolus."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Infusion started at {timeAt(insAt)|clock}, less than an hour after fluids began."
+          }
+        ]
+      },
+      {
+        "id": "dextrose",
+        "label": "Dextrose added as glucose fell, insulin kept running",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "insStopped",
+            "score": "missed",
+            "why": "The insulin was stopped, which leaves the ketoacidosis untreated."
+          },
+          {
+            "when": "lowGlu",
+            "score": "missed",
+            "why": "Glucose fell below 70."
+          },
+          {
+            "when": "isNull(needDexAt)",
+            "score": "na",
+            "why": "Glucose stayed above 300; dextrose was not yet needed."
+          },
+          {
+            "when": "isNull(dexAt)",
+            "score": "missed",
+            "why": "Glucose reached 300 at {timeAt(needDexAt)|clock} and no dextrose was added."
+          },
+          {
+            "when": "timeAt(dexAt) <= timeAt(needDexAt) + 3600",
+            "score": "met",
+            "why": "Dextrose added at {timeAt(dexAt)|clock}, insulin continued."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Dextrose added at {timeAt(dexAt)|clock}, more than an hour after glucose reached 300."
+          }
+        ]
+      },
+      {
+        "id": "neuroChecks",
+        "label": "Hourly neuro checks",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "neuroN >= 5 and maxNeuroGap <= 4500",
+            "score": "met",
+            "why": "{neuroN} neuro checks, never more than about an hour apart."
+          },
+          {
+            "when": "neuroN >= 3",
+            "score": "partial",
+            "why": "{neuroN} neuro checks, with a gap of {maxNeuroGap|duration}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{neuroN} neuro checks in six hours."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Called the attending naming cerebral edema",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(callEffAt)",
+            "score": "missed",
+            "why": "The attending was not called with the warning signs."
+          },
+          {
+            "when": "timeAt(callEffAt) <= ceOnset + callWindow",
+            "score": "met",
+            "why": "Called at {timeAt(callEffAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Called at {timeAt(callEffAt)|clock}."
+          }
+        ]
+      },
+      {
+        "id": "labs",
+        "label": "Electrolytes every 2-4 hours",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "labsN >= 2",
+            "score": "met",
+            "why": "{labsN} gas and electrolyte panels."
+          },
+          {
+            "when": "labsN == 1",
+            "score": "partial",
+            "why": "One panel in six hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No electrolytes were sent."
+          }
+        ]
+      },
+      {
+        "id": "noBicarb",
+        "label": "No bicarbonate",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "bicarb",
+            "score": "missed",
+            "why": "Bicarbonate was given; it is not recommended in DKA outside life-threatening hyperkalemia or pH below 6.9 with poor contractility."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No bicarbonate."
+          }
+        ]
+      },
+      {
+        "id": "glucoseHourly",
+        "label": "Hourly glucose",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gluN >= 5",
+            "score": "met",
+            "why": "{gluN} glucose checks."
+          },
+          {
+            "when": "gluN >= 3",
+            "score": "partial",
+            "why": "{gluN} glucose checks in six hours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{gluN} glucose checks in six hours."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "plan",
+        "label": "Written reasoning: severity, the plan and the warning signs",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toOsmo",
+        "label": "First sign to hyperosmolar therapy",
+        "value": "isNull(osmoAt) ? -1 : timeAt(osmoAt) - ceOnset",
+        "format": "duration",
+        "expert": "under 20 min"
+      },
+      {
+        "id": "lowestK",
+        "label": "Last potassium result (mmol/L)",
+        "value": "kLast",
+        "format": "number",
+        "expert": "3.5 or more"
+      },
+      {
+        "id": "insStart",
+        "label": "Insulin started",
+        "value": "isNull(insAt) ? -1 : timeAt(insAt)",
+        "format": "duration",
+        "expert": "30 min after handover (1 h after fluids)"
+      },
+      {
+        "id": "neuroChecks",
+        "label": "Neuro checks",
+        "value": "neuroN",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "worstGcs",
+        "label": "Lowest GCS the edema reached",
+        "value": "15 - round(7 * ceMax)",
+        "format": "number",
+        "expert": "13 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "20:00",
+        "text": "Neuro check (GCS 15), glucose, gas and electrolytes. Start the 48-hour fluid plan; K is 4.6 and he is passing urine, so add potassium 40 mmol/L."
+      },
+      {
+        "at": "20:30",
+        "text": "An hour after fluids began: insulin 0.1 U/kg/h, no bolus."
+      },
+      {
+        "at": "hourly",
+        "text": "Glucose and neuro checks every hour, gas and electrolytes every 2 hours. Add 5% dextrose when glucose is about 300, insulin unchanged."
+      },
+      {
+        "at": "00:20",
+        "text": "New headache and vomiting: neuro check now. Heart rate falling, diastolic rising, GCS down, incontinent. Call the attending naming cerebral edema; mannitol or 3% saline at once. No CT first."
+      },
+      {
+        "at": "02:00",
+        "text": "Awake, GCS 15, DKA resolving."
+      }
+    ],
+    "debrief": {
+      "herniation": {
+        "headline": "Herniation from untreated cerebral edema",
+        "body": "Find the first sign in the log (the headache at 00:20), then when the neuro check, the call and the hyperosmolar dose happened. A CT trip or waiting for the next hourly check costs the minutes that matter."
+      },
+      "arrhythmia": {
+        "headline": "Arrhythmia from low potassium",
+        "body": "Insulin drives potassium into cells. It belongs in the fluid from the start once K is below 5.5 and he is passing urine, with electrolytes every 2-4 hours."
+      },
+      "resolving": {
+        "headline": "Cerebral edema caught and treated",
+        "body": "The warning signs were recognized at the bedside and treated within minutes, without waiting for imaging, and the DKA plan ran in the right order. That is the expert path."
+      },
+      "resolvingLate": {
+        "headline": "Improving, by a slower route",
+        "body": "He is better, but check when the edema was treated and whether a CT came first, when potassium went in, whether insulin was bolused, started early or stopped, and whether his glucose fell low."
+      },
+      "time_up": {
+        "headline": "Neurological injury",
+        "body": "The edema was treated, but late. Every minute between the first sign and the dose matters; the signs are clinical, and the dose comes before any scan."
+      }
+    },
+    "modelReasoning": "Severe DKA (pH below 7.1) in a child with new type 1 diabetes. Isotonic fluid first, then the deficit over 24-48 h; insulin 0.05-0.1 U/kg/h from an hour after fluids begin, never as a bolus; potassium in the fluid once K is below 5.5 and urine is flowing, because insulin drives it into cells; 5% dextrose when glucose reaches about 250-300 so insulin can continue until the acidosis clears. Hourly glucose and neuro checks, electrolytes every 2-4 h. Cerebral edema usually appears within 12 h of starting treatment: headache, vomiting, a heart rate that falls without reason, a rising diastolic, declining consciousness, new incontinence. Treat it at once with mannitol 0.5-1 g/kg or 3% saline 2.5-5 mL/kg over 10-15 min and call for help; imaging comes after, never before. Bicarbonate is not used."
+  },
+  "chapters": [
+    {
+      "id": "insulinRunning",
+      "label": "Insulin running",
+      "when": "insRate > 0"
+    },
+    {
+      "id": "edemaTreated",
+      "label": "Hyperosmolar therapy given",
+      "when": "not isNull(osmoAt)"
+    }
+  ],
+  "teaching": {
+    "noBolus": {
+      "during": "labsT",
+      "ask": "While the labs run: should the insulin start with an IV bolus to bring the glucose down faster?",
+      "choices": [
+        {
+          "id": "no",
+          "label": "No: an infusion only, no bolus"
+        },
+        {
+          "id": "yes",
+          "label": "Yes: a bolus speeds recovery"
+        }
+      ],
+      "expect": "no",
+      "explain": "No. ISPAD says an IV insulin bolus should not be used at the start of therapy. The infusion at 0.05-0.1 U/kg/h starts an hour after fluids begin.",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Quoted: 'An IV insulin bolus should not be used at the start of therapy.'"
+      }
+    },
+    "dexNotStop": {
+      "during": "gluT",
+      "ask": "If this glucose comes back at 280 while the pH is still 7.18, what is the right move?",
+      "choices": [
+        {
+          "id": "dex",
+          "label": "Add dextrose and keep the insulin running"
+        },
+        {
+          "id": "stop",
+          "label": "Stop the insulin until the glucose rises"
+        },
+        {
+          "id": "halve",
+          "label": "Halve the insulin and recheck"
+        }
+      ],
+      "expect": "dex",
+      "explain": "Add dextrose and keep the insulin going. The insulin is there to clear the ketoacidosis, which lasts longer than the high glucose; dextrose at about 250-300 mg/dL lets it continue safely.",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Add 5% dextrose at about 14-17 mmol/L (250-300 mg/dL), or sooner if glucose falls faster than 5 mmol/L per hour."
+      }
+    },
+    "noCt": {
+      "during": "callbackT",
+      "ask": "While the attending calls back: should he go to CT before hyperosmolar therapy?",
+      "choices": [
+        {
+          "id": "treat",
+          "label": "No: treat now, image later if needed"
+        },
+        {
+          "id": "scan",
+          "label": "Yes: confirm the swelling first"
+        }
+      ],
+      "expect": "treat",
+      "explain": "Treat now. Cerebral edema in DKA is a clinical diagnosis; ISPAD says treatment of the symptomatic child should not be delayed to obtain imaging, and an early CT may look normal.",
+      "source": {
+        "cite": "Glaser N, Fritsch M, Priyambada L, Rewers A, Cherubini V, Estrada S, Wolfsdorf JI, Codner E. ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic ketoacidosis and hyperglycemic hyperosmolar state. Pediatr Diabetes 2022;23:835-856",
+        "checkedAt": "2026-11-11",
+        "url": "https://renaissance.stonybrookmedicine.edu/system/files/Ch.11._ISPAD_Guidelines_DKA_HHS_Pediatric_Diabetes_2022-_.pdf",
+        "note": "Quoted: 'treatment of the clinically symptomatic patient should not be delayed in order to obtain imaging'."
+      }
+    }
+  }
+}

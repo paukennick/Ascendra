@@ -62,6 +62,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // and NCLEX-PN bedside cases, and a second AWS SAA board case. Keep these
   // entries together. ----
   entry("CCRNPEDS", "pediatric-septic-shock-fluids"),
+  entry("CCRNPEDS", "pediatric-dka-cerebral-edema"),
   // ---- end REQ-233 ----
 ];
 
