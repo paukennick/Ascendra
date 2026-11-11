@@ -7626,6 +7626,62 @@
       "risk_notes": [
         "none: no production behaviour changes"
       ]
+    },
+    {
+      "id": "REQ-216",
+      "category": "bugfix",
+      "title": "Generation gate: block only on low confidence or a disagreeing check; learner errors are 4xx; plain reasons",
+      "description": "Audit of 2026-11-11, batch G1 (Nick approved 2026-11-10). Generated lessons, quiz questions, review questions, unit checks, comparison cards, exam items and PBQs are held back only on the writer's low confidence or a fact-check that disagrees with the key; listed disclaimers are logged. One retry steered with the first attempt's claims. When held, the learner is told the reason in plain words with a 409; a failed fact-check call is retryable, not a holdback. Review says 'couldn't be prepared' instead of 'nothing due'. Every UserFacingError is a 4xx and the app keeps the server's words for 502/503. The lesson intro handed out is kept when the practice half fails. Distractor lint narrowed. Lows: PBQ and unit-check waiters, unit-check single flight, rate-limit message, bad course date, counted-use give-backs on labs and sims, grading-claim expiry, chat single flight, soft global ceiling documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/generation-gate.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/http.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/exam-items.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/pbq-scenarios.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "a listed disclaimer at medium or high confidence never holds an item back",
+        "low confidence or a disagreeing check holds it and the retry is steered with the claims",
+        "a held item answers 409 with the reason",
+        "a failed fact-check call is a retryable 409 with no holdback",
+        "review with due items but nothing prepared returns unavailable and no empty session",
+        "no UserFacingError is a 5xx",
+        "the app shows the server's words for 502/503",
+        "the accepted lesson intro is reused when practice fails",
+        "read-only/two-factor/three-way handshake are not rejected by the lint"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "risk_notes": [
+        "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs still hold on any listed claim (out of scope)"
+      ]
     }
   ]
 }

@@ -281,7 +281,7 @@ describe("REQ-216 (M5, H2): the accepted intro is kept; only a verdict on the co
     assert.equal(kept.size, 0, "forgotten once the lesson is stored");
   });
 
-  test("FAIL-1010: listed claims with medium confidence serve the lesson on the first draft", async () => {
+  test("FAIL-1014: listed claims with medium confidence serve the lesson on the first draft", async () => {
     const o = objs[9];
     const counter = { n: 0 };
     const gen: LessonGenerator = {

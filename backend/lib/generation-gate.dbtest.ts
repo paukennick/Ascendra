@@ -13,6 +13,7 @@ import { servePbqScenario, isPbqClaimLive, type ScenarioGenerator } from "./pbq-
 import { recordHoldback } from "./item-quality";
 import { HeldForAccuracyError } from "./generation-gate";
 import { getOrWriteUnitCheck, type UnitCheckStatus } from "./unit-check";
+import { createSession, ExamSessionError, EXAM_ALL_HELD_MESSAGE } from "./exam-sessions";
 
 const run = Date.now().toString(36);
 const user = randomUUID();
@@ -24,6 +25,10 @@ const fast = { pollMs: 20, waitMs: 10_000 };
 let replies: Array<{ confidence: string; uncertainClaims: string[] }> = [];
 let writerCalls = 0;
 let writerDelayMs = 0;
+// When set, the writer answers with exam items (all at this confidence).
+let examConfidence: string | null = null;
+const examTrack = randomUUID();
+const examUnit = randomUUID();
 const prompts: string[] = [];
 
 const status = (unitId: string): UnitCheckStatus => ({
@@ -50,6 +55,9 @@ before(async () => {
     await query(`insert into course_units (id, track_id, title, sort_order, gate_description) values ($1, $2, 'Controls', 1, 'gate')`, [u, track]);
     await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, 'Compare controls', 1)`, [randomUUID(), u]);
   }
+  await query(`insert into subject_tracks (id, code, title, track_type, user_id) values ($1, $2, 'G1 exam', 'certification', null)`, [examTrack, `G1X-${run}`]);
+  await query(`insert into course_units (id, track_id, title, sort_order, weight) values ($1, $2, 'U', 1, 100)`, [examUnit, examTrack]);
+  await query(`insert into objectives (id, unit_id, title, sort_order) values ($1, $2, 'Ports', 1)`, [randomUUID(), examUnit]);
   __setClientForTest({
     messages: {
       create: async () => {
@@ -59,6 +67,13 @@ before(async () => {
         writerCalls++;
         prompts.push(String(body.messages[0].content));
         if (writerDelayMs) await new Promise((r) => setTimeout(r, writerDelayMs));
+        if (examConfidence) {
+          const item = (n: number) => ({
+            format: "multiple_choice", stem: `Which port is HTTPS ${run} ${n}?`, choices: ["Port 80", "Port 443", "Port 8080", "Port 22"], correct: [1],
+            steps: null, prompts: null, responses: null, matches: null, exhibit: null, explanation: "e", confidence: examConfidence, uncertainClaims: ["unsure"],
+          });
+          return { parsed_output: { items: [1, 2, 3, 4, 5, 6].map(item) }, stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 } };
+        }
         const r = replies.shift() ?? { confidence: "high", uncertainClaims: [] };
         return {
           parsed_output: { title: `Check ${randomUUID()}`, scenario: "1) classify 2) justify", subParts: ["classify", "justify"], ...r },
@@ -74,6 +89,7 @@ beforeEach(() => {
   replies = [];
   writerCalls = 0;
   writerDelayMs = 0;
+  examConfidence = null;
   prompts.length = 0;
 });
 
@@ -81,7 +97,11 @@ after(async () => {
   __setClientForTest(null);
   await query(`delete from item_holdbacks where unit_id = any($1::uuid[])`, [[unit, unit2]]);
   await query(`delete from app_users where id = $1`, [user]);
-  await query(`delete from subject_tracks where id = $1`, [track]);
+  await query(`delete from item_holdbacks where objective_id in (select id from objectives where unit_id = $1)`, [examUnit]);
+  await query(`delete from exam_sessions where user_id = $1`, [user]);
+  await query(`delete from exam_items where objective_id in (select id from objectives where unit_id = $1)`, [examUnit]);
+  await query(`delete from auth_events where identifier = $1`, [user]);
+  await query(`delete from subject_tracks where id = any($1::uuid[])`, [[track, examTrack]]);
   await closePool();
 });
 
@@ -160,5 +180,18 @@ describe("FAIL-1017: a unit check is written once however many requests ask at o
     assert.ok(c.id);
     assert.equal(writerCalls, 1);
     assert.equal(await holdbacks(unit2), 0);
+  });
+});
+
+describe("FAIL-1025: a sprint whose every item was held back says so", () => {
+  test("all items low-confidence on both attempts: a 409 naming the accuracy checks, nothing stored", async () => {
+    examConfidence = "low";
+    await assert.rejects(
+      createSession({ userId: user, trackId: examTrack, mode: "sprint", timed: false, clientSessionId: randomUUID() }),
+      (e: unknown) => e instanceof ExamSessionError && e.status === 409 && e.message === EXAM_ALL_HELD_MESSAGE
+    );
+    assert.ok(writerCalls >= 2, "each objective's batch is written once more");
+    const n = (await queryOne<{ n: number }>(`select count(*)::int as n from exam_items where objective_id in (select id from objectives where unit_id = $1)`, [examUnit]))!.n;
+    assert.equal(n, 0);
   });
 });
