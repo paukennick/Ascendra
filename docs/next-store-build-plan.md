@@ -3,13 +3,42 @@
 REQ-197 (Nick, 2026-11-09). Push notifications, screen-capture blocking and
 in-app voice input all change native code or config, so none of them can
 ship as an over-the-air update. This is the plan for the next App Store and
-Play Store build. Nothing here is built yet.
+Play Store build. Nothing here is built yet (status below, 2026-11-11).
 
 What already shipped without a store build (REQ-197): study reminders that
 name one due topic, scheduled as local notifications from
 `GET /api/reminders/plan`; three service emails through Resend; and the
 one-time "tap the mic on your keyboard" tip on long answer fields, which
 uses the keyboard's own dictation.
+
+## Status after releases 2026-11-10 and 2026-11-11
+
+Nothing in sections 1 to 4 is built yet. What the two releases changed for
+installed builds (the server side is live):
+
+- **Terms version 2026-11-10 and the 16-or-older checkbox (REQ-205).**
+  Older builds can still accept their own Terms text, but they cannot create
+  a new account: the server requires the age confirmation they don't send.
+  This is JavaScript only, so an OTA update to builds on the matching
+  runtime fixes it; a binary on an older runtime needs this store build.
+- **Paced sims (REQ-209, engine 1.1).** An older app is refused an open run
+  on the new tamponade version (409 `app_update_required`). Also JavaScript
+  only.
+- **Mobile `npm audit` (REQ-207).** Three high findings need an Expo SDK
+  step (`mobile/audit-known.json`). An SDK upgrade changes the runtime, so
+  fold it into this build rather than a separate one.
+- **Policy (section 5).** The 2026-11-10 Privacy text covers the backups,
+  GitHub, Sentry and deletion, but a search of `mobile/src/content/legal.ts`
+  found no mention of the service emails (exam change notices, exam
+  countdown, weekly digest), so `SERVICE_EMAILS_ENABLED` stays off and
+  section 5 still stands.
+
+Not recorded anywhere this plan could check: whether an OTA update carrying
+the 2026-11-10/11 app code has been published, and which runtime the
+builds in the stores are on. The "EAS update (OTA)" workflow (REQ-176, dry
+run by default) reports per platform whether a store build can take the
+current commit; run it before deciding between an OTA update and waiting
+for this build.
 
 ## Why a store build
 
