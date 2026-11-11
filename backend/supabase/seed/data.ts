@@ -454,7 +454,13 @@ export const SECPLUS_TRACK: SeedTrack = {
     recommendedExperience:
       "CompTIA Network+ and two years of experience in a security or systems administrator role.",
     durationMinutes: 90,
-    questionFormat: "Maximum 90 questions; multiple choice and performance-based",
+    // REQ-220 (FAIL-1131): CompTIA's Security+ page, read 2026-11-10
+    // (https://www.comptia.org/en-us/blog/what-is-on-the-comptia-security-exam/):
+    // "multiple-choice questions, drag-and-drop activities, and
+    // performance-based items. The multiple-choice questions are single- and
+    // multiple-response." The V7 exam page says only "multiple-choice and
+    // performance-based", which read as single-answer only here.
+    questionFormat: "Maximum 90 questions; multiple choice (single/multiple response), drag-and-drop, and performance-based",
     passingScorePolicy: "750 on a scale of 100-900.",
   },
   units: [
