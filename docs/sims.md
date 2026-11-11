@@ -1,12 +1,42 @@
 # Sim labs (REQ-141): engine design, Phase 1
 
-**Status: design, revised after an independent architecture review
-(2026-11-07). Phase 1a (the engine, three documents, bands and the code
-module) is built; Phase 1b's server and the first app screen are built in
-REQ-190 (section 22 says what was built and what is left).** It is the plan for
-Ascendra's interactive simulations ("sim labs"), written to be reviewed
-before any code. Nick's decisions are in section 19; section 21 maps every
-review finding to the change that resolves it.
+**Status (2026-11-11): live in production.** The engine, server and app
+screen shipped in release 2026-11-10 (REQ-162, REQ-190, REQ-199) and pacing
+in release 2026-11-11 (REQ-209), and `SIMS_ENABLED` is on in production.
+Two scenarios are seeded: tamponade after CABG (CCRN Adult) and the
+TicketBurst launch day (AWS SAA, with an SAP band). Section 22 says what was
+built and what is left.
+
+This document began as the design, revised after an independent
+architecture review (2026-11-07), and was written to be reviewed before any
+code. Nick's decisions are in section 19; section 21 maps every review
+finding to the change that resolves it.
+
+### Pacing at a glance (REQ-209)
+
+Whether a sim is paced depends on its kind, not its course:
+
+- **Clinical, PT and body (fitness) sims** with a running clock: **Study
+  pace (3x) is the default**, so one real minute is three sim minutes.
+  **Exam realism (1x)** is opt-in on the launch card and can be switched
+  mid-run; Pause works at either speed. The patient and the scoring are the
+  same at both speeds.
+- **Focused start**: the learner may start near the deterioration (tamponade:
+  13 sim minutes in). Timing targets still count from onset.
+- **Skip offer**: "Skip to the next change" appears after about 30 quiet
+  seconds when nothing is alarming or due within a minute.
+- **Prediction prompts**: tap-to-answer questions during named waits
+  (four for tamponade), with a cited source, no AI call and no score.
+- **Chapters**: at natural break points the learner chooses Continue or
+  Save and finish later, and can resume on any device.
+- **Project-management and IT/cloud sims are learner-paced**: they move only
+  when the learner acts, have none of the above, and the server refuses
+  pacing commands for them. Today TicketBurst is the only one seeded.
+
+The rule is `pacingEligible` in `backend/lib/sim/server-run.ts`: a running
+phase and a clinical or fitness outcome profile. No PT or fitness running
+sim exists yet; a new one gets pacing by declaring the features. Details in
+5.4a to 5.4f and 22.2.
 
 Sim labs are the product's main paid differentiator. Nick's instruction for
 this work: "I care little about the time it will take and more that overall
