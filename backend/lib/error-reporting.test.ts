@@ -4,7 +4,7 @@ process.env.AUTH_JWT_SECRET ??= "test-only-secret";
 import { test, describe, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { describeError, summarizeError, maskEmails, LOG_MESSAGE_MAX } from "./error-summary";
-import { errorEvent, reportError, sendErrorReport, setErrorScheduler, setErrorTransport } from "./error-tracker";
+import { errorEvent, reportError, sendErrorReport, sendTestErrorReport, setErrorScheduler, setErrorTransport, TEST_ERROR_MESSAGE } from "./error-tracker";
 import { serverError } from "./http";
 
 const pgError = () =>
@@ -124,5 +124,41 @@ describe("FAIL-945: the tracker send is kept alive with after()", () => {
   test("the event masks e-mail addresses in the message and the stack", () => {
     const e = errorEvent(new Error("Key (email)=(a@b.example) already exists"));
     assert.doesNotMatch(JSON.stringify(e), /a@b\.example/);
+  });
+});
+
+// REQ-211: the owner's test button learns whether Sentry accepted the event.
+describe("REQ-211: sendTestErrorReport", () => {
+  afterEach(() => {
+    setErrorTransport(null);
+    delete process.env.ERROR_TRACKER_DSN;
+  });
+  test("not configured: nothing sent", async () => {
+    let sent = 0;
+    setErrorTransport(async () => void sent++);
+    delete process.env.ERROR_TRACKER_DSN;
+    assert.deepEqual(await sendTestErrorReport(), { configured: false, delivered: false, status: null });
+    assert.equal(sent, 0);
+  });
+  test("sends one labelled event to the store URL and reports Sentry's status", async () => {
+    process.env.ERROR_TRACKER_DSN = "https://pk@o1.ingest.example.test/42";
+    const calls: Array<{ url: string; body: string }> = [];
+    setErrorTransport(async (url, init) => {
+      calls.push({ url, body: String(init.body) });
+      return new Response("{}", { status: 200 });
+    });
+    assert.deepEqual(await sendTestErrorReport({ route: "/t" }), { configured: true, delivered: true, status: 200 });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "https://o1.ingest.example.test/api/42/store/");
+    assert.match(calls[0].body, new RegExp(TEST_ERROR_MESSAGE.slice(0, 30).replace(/[()>]/g, ".")));
+  });
+  test("a refusal or a network failure is reported, never thrown", async () => {
+    process.env.ERROR_TRACKER_DSN = "https://pk@o1.ingest.example.test/42";
+    setErrorTransport(async () => new Response("bad key", { status: 401 }));
+    assert.deepEqual(await sendTestErrorReport(), { configured: true, delivered: false, status: 401 });
+    setErrorTransport(async () => {
+      throw new Error("offline");
+    });
+    assert.deepEqual(await sendTestErrorReport(), { configured: true, delivered: false, status: null });
   });
 });

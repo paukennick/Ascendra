@@ -8,6 +8,8 @@ import { Alert } from "@/lib/alert";
 import { friendlyError } from "@/lib/errorMessage";
 import {
   aiModeLine,
+  errorTrackerTestLine,
+  type ErrorTrackerTestResult,
   bulkFormProblem,
   bulkResultLine,
   emailList,
@@ -47,6 +49,7 @@ export default function AccessSettings() {
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [trackerLine, setTrackerLine] = useState<string | null>(null);
   const owner = showAccessSettings(user);
 
   const load = useCallback(async () => {
@@ -89,6 +92,20 @@ export default function AccessSettings() {
       setBusy(null);
     }
   }, [email, until, note, load]);
+
+  // REQ-211: one labelled test error to Sentry, with Sentry's answer.
+  const testTracker = useCallback(async () => {
+    setBusy("tracker");
+    setTrackerLine(null);
+    try {
+      const res = await api.post<ErrorTrackerTestResult>("/api/access/error-tracker-test");
+      setTrackerLine(errorTrackerTestLine(res));
+    } catch (err) {
+      setTrackerLine(friendlyError(err));
+    } finally {
+      setBusy(null);
+    }
+  }, []);
 
   const remove = useCallback(
     (g: AccessGrant) => {
@@ -183,6 +200,13 @@ export default function AccessSettings() {
           <Muted>Nobody else has unrestricted access.</Muted>
         </Card>
       )}
+
+      <SectionHeader label="Error tracking" />
+      <Card style={{ gap: spacing.xs }}>
+        <Muted>Sends one labelled test error to Sentry, to check that server errors reach you. Five a day.</Muted>
+        {trackerLine ? <Body>{trackerLine}</Body> : null}
+        <Button label="Send a test error" variant="ghost" icon="send" loading={busy === "tracker"} onPress={testTracker} />
+      </Card>
 
       {list?.history.length ? (
         <>

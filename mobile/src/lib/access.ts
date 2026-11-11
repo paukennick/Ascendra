@@ -164,3 +164,17 @@ export function bulkResultLine(results: BulkGrantResult[]): string {
   const owners = results.filter((r) => r.outcome === "owner").length;
   return `Access given to ${given} address${given === 1 ? "" : "es"}.` + (owners ? ` ${owners} already ${owners === 1 ? "is an owner" : "are owners"}.` : "");
 }
+
+// REQ-211: what "Send a test error" reports back to the owner.
+export interface ErrorTrackerTestResult {
+  configured: boolean;
+  delivered: boolean;
+  status: number | null;
+}
+
+export function errorTrackerTestLine(r: ErrorTrackerTestResult): string {
+  if (!r.configured) return "Error tracking is off: ERROR_TRACKER_DSN isn't set (or isn't a valid Sentry DSN) in Vercel.";
+  if (r.delivered) return "Sent. A test error should appear in Sentry within a minute.";
+  if (r.status === 401 || r.status === 403) return `Sentry refused it (${r.status}). Check the DSN in Vercel.`;
+  return r.status ? `Sentry didn't accept it (${r.status}). Try again later.` : "Couldn't reach Sentry. Try again later.";
+}
