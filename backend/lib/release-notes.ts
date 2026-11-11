@@ -67,6 +67,10 @@ export interface ReleaseNote {
   title: string;
   items: ReleaseNoteItem[];
   requires?: ReleaseNoteGate;
+  // REQ-228: the CHANGELOG requirement ids this note tells learners about.
+  // Never sent to the app. lib/ship-notes.test.ts fails CI when a CHANGELOG
+  // entry marked (learner-facing) names a REQ no note covers.
+  covers?: string[];
 }
 
 export const RELEASE_NOTE_LIMITS = {
@@ -84,6 +88,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // REQ-212/213, REQ-216 to REQ-220 and REQ-224, merged 2026-11-11 (UTC).
     id: "2026-11-11-b",
     date: "2026-11-11",
+    covers: ["REQ-212", "REQ-213", "REQ-216", "REQ-217", "REQ-218", "REQ-219", "REQ-220", "REQ-224"],
     title: "A new course, and progress you can trust",
     items: [
       {
@@ -134,6 +139,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // Release 2026-11-11, batches 11 to 17 (REQ-202 to REQ-209).
     id: "2026-11-11",
     date: "2026-11-11",
+    covers: ["REQ-202", "REQ-203", "REQ-204", "REQ-205", "REQ-206", "REQ-209"],
     title: "Sims at study pace, and a safer launch",
     items: [
       {
@@ -186,6 +192,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     // Release 2026-11-10, batches 1 to 10 (REQ-162 to REQ-201).
     id: "2026-11-10",
     date: "2026-11-10",
+    covers: ["REQ-162", "REQ-169", "REQ-174", "REQ-177", "REQ-182", "REQ-189", "REQ-190", "REQ-195", "REQ-197", "REQ-198", "REQ-199"],
     title: "New courses, quicker labs and a gentler lock",
     items: [
       {
@@ -295,7 +302,7 @@ export function visibleReleaseNotes(
     if (!open(n.requires)) continue;
     const items = n.items.filter((i) => open(i.requires)).map(({ requires: _r, ...rest }) => rest);
     if (items.length === 0) continue;
-    const { requires: _gate, ...entry } = n;
+    const { requires: _gate, covers: _covers, ...entry } = n;
     out.push({ ...entry, items });
   }
   return out;

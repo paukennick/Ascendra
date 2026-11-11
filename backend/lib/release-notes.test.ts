@@ -97,6 +97,9 @@ describe("gates", () => {
     const v = visibleReleaseNotes(notes, open);
     assert.equal(v.length, 3);
     assert.ok(v.every((n) => !("requires" in n) && n.items.every((i) => !("requires" in i))));
+    // REQ-228: covers is bookkeeping for the ship-notes guard, never sent.
+    const covered = visibleReleaseNotes([{ ...notes[1], covers: ["REQ-1"] }], open);
+    assert.ok(!("covers" in covered[0]));
   });
   test("the billing gate follows BILLING_ENABLED", () => {
     const before = process.env.BILLING_ENABLED;
