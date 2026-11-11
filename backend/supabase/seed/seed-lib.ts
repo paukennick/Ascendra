@@ -155,7 +155,9 @@ export async function seedCredentialExam(
        on conflict (exam_id, sort_order) do update
          set name = excluded.name,
              weight_percent = excluded.weight_percent`,
-      [examId, units[i].title, units[i].weight ?? null, i]
+      // REQ-220: weights that are only our study emphasis are not a vendor
+      // blueprint, so they are not recorded as one.
+      [examId, units[i].title, cred.domainWeights === "study_emphasis" ? null : units[i].weight ?? null, i]
     );
   }
   // REQ-102: a blueprint that loses a domain must not keep the old row --

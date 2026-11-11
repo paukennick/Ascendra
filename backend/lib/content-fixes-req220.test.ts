@@ -65,3 +65,26 @@ describe("REQ-220 PT content", () => {
     assert.doesNotMatch(lines[0], /rather than the number of cells/);
   });
 });
+
+describe("REQ-220 study-emphasis weights (FAIL-1136)", () => {
+  test("the four nursing courses whose weights are our judgment say so; NCLEX and NPTE do not", () => {
+    for (const code of ["CNA", "LPNVN", "ADNRN", "BSNRN"]) assert.equal(track(code).credential?.domainWeights, "study_emphasis", code);
+    for (const code of ["NCLEXRN", "NCLEXPN", "NPTEPT", "NPTEPTA", "SECPLUS"]) assert.notEqual(track(code).credential?.domainWeights, "study_emphasis", code);
+  });
+
+  test("readiness with study-emphasis weights is unweighted (no 'of the exam' labels)", async () => {
+    const { rollupReadiness } = await import("./readiness");
+    const units = [
+      { id: "a", title: "A", weight: 80 },
+      { id: "b", title: "B", weight: 20 },
+    ];
+    const objs = [
+      { unitId: "a", weightedAccuracy: 1, readinessScore: 1, status: "independent", kept: "kept", recheckDue: false, retention: 1 },
+      { unitId: "b", weightedAccuracy: null, readinessScore: null, status: null, kept: null, recheckDue: null, retention: null },
+    ];
+    assert.equal(rollupReadiness(units, objs).blueprintWeighted, true);
+    const r = rollupReadiness(units, objs, undefined, false);
+    assert.equal(r.blueprintWeighted, false);
+    assert.equal(r.coveragePercent, 50, "one of two objectives, not 80% of an exam");
+  });
+});

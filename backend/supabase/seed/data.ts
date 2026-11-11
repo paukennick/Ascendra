@@ -97,6 +97,14 @@ export interface SeedCredential {
   // this field says why -- the blueprint test accepts a non-100 total only
   // when it is explained here.
   publishedWeightsNote?: string;
+  // REQ-220 (FAIL-1136): what the track's unit weights are. "exam_blueprint"
+  // (the default) means the vendor publishes them and the exam is built to
+  // them. "study_emphasis" means the weights are our own judgment (no body
+  // publishes a blueprint, e.g. 42 CFR 483.152 sets nurse-aide hours without
+  // apportioning them): the seed then leaves exam_domains.weight_percent
+  // null, and the app never presents the weights as "% of the exam"
+  // (lib/readiness.ts, lib/coach-context.ts).
+  domainWeights?: "exam_blueprint" | "study_emphasis";
 }
 
 export interface CurriculumSource {

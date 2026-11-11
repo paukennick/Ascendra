@@ -1241,6 +1241,9 @@ export const NCLEX_PN_TRACK: SeedTrack = {
 // apportioning it, and the AACN Essentials define domains without weighting
 // them. So the weights on these four tracks are our own judgment about study
 // emphasis, and must not be presented to a learner as an exam blueprint.
+// REQ-220 (FAIL-1136): each credential says so (domainWeights:
+// "study_emphasis"), the seed leaves exam_domains unweighted, and readiness,
+// the progress screen and the prompts then treat the course as unweighted.
 // ---------------------------------------------------------------------------
 
 const CMS_PROVIDER = {
@@ -1285,6 +1288,7 @@ export const CNA_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...CMS_PROVIDER,
     credentialSlug: "certified-nursing-assistant",
     credentialName: "Certified Nursing Assistant (Nurse Aide)",
@@ -1518,6 +1522,7 @@ export const LPN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...NCSBN_PROVIDER,
     subcategorySlug: "nursing-licensure",
     credentialSlug: "practical-nurse-licence",
@@ -1784,6 +1789,7 @@ export const ADN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...NCSBN_PROVIDER,
     subcategorySlug: "nursing-degrees",
     credentialSlug: "associate-degree-nursing",
@@ -2058,6 +2064,7 @@ export const BSN_TRACK: SeedTrack = {
   disclaimerKey: NURSING_DISCLAIMER_KEY,
   disclaimerVersion: 1,
   credential: {
+    domainWeights: "study_emphasis", // REQ-220: see the note on unit weights above
     ...AACN_PROVIDER,
     credentialSlug: "bachelor-of-science-in-nursing",
     credentialName: "Bachelor of Science in Nursing",

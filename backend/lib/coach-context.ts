@@ -1,3 +1,4 @@
+import { STUDY_EMPHASIS_WEIGHTS_SQL } from "@/lib/readiness";
 import { queryOne } from "@/lib/db";
 import { currentFactsFor } from "@/lib/current-facts";
 
@@ -91,7 +92,7 @@ export async function coachContextForTrack(trackId: string): Promise<CoachContex
 
 export async function coachContextForUnit(unitId: string): Promise<CoachContext | null> {
   const row = await queryOne<ContextRow>(
-    `select ${TRACK_FIELDS}, cu.title as unit_title, cu.weight as unit_weight
+    `select ${TRACK_FIELDS}, cu.title as unit_title, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as unit_weight
      from course_units cu
      join subject_tracks st on st.id = cu.track_id ${TRACK_JOINS}
      where cu.id = $1`,
@@ -102,7 +103,7 @@ export async function coachContextForUnit(unitId: string): Promise<CoachContext 
 
 export async function coachContextForObjective(objectiveId: string): Promise<CoachContext | null> {
   const row = await queryOne<ContextRow>(
-    `select ${TRACK_FIELDS}, cu.title as unit_title, cu.weight as unit_weight
+    `select ${TRACK_FIELDS}, cu.title as unit_title, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as unit_weight
      from objectives o
      join course_units cu on cu.id = o.unit_id
      join subject_tracks st on st.id = cu.track_id ${TRACK_JOINS}
