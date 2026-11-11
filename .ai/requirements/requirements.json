@@ -8086,6 +8086,47 @@
       "risk_notes": [
         "FAIL-1222 open: tamponade code_epiHarm unreachable on the server in jsonb key order; needs Nick's decision (engine ending order or content fix). EPPP course must land before npm run seed (seed stops plainly until then)."
       ]
+    },
+    {
+      "id": "REQ-227",
+      "category": "feature",
+      "title": "Sims: explicit ending order (engine 1.2, endingOrder) so the server and the app always agree",
+      "description": "Endings were checked in the key order of the document's endings map, which the server's jsonb column does not keep (shorter keys first), so the server could end a run differently from the app and from the golden paths; on the live tamponade case full-dose epinephrine reached ROSC instead of its harm ending (FAIL-1222). Nick approved the engine approach 2026-11-10. Engine minor 2 adds an optional endingOrder list (every ending with a when, once; never time_up); a document without it is stepped exactly as before, so every older version, hash and stored run replays unchanged. The validator requires it from minor 2 when two endings have a when; the content linter errors when a document without it ends a golden path differently in written, reversed or jsonb key order; modules list their own order. All 12 seeded documents and the module fixture host are migrated (tamponade's epinephrine harm path now reaches harm).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims",
+        "backend/scripts",
+        "mobile/src/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "endingOrder lets the author set the order endings are checked in",
+        "result never depends on key order",
+        "older versions and stored runs replay unchanged",
+        "every seeded sim migrated",
+        "lint error for an order-dependent ending set",
+        "storage-order test passes for every sim with no todo"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims session and runtime-role dbtests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 4.1 4.5 5.3 22.6",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "a new content hash puts each migrated sim back into expert review",
+        "an app still on engine 1.1 cannot open a minor-2 version and falls back only to an approved runnable version",
+        "runs open on the old version keep the old order until they end",
+        "teaching prompts have the same key-order flaw (FAIL-1250)"
+      ]
     }
   ]
 }

@@ -14845,25 +14845,82 @@
       "id": "FAIL-1222",
       "date": "2026-11-10",
       "title": "Tamponade full-dose epinephrine harm ending is unreachable on the server (jsonb key order)",
-      "status": "open",
+      "status": "fixed",
       "severity": "high",
       "symptom": "with the document in jsonb key order, golden path codeFullEpi reaches ROSC and phase 2 instead of code_epiHarm (harm)",
       "how_detected": "backend/lib/sim/storage-order.test.ts (REQ-225)",
       "root_cause": "the code/ACLS module's non-terminal code_rosc and terminal code_epiHarm both hold at ROSC after 1 mg epinephrine; jsonb puts code_rosc first, and the engine takes the first true ending in key order",
-      "requirement": "REQ-225",
+      "requirement": "REQ-227",
       "affected": [
         "backend/supabase/seed/sims/modules/code-acls@1.module.json",
         "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
         "backend/lib/sim/engine/v1/engine.ts"
       ],
+      "fix_summary": "Engine minor 2 adds an explicit endingOrder list (engine.ts endingCheckOrder, validate.ts endingOrderRules, schema.ts); the engine checks endings in that order whatever the key order. Tamponade, the code/ACLS module and every seeded sim are migrated to it. Epinephrine at full dose reaches code_epiHarm (harm) on the server and in the app. Runs open on the old version keep the old (jsonb) order until they end.",
+      "fix_commits": [
+        "44ebd6f",
+        "9bbdd5d",
+        "bb62943"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sim/ending-order.test.ts",
+        "backend/lib/sims.dbtest.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "validator requires endingOrder from minor 2 when two endings have a when; sims:lint errors when a document without it ends a golden path differently in written, reversed or jsonb key order; storage-order.test.ts replays every seeded document in jsonb and reversed order with no todo; pre-completion checklist item for sim documents",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1250",
+      "date": "2026-11-10",
+      "title": "Teaching prompts are offered in key order (teachingDue), the same flaw as FAIL-1222",
+      "status": "open",
+      "severity": "low",
+      "symptom": "with a document's teaching map in reversed key order, a golden path's teach command is rejected ('teaching prompt X is not offered now'): bleeding-after-whipple and resident-found-on-floor",
+      "how_detected": "REQ-227: the widened storage-order test (every object reversed) found it",
+      "root_cause": "teachingAvailable/teachingDue take the first due prompt in Object.keys(doc.teaching) order, and the server's jsonb column does not keep key order. Not a production bug today because the app and the server both read the same jsonb order, and jsonb order passes every golden path; it breaks if the two ever read different orders or a document relies on file order.",
+      "requirement": "REQ-227",
+      "affected": [
+        "backend/lib/sim/engine/v1/engine.ts (teachingAvailable",
+        "teachingDue)",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json",
+        "backend/lib/sim/engine/v1/engine.ts"
+      ],
       "fix_summary": "",
       "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "open: storage-order.test.ts documents the exclusion; the regression test lands with the fix",
+      "prevention_rules": [],
+      "prevention_notes": "not fixed in REQ-227 (it orders endings only; Nick's approval covered endings). A teachingOrder list in a later minor, or mutually exclusive prompt conditions, would close it; storage-order.test.ts skips that map in its reversal until then, and docs/sims.md 22.6 says so",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1251",
+      "date": "2026-11-10",
+      "title": "Merge conflict markers committed in .ai/checklists/pre-completion.md on master",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "the pre-completion checklist on origin/master has <<<<<<< HEAD / ======= / >>>>>>> origin/master around the REQ-216 and REQ-217 bullets, so the checklist text read by every agent was corrupt",
+      "how_detected": "reading the checklist while starting REQ-227",
+      "root_cause": "two parallel branches (G1 and G2) each added a bullet at the same place; a merge was committed with the conflict unresolved and no check scans tracked files for markers",
+      "requirement": "REQ-227",
+      "affected": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "fix_summary": "kept both bullets, removed the markers",
+      "fix_commits": [],
       "regression_tests": [
-        "backend/lib/sim/storage-order.test.ts"
+        "backend/lib/conflict-markers.test.ts"
       ],
       "no_test_reason": "",
       "prevention_rules": [],
-      "prevention_notes": "not fixed in REQ-225: the tamponade files are under other open work (fix/g5-content); fix either in content (exclusive conditions) or in the engine (explicit ending order or json storage), Nick's decision",
+      "prevention_notes": "conflict-markers.test.ts fails the backend suite when any tracked text file has a marker at the start of a line",
       "recurrence_of": ""
     }
   ]
