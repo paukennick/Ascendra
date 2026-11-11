@@ -14742,6 +14742,186 @@
       "recurrence_of": ""
     },
     {
+      "id": "FAIL-1190",
+      "date": "2026-11-10",
+      "title": "Sim seed stops on an impossible source re-check date",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "npm run seed failed: date/time field value out of range: \"2027-04-31\" while inserting sim_versions.sources_recheck_by for CCRNADULT/bleeding-after-whipple.",
+      "how_detected": "npm run seed on a throwaway Postgres during REQ-223",
+      "root_cause": "earliestRecheck's addMonths added months to the year and month but kept the day, so any source checked on the 29th, 30th or 31st could land on a day the target month does not have. The existing documents all used dates early in the month, so it never surfaced.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/lib/sim/content-hash.ts",
+        "backend/supabase/seed/sims-seed.ts"
+      ],
+      "fix_summary": "addMonths clamps the day to the last day of the target month and is exported for a test.",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::source re-check dates are real calendar dates"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Every seeded document's earliest re-check date is asserted to be a real calendar date at 6 and 12 months; the engine's staleness check in validate.ts has the same arithmetic but only compares strings, left for an engine change.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1191",
+      "date": "2026-11-10",
+      "title": "Fall sim time_up debrief repeated its ending narrative",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/documents.test.ts 'client document leaks nothing server-only' failed: CNA/resident-found-on-floor: server-only text reaches the client: The run reached its time limit.",
+      "how_detected": "backend npm test after the third scenario's commit",
+      "root_cause": "The server-only debrief body for time_up was written with the same sentence as the client-visible ending narrative, so the leak test could not tell them apart; the debrief text must differ from anything the client document carries.",
+      "requirement": "REQ-223",
+      "affected": [
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json"
+      ],
+      "fix_summary": "The time_up debrief now says what was left undone (the note and the huddle).",
+      "fix_commits": [
+        "556df08"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::client document leaks nothing server-only"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The leak test runs on every seeded document under npm test.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1220",
+      "date": "2026-11-10",
+      "title": "Sim lint warned 'a wait is pending at every boundary' for turn-based paths",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint warned that the learner could skip at almost every moment of a running phase on every golden path of the EPPP sessions, which have no running phase",
+      "how_detected": "lint while authoring the EPPP sessions",
+      "root_cause": "replayGoldenPath started waitAlways true and only ever cleared it at a running-phase boundary, so a path that never visited a running phase kept it true",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "count running-phase boundaries and warn only when there was at least one",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "the warning text names a running phase; its condition now requires one",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1221",
+      "date": "2026-11-10",
+      "title": "EPPP session endings depended on key order the jsonb document column does not keep",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "golden paths through the routes ended differently on the server (state hash mismatch): the catch-all 'with gaps' ending fired before the intended one",
+      "how_detected": "lib/sims-session.dbtest.ts (server hash vs golden hash)",
+      "root_cause": "the engine evaluates endings in Object.keys order, and sim_versions.document/client_document are jsonb, which return keys shortest first then bytewise; the documents relied on first-match precedence with a catch-all",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/supabase/seed/sims/EPPP/suicide-risk-safety-plan.sim.json",
+        "backend/supabase/seed/sims/EPPP/duty-to-protect-threat.sim.json",
+        "backend/supabase/seed/sims/EPPP/diagnostic-intake-mood.sim.json"
+      ],
+      "fix_summary": "each ending's condition excludes the others, so order does not matter",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "storage-order.test.ts replays every seeded golden path with its maps in jsonb order; docs/sims.md 22.3 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1222",
+      "date": "2026-11-10",
+      "title": "Tamponade full-dose epinephrine harm ending is unreachable on the server (jsonb key order)",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "with the document in jsonb key order, golden path codeFullEpi reaches ROSC and phase 2 instead of code_epiHarm (harm)",
+      "how_detected": "backend/lib/sim/storage-order.test.ts (REQ-225)",
+      "root_cause": "the code/ACLS module's non-terminal code_rosc and terminal code_epiHarm both hold at ROSC after 1 mg epinephrine; jsonb puts code_rosc first, and the engine takes the first true ending in key order",
+      "requirement": "REQ-227",
+      "affected": [
+        "backend/supabase/seed/sims/modules/code-acls@1.module.json",
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "backend/lib/sim/engine/v1/engine.ts"
+      ],
+      "fix_summary": "Engine minor 2 adds an explicit endingOrder list (engine.ts endingCheckOrder, validate.ts endingOrderRules, schema.ts); the engine checks endings in that order whatever the key order. Tamponade, the code/ACLS module and every seeded sim are migrated to it. Epinephrine at full dose reaches code_epiHarm (harm) on the server and in the app. Runs open on the old version keep the old (jsonb) order until they end.",
+      "fix_commits": [
+        "44ebd6f",
+        "9bbdd5d",
+        "bb62943"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sim/ending-order.test.ts",
+        "backend/lib/sims.dbtest.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "validator requires endingOrder from minor 2 when two endings have a when; sims:lint errors when a document without it ends a golden path differently in written, reversed or jsonb key order; storage-order.test.ts replays every seeded document in jsonb and reversed order with no todo; pre-completion checklist item for sim documents",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1250",
+      "date": "2026-11-10",
+      "title": "Teaching prompts are offered in key order (teachingDue), the same flaw as FAIL-1222",
+      "status": "open",
+      "severity": "low",
+      "symptom": "with a document's teaching map in reversed key order, a golden path's teach command is rejected ('teaching prompt X is not offered now'): bleeding-after-whipple and resident-found-on-floor",
+      "how_detected": "REQ-227: the widened storage-order test (every object reversed) found it",
+      "root_cause": "teachingAvailable/teachingDue take the first due prompt in Object.keys(doc.teaching) order, and the server's jsonb column does not keep key order. Not a production bug today because the app and the server both read the same jsonb order, and jsonb order passes every golden path; it breaks if the two ever read different orders or a document relies on file order.",
+      "requirement": "REQ-227",
+      "affected": [
+        "backend/lib/sim/engine/v1/engine.ts",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CNA/resident-found-on-floor.sim.json"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [],
+      "no_test_reason": "open: storage-order.test.ts documents the exclusion; the regression test lands with the fix",
+      "prevention_rules": [],
+      "prevention_notes": "not fixed in REQ-227 (it orders endings only; Nick's approval covered endings). A teachingOrder list in a later minor, or mutually exclusive prompt conditions, would close it; storage-order.test.ts skips that map in its reversal until then, and docs/sims.md 22.6 says so",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1251",
+      "date": "2026-11-10",
+      "title": "Merge conflict markers committed in .ai/checklists/pre-completion.md on master",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "the pre-completion checklist on origin/master has <<<<<<< HEAD / ======= / >>>>>>> origin/master around the REQ-216 and REQ-217 bullets, so the checklist text read by every agent was corrupt",
+      "how_detected": "reading the checklist while starting REQ-227",
+      "root_cause": "two parallel branches (G1 and G2) each added a bullet at the same place; a merge was committed with the conflict unresolved and no check scans tracked files for markers",
+      "requirement": "REQ-227",
+      "affected": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "fix_summary": "kept both bullets, removed the markers",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/conflict-markers.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "conflict-markers.test.ts fails the backend suite when any tracked text file has a marker at the start of a line",
+      "recurrence_of": ""
+    },
+    {
       "id": "FAIL-1240",
       "date": "2026-11-10",
       "title": "Emailed sign-in codes shared the five-an-hour per-address mail budget with reset and verification mails",

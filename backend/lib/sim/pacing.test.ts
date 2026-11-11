@@ -27,8 +27,8 @@ function put(run: Run, c: Record<string, unknown>): void {
 }
 const stripPace = (cmds: Command[]): Command[] => cmds.filter((c) => c.type !== "pace").map((c, i) => ({ ...c, seq: i + 1 }));
 
-describe("the engine is minor 1 and reads minor 0 checkpoints", () => {
-  test("version", () => assert.equal(ENGINE_VERSION, "1.1"));
+describe("the engine is minor 2 and reads minor 0 and 1 checkpoints", () => {
+  test("version", () => assert.equal(ENGINE_VERSION, "1.2"));
 
   test("a checkpoint from before REQ-209 (engine 1.0, no pace fields) restores and continues like a straight run", () => {
     const cmds = gp("expert").commands.slice(0, 6);
@@ -48,7 +48,7 @@ describe("the engine is minor 1 and reads minor 0 checkpoints", () => {
 
   test("a checkpoint from a later minor or another major is refused", () => {
     const cp = JSON.parse(JSON.stringify(checkpoint(createRun(doc, 1)))) as Checkpoint;
-    cp.engine = "1.2";
+    cp.engine = "1.3";
     assert.throws(() => restoreRun(doc, 1, cp), /engine_mismatch|checkpoint is from engine/);
     cp.engine = "2.0";
     assert.throws(() => restoreRun(doc, 1, cp), /checkpoint is from engine/);

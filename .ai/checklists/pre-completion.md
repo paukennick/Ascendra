@@ -258,6 +258,17 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
+- Sim documents (REQ-227, FAIL-1222): a scenario is stored as jsonb, which does
+  not keep object key order, so a result may never depend on the key order of
+  a map. A document with two or more endings that have a `when` declares
+  `endingOrder` (engine minor 2) and the minor it needs; the order is never
+  left to the order the file was written in. `npm run sims:lint` errors when a
+  document without it ends a golden path differently in written, reversed or
+  jsonb key order, and `lib/sim/storage-order.test.ts` replays every seeded
+  document that way. A new engine feature that adds a field is a new minor and
+  is added to the documents' declared minor; an app still on the older minor is
+  told to update, so say so in the change notes. Maps the engine still reads
+  in key order (`teaching`, FAIL-1250) are listed in docs/sims.md 22.6.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.
