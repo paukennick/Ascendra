@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { api } from "@/api/client";
+import { useMatureContent } from "@/auth/MatureContentContext";
 import { Body, Button, Card, Chip, ErrorBanner, H2, Loading, Muted, TextField } from "@/components/ui";
 import { DateField } from "@/components/DatePicker";
 import { friendlyError } from "@/lib/errorMessage";
@@ -31,6 +32,9 @@ export function IntakeFormFields({ value, onChange }: { value: Form; onChange: (
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(value.targets.length === 0);
+  // REQ-224: picking a mental health course asks for the 18+ confirmation
+  // first; closing the notice leaves the course off the list.
+  const mature = useMatureContent();
 
   const load = () => {
     setLoadError(null);
@@ -78,13 +82,14 @@ export function IntakeFormFields({ value, onChange }: { value: Form; onChange: (
               .map((t) => (
                 <Pressable
                   key={t.id}
-                  onPress={() => {
+                  onPress={async () => {
+                    if (!(await mature.ensure(t.category_slug, "intake"))) return;
                     onChange(addTarget(value, t));
                     setSearch("");
                     setAdding(false);
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Add ${t.title}`}
+                  accessibilityLabel={mature.needs(t.category_slug) ? `Add ${t.title} (18+ content notice)` : `Add ${t.title}`}
                   style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
                 >
                   <View style={{ flex: 1, gap: 2 }}>

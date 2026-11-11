@@ -114,12 +114,12 @@ export async function servedReviewStatusesFor(userId: string, env: Record<string
 }
 
 // The subject family of a course (which labs need the study notice): the course
-// taxonomy's healthcare-* categories are clinical, health-fitness is
-// fitness, everything else general -- the rule lib/lab-grading.ts
+// taxonomy's healthcare-* categories and mental-health (REQ-224, migration 077)
+// are clinical, health-fitness is fitness, everything else general -- the rule lib/lab-grading.ts
 // labSafetyFamily applies to the coach context's category slug.
 // `track` is the alias of subject_tracks in the calling query.
 export function labFamilySql(track: string): string {
-  return `coalesce((select case when ec.slug like 'healthcare%' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
+  return `coalesce((select case when ec.slug like 'healthcare%' or ec.slug = 'mental-health' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
                       from education_subcategories esc join education_categories ec on ec.id = esc.category_id
                      where esc.id = ${track}.subcategory_id), 'general')`;
 }

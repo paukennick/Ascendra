@@ -74,7 +74,7 @@ export class SimError extends Error {
 
 export function simRouteError(err: unknown) {
   if (err instanceof AuthError) return unauthorized(err.message);
-  if (err instanceof AcknowledgementError) return forbidden(err.message);
+  if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
   if (err instanceof SimError) return NextResponse.json({ ...(err.extra ?? {}), error: err.message, code: err.code }, { status: err.status });
   if (err instanceof ReplayBudgetError) return NextResponse.json({ error: err.message, code: "replay_budget" }, { status: 413 });
   if (err instanceof GradingInProgressError) return NextResponse.json({ error: err.message, code: "grading_in_progress" }, { status: 409 });
