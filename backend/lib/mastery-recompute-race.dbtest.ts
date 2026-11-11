@@ -177,7 +177,9 @@ describe("deploy gap: only lesson attempts are evidence (FAIL-182)", () => {
     await attempt(o, "quiz", "What is 1+1?", "2 days");
     await attempt(o, "lesson", "What is 2+2?", "0 seconds");
     await query(`select recompute_mastery($1)`, [user]);
-    assert.equal(await stored(o), "Independent");
+    // REQ-218: one lesson success is Guided until a later sitting confirms it;
+    // the forged quiz row is not that confirmation (nor a second format).
+    assert.equal(await stored(o), "Guided");
   });
 
   test("an objective with only other-kind attempts has no evidence", async () => {

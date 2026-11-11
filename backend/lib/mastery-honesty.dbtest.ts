@@ -142,6 +142,9 @@ describe("REQ-117 mastery rule (045)", () => {
     for (const o of bigObjs) await lesson(big, o, "correct");
     await shift(small, 4);
     await shift(big, 4);
+    // REQ-218: Independent needs the confirming answer from a later sitting.
+    await lesson(small, objs[0], "correct");
+    for (const o of bigObjs) await lesson(big, o, "correct");
     await recordAttemptAndUpdateMastery({ userId: small, unitId: unitA, pbqScenarioId: scenario, kind: "pbq", format: "pbq", question: "MH PBQ", answer: "a", verdict: "correct" });
     const bigScenario = (await queryOne<{ id: string }>(
       `insert into pbq_scenarios (unit_id, title, scenario, sub_parts, model) values ($1, 'big', 's', '[]', 't') returning id`,
@@ -159,6 +162,8 @@ describe("REQ-117 mastery rule (045)", () => {
 
   test("FAIL-344: correct answers given with help never lower accuracy", async () => {
     const u = await newUser();
+    await lesson(u, objs[1], "correct"); // REQ-218: the earlier sitting that makes the later one a confirmation
+    await shift(u, 3);
     await lesson(u, objs[1], "correct", "fade", "F1");
     await lesson(u, objs[1], "correct", "solo", "S1");
     const first = Number((await detail(u, objs[1]))!.weighted_accuracy);
