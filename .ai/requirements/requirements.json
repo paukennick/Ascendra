@@ -7558,6 +7558,35 @@
       "risk_notes": [
         "the test event appears as a real error in Sentry and should be resolved there"
       ]
+    },
+    {
+      "id": "REQ-214",
+      "category": "chore",
+      "title": "Retire the 2026-11-07 production-state rehearsal CI job",
+      "description": "Nick, 2026-11-10: retire it. The job applied every migration (now up to 073) and then ran only the 2026-11-07 rollback, so the schema comparison could never pass after the first later release; it failed on every master run since batch 5. The job is removed from ci.yml; the script and the 11-07 rollback file are kept and marked historical; the deploy runbook says so. Per-migration rollbacks stay tested in lib/rollback-scripts.dbtest.ts.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        "backend/scripts/rehearse-production-migration.sh",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "ci.yml has no rehearsal job and still parses",
+        "the script and the 11-07 rollback say they are historical"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "none: no production behaviour changes"
+      ]
     }
   ]
 }

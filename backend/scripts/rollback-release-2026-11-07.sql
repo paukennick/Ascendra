@@ -1,3 +1,8 @@
+-- HISTORICAL (2026-11-10, REQ-214): valid only while production was at the
+-- 2026-11-07 release. Later releases (migrations 055 onward) are rolled back
+-- by code rollback (Vercel) and, per migration, scripts/rollback-064.sql and
+-- scripts/rollback-071.sql. Do not run this on today's database.
+--
 -- Release 2026-11-07: return the database to the PRE-RELEASE schema
 -- (master @ c3e13ab's 001-024 plus line B's 025-027, which production ran
 -- before this release). docs/release-2026-11-07.md, "Rollback", says when.
