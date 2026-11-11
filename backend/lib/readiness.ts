@@ -110,13 +110,14 @@ export interface CourseReadiness {
 
 const pct = (x: number) => Math.round(x * 100);
 
-// REQ-220 (FAIL-1136): SQL for "this track's unit weights are only our study
-// emphasis, not a vendor blueprint": the track has a credential exam and that
-// exam records no weighted domain (the seed leaves exam_domains unweighted
-// for a credential marked domainWeights: "study_emphasis", e.g. the CNA
-// course). A track with no exam keeps the old rule. `st` is subject_tracks.
-export const STUDY_EMPHASIS_WEIGHTS_SQL = `(st.credential_exam_id is not null and not exists (
-    select 1 from exam_domains ed where ed.exam_id = st.credential_exam_id and ed.weight_percent > 0))`;
+// REQ-220 (FAIL-1136): catalog courses whose unit weights are only our
+// study emphasis, not a vendor blueprint (their credential says
+// domainWeights: "study_emphasis"; lib/content-fixes-req220.test.ts keeps
+// this list equal to the seed's). Read from subject_tracks only, so every
+// database role that reads a course (the app, the re-check job) can use it.
+export const STUDY_EMPHASIS_TRACK_CODES = ["CNA", "LPNVN", "ADNRN", "BSNRN"] as const;
+// `st` is subject_tracks.
+export const STUDY_EMPHASIS_WEIGHTS_SQL = `(st.user_id is null and st.code in (${STUDY_EMPHASIS_TRACK_CODES.map((c) => `'${c}'`).join(", ")}))`;
 
 export async function weightsAreExamBlueprint(trackId: string): Promise<boolean> {
   const rows = await query<{ emphasis: boolean }>(

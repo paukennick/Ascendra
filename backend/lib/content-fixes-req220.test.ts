@@ -72,6 +72,13 @@ describe("REQ-220 study-emphasis weights (FAIL-1136)", () => {
     for (const code of ["NCLEXRN", "NCLEXPN", "NPTEPT", "NPTEPTA", "SECPLUS"]) assert.notEqual(track(code).credential?.domainWeights, "study_emphasis", code);
   });
 
+  test("the server's list of study-emphasis courses is exactly the seed's", async () => {
+    const { STUDY_EMPHASIS_TRACK_CODES } = await import("./readiness");
+    const { CATALOG_TRACKS } = await import("../supabase/seed/catalog");
+    const fromSeed = CATALOG_TRACKS.filter((t) => t.credential?.domainWeights === "study_emphasis").map((t) => t.code).sort();
+    assert.deepEqual([...STUDY_EMPHASIS_TRACK_CODES].sort(), fromSeed);
+  });
+
   test("readiness with study-emphasis weights is unweighted (no 'of the exam' labels)", async () => {
     const { rollupReadiness } = await import("./readiness");
     const units = [
