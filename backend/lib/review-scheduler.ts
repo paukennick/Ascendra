@@ -36,12 +36,13 @@
 export const FIXED_INTERVALS_DAYS = [1, 3, 7, 21, 60] as const;
 
 // REQ-218 (H8): the least time between two reviews of an objective for the
-// later one to count as due. 18 h keeps "the next day" reachable from an
-// evening session to the next afternoon, without minutes counting as a day.
+// later one to count as due: a full day (Nick, 2026-11-10: 24 hours, not a
+// shorter floor), so "1 day" is never minutes and a correct answer cannot
+// climb a rung on no spacing at all.
 // Not a learner-local-date rule on purpose: the date is sent by the app and
 // only checked to within a day (lib/study-plan-store.ts resolveToday), so a
 // floor in elapsed time is the one a client cannot move.
-export const MIN_REVIEW_GAP_HOURS = 18;
+export const MIN_REVIEW_GAP_HOURS = 24;
 
 // REQ-117: the highest step a correct answer given with help can reach.
 export const HELPED_MAX_STEP = 2;

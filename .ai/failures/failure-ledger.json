@@ -12112,7 +12112,7 @@
         "backend/lib/review-step.ts",
         "backend/lib/review-store.ts"
       ],
-      "fix_summary": "A review is due only when its date has come and 18 h (MIN_REVIEW_GAP_HOURS) have passed since the last review or enrolment: scheduler, advanceDueSchedule, dueObjectives, nextDueOn. Elapsed time, not the learner's local date, because the app sends that date and the server only checks it to within a day",
+      "fix_summary": "A review is due only when its date has come and 24 h (MIN_REVIEW_GAP_HOURS; first set at 18, changed to a full day by Nick, 2026-11-10) have passed since the last review or enrolment: scheduler, advanceDueSchedule, dueObjectives, nextDueOn. Elapsed time, not the learner's local date, because the app sends that date and the server only checks it to within a day",
       "fix_commits": [],
       "regression_tests": [
         "backend/lib/learning-data-g3.dbtest.ts",
@@ -13311,6 +13311,31 @@
         ".ai/checklists/pre-completion.md"
       ],
       "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1084",
+      "date": "2026-11-10",
+      "title": "The reminder plan announced a review before the review screen served it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A reminder could fire for a review whose date had come but whose 24 h minimum gap had not (Nick's follow-up to FAIL-1071)",
+      "how_detected": "Coordinator review of PR #127",
+      "root_cause": "dueThrough in reminder-plan-store.ts read due_on only; FAIL-1071 added the elapsed-time floor to the due queue and not to the reminder plan",
+      "requirement": "REQ-218",
+      "affected": [
+        "backend/lib/reminder-plan-store.ts"
+      ],
+      "fix_summary": "dueThrough plans a scheduled objective for the later of its date and the day its 24 h gap ends",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-g3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every reader of review_schedule.due_on applies the floor: dueObjectives, nextDueOn, advanceDueSchedule, dueThrough (service-emails count is approximate by design)",
       "recurrence_of": ""
     }
   ]

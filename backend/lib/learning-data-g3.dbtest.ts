@@ -29,6 +29,7 @@ import { __setClientForTest } from "./anthropic";
 import { confirmItemWrong, recheckItem, RECHECK_CLAIM_MINUTES, type ItemRef } from "./item-quality";
 import { dueObjectives, nextDueOn, prepareContext } from "./review-store";
 import { advanceDueSchedule } from "./review-step";
+import { dueThrough } from "./reminder-plan-store";
 import { MIN_REVIEW_GAP_HOURS } from "./review-scheduler";
 import { recordAttemptAndUpdateMastery } from "./grading-service";
 import { createSession, saveItem, submitSession } from "./exam-sessions";
@@ -133,7 +134,7 @@ describe("FAIL-1070: review prep skips pulled questions", () => {
 // FAIL-1071 (H8)
 // ---------------------------------------------------------------------------
 
-describe("FAIL-1071: a review needs 18 hours since the last one", () => {
+describe("FAIL-1071: a review needs 24 hours since the last one", () => {
   const enrol = async (u: string, o: string, ageHours: number, dueOn = "current_date") =>
     query(
       `insert into review_schedule (user_id, objective_id, due_on, enrolled_at) values ($1, $2, ${dueOn}, now() - ($3 || ' hours')::interval)
@@ -154,7 +155,7 @@ describe("FAIL-1071: a review needs 18 hours since the last one", () => {
     assert.deepEqual(
       (await dueObjectives(u, later.toISOString().slice(0, 10), null, query, later)).map((d) => d.objectiveId).filter((x) => x === o),
       [o],
-      "19 hours later"
+      "25 hours later"
     );
     void track0;
   });
@@ -165,11 +166,27 @@ describe("FAIL-1071: a review needs 18 hours since the last one", () => {
     await query(`insert into mastery (user_id, objective_id, status, score_0_4, evidence) values ($1, $2, 'Guided', 2, 'e') on conflict do nothing`, [u, o]);
     await enrol(u, o, 1, "current_date - 3");
     const d = await nextDueOn(u, track);
-    const expect = (await queryOne<{ d: string }>(`select to_char(((now() - interval '1 hour') + make_interval(hours => $1::int))::date, 'YYYY-MM-DD') as d`, [MIN_REVIEW_GAP_HOURS]))!.d;
-    // The floor ends 17 hours from now; the later of that day and the old date.
+    // The floor ends 23 hours from now; the later of that day and the old date.
     const floorDay = (await queryOne<{ d: string }>(`select to_char(((now() - interval '1 hour' + make_interval(hours => $1::int)) at time zone 'UTC')::date, 'YYYY-MM-DD') as d`, [MIN_REVIEW_GAP_HOURS]))!.d;
     assert.equal(d, floorDay);
-    void expect;
+  });
+
+  test("FAIL-1084: the reminder plan lists the objective on the day the floor ends, not the earlier date", async () => {
+    const u = await newUser();
+    const o = objs[2];
+    await query(`insert into mastery (user_id, objective_id, status, score_0_4, evidence) values ($1, $2, 'Guided', 2, 'e') on conflict do nothing`, [u, o]);
+    // Enrolled "10 hours ahead" (a forward-dated row) so the floor ends at least 28 hours from now,
+    // on a later date whatever the time of day, while the date column says today.
+    await enrol(u, o, -10);
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const floorDay = new Date(now.getTime() + (10 + MIN_REVIEW_GAP_HOURS) * 3_600_000).toISOString().slice(0, 10);
+    assert.notEqual(floorDay, today);
+    const mine = async (last: string) => (await dueThrough(u, today, last)).filter((d) => d.objectiveId === o);
+    assert.deepEqual(await mine(today), [], "not announced for today: the review screen will not serve it yet");
+    const next = await mine(floorDay);
+    assert.equal(next.length, 1);
+    assert.equal(next[0].dueOn, floorDay);
   });
 
   test("a correct review answer minutes after the last one does not climb a rung; a day later it does", async () => {
@@ -188,7 +205,7 @@ describe("FAIL-1071: a review needs 18 hours since the last one", () => {
     assert.equal(early, false);
     const step = async () => (await queryOne<{ step: number }>(`select step from review_schedule where user_id = $1 and objective_id = $2`, [u, o]))!.step;
     assert.equal(await step(), 0, "no rung climbed");
-    // 19 hours later the same call is a real review. The attempt id must exist (review_log foreign key).
+    // 25 hours later the same call is a real review. The attempt id must exist (review_log foreign key).
     const aid = await attempt();
     const later = new Date(Date.now() + (MIN_REVIEW_GAP_HOURS + 1) * 3_600_000);
     const climbed = await withTransaction((tx) => advanceDueSchedule(tx, u, o, aid, later));

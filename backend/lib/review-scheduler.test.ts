@@ -117,8 +117,9 @@ describe("a review needs a minimum gap, not just a date (REQ-218)", () => {
     const s = fixedScheduler.enrol(at("2026-11-07T23:50:00Z"));
     assert.equal(s.dueOn, "2026-11-08");
     assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T00:10:00Z")), false);
-    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T17:49:00Z")), false);
-    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at(`2026-11-08T${String(23 + MIN_REVIEW_GAP_HOURS - 24).padStart(2, "0")}:50:00Z`)), true);
+    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T23:49:00Z")), false);
+    assert.equal(MIN_REVIEW_GAP_HOURS, 24);
+    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T23:50:00Z")), true, "exactly a day after");
   });
 
   test("a correct answer minutes into the next date is early: no rung, no due flag; a miss still steps back", () => {
@@ -133,7 +134,7 @@ describe("a review needs a minimum gap, not just a date (REQ-218)", () => {
     assert.equal(missed.next.lapses, 1);
   });
 
-  test("the date must also have come: 18 hours after an answer on the same day is not due", () => {
+  test("the date must also have come: 24 hours after an answer is not due before the date", () => {
     assert.equal(isDueAt("2026-11-09", at("2026-11-07T01:00:00Z"), at("2026-11-08T23:00:00Z")), false);
     assert.equal(isDueAt("2026-11-08", at("2026-11-07T01:00:00Z"), at("2026-11-08T23:00:00Z")), true);
   });
