@@ -7628,6 +7628,50 @@
       ]
     },
     {
+      "id": "REQ-221",
+      "category": "operations",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/restore/",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/required-env.ts",
+        "backend/.env.example",
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md",
+        "docs/legal/data-inventory.md",
+        ".github/workflows/",
+        ".github/scripts/eas-build-summary.mjs",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a plain restore into a fresh cluster fails and the drill passes there",
+        "restored roles have the source's privileges",
+        "CRON_SECRET missing in production is misconfigured",
+        "every listed env name is in .env.example and the runbook",
+        "the Android preview workflow is pinned and its summary never throws"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backup-drill-test.sh on two clusters",
+        "node --test .github/scripts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md"
+      ],
+      "risk_notes": [
+        "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
+        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+      ]
+    },
+    {
       "id": "REQ-215",
       "category": "chore",
       "title": "Raise the repo's agent turn limits (60/80 to 150/200)",

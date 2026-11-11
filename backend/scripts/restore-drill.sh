@@ -10,9 +10,14 @@
 #      plaintext on disk (the repository is public, so the artifact is too);
 #   2. creates a new, empty database on a LOCAL Postgres, loads
 #      scripts/ci/supabase-roles.sql and Supabase's `extensions` schema
-#      (uuid-ossp; the dump's column defaults call extensions.uuid_generate_v4);
+#      (uuid-ossp; the dump's column defaults call extensions.uuid_generate_v4),
+#      and creates the app_runtime and content_recheck roles (NOLOGIN) that the
+#      dump's policies name (scripts/restore/01-roles-before-restore.sql);
 #   3. decrypts with age straight into `pg_restore --no-owner --no-privileges
 #      --schema=public` (the plaintext dump never touches the disk);
+#   3b. re-applies what a dump does not hold: migration 071 (app_runtime's
+#      grants and settings, PUBLIC's revoked EXECUTE), then content_recheck's
+#      grants (scripts/restore/02-recheck-grants-after-restore.sql);
 #   4. checks the number of tables in public and the row counts of app_users,
 #      attempts and mastery equal the manifest's, exactly;
 #   5. runs `npm run migrate -- --status` against it (schema is current);
@@ -102,6 +107,11 @@ psql_q "$DB_URL" -f "$BACKEND/scripts/ci/supabase-roles.sql"
 psql_q "$DB_URL" -c 'create schema if not exists extensions' \
   -c 'create extension if not exists "uuid-ossp" with schema extensions' \
   -c "alter database $DB set search_path = \"\$user\", public, extensions"
+# Roles belong to the cluster, not the database, and a dump holds none. The
+# dump's RLS policies are TO app_runtime / TO content_recheck, so pg_restore
+# fails on each one in a cluster that never had the roles (FAIL-1160: a real
+# restore into a new Supabase project hit exactly this).
+psql_q "$DB_URL" -f "$BACKEND/scripts/restore/01-roles-before-restore.sql"
 
 step "Decrypt and restore (schema public)"
 start=$(date +%s)
@@ -118,16 +128,25 @@ rm -f "$log"
 echo "Restored in ${secs}s."
 
 # A database dump holds no roles and no grants (the dump is --no-acl and the
-# restore --no-privileges), so what migration 071 puts there is not in the
-# restored copy: the app_runtime role (roles belong to the cluster), PUBLIC's
-# revoked EXECUTE on the functions, the role's grants. Migration 071 is written
-# to be run twice; running its file again re-creates all of it. `migrate -- 071`
-# would skip it (the restored ledger says it is applied), so the file is run
-# directly. A real restore does the same (docs/operations-runbook.md, "Backups").
+# restore --no-privileges), so what migrations 064 and 071 put there is not in
+# the restored copy: app_runtime's grants and settings, PUBLIC's revoked
+# EXECUTE on the functions, content_recheck's grants. The roles themselves
+# were created above. Migration 071 is written to be run twice; running its
+# file again re-creates all of it. `migrate -- 071` would skip it (the
+# restored ledger says it is applied), so the file is run directly. 064 is NOT
+# re-run as a file (its policies would undo 071's narrowing): only its grant
+# block, which scripts/restore/02-recheck-grants-after-restore.sql holds.
+# A real restore does the same (docs/operations-runbook.md, "Backups").
 step "Roles and privileges (not in a dump)"
 psql_q "$DB_URL" --single-transaction -f "$BACKEND/supabase/migrations/071_app_runtime_role.sql" >/dev/null \
   || fail "migration 071 could not be re-applied to the restored copy."
 echo "Re-applied 071_app_runtime_role.sql (app_runtime and its privileges)."
+psql_q "$DB_URL" --single-transaction -f "$BACKEND/scripts/restore/02-recheck-grants-after-restore.sql" >/dev/null \
+  || fail "content_recheck's grants could not be re-applied to the restored copy."
+echo "Re-applied content_recheck's grants (064's grant block)."
+# The roles must be usable now, not merely present.
+[[ "$(psql_q "$DB_URL" -A -t -c "select has_table_privilege('app_runtime', 'public.app_users', 'update') and has_table_privilege('content_recheck', 'public.exec_check_runs', 'insert') and not has_table_privilege('content_recheck', 'public.item_status', 'update')")" == t ]] \
+  || fail "app_runtime or content_recheck lacks the privileges it needs after the restore."
 
 step "Counts match the manifest"
 q() { psql_q "$DB_URL" -A -t -c "$1"; }
