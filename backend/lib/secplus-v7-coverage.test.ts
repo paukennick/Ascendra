@@ -20,6 +20,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { CATALOG_TRACKS, activeUnits } from "../supabase/seed/catalog";
+import { LAB_SETS } from "../supabase/seed/labs";
 
 const SECPLUS_V7_TERMS: Record<string, string[]> = {
   "1.1": [
@@ -287,6 +288,27 @@ describe("Security+ V7 (SY0-701) coverage -- REQ-220", () => {
       if (u.labs) assert.equal(u.labs.length, u.objectives.length, `${u.title}: labs not parallel`);
       if (u.objectiveRetiredAt) assert.equal(u.objectiveRetiredAt.length, u.objectives.length, `${u.title}: retiredAt not parallel`);
       assert.equal(new Set(u.objectives).size, u.objectives.length, `${u.title}: duplicate objective`);
+    }
+  });
+});
+
+describe("Security+ V7 incident-response lab -- REQ-220", () => {
+  test("leads with the SY0-701 4.8 step names, NIST only as a mapping (FAIL-1132)", () => {
+    const lab = LAB_SETS.find((s) => s.trackCode === "SECPLUS")?.labs.find((l) => l.slug === "ir-lifecycle-ransomware");
+    assert.ok(lab);
+    assert.doesNotMatch(lab.title, /NIST/);
+    const brief = lab.brief.toLowerCase();
+    const steps = ["preparation", "detection", "analysis", "containment", "eradication", "recovery", "lessons learned"];
+    let at = -1;
+    for (const step of steps) {
+      const i = brief.indexOf(step, at + 1);
+      assert.ok(i > at, `brief names "${step}" in order`);
+      at = i;
+    }
+    assert.ok(brief.indexOf("lessons learned") < brief.indexOf("nist"), "the exam's steps come before NIST");
+    // Every model answer that cites a NIST ID labels it as NIST, after the step name.
+    for (const p of lab.steps.flatMap((s) => s.parts)) {
+      if (/\b(RS|RC|ID)\.[A-Z]{2}/.test(p.modelAnswer)) assert.match(p.modelAnswer, /^(Containment|Eradication|Recovery|Declare|Lessons learned)[^]*NIST/, p.modelAnswer.slice(0, 60));
     }
   });
 });
