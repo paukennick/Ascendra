@@ -68,7 +68,10 @@
   sameAttempt); request bodies go through readJson, learner text through
   textField before any model call, and client-supplied ids through
   lib/visibility.ts; anything that mails an address the caller typed goes
-  through mayEmail and escapes it.
+  through mayEmail and escapes it; an emailed sign-in code goes through
+  mayEmailSignInCode, its own per-address budget, so mail anyone can trigger
+  (reset, verification) can't use up the one the learner needs to get in, nor
+  the reverse (REQ-226, FAIL-1240).
 - AI-layer changes (REQ-115, FAIL-290..307): text a learner or course author
   wrote goes into a prompt only escaped (`escapeLearnerText`, `fenceLearnerText`,
   `quoteTitle`), never stripped; a recorded verdict goes through

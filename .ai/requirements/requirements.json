@@ -7910,6 +7910,44 @@
       "risk_notes": [
         "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs have no learner request path (written offline by scripts/generate-labs.ts), so the reason is the operator outcome line, not an HTTP 409; a lab held for something the checker called unsafe stays held (stricter than disagreeing with the key, deliberate for clinical and fitness labs)"
       ]
+    },
+    {
+      "id": "REQ-226",
+      "category": "security",
+      "title": "G4 follow-ups: separate hourly budget for emailed sign-in codes; app opens the Terms screen on terms_required",
+      "description": "Two follow-ups to batch G4 (REQ-219) approved by Nick. (1) Emailed sign-in codes (POST /api/auth/mfa/challenge/send-email-code) shared the five-an-hour per-address mail budget (mayEmail, event mail_to_address) with password-reset, verification, registration and email-change mails, so someone who knew an email-only account's password could use up the budget and block the learner's sign-in codes for up to an hour. Sign-in codes now have their own per-address hourly budget (event mfa_code_mail_to, five an hour, stored in auth_events like every other limit; no migration), and the other mails keep theirs. (2) The server answers 403 { code: terms_required } from signed-in routes when the account has not accepted the current Terms and Privacy Policy; a build that skipped its launch prompt showed that as error text. The mobile API client now hands that code to the onboarding provider, which reloads the launch state (GET /api/onboarding, a termsOptional route) so the launch gate opens the existing Terms acceptance screen. Mirrors study_notice_required (FAIL-1061); JavaScript only, so it ships over the air.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code",
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "A reset",
+        "verification",
+        "registration or email-change mail does not use up the sign-in code budget and a sign-in code does not use up theirs",
+        "The sign-in code budget still caps itself at five an hour per address with a plain 429",
+        "A 403 terms_required from any signed-in request reloads the launch state once at a time and opens the Terms screen; it is not retried and does not loop",
+        "No migration and no native or app.json change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db (new and affected dbtests) on a throwaway local Postgres",
+        "mobile npx tsc --noEmit",
+        "mobile npm test",
+        "./omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "risk_notes": [
+        "A sign-in code now adds up to five mails an hour on top of five other mails an hour to the same address (ten an hour in total per address); the per-challenge cap of 3 per 10 minutes is unchanged"
+      ]
     }
   ]
 }

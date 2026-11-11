@@ -14705,6 +14705,30 @@
       ],
       "prevention_notes": "",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1240",
+      "date": "2026-11-10",
+      "title": "Emailed sign-in codes shared the five-an-hour per-address mail budget with reset and verification mails",
+      "status": "open",
+      "severity": "medium",
+      "symptom": "Someone who knew an email-only account's password (or, for the reverse direction, anyone who knew the address) could use up the five-an-hour per-address mail budget, after which the learner's sign-in codes answered 429 for up to an hour; sign-in codes in turn used up the budget password-reset links needed.",
+      "how_detected": "Review of batch G4 (REQ-219); approved follow-up",
+      "root_cause": "REQ-219 (FAIL-1114) put the sign-in code route under mayEmail, whose single counter (auth_events event mail_to_address, keyed by address) every address-targeted mail shares. Reset and verification routes are open to anyone who knows an address, so a stranger could spend the one shared budget.",
+      "requirement": "REQ-226",
+      "affected": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code/route.ts"
+      ],
+      "fix_summary": "mayEmailSignInCode: its own event (mfa_code_mail_to), five an hour per address, same auth_events storage and key; the route uses it, mayEmail is unchanged for every other mail. No migration.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts::FAIL-1240: sign-in codes have their own hourly mail budget"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Each kind of mail that someone other than the account holder can trigger, and each that the holder needs in order to get in, has its own named per-address budget in lib/auth/mailLimit.ts; a new mail kind picks one on purpose. The checklist's auth-and-abuse line names it.",
+      "recurrence_of": ""
     }
   ]
 }

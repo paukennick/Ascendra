@@ -5,7 +5,7 @@ import { getLoginChallenge, setChallengeEmailCode, ChallengeError } from "@/lib/
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
-import { mayEmail } from "@/lib/auth/mailLimit";
+import { mayEmailSignInCode } from "@/lib/auth/mailLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -53,10 +53,12 @@ export async function POST(req: Request) {
 
     // REQ-219 (FAIL-1114): every other mail to an address counts against the
     // per-address hourly limit (lib/auth/mailLimit.ts); this one only had the
-    // per-challenge cap, and each new sign-in starts a new challenge. Here the
-    // caller already has the password, so the limit can say so plainly (a 429
-    // the app shows) instead of skipping silently.
-    if (!(await mayEmail(user.email))) {
+    // per-challenge cap, and each new sign-in starts a new challenge. REQ-226
+    // (FAIL-1240): sign-in codes have their own hourly budget, so reset and
+    // verification mails can't use it up (or it theirs). Here the caller
+    // already has the password, so the limit can say so plainly (a 429 the app
+    // shows) instead of skipping silently.
+    if (!(await mayEmailSignInCode(user.email))) {
       return tooManyRequests(
         "We've sent several codes to this address in the last hour. Wait a while, or use your authenticator app or a backup code."
       );
