@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { addDays, fixedScheduler, FIXED_INTERVALS_DAYS, HELPED_MAX_STEP, schedulerFor, utcDay, type ScheduleState } from "./review-scheduler";
+import { addDays, fixedScheduler, FIXED_INTERVALS_DAYS, HELPED_MAX_STEP, isDueAt, MIN_REVIEW_GAP_HOURS, schedulerFor, utcDay, type ScheduleState } from "./review-scheduler";
 
 const at = (iso: string) => new Date(iso);
 const state = (over: Partial<ScheduleState> = {}): ScheduleState => ({
@@ -107,5 +107,48 @@ describe("fixed_v1 review scheduler (REQ-108)", () => {
     assert.equal(schedulerFor("fsrs_v9").name, "fixed_v1");
     assert.equal(schedulerFor(null).name, "fixed_v1");
     assert.equal(utcDay(at("2026-11-07T23:59:59-08:00")), "2026-11-08");
+  });
+});
+
+// REQ-218 (FAIL-1071, H8): a UTC calendar day is not a day. Enrolled at 23:50,
+// the review was "due" at 00:00 and a correct answer then climbed a rung.
+describe("a review needs a minimum gap, not just a date (REQ-218)", () => {
+  test("enrolled at 23:50 UTC, due the next date: not due at 00:10, due once the floor has passed", () => {
+    const s = fixedScheduler.enrol(at("2026-11-07T23:50:00Z"));
+    assert.equal(s.dueOn, "2026-11-08");
+    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T00:10:00Z")), false);
+    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T23:49:00Z")), false);
+    assert.equal(MIN_REVIEW_GAP_HOURS, 24);
+    assert.equal(isDueAt(s.dueOn, s.enrolledAt, at("2026-11-08T23:50:00Z")), true, "exactly a day after");
+  });
+
+  test("a correct answer minutes into the next date is early: no rung, no due flag; a miss still steps back", () => {
+    const s = fixedScheduler.enrol(at("2026-11-07T23:50:00Z"));
+    const early = fixedScheduler.next(s, { verdict: "correct", assisted: false, reviewedAt: at("2026-11-08T00:10:00Z") });
+    assert.equal(early.wasDue, false);
+    assert.equal(early.advanced, false);
+    assert.equal(early.next.step, 0);
+    assert.equal(early.next.dueOn, s.dueOn);
+    const missed = fixedScheduler.next({ ...s, step: 2, dueOn: "2026-11-08" }, { verdict: "incorrect", assisted: false, reviewedAt: at("2026-11-08T00:10:00Z") });
+    assert.equal(missed.next.step, 1);
+    assert.equal(missed.next.lapses, 1);
+  });
+
+  test("the date must also have come: 24 hours after an answer is not due before the date", () => {
+    assert.equal(isDueAt("2026-11-09", at("2026-11-07T01:00:00Z"), at("2026-11-08T23:00:00Z")), false);
+    assert.equal(isDueAt("2026-11-08", at("2026-11-07T01:00:00Z"), at("2026-11-08T23:00:00Z")), true);
+  });
+
+  test("the ladder is unchanged and each rung climbs when answered a day or more after the last", () => {
+    assert.deepEqual([...FIXED_INTERVALS_DAYS], [1, 3, 7, 21, 60]);
+    let s = fixedScheduler.enrol(at("2026-11-07T23:50:00Z"));
+    let at_ = at("2026-11-09T09:00:00Z");
+    for (let i = 0; i < 5; i++) {
+      const r = fixedScheduler.next(s, { verdict: "correct", assisted: false, reviewedAt: at_ });
+      assert.equal(r.advanced, true);
+      s = r.next;
+      at_ = new Date(Date.parse(`${s.dueOn}T09:00:00Z`));
+    }
+    assert.equal(s.step, 4);
   });
 });

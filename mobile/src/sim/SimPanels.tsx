@@ -5,6 +5,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { Badge, Body, Button, Card, Chip, ErrorBanner, H2, H3, Muted, TextField, MIN_TOUCH } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Run } from "./engine/v1/engine.ts";
 import type { ActionParam, WaitInfo } from "./engine/v1/types.ts";
 import { slotChoices, waitLabel, type ActionView, type RunView, type TileView, type ZoneView } from "./runtime/view.ts";
@@ -452,11 +453,15 @@ export function PromptCard({ prompt, onChoose }: { prompt: NonNullable<RunView["
 
 export function ReasoningCard({
   question,
+  draftKey = null,
   onSubmit,
   onSkip,
   onContinue,
 }: {
   question: string;
+  // REQ-217 (FAIL-1050): where the typed answer is kept on the device, so a
+  // killed app or a failed send doesn't lose it (null: not kept).
+  draftKey?: string | null;
   onSubmit: (answer: string) => Promise<ReasoningResult>;
   onSkip: () => void;
   onContinue: () => void;
@@ -465,6 +470,9 @@ export function ReasoningCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReasoningResult | null>(null);
+  useStoredDraft(draftKey, result ? null : answer.trim() ? answer : null, (stored) => {
+    if (stored) setAnswer((current) => current || stored);
+  });
   const submit = async () => {
     setBusy(true);
     setError(null);

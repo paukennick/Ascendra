@@ -18,8 +18,9 @@
 #
 # Run by hand from the Actions tab: dry_run defaults to true, which logs what
 # would be dropped (name, date, age, row counts) and drops nothing. Untick it
-# to drop. Connects exactly like migrate-production.yml: the PROD_DATABASE_URL
-# secret (Supabase Session pooler) in the production-database environment.
+# to drop. Connects like migrate-production.yml (the PROD_DATABASE_URL secret,
+# Supabase Session pooler) but runs in the production-backup environment, which
+# has no required reviewer; migrate-production.yml uses production-database.
 # The script only logs names, dates and counts, never the URL.
 name: Release backup housekeeping
 on:

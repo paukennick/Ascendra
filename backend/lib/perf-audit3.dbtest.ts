@@ -135,7 +135,7 @@ describe("review session start (FAIL-374, FAIL-375)", () => {
     const { objectives } = await makeCourse(u);
     const today = utcDay(new Date());
     for (const o of objectives) {
-      await query(`insert into review_schedule (user_id, objective_id, step, due_on) values ($1, $2, 1, $3::date)`, [u, o.id, today]);
+      await query(`insert into review_schedule (user_id, objective_id, step, due_on, enrolled_at) values ($1, $2, 1, $3::date, now() - interval '2 days')`, [u, o.id, today]);
     }
     const req = () => new Request("http://t/x", { method: "POST", headers: { ...auth(u), "content-type": "application/json" }, body: "{}" });
     const { result, n, sql } = await countQueries(() => sessionsPost(req()));
@@ -172,7 +172,7 @@ describe("review session start (FAIL-374, FAIL-375)", () => {
       [s1, o.id, q0, objectives[1].id]
     );
     for (const x of objectives.slice(0, 3)) {
-      await query(`insert into review_schedule (user_id, objective_id, step, due_on) values ($1, $2, 1, $3::date)`, [u, x.id, today]);
+      await query(`insert into review_schedule (user_id, objective_id, step, due_on, enrolled_at) values ($1, $2, 1, $3::date, now() - interval '2 days')`, [u, x.id, today]);
     }
     const due = await dueObjectives(u, today, null);
     assert.deepEqual(due.map((d) => d.objectiveId).sort(), [objectives[0].id, objectives[2].id].sort());

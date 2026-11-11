@@ -355,9 +355,23 @@ export interface RecheckResult {
 // or a person. `userId` is null only for an operator script.
 export const RECHECK_EVENT = "item_recheck";
 export const RECHECK_LIMIT = { max: 10, windowMinutes: 24 * 60 };
+// REQ-218: a claim whose check never finished (the process died between the
+// claim and its result) is taken over after this long. It used to stay for
+// good, so the item could never be re-checked again.
+export const RECHECK_CLAIM_MINUTES = 15;
 
 export async function recheckItem(ref: ItemRef, checker: FactChecker, userId: string | null): Promise<RecheckResult> {
   if (!factCheckEnabled()) return { ran: false, agreed: null, quarantined: false };
+  // A claim that never recorded a result and is older than the expiry belongs
+  // to a check that died; drop it so this flag can claim the item. Two flags
+  // doing this at once still claim once (item_flags_one_recheck).
+  await query(
+    `delete from item_flags
+      where item_kind = $1 and item_id = $2 and source = 'recheck'
+        and recheck_agreed is null and recheck_detail is null
+        and created_at < now() - make_interval(mins => $3::int)`,
+    [ref.kind, ref.itemId, RECHECK_CLAIM_MINUTES]
+  );
   const claim = await queryOne<{ id: string }>(
     `insert into item_flags (item_kind, item_id, objective_id, question, source)
      values ($1, $2, $3, $4, 'recheck') on conflict do nothing returning id`,
@@ -497,7 +511,14 @@ export async function confirmItemWrong(ref: ItemRef, note: string): Promise<numb
 
 // Pulls one item as confirmed wrong and voids its attempts; the caller
 // recomputes mastery for the pairs returned.
-async function confirmWrongIn(tx: TxClient, ref: ItemRef, note: string): Promise<{ user_id: string; objective_id: string | null }[]> {
+async function confirmWrongIn(tx: TxClient, ref: ItemRef, note: string): Promise<{ id: string; user_id: string; objective_id: string | null }[]> {
+  // REQ-218 (M2): an exam submit holds this row FOR SHARE while it decides
+  // which answers become attempts (lib/exam-sessions.ts submitSession). Taking
+  // the conflicting lock first means a confirm either waits for the submit and
+  // then voids what it recorded, or goes first and the submit sees the item
+  // pulled and records nothing. NO KEY UPDATE: starting a session (a foreign
+  // key share lock on the row) is not blocked.
+  if (ref.kind === "exam") await tx.query(`select 1 from exam_items where id = $1::uuid for no key update`, [ref.itemId]);
   await tx.query(
     `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_at, resolved_note)
      values ($1, $2, $3, $4, 'confirmed_wrong', 'review', now(), $5)
@@ -506,12 +527,21 @@ async function confirmWrongIn(tx: TxClient, ref: ItemRef, note: string): Promise
     [ref.kind, ref.itemId, ref.objectiveId, ref.question, note]
   );
   const { sql, params } = attemptsSql(ref);
-  const voided = await tx.query<{ user_id: string; objective_id: string | null }>(
+  const voided = await tx.query<{ id: string; user_id: string; objective_id: string | null }>(
     `update attempts set voided_at = now(), void_reason = $${params.length + 1}
       where voided_at is null and (${sql})
-      returning user_id, objective_id`,
+      returning id, user_id, objective_id`,
     [...params, `item ${ref.kind}:${ref.itemId} confirmed wrong: ${note}`.slice(0, 500)]
   );
+  // REQ-218 (M4): what the wrong key taught the learner's other surfaces goes
+  // with the answer: the error-log entries a miss opened stop being asked
+  // back, and the "misconception" the grader read from a miss is deleted
+  // (the answer was marked down by a wrong key, so the diagnosis is not true).
+  if (voided.length) {
+    const ids = voided.map((v) => v.id);
+    await tx.query(`update error_log set resolved = true where attempt_id = any($1::uuid[]) and not resolved`, [ids]);
+    await tx.query(`delete from learner_misconceptions where attempt_id = any($1::uuid[])`, [ids]);
+  }
   await tx.query(`update item_status set voided_attempts = voided_attempts + $3 where item_kind = $1 and item_id = $2`, [
     ref.kind,
     ref.itemId,

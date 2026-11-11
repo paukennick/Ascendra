@@ -132,7 +132,7 @@ async function reviewSession(u: string, tag: string) {
   for (const o of objs) {
     await recordAttemptAndUpdateMastery({ userId: u, unitId: unit, objectiveId: o, kind: "lesson", stage: "solo", format: "open", question: `q-${tag}-${o}`, answer: "a", verdict: "correct" });
   }
-  await query(`update review_schedule set due_on = current_date where user_id = $1`, [u]);
+  await query(`update review_schedule set due_on = current_date, enrolled_at = now() - interval '2 days', last_reviewed_at = case when last_reviewed_at is null then null else now() - interval '2 days' end where user_id = $1`, [u]);
   const s = (await call(reviewStart, u, { body: { trackId: track } })).body.session;
   assert.ok(s && s.items.length >= 2, "session with >=2 items");
   return s;

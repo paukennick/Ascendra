@@ -15,8 +15,10 @@
 # encrypted files. Nothing about the database is printed to the log. Kept 30
 # days (the privacy policy says 30 days; change both together).
 #
-# Connects exactly like migrate-production.yml: the PROD_DATABASE_URL secret
-# (Supabase Session pooler URI) in the production-database environment.
+# Connects like migrate-production.yml: the PROD_DATABASE_URL secret (Supabase
+# Session pooler URI), but from the production-backup environment (no required
+# reviewer, so a nightly run cannot stall waiting for approval); the migrate
+# job uses production-database.
 # The script never prints it. Daily at 11:23 UTC (03:23 PST / 04:23 PDT), and
 # by hand from the Actions tab. Setup, restore and limits:
 # docs/operations-runbook.md "Backups"; drill: docs/restore-drill.md.

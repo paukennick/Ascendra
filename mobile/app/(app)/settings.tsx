@@ -49,6 +49,13 @@ export default function Settings() {
       } else {
         await disableBiometric();
       }
+    } catch {
+      // REQ-217 (FAIL-1063): a failed keystore write used to leave the switch
+      // snapping back with nothing said.
+      Alert.alert(
+        next ? "Couldn't turn this on" : "Couldn't turn this off",
+        "The phone's secure storage didn't accept the change. Your sign-in is unchanged. Try again, or sign out and back in first."
+      );
     } finally {
       setBiometricBusy(false);
     }
