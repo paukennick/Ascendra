@@ -437,7 +437,7 @@ describe("Resend errors surface as EmailSendError (FAIL-674)", () => {
     );
   });
 
-  test("a signed-in action whose mail fails answers 503 instead of 'sent'", async () => {
+  test("a signed-in action whose mail fails answers 409 (readable by the app) instead of 'sent'", async () => {
     const id = randomUUID();
     created.push(id);
     const email = await newEmail("fail-mfa");
@@ -450,7 +450,8 @@ describe("Resend errors surface as EmailSendError (FAIL-674)", () => {
     const access = signAccessToken({ sub: id, email, ver: 0, fam: r0.familyId });
     failNext = { name: "application_error", statusCode: 500 };
     const r = await call(mfaEmailSetup, {}, { authorization: `Bearer ${access}` });
-    assert.equal(r.status, 503, JSON.stringify(r.body));
+    assert.equal(r.status, 409, JSON.stringify(r.body));
+    assert.equal(r.body.retryable, true);
     assert.match(r.body.error, /couldn't send the email/);
     assert.ok(logged.some((l) => l.includes('"kind":"mfa_code"')));
   });

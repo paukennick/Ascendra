@@ -20,6 +20,10 @@ export function regenerateErrorMessage(err: unknown): string {
   if ((status === 403 || status === 429) && data && data.aiAccess && typeof data.error === "string") {
     return data.error;
   }
+  // FAIL-884: a lesson the accuracy checks held back says so in the server's
+  // own words ({ held: true }, a 409): what to do meanwhile, not "check your
+  // connection".
+  if (data && data.held === true && typeof data.error === "string" && data.error.trim()) return data.error;
   if (status === 429) return REGENERATE_RATE_LIMITED;
   return REGENERATE_FAILED;
 }

@@ -1,6 +1,6 @@
 import { ok, badRequest, notFound, unauthorized, forbidden, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { visibleObjective } from "@/lib/visibility";
+import { taughtObjective } from "@/lib/visibility";
 import { requireAcknowledgementForObjective, AcknowledgementError } from "@/lib/auth/requireAcknowledgement";
 import { lessonCheckFor, recordHintReveal } from "@/lib/grading-service";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser(req);
     // REQ-135: the canonical (lowercase) id from the visibility check, so the
     // shuffle seed and the recorded reveal match however the app spelled it.
-    const objective = await visibleObjective(rawId, user.id);
+    const objective = await taughtObjective(rawId, user.id);
     if (!objective) return notFound("Objective not found");
     const id = objective.id;
     await requireAcknowledgementForObjective(id, user.id);

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { query, queryOne, withTransaction } from "@/lib/db";
+import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { factCheckEnabled, modelFactChecker, orderingForCheck, type CheckItem, type FactChecker } from "@/lib/fact-check";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
@@ -58,6 +58,17 @@ export function servableSql(kind: ItemKind, idExpr: string): string {
   return `not exists (select 1 from item_status qs where qs.item_kind = '${kind}' and qs.item_id = (${idExpr})::text and qs.status <> 'cleared')`;
 }
 
+// SQL: true when the lesson check an exam_items copy (source 'lesson') was
+// made from is not pulled. The copy has no stage, and a lesson check's id is
+// '<objective>:<stage>:<md5(question)>', so both stages are tried. `alias` is
+// the exam_items alias. FAIL-885.
+export function lessonCopyServableSql(alias: string): string {
+  return `not exists (select 1 from item_status qs
+     where qs.item_kind = 'lesson' and qs.status <> 'cleared'
+       and qs.item_id in (${alias}.objective_id::text || ':fade:' || md5(${alias}.stem),
+                          ${alias}.objective_id::text || ':solo:' || md5(${alias}.stem)))`;
+}
+
 // SQL: true when neither of a lesson row's two checks is pulled. `alias` is
 // the lesson_content / lesson_content_overrides alias (or table name).
 export function lessonServableSql(alias: string): string {
@@ -99,6 +110,10 @@ export interface HoldbackInput {
   claims: string[];
   content: unknown;
   model?: string | null;
+  // FAIL-882 (migration 069): set when the generation was one learner's own
+  // regenerate, so its refusal cools down for that learner only. Absent for
+  // a shared generation.
+  scopeUserId?: string | null;
 }
 
 // Logs content that was not published. Never throws: a failed log must not
@@ -107,8 +122,10 @@ export async function recordHoldback(h: HoldbackInput): Promise<void> {
   // eslint-disable-next-line no-console
   console.warn(`[item-quality] held back ${h.kind} (${h.reason}): ${h.claims.slice(0, 3).join("; ") || "-"}`);
   await query(
-    `insert into item_holdbacks (item_kind, objective_id, unit_id, track_id, reason, claims, content, model)
-     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    // scope_user_id (069) is named only when set, so a shared holdback is
+    // logged on a database that has not applied 069 yet.
+    `insert into item_holdbacks (item_kind, objective_id, unit_id, track_id, reason, claims, content, model${h.scopeUserId ? ", scope_user_id" : ""})
+     values ($1, $2, $3, $4, $5, $6, $7, $8${h.scopeUserId ? ", $9" : ""})`,
     [
       h.kind,
       h.objectiveId ?? null,
@@ -118,6 +135,7 @@ export async function recordHoldback(h: HoldbackInput): Promise<void> {
       JSON.stringify(h.claims),
       JSON.stringify(h.content ?? null),
       h.model ?? null,
+      ...(h.scopeUserId ? [h.scopeUserId] : []),
     ]
   ).catch((err) => {
     // eslint-disable-next-line no-console
@@ -185,7 +203,32 @@ export async function recordFlag(
       [ref.kind, ref.itemId]
     );
     let quarantined = !!existing && existing.status !== "cleared";
-    if (existing) {
+    if (existing && existing.status === "cleared") {
+      // FAIL-886: a person cleared this item, which used to switch the safety
+      // net off for good: later flags only bumped flag_count. The person's
+      // decision stands for the flags they weighed, so only learners who
+      // flagged AFTER the clear count, and when they reach the threshold the
+      // item is pulled again (clearItem / confirmItemWrong can decide again).
+      const since = await tx.queryOne<{ n: number }>(
+        `select count(distinct f.user_id)::int as n from item_flags f, item_status s
+          where f.item_kind = $1 and f.item_id = $2 and s.item_kind = $1 and s.item_id = $2
+            and f.user_id is not null and f.source in ('learner', 'key_suspect')
+            and f.created_at > coalesce(s.resolved_at, s.quarantined_at)`,
+        [ref.kind, ref.itemId]
+      );
+      const after = since?.n ?? 0;
+      if (after >= threshold) {
+        await tx.query(
+          `update item_status set status = 'quarantined', reason = 'flags', flag_count = $3, resolved_at = null,
+                  resolved_note = null, quarantined_at = now()
+            where item_kind = $1 and item_id = $2 and status = 'cleared'`,
+          [ref.kind, ref.itemId, after]
+        );
+        quarantined = true;
+      } else {
+        await tx.query(`update item_status set flag_count = $3 where item_kind = $1 and item_id = $2`, [ref.kind, ref.itemId, flags]);
+      }
+    } else if (existing) {
       await tx.query(`update item_status set flag_count = $3 where item_kind = $1 and item_id = $2`, [ref.kind, ref.itemId, flags]);
     } else if (flags >= threshold) {
       await tx.query(
@@ -428,25 +471,21 @@ function attemptsSql(ref: ItemRef): { sql: string; params: unknown[] } {
 // the objective is recomputed. Returns how many attempts were voided.
 export async function confirmItemWrong(ref: ItemRef, note: string): Promise<number> {
   return withTransaction(async (tx) => {
-    await tx.query(
-      `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_at, resolved_note)
-       values ($1, $2, $3, $4, 'confirmed_wrong', 'review', now(), $5)
-       on conflict (item_kind, item_id) do update
-         set status = 'confirmed_wrong', resolved_at = now(), resolved_note = excluded.resolved_note`,
-      [ref.kind, ref.itemId, ref.objectiveId, ref.question, note]
-    );
-    const { sql, params } = attemptsSql(ref);
-    const voided = await tx.query<{ user_id: string; objective_id: string | null }>(
-      `update attempts set voided_at = now(), void_reason = $${params.length + 1}
-        where voided_at is null and (${sql})
-        returning user_id, objective_id`,
-      [...params, `item ${ref.kind}:${ref.itemId} confirmed wrong: ${note}`.slice(0, 500)]
-    );
-    await tx.query(`update item_status set voided_attempts = voided_attempts + $3 where item_kind = $1 and item_id = $2`, [
-      ref.kind,
-      ref.itemId,
-      voided.length,
-    ]);
+    const voided = await confirmWrongIn(tx, ref, note);
+    // FAIL-885: a lesson check can be copied into the exam bank
+    // (exam_items source 'lesson', lib/exam-items.ts copyAnsweredLessonChecks).
+    // The copy has the same wrong key. It is pulled too and the answers given
+    // to it in mocks and sprints are voided; before, the wrong key came back
+    // in the next mock exam.
+    if (ref.kind === "lesson" && ref.objectiveId) {
+      const copies = await tx.query<{ id: string }>(
+        `select id from exam_items where source = 'lesson' and objective_id = $1 and stem = $2`,
+        [ref.objectiveId, ref.question]
+      );
+      for (const c of copies) {
+        voided.push(...(await confirmWrongIn(tx, { kind: "exam", itemId: c.id, objectiveId: ref.objectiveId, question: ref.question }, note)));
+      }
+    }
     const pairs = new Set(voided.filter((v) => v.user_id && v.objective_id).map((v) => `${v.user_id}|${v.objective_id}`));
     for (const p of pairs) {
       const [u, o] = p.split("|");
@@ -454,6 +493,31 @@ export async function confirmItemWrong(ref: ItemRef, note: string): Promise<numb
     }
     return voided.length;
   });
+}
+
+// Pulls one item as confirmed wrong and voids its attempts; the caller
+// recomputes mastery for the pairs returned.
+async function confirmWrongIn(tx: TxClient, ref: ItemRef, note: string): Promise<{ user_id: string; objective_id: string | null }[]> {
+  await tx.query(
+    `insert into item_status (item_kind, item_id, objective_id, question, status, reason, resolved_at, resolved_note)
+     values ($1, $2, $3, $4, 'confirmed_wrong', 'review', now(), $5)
+     on conflict (item_kind, item_id) do update
+       set status = 'confirmed_wrong', resolved_at = now(), resolved_note = excluded.resolved_note`,
+    [ref.kind, ref.itemId, ref.objectiveId, ref.question, note]
+  );
+  const { sql, params } = attemptsSql(ref);
+  const voided = await tx.query<{ user_id: string; objective_id: string | null }>(
+    `update attempts set voided_at = now(), void_reason = $${params.length + 1}
+      where voided_at is null and (${sql})
+      returning user_id, objective_id`,
+    [...params, `item ${ref.kind}:${ref.itemId} confirmed wrong: ${note}`.slice(0, 500)]
+  );
+  await tx.query(`update item_status set voided_attempts = voided_attempts + $3 where item_kind = $1 and item_id = $2`, [
+    ref.kind,
+    ref.itemId,
+    voided.length,
+  ]);
+  return voided;
 }
 
 // A person checked a quarantined item and it is fine: served again.

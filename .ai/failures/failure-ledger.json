@@ -9883,6 +9883,428 @@
       ],
       "prevention_notes": "Every route that adds a sign-in method calls endOtherSessions in its own transaction",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-880",
+      "date": "2026-11-09",
+      "title": "Exam start sent twice returned a 500",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Two starts with one clientSessionId: the slower answered 500 (unique violation exam_sessions_user_client_unique)",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "createSession checked for the session, then built questions, then inserted without any lock or on-conflict handling; two requests passed the check together",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-route-errors.ts",
+        "backend/app/api/exam/sessions/route.ts"
+      ],
+      "fix_summary": "The insert runs under an advisory lock; the replay is returned (and a mock's counted use is given back); 23505 on that index maps to 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-start-races.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A route that replays by client id re-reads the stored row under the same lock that guards the insert, and maps its unique violation to a 4xx",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-881",
+      "date": "2026-11-09",
+      "title": "Five concurrent exam starts left three sessions in progress",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Five starts with different clientSessionIds each abandoned the open session and inserted; three stayed in_progress",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "The abandon-then-insert transaction was not serialised, so each update ran before the others' inserts were visible",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/exam-sessions.ts"
+      ],
+      "fix_summary": "An advisory lock on (user, course, mode) makes starts take turns",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/exam-start-races.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A one-open-row-per-key rule needs a lock or a unique index, not abandon-then-insert",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-882",
+      "date": "2026-11-09",
+      "title": "One failed regenerate locked an objective for every learner for 6 hours",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "After one learner's regenerate was held back twice, every learner's generation for that objective answered 'held back' for six hours",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "recentlyHeldBack filtered item_holdbacks by objective only; the holdback row recorded no scope",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/item-quality.ts",
+        "backend/supabase/migrations/069_learning_data_f3.sql"
+      ],
+      "fix_summary": "item_holdbacks.scope_user_id (069); the cooldown reads own-scope holdbacks only; a shared holdback cools down shared generation only",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A cooldown or limit keyed by an object is checked for who it should block",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-883",
+      "date": "2026-11-09",
+      "title": "A database blip while queueing the exec check started the 6 hour cooldown",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "One failed queueExecCheck call recorded a NOT_SERVED holdback and refused the objective for everyone for six hours",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "A queue failure is ours, but it was recorded as the content being held back",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "The failure is logged and refused as a retryable 503; nothing is recorded as a holdback",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts",
+        "backend/lib/generation-pipeline.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Only a verdict on the content may start a content cooldown; our own failures are retryable",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-884",
+      "date": "2026-11-09",
+      "title": "Held-back and unsent-email refusals were hidden behind a 5xx",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Learners never saw the held-back guidance or the unsent-email message; the app showed 'something went wrong on our side'",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "ContentHeldBackError and EmailSendError answered 503, and mobile/src/lib/errorMessage.ts masks every 5xx body",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/http.ts",
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "fix_summary": "Both answer 409 with held/retryable flags; the regenerate screen shows a held body's message",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts",
+        "backend/lib/email-verification.dbtest.ts",
+        "mobile/src/lib/errorMessage.test.ts",
+        "mobile/src/lib/regenerateError.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A message written for the learner goes out as a 4xx, because the app hides 5xx text",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-885",
+      "date": "2026-11-09",
+      "title": "A lesson key confirmed wrong came back in mock exams",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A confirmed-wrong lesson check was served again in the next mock, and answers given to it counted",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "copyAnsweredLessonChecks copied lesson checks into exam_items without a pulled filter; confirmItemWrong did not pull or void the copy; the stored re-check skipped source lesson copies",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/exam-items.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/recheck-stored.ts"
+      ],
+      "fix_summary": "Pulled checks are not copied and their copies are not served; confirming a lesson check pulls its copies and voids their attempts; the re-check covers lesson copies",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-pull.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every copy of a keyed item is pulled with the item",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-886",
+      "date": "2026-11-09",
+      "title": "A cleared item could never be pulled again",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "After a person cleared an item, later flags only raised flag_count and it stayed served",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "recordFlag's existing-row branch never reconsidered a cleared status",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/item-quality.ts"
+      ],
+      "fix_summary": "Learners who flag after the clear count; at the threshold the item is quarantined again",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/item-pull.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A person's decision covers what they weighed, not what comes later",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-887",
+      "date": "2026-11-09",
+      "title": "A failed regenerate wiped the saved lesson position",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A regenerate whose practice half was held back or failed left the learner with the old lesson and no saved place in it",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "startRegeneration cleared lesson_progress as soon as the new intro existed, before anything was stored",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/lesson-store.ts"
+      ],
+      "fix_summary": "Cleared only after the new lesson is stored, and not a position saved since the regenerate started",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Destroy the old state only after the new state is stored",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-888",
+      "date": "2026-11-09",
+      "title": "A regenerate that stored nothing kept its weekly use",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A learner charged one of the week's regenerations when the practice half was held back after the response",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "withAllowance only gave the use back if the first half failed; the practice half runs after the response",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/app/api/objectives/[id]/lesson/route.ts",
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "The use is released whenever the generation ends without a stored lesson",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A counted use is released on every path that stores nothing, including work done after the response",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-889",
+      "date": "2026-11-09",
+      "title": "Retired objectives were still reachable",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Hints, grading, guess-feedback, explain-back, prefetch, lab, refresher, item reports, PBQ and unit routes served or recorded for retired objectives and units, and spent model calls",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "Only the lesson route checked VisibleObjective.retired",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/visibility.ts",
+        "backend/app/api/grade/route.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/units/[id]/route.ts",
+        "backend/lib/item-report.ts"
+      ],
+      "fix_summary": "taughtObjective and VisibleScenario.retired; 404 on retired",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/retired-objectives.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A route keyed by an objective uses taughtObjective unless it must read history",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-890",
+      "date": "2026-11-09",
+      "title": "Retired content stayed in review",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Review entries, a resumed session and the enrolment trigger kept retired objectives and units",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "The review readers, the resume path, the trigger and the seed did not apply retired_at",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/app/api/errors/route.ts",
+        "backend/lib/review-store.ts",
+        "backend/supabase/seed/seed-lib.ts",
+        "backend/supabase/migrations/069_learning_data_f3.sql"
+      ],
+      "fix_summary": "errors?due=1 hides retired rows; resume drops them; the seed resolves a retired unit's entries; the trigger skips them (069)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/retired-objectives.dbtest.ts",
+        "backend/lib/learning-data-f3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every reader of a table with retired_at applies it, including resumed state and triggers",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-891",
+      "date": "2026-11-09",
+      "title": "Re-answering a seen Solo item counted as spaced review",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A repeat answer to a seen Solo question moved the objective's due review entries on",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "reviewEvidence excluded hint and retry but not repeat",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/grading-service.ts"
+      ],
+      "fix_summary": "A lesson repeat is not review evidence (a PBQ re-attempt still is)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-f3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Evidence rules exclude every assisted reason",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-892",
+      "date": "2026-11-09",
+      "title": "GET /api/attempts?limit=-1 returned 500",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "limit=-1 reached Postgres as a negative LIMIT",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "The limit was Number()-ed and clamped to a max only",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/app/api/attempts/route.ts"
+      ],
+      "fix_summary": "A limit that is not a whole number of 1 or more is a 400",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-f3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Numeric query parameters are validated at the route",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-893",
+      "date": "2026-11-09",
+      "title": "Objectives retitled in place kept content for the old title",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A stored lesson and items written for an old objective title were served under the new title",
+      "how_detected": "pre-launch adversarial audit (2026-11-09)",
+      "root_cause": "The seed matches objectives by sort_order and updated the title without touching generated content",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/supabase/seed/seed-lib.ts"
+      ],
+      "fix_summary": "A changed title deletes stored lessons (a person-corrected one kept) and pulls the objective's review, quiz and exam items",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/learning-data-f3.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A seed that rewrites a key field invalidates what was generated from it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-894",
+      "date": "2026-11-10",
+      "title": "The placement check could ask a lesson question that had been pulled",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lesson check quarantined by a learner report or a re-check was still asked by the placement check, and a correct answer could place the learner past objectives on the strength of a key nobody trusts",
+      "how_detected": "found live on 2026-11-10 while checking placement",
+      "root_cause": "candidatesFor in lib/placement.ts reads lesson_content directly and did not apply lessonServableSql, which every reader in lesson-store.ts applies; placement was added before the pull-a-check rule and never revisited",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/placement.ts"
+      ],
+      "fix_summary": "candidatesFor applies lessonServableSql(lc): an objective whose Guided or Solo check is quarantined is not a candidate, and a course left with fewer than MIN_CANDIDATES has no placement check",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/placement-servable.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The dbtest pulls a Guided check and a Solo check and walks a whole placement. Other lesson_content readers are listed in the B13 release notes for review (exam-items.ts, review-store.ts)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-967",
+      "date": "2026-11-10",
+      "title": "A shared holdback was scoped to the learner who started the generation, so its cooldown never applied",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A shared first generation whose teaching text was held back twice stored its holdback with scope_user_id set to the learner who opened the lesson; the shared cooldown (scope_user_id null) never saw it and each reopening paid for the same refusal again",
+      "how_detected": "B13 merge of F3 onto F1: reading both sides of lesson-generation.ts",
+      "root_cause": "F3 took a holdback's scope from meta.userId, which was undefined for a shared generation. F1 made meta.userId the learner a shared generation is charged to. Both were right alone; merged, one field meant two things, and the text merged cleanly",
+      "requirement": "REQ-204",
+      "affected": [
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "GenerateMeta gains sharedScope (set for a shared generation); a holdback's scope comes from it (and from checkedPractice's shared flag), while meta.userId stays the learner charged",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The dbtest starts a shared generation as a learner with held-back teaching text and with a held-back practice half, checks the stored scope and that the next learner makes no model call",
+      "recurrence_of": ""
     }
   ]
 }

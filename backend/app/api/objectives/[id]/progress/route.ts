@@ -3,7 +3,7 @@ import { ok, badRequest, notFound, unauthorized, serverError } from "@/lib/http"
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { sanitizeLessonProgress, progressAgeMs, validClientTime, MAX_PROGRESS_BODY_CHARS } from "@/lib/lesson-progress";
 import { clearLessonProgressAt, saveLessonProgress } from "@/lib/lesson-progress-store";
-import { visibleObjective, isUuid } from "@/lib/visibility";
+import { taughtObjective, isUuid } from "@/lib/visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +73,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     }
     const input = sanitizeLessonProgress(body);
     if (typeof input === "string") return badRequest(input);
-    if (!(await visibleObjective(id, user.id))) return notFound("Objective not found");
+    if (!(await taughtObjective(id, user.id))) return notFound("Objective not found");
     // REQ-101: ordered against deletes by the app's savedAt (tombstones);
     // REQ-135: the store also keeps this learner's saved positions bounded.
     const savedAt = validClientTime((body as Record<string, unknown>).savedAt);
