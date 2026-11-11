@@ -12045,6 +12045,31 @@
       ],
       "fix_summary": "The held-back answer is a 409 carrying 'We couldn't write a scenario we're confident in just now. Please try again.'",
       "prevention_notes": "pbq-holdback.dbtest.ts asserts the 409 and the message"
+    },
+    {
+      "id": "FAIL-1005",
+      "date": "2026-11-10",
+      "title": "PBQ scenarios were still held back after FAIL-1000: the writer listed 'this scenario is invented' as an uncertain claim",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Nick, 2026-11-10 20:09, after the FAIL-1000 fix deployed: 'Couldn't write a scenario they are confident in for pbq.' Production item_holdbacks: both attempts held back with disclaimer-only claims at medium confidence",
+      "how_detected": "Owner report; item_holdbacks rows for SECPLUS",
+      "root_cause": "The fast model treats uncertainClaims as a place for disclaimers; prompt wording did not stop it, and any listed claim held a PBQ back. A PBQ has no answer key (graded holistically), so the claim list is a poor gate for it",
+      "requirement": "REQ-213",
+      "affected": [
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "For PBQs only the writer's low confidence holds a scenario back (with one retry, then a 409); listed claims at medium/high confidence are logged and the scenario is served",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pbq-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "pbq-holdback.dbtest.ts serves a medium-confidence scenario with a listed claim on the first call",
+      "recurrence_of": "FAIL-1000"
     }
   ]
 }
