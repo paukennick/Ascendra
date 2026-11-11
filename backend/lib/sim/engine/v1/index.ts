@@ -3,10 +3,13 @@
 // server imports it from here. Rules for every file in this folder: `.ts` on
 // every relative import, erasable syntax only, no imports outside it, no
 // Math.exp/sin/pow or `**` (lib/sim/engine-source.test.ts).
-export { ENGINE_MAJOR, ENGINE_MINOR, ENGINE_VERSION, TICK_BUDGET, COMMAND_BUDGET } from "./engine.ts";
+export { ENGINE_MAJOR, ENGINE_MINOR, ENGINE_VERSION, TICK_BUDGET, COMMAND_BUDGET, PACE_STUDY, PACE_EXAM, DEFAULT_PACE, CALM_MIN_SPAN_SECONDS } from "./engine.ts";
 export {
   advance,
   applyCommand,
+  calmSkip,
+  chapterDue,
+  chapterHolds,
   checkpoint,
   clockBlocked,
   clockMode,
@@ -14,6 +17,8 @@ export {
   createRun,
   insideSkip,
   isDurationLiteral,
+  lastLoggedPace,
+  minWallSeconds,
   parseDuration,
   readValue,
   renderTemplate,
@@ -22,6 +27,8 @@ export {
   simTime,
   simTimeText,
   stateHash,
+  teachingAvailable,
+  teachingDue,
   waits,
 } from "./engine.ts";
 export type { ApplyResult, Compiled, Run } from "./engine.ts";
@@ -40,6 +47,11 @@ export { applyFormat, parseClockStart, fmtClock, fmtDate, fmtDuration, fmtUsd, f
 export { parsePattern, matchPattern, splitCommand, commandInputOk, matchQuery, parseQuery, ipInCidr, cidrContains, sameSubnet, ipToInt, cidrPrefix, cidrNetwork, parseIpv4, parseCidr } from "./text.ts";
 export type {
   Duration,
+  Chapter,
+  FocusedStart,
+  Pace,
+  TeachingPrompt,
+  DebriefPacing,
   Expr,
   Template,
   Id,

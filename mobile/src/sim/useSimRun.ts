@@ -10,6 +10,8 @@ import { discardNotice, journalKey, journalWriter, loadJournal, makeJournal, pla
 import type { ScenarioDoc, WaitInfo } from "./engine/v1/types.ts";
 import { capsHeaders } from "./runtime/caps.ts";
 import { planFrame, type Anchor } from "./runtime/clock.ts";
+import { CALM_IDLE_MS, calmOffer, chapterCommand, chapterOffer, launchCommands, tickMsFor, trackIdle, type IdleState, type LaunchChoice } from "./runtime/pacing.ts";
+import type { Pace } from "./engine/v1/types.ts";
 import { accepted, applyServerCommand, clockRuns, issue, localHash, openSession, step, type CommandInput, type RunPayload, type Session } from "./runtime/session.ts";
 
 // REQ-190 (docs/sims.md 5.4, 5.7, 5.9, 7, 10): one run on this device.
@@ -56,6 +58,12 @@ export interface SimDebrief {
   reasoningAnswers: { moment: string; question: string; answer: string; status: string; verdict: string | null; feedback: string; modelAnswer: string }[];
   attempt: { id: string; verdict: string; assisted: boolean; assistReason: string | null } | null;
   endReason: string;
+  // REQ-209: present only for a run that used the feature
+  pacing?: { startPace: 1 | 3; finalPace: 1 | 3; changes: number; studyTicks: number; examTicks: number; note: string };
+  focusedStart?: { tick: number; time: string; label: string };
+  calmSkips?: number;
+  teaching?: { prompt: string; ask: string; chosen: string; expected: string; matched: boolean }[];
+  chapters?: { chapter: string; label: string; choice: "continue" | "later"; time: string }[];
 }
 
 export interface ReasoningResult {
@@ -99,6 +107,11 @@ export function useSimRun(simId: string) {
   const [notice, setNotice] = useState<string | null>(null);
   const [paused, setPaused] = useState(true);
   const [debrief, setDebrief] = useState<SimDebrief | null>(null);
+  // REQ-209: the skip offer is on, the last teaching answer (for its feedback),
+  // and a chapter break the learner chose to finish later.
+  const [calmOn, setCalmOn] = useState(false);
+  const [teachResult, setTeachResult] = useState<{ prompt: string; choice: string } | null>(null);
+  const [savedLater, setSavedLater] = useState(false);
   const [, setVersion] = useState(0);
   const bump = useCallback(() => setVersion((v) => v + 1), []);
 
@@ -108,6 +121,8 @@ export function useSimRun(simId: string) {
   const anchor = useRef<Anchor | null>(null);
   const lastFrame = useRef(0);
   const lastBeat = useRef(0);
+  const idle = useRef<IdleState | null>(null);
+  const chapterPausedFor = useRef<string | null>(null);
   const syncing = useRef<Promise<void> | null>(null);
   const opened = useRef<{ moment: string; openedSeq: number; openedTick: number } | null>(null);
   const attemptIds = useRef(new Map<string, string>());
@@ -162,6 +177,11 @@ export function useSimRun(simId: string) {
       setDebrief(null);
       finishing.current = false;
       opened.current = null;
+      idle.current = null;
+      chapterPausedFor.current = null;
+      setCalmOn(false);
+      setTeachResult(null);
+      setSavedLater(false);
       try {
         // Anything still being written lands before it is read back.
         await writerRef.current?.settled();
@@ -330,14 +350,14 @@ export function useSimRun(simId: string) {
 
   // The skip route: the server builds the skip to its own due tick.
   const skipTo = useCallback(
-    async (w: WaitInfo) => {
+    async (w: WaitInfo, opts?: { calm?: boolean }) => {
       const s = session.current;
       if (!s) return;
       await flush(false);
       try {
         const r = await api.post<SyncResult>(
           `/api/sims/runs/${s.runId}/skip`,
-          { leaseEpoch: s.leaseEpoch, seq: s.run.lastSeq + 1, tick: s.run.state.tick, timer: w.timer, instance: w.instance },
+          { leaseEpoch: s.leaseEpoch, seq: s.run.lastSeq + 1, tick: s.run.state.tick, timer: w.timer, instance: w.instance, ...(opts?.calm ? { calm: true } : {}) },
           { headers: capsHeaders() }
         );
         if (r.command) {
@@ -346,16 +366,67 @@ export function useSimRun(simId: string) {
         }
         setNotice(r.stoppedBy ? `Skip stopped early: ${r.stoppedBy}.` : null);
         anchor.current = { tick: s.run.state.tick, atMs: now() };
+        idle.current = null;
+        setCalmOn(false);
         bump();
         if (s.run.state.ended) void finish();
       } catch (err) {
-        if (code(err) === "replay_behind") {
+        if (code(err) === "no_offer") {
+          setCalmOn(false);
+          setNotice("That skip is not available right now.");
+        } else if (code(err) === "replay_behind") {
           await flush(true);
           setNotice("Synced with the server. Try the skip again.");
         } else setNotice(friendlyError(err));
       }
     },
     [flush, start, bump, finish]
+  );
+
+  // REQ-209: change the pace (study 3x, exam realism 1x) at any time. The
+  // clock re-anchors so the change takes effect from now, not from the start.
+  const choosePace = useCallback(
+    (pace: Pace) => {
+      const s = session.current;
+      if (!s || !s.pacing.eligible || s.run.pace === pace) return;
+      if (command({ type: "pace", pace })) anchor.current = { tick: s.run.state.tick, atMs: now() };
+    },
+    [command]
+  );
+
+  // REQ-209: the launch card's choice, then the clock. "Full case" adds no
+  // begin command; a focused start is evolved by the engine from the normal start.
+  const launch = useCallback(
+    (choice: LaunchChoice) => {
+      const s = session.current;
+      if (!s) return;
+      for (const input of launchCommands(s.doc, s.pacing, choice)) if (!command(input)) return;
+      resume();
+    },
+    [command, resume]
+  );
+
+  const answerChapter = useCallback(
+    async (choice: "continue" | "later") => {
+      const s = session.current;
+      if (!s) return;
+      const offer = chapterOffer(s.run, s.pacing);
+      if (!offer) return;
+      if (!command(chapterCommand(offer, choice))) return;
+      chapterPausedFor.current = null;
+      if (choice === "later") {
+        await flush(true);
+        setSavedLater(true);
+      } else if (paused && clockRuns(s)) resume();
+    },
+    [command, flush, paused, resume]
+  );
+
+  const answerTeach = useCallback(
+    (prompt: string, choice: string) => {
+      if (command({ type: "teach", prompt, choice })) setTeachResult({ prompt, choice });
+    },
+    [command]
   );
 
   const submitReasoning = useCallback(
@@ -398,7 +469,7 @@ export function useSimRun(simId: string) {
       if (!s) return;
       const t = now();
       if (!paused && clockRuns(s) && anchor.current) {
-        const plan = planFrame(anchor.current, s.run.state.tick, t, lastFrame.current || t);
+        const plan = planFrame(anchor.current, s.run.state.tick, t, lastFrame.current || t, tickMsFor(s.run.pace));
         if (plan.stall) {
           lastFrame.current = t;
           pause("stall");
@@ -411,6 +482,18 @@ export function useSimRun(simId: string) {
         if (moved) bump();
       }
       lastFrame.current = t;
+      // REQ-209: a chapter break pauses the clock once, then waits for the learner.
+      const ch = chapterOffer(s.run, s.pacing);
+      if (ch && !paused && chapterPausedFor.current !== ch.id) {
+        chapterPausedFor.current = ch.id;
+        pause("learner");
+        setNotice(`Chapter done: ${ch.title}. The clock is paused.`);
+      }
+      // REQ-209: the skip offer after about 30 real seconds of nothing changing.
+      const tracked = trackIdle(idle.current, s.run, t, !paused && clockRuns(s));
+      idle.current = tracked.state;
+      const offered = !!calmOffer(s.run, s.pacing, tracked.idleMs);
+      setCalmOn((prev) => (prev === offered ? prev : offered));
       if (s.run.state.openReasoning && (!opened.current || opened.current.moment !== s.run.state.openReasoning)) {
         opened.current = { moment: s.run.state.openReasoning, openedSeq: s.run.lastSeq, openedTick: s.run.state.tick };
         bump();
@@ -446,6 +529,18 @@ export function useSimRun(simId: string) {
     pause,
     resume,
     skipTo,
+    pacing: session.current?.pacing ?? null,
+    choosePace,
+    launch,
+    calmOn,
+    calm: calmOn && session.current ? calmOffer(session.current.run, session.current.pacing, CALM_IDLE_MS) : null,
+    chapter: session.current ? chapterOffer(session.current.run, session.current.pacing) : null,
+    answerChapter,
+    teachResult,
+    answerTeach,
+    dismissTeach: () => setTeachResult(null),
+    savedLater,
+    keepGoing: () => setSavedLater(false),
     submitReasoning,
     closeReasoning,
     finish,

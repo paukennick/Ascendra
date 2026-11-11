@@ -20,7 +20,7 @@ import type { Feature } from "@/lib/billing-config";
 import { LAB_GRADE_LIMIT } from "@/lib/lab-routes";
 import type { LabStepModel } from "@/lib/lab-grading";
 import { gradeSimReasoning, modelAnswerOf } from "@/lib/sim-grading";
-import { applyCommand, ENGINE_VERSION, scoreRun, stateHash, waits } from "@/lib/sim/engine/v1/index.ts";
+import { applyCommand, calmSkip, ENGINE_VERSION, minWallSeconds, scoreRun, stateHash, waits } from "@/lib/sim/engine/v1/index.ts";
 import type { Checkpoint, Command, DebriefData, ReasoningGrade, ScenarioDoc, WaitInfo } from "@/lib/sim/engine/v1/index.ts";
 import type { ClientDoc } from "@/lib/sim/content-hash.ts";
 import {
@@ -37,8 +37,11 @@ import {
   simsEnabled,
   situationSummary,
   verdictFor,
-  withinSpeedBound,
+  pacingEligible,
+  pacingRefusal,
+  withinPacedSpeedBound,
   type SimCaps,
+  type VersionNeeds,
 } from "@/lib/sim/server-run.ts";
 
 // REQ-190 (docs/sims.md 6, 7, 9, 10, 11): the sim store and the route flows.
@@ -408,9 +411,13 @@ export interface RunPayload {
   commands: Command[];
   // Reasoning moments already graded in this run.
   graded: string[];
+  // REQ-209: whether this scenario offers pacing (a running phase in a
+  // clinical or fitness track), and the paces. A run with no logged pace
+  // plays at 1x, so a run that began before REQ-209 is unchanged.
+  pacing: { eligible: boolean; studyPace: 3; examPace: 1; defaultPace: 3 | 1 };
 }
 
-async function runPayload(run: RunRow, cachedHash: string | null): Promise<RunPayload> {
+async function runPayload(run: RunRow, cachedHash: string | null, family: SimRow["safety_family"]): Promise<RunPayload> {
   const v = await versionDoc(run.sim_version_id);
   const cmds = await query<{ payload: Command }>(`select payload from sim_run_commands where run_id = $1 order by seq`, [run.id]);
   const graded = await query<{ moment_id: string }>(`select moment_id from sim_run_reasoning where run_id = $1`, [run.id]);
@@ -431,7 +438,15 @@ async function runPayload(run: RunRow, cachedHash: string | null): Promise<RunPa
     ...(cachedHash === v.client_hash ? {} : { clientDocument: v.client_document }),
     commands: cmds.map((c) => c.payload),
     graded: graded.map((g) => g.moment_id),
+    pacing: pacingFor(v.document, family),
   };
+}
+
+// The study pace (3x) is the default only where pacing is offered; everywhere
+// else, and for any run that logged no pace, the pace is 1x.
+export function pacingFor(doc: Pick<ScenarioDoc, "phases">, family: SimRow["safety_family"]): RunPayload["pacing"] {
+  const eligible = pacingEligible(doc, family);
+  return { eligible, studyPace: 3, examPace: 1, defaultPace: eligible ? 3 : 1 };
 }
 
 function deviceId(v: unknown): string | null {
@@ -466,6 +481,12 @@ export async function startRun(
     // later confirmation voids its attempt (lib/item-quality.ts).
     const condemned = open && !restart ? await versionConfirmedWrong(open.sim_version_id, tx) : false;
     if (open && !restart && !condemned) {
+      // REQ-209: a run pinned to a version that needs engine minor 1 or later
+      // (it may hold pace/begin/teach/chapter commands an older app cannot
+      // replay) is not handed to an app that lacks it. Runs on a minor-0
+      // version, every run begun before REQ-209, are handed back as before.
+      const needs = await tx.queryOne<VersionNeeds>(`select engine_major, engine_minor, renderer_level, $2::text as screen_type from sim_versions where id = $1`, [open.sim_version_id, sim.screen_type]);
+      if (needs && needs.engine_minor >= 1 && !runnable(needs, caps)) throw new SimError(409, "app_update_required", "Update the app to continue this simulation.");
       return (await tx.queryOne<RunRow>(
         `update sim_runs set lease_epoch = lease_epoch + 1, lease_device = $2 where id = $1 returning *`,
         [open.id, device]
@@ -483,7 +504,7 @@ export async function startRun(
       [userId, sim.id, served.version.id, randomInt(0, 2 ** 32), ENGINE_VERSION, device]
     ))!;
   });
-  return runPayload(run, cached);
+  return runPayload(run, cached, sim.safety_family);
 }
 
 // The run row for a route on that run, after the sim checks.
@@ -522,7 +543,7 @@ interface SyncInput {
   commands: Command[];
   tick: number | null;
   stateHash: string | null;
-  skip?: { seq: number; tick: number; timer: string | null; instance: number | null };
+  skip?: { seq: number; tick: number; timer: string | null; instance: number | null; calm: boolean };
 }
 
 function syncInput(body: Record<string, unknown> | null, kind: "commands" | "skip"): SyncInput {
@@ -535,7 +556,7 @@ function syncInput(body: Record<string, unknown> | null, kind: "commands" | "ski
     if (!Number.isInteger(b.tick) || (b.tick as number) < 0) throw new SimError(400, "bad_request", "tick is required");
     const timer = typeof b.timer === "string" && /^[a-z][a-zA-Z0-9_]{0,47}$/.test(b.timer) ? b.timer : null;
     const instance = Number.isInteger(b.instance) ? (b.instance as number) : null;
-    return { leaseEpoch: b.leaseEpoch as number, commands: [], tick: b.tick as number, stateHash, skip: { seq: b.seq as number, tick: b.tick as number, timer, instance } };
+    return { leaseEpoch: b.leaseEpoch as number, commands: [], tick: b.tick as number, stateHash, skip: { seq: b.seq as number, tick: b.tick as number, timer, instance, calm: b.calm === true } };
   }
   const commands = parseCommands(b.commands);
   if (typeof commands === "string") throw new SimError(400, "bad_request", commands);
@@ -556,7 +577,6 @@ export async function skipWait(userId: string, runId: string, body: Record<strin
 
 async function sync(userId: string, runId: string, input: SyncInput, env: Record<string, string | undefined>): Promise<SyncResult> {
   const { sim } = await ownRun(userId, runId, env);
-  void sim;
   return withTransaction(async (tx) => {
     const row = await tx.queryOne<RunRow>(`select * from sim_runs where id = $1 and user_id = $2 for update`, [runId, userId]);
     if (!row) throw runNotFound();
@@ -604,6 +624,10 @@ async function sync(userId: string, runId: string, input: SyncInput, env: Record
 
     const v = await versionDoc(row.sim_version_id, tx);
     const doc = v.document;
+    // REQ-209: pace, begin, teach, chapter and the calm flag only where pacing is offered.
+    const eligible = pacingEligible(doc, sim.safety_family);
+    const refusal = pacingRefusal(incoming, eligible) ?? (input.skip?.calm && !eligible ? "the skip offer is not available in this simulation" : null);
+    if (refusal) throw new SimError(400, "pacing_not_available", refusal);
     const cpSeq = row.checkpoint_state?.lastSeq ?? 0;
     const stored = await tx.query<{ payload: Command }>(`select payload from sim_run_commands where run_id = $1 and seq > $2 order by seq`, [row.id, cpSeq]);
     const all = [...stored.map((s) => s.payload), ...incoming];
@@ -624,7 +648,13 @@ async function sync(userId: string, runId: string, input: SyncInput, env: Record
       const pending = waits(run);
       const w = pending.find((x) => (input.skip!.timer === null || x.timer === input.skip!.timer) && (input.skip!.instance === null || x.instance === input.skip!.instance));
       if (!w) throw new SimError(409, "no_wait", "There is nothing to skip to right now.");
-      built = { seq: input.skip.seq, tick: input.skip.tick, type: "skip", timer: w.timer, instance: w.instance, to: w.due };
+      // REQ-209: the calm flag is kept only when the engine agrees the offer
+      // stood: the same pure rule the app used (engine calmSkip).
+      if (input.skip.calm) {
+        const offer = calmSkip(run);
+        if (!offer || offer.timer !== w.timer || offer.instance !== w.instance) throw new SimError(409, "no_offer", "The skip offer is not available right now.");
+      }
+      built = { seq: input.skip.seq, tick: input.skip.tick, type: "skip", timer: w.timer, instance: w.instance, to: w.due, ...(input.skip.calm ? { calm: true as const } : {}) };
       const ar = applyCommand(run, built);
       if (!ar.ok) throw new SimError(409, "rejected", ar.reason);
       accepted = run.lastSeq;
@@ -640,7 +670,7 @@ async function sync(userId: string, runId: string, input: SyncInput, env: Record
     // Speed bound (5.7), on the server's own clock.
     const dt = run.c.dt;
     const wallSeconds = (now - new Date(row.started_at).getTime()) / 1000;
-    if (!withinSpeedBound(run.realtimeTicks, dt, wallSeconds)) {
+    if (!withinPacedSpeedBound(minWallSeconds(run), wallSeconds)) {
       throw new SimError(409, "too_fast", "The run is ahead of real time. Sync again in a moment.", { lastTick: row.last_tick });
     }
 
@@ -652,7 +682,11 @@ async function sync(userId: string, runId: string, input: SyncInput, env: Record
       );
     }
     const newRealtime = run.realtimeTicks - row.realtime_ticks;
-    const offline = newRealtime * dt > SIM_LIMITS.offlineSeconds ? newRealtime : 0;
+    // Offline play is judged in wall time: at 3x, 2 minutes of wall time is 6
+    // minutes of sim time. Once a run has played at 3x the threshold uses the
+    // fastest pace (it can only under-flag, and offline play is recorded, not
+    // penalised); a run that never logged 3x is judged exactly as before.
+    const offline = (newRealtime * dt) / (run.paceTicks[3] > 0 ? 3 : 1) > SIM_LIMITS.offlineSeconds ? newRealtime : 0;
     const serverHash = stateHash(run.state);
     const desync = input.stateHash !== null && input.tick === run.state.tick && input.stateHash !== serverHash;
     const engineError = run.state.ended?.reason === "engine_error" && row.engine_errors === 0;
@@ -914,7 +948,7 @@ export async function finishRun(userId: string, runId: string, body: Record<stri
     if (r.rejected) throw new SimError(409, "replay_mismatch", `The server could not replay this run: ${r.rejected.reason}`);
     if (!run.state.ended) throw new SimError(409, "not_ended", "This run has not ended yet.", { tick: run.state.tick });
     const wallSeconds = (Date.now() - new Date(row.started_at).getTime()) / 1000;
-    if (!withinSpeedBound(run.realtimeTicks, run.c.dt, wallSeconds)) {
+    if (!withinPacedSpeedBound(minWallSeconds(run), wallSeconds)) {
       throw new SimError(409, "too_fast", "The run is ahead of real time. Finish again in a moment.");
     }
     const gradedRows = await tx.query<ReasoningRow>(`select * from sim_run_reasoning where run_id = $1`, [row.id]);

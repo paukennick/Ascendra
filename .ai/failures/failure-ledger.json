@@ -11824,6 +11824,93 @@
       ],
       "prevention_notes": "The drill is the test: it fails if a migration adds something a dump does not carry and no recovery step re-creates it. Checked on a brand-new cluster with no app_runtime role as well as on the dev cluster",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-980",
+      "date": "2026-11-09",
+      "title": "Logging a pace command failed with a 500: sim_run_commands type check predates the new commands",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "The first dbtest that synced a pace command to a clinical sim got HTTP 500 from the step route; begin, teach and chapter would have failed the same way. Runs that never log one were unaffected.",
+      "how_detected": "backend/lib/sims.dbtest.ts, new REQ-209 tests against a migrated database",
+      "root_cause": "Migration 062 restricts sim_run_commands.type to act, choose, skip, pause, resume, reason and end with an inline check. REQ-209 added four command types in the engine, parser and app but the unit tests never touch Postgres, so nothing noticed the check.",
+      "requirement": "REQ-209",
+      "affected": [
+        "backend/supabase/migrations/062_sim_engine.sql",
+        "backend/lib/sims.ts",
+        "backend/lib/schema-status.ts"
+      ],
+      "fix_summary": "Migration 073 widens the check (NOT VALID, drop the old, validate; idempotent); lib/schema-status.ts probes for it; docs/sims.md 5.4f says to apply it before the backend.",
+      "fix_commits": [
+        "f5c6f79"
+      ],
+      "regression_tests": [
+        "backend/lib/sims.dbtest.ts::the 073 probe passes",
+        "the migration runs twice",
+        "and exactly the new command types are allowed (REQ-209)",
+        "backend/lib/sims.dbtest.ts::a legitimate 3x run is accepted; the same ticks with no pace logged",
+        "or 4x",
+        "are refused as too fast"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new command type needs a dbtest that syncs it through the step route, and a migration if the table constrains the value.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-981",
+      "date": "2026-11-09",
+      "title": "Skip to the next change would be on offer at every moment because the q15 check is always pending",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "In the first draft the calm-skip offer appeared from tick 0 and could skip over the recognition window, the thing the case is meant to test.",
+      "how_detected": "Own review of the calm-skip rule against the golden paths while writing pacing.test.ts",
+      "root_cause": "The tamponade q15 drainage check is a recurring timer with a wait, so some wait is always pending (the old authoring note in docs/sims.md 3 said so and the q15 note called skip always available). An offer built on 'a wait is pending' inherited that.",
+      "requirement": "REQ-209",
+      "affected": [
+        "backend/lib/sim/engine/v1/engine.ts",
+        "backend/lib/sim/engine/v1/validate.ts",
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "docs/sims.md"
+      ],
+      "fix_summary": "A wait.routine flag (engine minor 1) marks recurring checks; calmSkip ignores routine waits and requires nothing due inside 60 sim seconds; the linter's wait-always-pending warning ignores routine waits; the q15 authoring note is rewritten.",
+      "fix_commits": [
+        "2cfa6d7",
+        "4040faf"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/pacing.test.ts::nothing to offer at the start: the only wait is the routine q15 check",
+        "mobile/src/sim/pacing.test.ts::nothing to offer at the start: only the routine q15 check is pending"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "An offer or prompt keyed to 'a wait is pending' must say what counts as a change; recurring checks are marked routine.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-898",
+      "date": "2026-11-10",
+      "title": "The sim pacing screen called router.back() after the web-accessibility batch removed router from it",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Not shipped. With both branches merged, mobile/app/(app)/course/[trackId]/sim/[simId].tsx failed to compile: the new 'Back to simulations' button (REQ-209) used router, which REQ-206 had replaced with the useGoBack fallback",
+      "how_detected": "B17 merge: mobile typecheck (Cannot find name 'router')",
+      "root_cause": "REQ-206 swept every screen for router.back() (a web deep link has no history, so Back did nothing) and removed the router from the sim screen; REQ-209 added one more Back button on the old pattern. The text merged without a conflict on that line",
+      "requirement": "REQ-209",
+      "affected": [
+        "mobile/app/(app)/course/[trackId]/sim/[simId].tsx"
+      ],
+      "fix_summary": "The button uses goBack (useGoBack with the course's sims list as the fallback), like the debrief's Back",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/f5WebA11y.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "f5WebA11y.test.ts fails on any router.back() in app/(app) or app/(auth), and tsc fails on a leftover router",
+      "recurrence_of": ""
     }
   ]
 }

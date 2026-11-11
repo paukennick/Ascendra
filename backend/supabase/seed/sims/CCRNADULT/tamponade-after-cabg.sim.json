@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "engine": {
     "major": 1,
-    "minor": 0
+    "minor": 1
   },
   "slug": "tamponade-after-cabg",
   "title": "Tamponade after CABG",
@@ -226,9 +226,15 @@
       "note": "Emergency resternotomy within about 5 minutes of arrest; reopening at the bedside is a rescue."
     },
     {
+      "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041. doi:10.1093/eurheartj/ehaf192",
+      "checkedAt": "2026-11-09",
+      "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+      "note": "Section 11.8: tamponade is a pericardial syndrome in which an effusion impairs diastolic filling until cardiac output falls; blood in the pericardium can cause it at 200-300 mL; after trauma or cardiac surgery an effusion may be loculated and press on one chamber. 11.8.2: a clinical diagnosis, confirmed by echo. 11.8.3: drainage (needle pericardiocentesis preferred; surgical drainage preferred for bleeding into the pericardium); avoid diuretics and positive-pressure ventilation; temporary fluid can stabilise the patient while drainage is arranged. This case offers no diuretic and re-explores for bleeding, so no action here is a guideline-named contraindication; the patient is already ventilated, which the case does not change. Protamine with a normal ACT and dobutamine in tamponade are scored as poor choices and listed for clinical review (docs/sims.md 3.2). Section numbers and wording come from the coordinator's reading of the publisher's free-access page, relayed to the author of this entry, who could not open the full text; confirm them against the guideline at the next review."
+    },
+    {
       "cite": "Adler Y, Charron P, et al. 2015 ESC Guidelines for the diagnosis and management of pericardial diseases. Eur Heart J 2015;36(42):2921-2964",
       "checkedAt": "2026-11-09",
-      "note": "Cardiac tamponade: vasodilators and diuretics are not recommended (class III, level C). This case offers neither before re-exploration, so no action here is a guideline-named contraindication; protamine with a normal ACT and dobutamine in tamponade are scored as poor choices and listed for clinical review (docs/sims.md 3.2).",
+      "note": "Kept only for the one point the 2025 guideline (as relayed) does not cover: vasodilators in tamponade are not recommended (class III, level C). This case offers none before re-exploration (nicardipine appears only in phase 2, after the tamponade is relieved). Its diuretics recommendation is now covered by the 2025 guideline above, which supersedes this one for everything else.",
       "url": "https://doi.org/10.1093/eurheartj/ehv318"
     },
     {
@@ -274,7 +280,7 @@
       "source": {
         "cite": "Ascendra teaching model (authored estimate)",
         "checkedAt": "2026-11-09",
-        "note": "Untreated, compression reaches the arrest threshold about 60 min after the drainage stops: a bleeding graft side branch at 200-300 mL/h into a closed mediastinum; post-op tamponade develops over tens of minutes to hours."
+        "note": "Untreated, compression reaches the arrest threshold about 60 min after the drainage stops. The rate is the authored time course of a bleeding graft side branch into a closed mediastinum; post-op tamponade develops over tens of minutes to hours. The 2025 ESC guideline (Eur Heart J 2025;46:3952, section 11.8, as relayed) notes that blood in the pericardium can cause tamponade at 200-300 mL, a volume, not a rate."
       }
     },
     "arrestE": {
@@ -370,7 +376,7 @@
       "source": {
         "cite": "Ascendra teaching model (authored estimate, prototype critical-care.html RULES)",
         "checkedAt": "2026-11-09",
-        "note": "Simplified teaching model written for exam practice; not a validated physiological model."
+        "note": "Simplified teaching model written for exam practice; not a validated physiological model. FLAG: a 500 mL bolus raises the CVP by 0.6 mmHg here, against an average of about 3 mmHg in Sagrista-Sauleda 2008 (medical tamponade, not post-surgical bleeding). The direction matches the teaching prompt cvpAfterBolus; the size was left at the prototype's value because changing it would change every run's state, and is listed for clinical review."
       }
     },
     "gushMl": {
@@ -630,6 +636,15 @@
         "cite": "Prototype criteria",
         "checkedAt": "2026-11-09",
         "note": "Tubes looked at within 30 min of onset scores partial."
+      }
+    },
+    "recognizeExpertAt": {
+      "value": 540,
+      "unit": "s",
+      "source": {
+        "cite": "Expert path (prototype EXPERT, golden path expert)",
+        "checkedAt": "2026-11-09",
+        "note": "The expert path inspects the chest tubes 9 min into the case (7 min after the drainage stops). A focused start that begins later than this skips the window in which the expert recognises the problem, so the recognition criterion is left out of the score for that run (docs/sims.md 5.4b)."
       }
     }
   },
@@ -2435,7 +2450,8 @@
     "q15check": {
       "label": "the next drainage check",
       "wait": {
-        "skipLabel": "the next drainage check"
+        "skipLabel": "the next drainage check",
+        "routine": true
       },
       "instances": "one",
       "source": {
@@ -3427,6 +3443,11 @@
         "weight": 1,
         "rows": [
           {
+            "when": "focusedAt > recognizeExpertAt",
+            "score": "na",
+            "why": "You joined the case after the point where the expert path notices the drainage stop, so this is left out of your score."
+          },
+          {
             "when": "isNull(tubesAt)",
             "score": "missed",
             "why": "The tubes were not looked at after the drainage stopped."
@@ -3837,6 +3858,135 @@
             "label": "100 mcg IV, on the senior clinician's instruction"
           }
         ]
+      }
+    }
+  },
+  "focusedStart": {
+    "label": "Start near the deterioration",
+    "summary": "Join the case at 14:13, 11 minutes after the drainage stopped. The first written question comes about a minute later.",
+    "at": "13min",
+    "source": {
+      "cite": "Scenario timing (authored)",
+      "checkedAt": "2026-11-09",
+      "note": "Tick 780 is 11 min after onset (the drainage stops at 120 s), inside the brief's 10 to 12 min. With no learner action the first reasoning moment opens at tick 840 and no alarm has fired by 780, so the start is reached by evolving the normal start with no actions and leaves the first clear deterioration to the learner."
+    }
+  },
+  "chapters": [
+    {
+      "id": "surgeonAtBedside",
+      "label": "Surgeon at the bedside",
+      "when": "surgeonArrived"
+    },
+    {
+      "id": "reexploration",
+      "label": "Re-exploration begins",
+      "when": "phase == \"reexp\""
+    },
+    {
+      "id": "backInIcu",
+      "label": "Back in the ICU",
+      "when": "phase == \"p2\""
+    }
+  ],
+  "teaching": {
+    "cvpAfterBolus": {
+      "during": "bolusDone",
+      "ask": "What do you expect the CVP to do as this bolus goes in?",
+      "choices": [
+        {
+          "id": "rise",
+          "label": "Rise"
+        },
+        {
+          "id": "same",
+          "label": "Stay about the same"
+        },
+        {
+          "id": "fall",
+          "label": "Fall"
+        }
+      ],
+      "expect": "rise",
+      "explain": "It rises. In 49 patients with tamponade, a 500 mL saline bolus raised the right atrial pressure by about 3 mmHg on average. Cardiac output rose in about half of them, stayed the same in about a fifth and fell in about a third, and a low systolic pressure (under 100) predicted who benefited. So fluid can buy a little time, it is not the fix. The 2025 European guideline also says temporary fluid can stabilise a patient while drainage is arranged, which fits.",
+      "source": {
+        "cite": "Sagrista-Sauleda J, et al. Hemodynamic effects of volume expansion in patients with cardiac tamponade. Circulation 2008;117:1545-1549",
+        "url": "https://doi.org/10.1161/CIRCULATIONAHA.107.737841",
+        "note": "Right atrial pressure 9.8 to 12.8 mmHg; cardiac index up by more than 10% in 47%, unchanged in 22%, down in 31%; baseline systolic under 100 mmHg predicted a response. FLAG: the patients had large pericardial effusions from medical causes, not early post-cardiac-surgery bleeding, and the bolus was 500 mL over 10 min; it is used here for the direction of the CVP and the unreliable benefit only. The 2025 ESC guideline (Eur Heart J 2025;46:3952, section 11.8.3, as relayed) agrees that temporary fluid can stabilise the patient while drainage is arranged; it gives no CVP figure, so the direction of the CVP rests on Sagrista-Sauleda alone.",
+        "checkedAt": "2026-11-09"
+      }
+    },
+    "echoNormal": {
+      "during": "echoResultT",
+      "ask": "The echo is being done. If it looks normal, what does that tell you this soon after surgery?",
+      "choices": [
+        {
+          "id": "ruledOut",
+          "label": "Tamponade is ruled out"
+        },
+        {
+          "id": "notRuledOut",
+          "label": "Not ruled out: an early echo can miss it"
+        },
+        {
+          "id": "onlyIfClear",
+          "label": "Ruled out only if the pictures are clear"
+        }
+      ],
+      "expect": "notRuledOut",
+      "explain": "Not ruled out. The 2025 European guideline calls tamponade a clinical diagnosis that echo confirms, and notes that after cardiac surgery a collection may be loculated, pressing on just one part of the heart. Separately, one study of 427 echoes within 4 weeks of cardiac surgery found echo accuracy poor in the first 24 hours, and in another 13 of 22 tamponades missed by a standard chest echo were found by an echo through the esophagus. The picture at the bedside still decides.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041. doi:10.1093/eurheartj/ehaf192",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "checkedAt": "2026-11-09",
+        "note": "ESC 2025 section 11.8 (as relayed) supports two things only: tamponade is a clinical diagnosis confirmed by echo (11.8.2), and after trauma or cardiac surgery an effusion may be loculated and cause localised compression (11.8). It does NOT say whether a normal transthoracic echo excludes tamponade and does not cover transesophageal echo. Those two statements rest on separate sources: (1) Eur J Cardiothorac Surg 2022;62:ezab468, doi 10.1093/ejcts/ezab468, 427 echocardiograms within 4 weeks of cardiac surgery, 105 of 116 re-explorations found tamponade, accuracy acceptable overall but poor in the first 24 h; (2) J Card Surg 2008;23:450-453, doi 10.1111/j.1540-8191.2008.00581.x, 13 of 22 tamponades missed by transthoracic echo were found by transesophageal echo and confirmed at surgery. FLAG: both are retrospective single-centre data, and the first paper's score for the early phase is in the full text, which the author of this prompt could not read. Section numbers and wording come from the coordinator's reading of the publisher's free-access page, relayed to the author of this entry, who could not open the full text; confirm them against the guideline at the next review."
+      }
+    },
+    "triad": {
+      "during": "callbackT",
+      "ask": "While you wait for the call back: the classic triad (low pressure, raised venous pressure, quiet heart sounds) is seen in surgical tamponade. Wait for all 3?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes, wait until all three show"
+        },
+        {
+          "id": "no",
+          "label": "No: act on the pattern you already have"
+        }
+      ],
+      "expect": "no",
+      "explain": "No. The 2025 European guideline says the triad (low blood pressure, raised jugular venous pressure, quiet heart sounds) is classically seen in surgical tamponade and may be absent in medical tamponade, so you might see it here. But it is the classic picture, not a requirement, and the guideline describes tamponade as a clinical diagnosis. A review of tamponade also notes that the full triad is uncommon in practice. Act on the pattern you already have: a falling drainage, a rising heart rate, a narrowing pulse pressure and a CVP rising toward the wedge.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041. doi:10.1093/eurheartj/ehaf192",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "checkedAt": "2026-11-09",
+        "note": "ESC 2025 section 11.8.1 (as relayed): Beck's triad (hypotension, raised JVP, quiet heart sounds) is classically seen in surgical tamponade and may be absent in medical tamponade; the guideline also lists pulsus paradoxus (an inspiratory systolic drop of 10 mmHg or more), low QRS voltage and electrical alternans; 11.8.2: a clinical diagnosis. Changed from the first version, which asked whether the triad would show and answered 'probably not' on Alerhand S, et al. Am J Emerg Med 2022;58:159-174 (doi 10.1016/j.ajem.2022.05.001) alone: for surgical tamponade the guideline puts it the other way round, so the prompt now asks whether to wait for it. 'Uncommon in practice' is that review's statement about tamponade in general. FLAG: the last sentence of the explanation restates this scenario's own expert path, not a finding of either source. Section numbers and wording come from the coordinator's reading of the publisher's free-access page, relayed to the author of this entry, who could not open the full text; confirm them against the guideline at the next review."
+      }
+    },
+    "echoSigns": {
+      "during": "arriveT",
+      "ask": "While the surgeon walks over: which of these echo findings is the least specific for tamponade, so it cannot confirm it on its own?",
+      "choices": [
+        {
+          "id": "rvCollapse",
+          "label": "The right ventricle collapses in diastole"
+        },
+        {
+          "id": "ivcPlethora",
+          "label": "A wide vena cava that does not collapse when the patient breathes in"
+        },
+        {
+          "id": "raCollapseLong",
+          "label": "The right atrium stays collapsed for more than a third of the heartbeat"
+        }
+      ],
+      "expect": "ivcPlethora",
+      "explain": "The wide vena cava that does not collapse. In the 2025 European guideline's summary of echo signs it is the most sensitive of these (about 97%) but the least specific (about 40%): it is also seen in many people who do not have tamponade. Right ventricular collapse in diastole (specificity about 72 to 100%) and right atrial collapse lasting more than about a third of the cycle (specificity reported as 100%) are far more specific. The echo supports the clinical picture; it does not replace it.",
+      "source": {
+        "cite": "Schulz-Menger J, Collini V, et al. 2025 ESC Guidelines for the management of myocarditis and pericarditis. Eur Heart J 2025;46(40):3952-4041. doi:10.1093/eurheartj/ehaf192",
+        "url": "https://academic.oup.com/eurheartj/article/46/40/3952/8234483",
+        "checkedAt": "2026-11-09",
+        "note": "ESC 2025 section 11.8.2, Table 17 (as relayed): RA diastolic collapse sensitivity 50-100%, specificity 33-100%; RA collapse longer than 0.34 of the cycle sensitivity above 90%, specificity 100%; RV diastolic collapse sensitivity 48-100%, specificity 72-100%; respiratory variation of mitral E above 25-30% or tricuspid E above 40-60%; IVC plethora sensitivity 97%, specificity 40%. Changed from the first version, which asked which sign is 'most specific' and answered right ventricular collapse on Alerhand 2022: Table 17's ranges overlap (RV 72-100%, RA over a third of the cycle 100%), so no single 'most specific' sign is supported, but the least specific of these three is. Plain RA collapse (specificity 33-100%) is left out of the options for that reason. FLAG: the ranges come from small studies, mostly of medical effusions, and the figures are relayed, not read from the table by this author. Section numbers and wording come from the coordinator's reading of the publisher's free-access page, relayed to the author of this entry, who could not open the full text; confirm them against the guideline at the next review."
       }
     }
   }
