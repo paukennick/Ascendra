@@ -23,6 +23,7 @@ import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Mediu
 import { IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono/600SemiBold";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { OnboardingProvider, useOnboarding } from "@/auth/OnboardingContext";
+import { MatureContentProvider } from "@/auth/MatureContentContext";
 import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { AppLock, PrivacyCover } from "@/components/AppLock";
@@ -237,7 +238,10 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <AuthProvider>
         <OnboardingProvider>
-          <RootNavigator />
+          {/* REQ-224: the 18+ notice for mental health courses. */}
+          <MatureContentProvider>
+            <RootNavigator />
+          </MatureContentProvider>
         </OnboardingProvider>
       </AuthProvider>
     </SafeAreaProvider>

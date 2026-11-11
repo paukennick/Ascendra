@@ -4,6 +4,7 @@
 import { httpErrorMessage, isNetworkFailure, NETWORK_MESSAGE, parseBody } from "../lib/errorMessage.ts";
 import { LEGAL_VERSION_HEADER, TERMS_VERSION } from "../lib/legal.ts";
 import { studyNoticeGate } from "../lib/studyNotice.ts";
+import { askMatureConfirmation, hasMatureContentHandler, MatureContentDeclinedError, matureRefusalCategory } from "../lib/matureContent.ts";
 import { APP_PLATFORM_HEADER, APP_VERSION, APP_VERSION_HEADER, appHeaders, readUpdateRequired, type AppIdentity, type UpdateRequired } from "../lib/appVersion.ts";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
@@ -252,11 +253,17 @@ export function isReauthRefusal(data: unknown): boolean {
 // (a 401 from login is just "wrong password", not "needs a refresh", and
 // retrying refresh's own 401 would recurse). A timeout is never retried
 // here: the screen's own Retry decides, reusing any idempotency key.
+//
+// REQ-224: a 403 { code: "mature_content_required" } (a mental health course
+// opened or started without the 18+ confirmation) shows the mature-content
+// notice and, once it is confirmed and recorded, sends the request once more.
+// Closing the notice throws MatureContentDeclinedError; nothing else is sent.
 async function request<T>(
   path: string,
   options: RequestInit = {},
   opts: RequestOptions = {},
-  alreadyRetried = false
+  alreadyRetried = false,
+  matureAsked = false
 ): Promise<T> {
   const timeoutMs = requestTimeoutMs(path, opts.timeoutMs);
   // REQ-165: the study notice (with its AI data disclosure) comes before the first request
@@ -279,9 +286,14 @@ async function request<T>(
     if (canRetry) {
       const refreshed = await refreshAccessToken!();
       if (refreshed) {
-        return request<T>(path, options, opts, true);
+        return request<T>(path, options, opts, true, matureAsked);
       }
       onAuthExpired?.();
+    }
+    const mature = err instanceof ApiError ? matureRefusalCategory(err.status, err.data) : null;
+    if (mature && !matureAsked && hasMatureContentHandler() && !path.startsWith("/api/mature-content")) {
+      if (!(await askMatureConfirmation(mature, path.startsWith("/api/intake") ? "intake" : "course"))) throw new MatureContentDeclinedError();
+      return request<T>(path, options, opts, alreadyRetried, true);
     }
     throw err;
   }
