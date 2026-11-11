@@ -107,3 +107,21 @@ describe("the keyboard no longer covers fields on Android 15+ (FAIL-1062)", () =
     assert.match(read("../../app/(app)/course/[trackId]/chat.tsx"), /useKeyboardOverlap\(wrapRef\)/);
   });
 });
+
+describe("sign-in screens say so when offline (FAIL-1045)", () => {
+  test("messageOr", async () => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = false;
+    const { messageOr, NETWORK_MESSAGE } = await import("./errorMessage.ts");
+    const { NetworkError, ApiError } = await import("../api/client.ts");
+    assert.equal(messageOr(new NetworkError(new Error("Network request failed")), "Something went wrong."), NETWORK_MESSAGE);
+    assert.equal(messageOr(new TypeError("Network request failed"), "fallback"), NETWORK_MESSAGE);
+    assert.equal(messageOr(new ApiError("Wrong email or password.", 401, null), "fallback"), "Wrong email or password.");
+    assert.equal(messageOr(new Error("boom"), "fallback"), "fallback");
+    assert.equal(messageOr("x", "fallback"), "fallback");
+  });
+  test("no sign-in screen turns a non-ApiError into a generic message", () => {
+    for (const f of ["login", "register", "forgot-password", "mfa-challenge", "verify-email-pending"]) {
+      assert.doesNotMatch(read(`../../app/(auth)/${f}.tsx`), /err instanceof ApiError \? err\.message/, f);
+    }
+  });
+});

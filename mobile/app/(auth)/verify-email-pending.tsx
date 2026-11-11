@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Body, Muted, Button, ErrorBanner, EmptyState, LiveAnnouncement } from "@/components/ui";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
 import {
   pendingCopy,
   pendingReason,
@@ -10,6 +10,7 @@ import {
   RESET_ALSO_VERIFIES,
 } from "@/lib/verifyEmailPending";
 import { getVerifyEmailHandoff } from "@/lib/handoff";
+import { messageOr } from "@/lib/errorMessage";
 
 // REQ-191: reached after sign-up (from=register) or from a login refused
 // because the email isn't verified (from=login). Both offer a resend, and
@@ -31,7 +32,7 @@ export default function VerifyEmailPending() {
       await api.post("/api/auth/resend-verification", { email });
       setStatus("sent");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+      setError(messageOr(err, "Something went wrong."));
       setStatus("idle");
     }
   };
