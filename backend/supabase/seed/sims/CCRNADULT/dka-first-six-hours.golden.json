@@ -1,0 +1,840 @@
+{
+  "slug": "dka-first-six-hours",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert: fluids first, potassium before insulin, 0.1 units/kg/h, hourly checks, dextrose and 0.05 below 250",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "1000"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 3,
+          "to": 630,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "orderOfCare",
+          "answered": true,
+          "seq": 6,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perHour"
+          },
+          "seq": 7,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "why": "kLow"
+          },
+          "seq": 8,
+          "tick": 630
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 5,
+          "to": 810,
+          "seq": 9,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 10,
+          "tick": 4200
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 6,
+          "to": 4800,
+          "seq": 11,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 12,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perL"
+          },
+          "seq": 13,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "500"
+          },
+          "seq": 14,
+          "tick": 7200
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 15,
+          "tick": 8400
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 16,
+          "tick": 11400
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 9,
+          "to": 12000,
+          "seq": 17,
+          "tick": 11400
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 18,
+          "tick": 12001
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 19,
+          "tick": 15601
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "params": {
+            "on": "start"
+          },
+          "seq": 20,
+          "tick": 15601
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 21,
+          "tick": 15601
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 22,
+          "tick": 18601
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 13,
+          "to": 19201,
+          "seq": 23,
+          "tick": 18601
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 24,
+          "tick": 19202
+        }
+      ],
+      "expect": {
+        "ending": "resolving",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fluidsFirst": "met",
+          "kCheck": "met",
+          "kRepl": "met",
+          "insulin": "met",
+          "dextrose": "met",
+          "notTooFast": "met",
+          "noBicarb": "met",
+          "hourlyGlucose": "met",
+          "escalate": "met"
+        },
+        "kpis": {
+          "toFluids": 30,
+          "toInsulin": 4800,
+          "lowestK": 3.2,
+          "lowestG": 181,
+          "anionGap": 18
+        },
+        "stateHash": "c95485245363b131"
+      },
+      "reasoning": {
+        "orderOfCare": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Slow but safe: the right order, but glucose only every 2 hours, so the dextrose comes late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "1000"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 3,
+          "to": 630,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "orderOfCare",
+          "answered": true,
+          "seq": 6,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perHour"
+          },
+          "seq": 7,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 8,
+          "tick": 4200
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 5,
+          "to": 4800,
+          "seq": 9,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 10,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perL"
+          },
+          "seq": 11,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "500"
+          },
+          "seq": 12,
+          "tick": 7200
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 13,
+          "tick": 11400
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 7,
+          "to": 12000,
+          "seq": 14,
+          "tick": 11400
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 15,
+          "tick": 12001
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 16,
+          "tick": 18601
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 10,
+          "to": 19201,
+          "seq": 17,
+          "tick": 18601
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 18,
+          "tick": 19202
+        },
+        {
+          "type": "act",
+          "action": "dextrose",
+          "params": {
+            "on": "start"
+          },
+          "seq": 19,
+          "tick": 19202
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.05"
+          },
+          "seq": 20,
+          "tick": 19202
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 70,
+        "criteria": {
+          "fluidsFirst": "met",
+          "kCheck": "met",
+          "kRepl": "met",
+          "insulin": "met",
+          "dextrose": "partial",
+          "notTooFast": "met",
+          "noBicarb": "met",
+          "hourlyGlucose": "missed",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toFluids": 30,
+          "toInsulin": 4800,
+          "lowestK": 3.2,
+          "lowestG": 138,
+          "anionGap": 17
+        },
+        "stateHash": "3201876e241a9435"
+      },
+      "reasoning": {
+        "orderOfCare": "partial"
+      }
+    },
+    {
+      "id": "insulinBeforePotassium",
+      "title": "Failure: insulin at once with no potassium check, bicarbonate, no potassium and no extra fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 1,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 2,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "bicarb",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "orderOfCare",
+          "answered": true,
+          "seq": 4,
+          "tick": 900
+        }
+      ],
+      "expect": {
+        "ending": "arrhythmia",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "fluidsFirst": "missed",
+          "kCheck": "missed",
+          "kRepl": "missed",
+          "insulin": "met",
+          "dextrose": "na",
+          "notTooFast": "met",
+          "noBicarb": "missed",
+          "hourlyGlucose": "met",
+          "escalate": "missed"
+        },
+        "kpis": {
+          "toFluids": -1,
+          "toInsulin": 60,
+          "lowestK": 2.5,
+          "lowestG": 431,
+          "anionGap": 24
+        },
+        "stateHash": "d483f110a830213e"
+      },
+      "reasoning": {
+        "orderOfCare": "missed"
+      }
+    },
+    {
+      "id": "tooFast",
+      "title": "Failure: potassium first, then insulin at 0.2 units/kg/h, fluid left at 1,000 mL/h, and no dextrose",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "1000"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 3,
+          "to": 630,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "orderOfCare",
+          "answered": true,
+          "seq": 6,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perHour"
+          },
+          "seq": 7,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "why": "kLow"
+          },
+          "seq": 8,
+          "tick": 630
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 5,
+          "to": 810,
+          "seq": 9,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 10,
+          "tick": 4200
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 6,
+          "to": 4800,
+          "seq": 11,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.2"
+          },
+          "seq": 12,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perL"
+          },
+          "seq": 13,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 14,
+          "tick": 8400
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 15,
+          "tick": 11400
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 9,
+          "to": 12000,
+          "seq": 16,
+          "tick": 11400
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 17,
+          "tick": 12001
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 18,
+          "tick": 15601
+        }
+      ],
+      "expect": {
+        "ending": "seizure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 65,
+        "criteria": {
+          "fluidsFirst": "met",
+          "kCheck": "met",
+          "kRepl": "met",
+          "insulin": "missed",
+          "dextrose": "missed",
+          "notTooFast": "missed",
+          "noBicarb": "met",
+          "hourlyGlucose": "met",
+          "escalate": "met"
+        },
+        "kpis": {
+          "toFluids": 30,
+          "toInsulin": 4800,
+          "lowestK": 3.2,
+          "lowestG": 40,
+          "anionGap": 12
+        },
+        "stateHash": "576076e23d53984f"
+      },
+      "reasoning": {
+        "orderOfCare": "partial"
+      }
+    },
+    {
+      "id": "stoppedInsulin",
+      "title": "Insulin stopped when the glucose fell below 250, with no dextrose: the ketones climb again",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "1000"
+          },
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 3,
+          "to": 630,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "orderOfCare",
+          "answered": true,
+          "seq": 6,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perHour"
+          },
+          "seq": 7,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "call",
+          "params": {
+            "why": "kLow"
+          },
+          "seq": 8,
+          "tick": 630
+        },
+        {
+          "type": "skip",
+          "timer": "callbackT",
+          "instance": 5,
+          "to": 810,
+          "seq": 9,
+          "tick": 630
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 10,
+          "tick": 4200
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 6,
+          "to": 4800,
+          "seq": 11,
+          "tick": 4200
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0.1"
+          },
+          "seq": 12,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "potassium",
+          "params": {
+            "plan": "perL"
+          },
+          "seq": 13,
+          "tick": 4800
+        },
+        {
+          "type": "act",
+          "action": "fluids",
+          "params": {
+            "rate": "500"
+          },
+          "seq": 14,
+          "tick": 7200
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 15,
+          "tick": 8400
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 16,
+          "tick": 11400
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 9,
+          "to": 12000,
+          "seq": 17,
+          "tick": 11400
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 18,
+          "tick": 12001
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 19,
+          "tick": 15601
+        },
+        {
+          "type": "act",
+          "action": "insulin",
+          "params": {
+            "dose": "0"
+          },
+          "seq": 20,
+          "tick": 15601
+        },
+        {
+          "type": "act",
+          "action": "gas",
+          "seq": 21,
+          "tick": 18601
+        },
+        {
+          "type": "skip",
+          "timer": "labT",
+          "instance": 13,
+          "to": 19201,
+          "seq": 22,
+          "tick": 18601
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 23,
+          "tick": 19202
+        }
+      ],
+      "expect": {
+        "ending": "time_up",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 85,
+        "criteria": {
+          "fluidsFirst": "met",
+          "kCheck": "met",
+          "kRepl": "met",
+          "insulin": "met",
+          "dextrose": "missed",
+          "notTooFast": "met",
+          "noBicarb": "met",
+          "hourlyGlucose": "met",
+          "escalate": "met"
+        },
+        "kpis": {
+          "toFluids": 30,
+          "toInsulin": 4800,
+          "lowestK": 3.2,
+          "lowestG": 155,
+          "anionGap": 21
+        },
+        "stateHash": "c7f81dd76e0189a0"
+      },
+      "reasoning": {
+        "orderOfCare": "partial"
+      }
+    }
+  ]
+}
