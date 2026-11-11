@@ -134,6 +134,13 @@
   learner text to the model calls `requireStudyNotice` (lib/study-notice.ts).
   No bracketed placeholder ships in legal text, and the contact address is the
   `support-contact.ts` constant.
+- Mature content (REQ-224, FAIL-1200): a route that opens, starts or teaches
+  a course goes through `requireAcknowledgementFor*` or `startableTrack`, so
+  a mental health course is refused without the 18+ confirmation
+  (lib/mature-content.ts) with 403 `mature_content_required`; a new mature
+  category is added to `MATURE_CATEGORIES`, 077's check and the app's list
+  together. A 403 the learner can act on carries a stable `code` (pass
+  `err.extra` to `forbidden`).
 - A 401 that means "what you typed is wrong" (a reauth refusal) carries
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens

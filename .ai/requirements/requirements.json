@@ -7694,6 +7694,66 @@
       "risk_notes": [
         "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
       ]
+    },
+    {
+      "id": "REQ-224",
+      "category": "content",
+      "title": "EPPP course (Prep for the EPPP), Mental Health category and the 18+ mature-content gate",
+      "description": "Batch EPPP-A (Nick, 2026-11-10). Mental health courseware first wave is NCE, NCMHCE, ASWB Clinical, EPPP and a WA psychology jurisprudence course; EPPP first. Migration 077: mental-health category (psychology, counseling, social work licensure) and mature_content_confirmations (per account, category, notice version; timestamp, min age 18, source). Prep for the EPPP: ASPPB Part 1-Knowledge domains at published weights, objectives incl. the three sim objectives, ASPPB format and scoring, WA rule. 18+ gate: server 403 mature_content_required on every mental health course route (shared gate, course open, start routes, intake), accept/state routes, export, delete by cascade, schema probe; app notice on intake pick, Explore category, and any refused request (API client asks and resends once). Mental health is clinical: study notice, lab/sim framing, 3x default sim pace, clinical plan.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/eppp.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/migrations/077_mental_health_mature_content.sql",
+        "backend/lib/mature-content.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/lib/http.ts",
+        "backend/lib/visibility.ts",
+        "backend/app/api/mature-content/",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/billing-config.ts",
+        "backend/lib/prompts.ts",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "EPPP units are the eight ASPPB domains at 10/13/11/12/16/15/7/16",
+        "the three sim objectives exist with exact titles",
+        "a mental health course route without the 18+ confirmation answers 403 mature_content_required and never 5xx",
+        "the confirmation is recorded with timestamp and notice version and is exported and deleted with the account",
+        "the app asks on intake pick and Explore category and on any refused request",
+        "mental health sims default to 3x pace"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "migrations and seed twice on throwaway Postgres",
+        "npm run test:db as owner",
+        "mature-content and related dbtests as app_runtime",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy text does not yet mention the 18+ confirmation (needs a legal version bump; Nick's decision)",
+        "ASPPB's October 2026 integrated handbook was not readable here",
+        "Washington Part 2 not required is inferred"
+      ]
     }
   ]
 }

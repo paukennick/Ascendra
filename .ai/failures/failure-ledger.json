@@ -12254,6 +12254,41 @@
       ],
       "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1200",
+      "date": "2026-11-10",
+      "title": "Shared acknowledgement 403 carried no code, so the app could not tell which acknowledgement was missing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Routes behind requireAcknowledgementFor* answered 403 { error, acknowledgementRequired: true } with no code, while requireStudyNotice answered { code: 'study_notice_required' }; adding a second gate (18+ mature content) made the two indistinguishable to the app",
+      "how_detected": "review while adding the REQ-224 mature-content gate",
+      "root_cause": "forbidden(message) in lib/http.ts took only a message, and every route mapped AcknowledgementError with forbidden(err.message), so anything the error knew beyond its text was dropped at the one place all ~40 routes pass through",
+      "requirement": "REQ-224",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/app/api",
+        "backend/lib/exam-route-errors.ts",
+        "backend/lib/review-routes.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "AcknowledgementError carries extra ({ code: study_notice_required } by default, mature_content_required for MatureContentError); forbidden(message, extra) merges it and every route passes err.extra; serverError answers an escaped AcknowledgementError with the same 403 instead of a 500",
+      "fix_commits": [
+        "9e2034b"
+      ],
+      "regression_tests": [
+        "backend/lib/mature-content.dbtest.ts::teaching routes refuse through the shared gate; the study notice still comes first",
+        "backend/lib/mature-content.dbtest.ts::starting a mental health course (a study session) is refused through serverError as a 403",
+        "not a 500"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Refusals the learner can act on carry a stable code in the body; the gate's error type owns that code, so a new gate cannot lose it at the route",
+      "recurrence_of": ""
     }
   ]
 }
