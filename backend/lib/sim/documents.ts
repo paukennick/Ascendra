@@ -69,6 +69,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXRN", "post-op-transfusion-reaction"),
   entry("NCLEXPN", "ltc-change-in-condition"),
   entry("NCLEXPN", "med-pass-error-caught"),
+  entry("AWSSAA", "nat-gateway-bill-spike"),
   // ---- end REQ-233 ----
 ];
 
