@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api, registerStudyNoticeRequiredHook } from "@/api/client";
+import { api, registerStudyNoticeRequiredHook, registerTermsRequiredHook } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
-import { launchGate, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
+import { launchGate, shouldReloadForTerms, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
 import { syncRemindersFor, watchAppForeground } from "@/lib/reminderScheduler";
 import { router } from "expo-router";
 import { STUDY_NOTICE_VERSION, registerStudyNoticeHandler, studyNoticeDecision } from "@/lib/studyNotice";
@@ -64,13 +64,17 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   // required" means this copy of the state is out of date (or never loaded).
   // Reload it; the launch gate then opens the notice screen. One reload at a
   // time, so a burst of refused requests is one request.
+  // REQ-226 (FAIL-1241): the same for "terms required" (the Terms and Privacy
+  // Policy), which opens the Terms screen. When the state already says the
+  // Terms are waiting the gate is on its way there, so nothing is reloaded.
   const reloading = useRef(false);
   useEffect(() => {
     if (!userId) {
       registerStudyNoticeRequiredHook(null);
+      registerTermsRequiredHook(null);
       return;
     }
-    registerStudyNoticeRequiredHook(() => {
+    const reload = () => {
       if (reloading.current) return;
       reloading.current = true;
       api
@@ -82,8 +86,15 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         .finally(() => {
           reloading.current = false;
         });
+    };
+    registerStudyNoticeRequiredHook(reload);
+    registerTermsRequiredHook(() => {
+      if (shouldReloadForTerms(stateRef.current)) reload();
     });
-    return () => registerStudyNoticeRequiredHook(null);
+    return () => {
+      registerStudyNoticeRequiredHook(null);
+      registerTermsRequiredHook(null);
+    };
   }, [userId]);
 
   // Reminders follow the account: sign-in schedules this account's, a

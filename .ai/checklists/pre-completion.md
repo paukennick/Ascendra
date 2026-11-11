@@ -68,7 +68,10 @@
   sameAttempt); request bodies go through readJson, learner text through
   textField before any model call, and client-supplied ids through
   lib/visibility.ts; anything that mails an address the caller typed goes
-  through mayEmail and escapes it.
+  through mayEmail and escapes it; an emailed sign-in code goes through
+  mayEmailSignInCode, its own per-address budget, so mail anyone can trigger
+  (reset, verification) can't use up the one the learner needs to get in, nor
+  the reverse (REQ-226, FAIL-1240).
 - AI-layer changes (REQ-115, FAIL-290..307): text a learner or course author
   wrote goes into a prompt only escaped (`escapeLearnerText`, `fenceLearnerText`,
   `quoteTitle`), never stripped; a recorded verdict goes through
@@ -129,7 +132,10 @@
   older one must not be stranded), and leave `UNDECLARED_LEGAL_VERSIONS` and
   `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
   REQ-219 (FAIL-1109): the server enforces agreement in `requireUser` (403
-  `terms_required`, per the same header rules). A new signed-in route is
+  `terms_required`, per the same header rules; the app's client hands it to
+  the onboarding provider, which reloads the launch state so the Terms screen
+  opens, REQ-226 FAIL-1241 -- a refusal code the server adds for a state the
+  launch gate owns gets a client hook in the same change). A new signed-in route is
   enforced by default; one a person needs in order to agree, leave or ask for
   help passes `{ termsOptional: true }` and is added to the list in
   lib/terms-enforcement.dbtest.ts. Integration suites run with enforcement off
@@ -227,7 +233,6 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
-<<<<<<< HEAD
 - Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
   generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
   a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
@@ -241,7 +246,6 @@
   A counted use is released with `releaseOnce` on every path that stores
   nothing. A route that calls the model for a replayable id takes a
   `withGradingClaim` first.
-=======
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
@@ -254,7 +258,6 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
->>>>>>> origin/master
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.
