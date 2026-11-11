@@ -39,12 +39,16 @@ export function parseBody(text: string): { ok: true; data: unknown } | { ok: fal
 
 // The message for an HTTP error response. A JSON `error` string from our own
 // server is written for learners and kept (wrong password, rate limit, not
-// found...), except a 5xx, which says nothing useful to them. A body that
-// isn't our JSON (a portal or proxy page) gets the calm message.
+// found...), except a 500, which says nothing useful to them. REQ-216 (H3):
+// a 502 or 503 keeps the server's sentence too: the server answers a model
+// outage ("The AI coach is busy...") or a paused feature in words written for
+// the learner. A body that isn't our JSON (a portal or proxy page) gets the
+// calm message.
 export function httpErrorMessage(status: number, data: unknown, parsed: boolean): string {
   if (!parsed) return UNREADABLE_MESSAGE;
   const serverText = data && typeof data === "object" ? (data as { error?: unknown }).error : undefined;
-  if (status >= 500) return SERVER_MESSAGE;
+  if (status >= 500 && !(status === 502 || status === 503)) return SERVER_MESSAGE;
+  if (status >= 500 && !(typeof serverText === "string" && serverText.trim())) return SERVER_MESSAGE;
   if (typeof serverText === "string" && serverText.trim()) return serverText;
   if (status === 429) return "That's a lot of requests in a short time. Wait a minute and try again.";
   if (status === 404) return "That couldn't be found. It may have been removed.";

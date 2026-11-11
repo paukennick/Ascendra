@@ -30,6 +30,8 @@ export default function ReviewSessionScreen() {
   const { trackId } = useLocalSearchParams<{ trackId?: string }>();
   const [session, setSession] = useState<ReviewSession | null>(null);
   const [unavailable, setUnavailable] = useState(0);
+  // REQ-216: the server's words when reviews are due but none could be prepared.
+  const [unpreparedMessage, setUnpreparedMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [empty, setEmpty] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,12 +59,13 @@ export default function ReviewSessionScreen() {
     setLoadError(null);
     setEmpty(false);
     return api
-      .post<{ session: ReviewSession | null; unavailable: number }>("/api/review/sessions", trackId ? { trackId } : {})
+      .post<{ session: ReviewSession | null; unavailable: number; message?: string }>("/api/review/sessions", trackId ? { trackId } : {})
       .then((res) => {
         if (!alive.current) return;
         if (!res.session) setEmpty(true);
         setSession(res.session);
         setUnavailable(res.unavailable ?? 0);
+        setUnpreparedMessage(!res.session && (res.unavailable ?? 0) > 0 ? res.message ?? "Your reviews couldn't be prepared just now. They're still due; try again in a few minutes." : null);
       })
       .catch((err) => alive.current && setLoadError(friendlyError(err)))
       .finally(() => alive.current && setLoading(false));
@@ -173,7 +176,12 @@ export default function ReviewSessionScreen() {
       <Screen>
         <Stack.Screen options={{ title: "Today's review" }} />
         {loadError ? <ErrorBanner message={loadError} onRetry={load} /> : null}
-        {empty && !loadError ? (
+        {empty && !loadError && unpreparedMessage ? (
+        <Card>
+          <EmptyState icon="info" title="Your review couldn't be prepared" message={unpreparedMessage} action={{ label: "Try again", onPress: load }} />
+        </Card>
+        ) : null}
+        {empty && !loadError && !unpreparedMessage ? (
         <Card>
           <EmptyState icon="check-circle" title="Nothing to review right now" message="Come back when something is due." />
         </Card>

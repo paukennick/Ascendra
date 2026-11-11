@@ -859,13 +859,13 @@ describe("REQ-124 decision 1: the launch comp", () => {
 });
 
 describe("web checkout and portal", () => {
-  test("503 without the key or the price; with them, a Checkout session with the learner's id in the metadata; a Stripe error is a 502", async () => {
+  test("409 without the key or the price; with them, a Checkout session with the learner's id in the metadata; a Stripe error is a 409 (REQ-216: a 5xx hides its words)", async () => {
     process.env.BILLING_ENABLED = "true";
     const u = await newUser();
-    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 503);
+    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 409);
     process.env.STRIPE_SECRET_KEY = "sk_test_fake_not_real";
     process.env.BILLING_WEB_RETURN_URL = "https://app.example.test";
-    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 503, "price not set");
+    assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 409, "price not set");
     process.env.STRIPE_PRICE_IT_CLOUD_PLUS_MONTHLY = "price_plus_m";
     assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "gold_forever" })).status, 400);
 
@@ -889,7 +889,7 @@ describe("web checkout and portal", () => {
       assert.equal((sent[0].init.headers as Record<string, string>).Authorization, "Bearer sk_test_fake_not_real");
       assert.equal((sent[0].init.headers as Record<string, string>)["Idempotency-Key"], `checkout:${u}:req-12345678`);
       fail = true;
-      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 502);
+      assert.equal((await call(checkoutPost, "/api/billing/checkout", u, "POST", { planId: "it_cloud_plus_monthly" })).status, 409);
       // Portal: only for a web subscriber.
       assert.equal((await call(portalPost, "/api/billing/portal", u, "POST", {})).status, 404);
     } finally {

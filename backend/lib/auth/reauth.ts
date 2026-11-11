@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { query, queryOne } from "../db";
 import { verifyPassword } from "./passwords";
-import { verifyTotpCode, verifyBackupCode } from "./mfa";
+import { spendTotpCode, verifyBackupCode } from "./mfa";
 import { decrypt } from "./crypto";
 import { verifyGoogleIdToken } from "./oauth";
 import { consumeRateLimit, refundRateLimit, RateLimitError } from "./rateLimit";
@@ -157,7 +157,7 @@ async function verifyProof(
 
   const trimmed = secret.trim();
   if (user.totp_secret_enc && /^\d{6}$/.test(trimmed)) {
-    if (await verifyTotpCode(decrypt(user.totp_secret_enc), trimmed)) return { ok: true, method: "totp" };
+    if (await spendTotpCode(userId, decrypt(user.totp_secret_enc), trimmed)) return { ok: true, method: "totp" };
   }
   if (user.has_backup && BACKUP_SHAPE.test(trimmed)) {
     const normalized = trimmed.length === 8 ? `${trimmed.slice(0, 4)}-${trimmed.slice(4)}` : trimmed;

@@ -1,9 +1,9 @@
-import { UserFacingError } from "@/lib/http";
 import { factCheckGate } from "@/lib/fact-check";
-import { recordHoldback, servableSql, uncertaintyOf } from "@/lib/item-quality";
+import { servableSql } from "@/lib/item-quality";
+import { generateGated } from "@/lib/generation-gate";
 import { query, queryOne, withTransaction } from "@/lib/db";
 import { callClaudeStructured, getFastModel } from "@/lib/anthropic";
-import { fixFor, generateValid, InvalidContentError, quizItemProblems, shuffleChoices } from "@/lib/content-validator";
+import { fixFor, generateValid, InvalidContentError, quizItemHardProblems, quizItemLint, shuffleChoices } from "@/lib/content-validator";
 import { coachQuizPrompt, coachQuizSchema, type CoachQuizItem } from "@/lib/prompts";
 import { coachContextForObjective } from "@/lib/coach-context";
 import { presentationOrder, presentationSeed, shownIndexOf, shuffleForPresentation, storedIndexAt } from "@/lib/choice-order";
@@ -193,9 +193,10 @@ export function pickObjective(weak: WeakSpot[], recentTurns: Map<string, number>
   return best;
 }
 
-export type GenerateQuizItem = (objectiveId: string, userId: string) => Promise<CoachQuizItem>;
+// REQ-216: `steer` is what held the first attempt back (lib/generation-gate.ts).
+export type GenerateQuizItem = (objectiveId: string, userId: string, steer?: string | null) => Promise<CoachQuizItem>;
 
-export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) => {
+export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId, steer) => {
   const o = await queryOne<{ title: string; unit_title: string; track_title: string }>(
     `select o.title, cu.title as unit_title, st.title as track_title
        from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
@@ -215,7 +216,7 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
   // stored answer position is shuffled (9 of 14 audited keys were option A).
   const made = await generateValid("quiz question", (_attempt, previous) => callClaudeStructured({
     system,
-    messages: [{ role: "user", content: previous.length ? `${user}\n\n${fixFor(previous)}` : user }],
+    messages: [{ role: "user", content: [user, steer, previous.length ? fixFor(previous) : undefined].filter(Boolean).join("\n\n") }],
     schema: coachQuizSchema,
     maxTokens: 900,
     model: getFastModel(),
@@ -223,40 +224,56 @@ export const generateQuizItem: GenerateQuizItem = async (objectiveId, userId) =>
     thinking: "off",
     purpose: "coach_quiz",
     userId,
-  }), quizItemProblems);
+  }), quizItemHardProblems, undefined, quizItemLint);
   const shuffled = shuffleChoices(made.choices, made.correctIndex);
   return { ...made, choices: shuffled.choices, correctIndex: shuffled.correctIndex };
 };
 
-export const QUIZ_HELD_MESSAGE =
-  "We couldn't write a question we're confident in for this topic just now. Try again, or pick a lesson to practice instead.";
+// Kept for callers that name it; the words a learner reads now name the
+// reason (lib/generation-gate.ts heldMessage).
+export const QUIZ_SUBJECT = "quiz question";
 
-// Holds back (and logs) a new Quiz-me question that lists uncertain claims or
-// fails the fact-check gate; throws a message the app shows. Passes otherwise.
-export async function gateQuizItem(objectiveId: string, objectiveTitle: string, made: CoachQuizItem, userId: string): Promise<void> {
-  const model = getFastModel();
-  const unsure = uncertaintyOf(made);
-  if (unsure) {
-    await recordHoldback({ kind: "quiz", objectiveId, reason: "uncertain", claims: unsure, content: made, model });
-    throw new UserFacingError(QUIZ_HELD_MESSAGE);
-  }
+// Fact-checks one new Quiz-me question (the question's own key against an
+// independent answer). Returns the gate's reading of it; the caller decides.
+export async function checkQuizItem(objectiveId: string, objectiveTitle: string, made: CoachQuizItem, userId: string) {
   const ctx = (await coachContextForObjective(objectiveId)) ?? undefined;
   const gate = await factCheckGate(
     [{ key: "q1", objectiveTitle, question: made.question, format: "single", options: made.choices, expected: [made.correctIndex] }],
     { ctx, userId }
   );
-  const v = gate.verdicts.get("q1");
-  if (!v?.publish) {
-    await recordHoldback({
-      kind: "quiz",
-      objectiveId,
-      reason: gate.error ? "fact_check_error" : "fact_check",
-      claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
-      content: { item: made, checker: v ?? null },
-      model,
-    });
-    throw new UserFacingError(QUIZ_HELD_MESSAGE);
-  }
+  return { verdict: gate.verdicts.get("q1"), error: gate.error };
+}
+
+// REQ-114 (Audit 3 H1 + recommendation 1), changed by REQ-216: a new Quiz-me
+// question is held back only on the writer's low confidence or a fact-check
+// that disagrees with the key; the writer is asked once more, steered with
+// the claims; held twice -> a 409 that says why. A failed fact-check call is
+// a retryable 409, not a holdback.
+export async function writeCheckedQuizItem(
+  objectiveId: string,
+  objectiveTitle: string,
+  userId: string,
+  generate: GenerateQuizItem
+): Promise<CoachQuizItem> {
+  return generateGated<CoachQuizItem>({
+    kind: "quiz",
+    objectiveId,
+    model: getFastModel(),
+    subject: QUIZ_SUBJECT,
+    generate: async (steer) => {
+      const made = await generate(objectiveId, userId, steer);
+      if (!Array.isArray(made.choices) || made.choices.length !== 4 || made.correctIndex < 0 || made.correctIndex > 3) {
+        throw new Error("quiz item has the wrong shape");
+      }
+      // Audit 3 M2: whatever generated it, nothing invalid is stored.
+      const problems = quizItemHardProblems(made);
+      if (problems.length) throw new InvalidContentError("quiz question", problems);
+      return made;
+    },
+    uncertainty: (m) => m,
+    check: (m) => checkQuizItem(objectiveId, objectiveTitle, m, userId),
+    content: (m, verdict) => ({ item: m, checker: verdict ?? null }),
+  });
 }
 
 export type NextQuizResult =
@@ -302,16 +319,7 @@ export async function nextQuizTurn(
   let generated = false;
   if (!item) {
     await opts.beforeGenerate?.();
-    const made = await (opts.generate ?? generateQuizItem)(target.objectiveId, userId);
-    if (!Array.isArray(made.choices) || made.choices.length !== 4 || made.correctIndex < 0 || made.correctIndex > 3) {
-      throw new Error("quiz item has the wrong shape");
-    }
-    // Audit 3 M2: whatever generated it, nothing invalid is stored.
-    const problems = quizItemProblems(made);
-    if (problems.length) throw new InvalidContentError("quiz question", problems);
-    // REQ-114 (Audit 3 H1 + recommendation 1): never share a question its
-    // writer was unsure of, or that an independent answer disagrees with.
-    await gateQuizItem(target.objectiveId, target.title, made, userId);
+    const made = await writeCheckedQuizItem(target.objectiveId, target.title, userId, opts.generate ?? generateQuizItem);
     item = await queryOne<QuizItemRow>(
       `insert into coach_quiz_items (objective_id, question, choices, correct_index, hints, explanation, model)
        values ($1, $2, $3, $4, $5, $6, $7) returning *`,

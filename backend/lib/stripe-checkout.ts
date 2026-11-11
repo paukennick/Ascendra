@@ -3,7 +3,7 @@ import { billingEnabled, planById, type PlanInfo } from "@/lib/billing-config";
 
 // REQ-122: web checkout through Stripe Checkout and the Stripe billing
 // portal, called with fetch (no Stripe SDK). STRIPE_SECRET_KEY comes from the
-// environment only; without it these answer 503 with a plain message. Tests
+// environment only; without it these answer 409 with a plain message. Tests
 // replace global fetch -- no request ever reaches Stripe from a test.
 
 const STRIPE_API = "https://api.stripe.com/v1";
@@ -37,7 +37,7 @@ async function stripePost(path: string, params: Record<string, string>, key: str
   if (!res.ok || !body) {
     // eslint-disable-next-line no-console
     console.error("[billing] Stripe call failed", path, res.status, body?.error?.type ?? "", body?.error?.code ?? "");
-    throw new UserFacingError("We couldn't open checkout just now. Nothing was charged. Please try again in a moment.", 502);
+    throw new UserFacingError("We couldn't open checkout just now. Nothing was charged. Please try again in a moment.", 409);
   }
   return body;
 }
@@ -45,13 +45,13 @@ async function stripePost(path: string, params: Record<string, string>, key: str
 function requireKey(env: NodeJS.ProcessEnv): string {
   if (!billingEnabled(env)) throw new UserFacingError(NOT_ENABLED, 404);
   const key = env.STRIPE_SECRET_KEY?.trim();
-  if (!key) throw new UserFacingError(NOT_CONFIGURED, 503);
+  if (!key) throw new UserFacingError(NOT_CONFIGURED, 409);
   return key;
 }
 
 function returnUrl(env: NodeJS.ProcessEnv, which: "success" | "cancel" | "portal"): string {
   const base = (env.BILLING_WEB_RETURN_URL ?? env.APP_URL ?? "").replace(/\/$/, "");
-  if (!base) throw new UserFacingError(NOT_CONFIGURED, 503);
+  if (!base) throw new UserFacingError(NOT_CONFIGURED, 409);
   return which === "success" ? `${base}/plans?checkout=success` : which === "cancel" ? `${base}/plans?checkout=cancel` : `${base}/settings`;
 }
 
@@ -63,7 +63,7 @@ export async function createCheckoutSession(
   const plan = planById(opts.planId, env);
   if (!plan) throw new UserFacingError("That plan doesn't exist.", 400);
   const price = env[plan.stripePriceEnv]?.trim();
-  if (!price) throw new UserFacingError(NOT_CONFIGURED, 503);
+  if (!price) throw new UserFacingError(NOT_CONFIGURED, 409);
   const session = await stripePost(
     "/checkout/sessions",
     {
@@ -92,13 +92,13 @@ export async function createCheckoutSession(
     key,
     opts.idempotencyKey
   );
-  if (typeof session.url !== "string") throw new UserFacingError("We couldn't open checkout just now. Nothing was charged.", 502);
+  if (typeof session.url !== "string") throw new UserFacingError("We couldn't open checkout just now. Nothing was charged.", 409);
   return { url: session.url, plan };
 }
 
 export async function createPortalSession(customer: string, env: NodeJS.ProcessEnv = process.env): Promise<{ url: string }> {
   const key = requireKey(env);
   const s = await stripePost("/billing_portal/sessions", { customer, return_url: returnUrl(env, "portal") }, key);
-  if (typeof s.url !== "string") throw new UserFacingError("We couldn't open subscription settings just now.", 502);
+  if (typeof s.url !== "string") throw new UserFacingError("We couldn't open subscription settings just now.", 409);
   return { url: s.url };
 }

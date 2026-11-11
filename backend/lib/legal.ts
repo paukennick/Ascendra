@@ -49,6 +49,10 @@ export const LEGACY_LEGAL_VERSIONS = {
   privacy: "2026-11-07",
 } as const;
 
+// REQ-219 (FAIL-1108): generations older than PREVIOUS_LEGAL_VERSIONS that
+// installed builds still declare, newest first. Empty until the next bump.
+export const EARLIER_LEGAL_VERSIONS: readonly { terms: string; privacy: string }[] = [];
+
 export type LegalDocument = keyof typeof LEGAL_VERSIONS;
 export const LEGAL_DOCUMENTS = Object.keys(LEGAL_VERSIONS) as LegalDocument[];
 
@@ -85,25 +89,53 @@ interface Generation {
 }
 const single = (docs: Record<LegalDocument, string>) => [...Object.values(docs)].sort().at(-1)!;
 const gen = (docs: Record<LegalDocument, string>): Generation => ({ version: single(docs), docs: { ...docs } });
-const CURRENT_GEN = gen(LEGAL_VERSIONS);
-const PREVIOUS_GEN = gen(PREVIOUS_LEGAL_VERSIONS);
-const UNDECLARED_GEN = gen(UNDECLARED_LEGAL_VERSIONS);
-const LEGACY_GEN = gen(LEGACY_LEGAL_VERSIONS);
+// REQ-219 (FAIL-1108): the texts installed builds carry, as a set, so the
+// rule below can be exercised against a bumped set. PREVIOUS_LEGAL_VERSIONS
+// held only the one version before the current one, so the next bump moved it
+// out and stranded every build that declared it. `previous` is a list, newest
+// first: at a bump, push the old PREVIOUS_LEGAL_VERSIONS onto the front of
+// EARLIER_LEGAL_VERSIONS (below) and move the old LEGAL_VERSIONS into
+// PREVIOUS_LEGAL_VERSIONS.
+export interface GenerationSet {
+  current: Generation;
+  previous: Generation[];
+  undeclared: Generation;
+  legacy: Generation;
+}
+export function generationSet(
+  current: Record<LegalDocument, string>,
+  previous: readonly Record<LegalDocument, string>[],
+  undeclared: Record<LegalDocument, string>,
+  legacy: Record<LegalDocument, string>
+): GenerationSet {
+  return { current: gen(current), previous: previous.map(gen), undeclared: gen(undeclared), legacy: gen(legacy) };
+}
+const GENERATIONS: GenerationSet = generationSet(
+  LEGAL_VERSIONS,
+  [PREVIOUS_LEGAL_VERSIONS, ...EARLIER_LEGAL_VERSIONS],
+  UNDECLARED_LEGAL_VERSIONS,
+  LEGACY_LEGAL_VERSIONS
+);
 
 // The generations this client may accept, newest first. Only an ABSENT
 // header widens what is accepted: a garbled or unknown X-Ascendra-Legal
-// gets the current version and nothing else, so it can never widen it.
-function acceptableGenerations(ctx: ClientContext): Generation[] {
-  const out: Generation[] = [CURRENT_GEN];
+// gets the current version and nothing else, so it can never widen it. A
+// build declaring one of the previous versions accepts exactly that one.
+export function acceptableGenerationsIn(ctx: ClientContext, set: GenerationSet): Generation[] {
+  const out: Generation[] = [set.current];
   const declared = ctx.declared;
   if (typeof declared === "string") {
-    if (declared === PREVIOUS_GEN.version) out.push(PREVIOUS_GEN);
+    const match = set.previous.find((g) => g.version === declared);
+    if (match) out.push(match);
   } else if (ctx.legacy) {
-    out.push(PREVIOUS_GEN, UNDECLARED_GEN, LEGACY_GEN);
+    out.push(...set.previous, set.undeclared, set.legacy);
   } else {
-    out.push(UNDECLARED_GEN);
+    out.push(set.undeclared);
   }
   return out.filter((g, i) => out.findIndex((x) => x.version === g.version) === i);
+}
+function acceptableGenerations(ctx: ClientContext): Generation[] {
+  return acceptableGenerationsIn(ctx, GENERATIONS);
 }
 
 // The single-string versions this client may accept.
@@ -117,7 +149,7 @@ export function isAcceptableTermsVersion(v: unknown, ctx: ClientContext = HEADER
 
 // The per-document versions a single-string version stands for.
 function versionsFor(version: string): Record<LegalDocument, string> {
-  const g = [CURRENT_GEN, PREVIOUS_GEN, UNDECLARED_GEN, LEGACY_GEN].find((x) => x.version === version);
+  const g = [GENERATIONS.current, ...GENERATIONS.previous, GENERATIONS.undeclared, GENERATIONS.legacy].find((x) => x.version === version);
   if (!g) throw new Error(`not a known terms version: ${version}`);
   return { ...g.docs };
 }
@@ -230,6 +262,12 @@ export async function pendingAcceptance(userId: string, ctx: ClientContext = HEA
     `select document, version from legal_acceptances where user_id = $1`,
     [userId]
   );
+  return pendingFromRows(rows, ctx);
+}
+
+// The pure rule behind pendingAcceptance, for callers that already hold the
+// account's acceptance rows (requireUser reads them with the account).
+export function pendingFromRows(rows: { document: string; version: string }[], ctx: ClientContext = HEADERED): LegalDocument[] {
   return LEGAL_DOCUMENTS.filter(
     (d) => !rows.some((r) => r.document === d && acceptableDocVersions(d, ctx).includes(r.version))
   );

@@ -10,7 +10,8 @@ import { flattenSystem, systemWithRules, type SystemPrompt } from "@/lib/prompts
 // learner's regenerate, REQ-187), one model call answers it WITHOUT the key and lists any claim in it that
 // it cannot support for this exam version. The item is published only when
 // that independent answer matches the key and no unsupported claim is listed;
-// otherwise it is held back (lib/item-quality.ts recordHoldback).
+// otherwise it is held back (lib/item-quality.ts recordHoldback). REQ-216: only
+// a DISAGREEMENT holds an item back (see verdictHolds).
 //
 // REQ-187 (audit 2026-11-09 R4/P3): the checker was the fast model at low
 // effort with thinking off, checking the stronger writer's work. It is now
@@ -22,7 +23,9 @@ import { flattenSystem, systemWithRules, type SystemPrompt } from "@/lib/prompts
 //
 // ITEM_FACT_CHECK=off turns the gate off (items publish as before). Default
 // on. If the check itself fails (network, malformed output) the gate fails
-// CLOSED: nothing in that batch is published.
+// CLOSED: nothing in that batch is published -- but REQ-216: that is a failed
+// CALL, reported to the caller as `error` and retryable, never logged as a
+// holdback on the content or counted as a verdict about it.
 
 export function factCheckEnabled(): boolean {
   const v = (process.env.ITEM_FACT_CHECK ?? "").trim().toLowerCase();
@@ -202,6 +205,21 @@ export function makeModelFactChecker(variant?: Partial<CheckerVariant>): FactChe
 // The real checker: one call for the whole batch. Throws if the
 // call fails; callers decide (the gate fails closed).
 export const modelFactChecker: FactChecker = makeModelFactChecker();
+
+// REQ-216 (H2): what a verdict means for the learner-facing gate.
+//   disagree     the independent answer differs from the key: HOLD the item.
+//   unsupported  the answer matches but the checker listed claims it could
+//                not confirm: published and logged (it is the same disclaimer
+//                the writer lists; Nick's rule blocks only on a disagreement).
+//   missing      no usable result: the check did not run for this item. That
+//                is a failed check, not a judgement on the item, so it is
+//                retryable and never logged as a holdback.
+// `publish` keeps its strict meaning (agree AND no claims) for the re-check of
+// a flagged item, the pre-generation job and the eval harness.
+export const verdictHolds = (v: CheckVerdict | undefined): boolean => v?.outcome === "disagree";
+export const verdictUnchecked = (v: CheckVerdict | undefined): boolean => !v || v.outcome === "missing";
+export const verdictClaims = (v: CheckVerdict | undefined): string[] =>
+  v?.unsupportedClaims.length ? v.unsupportedClaims : ["independent answer disagreed with the key"];
 
 export interface GateResult {
   verdicts: Map<string, CheckVerdict>;

@@ -428,6 +428,15 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     sql: `select exists(select 1 from pg_constraint where conrelid = 'sim_run_commands'::regclass and conname = 'sim_run_commands_type_073') as ok`,
   },
   {
+    // REQ-219: the last authenticator step used (no replay of a code inside its
+    // window) and the inbound-email webhook's delivery ids (no replayed forward).
+    migration: "075_accounts_security_g4.sql",
+    what: "app_users.totp_last_step and the inbound_email_events table (authenticator codes used once, webhook replays dropped)",
+    sql: `select exists(select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'app_users' and column_name = 'totp_last_step')
+             and to_regclass('public.inbound_email_events') is not null as ok`,
+  },
+  {
     // REQ-218: Independent and Transfer-ready need a confirming answer a day later.
     migration: "074_independent_confirmation.sql",
     what: "the 074 mastery_detail() (Independent needs a second unassisted correct answer 24 h after the first)",

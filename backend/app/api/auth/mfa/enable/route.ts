@@ -1,7 +1,7 @@
 import { queryOne, withTransaction } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
-import { verifyTotpCode, generateBackupCodes } from "@/lib/auth/mfa";
+import { verifyTotpStep, generateBackupCodes } from "@/lib/auth/mfa";
 import { encrypt, decrypt } from "@/lib/auth/crypto";
 import { endOtherSessions } from "@/lib/auth/sessionControl";
 import { hasReauthProof } from "@/lib/auth/reauth";
@@ -55,8 +55,9 @@ export async function POST(req: Request) {
     }
 
     const pendingSecret = decrypt(row.totp_pending_secret_enc);
-    const valid = await verifyTotpCode(pendingSecret, code);
-    if (!valid) {
+    // FAIL-1113: the code that enables the method counts as used.
+    const enabledStep = await verifyTotpStep(pendingSecret, code);
+    if (enabledStep === null) {
       return unauthorized("Incorrect code. Check your authenticator app and try again.");
     }
 
@@ -69,10 +70,10 @@ export async function POST(req: Request) {
     // was checked, so two requests with the same good code enable once.
     const result = await withTransaction(async (tx) => {
       const claimed = await tx.query(
-        `update app_users set mfa_enabled = true, totp_secret_enc = $1,
+        `update app_users set mfa_enabled = true, totp_secret_enc = $1, totp_last_step = $4,
            totp_pending_secret_enc = null, totp_pending_expires_at = null, totp_pending_reauth_at = null
          where id = $2 and totp_pending_secret_enc = $3 returning id`,
-        [encrypt(pendingSecret), user.id, row.totp_pending_secret_enc]
+        [encrypt(pendingSecret), user.id, row.totp_pending_secret_enc, enabledStep]
       );
       if (claimed.length === 0) return null;
       // Enabling replaces any previous TOTP backup codes -- old ones from a

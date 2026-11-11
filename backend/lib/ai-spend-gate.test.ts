@@ -94,7 +94,7 @@ function callSites(): CallSite[] {
 // (purposes starting `pregen`, REQ-208), which has its own budget. Anything else
 // needs a line here and a reason.
 const NULL_USER_OK: Record<string, string> = {
-  "lib/lab-generation.ts": "modelLabChecker: run only by scripts/generate-labs.ts (an operator), never for a learner",
+  "lib/lab-generation.ts": "modelLabChecker and modelLabWriter (the one steered retry): run only by scripts/generate-labs.ts (an operator), never for a learner",
 };
 const nullUserAllowed = (file: string) => file.startsWith("scripts/") || file in NULL_USER_OK;
 

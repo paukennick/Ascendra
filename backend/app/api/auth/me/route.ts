@@ -52,7 +52,7 @@ function toUserResponse(row: ProfileRow) {
 // silent refresh into a full user object (refresh itself only returns tokens).
 export async function GET(req: Request) {
   try {
-    const authUser = await requireUser(req);
+    const authUser = await requireUser(req, { termsOptional: true });
     const row = await queryOne<ProfileRow>(PROFILE_SELECT, [authUser.id]);
     if (!row) return notFound("Account no longer exists.");
     // REQ-093: documents whose current version this user hasn't accepted.

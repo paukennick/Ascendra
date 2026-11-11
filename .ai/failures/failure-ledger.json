@@ -13742,6 +13742,969 @@
       ],
       "prevention_notes": "Every reader of review_schedule.due_on applies the floor: dueObjectives, nextDueOn, advanceDueSchedule, dueThrough (service-emails count is approximate by design)",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1100",
+      "date": "2026-11-10",
+      "title": "Two simultaneous 'turn off' requests left two-factor 'on' with no method and skipped the last-method code",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An account could end with mfa_enabled = true, no authenticator and no email codes: sign-in asked for a code step it could never pass, and neither request needed the emailed confirmation code.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Each disable route read the OTHER method's state, decided from it whether this was the last method, and wrote mfa_enabled = <other still on> as three separate steps. Two requests (one per method) each saw the other still on, so both wrote true.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/disable/route.ts",
+        "backend/app/api/auth/mfa/email/disable/route.ts",
+        "backend/lib/auth/mfaMethodOff.ts",
+        "backend/app/api/auth/login/route.ts"
+      ],
+      "fix_summary": "The decision and the write are one transaction with the user row locked (lib/auth/mfaMethodOff.ts turnOffMfaMethod); a method that became the last since the caller looked answers 409 and writes nothing; sign-in treats 'on with no method' as off (mfaStepRequired); migration 075 repairs rows already in that state.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A decision that depends on another row's state is made and written under one lock (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1101",
+      "date": "2026-11-10",
+      "title": "A Google-only account could not regenerate its backup codes",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The backup-codes route demanded a password; an account without one always got 'Incorrect password'.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route compared a password only and was never moved to the shared confirm-it's-you check (lib/auth/reauth.ts) the other routes use.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/backup-codes/route.ts",
+        "mobile/app/(app)/settings/mfa.tsx"
+      ],
+      "fix_summary": "The route uses checkReauth (password, authenticator or backup code, or a fresh Google sign-in) with the shared budget; the mobile screen offers the matching proof.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every route that asks the caller to confirm it's them goes through checkReauth.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1102",
+      "date": "2026-11-10",
+      "title": "A rejected Google ID token was a 500 reported to the error tracker, and the sign-in route had no per-IP limit",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Any stale, forged or wrong-app token produced a server error and an error-tracker event; one address could hammer the route.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "verifyGoogleIdToken let the library's rejection escape as a plain Error, which serverError treats as ours; the route had no limit like register's.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/oauth.ts",
+        "backend/app/api/auth/oauth/google/route.ts",
+        "backend/app/api/auth/oauth/google/link/route.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "verifyGoogleIdToken throws GoogleTokenError for a rejected token (a transport or configuration fault still throws its own error); the sign-in and link routes answer 401 without reporting; sign-in has a per-IP limit (30 per 15 minutes, keyed by a hash of the address).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A caller's bad input is a 4xx and not reported; per-IP counters store a hash, not the address.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1103",
+      "date": "2026-11-10",
+      "title": "Google sign-in that attached to an existing password account told its owner nothing",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Anyone who controlled a Google account with the same verified address got a new way into a password account with no notice to the account's inbox (the explicit link route does mail).",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The sign-in route's attach path inserted the oauth_accounts row and logged in; only the link route sent the alert.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/oauth/google/route.ts"
+      ],
+      "fix_summary": "A first attach to an existing, verified account mails the account address a 'Google sign-in connected' alert (Nick's decision); later sign-ins and new accounts mail nothing.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Every path that adds a sign-in method mails the account address (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1105",
+      "date": "2026-11-10",
+      "title": "Login had no per-IP ceiling",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The five-try limit is per (address, IP) pair, so one IP trying a different address each time was never stopped by it.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The only limits were per pair and per account.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/login/route.ts",
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "A per-IP ceiling (60 wrong password checks per 15 minutes) comes before the pair check; an attempt is counted while checked and given back when the password is right; over the ceiling answers exactly like a wrong password.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A limit keyed by one dimension has a ceiling on the other.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1106",
+      "date": "2026-11-10",
+      "title": "Error reports sent the request path with its query string, which carries one-time tokens",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Verification, reset and email-change tokens (in ?token=) reached the error tracker.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "instrumentation.ts passed request.path, which Next documents as including the query, as the route.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/instrumentation.ts",
+        "backend/lib/error-tracker.ts"
+      ],
+      "fix_summary": "routeOnly strips the query and fragment in instrumentation.ts and again in errorEvent.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/accounts-g4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Nothing from a URL beyond its path goes to a third party.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1107",
+      "date": "2026-11-10",
+      "title": "The verify-email result page's redirect URL carried the password-reset token",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The one-hour reset token sat in /verify-email?result=set_password&reset=<token>: in request logs, error reports and browser history.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The server action handed the token to the next page through the query string.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/verify-email/actions.ts",
+        "backend/app/verify-email/page.tsx",
+        "backend/lib/reset-handoff.ts"
+      ],
+      "fix_summary": "The action stores it in a short-lived httpOnly cookie scoped to /verify-email (lib/reset-handoff.ts); the page reads the cookie; a browser that refuses it is pointed to 'Forgot password'.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/email-verification.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Nothing sensitive goes in a redirect URL (checklist: Web screens).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1108",
+      "date": "2026-11-10",
+      "title": "The next Terms bump would have stranded builds that declared the version before it",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "PREVIOUS_LEGAL_VERSIONS held one generation; at the next bump the old previous would move out and builds still declaring it could no longer accept their own text.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The acceptable generations were a fixed current/previous/undeclared/legacy set, not a list.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/legal.ts"
+      ],
+      "fix_summary": "Previous generations are a list (EARLIER_LEGAL_VERSIONS beside PREVIOUS_LEGAL_VERSIONS); a build declaring any of them accepts exactly that one; the rule is a pure function tested against a simulated bump.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/terms-enforcement.dbtest.ts",
+        "backend/lib/terms-enforcement.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The bump procedure in the checklist pushes the old previous onto EARLIER_LEGAL_VERSIONS.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1109",
+      "date": "2026-11-10",
+      "title": "Terms and Privacy agreement was enforced only by the app",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "A request made without the app, or by a build that skipped the prompt, got every signed-in route whether or not the account had agreed.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The launch gate was client-side; requireUser checked identity only.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/requireUser.ts",
+        "backend/lib/legal.ts",
+        "backend/lib/test-setup.ts"
+      ],
+      "fix_summary": "requireUser reads the account's acceptances in its existing query and answers 403 { code: 'terms_required' } with a plain message unless the account accepted what its client must accept (legalContext rules unchanged); open routes: accept, onboarding, auth/me read, account export and delete, logout-all, support. dbtests are preloaded with enforcement off (lib/test-setup.ts) and the enforcement suites turn it on.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "backend/lib/terms-enforcement.dbtest.ts",
+        "backend/lib/terms-enforcement.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A new signed-in route is enforced by default; the sweep test lists the open routes.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1110",
+      "date": "2026-11-10",
+      "title": "Revoking a listed session revoked one token row, not its family; the list showed duplicate sessions",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A session holding a second live token (a replayed rotation) stayed signed in after 'sign out this device', and appeared twice; the screen said 'immediately' though the access token lives 15 more minutes.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The routes listed and revoked refresh_tokens rows, not families.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/sessions/route.ts",
+        "backend/app/api/auth/sessions/[id]/route.ts",
+        "mobile/app/(app)/account/sessions.tsx"
+      ],
+      "fix_summary": "The list is one entry per family; DELETE revokes the family (revokeRefreshFamily); the screen's wording says up to 15 more minutes.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Revoke by family_id, never one token (checklist: Account security).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1111",
+      "date": "2026-11-10",
+      "title": "No maximum password length on change and reset",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A multi-megabyte new password was hashed.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Register capped passwords at 1024 characters; change-password and reset-password did not.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts",
+        "backend/app/api/auth/reset-password/route.ts",
+        "backend/lib/auth/passwords.ts"
+      ],
+      "fix_summary": "One MAX_PASSWORD_LENGTH in lib/auth/passwords.ts used by all three.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "One constant for a limit several routes share.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1112",
+      "date": "2026-11-10",
+      "title": "A password change left pending reset links and sign-in challenges valid",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A reset link mailed earlier, or a sign-in code step earned with the old password, still worked after the change.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "change-password ended sessions but, unlike reset-password, did not spend the other outstanding credentials.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/change-password/route.ts"
+      ],
+      "fix_summary": "The same transaction marks the account's reset tokens and login challenges consumed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A route that changes a credential spends every other outstanding credential in the same transaction.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1113",
+      "date": "2026-11-10",
+      "title": "An authenticator code could be used twice inside its window",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Someone who saw a code could reuse it for up to 90 seconds, at sign-in or as a proof.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Nothing remembered which 30-second step was last accepted.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/auth/mfa.ts",
+        "backend/app/api/auth/mfa/verify/route.ts",
+        "backend/lib/auth/reauth.ts",
+        "backend/app/api/auth/mfa/enable/route.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql"
+      ],
+      "fix_summary": "app_users.totp_last_step (migration 075); spendTotpCode accepts only a later step with one guarded UPDATE, at sign-in and in reauth; enabling records its own code's step.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A single-use code is spent atomically.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1114",
+      "date": "2026-11-10",
+      "title": "Emailed sign-in codes skipped the per-address mail limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Each new sign-in attempt (a new challenge) could email the address again without the hourly limit every other mail has.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "send-email-code only had the per-challenge cap.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/auth/mfa/challenge/send-email-code/route.ts"
+      ],
+      "fix_summary": "The route spends mayEmail(address) and answers a plain 429 over the limit.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Anything that mails an address goes through mayEmail (checklist: Auth and abuse).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1115",
+      "date": "2026-11-10",
+      "title": "A support content report looked up an objective without visibility",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Any objective id, including in another learner's private course, was confirmed to exist and mailed to support.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route queried objectives by id alone.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/support/route.ts"
+      ],
+      "fix_summary": "It uses visibleObjective(id, userId).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Client-supplied ids go through lib/visibility.ts (checklist: Auth and abuse).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1116",
+      "date": "2026-11-10",
+      "title": "The inbound email webhook had no replay protection",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A replayed or retried delivery forwarded the same message again.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "Nothing recorded the Svix delivery id.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/inbound/email/route.ts",
+        "backend/lib/inbound-email.ts",
+        "backend/lib/retention.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql"
+      ],
+      "fix_summary": "inbound_email_events (migration 075): claim by svix-id, release on failure so retries work, complete on success, stale claims taken over after 5 minutes, purged after 7 days.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A webhook records its delivery id.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1117",
+      "date": "2026-11-10",
+      "title": "Catalog review findings were stored unchecked",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Wrong types, non-http URLs, oversized text and a future checkedAt were stored; a future date pushed a track's next review out of sight; the two writes were separate statements.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "The route inserted the body's fields as sent.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/app/api/catalog/review-findings/route.ts"
+      ],
+      "fix_summary": "The fields are validated, checkedAt is capped at now, and the finding and the freshness update share one transaction.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A machine caller's input is validated like a learner's.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1118",
+      "date": "2026-11-10",
+      "title": "The paid-access rule was duplicated with a hard-coded 24 hour grace",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Changing the grace in lib/entitlements.ts would have left 'paying' in paid AI mode disagreeing.",
+      "how_detected": "fix batch G4 audit finding (2026-11)",
+      "root_cause": "lib/ai-access.ts carried its own copy of the SQL with 24 typed in.",
+      "requirement": "REQ-219",
+      "affected": [
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts"
+      ],
+      "fix_summary": "GIVES_ACCESS and GRACE_HOURS are exported from lib/entitlements.ts and reused; a paid-mode test covers active, canceled, within and past the grace, and expired.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/accounts-security-g4.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "A shared rule is defined once.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1010",
+      "date": "2026-11-10",
+      "title": "A learner-facing error went out as a 5xx, so the app hid its words",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "UserFacingError defaulted to 503 and several throw sites used 502/503; the app shows 'something went wrong on our side' for any 5xx. Regeneration also said 'check your connection' for a server message",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "A status default of 503 and per-site 5xx codes; the app dropped the server's text for every 5xx",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/http.ts",
+        "backend/lib/stripe-checkout.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/ai-spend-ledger.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts"
+      ],
+      "fix_summary": "UserFacingError is always 4xx (default 409, a 5xx request is clamped); every throw site fixed; AI-paused message is a 429; the app keeps the server's error for 502/503 and regenerate shows server words",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts",
+        "mobile/src/lib/errorMessage.test.ts",
+        "mobile/src/lib/regenerateError.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts scans every source file for a UserFacingError with a 5xx status",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1011",
+      "date": "2026-11-10",
+      "title": "Comparison cards finished 'ready' with no cards when every card was held back",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Production: 4 of 4 comparison cards held for disclaimers; the course was marked ready and never retried",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Any listed claim held a card, and a generation that saved nothing still finished as ready",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/understanding-ai.ts"
+      ],
+      "fix_summary": "Low confidence or a disagreeing check holds a card; one steered retry; nothing saved with anything held or unchecked finishes 'failed' (retried on a later visit)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/understanding.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "understanding.dbtest.ts: listed disclaimers save the card; low twice ends failed",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1012",
+      "date": "2026-11-10",
+      "title": "The distractor lint rejected correct questions",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Questions with 'Read-only access', 'two-factor' or 'three-way handshake' failed the lint and the generation failed",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The word splitter broke hyphenated compounds apart ('only'), the count request matched 'two-factor', and cue words were checked against the right answer",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/content-validator.ts"
+      ],
+      "fix_summary": "Hyphenated compounds are one word; a number starting a compound is not a count request; cue words only in distractors; a second lint-only failure is logged and served",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts lint cases",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1013",
+      "date": "2026-11-10",
+      "title": "A lesson intro was regenerated after its practice half failed",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The learner read an intro, the practice half failed, and the next request wrote a different intro before trying practice again",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The accepted intro was not kept anywhere once generation failed",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lesson-generation.ts"
+      ],
+      "fix_summary": "The accepted intro is kept (per process, 30 minutes) and reused; only practice is retried; the cooldown after a content-check failure is 10 minutes, and a lesson held back says why",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/lesson-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "lesson-holdback.dbtest.ts: retry reuses the intro; one intro call in total",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1014",
+      "date": "2026-11-10",
+      "title": "Listed disclaimers held back lessons, quiz, review, unit check and exam items; a failed fact-check call was treated as a holdback",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "Production item_holdbacks: lesson_intro 3 of 9 held for disclaimers; a provider error on the fact-check logged a holdback and could start a cooldown",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "uncertaintyOf blocked on any listed claim and the gate failed closed by recording a holdback on the content",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/generation-gate.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/exam-items.ts",
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "Block only on the writer's low confidence or a fact-check that disagrees with the key; log listed disclaimers; one retry steered with the claims; a held item is a 409 naming the reason; a failed fact-check call is a retryable 409 with no holdback",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts",
+        "backend/lib/generation-gate.dbtest.ts",
+        "backend/lib/item-quality.dbtest.ts",
+        "backend/lib/lesson-holdback.dbtest.ts",
+        "backend/lib/pbq-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.ts is the one gate; the pre-completion checklist names it",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1015",
+      "date": "2026-11-10",
+      "title": "A PBQ waiter regenerated after the holder's scenario was held back",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A second request waiting on the lease took it and wrote again after the first was refused",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The waiter treated 'nothing stored' as 'the holder failed'",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/pbq-scenarios.ts"
+      ],
+      "fix_summary": "A waiter that finds a holdback logged since it started gets the same 409 and does not generate",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts PBQ waiter test",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1016",
+      "date": "2026-11-10",
+      "title": "Review reported 'nothing due' when reviews were due but none could be prepared, and left an empty session",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Due items, no question could be written: the app said nothing was due",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "startSession returned null for an empty session, the same answer as 'nothing due'",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/review-service.ts",
+        "backend/lib/review-store.ts",
+        "backend/app/api/review/sessions/route.ts",
+        "mobile/app/(app)/review-session.tsx"
+      ],
+      "fix_summary": "Returns session null with unavailable N and a message; the empty session row is removed; the app shows 'couldn't be prepared' with Try again",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/mastery-honesty.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "mastery-honesty.dbtest.ts FAIL-1016",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1017",
+      "date": "2026-11-10",
+      "title": "Two requests for one unit check each wrote and paid for a check",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Concurrent requests both found nothing unseen and both called the model",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No single-flight on unit-check writing",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/unit-check.ts"
+      ],
+      "fix_summary": "Writing takes the learner's lease for the unit (the PBQ lease); waiters serve what was stored or get the holder's 409",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts unit check tests",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1018",
+      "date": "2026-11-10",
+      "title": "Rate-limit messages showed internal event names",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "'Too many lesson_regenerate attempts. Try again later.'",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The message was built from the event name",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/auth/rateLimit.ts"
+      ],
+      "fix_summary": "One plain sentence",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1019",
+      "date": "2026-11-10",
+      "title": "A bad date on course create was a 500",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sourceVerifiedAt 'soon' reached the INSERT and failed with Postgres 22007",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No validation of the two date fields; 22007/22008 were not client-input codes",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/app/api/courses/route.ts",
+        "backend/lib/http.ts",
+        "backend/lib/text-input.ts"
+      ],
+      "fix_summary": "isCalendarDate check with 400 naming the field; 22007 and 22008 answer 400",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts isCalendarDate",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1020",
+      "date": "2026-11-10",
+      "title": "A lab step counted a graded use that was not given back when nothing was stored",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "The use is counted before grading; a failed write or a replayed copy kept it",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Release only on a grader throw",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lab-routes.ts",
+        "backend/lib/ai-access.ts"
+      ],
+      "fix_summary": "releaseOnce; released on grader throw, write failure and replay",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source checks",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1021",
+      "date": "2026-11-10",
+      "title": "Sim reasoning kept its counted use when the grader threw",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "gradeSimReasoning threw after the use was counted",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "Release only on the grader's own failed flag",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/sims.ts"
+      ],
+      "fix_summary": "releaseOnce; released on throw, write failure and a stored duplicate",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source checks",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1022",
+      "date": "2026-11-10",
+      "title": "Grading claim expired at 120 s while PBQ grading may run 180 s",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A slow live grade could be taken over and graded twice",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "CLAIM_EXPIRY_SECONDS below the longest grading route",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/grading-claims.ts"
+      ],
+      "fix_summary": "200 s, and a test keeps it above the longest grading route's maxDuration",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1023",
+      "date": "2026-11-10",
+      "title": "Two copies of one chat message each paid for a reply",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Racing copies passed the stored-reply check and both called the model",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "No in-flight claim on the chat message id",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/app/api/chat/route.ts"
+      ],
+      "fix_summary": "withGradingClaim on chat:<message id>; waiters replay the stored reply",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.test.ts source check",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1024",
+      "date": "2026-11-10",
+      "title": "The global AI ceiling could be passed by a stale cached sum",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Cached 60 s per instance",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The check reads a cached sum and takes no lock",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/ai-access.ts",
+        "backend/lib/ai-access-config.ts",
+        "docs/billing.md"
+      ],
+      "fix_summary": "Fresh read within 20% of the ceiling; documented as soft with headroom (a lock on every model call was judged too large)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "docs/billing.md section",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1025",
+      "date": "2026-11-10",
+      "title": "A sprint or mock whose every item was held back said 'no practice questions yet'",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Questions were written and held back; the learner was told there were none",
+      "how_detected": "Audit 2026-11-11 (batch G1)",
+      "root_cause": "The session did not know items were held",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/exam-items.ts"
+      ],
+      "fix_summary": "generateForObjective reports held and unchecked; the session says every question was held back, or could not be checked",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/generation-gate.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "generation-gate.dbtest.ts FAIL-1025",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1026",
+      "date": "2026-11-10",
+      "title": "Generated labs were held back on any listed claim, and a failed checker call was logged as a holdback",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "A lab whose writer listed a harmless claim (or whose checker could not confirm one) was held back with no retry; a checker call that threw was written to item_holdbacks as fact_check_error, as if the lab had failed",
+      "how_detected": "Nick asked on 2026-11-10 for labs to follow the same rule as the other generated items",
+      "root_cause": "lab-generation.ts predated the REQ-216 gate: saveGeneratedLab used uncertaintyOf (any listed claim), judgeLabCheck published only on zero reasons including unsupportedClaims, had no steered retry, and treated a thrown checker as a verdict on the lab",
+      "requirement": "REQ-216",
+      "affected": [
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "backend/lib/generation-gate.ts"
+      ],
+      "fix_summary": "saveGeneratedLab runs on generateGated: holds only on low confidence, a content rule (new problemsOf, reason invalid) or a checker disagreement (labCheckVerdict); one steered retry via modelLabWriter; held twice returns a plain-words outcome (describeSaveOutcome); a failed or empty checker call is held_check_error, retryable, no holdback row",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.test.ts",
+        "backend/lib/labs.dbtest.ts",
+        "backend/lib/generation-gate.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "labs.dbtest.ts: listed and unconfirmed claims store, the retry is steered once, a thrown checker leaves no holdback row; ai-spend-gate.test.ts registers the new operator-only writer call",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1145",
+      "date": "2026-11-11",
+      "title": "Lab key-suspect flag test slept a fixed 200 ms",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "CI Database job failed once on PR #130: item_flags row not yet written when checked",
+      "how_detected": "CI run 42970940992 (passed on re-run)",
+      "root_cause": "The key-suspect flag is written after the response; the test waited a fixed 200 ms instead of for the row",
+      "requirement": "REQ-220",
+      "affected": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "fix_summary": "Poll for the flag row (up to 5 s) instead of a fixed sleep",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/labs.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "",
+      "recurrence_of": ""
     }
   ]
 }

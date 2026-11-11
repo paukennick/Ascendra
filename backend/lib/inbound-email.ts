@@ -1,3 +1,4 @@
+import { query } from "@/lib/db";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { supportEmail } from "./support-contact";
 
@@ -223,4 +224,46 @@ export async function forwardReceivedEmail(
   } catch {
     return { ok: false, stage: "send", status: null };
   }
+}
+
+// REQ-219 (FAIL-1116): replay protection by Svix delivery id (`svix-id`, part
+// of the signed content, so it can't be changed without breaking the
+// signature). A signed delivery stays acceptable for the signature's
+// timestamp window, and Resend retries a delivery we answered with a failure;
+// either forwarded the same message to the mailbox again.
+//
+//   claim:    insert the id; a row that exists and was already forwarded, or
+//             was claimed less than CLAIM_STALE_MINUTES ago and is still in
+//             flight, makes this delivery a duplicate (answered 200, nothing
+//             forwarded). A claim that never finished (the function died) is
+//             taken over after the stale window, so a message is never lost.
+//   release:  a delivery that FAILED (rate limit, forward error) gives its
+//             claim back so Resend's retry is processed.
+//   done:     marks a forwarded delivery (kept for the retention window).
+// Table: inbound_email_events (migration 075), purged after 7 days.
+export const CLAIM_STALE_MINUTES = 5;
+const SVIX_ID = /^[A-Za-z0-9_.:=-]{1,256}$/;
+
+export function validDeliveryId(id: string | null): id is string {
+  return typeof id === "string" && SVIX_ID.test(id);
+}
+
+export async function claimInboundDelivery(svixId: string): Promise<boolean> {
+  const rows = await query<{ svix_id: string }>(
+    `insert into inbound_email_events (svix_id) values ($1)
+     on conflict (svix_id) do update set claimed_at = now()
+       where inbound_email_events.forwarded_at is null
+         and inbound_email_events.claimed_at < now() - make_interval(mins => $2)
+     returning svix_id`,
+    [svixId, CLAIM_STALE_MINUTES]
+  );
+  return rows.length > 0;
+}
+
+export async function releaseInboundDelivery(svixId: string): Promise<void> {
+  await query(`delete from inbound_email_events where svix_id = $1 and forwarded_at is null`, [svixId]);
+}
+
+export async function completeInboundDelivery(svixId: string): Promise<void> {
+  await query(`update inbound_email_events set forwarded_at = now() where svix_id = $1`, [svixId]);
 }

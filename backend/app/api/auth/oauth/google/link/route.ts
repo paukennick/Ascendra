@@ -1,6 +1,7 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
+import { NextResponse } from "next/server";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
-import { verifyGoogleIdToken } from "@/lib/auth/oauth";
+import { verifyGoogleIdToken, GoogleTokenError } from "@/lib/auth/oauth";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { checkReauth, hasReauthProof, reauthFailure } from "@/lib/auth/reauth";
 import { endOtherSessions } from "@/lib/auth/sessionControl";
@@ -37,7 +38,17 @@ export async function POST(req: Request) {
       if (!proof.ok) return reauthFailure(proof);
     }
 
-    const identity = await verifyGoogleIdToken(idToken);
+    let identity;
+    try {
+      identity = await verifyGoogleIdToken(idToken);
+    } catch (err) {
+      // REQ-219 (FAIL-1102): a rejected token is a 401 about what was sent
+      // (reauthRequired: the app must not refresh and resend it), not a 500.
+      if (err instanceof GoogleTokenError) {
+        return NextResponse.json({ error: "Google sign-in couldn't be confirmed. Try again.", reauthRequired: true }, { status: 401 });
+      }
+      throw err;
+    }
     if (!identity.emailVerified) return badRequest("Google account email is not verified.");
 
     const existingLink = await queryOne<{ user_id: string }>(
