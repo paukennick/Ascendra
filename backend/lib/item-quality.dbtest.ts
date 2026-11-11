@@ -26,7 +26,7 @@ import {
 } from "./item-quality";
 import type { CheckItem, CheckVerdict, FactChecker } from "./fact-check";
 import { bankItems, generateForObjective } from "./exam-items";
-import { unseenItems } from "./review-store";
+import { prepareContext } from "./review-store";
 import { nextDiscriminationItem } from "./understanding-store";
 import { getLessonFor, saveLesson, SHARED } from "./lesson-store";
 import { gateQuizItem } from "./coach-quiz";
@@ -212,15 +212,18 @@ describe("flags and quarantine (H2)", () => {
     const u = await newUser();
     const ri = await queryOne<{ id: string }>(
       `insert into review_items (objective_id, source_hash, question, choices, correct_index, why, model)
-       values ($1, 'h1', 'Review q', $2, 1, 'w', 'test') returning id`,
+       values ($1, md5('HTTPS defaults to port 443.'), 'Review q', $2, 1, 'w', 'test') returning id`,
       [objs[2], JSON.stringify(CHOICES)]
     );
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 1);
+    // REQ-218 (H1): the session builder reads its candidates through prepareContext
+    // (it replaced unseenItems), so the pulled-item filter is checked there.
+    const unseen = async () => (await prepareContext(u, [objs[2]])).get(objs[2])!.unseen.length;
+    assert.equal(await unseen(), 1);
     const ref: ItemRef = { kind: "review", itemId: ri!.id, objectiveId: objs[2], question: "Review q" };
     for (let i = 0; i < 3; i++) await recordFlag(ref, { userId: await newUser(), source: "learner" });
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 0);
+    assert.equal(await unseen(), 0);
     assert.equal(await clearItem(ref, "checked, key is right"), true);
-    assert.equal((await unseenItems(u, objs[2], "h1")).length, 1);
+    assert.equal(await unseen(), 1);
 
     const set = await queryOne<{ id: string }>(
       `insert into concept_sets (track_id, source, set_key, how_to_tell, dimensions) values ($1, 'generated', $2, 'h', '[]') returning id`,

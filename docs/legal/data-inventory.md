@@ -66,7 +66,7 @@ row stays with its user link removed (and is listed under Kept after deletion).
 | `chat_messages` | AI coach messages and replies | coach history | while account open | nothing (cascade) | yes |
 | `support_requests` | tickets, course requests, lesson reports (may name an objective and step), coach-reply reports (quote the reply) | support and content fixes | while account open | nothing (cascade) | yes |
 | `lesson_content_overrides`, `grading_claims`, `pbq_generation_claims` | a learner's generated lesson variant; seconds- to minutes-long leases | generation and grading | lease: minutes; override: while account open | nothing (cascade) | no (generated text, not learner input; no content) |
-| `mastery_backup_029`, `mastery_backup_031`, `mastery_backup_041`, `mastery_backup_045`, `error_log_backup_029` | rollback copies of mastery and error-log rows taken by older migrations | undoing those migrations | dropped after 30 days where they were kept | nothing (cascade) | no (rollback backups) |
+| `mastery_backup_029`, `mastery_backup_031`, `mastery_backup_041`, `mastery_backup_045`, `mastery_backup_074`, `error_log_backup_029` | rollback copies of mastery and error-log rows taken by older migrations | undoing those migrations | dropped after 30 days where they were kept | nothing (cascade) | no (rollback backups) |
 
 ### Plans, payments, discounts
 

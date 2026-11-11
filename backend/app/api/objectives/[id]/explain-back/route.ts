@@ -98,10 +98,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const clientAttemptId = validClientAttemptId(body?.clientAttemptId);
     // REQ-116: only a replay of this objective's explain-back.
+    // REQ-218: and only of the same explanation -- the stored answer must be
+    // the text sent now, or the id is refused (the new text was never graded).
+    const sentAnswer = typeof body?.answer === "string" ? (body.answer as string) : null;
     const replayStored = async () => {
-      const prior = clientAttemptId ? await findClientAttempt(user.id, clientAttemptId) : null;
+      const prior = clientAttemptId && sentAnswer !== null ? await findClientAttempt(user.id, clientAttemptId) : null;
       if (!prior) return null;
-      if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain" })) {
+      if (!replayMatches(prior.attempt, { objectiveId: id, kind: "quiz", stage: "explain", answer: sentAnswer! })) {
         return conflict(REPLAY_CONFLICT);
       }
       return ok({ ...prior, rubric: null, diagnosis: null, copied: prior.assistReason === "reveal" });

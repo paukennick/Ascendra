@@ -27,6 +27,8 @@ import { MatureContentProvider } from "@/auth/MatureContentContext";
 import { gateRedirect } from "@/lib/legal";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { AppLock, PrivacyCover } from "@/components/AppLock";
+import { SessionRetry } from "@/components/SessionRetry";
+import { useReminderTap } from "@/lib/useReminderTap";
 import { UpdateRequired } from "@/components/UpdateRequired";
 import { registerUpdateRequiredHook } from "@/api/client";
 import type { UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
@@ -125,6 +127,7 @@ function RootNavigator() {
     }
   }, [locked]);
   const { gate } = useOnboarding();
+  useReminderTap(status === "signedIn" && !appLocked);
   const segments = useSegments();
   const router = useRouter();
   const { updateReady, applyUpdate, dismiss } = useAppUpdates();
@@ -211,6 +214,8 @@ function RootNavigator() {
       ) : null}
       {/* REQ-177: the lock after time away covers the screens, which stay mounted. */}
       {locked ? <AppLock /> : null}
+      {/* REQ-217 (FAIL-1041): a stored session the server couldn't be reached to resume. */}
+      {status === "retry" ? <SessionRetry /> : null}
       {status === "signedIn" && !inFront ? <PrivacyCover /> : null}
       {updateRequired ? <UpdateRequired info={updateRequired} /> : null}
     </>

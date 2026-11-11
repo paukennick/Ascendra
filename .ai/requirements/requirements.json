@@ -7628,6 +7628,78 @@
       ]
     },
     {
+      "id": "REQ-218",
+      "category": "bugfix",
+      "title": "Learning-data integrity (G3): quarantine in review prep, review spacing floor, Independent needs a later session, exam submit and other races",
+      "description": "Nick, 2026-11-10 (audit batch G3, audit of 2026-11-11, approved incl. low-priority). Review prep serves pulled items (H1); a review due on a UTC calendar day can be minutes after the last one and a correct answer jumps a rung (H8; an item is now due only 24 h after its last review (Nick, 2026-11-10 21:22: a full day)); Independent mastery needs a later-session confirmation (24 h after the first unassisted format win; migration 074 restates mastery_detail and recomputes stored levels); exam submit claims the session before reading, records no attempt for items now confirmed wrong or objectives retired mid-session, reuses a stored attempt, and an expired timed session is submitted before the next start abandons it (M1, M2, M5); a sim reasoning answer cannot be stored after the run ended (M3); confirming an item wrong resolves the error_log rows and deletes the misconceptions of the voided attempts (M4); lab restart cannot race a graded last step; the first PBQ or unit-check answer is decided under a per-scenario lock; explain-back replay is bound to the answer text; a re-check claim expires.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/review-store.ts",
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts",
+        "backend/supabase/migrations/074_*.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a pulled review item is never picked for a session; a review is not due until 18 h after the last one and an early correct answer does not climb a rung; Independent needs unassisted correct format wins 24 h apart; stored levels follow after recompute; submit claims then grades; no attempt for confirmed-wrong items or retired objectives; reasoning refused after the run ended; confirm-wrong clears error_log and misconceptions; lab restart cannot complete an abandoned run; two first PBQ answers give one unassisted and one repeat; explain-back replay with another answer is 409; an old re-check claim is taken over"
+      ],
+      "validation_required": [
+        "build",
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
+      ]
+    },
+    {
+      "id": "REQ-217",
+      "category": "mobile",
+      "title": "G2: phone sessions and app screens (audit 2026-11-11)",
+      "description": "Fixes from the 2026-11-11 audit for the mobile app's session handling and screens: biometric re-seal on every silent refresh (H4), any refresh failure signing out (H5), all /api/auth routes skipping refresh-and-retry and sign-out-everywhere reporting success on failure (H6), plus M9, M11-M14 and the lower-priority list. JavaScript only: ships as an over-the-air update. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/",
+        "CHANGELOG.md",
+        ".ai/"
+      ],
+      "acceptance_criteria": [
+        "Silent refresh never prompts for or writes the sealed key",
+        "Only a 401 from refresh signs the device out",
+        "Only signed-out /api/auth routes skip refresh-and-retry",
+        "Sign out of all devices reports success only on 200",
+        "Each listed screen finding fixed or documented as accepted"
+      ],
+      "validation_required": [
+        "cd mobile && npx tsc --noEmit",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Two items accepted and documented (FAIL-1065, FAIL-1066); export file share deferred (FAIL-1055). Several fixes need a phone check."
+      ]
+    },
+    {
       "id": "REQ-221",
       "category": "operations",
       "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",

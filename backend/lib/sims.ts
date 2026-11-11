@@ -857,30 +857,43 @@ export async function gradeReasoning(
     if (out.failed) await use.release();
     const g = out.graded;
     try {
-      const row = await queryOne<ReasoningRow>(
-        `insert into sim_run_reasoning
-           (run_id, moment_id, user_id, opened_tick, opened_seq, client_attempt_id, answer, status, verdict, feedback,
-            part_scores, missed_parts, classification, fix_next)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-         on conflict (run_id, moment_id) do nothing
-         returning *`,
-        [
-          run.id,
-          momentId,
-          userId,
-          openedTick,
-          openedSeq,
-          clientAttemptId,
-          answer,
-          g ? "graded" : "grader_failed",
-          g?.verdict ?? null,
-          g ? cleanText(g.feedback, 4000) : "The grader could not be reached. This moment is left out of your score.",
-          g ? JSON.stringify(g.partScores.map((p) => ({ part: cleanText(p.part, 300), score: p.score, comment: cleanText(p.comment ?? "", 600) }))) : null,
-          g ? JSON.stringify(g.missedParts.map((m) => cleanText(m, 300))) : null,
-          g ? cleanText(g.classification ?? "", 200) : null,
-          g ? cleanText(g.fixNext ?? "", 600) : null,
-        ]
-      );
+      // REQ-218 (M3): the run is locked FOR SHARE for the insert and must still
+      // be open. finishRun holds the row FOR UPDATE while it scores, so an
+      // answer either lands before the finish (and is scored) or is refused;
+      // before, one graded while the finish ran was stored against an ended
+      // run and the debrief and score disagreed. A refused answer stores
+      // nothing, so the graded-answer use is given back.
+      const row = await withTransaction(async (tx) => {
+        const live = await tx.queryOne<{ status: string }>(`select status from sim_runs where id = $1 for share`, [run.id]);
+        if (!live || live.status !== "open") {
+          if (!out.failed) await use.release();
+          throw new SimError(409, "run_ended", "This run has ended.");
+        }
+        return tx.queryOne<ReasoningRow>(
+          `insert into sim_run_reasoning
+             (run_id, moment_id, user_id, opened_tick, opened_seq, client_attempt_id, answer, status, verdict, feedback,
+              part_scores, missed_parts, classification, fix_next)
+           values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+           on conflict (run_id, moment_id) do nothing
+           returning *`,
+          [
+            run.id,
+            momentId,
+            userId,
+            openedTick,
+            openedSeq,
+            clientAttemptId,
+            answer,
+            g ? "graded" : "grader_failed",
+            g?.verdict ?? null,
+            g ? cleanText(g.feedback, 4000) : "The grader could not be reached. This moment is left out of your score.",
+            g ? JSON.stringify(g.partScores.map((p) => ({ part: cleanText(p.part, 300), score: p.score, comment: cleanText(p.comment ?? "", 600) }))) : null,
+            g ? JSON.stringify(g.missedParts.map((m) => cleanText(m, 300))) : null,
+            g ? cleanText(g.classification ?? "", 200) : null,
+            g ? cleanText(g.fixNext ?? "", 600) : null,
+          ]
+          );
+      });
       if (!row) {
         const again = await replay();
         if (again) return again;

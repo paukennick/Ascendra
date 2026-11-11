@@ -20,6 +20,11 @@ export interface ReplayTarget {
   kind: string;
   stage?: string | null;
   question?: string;
+  // REQ-218: the answer text. A free-text route binds the replay to it too, so
+  // an id reused for a different answer is refused instead of answered with the
+  // first answer's verdict. Compared trimmed, as /api/grade does (a retry may
+  // differ only in surrounding whitespace).
+  answer?: string;
 }
 
 const id = (v: unknown) => (typeof v === "string" && v ? v.toLowerCase() : null);
@@ -31,6 +36,7 @@ export function replayMatches(stored: Record<string, unknown>, target: ReplayTar
   if (target.unitCheckItemId !== undefined && id(stored.unit_check_item_id) !== id(target.unitCheckItemId)) return false;
   if (target.labObjectiveId !== undefined && id(stored.lab_objective_id) !== id(target.labObjectiveId)) return false;
   if (target.question !== undefined && stored.question !== target.question) return false;
+  if (target.answer !== undefined && !(typeof stored.answer === "string" && stored.answer.trim() === target.answer.trim())) return false;
   return true;
 }
 

@@ -142,7 +142,7 @@ async function study(u: string, o: string, verdict: "correct" | "incorrect" = "c
   });
 }
 const makeDue = (u: string, objectives = all) =>
-  query(`update review_schedule set due_on = current_date where user_id = $1 and objective_id = any($2::uuid[])`, [u, objectives]);
+  query(`update review_schedule set due_on = current_date, enrolled_at = now() - interval '2 days', last_reviewed_at = case when last_reviewed_at is null then null else now() - interval '2 days' end where user_id = $1 and objective_id = any($2::uuid[])`, [u, objectives]);
 const sched = (u: string, o: string) =>
   queryOne<{ step: number; due_on: string; reps: number; lapses: number }>(
     `select step, to_char(due_on, 'YYYY-MM-DD') as due_on, reps, lapses from review_schedule where user_id = $1 and objective_id = $2`,
@@ -377,7 +377,7 @@ describe("review loop (REQ-108)", () => {
   test("a miss steps back, logs a lapse and goes to the missed-question log; the shuffle is the learner's own", async () => {
     const u = await newUser();
     await study(u, objsB[0]);
-    await query(`update review_schedule set step = 2, due_on = current_date where user_id = $1 and objective_id = $2`, [u, objsB[0]]);
+    await query(`update review_schedule set step = 2, due_on = current_date, enrolled_at = now() - interval '2 days', last_reviewed_at = case when last_reviewed_at is null then null else now() - interval '2 days' end where user_id = $1 and objective_id = $2`, [u, objsB[0]]);
     const s = (await start(u)).body.session;
     gradeVerdict = "incorrect";
     const r = await answer(u, s.id, s.items[0].position, { format: "open", answer: "no idea" });
@@ -416,7 +416,7 @@ describe("review loop (REQ-108)", () => {
     // u1 answers; tomorrow's question for u1 must be a different one.
     await answer(u1, s1.id, s1.items[0].position, { format: "open", answer: "a" });
     await call(sessionPatch, u1, { method: "PATCH", body: { action: "finish" }, params: { id: s1.id } });
-    await query(`update review_schedule set due_on = current_date where user_id = $1`, [u1]);
+    await query(`update review_schedule set due_on = current_date, enrolled_at = now() - interval '2 days', last_reviewed_at = case when last_reviewed_at is null then null else now() - interval '2 days' end where user_id = $1`, [u1]);
     await query(
       `update review_session_items set answered_at = answered_at - interval '1 day' where session_id = $1`,
       [s1.id]
@@ -532,7 +532,8 @@ describe("review loop (REQ-108)", () => {
     const after = await queryOne<{ formats: string[]; status: string }>(`select formats, status from mastery_detail($1, $2)`, [u, objsA[0]]);
     // REQ-117 (FAIL-340): unit-wide answers add accuracy only, never a format.
     assert.deepEqual(after!.formats, ["free_response"]);
-    assert.equal(after!.status, "Independent", "a unit check is not a second format");
+    // REQ-218: one free-response sitting (3 days ago) is not yet confirmed.
+    assert.equal(after!.status, "Guided", "a unit check is not a second format, nor a confirming sitting");
     const ev = await queryOne<{ answers: number; direct_answers: number }>(`select answers, direct_answers from mastery_detail($1, $2)`, [u, objsA[0]]);
     assert.equal(ev!.answers - ev!.direct_answers, 1, "but it is counted");
   });
