@@ -227,7 +227,7 @@ Every setting the server code reads, by name and purpose. Values live only in Ve
 | Setting | Purpose |
 |---|---|
 | `SIMS_ENABLED` | Shows sims (off by default) |
-| `SIMS_RENDERERS` | Which sim screen types are on (default `bedside,board,session`; `lib/sim/server-run.ts` `DEFAULT_RENDERERS`) |
+| `SIMS_RENDERERS` | Which sim screen types are on (default `bedside,board,session,security-console`; `lib/sim/server-run.ts` `DEFAULT_RENDERERS`) |
 | `SIMS_SERVE_UNREVIEWED`, `LABS_SERVE_UNREVIEWED` | Serve sims and labs before review (on by default) |
 | `SERVICE_EMAILS_ENABLED` | Turns on the service emails (off until the privacy text covers them) |
 | `SERVICE_EMAIL_BATCH`, `DIGEST_EMAIL_FROM`, `MAIL_POSTAL_ADDRESS` | Service email batch size, digest sender and footer address |

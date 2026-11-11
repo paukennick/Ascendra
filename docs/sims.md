@@ -2651,7 +2651,8 @@ device while sims are off (5.9).
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
 (default `bedside,board` since REQ-190, because the first flagship is the
 TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
-testers see the client session). A renderer can be launched, or pulled after a bad
+testers see the client session; `bedside,board,session,security-console`
+since REQ-231). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 

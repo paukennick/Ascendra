@@ -153,7 +153,7 @@ export const endingSchema = z.object({
 });
 
 export const screenSpecSchema = z.object({
-  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data"]),
+  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "security-console"]),
   level: z.number().optional(),
   bedside: z
     .object({
@@ -191,6 +191,26 @@ export const screenSpecSchema = z.object({
       ),
       notes: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional(), alert: expr.optional() })).optional(),
       record: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
+    })
+    .optional(),
+  // REQ-231: the security operations console (engine types.ts ScreenSpec.console).
+  console: z
+    .object({
+      alerts: z.array(
+        z.object({
+          id,
+          severity: z.enum(["critical", "high", "medium", "low"]),
+          title: template,
+          detail: template.optional(),
+          when: expr,
+          at: expr,
+          status: template,
+          open: expr,
+        }),
+      ),
+      events: z.array(z.object({ id, source: z.string(), text: template, when: expr, at: expr })),
+      assets: z.array(z.object({ id, label: z.string(), spokenLabel: z.string(), kind: z.string(), status: template, tone: expr })),
+      meters: z.array(z.object({ id, label: z.string(), value: template })).optional(),
     })
     .optional(),
 });
