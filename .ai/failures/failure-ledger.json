@@ -11994,6 +11994,57 @@
       ],
       "prevention_notes": "loginWorkflow.test.ts pins the hint and the autofill props of login and register and that TextField forwards them unchanged",
       "recurrence_of": ""
+    },
+    {
+      "date": "2026-11-10",
+      "status": "fixed",
+      "requirement": "REQ-213",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pbq-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "recurrence_of": "",
+      "id": "FAIL-1000",
+      "title": "Every live PBQ scenario was held back for wording caveats, so generation never succeeded",
+      "severity": "high",
+      "symptom": "Nick, 2026-11-10: 'Generating pbqs is throwing an error and not working'. Production: both pbq_generate calls ever made were held back as uncertain (claims such as 'control type labels may differ from the textbook taxonomy')",
+      "how_detected": "Owner report; Vercel runtime logs ([item-quality] held back pbq (uncertain)) and ai_calls",
+      "root_cause": "The shared accuracy rule asks the writer to list every claim it is unsure of; for an invented scenario the fast model listed caveats about terminology and paraphrase, and the route held back on any listed claim with no second attempt",
+      "affected": [
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts"
+      ],
+      "fix_summary": "The PBQ prompt says invented settings and wording caveats are not claims and to use the exam's standard terms; a held-back scenario is written once more before the learner is asked to retry. Real uncertain facts are still held back and logged",
+      "prevention_notes": "pbq-holdback.dbtest.ts covers held-back-then-served, two held back, and the prompt wording"
+    },
+    {
+      "date": "2026-11-10",
+      "status": "fixed",
+      "requirement": "REQ-213",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/pbq-holdback.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "recurrence_of": "",
+      "id": "FAIL-1001",
+      "title": "A held-back PBQ scenario showed 'something went wrong on our side' instead of its message",
+      "severity": "medium",
+      "symptom": "The app showed a generic error when a scenario was held back",
+      "how_detected": "Reading the route while debugging FAIL-1000",
+      "root_cause": "UserFacingError defaults to 503, and the app replaces any 5xx message with the generic one (the same issue FAIL-884 fixed for lessons)",
+      "affected": [
+        "backend/app/api/pbq/route.ts"
+      ],
+      "fix_summary": "The held-back answer is a 409 carrying 'We couldn't write a scenario we're confident in just now. Please try again.'",
+      "prevention_notes": "pbq-holdback.dbtest.ts asserts the 409 and the message"
     }
   ]
 }
