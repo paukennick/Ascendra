@@ -258,7 +258,10 @@ export const scenarioSchema = z.object({
   slug: z.string().min(1).max(80),
   title: z.string().min(1).max(200),
   screen: screenSpecSchema,
-  objective: z.string().min(1).max(400),
+  // REQ-231 (FAIL-1321): the exact title of a course objective, which the
+  // seed matches by equality; catalog titles run to 586 characters
+  // (SECPLUS), so 400 refused a sim on 17 real objectives.
+  objective: z.string().min(1).max(1000),
   secondaryObjectives: z.array(z.string()).optional(),
   sources: z.array(sourceSchema),
   brief: z.object({ situation: z.string().max(6000), handover: z.array(z.string()).optional(), howItWorks: z.array(z.string()).optional() }),

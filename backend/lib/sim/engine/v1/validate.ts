@@ -118,13 +118,13 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
   // REQ-231 (docs/sims.md 9.2, 20.1, 22.7): an incident in the security
   // console. Target: contained before the attacker reaches the impact stage
   // (exfiltration or encryption), at most `containSpread` hosts or identities
-  // compromised, evidence preserved before anything is wiped or rebuilt;
+  // newly compromised after the first alert, evidence preserved before anything is wiped or rebuilt;
   // recovered: contained after partial spread, or late, with evidence kept;
   // harm: impact reached beyond the authored threshold, or evidence destroyed
   // before it was collected. Times are sim seconds from the first alert.
   security: {
     containWindow: { value: 3600, tighter: "lower", note: "contained <= 60 min after the first alert" },
-    containSpread: { value: 1, tighter: "lower", note: "at most this many assets compromised when containment completes" },
+    containSpread: { value: 0, tighter: "lower", note: "assets newly compromised after the first alert (spread); none is the target" },
   },
   infrastructure: {},
   data: {},

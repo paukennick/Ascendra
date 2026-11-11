@@ -58,6 +58,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("EPPP", "duty-to-protect-threat"),
   entry("EPPP", "diagnostic-intake-mood"),
   // ---- end REQ-225 (EPPP-B) -------------------------------------------
+  // ---- REQ-231: security console incidents, course SECPLUS (SY0-701), and
+  // each as a V8 band (SECPLUSV8, SY0-801: same incident, the V8 objective).
+  entry("SECPLUS", "phish-to-account-takeover"),
+  band("SECPLUSV8", "phish-to-account-takeover-v8"),
+  // ---- end REQ-231 ------------------------------------------------------
 ];
 
 // REQ-225: the EPPP client-session documents and the objective titles they
