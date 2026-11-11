@@ -1,7 +1,7 @@
 import { queryOne } from "@/lib/db";
 import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
 import { verifyPassword, verifyDummyPassword } from "@/lib/auth/passwords";
-import { consumeRateLimit, refundRateLimit, recordAuthEvent, RateLimitError, LOGIN_IP_EVENT, LOGIN_IP_LIMIT } from "@/lib/auth/rateLimit";
+import { consumeRateLimit, refundRateLimit, recordAuthEvent, RateLimitError, LOGIN_IP_EVENT, LOGIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
 import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     let ipAttempt: string | null = null;
     if (ip) {
       try {
-        ipAttempt = await consumeRateLimit(LOGIN_IP_EVENT, ip, LOGIN_IP_LIMIT, { ip });
+        ipAttempt = await consumeRateLimit(LOGIN_IP_EVENT, ipCounterKey(ip), LOGIN_IP_LIMIT);
       } catch (err) {
         if (!(err instanceof RateLimitError)) throw err;
         await verifyDummyPassword(password);

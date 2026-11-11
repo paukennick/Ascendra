@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { query, queryOne, withTransaction } from "../db";
 
 export class RateLimitError extends Error {}
@@ -52,6 +53,13 @@ export const MFA_USER_LIMIT = { max: 10, windowMinutes: 15 };
 export const MFA_USER_LOCKED_MESSAGE =
   "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
   "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
+
+// REQ-219: the per-IP counters below key their auth_events rows by a hash of the
+// address, not the address: account deletion removes every row holding the
+// learner's IP (lib/auth/retention.ts), and these rows belong to no account.
+export function ipCounterKey(ip: string): string {
+  return createHash("sha256").update(`ip-counter:${ip}`).digest("hex").slice(0, 32);
+}
 
 // REQ-219 (FAIL-1102): Google sign-ins per IP address (the route's own check
 // before the token is verified), as register limits sign-ups per IP.

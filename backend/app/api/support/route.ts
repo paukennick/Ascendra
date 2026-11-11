@@ -36,7 +36,7 @@ function trimmedString(value: unknown, max: number): string | null {
 // GET /api/support — the caller's own submissions, newest first.
 export async function GET(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const rows = await query(
       `select id, kind, subject, body, status, track_id, course_name, course_source_url,
               objective_id, lesson_stage, admin_note, created_at, updated_at
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
 // POST /api/support — { kind, subject, body, trackId?, courseName?, courseSourceUrl? }
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const payload = await readJson(req);
 
     const kind = payload?.kind as Kind;

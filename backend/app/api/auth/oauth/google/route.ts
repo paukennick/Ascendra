@@ -6,7 +6,7 @@ import { createLoginChallenge } from "@/lib/auth/mfaChallenge";
 import { mfaStepRequired } from "@/lib/auth/mfaMethodOff";
 import { completeLogin } from "@/lib/auth/session";
 import { sessionResponse } from "@/lib/auth/refreshCookie";
-import { recordAuthEvent, consumeRateLimit, RateLimitError, GOOGLE_SIGNIN_IP_LIMIT } from "@/lib/auth/rateLimit";
+import { recordAuthEvent, consumeRateLimit, RateLimitError, GOOGLE_SIGNIN_IP_LIMIT, ipCounterKey } from "@/lib/auth/rateLimit";
 import { sendSecurityAlertEmail } from "@/lib/email";
 import { emailFailureHandler } from "@/lib/email-errors";
 import { getClientIp, getUserAgent } from "@/lib/auth/util";
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     const ip = getClientIp(req);
     if (ip) {
       try {
-        await consumeRateLimit("oauth_google", ip, GOOGLE_SIGNIN_IP_LIMIT, { ip });
+        await consumeRateLimit("oauth_google", ipCounterKey(ip), GOOGLE_SIGNIN_IP_LIMIT);
       } catch (err) {
         if (err instanceof RateLimitError) return tooManyRequests("Too many sign-in attempts from this network. Try again in a few minutes.");
         throw err;

@@ -14,6 +14,7 @@ import { randomUUID } from "node:crypto";
 import { generate as totpGenerate } from "otplib";
 import { query, queryOne, closePool } from "./db";
 import { closeOwner } from "./test-owner";
+import { __setTermsEnforcementForTest } from "./auth/requireUser";
 import { hashPassword } from "./auth/passwords";
 import { encrypt } from "./auth/crypto";
 import { signAccessToken, createRefreshToken } from "./auth/tokens";
@@ -23,6 +24,7 @@ import { POST as mfaDisable } from "../app/api/auth/mfa/disable/route";
 import { POST as emailMfaDisable } from "../app/api/auth/mfa/email/disable/route";
 import { POST as login } from "../app/api/auth/login/route";
 
+__setTermsEnforcementForTest(true);
 const testPw = (s: string) => s;
 const PW = testPw("Correct-Horse-219");
 const SEED = "JBSWY3DPEHPK3PXP".repeat(2);
