@@ -227,7 +227,7 @@ Every setting the server code reads, by name and purpose. Values live only in Ve
 | Setting | Purpose |
 |---|---|
 | `SIMS_ENABLED` | Shows sims (off by default) |
-| `SIMS_RENDERERS` | Which sim screen types are on (default `bedside,board`) |
+| `SIMS_RENDERERS` | Which sim screen types are on (default `bedside,board,session`; `lib/sim/server-run.ts` `DEFAULT_RENDERERS`) |
 | `SIMS_SERVE_UNREVIEWED`, `LABS_SERVE_UNREVIEWED` | Serve sims and labs before review (on by default) |
 | `SERVICE_EMAILS_ENABLED` | Turns on the service emails (off until the privacy text covers them) |
 | `SERVICE_EMAIL_BATCH`, `DIGEST_EMAIL_FROM`, `MAIL_POSTAL_ADDRESS` | Service email batch size, digest sender and footer address |
@@ -336,7 +336,7 @@ The README's former feature list, kept here because it names settings, files and
 
 **Simulations (sims)**
 
-- A scenario that runs on a real clock and reacts to what you do, then scores the outcome and your process and gives a debrief. Two are live: **tamponade after cardiac surgery** (CCRN Adult, on a bedside monitor, with a code/ACLS module) and **TicketBurst launch day** (AWS Solutions Architect Associate, with a Professional-level band, on a design board).
+- A scenario that runs on a real clock and reacts to what you do, then scores the outcome and your process and gives a debrief. Eleven scenarios are seeded (`backend/lib/sim/documents.ts` `ALL_DOCUMENTS`, sims wave 1 in #134): five CCRN Adult bedside cases (**tamponade after cardiac surgery**, with a code/ACLS module, sepsis, DKA, stroke and post-Whipple bleeding), two CNA bedside cases, three EPPP client sessions on the `session` screen, and **TicketBurst launch day** (AWS Solutions Architect Associate, on a design board) with a Professional-level band registered to the AWS SAP course.
 - **Pacing for clinical and body sims:** Study pace (3x) by default, Exam realism (1x) on request, a focused start near the deterioration, a "Skip to the next change" offer when nothing is happening, unscored prediction prompts with sources, and chapters you can save and finish on another device. IT, cloud and project-management sims move only when you act.
 - Every command is saved on the device before it is sent, so killing the app loses nothing. Design and details: [docs/sims.md](sims.md).
 
