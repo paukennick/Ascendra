@@ -13,7 +13,11 @@ import { query, queryOne } from "@/lib/db";
 // claim older than CLAIM_EXPIRY_SECONDS (a process that died mid-grade) is
 // taken over. No database connection is held while the model runs.
 
-export const CLAIM_EXPIRY_SECONDS = 120;
+// REQ-216 (low, FAIL-1022): above the longest grading route's maxDuration (the
+// PBQ route, 180 s). At 120 s a claim expired while a slow but live grade was
+// still running, a second copy took it over and called the model again. A
+// process that died mid-grade still frees the claim, only after this.
+export const CLAIM_EXPIRY_SECONDS = 200;
 export const CLAIM_WAIT_MS = 30_000;
 export const CLAIM_POLL_MS = 200;
 

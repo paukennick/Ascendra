@@ -2,6 +2,9 @@ import bcrypt from "bcryptjs";
 
 const SALT_ROUNDS = 12;
 
+// The longest password any route accepts (register, change, reset). REQ-219.
+export const MAX_PASSWORD_LENGTH = 1024;
+
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
 }

@@ -39,7 +39,10 @@
   branch made required is satisfied by every call site the other added (FAIL-966); a
   migration that adds roles, grants or other things a database dump does not
   hold names the step that restores them, and the restore drill runs it
-  (FAIL-897); and a
+  (FAIL-897) on a cluster that has never had the role, because roles belong
+  to the cluster and the source's own cluster hides the gap (FAIL-1160;
+  backend/scripts/restore/); a setting the code reads is in
+  backend/.env.example and, if operational, in the runbook (FAIL-1163); and a
   field one branch reads as "who is charged" and another as "whose scope" is
   split, not shared (FAIL-967); and when one branch changes how a screen is
   entered (REQ-206: the MFA and verify-email handoffs), every caller another
@@ -65,7 +68,10 @@
   sameAttempt); request bodies go through readJson, learner text through
   textField before any model call, and client-supplied ids through
   lib/visibility.ts; anything that mails an address the caller typed goes
-  through mayEmail and escapes it.
+  through mayEmail and escapes it; an emailed sign-in code goes through
+  mayEmailSignInCode, its own per-address budget, so mail anyone can trigger
+  (reset, verification) can't use up the one the learner needs to get in, nor
+  the reverse (REQ-226, FAIL-1240).
 - AI-layer changes (REQ-115, FAIL-290..307): text a learner or course author
   wrote goes into a prompt only escaped (`escapeLearnerText`, `fenceLearnerText`,
   `quoteTitle`), never stripped; a recorded verdict goes through
@@ -120,9 +126,21 @@
   generation still installed can accept its own version, recorded as sent, and
   its launch gate is satisfied by it; a build declaring the current version
   must accept the current one (that is how an updated app is asked once).
-  At the next bump move the old `LEGAL_VERSIONS` into
-  `PREVIOUS_LEGAL_VERSIONS` and leave `UNDECLARED_LEGAL_VERSIONS` and
+  At the next bump push the old `PREVIOUS_LEGAL_VERSIONS` onto the front of
+  `EARLIER_LEGAL_VERSIONS`, then move the old `LEGAL_VERSIONS` into
+  `PREVIOUS_LEGAL_VERSIONS` (REQ-219, FAIL-1108: builds that declared the
+  older one must not be stranded), and leave `UNDECLARED_LEGAL_VERSIONS` and
   `LEGACY_LEGAL_VERSIONS` frozen; a mobile test checks `TERMS_VERSION`.
+  REQ-219 (FAIL-1109): the server enforces agreement in `requireUser` (403
+  `terms_required`, per the same header rules; the app's client hands it to
+  the onboarding provider, which reloads the launch state so the Terms screen
+  opens, REQ-226 FAIL-1241 -- a refusal code the server adds for a state the
+  launch gate owns gets a client hook in the same change). A new signed-in route is
+  enforced by default; one a person needs in order to agree, leave or ask for
+  help passes `{ termsOptional: true }` and is added to the list in
+  lib/terms-enforcement.dbtest.ts. Integration suites run with enforcement off
+  (`--import ./lib/test-setup.ts` in `test:db` and
+  scripts/ci/db-tests-as-runtime.sh); a test of enforcement turns it on.
 - Legal and privacy text (REQ-205, FAIL-900..912): a sentence about what is
   kept, deleted or sent matches the code, the inventory
   (docs/legal/data-inventory.md, which a DB test checks names every table with
@@ -131,6 +149,13 @@
   learner text to the model calls `requireStudyNotice` (lib/study-notice.ts).
   No bracketed placeholder ships in legal text, and the contact address is the
   `support-contact.ts` constant.
+- Mature content (REQ-224, FAIL-1200): a route that opens, starts or teaches
+  a course goes through `requireAcknowledgementFor*` or `startableTrack`, so
+  a mental health course is refused without the 18+ confirmation
+  (lib/mature-content.ts) with 403 `mature_content_required`; a new mature
+  category is added to `MATURE_CATEGORIES`, 077's check and the app's list
+  together. A 403 the learner can act on carries a stable `code` (pass
+  `err.extra` to `forbidden`).
 - A 401 that means "what you typed is wrong" (a reauth refusal) carries
   `reauthRequired: true`; the app never refreshes and resends it (REQ-177,
   FAIL-562). A lock or sign-out added to the app keeps in-progress screens
@@ -147,6 +172,15 @@
   whenever the account has one (`hasReauthProof`, then `checkReauth`), not
   only when MFA is on, mails the account address when a method is added, and ends other sessions
   (`endOtherSessions`) in the same transaction (the Google link, FAIL-871).
+  REQ-219 (FAIL-1100..1118): a decision about one method needing another
+  (the last two-factor method) is made and written in one transaction with the
+  row locked (`turnOffMfaMethod`); a code accepted once is spent atomically
+  (`spendTotpCode`); a per-IP limit stores a hash of the address
+  (`ipCounterKey`), since account deletion removes every row holding an IP;
+  a rejected third-party token is a 4xx and not reported; nothing from a
+  URL beyond its path goes to the error tracker (`routeOnly`); a replayed
+  webhook delivery is recorded by id; a credential change spends reset links
+  and sign-in challenges in the same transaction.
   A guess limit counts wrong answers: spend the budget while checking
   (`consumeRateLimit`), give a correct one back (`refundRateLimit`). A
   single-use code gets a try limit and is dropped after the last miss. Writes
@@ -199,6 +233,42 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
+- Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
+  generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
+  a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
+  `verdictUnchecked`, `steerText`): it is held back ONLY on the writer's low
+  confidence or a fact-check that disagrees with the key; claims it lists are
+  logged (`noteListedClaims`), never blocking; it is written once more steered
+  with the claims; held twice, the learner gets a 409 whose words name the
+  reason. A failed fact-check CALL is retryable and is never a holdback or a
+  cooldown. A `UserFacingError` is always a 4xx (lib/generation-gate.test.ts
+  scans every throw site), and the app keeps the server's words for 502/503.
+  A counted use is released with `releaseOnce` on every path that stores
+  nothing. A route that calls the model for a replayable id takes a
+  `withGradingClaim` first.
+- Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
+  writes the biometric-sealed key (Android prompts for every write); it is
+  written at sign-in, unlock and when the app goes to the background, and a
+  failed seal keeps the session on the plain key, never signs out. Only a 401
+  from `/api/auth/refresh` signs the device out; any other failure keeps the
+  token and shows a retry. Only signed-out `/api/auth/` routes are exempt from
+  refresh-and-retry (`isSignedOutAuthRoute`, src/lib/sessionStore.ts); a new
+  signed-out route is added there. A request that ends other sessions reports
+  success only on a 200. A client id sent for replay is kept in a ref until the
+  request succeeds (`pendingIdFor`). A screen a learner can leave with the back
+  gesture flushes its work through a `beforeRemove` guard. A button that throws
+  work away asks first. A catch on a load shows the error, never an empty state.
+- Sim documents (REQ-227, FAIL-1222): a scenario is stored as jsonb, which does
+  not keep object key order, so a result may never depend on the key order of
+  a map. A document with two or more endings that have a `when` declares
+  `endingOrder` (engine minor 2) and the minor it needs; the order is never
+  left to the order the file was written in. `npm run sims:lint` errors when a
+  document without it ends a golden path differently in written, reversed or
+  jsonb key order, and `lib/sim/storage-order.test.ts` replays every seeded
+  document that way. A new engine feature that adds a field is a new minor and
+  is added to the documents' declared minor; an app still on the older minor is
+  told to update, so say so in the change notes. Maps the engine still reads
+  in key order (`teaching`, FAIL-1250) are listed in docs/sims.md 22.6.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.
@@ -208,6 +278,14 @@
 - Any rule, playbook or checklist that should have prevented a failure was
   changed in this task.
 - Docs updated when behavior or workflow changed.
+- Ship notes (REQ-228): a change learners can see or feel updates "What's
+  new" (backend/lib/release-notes.ts) in the same PR, or its CHANGELOG entry
+  says why not ("No What's new: ..."); and every in-app text that describes
+  the changed behavior (FAQ and About in mobile/src/content/legal.ts, lesson
+  and course copy, notices, emails, the coach's prompt) and every doc that
+  describes it is updated too. Mark the CHANGELOG entry `(learner-facing)`;
+  lib/ship-notes.test.ts fails CI when a marked entry has no note. See
+  .ai/playbooks/release.md "Ship notes".
 - Changelog updated when public release notes are desired.
 - Local-only notes remain ignored.
 - Risks and follow-ups are stated.

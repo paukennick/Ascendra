@@ -86,17 +86,17 @@ export const GCPNET_LABS: SeedLabSet = {
       objective:
         "Designing hybrid connectivity: on-premises/branch office, bandwidth and security constraints, Dedicated Interconnect, Partner Interconnect, Cloud VPN, SD-WAN appliances",
       kind: "case",
-      title: "Choose the hybrid link for a data centre and twelve branches",
+      title: "Choose the hybrid link for a data center and twelve branches",
       brief:
-        "Halverson Health Supplies (fictional) has one data centre in a colocation facility that also hosts Google's Dedicated Interconnect, and twelve small branch offices on broadband with an existing SD-WAN. Workloads move to us-central1. The data centre will send about 6 Gbps steadily to Cloud, with nightly peaks of 15 Gbps; branches need under 50 Mbps each.",
+        "Halverson Health Supplies (fictional) has one data center in a colocation facility that also hosts Google's Dedicated Interconnect, and twelve small branch offices on broadband with an existing SD-WAN. Workloads move to us-central1. The data center will send about 6 Gbps steadily to Cloud, with nightly peaks of 15 Gbps; branches need under 50 Mbps each.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "The architect asks for the connectivity design for the data centre and the branches.",
-          ask: "Which connection type do you choose for the data centre and for the branches, and why?",
+          text: "The architect asks for the connectivity design for the data center and the branches.",
+          ask: "Which connection type do you choose for the data center and for the branches, and why?",
           parts: [
             part(
-              "Data centre",
+              "Data center",
               "Chooses Dedicated Interconnect (the facility is a Google colocation point and sustained multi-Gbps traffic fits 10 Gbps circuits) over Cloud VPN, and sizes circuits for the 15 Gbps peak (two 10 Gbps or larger).",
               "Dedicated Interconnect: Google is present in the same facility and the load (6 Gbps steady, 15 Gbps peaks) is beyond what a few VPN tunnels comfortably carry. At least two 10 Gbps connections cover the peak, more for redundancy."
             ),
@@ -108,7 +108,7 @@ export const GCPNET_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Security now says the data centre traffic includes regulated records and must be encrypted in transit, and leadership wants the link to meet a 99.99% availability target.",
+          text: "Security now says the data center traffic includes regulated records and must be encrypted in transit, and leadership wants the link to meet a 99.99% availability target.",
           ask: "How do you meet the encryption and the availability requirements?",
           parts: [
             part(
@@ -305,7 +305,7 @@ export const GCPNET_LABS: SeedLabSet = {
       kind: "build",
       title: "Turn a 99.9% Interconnect into a 99.99% one",
       brief:
-        "Tamsworth Bank (fictional) has two Dedicated Interconnect connections in the Ashburn metro, one in each edge availability domain, with VLAN attachments to a Cloud Router in us-east4. The VPC uses regional dynamic routing. It has a second data centre near Chicago, where Google also offers Dedicated Interconnect, and workloads in us-east4 and us-central1. The regulator now requires a 99.99% target for the link.",
+        "Tamsworth Bank (fictional) has two Dedicated Interconnect connections in the Ashburn metro, one in each edge availability domain, with VLAN attachments to a Cloud Router in us-east4. The VPC uses regional dynamic routing. It has a second data center near Chicago, where Google also offers Dedicated Interconnect, and workloads in us-east4 and us-central1. The regulator now requires a 99.99% target for the link.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -330,7 +330,7 @@ export const GCPNET_LABS: SeedLabSet = {
             part(
               "On-premises side",
               "States that the on-premises routers must be redundant and advertise/accept routes so traffic can fail over between metros (for example with MED/AS-path preferences), and that a failover test is needed.",
-              "Use separate on-premises routers per connection, advertise the same prefixes from both data centres with MED or AS-path prepending to prefer Ashburn, and run a failover test by disabling one metro's sessions."
+              "Use separate on-premises routers per connection, advertise the same prefixes from both data centers with MED or AS-path prepending to prefer Ashburn, and run a failover test by disabling one metro's sessions."
             ),
           ],
         },
@@ -363,7 +363,7 @@ export const GCPNET_LABS: SeedLabSet = {
         },
         {
           text: "Both tunnels are up and both BGP sessions established. Monitoring shows all traffic on tunnel-0; when tunnel-0 was taken down in a test, traffic took 90 seconds to move.",
-          ask: "Is the active/passive behaviour a problem, and how do you speed up failover?",
+          ask: "Is the active/passive behavior a problem, and how do you speed up failover?",
           parts: [
             part(
               "Active/passive",
@@ -419,8 +419,8 @@ export const GCPNET_LABS: SeedLabSet = {
             ),
             part(
               "Learned route limits",
-              "Recognises that Cloud Router enforces a limit on learned dynamic routes per region per VPC and that excess prefixes are dropped, and fixes by summarising on premises (or checking the current limit on the quotas page).",
-              "Cloud Router has a limit on the number of dynamic routes it can learn per region and VPC; beyond it, prefixes are dropped. Summarise on premises (advertise aggregates instead of 900 specifics) and check the current limit on the quotas page rather than assuming a number."
+              "Recognizes that Cloud Router enforces a limit on learned dynamic routes per region per VPC and that excess prefixes are dropped, and fixes by summarizing on premises (or checking the current limit on the quotas page).",
+              "Cloud Router has a limit on the number of dynamic routes it can learn per region and VPC; beyond it, prefixes are dropped. Summarize on premises (advertise aggregates instead of 900 specifics) and check the current limit on the quotas page rather than assuming a number."
             ),
           ],
         },
@@ -525,7 +525,7 @@ export const GCPNET_LABS: SeedLabSet = {
           parts: [
             part(
               "Distributed attack",
-              "Recognises per-IP rate limiting cannot stop a low-and-slow distributed attack and adds other controls: reCAPTCHA Enterprise / bot management, or a rate limit keyed on another value Cloud Armor supports (for example an HTTP header or cookie the client sends), plus Adaptive Protection alerts.",
+              "Recognizes per-IP rate limiting cannot stop a low-and-slow distributed attack and adds other controls: reCAPTCHA Enterprise / bot management, or a rate limit keyed on another value Cloud Armor supports (for example an HTTP header or cookie the client sends), plus Adaptive Protection alerts.",
               "Per-IP limits don't catch 5 requests per IP. Add bot management (a reCAPTCHA Enterprise challenge on /api/login) and a second rate limit keyed on the app's device or session cookie (enforce-on-key HTTP_COOKIE); enable Adaptive Protection to flag the pattern."
             ),
             part(

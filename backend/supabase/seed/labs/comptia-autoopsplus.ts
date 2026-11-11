@@ -92,7 +92,7 @@ export const AUTOOPSPLUS_LABS: SeedLabSet = {
             part(
               "Classifying and fixing",
               "Identifies a syntax error in the YAML (a tab character at line 14 where YAML requires spaces for indentation), fixes it by replacing the tab with the correct number of spaces so the list item aligns with the previous '- uses' entry, and notes nothing executed, which is how syntax errors differ from runtime errors.",
-              "A syntax error: YAML forbids tabs for indentation, and line 14 starts with a tab, so the parser stops before the workflow runs at all. Fix: replace the leading tab with spaces so '- name: Install dependencies' lines up under '- uses: actions/checkout@v4' (six spaces in this file). Because the file could not be parsed, no job ran -- the error is in the text, not in the behaviour."
+              "A syntax error: YAML forbids tabs for indentation, and line 14 starts with a tab, so the parser stops before the workflow runs at all. Fix: replace the leading tab with spaces so '- name: Install dependencies' lines up under '- uses: actions/checkout@v4' (six spaces in this file). Because the file could not be parsed, no job ran -- the error is in the text, not in the behavior."
             ),
             part(
               "Catching it earlier",
@@ -266,13 +266,13 @@ export const AUTOOPSPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "Reads 401 with 'token expired' as an authentication failure (not authorisation, which would be 403), and spots that the host's clock is not synchronised -- a skewed clock makes tokens appear expired early (or not yet valid) -- combined with a token minted too close to its lifetime for a long-running job.",
-              "401 means the request was not authenticated: the provider says the bearer token has expired. Two contributing causes: the token was already 55 minutes into a 60-minute life when the job reached this step, and the host's clock is not synchronised, so if it runs even a few minutes fast the provider sees a token past its expiry while the job thinks it has time left. (A 403 would have meant a valid identity without permission.)"
+              "Reads 401 with 'token expired' as an authentication failure (not authorization, which would be 403), and spots that the host's clock is not synchronized -- a skewed clock makes tokens appear expired early (or not yet valid) -- combined with a token minted too close to its lifetime for a long-running job.",
+              "401 means the request was not authenticated: the provider says the bearer token has expired. Two contributing causes: the token was already 55 minutes into a 60-minute life when the job reached this step, and the host's clock is not synchronized, so if it runs even a few minutes fast the provider sees a token past its expiry while the job thinks it has time left. (A 403 would have meant a valid identity without permission.)"
             ),
             part(
               "Robust fix",
               "Fixes time sync (enable chrony/NTP, confirm synchronized: yes), has the job obtain a fresh token at the start of the API phase (or refresh on 401 once) rather than reusing one from earlier, uses short-lived credentials issued at run time (workload identity/OIDC) instead of long-lived secrets, and handles 401 explicitly with a single re-auth and clear error.",
-              "Enable and verify time synchronisation (systemctl enable --now chronyd; chronyc tracking; timedatectl shows synchronized: yes) -- tokens, TLS and logs all depend on it. Change the job to request its token immediately before the cloud API calls, and on a 401 refresh once and retry, then fail with a clear message. Prefer the provider's workload identity federation (OIDC from the CI system or a VM identity) so the job gets short-lived credentials at run time and no long-lived key is stored at all."
+              "Enable and verify time synchronization (systemctl enable --now chronyd; chronyc tracking; timedatectl shows synchronized: yes) -- tokens, TLS and logs all depend on it. Change the job to request its token immediately before the cloud API calls, and on a 401 refresh once and retry, then fail with a clear message. Prefer the provider's workload identity federation (OIDC from the CI system or a VM identity) so the job gets short-lived credentials at run time and no long-lived key is stored at all."
             ),
           ],
         },
@@ -401,7 +401,7 @@ export const AUTOOPSPLUS_LABS: SeedLabSet = {
             part(
               "Legacy report generator",
               "Chooses an in-place deployment in the 03:00 maintenance window: stop the service, back up/snapshot, upgrade, start, verify a test job; rollback is restoring the previous package/snapshot; accepts the brief downtime because there is one instance and a window exists; notes the longer-term fix is to make it redundant.",
-              "In-place, inside the documented 03:00 window, since there is one instance, no load balancer and no users at that hour. Steps: announce the window; confirm last night's batch finished; snapshot the VM (or keep the previous package); stop the service; install the new version; start it; run one test report and check the log; close the window. Rollback is reinstalling the previous version or reverting the snapshot. Longer term, containerise it or add a second node so it can move to a rolling or blue-green model."
+              "In-place, inside the documented 03:00 window, since there is one instance, no load balancer and no users at that hour. Steps: announce the window; confirm last night's batch finished; snapshot the VM (or keep the previous package); stop the service; install the new version; start it; run one test report and check the log; close the window. Rollback is reinstalling the previous version or reverting the snapshot. Longer term, containerize it or add a second node so it can move to a rolling or blue-green model."
             ),
             part(
               "Knowing a release is bad",

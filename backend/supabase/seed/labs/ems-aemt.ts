@@ -50,7 +50,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Indication",
-              "Places a supraglottic airway because BVM ventilation is failing to oxygenate despite optimised technique, and the patient has no gag reflex.",
+              "Places a supraglottic airway because BVM ventilation is failing to oxygenate despite optimized technique, and the patient has no gag reflex.",
               "Yes -- two-person BVM isn't oxygenating him and he has no gag. A supraglottic airway."
             ),
             part(
@@ -72,7 +72,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
             part(
               "Handoff",
               "Reports submersion time, initial findings, BVM failure, SGA type, size and time, confirmation method and current EtCO2, SpO2 and pulse.",
-              "'Submerged about 3 minutes, pulse 54 and apnoeic. BVM failed with regurgitation; SGA placed 11:42, confirmed by waveform capnography. Now SpO2 94, EtCO2 50, pulse 96.'"
+              "'Submerged about 3 minutes, pulse 54 and apneic. BVM failed with regurgitation; SGA placed 11:42, confirmed by waveform capnography. Now SpO2 94, EtCO2 50, pulse 96.'"
             ),
           ],
         },
@@ -80,7 +80,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
     },
     {
       slug: "aemt-asthma-nebs-cpap",
-      objective: "Manage asthma and COPD exacerbations with nebulised bronchodilators and CPAP within AEMT scope",
+      objective: "Manage asthma and COPD exacerbations with nebulized bronchodilators and CPAP within AEMT scope",
       kind: "case",
       title: "Tight chest after the cold run",
       brief:
@@ -93,8 +93,8 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Bronchodilators",
-              "Gives nebulised albuterol 5 mg with ipratropium 0.5 mg (repeat albuterol as needed for ongoing distress), and oxygen to SpO2 94-98%.",
-              "Albuterol 5 mg with ipratropium 0.5 mg nebulised, repeated as needed; oxygen to 94-98%."
+              "Gives nebulized albuterol 5 mg with ipratropium 0.5 mg (repeat albuterol as needed for ongoing distress), and oxygen to SpO2 94-98%.",
+              "Albuterol 5 mg with ipratropium 0.5 mg nebulized, repeated as needed; oxygen to 94-98%."
             ),
             part(
               "Paramedic support",
@@ -104,12 +104,12 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "After two nebulisers her wheeze is quieter but she is tiring: respirations 34, SpO2 89%, EtCO2 now 52 mm Hg and rising.",
-          ask: "Analyse the change and decide what to do.",
+          text: "After two nebulizers her wheeze is quieter but she is tiring: respirations 34, SpO2 89%, EtCO2 now 52 mm Hg and rising.",
+          ask: "Analyze the change and decide what to do.",
           parts: [
             part(
               "Analysis",
-              "Recognises that a quieter chest with rising EtCO2 and falling saturation means worsening air movement and fatigue -- impending respiratory failure -- not improvement.",
+              "Recognizes that a quieter chest with rising EtCO2 and falling saturation means worsening air movement and fatigue -- impending respiratory failure -- not improvement.",
               "Quieter wheeze with a rising CO2 is a bad sign: she's tiring and moving less air."
             ),
             part(
@@ -174,7 +174,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
     },
     {
       slug: "aemt-nitro-or-not",
-      objective: "Recognise when a nitrate is contraindicated or risky: hypotension, a marginal blood pressure and recent phosphodiesterase-inhibitor use",
+      objective: "Recognize when a nitrate is contraindicated or risky: hypotension, a marginal blood pressure and recent phosphodiesterase-inhibitor use",
       kind: "case",
       title: "Chest pressure and a low pressure",
       brief:
@@ -203,8 +203,8 @@ export const NREMTAEMT_LABS: SeedLabSet = {
             ),
             part(
               "Destination",
-              "Transports to the PCI-capable centre that has activated its cath lab, with STEMI notification, symptom-onset time and treatments given.",
-              "Straight to the PCI centre with a STEMI alert: onset 30 minutes before arrival, aspirin given, nitro withheld for hypotension."
+              "Transports to the PCI-capable center that has activated its cath lab, with STEMI notification, symptom-onset time and treatments given.",
+              "Straight to the PCI center with a STEMI alert: onset 30 minutes before arrival, aspirin given, nitro withheld for hypotension."
             ),
           ],
         },
@@ -218,7 +218,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
       kind: "case",
       title: "Pinned against a loading dock",
       brief:
-        "Fictional call. A 45-year-old warehouse worker was crushed between a truck and a loading dock. He is pale, anxious and complains of severe pelvic pain. Pulse 128, BP 84/56, respirations 26, SpO2 95%. No external bleeding. The Level I trauma centre is 25 minutes away.",
+        "Fictional call. A 45-year-old warehouse worker was crushed between a truck and a loading dock. He is pale, anxious and complains of severe pelvic pain. Pulse 128, BP 84/56, respirations 26, SpO2 95%. No external bleeding. The Level I trauma center is 25 minutes away.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -226,14 +226,14 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           ask: "What do you suspect, and what are your first actions?",
           parts: [
             part(
-              "Impression and stabilisation",
+              "Impression and stabilization",
               "Suspects pelvic fracture with internal hemorrhage and hemorrhagic shock; applies a pelvic binder over the greater trochanters, avoids repeated pelvic manipulation, and moves with minimal log-rolling.",
               "Pelvic fracture bleeding inside -- he's in shock. Pelvic binder over the hips, no more pelvic exams, and move him carefully."
             ),
             part(
               "Destination",
-              "Recognises red field-triage criteria (suspected pelvic fracture, HR greater than SBP) and transports to the highest-level trauma centre, establishing IV access en route.",
-              "Suspected pelvic fracture and a pulse higher than his systolic: red criteria. Level I trauma centre, IVs on the way."
+              "Recognizes red field-triage criteria (suspected pelvic fracture, HR greater than SBP) and transports to the highest-level trauma center, establishing IV access en route.",
+              "Suspected pelvic fracture and a pulse higher than his systolic: red criteria. Level I trauma center, IVs on the way."
             ),
           ],
         },
@@ -248,7 +248,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
             ),
             part(
               "Beyond scope",
-              "Recognises that blood products and tranexamic acid, which may help, are not AEMT medications, and requests a paramedic intercept or air medical if it will not delay arrival at the trauma centre.",
+              "Recognizes that blood products and tranexamic acid, which may help, are not AEMT medications, and requests a paramedic intercept or air medical if it will not delay arrival at the trauma center.",
               "TXA and blood would help but aren't ours; a paramedic or air intercept only if it doesn't slow us down."
             ),
           ],
@@ -327,8 +327,8 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Repeat and fluids",
-              "Repeats IM epinephrine (every 5-15 minutes for persistent hypoperfusion), gives a rapid isotonic fluid bolus of 20 mL/kg (about 1.4 L) IV, and nebulised albuterol for the wheeze.",
-              "A second 0.3 mg IM, a 20 mL/kg fluid bolus -- about 1.4 litres -- run in fast, and albuterol for the wheeze."
+              "Repeats IM epinephrine (every 5-15 minutes for persistent hypoperfusion), gives a rapid isotonic fluid bolus of 20 mL/kg (about 1.4 L) IV, and nebulized albuterol for the wheeze.",
+              "A second 0.3 mg IM, a 20 mL/kg fluid bolus -- about 1.4 liters -- run in fast, and albuterol for the wheeze."
             ),
             part(
               "Escalation",
@@ -396,7 +396,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
       kind: "build",
       title: "Hand over to the paramedic intercept",
       brief:
-        "Fictional call. You are an AEMT. 16:02 contact with a 64-year-old woman with sudden shortness of breath and wheeze, history of COPD, no allergies. 16:04 pulse 118, BP 150/90, respirations 32, SpO2 86%, EtCO2 48 mm Hg. 16:06 albuterol 5 mg with ipratropium 0.5 mg nebulised. 16:12 IV 18 g left forearm, saline lock. 16:14 CPAP started. 16:16 albuterol 5 mg repeated in-line. 16:20 pulse 106, BP 142/86, respirations 24, SpO2 92%, EtCO2 44 mm Hg. The paramedic unit meets you at 16:22.",
+        "Fictional call. You are an AEMT. 16:02 contact with a 64-year-old woman with sudden shortness of breath and wheeze, history of COPD, no allergies. 16:04 pulse 118, BP 150/90, respirations 32, SpO2 86%, EtCO2 48 mm Hg. 16:06 albuterol 5 mg with ipratropium 0.5 mg nebulized. 16:12 IV 18 g left forearm, saline lock. 16:14 CPAP started. 16:16 albuterol 5 mg repeated in-line. 16:20 pulse 106, BP 142/86, respirations 24, SpO2 92%, EtCO2 44 mm Hg. The paramedic unit meets you at 16:22.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -431,7 +431,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
     // ---- Clinical Judgment (3) ----
     {
       slug: "aemt-ams-fever-hypotension",
-      objective: "Analyse cues to choose among competing hypotheses in a patient with altered mental status",
+      objective: "Analyze cues to choose among competing hypotheses in a patient with altered mental status",
       kind: "case",
       title: "Confused, hot and low",
       brief:
@@ -444,7 +444,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Hypotheses",
-              "Ranks sepsis (likely urinary source) first from fever, tachycardia, tachypnoea, hypotension and new confusion; considers stroke less likely (no focal deficit, glucose normal), and other causes such as dehydration.",
+              "Ranks sepsis (likely urinary source) first from fever, tachycardia, tachypnea, hypotension and new confusion; considers stroke less likely (no focal deficit, glucose normal), and other causes such as dehydration.",
               "Sepsis from a urinary infection first: fever, fast pulse and breathing, low pressure, new confusion. Stroke is less likely -- no focal signs and a normal glucose."
             ),
           ],
@@ -466,7 +466,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Re-evaluate",
-              "Recognises partial response and new crackles as possible fluid overload, pauses further boluses, reassesses breathing and SpO2, and requests a paramedic or expedites transport for vasopressor-level care.",
+              "Recognizes partial response and new crackles as possible fluid overload, pauses further boluses, reassesses breathing and SpO2, and requests a paramedic or expedites transport for vasopressor-level care.",
               "She's a little better, but new crackles mean I stop the fluid, watch her breathing, and get her to definitive care fast -- she may need vasopressors I can't give."
             ),
           ],
@@ -510,7 +510,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Evaluate and report",
-              "Recognises worsening shock, gives a further bolus per protocol, prepares to support the airway, and updates the hospital with the deterioration so surgery is ready.",
+              "Recognizes worsening shock, gives a further bolus per protocol, prepares to support the airway, and updates the hospital with the deterioration so surgery is ready.",
               "She's worse: another bolus, airway ready, and a radio update -- 'possible ruptured ectopic, pulse 138, now drowsy, ETA 6 minutes, need surgery ready.'"
             ),
           ],
@@ -523,7 +523,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
       kind: "case",
       title: "Stab wound and a failing chest",
       brief:
-        "Fictional call. A 30-year-old man was stabbed in the right chest. You cover the wound with a vented chest seal. Minutes later he is agitated and very short of breath. Pulse 136, BP 78/50, respirations 36, SpO2 84%; breath sounds are absent on the right and his neck veins are distended. The trauma centre is 15 minutes away; a paramedic unit can meet you in 5 minutes.",
+        "Fictional call. A 30-year-old man was stabbed in the right chest. You cover the wound with a vented chest seal. Minutes later he is agitated and very short of breath. Pulse 136, BP 78/50, respirations 36, SpO2 84%; breath sounds are absent on the right and his neck veins are distended. The trauma center is 15 minutes away; a paramedic unit can meet you in 5 minutes.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -532,12 +532,12 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises tension pneumothorax (absent breath sounds, distended neck veins, hypotension, hypoxia).",
+              "Recognizes tension pneumothorax (absent breath sounds, distended neck veins, hypotension, hypoxia).",
               "Tension pneumothorax on the right."
             ),
             part(
               "Within scope",
-              "Burps or briefly lifts the chest seal to release trapped air, gives high-flow oxygen and assists ventilation if needed, and recognises that needle decompression is paramedic scope, not AEMT scope.",
+              "Burps or briefly lifts the chest seal to release trapped air, gives high-flow oxygen and assists ventilation if needed, and recognizes that needle decompression is paramedic scope, not AEMT scope.",
               "Lift the edge of the chest seal to let the air out, high-flow oxygen, assist his breathing if he tires. Needle decompression isn't in my scope."
             ),
           ],
@@ -548,7 +548,7 @@ export const NREMTAEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Begins transport immediately and meets the paramedic unit en route (rendezvous) rather than waiting on scene, because the intercept can be gained without delaying the trauma centre and the patient needs decompression and surgery.",
+              "Begins transport immediately and meets the paramedic unit en route (rendezvous) rather than waiting on scene, because the intercept can be gained without delaying the trauma center and the patient needs decompression and surgery.",
               "Go now and rendezvous with the paramedics on the way -- that gets him decompressed sooner without holding him on scene."
             ),
             part(

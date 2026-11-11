@@ -8,7 +8,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
 import { checkDocument } from "./lint.ts";
-import { canonicalJson, clientDocument } from "./content-hash.ts";
+import { addMonths, canonicalJson, clientDocument, earliestRecheck } from "./content-hash.ts";
 import type { ScenarioDoc } from "./engine/v1/types.ts";
 
 describe("seeded sim documents pass the linter", () => {
@@ -71,6 +71,26 @@ describe("client document leaks nothing server-only", () => {
       for (const s of serverOnlyStrings(doc)) assert.ok(!text.includes(JSON.stringify(s).slice(1, -1)), `${name}: server-only text reaches the client: ${s.slice(0, 60)}`);
       // everything the app needs to run is still there
       for (const k of ["state", "derived", "processes", "phases", "actions", "timers", "triggers", "endings", "outcome", "clock", "params"] as const) assert.ok(k in client, `${name}: client document lost ${k}`);
+    });
+  }
+});
+
+// REQ-223 (FAIL-1190): a source checked on the 29th-31st must not produce an
+// impossible re-check date; Postgres refused 2027-04-31 and the seed stopped.
+describe("source re-check dates are real calendar dates", () => {
+  test("addMonths clamps to the end of the target month", () => {
+    assert.equal(addMonths("2026-10-31", 6), "2027-04-30");
+    assert.equal(addMonths("2027-08-31", 6), "2028-02-29");
+    assert.equal(addMonths("2026-11-10", 6), "2027-05-10");
+    assert.equal(addMonths("2026-01-31", 12), "2027-01-31");
+  });
+  for (const e of ALL_DOCUMENTS) {
+    test(`${e.course}/${e.slug}: earliest re-check date parses`, () => {
+      for (const months of [6, 12]) {
+        const d = earliestRecheck(loadDocument(e), months);
+        if (d === null) continue;
+        assert.equal(new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10), d, `${d} is a real date`);
+      }
     });
   }
 });

@@ -30,11 +30,11 @@ function text(run: Run, tpl: string): string {
 
 const UNIT_WORDS: Record<string, string> = {
   "/min": "per minute",
-  mmHg: "millimetres of mercury",
+  mmHg: "millimeters of mercury",
   "%": "percent",
-  "mL/h": "millilitres per hour",
-  "L/min/m2": "litres per minute per square metre",
-  "mL/15min": "millilitres in 15 minutes",
+  "mL/h": "milliliters per hour",
+  "L/min/m2": "liters per minute per square meter",
+  "mL/15min": "milliliters in 15 minutes",
   mL: "millilitres",
   $: "dollars",
 };
@@ -127,6 +127,101 @@ export function boardViews(run: Run): { zones: ZoneView[]; meters: { id: string;
   return { zones, meters };
 }
 
+// REQ-225 (docs/sims.md 8.2, 13, 20.2): the client session, the people
+// layer. Each gauge is one value read in words from its authored bands
+// ("Rapport: warming, 4 of 10"); notes are what the clinician knows so far,
+// an `alert` note is spoken at once like an alarm; the record is the
+// documentation so far. All of it is read from the document's bindings.
+export interface GaugeView {
+  id: string;
+  label: string;
+  spokenLabel: string;
+  value: number | null;
+  max: number;
+  word: string;
+  fraction: number; // 0..1, for the bar
+  a11y: string;
+}
+
+export interface NoteView {
+  id: string;
+  label: string;
+  text: string;
+  alert: boolean;
+  a11y: string;
+}
+
+export interface SessionView {
+  name: string;
+  presentation: string;
+  gauges: GaugeView[];
+  notes: NoteView[];
+  record: { label: string; items: string[] } | null;
+}
+
+type Gauge = NonNullable<ScreenSpec["session"]>["gauges"][number];
+
+export function gaugeWord(g: Pick<Gauge, "bands" | "words">, v: number): string {
+  let i = 0;
+  while (i < g.bands.length && v >= g.bands[i]) i++;
+  return g.words[Math.min(i, g.words.length - 1)] ?? "";
+}
+
+export function sessionView(run: Run): SessionView | null {
+  const se = run.c.doc.screen.session;
+  if (!se) return null;
+  const gauges = se.gauges.map((g) => {
+    const raw = value(run, g.value);
+    const v = typeof raw === "number" && Number.isFinite(raw) ? raw : null;
+    const word = v === null ? "unknown" : gaugeWord(g, v);
+    const shown = v === null ? "--" : String(Math.round(v));
+    return {
+      id: g.id,
+      label: g.label,
+      spokenLabel: g.spokenLabel,
+      value: v,
+      max: g.max,
+      word,
+      fraction: v === null ? 0 : Math.max(0, Math.min(1, v / g.max)),
+      a11y: `${g.spokenLabel}: ${word}, ${shown} of ${g.max}`,
+    };
+  });
+  const notes = (se.notes ?? [])
+    .filter((n) => (n.when ? value(run, n.when) === true : true))
+    .map((n) => {
+      const t = text(run, n.text);
+      const alert = n.alert ? value(run, n.alert) === true : false;
+      return { id: n.id, label: n.label, text: t, alert, a11y: `${alert ? "Alert. " : ""}${n.label}: ${t}` };
+    });
+  const record = se.record ? { label: se.record.label, items: se.record.items.filter((it) => value(run, it.when) === true).map((it) => text(run, it.label)) } : null;
+  return { name: se.client.name, presentation: text(run, se.client.presentation), gauges, notes, record };
+}
+
+// Alert notes join the tile alarms: spoken at once on entering and leaving.
+export function sessionAlarmTexts(v: SessionView | null): string[] {
+  return v ? v.notes.filter((n) => n.alert).map((n) => `${n.label}: ${n.text}`) : [];
+}
+
+// What changed since the last frame, for polite announcements: a gauge that
+// moved into another band, a note that appeared or changed (alerts are
+// spoken as alarms instead), a new line in the record.
+export function sessionNews(prev: SessionView | null, next: SessionView | null): string[] {
+  if (!prev || !next) return [];
+  const out: string[] = [];
+  for (const g of next.gauges) {
+    const p = prev.gauges.find((x) => x.id === g.id);
+    if (p && p.word !== g.word) out.push(`${g.spokenLabel} now ${g.word}.`);
+  }
+  for (const n of next.notes) {
+    if (n.alert) continue;
+    const p = prev.notes.find((x) => x.id === n.id);
+    if (!p || p.text !== n.text) out.push(`${n.label}: ${n.text}`);
+  }
+  const before = new Set(prev.record?.items ?? []);
+  for (const it of next.record?.items ?? []) if (!before.has(it)) out.push(`Recorded: ${it}`);
+  return out;
+}
+
 export type ActionKind = "plain" | "params" | "tapPad";
 
 export interface ActionView {
@@ -192,6 +287,7 @@ export interface RunView {
   infusions: string | null;
   tiles: TileView[];
   board: ReturnType<typeof boardViews>;
+  session: SessionView | null;
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -220,6 +316,7 @@ export function runView(run: Run, logLimit = 60): RunView {
     infusions: doc.screen.bedside?.infusions ? text(run, doc.screen.bedside.infusions) : null,
     tiles: tileViews(run),
     board: boardViews(run),
+    session: sessionView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,

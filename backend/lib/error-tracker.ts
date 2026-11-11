@@ -33,6 +33,14 @@ export interface ParsedDsn {
   publicKey: string;
 }
 
+// REQ-219 (FAIL-1106): a request path as Next hands it to onRequestError
+// includes the query string, and one-time tokens (email verification, password
+// reset, email change links) travel in it. Only the path is ever reported.
+export function routeOnly(path: string | undefined | null): string | undefined {
+  if (typeof path !== "string") return undefined;
+  return path.split(/[?#]/, 1)[0].slice(0, 200);
+}
+
 export function parseDsn(dsn: string | undefined): ParsedDsn | null {
   if (!dsn) return null;
   try {
@@ -52,7 +60,7 @@ export function errorEvent(err: unknown, ctx: ErrorContext = {}) {
     platform: "node",
     level: "error",
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
-    tags: { requestId: ctx.requestId ?? null, route: ctx.route ?? null },
+    tags: { requestId: ctx.requestId ?? null, route: routeOnly(ctx.route) ?? null },
     exception: {
       values: [{ type: e.name, value: maskEmails(e.message).slice(0, 500), stacktrace: { raw: maskEmails(e.stack ?? "").slice(0, 4000) } }],
     },
@@ -97,6 +105,40 @@ export function sendErrorReport(err: unknown, ctx: ErrorContext = {}): Promise<v
     );
   } catch {
     return Promise.resolve(); // reporting must never break the request
+  }
+}
+
+// REQ-211: the owner's "Send a test error" button. Sends one labelled event
+// and waits for Sentry's answer, so the owner learns whether reports arrive
+// (reportError() never says). Never throws.
+export const TEST_ERROR_MESSAGE = "Ascendra error-tracker test (sent by the owner from Settings > Access). Safe to resolve.";
+
+export class ErrorTrackerTestError extends Error {
+  constructor() {
+    super(TEST_ERROR_MESSAGE);
+    this.name = "ErrorTrackerTest";
+  }
+}
+
+export async function sendTestErrorReport(
+  ctx: ErrorContext = {}
+): Promise<{ configured: boolean; delivered: boolean; status: number | null }> {
+  const dsn = parseDsn(process.env.ERROR_TRACKER_DSN);
+  if (!dsn) return { configured: false, delivered: false, status: null };
+  try {
+    const res = await transport(dsn.storeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Sentry-Auth": `Sentry sentry_version=7, sentry_client=ascendra/1, sentry_key=${dsn.publicKey}`,
+      },
+      body: JSON.stringify(errorEvent(new ErrorTrackerTestError(), ctx)),
+      signal: AbortSignal.timeout(5_000),
+    });
+    const status = typeof (res as Response | undefined)?.status === "number" ? (res as Response).status : null;
+    return { configured: true, delivered: status !== null && status >= 200 && status < 300, status };
+  } catch {
+    return { configured: true, delivered: false, status: null };
   }
 }
 

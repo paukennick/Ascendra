@@ -48,7 +48,7 @@
 // Inline tag key: FSBPT-PT pN / FSBPT-PTA pN = page of the 2024 content
 // outline; CAPTE-PTA 7Dn = PTA required element; CMS-BPM15 n = Medicare
 // Benefit Policy Manual ch. 15 section; CFR 410.60 = 42 CFR 410.60;
-// APTA-SEC = Standards of Ethical Conduct for the PTA; CPG-xxx = guideline
+// APTA-COE = APTA Code of Ethics for the Physical Therapy Profession (2026; replaced the Standards of Ethical Conduct for the PTA); MM12071 = CMS MLN Matters MM12071; CPG-xxx = guideline
 // below; SP-xxx = StatPearls chapter below; AP n.n = OpenStax Anatomy and
 // Physiology 2e section.
 //
@@ -76,9 +76,14 @@
 // - eCFR, 42 CFR 410.60 (outpatient PT; last amended 89 FR 98556,
 //   2024-12-09), read through the eCFR versioner API at 2026-10-30. Public
 //   domain. https://www.ecfr.gov/current/title-42/section-410.60
-// - APTA, "Standards of Ethical Conduct for the Physical Therapist
-//   Assistant", HOD S06-20-31-26. Copyright 2020 APTA; scope only.
-//   https://www.apta.org/siteassets/pdfs/policies/standardsofethicalconductptahods06-20-31-26-.pdf
+// - APTA, "Code of Ethics for the Physical Therapy Profession", effective
+//   2026-01-01, one code for PTs and PTAs; it replaced the "Standards of
+//   Ethical Conduct for the Physical Therapist Assistant" (HOD
+//   S06-20-31-26). Read 2026-11-10 (REQ-220). Scope only.
+//   https://www.apta.org/siteassets/pdfs/policies/apta-code-ethics-physical-therapy-profession.pdf
+// - CMS, MLN Matters MM12071 (effective 2021-01-01): a PT may delegate
+//   furnishing maintenance therapy to a PTA. Read 2026-11-10 (REQ-220).
+//   https://www.hhs.gov/guidance/sites/default/files/hhs-guidance-documents/MM12071.pdf
 // - APTA clinical practice guidelines, open access through Europe PMC
 //   (full-text XML), each read in full:
 //   CPG-TKA  Physical therapist management of total knee arthroplasty:
@@ -228,6 +233,10 @@ const PT_DISCLAIMER_KEY = "pt-clinical-content";
 // Interventions), but FSBPT's own published breakdown is per-system, not
 // per-split, so that's what's modeled here.
 // ---------------------------------------------------------------------------
+// REQ-220: superseded lines retired in place (ids and history kept); their
+// replacements are appended to the same unit.
+const PTA_REQ220_RETIRED_AT = "2026-11-10T00:00:00Z";
+
 export const NPTE_PT_TRACK: SeedTrack = {
   code: "NPTEPT",
   title: "Prep for the NPTE-PT Exam",
@@ -295,7 +304,7 @@ export const NPTE_PT_TRACK: SeedTrack = {
         "Managing common neurological diagnoses: stroke, spinal cord injury, traumatic brain injury, and peripheral neuropathy",
         "Recognizing signs of neurological decline or emergency (e.g., cauda equina, increasing ICP) that require immediate referral",
         // Added 2026-11-04: depth from open textbooks and Tier 1 sources (see source header at top of file).
-        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognise that ALS shows both together", // SP-ALS; AP 16.4
+        "Tell upper motor neuron signs (hyperreflexia, spasticity, poor dexterity) from lower motor neuron signs (atrophy, fasciculations, flaccid tone), and recognize that ALS shows both together", // SP-ALS; AP 16.4
         "Recognize autonomic dysreflexia when the spinal cord lesion is at T6 or higher -- a sudden severe headache with a blood pressure surge -- sit the patient up with legs down, loosen anything tight, and look for a trigger such as a full bladder or bowel", // SP-AD
         "Document spinal cord injury level and completeness with the ISNCSCI examination from ASIA and ISCoS, and recognize central cord syndrome by arm weakness greater than leg weakness", // SP-SCI
         "Offer supervised vestibular therapy for unilateral or bilateral peripheral vestibular hypofunction using gaze-stabilization and balance exercise, and do not rely on saccadic or smooth-pursuit drills for gaze stability", // CPG-VEST
@@ -664,7 +673,12 @@ export const NPTE_PTA_TRACK: SeedTrack = {
         "Know what Medicare does not allow a PTA to do -- evaluate or assess, make clinical judgments, or develop and furnish skilled maintenance programs -- and work under the supervising PT's direction", // CMS-BPM15 230.1
         "Record progress objectively, for example the distance walked and level of assistance, leaving judgments about why progress did or did not happen to the PT, and change goals only at the PT's direction", // CMS-BPM15 220.3
         "Know that since 2025 Medicare lets a PT in private practice supervise a PTA under general supervision (the PT need not be on site), that state law, other payers or the facility may require closer supervision, and that the Standards of Ethical Conduct still require deciding jointly with the PT", // CFR 410.60(c)(2); APTA-SEC
+        // REQ-220 (FAIL-1134): replaces the pre-2021 maintenance rule (CMS MLN Matters MM12071, effective 2021-01-01). // MM12071; CMS-BPM15 230.1
+        "Know what Medicare does not allow a PTA to do -- evaluate or assess, make clinical judgments, or establish the maintenance program -- that since 2021 the PT may delegate furnishing a maintenance program the PT established to the PTA when clinically appropriate, and work under the supervising PT's direction",
+        // REQ-220 (FAIL-1133): the Standards of Ethical Conduct for the PTA were replaced by the 2026 Code (Standards of Conduct 7.2, 7.4). // CFR 410.60(c)(2); APTA-COE
+        "Know that since 2025 Medicare lets a PT in private practice supervise a PTA under general supervision (the PT need not be on site), that state law, other payers or the facility may require closer supervision, and that APTA's Code of Ethics (2026) still has the PTA work under the PT's direction and supervision and tell the PT when the patient's status calls for a change to the plan of care",
       ],
+      objectiveRetiredAt: [null, null, PTA_REQ220_RETIRED_AT, null, PTA_REQ220_RETIRED_AT, null, null],
     },
     {
       title: "Gastrointestinal System",

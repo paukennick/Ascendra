@@ -4,7 +4,9 @@
 
 export const REGENERATE_RATE_LIMITED =
   "You've regenerated this lesson a few times already. Give it a few minutes, then try again.";
-export const REGENERATE_FAILED = "Couldn't regenerate the lesson. Check your connection and try again.";
+export const REGENERATE_FAILED = "Couldn't regenerate the lesson. Try again in a moment.";
+// Only when the request never reached the server.
+export const REGENERATE_OFFLINE = "Couldn't reach Ascendra to regenerate the lesson. Check your connection and try again.";
 
 export function regenerateErrorMessage(err: unknown): string {
   const status = typeof err === "object" && err !== null ? (err as { status?: unknown }).status : undefined;
@@ -25,5 +27,12 @@ export function regenerateErrorMessage(err: unknown): string {
   // connection".
   if (data && data.held === true && typeof data.error === "string" && data.error.trim()) return data.error;
   if (status === 429) return REGENERATE_RATE_LIMITED;
-  return REGENERATE_FAILED;
+  // REQ-216 (H3): the server answered with words for the learner (a 409
+  // "try again in a moment", a 502/503 "the AI coach is busy"): show them. A
+  // sentence written by the server is never answered with "check your
+  // connection".
+  if (typeof status === "number" && data && typeof data.error === "string" && data.error.trim()) return data.error;
+  // The server answered without words: not a connection problem either.
+  if (typeof status === "number") return REGENERATE_FAILED;
+  return REGENERATE_OFFLINE;
 }

@@ -79,11 +79,11 @@ export const PGMP_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "At the board, the finance director says the 45,000-hour saving is 'not cash' and asks how it will be realised. Another director wants two extra processes added.",
+          text: "At the board, the finance director says the 45,000-hour saving is 'not cash' and asks how it will be realized. Another director wants two extra processes added.",
           ask: "How do you respond to each?",
           parts: [
             part(
-              "Benefit realisation",
+              "Benefit realization",
               "Explains how hours convert to value (for example vacancies not refilled, redeployment to backlog work) with an owner in operations, and offers to add that to the charter's benefits section.",
               "Agree the hours are not cash unless acted on: the benefit owner (head of customer services) commits to not refilling about 20 posts as people leave and redeploying the rest. Add that conversion and its owner to the charter."
             ),
@@ -245,11 +245,11 @@ export const PGMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "Data shows 70% of applications are decided in 1 day, but 30% go to manual review and take about 9 days.",
-          ask: "What do you analyse, and how do you forecast where this benefit will end up?",
+          ask: "What do you analyze, and how do you forecast where this benefit will end up?",
           parts: [
             part(
               "Analysis",
-              "Recognises the median hides two populations, identifies manual review as the cause, and investigates why 30% are referred (rules too strict, data missing).",
+              "Recognizes the median hides two populations, identifies manual review as the cause, and investigates why 30% are referred (rules too strict, data missing).",
               "The average hides a split: automated cases are fast, the 30% sent to manual review are as slow as before. Find out why they're referred -- for example missing income documents or overly strict rules."
             ),
             part(
@@ -346,7 +346,7 @@ export const PGMP_LABS: SeedLabSet = {
       kind: "case",
       title: "Run the gate into the delivery phase",
       brief:
-        "Ironwood Defence Systems' (fictional) 'Next-Gen Radar' program finishes its definition phase. Gate criteria (agreed in the governance plan): approved benefits plan, integrated schedule with less than 10% unfunded scope, all high risks with owners and responses, and supplier contracts signed for long-lead items.",
+        "Ironwood Defense Systems' (fictional) 'Next-Gen Radar' program finishes its definition phase. Gate criteria (agreed in the governance plan): approved benefits plan, integrated schedule with less than 10% unfunded scope, all high risks with owners and responses, and supplier contracts signed for long-lead items.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {

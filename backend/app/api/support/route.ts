@@ -5,6 +5,7 @@ import { sendSupportRequestNotification } from "@/lib/email";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { textField } from "@/lib/text-input";
 import { emailFailureHandler } from "@/lib/email-errors";
+import { visibleObjective } from "@/lib/visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ function trimmedString(value: unknown, max: number): string | null {
 // GET /api/support — the caller's own submissions, newest first.
 export async function GET(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const rows = await query(
       `select id, kind, subject, body, status, track_id, course_name, course_source_url,
               objective_id, lesson_stage, admin_note, created_at, updated_at
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
 // POST /api/support — { kind, subject, body, trackId?, courseName?, courseSourceUrl? }
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const payload = await readJson(req);
 
     const kind = payload?.kind as Kind;
@@ -90,7 +91,12 @@ export async function POST(req: Request) {
       ) {
         return badRequest("objectiveId is required for a content report");
       }
-      const obj = await queryOne<{ id: string }>(`select id from objectives where id = $1`, [payload.objectiveId]);
+      // REQ-219 (FAIL-1115): only an objective the caller can see (a catalog
+      // course or their own). A bare lookup by id told anyone which ids exist,
+      // including in other learners' private courses, and mailed a report
+      // naming one. A retired objective stays reportable: it may be the thing
+      // being reported (visibleObjective, not taughtObjective).
+      const obj = await visibleObjective(payload.objectiveId, user.id);
       if (!obj) return badRequest("objectiveId not found");
       objectiveId = obj.id;
       if (payload?.stage != null) {

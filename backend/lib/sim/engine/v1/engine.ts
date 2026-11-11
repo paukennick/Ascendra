@@ -46,7 +46,13 @@ export const ENGINE_MAJOR = 1;
 // offer and the focused-start, chapter and teaching declarations. It adds
 // things a minor-0 document cannot use; no stepping output changes, so every
 // minor-0 document, golden hash and checkpoint is unchanged.
-export const ENGINE_MINOR = 1;
+//
+// Minor 2 (REQ-227, FAIL-1222) adds the optional `endingOrder` list: the
+// order endings are checked in, which no longer depends on the key order of
+// `endings` (a jsonb column, so the server, reorders keys). A document
+// without it is stepped exactly as before, in key order, so every minor-0 and
+// minor-1 document, golden hash, checkpoint and stored run is unchanged.
+export const ENGINE_MINOR = 2;
 export const ENGINE_VERSION = `${ENGINE_MAJOR}.${ENGINE_MINOR}`;
 
 // Run-time budgets (4.3). A linted document stays far below them; they
@@ -115,6 +121,20 @@ function literalValue(v: unknown): Value {
   return v as Value;
 }
 
+// The order endings are checked in (5.3 settle step 2, first true wins).
+// A document with `endingOrder` (minor 2) uses it, so the result never
+// depends on the key order of `endings`; any ending it fails to list (lint
+// refuses that) goes after, sorted by id, which is also key-order free.
+// A document without it keeps the key order, exactly as minor 0 and 1 did.
+export function endingCheckOrder(doc: ScenarioDoc): string[] {
+  if (!Array.isArray(doc.endingOrder)) return Object.keys(doc.endings);
+  const listed = doc.endingOrder.filter((id, i, all) => Object.prototype.hasOwnProperty.call(doc.endings, id) && all.indexOf(id) === i);
+  const rest = Object.keys(doc.endings)
+    .filter((id) => listed.indexOf(id) < 0)
+    .sort();
+  return [...listed, ...rest];
+}
+
 export function compileDoc(doc: ScenarioDoc): Compiled {
   const dt = parseDuration(doc.clock.tick);
   if (dt === null || dt < 1 || dt !== Math.floor(dt)) throw new EngineError("bad_tick", `clock.tick "${doc.clock.tick}" is not a whole number of seconds`);
@@ -175,7 +195,7 @@ export function compileDoc(doc: ScenarioDoc): Compiled {
     historyKeep,
     derivedIds: Object.keys(doc.derived),
     phaseIds: Object.keys(doc.phases),
-    endingIds: Object.keys(doc.endings),
+    endingIds: endingCheckOrder(doc),
     timerWait,
     patterns,
   };

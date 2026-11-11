@@ -53,16 +53,16 @@ export const NREMTEMT_LABS: SeedLabSet = {
         },
         {
           text: "First still patient: an adult man with bright red blood pumping from a deep wound on his upper arm; he is breathing 24/min and has a radial pulse. Second: a woman who is not breathing; you open her airway and she still does not breathe.",
-          ask: "What life-saving interventions do you do, and how do you categorise each patient?",
+          ask: "What life-saving interventions do you do, and how do you categorize each patient?",
           parts: [
             part(
               "The bleeding man",
-              "Applies a tourniquet above the arm wound (or has a walking bystander hold direct pressure) as a quick life-saving intervention, then categorises him immediate because he needed a life-saving intervention and has a major hemorrhage.",
+              "Applies a tourniquet above the arm wound (or has a walking bystander hold direct pressure) as a quick life-saving intervention, then categorizes him immediate because he needed a life-saving intervention and has a major hemorrhage.",
               "A tourniquet 2 to 3 inches above the wound, tightened until the bleeding stops -- seconds, not minutes. He is immediate."
             ),
             part(
-              "The apnoeic woman",
-              "Opens the airway once; with no breathing after airway opening, categorises her dead/expectant and moves on without starting CPR, explaining that in an MCI resources go to those who can be saved (SALT allows two rescue breaths first for a child).",
+              "The apneic woman",
+              "Opens the airway once; with no breathing after airway opening, categorizes her dead/expectant and moves on without starting CPR, explaining that in an MCI resources go to those who can be saved (SALT allows two rescue breaths first for a child).",
               "After one airway-opening attempt she still isn't breathing, so she is dead under SALT. I tag her and move on; CPR would take both of us away from savable patients."
             ),
           ],
@@ -74,7 +74,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
             part(
               "Transport order",
               "Sends the immediate patients first (the teenager with respiratory distress after chest trauma and the man with the tourniquet), then delayed, then minimal; gives the reason (need for surgery or hospital-level care for life threats).",
-              "The two immediates go first -- the teenager and the tourniquet patient -- to the trauma centre. The delayed older man next, the wrist injury last."
+              "The two immediates go first -- the teenager and the tourniquet patient -- to the trauma center. The delayed older man next, the wrist injury last."
             ),
             part(
               "Ongoing",
@@ -91,7 +91,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
       kind: "build",
       title: "Three injured patients, three destination calls",
       brief:
-        "Fictional patients, all in a region with a Level I trauma centre 30 minutes away, a Level III trauma centre 15 minutes away and a community hospital (not a trauma centre) 5 minutes away. Use the 2021 National Guideline for the Field Triage of Injured Patients.\n(1) A 34-year-old cyclist hit by a car, alert, pulse 128, blood pressure 96/60, open deformed lower leg with bleeding controlled by a tourniquet.\n(2) A 72-year-old who tripped on a rug, hit her head, takes an anticoagulant, is alert and has normal vital signs (pulse 84, BP 148/82).\n(3) A 25-year-old driver in a crash with 14 inches of intrusion at his seat, alert, normal vital signs, complaining of a sore neck.",
+        "Fictional patients, all in a region with a Level I trauma center 30 minutes away, a Level III trauma center 15 minutes away and a community hospital (not a trauma center) 5 minutes away. Use the 2021 National Guideline for the Field Triage of Injured Patients.\n(1) A 34-year-old cyclist hit by a car, alert, pulse 128, blood pressure 96/60, open deformed lower leg with bleeding controlled by a tourniquet.\n(2) A 72-year-old who tripped on a rug, hit her head, takes an anticoagulant, is alert and has normal vital signs (pulse 84, BP 148/82).\n(3) A 25-year-old driver in a crash with 14 inches of intrusion at his seat, alert, normal vital signs, complaining of a sore neck.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -100,18 +100,18 @@ export const NREMTEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Patient 1",
-              "Red: active bleeding that needed a tourniquet, and a heart rate higher than the systolic pressure (128 > 96) at age 10-64 -- either alone is enough; goes to the highest-level trauma centre available, the Level I.",
-              "Red. Bleeding that needed a tourniquet is a red criterion, and his pulse of 128 is higher than his systolic pressure of 96, another red one. Level I trauma centre."
+              "Red: active bleeding that needed a tourniquet, and a heart rate higher than the systolic pressure (128 > 96) at age 10-64 -- either alone is enough; goes to the highest-level trauma center available, the Level I.",
+              "Red. Bleeding that needed a tourniquet is a red criterion, and his pulse of 128 is higher than his systolic pressure of 96, another red one. Level I trauma center."
             ),
             part(
               "Patient 2",
-              "Yellow, by EMS judgment: anticoagulant use and a low-level fall with a significant head impact at 65 or older; preferentially to a trauma centre, which need not be the highest level -- the Level III is appropriate.",
-              "Yellow: an older adult on an anticoagulant who fell and struck her head. A trauma centre, not necessarily Level I -- the Level III."
+              "Yellow, by EMS judgment: anticoagulant use and a low-level fall with a significant head impact at 65 or older; preferentially to a trauma center, which need not be the highest level -- the Level III is appropriate.",
+              "Yellow: an older adult on an anticoagulant who fell and struck her head. A trauma center, not necessarily Level I -- the Level III."
             ),
             part(
               "Patient 3",
-              "Yellow by mechanism: intrusion over 12 inches at the occupant site is a high-risk crash; no red criteria; a trauma centre, need not be the highest level.",
-              "Yellow: intrusion of more than 12 inches at his seat is a high-risk crash. Level III trauma centre."
+              "Yellow by mechanism: intrusion over 12 inches at the occupant site is a high-risk crash; no red criteria; a trauma center, need not be the highest level.",
+              "Yellow: intrusion of more than 12 inches at his seat is a high-risk crash. Level III trauma center."
             ),
           ],
         },
@@ -121,7 +121,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
     // ---- Primary Assessment (3) ----
     {
       slug: "emt-arrest-in-a-restroom",
-      objective: "Recognise cardiac arrest and begin high-quality CPR with early AED use",
+      objective: "Recognize cardiac arrest and begin high-quality CPR with early AED use",
       kind: "case",
       title: "Collapsed in a gas-station restroom",
       brief:
@@ -134,7 +134,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises that occasional gasping is not normal breathing and, with no pulse found in no more than 10 seconds, treats this as cardiac arrest.",
+              "Recognizes that occasional gasping is not normal breathing and, with no pulse found in no more than 10 seconds, treats this as cardiac arrest.",
               "Gasps are agonal breathing, not breathing. No pulse within 10 seconds: he's in cardiac arrest."
             ),
             part(
@@ -181,7 +181,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
     {
       slug: "emt-chest-pain-own-nitro",
       objective:
-        "Recognise a possible acute coronary syndrome, including atypical presentations, and decide on aspirin, 12-lead acquisition and destination within EMT scope",
+        "Recognize a possible acute coronary syndrome, including atypical presentations, and decide on aspirin, 12-lead acquisition and destination within EMT scope",
       kind: "case",
       title: "Indigestion that is not getting better",
       brief:
@@ -220,7 +220,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
             ),
             part(
               "Oxygen",
-              "Withholds supplemental oxygen because her SpO2 is 97% and she is not short of breath; oxygen is given only for dyspnoea, hypoxaemia or heart failure, to a target of 94-98%.",
+              "Withholds supplemental oxygen because her SpO2 is 97% and she is not short of breath; oxygen is given only for dyspnea, hypoxemia or heart failure, to a target of 94-98%.",
               "Her saturation is 97% and she isn't short of breath, so no oxygen -- I'll start it if she drops below 94% or becomes breathless."
             ),
           ],
@@ -237,7 +237,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
             part(
               "Destination and handoff",
               "Transports to the PCI-capable hospital that activated its cath lab (or meets ALS per system), with a handoff giving symptom-onset time, 12-lead time, aspirin dose and time, and the sildenafil.",
-              "Straight to the PCI centre. Handoff: onset 40 minutes before our arrival, 12-lead at 10:14 showing STEMI, aspirin 324 mg at 10:16, nitro withheld for sildenafil last night."
+              "Straight to the PCI center. Handoff: onset 40 minutes before our arrival, 12-lead at 10:14 showing STEMI, aspirin 324 mg at 10:16, nitro withheld for sildenafil last night."
             ),
           ],
         },
@@ -246,11 +246,11 @@ export const NREMTEMT_LABS: SeedLabSet = {
     {
       slug: "emt-stroke-woke-with-symptoms",
       objective:
-        "Recognise a possible stroke with a validated prehospital stroke scale, fix the last-known-well time, and choose a stroke-capable destination",
+        "Recognize a possible stroke with a validated prehospital stroke scale, fix the last-known-well time, and choose a stroke-capable destination",
       kind: "case",
       title: "Slurred speech at the breakfast table",
       brief:
-        "Fictional call at 08:30. A 70-year-old man's daughter found him at breakfast with slurred speech and a right-sided facial droop; he cannot lift his right arm. He went to bed at 22:00 apparently well, and his wife says he was up at 05:30 to use the bathroom and spoke to her normally. He takes an anticoagulant. Pulse 88 irregular, BP 186/100, respirations 18, SpO2 96% on room air. Your region has a primary stroke centre 10 minutes away and a thrombectomy-capable centre 35 minutes away; your protocol uses a stroke severity scale to flag possible large-vessel occlusion.",
+        "Fictional call at 08:30. A 70-year-old man's daughter found him at breakfast with slurred speech and a right-sided facial droop; he cannot lift his right arm. He went to bed at 22:00 apparently well, and his wife says he was up at 05:30 to use the bathroom and spoke to her normally. He takes an anticoagulant. Pulse 88 irregular, BP 186/100, respirations 18, SpO2 96% on room air. Your region has a primary stroke center 10 minutes away and a thrombectomy-capable center 35 minutes away; your protocol uses a stroke severity scale to flag possible large-vessel occlusion.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -280,8 +280,8 @@ export const NREMTEMT_LABS: SeedLabSet = {
             ),
             part(
               "Destination",
-              "With a positive LVO screen and last known well about 3 hours ago (well within the 24-hour window for thrombectomy eligibility), chooses the thrombectomy-capable centre per the local stroke plan, or states the plan's rule if it says otherwise, and gives early pre-notification.",
-              "Positive LVO screen and last known well 3 hours ago: the thrombectomy-capable centre, per our stroke plan, with a stroke alert called ahead."
+              "With a positive LVO screen and last known well about 3 hours ago (well within the 24-hour window for thrombectomy eligibility), chooses the thrombectomy-capable center per the local stroke plan, or states the plan's rule if it says otherwise, and gives early pre-notification.",
+              "Positive LVO screen and last known well 3 hours ago: the thrombectomy-capable center, per our stroke plan, with a stroke alert called ahead."
             ),
           ],
         },
@@ -307,7 +307,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
     // ---- Secondary Assessment (1) ----
     {
       slug: "emt-hypoglycemia-reassessment",
-      objective: "Recognise hypoglycemia on reassessment of a patient with altered mental status and treat it within EMT scope",
+      objective: "Recognize hypoglycemia on reassessment of a patient with altered mental status and treat it within EMT scope",
       kind: "case",
       title: "Confused at the office party",
       brief:
@@ -372,7 +372,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
       kind: "case",
       title: "Chainsaw kickback",
       brief:
-        "Fictional call. A 52-year-old man cutting firewood has a deep wound on his front mid-thigh from a chainsaw. Blood is pooling on the ground and soaking through the towel his neighbour is holding. He is pale and anxious. Pulse 122, BP 104/70, respirations 24. The nearest trauma centre is 25 minutes away.",
+        "Fictional call. A 52-year-old man cutting firewood has a deep wound on his front mid-thigh from a chainsaw. Blood is pooling on the ground and soaking through the towel his neighbor is holding. He is pale and anxious. Pulse 122, BP 104/70, respirations 24. The nearest trauma center is 25 minutes away.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -413,8 +413,8 @@ export const NREMTEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Shock care and destination",
-              "Treats for shock (lies him flat, keeps him warm, oxygen if hypoxic), keeps the tourniquet visible and uncovered, reassesses for renewed bleeding at every move, and transports to the trauma centre (bleeding needing a tourniquet is a red field-triage criterion).",
-              "Flat, blankets, monitor for bleeding at every move, tourniquet left uncovered, rapid transport to the trauma centre."
+              "Treats for shock (lies him flat, keeps him warm, oxygen if hypoxic), keeps the tourniquet visible and uncovered, reassesses for renewed bleeding at every move, and transports to the trauma center (bleeding needing a tourniquet is a red field-triage criterion).",
+              "Flat, blankets, monitor for bleeding at every move, tourniquet left uncovered, rapid transport to the trauma center."
             ),
             part(
               "Handoff",
@@ -431,7 +431,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
       kind: "case",
       title: "Hives and a hoarse voice at a birthday party",
       brief:
-        "Fictional call. A 6-year-old girl weighing about 20 kg ate a cookie with peanuts 10 minutes ago. She has hives on her chest and face, a hoarse voice, and is breathing fast with audible wheeze. She vomited once. Her heart rate is 140, respirations 36, and capillary refill 3 seconds. Your ambulance carries agency epinephrine auto-injectors (0.15 mg and 0.3 mg), oxygen and nebulised bronchodilator.",
+        "Fictional call. A 6-year-old girl weighing about 20 kg ate a cookie with peanuts 10 minutes ago. She has hives on her chest and face, a hoarse voice, and is breathing fast with audible wheeze. She vomited once. Her heart rate is 140, respirations 36, and capillary refill 3 seconds. Your ambulance carries agency epinephrine auto-injectors (0.15 mg and 0.3 mg), oxygen and nebulized bronchodilator.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -440,7 +440,7 @@ export const NREMTEMT_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Identifies anaphylaxis: skin involvement plus airway (hoarse voice), breathing (wheeze, tachypnoea) and gastrointestinal (vomiting) signs after a likely allergen.",
+              "Identifies anaphylaxis: skin involvement plus airway (hoarse voice), breathing (wheeze, tachypnea) and gastrointestinal (vomiting) signs after a likely allergen.",
               "Yes -- hives plus a hoarse voice, wheeze and vomiting after peanuts. That's anaphylaxis."
             ),
             part(

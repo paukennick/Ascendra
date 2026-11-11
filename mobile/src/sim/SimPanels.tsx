@@ -5,9 +5,10 @@ import Feather from "@expo/vector-icons/Feather";
 import { Badge, Body, Button, Card, Chip, ErrorBanner, H2, H3, Muted, TextField, MIN_TOUCH } from "@/components/ui";
 import { colors, radius, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
+import { useStoredDraft } from "@/lib/useStoredDraft";
 import type { Run } from "./engine/v1/engine.ts";
 import type { ActionParam, WaitInfo } from "./engine/v1/types.ts";
-import { slotChoices, waitLabel, type ActionView, type RunView, type TileView, type ZoneView } from "./runtime/view.ts";
+import { slotChoices, waitLabel, type ActionView, type RunView, type SessionView, type TileView, type ZoneView } from "./runtime/view.ts";
 import { cprCommandText, measureTaps, MEASURE_EVERY_MS, STOP_AFTER_MS, tapFeedback, windowAfter, type TapMeasure } from "./runtime/tapPad.ts";
 import type { CommandInput } from "./runtime/session.ts";
 import type { CalmOffer, ChapterOffer, LaunchChoice, LaunchView, PaceOption, TeachFeedback, TeachOffer } from "./runtime/pacing.ts";
@@ -105,8 +106,12 @@ export function TopologyPanel({ zones, meters }: { zones: ZoneView[]; meters: { 
   );
 }
 
-export function WaitsRow({ run, waits, turns, onSkip, disabled }: { run: Run; waits: WaitInfo[]; turns: boolean; onSkip: (w: WaitInfo) => void; disabled: boolean }) {
+// REQ-225: a client session's wait is the conversation going on ("Let the
+// conversation continue (about 3 min)"), so it is shown as its own label,
+// with no "Advance to" in front (`plain`).
+export function WaitsRow({ run, waits, turns, onSkip, disabled, plain }: { run: Run; waits: WaitInfo[]; turns: boolean; onSkip: (w: WaitInfo) => void; disabled: boolean; plain?: boolean }) {
   if (!waits.length) return null;
+  const verb = plain ? "" : turns ? "Advance to" : "Skip to";
   return (
     <View style={{ gap: spacing.xs }}>
       {waits.slice(0, 3).map((w) => {
@@ -114,8 +119,8 @@ export function WaitsRow({ run, waits, turns, onSkip, disabled }: { run: Run; wa
         return (
           <Button
             key={`${w.timer}:${w.instance}`}
-            label={`${turns ? "Advance to" : "Skip to"}: ${l.label}`}
-            accessibilityLabel={`${turns ? "Advance to" : "Skip to"} ${l.a11y}`}
+            label={verb ? `${verb}: ${l.label}` : l.label}
+            accessibilityLabel={verb ? `${verb} ${l.a11y}` : l.a11y}
             icon="fast-forward"
             variant="ghost"
             disabled={disabled}
@@ -125,6 +130,77 @@ export function WaitsRow({ run, waits, turns, onSkip, disabled }: { run: Run; wa
       })}
     </View>
   );
+}
+
+// REQ-225 (docs/sims.md 8.2, 13, 20.2): the client session. The client's
+// name and presentation, what they said last, each client state as a word
+// with a bar (the word carries the meaning, the bar never does alone), what
+// the clinician knows so far (an alert note gets a border and the word
+// "Alert", never colour alone), and the documentation so far. Every block
+// is one accessible element; "Read the client" speaks all of it on demand.
+export function SessionPanel({ v, said, onRead }: { v: SessionView | null; said: string | null; onRead: () => void }) {
+  if (!v) return null;
+  return (
+    <Card>
+      <View accessible accessibilityRole="header" accessibilityLabel={`${v.name}. ${v.presentation}`} style={{ gap: 2 }}>
+        <H2>{v.name}</H2>
+        <Body>{v.presentation}</Body>
+      </View>
+      {said ? (
+        <View accessible accessibilityLabel={`Last said: ${said}`} style={{ borderLeftWidth: 3, borderLeftColor: colors.accent, paddingLeft: spacing.sm, gap: 2 }}>
+          <Muted style={{ fontSize: 12 }}>Last said</Muted>
+          <Body>{said}</Body>
+        </View>
+      ) : null}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        {v.gauges.map((g) => (
+          <View
+            key={g.id}
+            accessible
+            accessibilityLabel={g.a11y}
+            style={{ flexGrow: 1, flexBasis: "45%", minWidth: 140, minHeight: MIN_TOUCH, borderWidth: 1, borderColor: colors.borderLight, borderRadius: radius.sm, padding: spacing.sm, gap: 4 }}
+          >
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.xs }}>
+              <Muted style={{ fontSize: 12 }}>{g.label}</Muted>
+              <Muted style={{ fontSize: 12 }}>{g.value === null ? "--" : `${Math.round(g.value)} of ${g.max}`}</Muted>
+            </View>
+            <Body style={{ fontWeight: "700" }}>{g.word}</Body>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: "hidden" }}>
+              <View style={{ width: `${Math.round(g.fraction * 100)}%`, height: 6, backgroundColor: colors.accent }} />
+            </View>
+          </View>
+        ))}
+      </View>
+      {v.notes.length ? (
+        <View style={{ gap: spacing.xs }}>
+          <H3>What you know so far</H3>
+          {v.notes.map((n) => (
+            <View
+              key={n.id}
+              accessible
+              accessibilityLabel={n.a11y}
+              style={{ minHeight: MIN_TOUCH, justifyContent: "center", borderWidth: n.alert ? 2 : 0, borderColor: n.alert ? colors.bad : "transparent", borderRadius: radius.sm, padding: n.alert ? spacing.sm : 0 }}
+            >
+              <Muted style={{ fontSize: 12 }}>{n.alert ? `Alert · ${n.label}` : n.label}</Muted>
+              <Body>{n.text}</Body>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {v.record && v.record.items.length ? (
+        <View accessible accessibilityLabel={`${v.record.label}: ${v.record.items.join(". ")}`} style={{ gap: 2 }}>
+          <H3>{v.record.label}</H3>
+          {v.record.items.map((it) => <Muted key={it}>{it}</Muted>)}
+        </View>
+      ) : null}
+      <Button label="Read the client" icon="volume-2" variant="ghost" size="sm" onPress={onRead} accessibilityLabel="Read the client's presentation and state aloud" />
+    </Card>
+  );
+}
+
+// One spoken summary of the session panel, for "Read the client" (13.1).
+export function sessionSentence(v: SessionView, said: string | null): string {
+  return [`${v.name}. ${v.presentation}`, said ? `Last said: ${said}` : null, ...v.gauges.map((g) => g.a11y), ...v.notes.map((n) => n.a11y)].filter(Boolean).join(". ") + ".";
 }
 
 // REQ-209 (docs/sims.md 5.4a): the pace choice. Two buttons, one selected;
@@ -452,11 +528,15 @@ export function PromptCard({ prompt, onChoose }: { prompt: NonNullable<RunView["
 
 export function ReasoningCard({
   question,
+  draftKey = null,
   onSubmit,
   onSkip,
   onContinue,
 }: {
   question: string;
+  // REQ-217 (FAIL-1050): where the typed answer is kept on the device, so a
+  // killed app or a failed send doesn't lose it (null: not kept).
+  draftKey?: string | null;
   onSubmit: (answer: string) => Promise<ReasoningResult>;
   onSkip: () => void;
   onContinue: () => void;
@@ -465,6 +545,9 @@ export function ReasoningCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReasoningResult | null>(null);
+  useStoredDraft(draftKey, result ? null : answer.trim() ? answer : null, (stored) => {
+    if (stored) setAnswer((current) => current || stored);
+  });
   const submit = async () => {
     setBusy(true);
     setError(null);

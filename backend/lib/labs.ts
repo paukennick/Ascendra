@@ -114,12 +114,12 @@ export async function servedReviewStatusesFor(userId: string, env: Record<string
 }
 
 // The subject family of a course (which labs need the study notice): the course
-// taxonomy's healthcare-* categories are clinical, health-fitness is
-// fitness, everything else general -- the rule lib/lab-grading.ts
+// taxonomy's healthcare-* categories and mental-health (REQ-224, migration 077)
+// are clinical, health-fitness is fitness, everything else general -- the rule lib/lab-grading.ts
 // labSafetyFamily applies to the coach context's category slug.
 // `track` is the alias of subject_tracks in the calling query.
 export function labFamilySql(track: string): string {
-  return `coalesce((select case when ec.slug like 'healthcare%' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
+  return `coalesce((select case when ec.slug like 'healthcare%' or ec.slug = 'mental-health' then 'clinical' when ec.slug = 'health-fitness' then 'fitness' end
                       from education_subcategories esc join education_categories ec on ec.id = esc.category_id
                      where esc.id = ${track}.subcategory_id), 'general')`;
 }
@@ -425,7 +425,9 @@ export async function openRun(userId: string, labId: string, restart: boolean): 
       [userId, labId]
     );
     if (open && !restart) return open;
-    if (open) await tx.query(`update lab_runs set abandoned_at = now() where id = $1`, [open.id]);
+    // completed_at is re-checked on the locked row: a last step that finished
+    // the run first (recordStep holds the row) leaves it finished, not abandoned.
+    if (open) await tx.query(`update lab_runs set abandoned_at = now() where id = $1 and completed_at is null`, [open.id]);
     const created = await tx.queryOne<RunRow>(`insert into lab_runs (user_id, lab_id) values ($1, $2) returning *`, [userId, labId]);
     return created!;
   });
@@ -682,6 +684,17 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
   const isLast = input.step === lab.steps.length - 1;
   try {
     return await withTransaction(async (tx) => {
+      // REQ-218: the run is locked before anything is written, and a run a
+      // restart abandoned (or another copy finished) takes no step. A
+      // restart used to land between the check in checkRunStep and this
+      // insert, and the last step then finished the abandoned run and
+      // recorded its attempt. openRun's update takes the same row lock.
+      const locked = await tx.queryOne<{ completed_at: string | null; abandoned_at: string | null }>(
+        `select completed_at, abandoned_at from lab_runs where id = $1 and user_id = $2 for update`,
+        [input.runId, input.userId]
+      );
+      if (!locked) throw new LabError(404, "Run not found");
+      if (locked.completed_at || locked.abandoned_at) throw new LabError(409, "This run is finished. Start a new run to try the lab again.");
       const ins = await tx.queryOne<StepRow>(
         `insert into lab_run_steps
            (run_id, user_id, step_index, client_attempt_id, answers, verdict, feedback, classification, missed_parts, part_scores, fix_next)
@@ -754,7 +767,7 @@ export async function recordStep(input: SubmitInput, graded: LabStepGraded): Pro
   } catch (err) {
     // Two copies of one submission raced past the claim (or the claim
     // expired): the slower one replays the winner's stored result.
-    if (input.clientAttemptId && (isDuplicateClientAttempt(err) || isDuplicateStepClient(err))) {
+    if (input.clientAttemptId && (isDuplicateClientAttempt(err) || isDuplicateStepClient(err) || (err instanceof LabError && err.status === 409))) {
       const prior = await replayStep(input);
       if (prior) return prior;
     }

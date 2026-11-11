@@ -1,0 +1,498 @@
+{
+  "slug": "resident-found-on-floor",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert path at study pace: call light at once, stays, keeps her still and warm, objective report, change reported at once",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "callLight",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "teach",
+          "prompt": "whyNotUp",
+          "choice": "injury",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "stayStill",
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "lookOver",
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "blanket",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "firstMoves",
+          "answered": true,
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "helpMeUp",
+          "choice": "stay",
+          "seq": 10,
+          "tick": 45
+        },
+        {
+          "type": "chapter",
+          "chapter": "nurseHere",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "found": "obj",
+            "said": "quote",
+            "flag": "thinner"
+          },
+          "seq": 12,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 13,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "reportVitals",
+          "seq": 14,
+          "tick": 305
+        },
+        {
+          "type": "teach",
+          "prompt": "hipSign",
+          "choice": "hip",
+          "seq": 15,
+          "tick": 305
+        },
+        {
+          "type": "teach",
+          "prompt": "headThinner",
+          "choice": "bleed",
+          "seq": 16,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 305
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 18,
+          "tick": 685
+        },
+        {
+          "type": "act",
+          "action": "tellChange",
+          "seq": 19,
+          "tick": 685
+        },
+        {
+          "type": "chapter",
+          "chapter": "handedOver",
+          "choice": "continue",
+          "seq": 20,
+          "tick": 1505
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "note": "obj"
+          },
+          "seq": 21,
+          "tick": 1505
+        },
+        {
+          "type": "act",
+          "action": "prevent",
+          "params": {
+            "plan": "universal"
+          },
+          "seq": 22,
+          "tick": 1505
+        }
+      ],
+      "expect": {
+        "ending": "safeHandoff",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "notMoved": "met",
+          "callHelp": "met",
+          "stayed": "met",
+          "comfort": "met",
+          "report": "met",
+          "vitals": "met",
+          "reportChange": "met",
+          "note": "met",
+          "prevention": "met"
+        },
+        "kpis": {
+          "toCall": 5,
+          "toChange": 20
+        },
+        "stateHash": "db6f3b524669589f"
+      },
+      "reasoning": {
+        "firstMoves": "met"
+      }
+    },
+    {
+      "id": "slowSafe",
+      "title": "Calls after a minute, no blanket, report with opinion, change reported after 5 minutes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "reason",
+          "moment": "firstMoves",
+          "answered": true,
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 2,
+          "tick": 40
+        },
+        {
+          "type": "choose",
+          "prompt": "helpMeUp",
+          "choice": "stay",
+          "seq": 3,
+          "tick": 45
+        },
+        {
+          "type": "act",
+          "action": "callLight",
+          "seq": 4,
+          "tick": 70
+        },
+        {
+          "type": "chapter",
+          "chapter": "nurseHere",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "found": "interp",
+            "said": "vague",
+            "flag": "none"
+          },
+          "seq": 6,
+          "tick": 190
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 7,
+          "tick": 370
+        },
+        {
+          "type": "act",
+          "action": "reportVitals",
+          "seq": 8,
+          "tick": 370
+        },
+        {
+          "type": "act",
+          "action": "tellChange",
+          "seq": 9,
+          "tick": 1030
+        },
+        {
+          "type": "chapter",
+          "chapter": "handedOver",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 1570
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "note": "obj"
+          },
+          "seq": 11,
+          "tick": 1570
+        },
+        {
+          "type": "act",
+          "action": "prevent",
+          "params": {
+            "plan": "universal"
+          },
+          "seq": 12,
+          "tick": 1570
+        }
+      ],
+      "expect": {
+        "ending": "handoffGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "notMoved": "met",
+          "callHelp": "partial",
+          "stayed": "met",
+          "comfort": "missed",
+          "report": "partial",
+          "vitals": "met",
+          "reportChange": "partial",
+          "note": "met",
+          "prevention": "met"
+        },
+        "kpis": {
+          "toCall": 70,
+          "toChange": 300
+        },
+        "stateHash": "ca3baf738395b675"
+      },
+      "reasoning": {
+        "firstMoves": "met"
+      }
+    },
+    {
+      "id": "leftButTold",
+      "title": "Tells her to stay still, then leaves to find the nurse; no vital signs, the change is never reported, rails suggested",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stayStill",
+          "seq": 1,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "leave",
+          "seq": 2,
+          "tick": 5
+        },
+        {
+          "type": "reason",
+          "moment": "firstMoves",
+          "answered": true,
+          "seq": 3,
+          "tick": 20
+        },
+        {
+          "type": "chapter",
+          "chapter": "nurseHere",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 125
+        },
+        {
+          "type": "act",
+          "action": "report",
+          "params": {
+            "found": "interp",
+            "said": "vague",
+            "flag": "none"
+          },
+          "seq": 5,
+          "tick": 125
+        },
+        {
+          "type": "chapter",
+          "chapter": "handedOver",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 1505
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "note": "opinion"
+          },
+          "seq": 7,
+          "tick": 1505
+        },
+        {
+          "type": "act",
+          "action": "prevent",
+          "params": {
+            "plan": "rails"
+          },
+          "seq": 8,
+          "tick": 1505
+        }
+      ],
+      "expect": {
+        "ending": "handoffGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 30,
+        "criteria": {
+          "notMoved": "met",
+          "callHelp": "partial",
+          "stayed": "missed",
+          "comfort": "missed",
+          "report": "partial",
+          "vitals": "missed",
+          "reportChange": "missed",
+          "note": "partial",
+          "prevention": "missed"
+        },
+        "kpis": {
+          "toCall": 5,
+          "toChange": -1
+        },
+        "stateHash": "6c030f35f0e2b2c4"
+      },
+      "reasoning": {
+        "firstMoves": "partial"
+      }
+    },
+    {
+      "id": "helpedUp",
+      "title": "Asks what happened, then helps her up when she asks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ask",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "firstMoves",
+          "answered": true,
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "helpMeUp",
+          "choice": "up",
+          "seq": 3,
+          "tick": 45
+        }
+      ],
+      "expect": {
+        "ending": "moved",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "notMoved": "missed",
+          "callHelp": "missed",
+          "stayed": "partial",
+          "comfort": "missed",
+          "report": "missed",
+          "vitals": "missed",
+          "reportChange": "na",
+          "note": "missed",
+          "prevention": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toChange": -1
+        },
+        "stateHash": "0fc5a7bf290ffe49"
+      },
+      "reasoning": {
+        "firstMoves": "missed"
+      }
+    },
+    {
+      "id": "leftAlone",
+      "title": "Leaves at once to find the nurse without a word; she tries to get up alone",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "leave",
+          "seq": 1,
+          "tick": 8
+        },
+        {
+          "type": "reason",
+          "moment": "firstMoves",
+          "answered": true,
+          "seq": 2,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "moved",
+        "class": "harm",
+        "rating": "bad",
+        "score": 6,
+        "criteria": {
+          "notMoved": "missed",
+          "callHelp": "partial",
+          "stayed": "missed",
+          "comfort": "missed",
+          "report": "missed",
+          "vitals": "missed",
+          "reportChange": "na",
+          "note": "missed",
+          "prevention": "missed"
+        },
+        "kpis": {
+          "toCall": 8,
+          "toChange": -1
+        },
+        "stateHash": "23f4272f4e851017"
+      },
+      "reasoning": {
+        "firstMoves": "missed"
+      }
+    }
+  ]
+}

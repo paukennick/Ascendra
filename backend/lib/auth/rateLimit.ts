@@ -1,4 +1,10 @@
+import { createHash } from "node:crypto";
 import { query, queryOne, withTransaction } from "../db";
+
+// REQ-216 (low, FAIL-1018): what a learner reads when a limit is reached. The
+// message used to name the internal event ("Too many lesson_regenerate
+// attempts"), which means nothing to a learner and leaks our event names.
+export const RATE_LIMIT_MESSAGE = "You're doing that a bit too often. Please wait a few minutes and try again.";
 
 export class RateLimitError extends Error {}
 
@@ -33,7 +39,7 @@ export async function checkRateLimit(
   );
   const count = row ? parseInt(row.count, 10) : 0;
   if (count >= opts.max) {
-    throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+    throw new RateLimitError(RATE_LIMIT_MESSAGE);
   }
 }
 
@@ -52,6 +58,24 @@ export const MFA_USER_LIMIT = { max: 10, windowMinutes: 15 };
 export const MFA_USER_LOCKED_MESSAGE =
   "That's a lot of code attempts, so sign-in codes for this account are paused for 15 minutes to keep it safe. " +
   "Nothing is wrong with your account. Wait a little, then try again with a fresh code or a backup code.";
+
+// REQ-219: the per-IP counters below key their auth_events rows by a hash of the
+// address, not the address: account deletion removes every row holding the
+// learner's IP (lib/auth/retention.ts), and these rows belong to no account.
+export function ipCounterKey(ip: string): string {
+  return createHash("sha256").update(`ip-counter:${ip}`).digest("hex").slice(0, 32);
+}
+
+// REQ-219 (FAIL-1102): Google sign-ins per IP address (the route's own check
+// before the token is verified), as register limits sign-ups per IP.
+export const GOOGLE_SIGNIN_IP_LIMIT = { max: 30, windowMinutes: 15 };
+
+// REQ-219 (FAIL-1105): password checks per IP address across every address
+// tried, ahead of login's per-(address, IP) pair. Wrong guesses count; a
+// correct password gives its attempt back, so a school or office behind one
+// address is limited by its failures, not its sign-ins.
+export const LOGIN_IP_EVENT = "login_ip";
+export const LOGIN_IP_LIMIT = { max: 60, windowMinutes: 15 };
 
 // REQ-135: check-and-record as one atomic step. checkRateLimit followed by
 // recordAuthEvent is two statements, so N requests sent at once all read
@@ -93,7 +117,7 @@ export async function consumeRateLimit(
     );
     return row?.id ?? null;
   });
-  if (!recorded) throw new RateLimitError(`Too many ${eventType} attempts. Try again later.`);
+  if (!recorded) throw new RateLimitError(RATE_LIMIT_MESSAGE);
   return recorded;
 }
 

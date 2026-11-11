@@ -34,7 +34,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
       kind: "case",
       title: "Get a web service back up from its unit status and journal",
       brief:
-        "You administer web01, an Ubuntu server at Fernhill Books that serves the company catalogue with nginx. After a reboot for kernel patches, the catalogue is down. A colleague says they 'installed Apache yesterday to test something' and then left for the week. Work the problem with systemctl, journalctl and ss, and leave the box in a state that survives the next reboot.",
+        "You administer web01, an Ubuntu server at Fernhill Books that serves the company catalog with nginx. After a reboot for kernel patches, the catalog is down. A colleague says they 'installed Apache yesterday to test something' and then left for the week. Work the problem with systemctl, journalctl and ss, and leave the box in a state that survives the next reboot.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -57,7 +57,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
         {
           text:
             "$ sudo ss -tlnp 'sport = :80'\nState   Recv-Q  Send-Q  Local Address:Port  Peer Address:Port  Process\nLISTEN  0       511           0.0.0.0:80         0.0.0.0:*      users:((\"apache2\",pid=1012,fd=4),(\"apache2\",pid=1011,fd=4),(\"apache2\",pid=1009,fd=4))\n\n$ systemctl is-enabled apache2\nenabled",
-          ask: "Fix it so the catalogue is served now and stays served after the next reboot, and show how you confirm each step.",
+          ask: "Fix it so the catalog is served now and stays served after the next reboot, and show how you confirm each step.",
           parts: [
             part(
               "Clearing the port and starting nginx",
@@ -72,7 +72,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The catalogue is back. Your manager asks for two things: proof that nginx will restart on its own if it crashes, and a way to check the service's recent errors quickly during the next incident.",
+          text: "The catalog is back. Your manager asks for two things: proof that nginx will restart on its own if it crashes, and a way to check the service's recent errors quickly during the next incident.",
           ask: "What do you configure and which commands do you hand over?",
           parts: [
             part(
@@ -104,7 +104,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
           parts: [
             part(
               "Adding the disk to LVM",
-              "Confirms the device (lsblk, no existing data), initialises it as a physical volume (pvcreate /dev/sdc, optionally on a partition), extends the volume group (vgextend vg_data /dev/sdc), and checks with pvs/vgs that vg_data now has roughly 500 GB free.",
+              "Confirms the device (lsblk, no existing data), initializes it as a physical volume (pvcreate /dev/sdc, optionally on a partition), extends the volume group (vgextend vg_data /dev/sdc), and checks with pvs/vgs that vg_data now has roughly 500 GB free.",
               "lsblk -f /dev/sdc to confirm it is empty. sudo pvcreate /dev/sdc (or partition it first with parted and use /dev/sdc1). sudo vgextend vg_data /dev/sdc. sudo vgs vg_data should show VSize about 700 GB with about 500 GB VFree (200 GB in use by lv_data)."
             ),
             part(
@@ -233,7 +233,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Why passwd needs SUID and a script must not have it",
-              "Explains that passwd must write /etc/shadow, which only root can modify, so it runs with the owner's (root's) effective UID; a set-UID shell script is ignored by the kernel on Linux (the bit is not honoured for interpreted scripts) and would be dangerous if honoured because the interpreter and its environment can be manipulated -- use sudo with a specific rule instead.",
+              "Explains that passwd must write /etc/shadow, which only root can modify, so it runs with the owner's (root's) effective UID; a set-UID shell script is ignored by the kernel on Linux (the bit is not honored for interpreted scripts) and would be dangerous if honored because the interpreter and its environment can be manipulated -- use sudo with a specific rule instead.",
               "/usr/bin/passwd lets an ordinary user change their own password, which means writing to /etc/shadow (mode 640, root-owned). The SUID bit makes passwd run with root's effective UID just for that, and the program itself checks that you only change your own entry. A SUID shell script is different: Linux ignores SUID on interpreted scripts because the interpreter is started separately and could be fed a different script or environment (PATH, IFS) between the check and the run. If someone 'needs' it, give them a precise sudoers rule for the one command instead."
             ),
           ],
@@ -466,7 +466,7 @@ export const LINUXPLUS_LABS: SeedLabSet = {
             part(
               "Verifying the schedules",
               "crontab -l to read back the entries; systemctl list-timers --all showing archive-logs.timer with NEXT and LAST columns; systemd-analyze calendar 'Mon..Fri 02:30' to check the expression and see the next elapse; atq for the one-off; journalctl -u archive-logs.service after the first run; and a manual systemctl start archive-logs.service to test the service without waiting.",
-              "crontab -l shows the two cron lines. systemd-analyze calendar 'Mon..Fri 02:30' prints the normalised form and 'Next elapse', proving the expression means what you think. systemctl list-timers --all shows archive-logs.timer with its NEXT time and, after the first run, LAST and the service it activates. sudo systemctl start archive-logs.service runs the job now as a test, and journalctl -u archive-logs.service shows its 'archived N file(s)' line. atq confirms the key-rotation job is queued for two hours out."
+              "crontab -l shows the two cron lines. systemd-analyze calendar 'Mon..Fri 02:30' prints the normalized form and 'Next elapse', proving the expression means what you think. systemctl list-timers --all shows archive-logs.timer with its NEXT time and, after the first run, LAST and the service it activates. sudo systemctl start archive-logs.service runs the job now as a test, and journalctl -u archive-logs.service shows its 'archived N file(s)' line. atq confirms the key-rotation job is queued for two hours out."
             ),
           ],
         },

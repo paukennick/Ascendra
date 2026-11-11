@@ -227,6 +227,9 @@ export const EDUCATION_CATEGORY_PLAN: Record<string, CourseCategory> = {
   "project-management-certifications": "pm",
   "health-fitness": "fitness",
   "healthcare-nursing": "clinical",
+  // REQ-224: mental health licensure (migration 077) is clinical content and
+  // sits in the clinical plan with nursing, PT and EMS.
+  "mental-health": "clinical",
 };
 export const EDUCATION_SUBCATEGORY_PLAN: Record<string, CourseCategory> = {
   // The older PMI subcategory under Business (migration 019 left it in place).

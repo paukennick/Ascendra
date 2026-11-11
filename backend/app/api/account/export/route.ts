@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 // (REQ-118: pages are 500 rows now, so a heavy learner needs more of them).
 export async function GET(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const { searchParams } = new URL(req.url);
     const section = searchParams.get("section");
     const offsetParam = searchParams.get("offset");

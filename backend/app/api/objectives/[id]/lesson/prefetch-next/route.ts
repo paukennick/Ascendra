@@ -152,7 +152,7 @@ export async function POST(
     return ok({ nextObjectiveId: nextId, next, status: "started" });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

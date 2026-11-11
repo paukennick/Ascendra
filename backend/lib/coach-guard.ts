@@ -281,7 +281,7 @@ export async function timedMockInProgress(userId: string): Promise<boolean> {
 export const MOCK_IN_PROGRESS_REPLY =
   "You're in the middle of a timed mock exam, so I'm stepping back until it's done -- that way your score shows " +
   "what you can do on exam day, which is exactly what we want to know. Finish or submit the mock, and then bring " +
-  "me any question from it: we'll go through every one you want, and a miss there just tells us what to practise next.";
+  "me any question from it: we'll go through every one you want, and a miss there just tells us what to practice next.";
 
 // Every open item for this learner in this track (and unit, where a kind is
 // unit-scoped). The one function the chat route calls.

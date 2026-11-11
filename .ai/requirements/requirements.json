@@ -7525,6 +7525,715 @@
       "risk_notes": [
         "Production settings and lockdown progress are as reported by Nick and not read from Vercel or GitHub settings"
       ]
+    },
+    {
+      "id": "REQ-212",
+      "category": "Mobile authentication",
+      "title": "Login workflows on Android: biometric unlock stays on through sign-in and Create account; autofill hints checked",
+      "description": "Nick reported on the 2026-11-11 Android preview build that biometrics are turned off when navigating to Create account and that saved username and password are not offered on the login screen. Biometrics (FAIL-1002 and FAIL-1003): leaving the launch lock with 'Use password instead' and tapping the login screen's biometric button after a logout both deleted the device's biometric preference; now only Sign out of all devices does. Autofill: the login and register hints are unchanged since before batch-10 and reach the native field (checked in react-native's Android TextInput); no code cause was found for the reported symptom and it needs a device check. The MFA code field gained its missing Android hint (FAIL-1004).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/src/auth/AuthContext.tsx",
+        "mobile/src/lib/sessionStore.ts",
+        "mobile/app/(auth)/login.tsx",
+        "mobile/app/(auth)/mfa-challenge.tsx",
+        "mobile/src/lib/loginWorkflow.test.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "With biometric unlock on 'Use password instead' leads to sign-in and the preference is still on afterwards",
+        "Only Sign out of all devices or the Settings toggle turns biometric unlock off",
+        "The login biometric button appears only while a sealed session is on the device",
+        "Login keeps username plus current-password and register keeps username plus new-password and TextField forwards them",
+        "The MFA code field carries autoComplete one-time-code",
+        "mobile tsc and npm test pass"
+      ],
+      "validation_required": [
+        "typescript_format",
+        "unit_tests",
+        "manual_verification"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Code reading and node tests only: the Android app was not run here so the OS prompt and the autofill service are unobserved",
+        "The biometric preference is one per device: a different account signed in on the device has its session sealed too (unchanged)",
+        "'Use password instead' cannot revoke the sealed token on the server (reading it needs the biometric prompt) so that session expires on its own as before",
+        "JavaScript only: no app.json or plugin change"
+      ]
+    },
+    {
+      "id": "REQ-211",
+      "category": "feature",
+      "title": "Owner-only 'Send a test error' button to confirm Sentry receives server errors",
+      "description": "Nick, 2026-11-10: after setting ERROR_TRACKER_DSN there was no safe way to confirm reports arrive. Settings > Access (owner only) gains 'Send a test error', which posts to POST /api/access/error-tracker-test. The route requires the owner, allows five a day (auth_events 'error_tracker_test'), sends one labelled event through the same store endpoint as reportError, waits for Sentry's answer (5 s timeout) and returns { configured, delivered, status }. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/error-tracker.ts",
+        "backend/app/api/access/error-tracker-test/route.ts",
+        "backend/lib/error-reporting.test.ts",
+        "backend/lib/account-access.dbtest.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/lib/access.test.ts",
+        "mobile/app/(app)/settings/access.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "non-owners get 403 and nothing is sent",
+        "no DSN reports configured false and sends nothing",
+        "a 2xx from Sentry reports delivered; a refusal or network failure is reported, never thrown",
+        "the sixth call in a day is a 429 and sends nothing",
+        "the owner sees a plain-language result on the Access screen"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the test event appears as a real error in Sentry and should be resolved there"
+      ]
+    },
+    {
+      "id": "REQ-213",
+      "category": "bugfix",
+      "title": "PBQ scenarios generate: fewer false holdbacks, one retry, and the held-back message reaches the app",
+      "description": "Nick, 2026-11-10: generating PBQs failed every time. The PBQ prompt tells the writer that the invented setting and wording caveats are not uncertain claims; a held-back scenario is written once more; a second holdback answers 409 with the held-back message. Real uncertain facts are still held back and logged (REQ-114). FAIL-1005 (2026-11-10 evening): for PBQs only the writer's low confidence holds a scenario back; claims listed at medium or high confidence are logged and the scenario is served.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/pbq-holdback.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a held-back first scenario is followed by one more attempt and the second is served",
+        "two held-back scenarios answer 409 with the held-back message; nothing stored; both logged",
+        "a confident scenario costs one call",
+        "the PBQ prompt excludes invented settings and wording caveats from uncertainClaims",
+        "a medium-confidence scenario with a listed claim is served on the first call"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a held-back attempt now costs up to two fast-model calls (about a cent)"
+      ]
+    },
+    {
+      "id": "REQ-214",
+      "category": "chore",
+      "title": "Retire the 2026-11-07 production-state rehearsal CI job",
+      "description": "Nick, 2026-11-10: retire it. The job applied every migration (now up to 073) and then ran only the 2026-11-07 rollback, so the schema comparison could never pass after the first later release; it failed on every master run since batch 5. The job is removed from ci.yml; the script and the 11-07 rollback file are kept and marked historical; the deploy runbook says so. Per-migration rollbacks stay tested in lib/rollback-scripts.dbtest.ts.",
+      "priority": "low",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".github/workflows/ci.yml",
+        "backend/scripts/rehearse-production-migration.sh",
+        "backend/scripts/rollback-release-2026-11-07.sql",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "ci.yml has no rehearsal job and still parses",
+        "the script and the 11-07 rollback say they are historical"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "none: no production behaviour changes"
+      ]
+    },
+    {
+      "id": "REQ-218",
+      "category": "bugfix",
+      "title": "Learning-data integrity (G3): quarantine in review prep, review spacing floor, Independent needs a later session, exam submit and other races",
+      "description": "Nick, 2026-11-10 (audit batch G3, audit of 2026-11-11, approved incl. low-priority). Review prep serves pulled items (H1); a review due on a UTC calendar day can be minutes after the last one and a correct answer jumps a rung (H8; an item is now due only 24 h after its last review (Nick, 2026-11-10 21:22: a full day)); Independent mastery needs a later-session confirmation (24 h after the first unassisted format win; migration 074 restates mastery_detail and recomputes stored levels); exam submit claims the session before reading, records no attempt for items now confirmed wrong or objectives retired mid-session, reuses a stored attempt, and an expired timed session is submitted before the next start abandons it (M1, M2, M5); a sim reasoning answer cannot be stored after the run ended (M3); confirming an item wrong resolves the error_log rows and deletes the misconceptions of the voided attempts (M4); lab restart cannot race a graded last step; the first PBQ or unit-check answer is decided under a per-scenario lock; explain-back replay is bound to the answer text; a re-check claim expires.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/review-store.ts",
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts",
+        "backend/supabase/migrations/074_*.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a pulled review item is never picked for a session; a review is not due until 18 h after the last one and an early correct answer does not climb a rung; Independent needs unassisted correct format wins 24 h apart; stored levels follow after recompute; submit claims then grades; no attempt for confirmed-wrong items or retired objectives; reasoning refused after the run ended; confirm-wrong clears error_log and misconceptions; lab restart cannot complete an abandoned run; two first PBQ answers give one unassisted and one repeat; explain-back replay with another answer is 409; an old re-check claim is taken over"
+      ],
+      "validation_required": [
+        "build",
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
+      ]
+    },
+    {
+      "id": "REQ-217",
+      "category": "mobile",
+      "title": "G2: phone sessions and app screens (audit 2026-11-11)",
+      "description": "Fixes from the 2026-11-11 audit for the mobile app's session handling and screens: biometric re-seal on every silent refresh (H4), any refresh failure signing out (H5), all /api/auth routes skipping refresh-and-retry and sign-out-everywhere reporting success on failure (H6), plus M9, M11-M14 and the lower-priority list. JavaScript only: ships as an over-the-air update. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/",
+        "CHANGELOG.md",
+        ".ai/"
+      ],
+      "acceptance_criteria": [
+        "Silent refresh never prompts for or writes the sealed key",
+        "Only a 401 from refresh signs the device out",
+        "Only signed-out /api/auth routes skip refresh-and-retry",
+        "Sign out of all devices reports success only on 200",
+        "Each listed screen finding fixed or documented as accepted"
+      ],
+      "validation_required": [
+        "cd mobile && npx tsc --noEmit",
+        "cd mobile && npm test",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Two items accepted and documented (FAIL-1065, FAIL-1066); export file share deferred (FAIL-1055). Several fixes need a phone check."
+      ]
+    },
+    {
+      "id": "REQ-221",
+      "category": "operations",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/restore/",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/required-env.ts",
+        "backend/.env.example",
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md",
+        "docs/legal/data-inventory.md",
+        ".github/workflows/",
+        ".github/scripts/eas-build-summary.mjs",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a plain restore into a fresh cluster fails and the drill passes there",
+        "restored roles have the source's privileges",
+        "CRON_SECRET missing in production is misconfigured",
+        "every listed env name is in .env.example and the runbook",
+        "the Android preview workflow is pinned and its summary never throws"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backup-drill-test.sh on two clusters",
+        "node --test .github/scripts",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/operations-runbook.md",
+        "docs/restore-drill.md"
+      ],
+      "risk_notes": [
+        "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
+        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+      ]
+    },
+    {
+      "id": "REQ-215",
+      "category": "chore",
+      "title": "Raise the repo's agent turn limits (60/80 to 150/200)",
+      "description": "Nick, 2026-11-10: fix what makes agents stop at their limit. Every reviewer and builder in .claude/agents/ was capped at 60 turns (coordinator and release-validator at 80); on this codebase four of six audit reviewers and several fix-batch builders stopped before reporting and had to be resumed. Reviewers and builders now allow 150 turns, coordinator and release-validator 200.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        ".claude/agents/*.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every .claude/agents file sets maxTurns 150 or 200"
+      ],
+      "validation_required": [
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
+      ]
+    },
+    {
+      "id": "REQ-224",
+      "category": "content",
+      "title": "EPPP course (Prep for the EPPP), Mental Health category and the 18+ mature-content gate",
+      "description": "Batch EPPP-A (Nick, 2026-11-10). Mental health courseware first wave is NCE, NCMHCE, ASWB Clinical, EPPP and a WA psychology jurisprudence course; EPPP first. Migration 077: mental-health category (psychology, counseling, social work licensure) and mature_content_confirmations (per account, category, notice version; timestamp, min age 18, source). Prep for the EPPP: ASPPB Part 1-Knowledge domains at published weights, objectives incl. the three sim objectives, ASPPB format and scoring, WA rule. 18+ gate: server 403 mature_content_required on every mental health course route (shared gate, course open, start routes, intake), accept/state routes, export, delete by cascade, schema probe; app notice on intake pick, Explore category, and any refused request (API client asks and resends once). Mental health is clinical: study notice, lab/sim framing, 3x default sim pace, clinical plan.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/tracks/eppp.ts",
+        "backend/supabase/seed/catalog.ts",
+        "backend/supabase/migrations/077_mental_health_mature_content.sql",
+        "backend/lib/mature-content.ts",
+        "backend/lib/auth/requireAcknowledgement.ts",
+        "backend/lib/http.ts",
+        "backend/lib/visibility.ts",
+        "backend/app/api/mature-content/",
+        "backend/app/api/courses/[id]/route.ts",
+        "backend/app/api/intake/route.ts",
+        "backend/lib/account-export.ts",
+        "backend/lib/schema-status.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/lab-grading.ts",
+        "backend/lib/billing-config.ts",
+        "backend/lib/prompts.ts",
+        "mobile/src/lib/matureContent.ts",
+        "mobile/src/auth/MatureContentContext.tsx",
+        "mobile/src/components/MatureContentNotice.tsx",
+        "mobile/src/api/client.ts",
+        "mobile/src/components/IntakeForm.tsx",
+        "mobile/app/(app)/explore.tsx",
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "EPPP units are the eight ASPPB domains at 10/13/11/12/16/15/7/16",
+        "the three sim objectives exist with exact titles",
+        "a mental health course route without the 18+ confirmation answers 403 mature_content_required and never 5xx",
+        "the confirmation is recorded with timestamp and notice version and is exported and deleted with the account",
+        "the app asks on intake pick and Explore category and on any refused request",
+        "mental health sims default to 3x pace"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "migrations and seed twice on throwaway Postgres",
+        "npm run test:db as owner",
+        "mature-content and related dbtests as app_runtime",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/legal/data-inventory.md",
+        "docs/deploy-runbook-integration.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Privacy Policy text does not yet mention the 18+ confirmation (needs a legal version bump; Nick's decision)",
+        "ASPPB's October 2026 integrated handbook was not readable here",
+        "Washington Part 2 not required is inferred"
+      ]
+    },
+    {
+      "id": "REQ-220",
+      "category": "content",
+      "title": "Course content fixes from the 2026-11-11 audit (batch G5) and a US English spelling sweep",
+      "description": "Nick approved batch G5 on 2026-11-10 (audit https://claude.ai/artifact/UFkdcUkCJtp5eeVFuLWbjh, H7, M18, M19 and the content lows), plus the US spelling sweep (Nick, 2026-11-10, via the lead session). Security+ V7 covers every SY0-701 sub-objective; its practice exams offer multi-select and drag-and-drop; its incident-response lab leads with the exam's seven steps. PT: the 2026 APTA Code of Ethics, the 2021 Medicare maintenance-therapy rule, 1.8 kg = 4 lb, sarcopenia wording. Study-emphasis weights (CNA, LPN/VN, ADN, BSN) are never shown as an exam blueprint. The lesson writer and fact-checker get each unit's dated key values. CCRN: HAP/VAP instead of the retired HCAP category. Clinical framing follows the profession. Tamponade sim version 2 (focused start, brief pace, CVP per bolus). Learner-facing text is US English, except the Terms/Privacy text (Nick, 2026-11-10: converted with the next legal version, see backend/lib/legal.ts) and published sim text. AWS MLA-C02 question format verified against AWS's exam guide and certification page on 2026-11-10: unchanged. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/",
+        "backend/lib/",
+        "backend/app/",
+        "mobile/app/",
+        "mobile/src/",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "lib/secplus-v7-coverage.test.ts: every SY0-701 sub-objective's topics are in its domain's unit",
+        "existing objectives are only retired in place and appended to, never reworded under the same id (spelling-only retitles excepted and kept as the same objective)",
+        "a study-emphasis course shows no exam weights on any app build (server-side)",
+        "lib/us-spelling.test.ts passes; legal text and published sims excluded with reasons",
+        "sims:lint 0 errors; goldens keep every outcome, rating and score",
+        "seed twice, test:db, npm test and mobile tests pass"
+      ],
+      "validation_required": [
+        "npm test",
+        "npm run test:db",
+        "npm run sims:lint",
+        "mobile npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "backend/lib/legal.ts (legal spelling note)"
+      ],
+      "risk_notes": [
+        "Clinical values were taken from official or cited sources where reachable; the heart-failure table's own pound figure (PMC10847087) and the full APTA policy page could not be opened; see the commit messages.",
+        "Tamponade version 2 is needs_expert_review: if version 1 is approved in production, version 1 keeps being served until version 2 is approved.",
+        "The spelling sweep retitles many objectives; the seed keeps their lessons because the change is spelling-only."
+      ]
+    },
+    {
+      "id": "REQ-219",
+      "category": "security",
+      "title": "Fix batch G4: accounts and security (audit 2026-11)",
+      "description": "Nick approved fix batch G4 on 2026-11-10 after the audit (FAIL-1100..1129). (1) Turning off the last two-factor method is decided and written under a row lock; sign-in treats 'on with no method' as off. (2) Backup-code regeneration takes the shared proofs (Google re-auth or a code). (3) A rejected Google token is a 401 not reported to the error tracker, with a per-IP limit; the Google link route answers the same. (4) Google sign-in that attaches to an existing account mails its address (Nick's decision). (5) Per-IP ceiling on login. (6) Error reports drop the query string; the reset token is handed to the verify-email page in a cookie, not the redirect URL. (7) Terms and Privacy agreement is enforced on the server: requireUser answers 403 terms_required for an account that has not accepted what its client must accept (X-Ascendra-App / X-Ascendra-Legal rules of lib/legal.ts), except accept, onboarding, auth/me (read), account export and delete, logout-all and support (Nick's decision; onboarding and support added so the app can read the gate state and a person can ask for help). (8) Lows: sessions listed and ended by family; max password length on change and reset; a password change spends reset links and sign-in challenges; sign-in codes count against the per-address mail limit; authenticator codes work once (totp_last_step); previous Terms versions are a list; support content reports need a visible objective; inbound email deliveries are deduplicated by svix-id; catalog review findings are validated and stored in one transaction; the paid-access rule is shared with lib/entitlements.ts. Migration 075.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/app/api/auth",
+        "backend/lib/auth",
+        "backend/lib/legal.ts",
+        "backend/lib/error-tracker.ts",
+        "backend/instrumentation.ts",
+        "backend/app/verify-email",
+        "backend/app/api/support/route.ts",
+        "backend/app/api/inbound/email/route.ts",
+        "backend/app/api/catalog/review-findings/route.ts",
+        "backend/lib/ai-access.ts",
+        "backend/lib/entitlements.ts",
+        "backend/supabase/migrations/075_accounts_security_g4.sql",
+        "backend/lib/schema-status.ts",
+        "mobile/app/(app)/settings/mfa.tsx",
+        "mobile/app/(app)/account/sessions.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "Two simultaneous MFA turn-offs never leave the flag on with no method or skip the last-method code",
+        "A Google-only account regenerates backup codes with Google or a code",
+        "A rejected Google token is a 401 and not reported",
+        "An account that has not agreed is refused 403 terms_required on every signed-in route except the open list and a build that accepted its own older text is not refused",
+        "An authenticator code works once",
+        "A replayed inbound delivery forwards once"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db seeded twice and as app_runtime",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/checklists/pre-completion.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-216",
+      "category": "bugfix",
+      "title": "Generation gate: block only on low confidence or a disagreeing check; learner errors are 4xx; plain reasons",
+      "description": "Audit of 2026-11-11, batch G1 (Nick approved 2026-11-10). Generated lessons, quiz questions, review questions, unit checks, comparison cards, exam items and PBQs are held back only on the writer's low confidence or a fact-check that disagrees with the key; listed disclaimers are logged. One retry steered with the first attempt's claims. When held, the learner is told the reason in plain words with a 409; a failed fact-check call is retryable, not a holdback. Review says 'couldn't be prepared' instead of 'nothing due'. Every UserFacingError is a 4xx and the app keeps the server's words for 502/503. The lesson intro handed out is kept when the practice half fails. Distractor lint narrowed. Labs (REQ-123 generation, scripts/generate-labs.ts) are on the same rule: held only on the writer's low confidence, a broken content rule or a checker that finds a wrong reference answer, something unsafe or a step that depends on an earlier answer; one steered retry; the operator is told why in plain words; a failed checker call is retryable with no holdback. Lows: PBQ and unit-check waiters, unit-check single flight, rate-limit message, bad course date, counted-use give-backs on labs and sims, grading-claim expiry, chat single flight, soft global ceiling documented.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/generation-gate.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/http.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/exam-items.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/pbq-scenarios.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/lab-routes.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "acceptance_criteria": [
+        "a listed disclaimer at medium or high confidence never holds an item back",
+        "low confidence or a disagreeing check holds it and the retry is steered with the claims",
+        "a held item answers 409 with the reason",
+        "a failed fact-check call is a retryable 409 with no holdback",
+        "review with due items but nothing prepared returns unavailable and no empty session",
+        "no UserFacingError is a 5xx",
+        "the app shows the server's words for 502/503",
+        "the accepted lesson intro is reused when practice fails",
+        "read-only/two-factor/three-way handshake are not rejected by the lint",
+        "a lab is held only on low confidence, a content rule, or a checker disagreement; a listed or unconfirmed claim stores it; the retry is steered; a failed checker call is retryable with no holdback row"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/billing.md"
+      ],
+      "risk_notes": [
+        "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs have no learner request path (written offline by scripts/generate-labs.ts), so the reason is the operator outcome line, not an HTTP 409; a lab held for something the checker called unsafe stays held (stricter than disagreeing with the key, deliberate for clinical and fitness labs)"
+      ]
+    },
+    {
+      "id": "REQ-228",
+      "category": "docs/process",
+      "title": "Ship notes: What's new, in-app text and docs updated with every shipment, with a CI guard",
+      "description": "Nick, 2026-11-10: update What's new and the associated docs whenever a shipment goes out, update the in-app documents; identify and fix other items like this. (1) What's new entries for everything learners got since 2026-11-07, gated by feature flags. (2) In-app explanatory text (FAQ, About, lesson and course copy, notices, emails, coach prompt) checked against master and fixed; Terms/Privacy left for the next legal version and listed. (3) Repo docs describing shipped behavior fixed (except files PR #117 rewrites). (4) Release playbook Ship notes step, pre-completion line, and a CI test that fails when a learner-facing CHANGELOG entry is newer than the newest release note. (5) Other per-shipment drift found, fixed or guarded.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/release-notes.ts",
+        "backend/lib/release-notes.test.ts",
+        "backend/lib/ship-notes.test.ts",
+        "mobile/src/content/legal.ts",
+        "CHANGELOG.md",
+        ".ai/playbooks/release.md",
+        ".ai/checklists/pre-completion.md",
+        "docs/"
+      ],
+      "acceptance_criteria": [
+        "What's new covers 2026-11-07 to master",
+        "Stale in-app text fixed or listed",
+        "Ship-notes CI guard fails on a forgotten note",
+        "Release playbook and checklist have the step"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-222",
+      "category": "content",
+      "title": "Sim library batch S2a: CCRN Adult sepsis, DKA and acute ischemic stroke scenarios",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three CCRN Adult bedside scenarios on engine 1.1 with no engine, renderer or schema change: sepsis to septic shock, DKA first six hours, acute ischemic stroke (in-hospital alert, LVO). Each: sourced params with checkedAt 2026-11-10, clinical outcome profile with noProgress, a reasoning moment, every class reachable, critical criteria in the target condition, KPIs, expert path, debrief, unscored teaching prompts with sources, chapters, five golden paths. Registered in lib/sim/documents.ts under existing CCRN objectives. No migration.",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/documents.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "sims:lint clean for the three documents",
+        "golden replays match",
+        "each document has Good Mediocre and Bad golden paths",
+        "seed twice is idempotent",
+        "sims dbtest passes"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "npm run seed twice on a throwaway Postgres",
+        "lib/sims.dbtest.ts",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "teaching-model numbers are authored and flagged",
+        "SSC 2026 read only through secondary summaries"
+      ]
+    },
+    {
+      "id": "REQ-223",
+      "category": "content",
+      "title": "Sim library batch S2b: CCRN post-op hemorrhage, CNA choking and fall",
+      "description": "Nick approved a sim library on 2026-11-10 (quality over speed). Three scenarios on the existing bedside renderer and engine 1.1, no engine or renderer change: CCRNADULT/bleeding-after-whipple (hemorrhagic shock after a Whipple: recognition from trends, blood early, MTP, crystalloid as a bridge, calcium, warming, escalation), CNA/resident-chokes-at-lunch and CNA/resident-found-on-floor (nurse-aide scope only). Sourced params with checkedAt, reasoning moment, endings for every class, critical criteria, KPIs, expert path, debriefs, teaching prompts, chapters and a focused start where useful, golden paths Good/Mediocre/Bad. Seed fix: re-check dates clamp to the month's end (FAIL-1190).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.sim.json",
+        "backend/supabase/seed/sims/CCRNADULT/bleeding-after-whipple.golden.json",
+        "backend/supabase/seed/sims/CNA/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/content-hash.ts",
+        "backend/lib/sim/documents.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each scenario lints with zero errors and replays its goldens",
+        "every outcome class is reachable and every criterion is both met and missed",
+        "CNA sims are classified clinical and get study pace by default",
+        "npm run seed is idempotent on a fresh database"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "sim:cross-runtime engine-print",
+        "npm run seed twice plus lib/sims.dbtest.ts",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "authored timing and physiology estimates are flagged in their source notes",
+        "the European trauma bleeding guideline 2023 full text could not be read; its points are confirmed from summaries",
+        "at 3x the choking crisis is fast; learners can switch to 1x"
+      ]
+    },
+    {
+      "id": "REQ-225",
+      "category": "feature",
+      "title": "Sims: client session screen type (people layer) and the first three EPPP cases (EPPP-B)",
+      "description": "A client session renderer (screen type session) for mental-health courses behind SIMS_RENDERERS and on by default, and three EPPP scenarios registered by course code and exact objective title: suicide risk and safety planning, duty to warn and protect (Washington), and a DSM-5-TR diagnostic intake. Nick approved 2026-11-10 (quality over speed).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/EPPP",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "session renderer behind SIMS_RENDERERS with session@1 capability",
+        "accessibility to the bedside and board standard",
+        "three EPPP scenarios with golden paths Good Mediocre Bad",
+        "seed resolves course code and objective title and fails clearly",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture",
+        "sims DB tests",
+        "mobile tsc and npm test"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.3",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "FAIL-1222 open: tamponade code_epiHarm unreachable on the server in jsonb key order; needs Nick's decision (engine ending order or content fix). EPPP course must land before npm run seed (seed stops plainly until then)."
+      ]
+    },
+    {
+      "id": "REQ-227",
+      "category": "feature",
+      "title": "Sims: explicit ending order (engine 1.2, endingOrder) so the server and the app always agree",
+      "description": "Endings were checked in the key order of the document's endings map, which the server's jsonb column does not keep (shorter keys first), so the server could end a run differently from the app and from the golden paths; on the live tamponade case full-dose epinephrine reached ROSC instead of its harm ending (FAIL-1222). Nick approved the engine approach 2026-11-10. Engine minor 2 adds an optional endingOrder list (every ending with a when, once; never time_up); a document without it is stepped exactly as before, so every older version, hash and stored run replays unchanged. The validator requires it from minor 2 when two endings have a when; the content linter errors when a document without it ends a golden path differently in written, reversed or jsonb key order; modules list their own order. All 12 seeded documents and the module fixture host are migrated (tamponade's epinephrine harm path now reaches harm).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims",
+        "backend/scripts",
+        "mobile/src/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "endingOrder lets the author set the order endings are checked in",
+        "result never depends on key order",
+        "older versions and stored runs replay unchanged",
+        "every seeded sim migrated",
+        "lint error for an order-dependent ending set",
+        "storage-order test passes for every sim with no todo"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims session and runtime-role dbtests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 4.1 4.5 5.3 22.6",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "a new content hash puts each migrated sim back into expert review",
+        "an app still on engine 1.1 cannot open a minor-2 version and falls back only to an approved runnable version",
+        "runs open on the old version keep the old order until they end",
+        "teaching prompts have the same key-order flaw (FAIL-1250)"
+      ]
+    },
+    {
+      "id": "REQ-226",
+      "category": "security",
+      "title": "G4 follow-ups: separate hourly budget for emailed sign-in codes; app opens the Terms screen on terms_required",
+      "description": "Two follow-ups to batch G4 (REQ-219) approved by Nick. (1) Emailed sign-in codes (POST /api/auth/mfa/challenge/send-email-code) shared the five-an-hour per-address mail budget (mayEmail, event mail_to_address) with password-reset, verification, registration and email-change mails, so someone who knew an email-only account's password could use up the budget and block the learner's sign-in codes for up to an hour. Sign-in codes now have their own per-address hourly budget (event mfa_code_mail_to, five an hour, stored in auth_events like every other limit; no migration), and the other mails keep theirs. (2) The server answers 403 { code: terms_required } from signed-in routes when the account has not accepted the current Terms and Privacy Policy; a build that skipped its launch prompt showed that as error text. The mobile API client now hands that code to the onboarding provider, which reloads the launch state (GET /api/onboarding, a termsOptional route) so the launch gate opens the existing Terms acceptance screen. Mirrors study_notice_required (FAIL-1061); JavaScript only, so it ships over the air.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/lib/auth/mailLimit.ts",
+        "backend/app/api/auth/mfa/challenge/send-email-code",
+        "backend/lib/accounts-security-g4.dbtest.ts",
+        "mobile/src/api/client.ts",
+        "mobile/src/auth/OnboardingContext.tsx",
+        "mobile/src/lib/legal.ts"
+      ],
+      "acceptance_criteria": [
+        "A reset",
+        "verification",
+        "registration or email-change mail does not use up the sign-in code budget and a sign-in code does not use up theirs",
+        "The sign-in code budget still caps itself at five an hour per address with a plain 429",
+        "A 403 terms_required from any signed-in request reloads the launch state once at a time and opens the Terms screen; it is not retried and does not loop",
+        "No migration and no native or app.json change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend npm run test:db (new and affected dbtests) on a throwaway local Postgres",
+        "mobile npx tsc --noEmit",
+        "mobile npm test",
+        "./omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        ".ai/failures/failure-ledger.json"
+      ],
+      "risk_notes": [
+        "A sign-in code now adds up to five mails an hour on top of five other mails an hour to the same address (ten an hour in total per address); the per-challenge cap of 3 per 10 minutes is unchanged",
+        "Implemented and verified on fix/g4b-followups; awaiting Nick's review and merge."
+      ]
     }
   ]
 }

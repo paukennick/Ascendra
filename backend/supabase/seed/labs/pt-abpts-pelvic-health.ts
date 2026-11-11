@@ -60,7 +60,7 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
             part(
               "Ms A",
               "Classifies stress urinary incontinence from leakage with raised abdominal pressure (sneezing, running, lifting) and no urgency, and sets first-line care as pelvic floor muscle assessment and training with lifestyle advice.",
-              "Stress urinary incontinence: leakage only with coughing, sneezing, running and lifting, no urgency. First line is pelvic floor muscle assessment and a supervised training programme, with lifestyle advice (constipation, weight, bladder irritants) and a cough stress test to document the leak."
+              "Stress urinary incontinence: leakage only with coughing, sneezing, running and lifting, no urgency. First line is pelvic floor muscle assessment and a supervised training program, with lifestyle advice (constipation, weight, bladder irritants) and a cough stress test to document the leak."
             ),
             part(
               "Ms B",
@@ -92,8 +92,8 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Exercise plan",
-              "Supports continued moderate activity in pregnancy (about 150 minutes a week of moderate intensity, checked with the talk test), swimming and walking as tolerated within pain limits, a pelvic support belt and stabilisation exercises for the pelvic girdle pain, avoiding prolonged supine lying, contact sports and fall-risk activities.",
-              "Keep going: about 150 minutes a week of moderate activity judged by the talk test, split as swimming and shorter walks within pain tolerance; add pelvic girdle stabilisation work and a trial of a pelvic support belt; sleep and exercise avoiding long periods flat on her back; no contact sports, fall-risk activities or breath-hold diving."
+              "Supports continued moderate activity in pregnancy (about 150 minutes a week of moderate intensity, checked with the talk test), swimming and walking as tolerated within pain limits, a pelvic support belt and stabilization exercises for the pelvic girdle pain, avoiding prolonged supine lying, contact sports and fall-risk activities.",
+              "Keep going: about 150 minutes a week of moderate activity judged by the talk test, split as swimming and shorter walks within pain tolerance; add pelvic girdle stabilization work and a trial of a pelvic support belt; sleep and exercise avoiding long periods flat on her back; no contact sports, fall-risk activities or breath-hold diving."
             ),
             part(
               "Stop rules",
@@ -108,7 +108,7 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises features of possible preeclampsia (new persistent headache, visual disturbance, new swelling and a clearly raised blood pressure in the third trimester) as a medical emergency outside physical therapy scope, and that preeclampsia is an absolute contraindication to exercise.",
+              "Recognizes features of possible preeclampsia (new persistent headache, visual disturbance, new swelling and a clearly raised blood pressure in the third trimester) as a medical emergency outside physical therapy scope, and that preeclampsia is an absolute contraindication to exercise.",
               "Persistent headache, visual disturbance, new swelling and a blood pressure that has jumped from 118/72 to 152/98 at 33 weeks are the picture of preeclampsia -- an obstetric emergency, not a therapy problem. Preeclampsia is also an absolute contraindication to exercise."
             ),
             part(
@@ -131,7 +131,7 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "Examination: a visible leak on a standing cough stress test with a comfortably full bladder; on internal assessment she produces a weak lift with poor endurance (holds about 3 seconds), substitutes with gluteal and abdominal bracing, and relaxes fully between attempts; no prolapse beyond the hymen on strain.",
-          ask: "Write the diagnosis and the first-line programme.",
+          ask: "Write the diagnosis and the first-line program.",
           parts: [
             part(
               "Diagnosis",
@@ -141,13 +141,13 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
             part(
               "Programme",
               "Prescribes supervised pelvic floor muscle training for at least 3 months as first line: teaches a correct isolated contraction (no gluteal/abdominal substitution, breathe normally), dosed and progressive contractions mixing holds and quick contractions toward a daily routine, with biofeedback or a perineometer if she cannot find or hold the contraction, functional 'knack' bracing before coughs and sneezes, lifestyle advice, and scheduled reviews.",
-              "A supervised pelvic floor muscle training programme of at least 3 months: first a correct, isolated contraction -- lift without squeezing the buttocks, abdominals or holding her breath, confirmed by palpation -- then a daily routine of sustained holds building from 3 toward 10 seconds and quick contractions, progressed each review; the 'knack' (contract before a cough, sneeze or lift); biofeedback or a perineometer if she loses the contraction; avoid constipation and bladder irritants. Review at 4-6 weeks and at the end of the programme."
+              "A supervised pelvic floor muscle training program of at least 3 months: first a correct, isolated contraction -- lift without squeezing the buttocks, abdominals or holding her breath, confirmed by palpation -- then a daily routine of sustained holds building from 3 toward 10 seconds and quick contractions, progressed each review; the 'knack' (contract before a cough, sneeze or lift); biofeedback or a perineometer if she loses the contraction; avoid constipation and bladder irritants. Review at 4-6 weeks and at the end of the program."
             ),
           ],
         },
         {
           text: "At 12 weeks she holds 8-10 seconds for 10 repetitions without substitution and the cough stress test is dry standing. She asks when she can run again and whether she has to do these exercises forever.",
-          ask: "Plan the return to running and the long-term programme.",
+          ask: "Plan the return to running and the long-term program.",
           parts: [
             part(
               "Return to running",
@@ -174,17 +174,17 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
       steps: [
         {
           text: "On examination you see an anterior vaginal wall bulge that descends to, but not beyond, the hymen on maximal strain; pelvic floor contraction is present but weak with fair coordination; there is no bleeding or atypical tissue.",
-          ask: "Record the finding in a recognised system and set the conservative plan.",
+          ask: "Record the finding in a recognized system and set the conservative plan.",
           parts: [
             part(
               "Staging and documentation",
-              "Documents the prolapse with a recognised system -- the POP-Q (points measured in centimetres relative to the hymen, with total vaginal length, genital hiatus and perineal body) or Baden-Walker grading -- names the anterior compartment, records that the leading edge reaches the hymen, and notes that staging is repeated the same way at follow-up.",
+              "Documents the prolapse with a recognized system -- the POP-Q (points measured in centimeters relative to the hymen, with total vaginal length, genital hiatus and perineal body) or Baden-Walker grading -- names the anterior compartment, records that the leading edge reaches the hymen, and notes that staging is repeated the same way at follow-up.",
               "Record it as an anterior compartment prolapse using the POP-Q: the leading anterior point measured relative to the hymen (here at the hymen, 0 cm) alongside the other points, total vaginal length, genital hiatus and perineal body, so the stage can be repeated identically at review. Baden-Walker grading is the simpler alternative if the clinic uses it."
             ),
             part(
               "Conservative plan",
               "Offers supervised pelvic floor muscle training over months (NICE: at least 4 months for symptomatic prolapse) with reviews, symptom-based strategies (bulge worse with gardening: load management, defecation and lifting technique, avoid constipation), and discusses a pessary as a conservative option through the appropriate provider, with surgery as the later option she wishes to avoid.",
-              "A supervised pelvic floor muscle training programme over at least 4 months with reviews, aiming at strength, endurance and the pre-load 'knack' before lifting and straining; manage the loads that provoke the bulge (gardening posture, lifting technique, no straining -- treat constipation); and discuss a pessary fitted by her gynaecology or trained pelvic health provider as a conservative support, especially for long gardening days. Surgery stays the later option."
+              "A supervised pelvic floor muscle training program over at least 4 months with reviews, aiming at strength, endurance and the pre-load 'knack' before lifting and straining; manage the loads that provoke the bulge (gardening posture, lifting technique, no straining -- treat constipation); and discuss a pessary fitted by her gynecology or trained pelvic health provider as a conservative support, especially for long gardening days. Surgery stays the later option."
             ),
           ],
         },
@@ -195,7 +195,7 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
             part(
               "Action",
               "Treats postmenopausal vaginal bleeding as a red flag requiring prompt medical review (gynaecology/pessary provider) before continuing pessary use, rather than attributing it to the pessary without examination; keeps pelvic floor training going.",
-              "Postmenopausal bleeding needs medical review, even if the pessary is the likely cause (erosion or irritation). I ask her to stop using the pessary and see her gynaecologist or pessary clinic promptly for examination; pelvic floor training continues meanwhile."
+              "Postmenopausal bleeding needs medical review, even if the pessary is the likely cause (erosion or irritation). I ask her to stop using the pessary and see her gynecologist or pessary clinic promptly for examination; pelvic floor training continues meanwhile."
             ),
             part(
               "Communication",
@@ -232,12 +232,12 @@ export const ABPTSPWCS_LABS: SeedLabSet = {
             ),
             part(
               "Environment and communication",
-              "Adapts the environment and language: private room, door control, gown and draping that keep her covered, predictable narration before each touch, plain language checked for understanding given her second language, honouring the sister's presence, and watching for signs of dissociation or distress with a plan to pause.",
+              "Adapts the environment and language: private room, door control, gown and draping that keep her covered, predictable narration before each touch, plain language checked for understanding given her second language, honoring the sister's presence, and watching for signs of dissociation or distress with a plan to pause.",
               "A private room with the door locked from inside, her sister seated where she can see her, a gown and drape so nothing is uncovered unexpectedly, and me narrating before any touch. I use plain words, check understanding by asking her to tell me the plan back, and offer the interpreter again for the consent conversation. If she goes quiet or distant we stop, breathe, and she decides what happens next."
             ),
             part(
               "Documentation",
-              "Documents the disclosure minimally and respectfully (history of trauma, no details, patient's stated preferences), the consent discussion and her choices, and the plan, so that the next clinician does not re-ask; flags the chart appropriately without stigmatising language.",
+              "Documents the disclosure minimally and respectfully (history of trauma, no details, patient's stated preferences), the consent discussion and her choices, and the plan, so that the next clinician does not re-ask; flags the chart appropriately without stigmatizing language.",
               "The note records 'history of sexual trauma disclosed; patient asks not to discuss details', her preferences (sister present, clinician gender, signal to stop), that internal examination was offered and deferred by her choice, and the plan. Nothing more about the trauma is written, and the chart is flagged so she is never asked to repeat it."
             ),
           ],

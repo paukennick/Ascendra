@@ -19,7 +19,7 @@ const step = (position: number, code: string, current = false): PathStep => ({
 });
 const path = (at: number): CoursePath => {
   const steps = [step(1, "PTPREREQ", at === 0), step(2, "DPT", at === 1), step(3, "NPTEPT", at === 2)];
-  return { slug: "dpt-student", title: "Physical therapy school, start to licence", audience: "Starting PT school", steps, before: steps[at - 1] ?? null, after: steps[at + 1] ?? null };
+  return { slug: "dpt-student", title: "Physical therapy school, start to license", audience: "Starting PT school", steps, before: steps[at - 1] ?? null, after: steps[at + 1] ?? null };
 };
 
 describe("study path rows (REQ-198)", () => {

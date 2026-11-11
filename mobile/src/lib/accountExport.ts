@@ -55,6 +55,19 @@ export interface DownloadEnv {
   defer(fn: () => void): void;
 }
 
+// REQ-217 (FAIL-1055): the phone's share sheet takes the export as text through
+// the system's Binder (about 1 MB for everything in flight, Android), so a
+// large export made the share fail or the app close. Over this size the phone
+// sends the learner to the web download (REQ-205) instead. (A real file
+// share needs expo-file-system and expo-sharing: a new build, not an update.)
+export const MAX_SHARE_CHARS = 200_000;
+export const LARGE_EXPORT_MESSAGE =
+  "Your export is bigger than the phone's share sheet can carry. Sign in to Ascendra in a web browser and use Export my data there to download it as a file.";
+
+export function exportFitsShareSheet(text: string): boolean {
+  return text.length <= MAX_SHARE_CHARS;
+}
+
 export function exportFileName(now: Date = new Date()): string {
   return `ascendra-data-export-${now.toISOString().slice(0, 10)}.json`;
 }

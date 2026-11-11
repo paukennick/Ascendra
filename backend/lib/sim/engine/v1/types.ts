@@ -56,6 +56,13 @@ export interface ScenarioDoc {
   reasoning: Record<Id, ReasoningMoment>;
   outcome: OutcomeSpec;
   endings: Record<Id, Ending>; // must include "time_up"
+  // REQ-227 (FAIL-1222), engine minor 2: the order endings are checked in,
+  // first true wins. Without it the engine uses the key order of `endings`,
+  // which a jsonb column does not keep (shorter keys first), so on the server
+  // and in the app the same document could end differently. Lists every
+  // ending that has a `when` exactly once (never time_up); required from
+  // minor 2 whenever two or more endings have a `when`.
+  endingOrder?: Id[];
   scoring: Scoring;
   // REQ-209 (docs/sims.md 5.4a-5.4e). Optional, clinical and fitness scenarios
   // with a `running` phase only (lint), engine minor 1 (FEATURE_MINOR).
@@ -251,7 +258,10 @@ export interface ReasoningMoment {
 }
 
 export type OutcomeClass = "target" | "recovered" | "harm";
-export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data";
+// REQ-225: "clinical-session" is the people-layer profile (docs/sims.md 9.2,
+// 20.2): a session with a client, where the outcome is what the session left
+// the client with (safety, protection, the right diagnosis, the alliance).
+export type OutcomeProfile = "clinical" | "cloud" | "project" | "fitness" | "security" | "infrastructure" | "data" | "clinical-session";
 
 export interface OutcomeSpec {
   profile: OutcomeProfile;
@@ -301,6 +311,19 @@ export interface ScreenSpec {
   board?: {
     zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
     meters?: { id: Id; label: string; value: Template }[];
+  };
+  // REQ-225: the client session (the people layer, docs/sims.md 8.2, 20.2),
+  // display-only like the board. The client's name and how they present now
+  // (a template over state); gauges are numeric client states read in words
+  // (rapport, distress, disclosure), each value banded by `bands` into
+  // `words` (one more word than bands); notes are what the clinician knows
+  // so far, shown while `when` holds, `alert` marking one the screen reader
+  // must hear at once (imminent risk); the record is the documentation so far.
+  session?: {
+    client: { name: string; presentation: Template };
+    gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number; bands: number[]; words: string[] }[];
+    notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];
+    record?: { label: string; items: { label: Template; when: Expr }[] };
   };
 }
 

@@ -2,16 +2,19 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { api } from "@/api/client";
+import { useAuth } from "@/auth/AuthContext";
+import { Alert } from "@/lib/alert";
+import { reasoningDraftKey } from "@/lib/drafts";
 import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen } from "@/components/ui";
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { capsHeaders } from "@/sim/runtime/caps.ts";
-import { alarmTexts, runView, vitalsSentence } from "@/sim/runtime/view.ts";
+import { alarmTexts, runView, sessionAlarmTexts, sessionNews, vitalsSentence, type SessionView } from "@/sim/runtime/view.ts";
 import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
-import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow } from "@/sim/SimPanels";
+import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow, sessionSentence } from "@/sim/SimPanels";
 import { launchView, needsLaunchChoice, paceChangeable, paceOptions, simClock, teachFeedback, teachOffer, type LaunchChoice } from "@/sim/runtime/pacing.ts";
 import { useGoBack } from "@/lib/useGoBack";
 import { isNotFound } from "@/lib/notFound";
@@ -21,9 +24,10 @@ import { LoadError } from "@/components/LoadError";
 // clock and Pause on top, the vitals (bedside) or the architecture (board),
 // skips while something is pending, the action groups, decision cards and
 // the written-reasoning box (both stop the clock), the event log; then the
-// server's debrief. Content is served under the one study notice (REQ-165):
-// the server refuses a clinical sim until it is accepted, and its message is
-// shown as is.
+// server's debrief. REQ-225: a client session shows the client
+// (SessionPanel) where the vitals or the architecture would be. Content is
+// served under the one study notice (REQ-165): the server refuses a clinical
+// sim until it is accepted, and its message is shown as is.
 
 interface SimInfo {
   sim: {
@@ -46,7 +50,10 @@ export default function SimScreen() {
   const [info, setInfo] = useState<SimInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const sim = useSimRun(simId);
+  const { user } = useAuth();
   const announcer = useRef(newAnnouncer());
+  // REQ-225: the client session as last announced, to speak what changed.
+  const lastSession = useRef<SessionView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
 
@@ -69,7 +76,9 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const r = announce(announcer.current, { alarms: alarmTexts(view.tiles), log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning });
+    const news = sessionNews(lastSession.current, view.session);
+    lastSession.current = view.session;
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -118,7 +127,21 @@ export default function SimScreen() {
             <>
               {sim.error ? <ErrorBanner message={sim.error} onRetry={() => sim.start(false)} /> : null}
               <Button label={info.openRun ? "Continue the run" : "Start the simulation"} icon="play" onPress={() => sim.start(false)} />
-              {info.openRun ? <Button label="Start over" variant="link" size="sm" fullWidth={false} onPress={() => sim.start(true)} /> : null}
+              {info.openRun ? (
+                <Button
+                  label="Start over"
+                  variant="link"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={() =>
+                    // REQ-217 (FAIL-1052): it throws away the run in progress.
+                    Alert.alert("Start over?", "This discards the run in progress and begins a new one. Nothing from the discarded run counts toward mastery.", [
+                      { text: "Keep my run", style: "cancel" },
+                      { text: "Start over", style: "destructive", onPress: () => void sim.start(true) },
+                    ])
+                  }
+                />
+              ) : null}
             </>
           )}
         </>
@@ -167,10 +190,13 @@ export default function SimScreen() {
             </Card>
           ) : null}
           {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
+          {/* REQ-217 (FAIL-1053): a reload that failed left this view frozen with nothing said. */}
+          {sim.status === "error" && sim.error ? <ErrorBanner message={sim.error} onRetry={() => sim.start(false)} retryLabel="Reload the run" /> : null}
           {sim.status === "lease_lost" ? <Button label="Continue on this device" icon="smartphone" onPress={() => sim.start(false)} /> : null}
           {view.banner ? <Card><View accessibilityLiveRegion="polite"><Body>{view.banner}</Body></View></Card> : null}
 
           <VitalsPanel tiles={view.tiles} onRead={() => AccessibilityInfo.announceForAccessibility(vitalsSentence(view.tiles))} />
+          <SessionPanel v={view.session} said={view.finding} onRead={() => view.session && AccessibilityInfo.announceForAccessibility(sessionSentence(view.session, view.finding))} />
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}
           <TopologyPanel zones={view.board.zones} meters={view.board.meters} />
 
@@ -179,6 +205,7 @@ export default function SimScreen() {
             <ReasoningCard
               key={view.reasoning.id}
               question={view.reasoning.question}
+              draftKey={user ? reasoningDraftKey(user.id, s.runId, view.reasoning.id) : null}
               onSubmit={sim.submitReasoning}
               onSkip={() => sim.closeReasoning(false)}
               onContinue={() => sim.closeReasoning(true)}
@@ -187,13 +214,19 @@ export default function SimScreen() {
 
           {sim.calm && running && !sim.paused && !chapter ? <SkipOffer offer={sim.calm} disabled={!running} onSkip={() => void sim.skipTo(sim.calm!.wait, { calm: true })} /> : null}
           {teach || feedback ? <TeachingCard offer={teach} feedback={feedback} onAnswer={(c) => sim.answerTeach(teach!.id, c)} onDismiss={sim.dismissTeach} /> : null}
-          <WaitsRow run={s.run} waits={view.waits} turns={turns} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
+          <WaitsRow run={s.run} waits={view.waits} turns={turns} plain={!!view.session} disabled={!running || (!turns && sim.paused) || !!chapter} onSkip={(w) => void sim.skipTo(w)} />
           {view.mode === "running" && sim.paused && !view.blocked ? <Muted>Run the clock to act. Pause any time; pausing is never scored.</Muted> : null}
           <ActionBar run={s.run} groups={view.groups} onCommand={sim.command} disabled={!running || view.blocked || launching || !!chapter || (view.mode === "running" && sim.paused)} />
           {view.outputs.map((o) => <Card key={o.key}><Body>{o.text}</Body></Card>)}
           <EventLog log={view.log} finding={view.finding} />
           {sim.status === "finishing" ? <Loading label="Confirming the ending with the server..." /> : null}
-          {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => { sim.quit(); }} /> : null}
+          {!view.ended ? <Button label="End the run" variant="link" size="sm" fullWidth={false} accessibilityLabel="End the run early. Nothing is recorded for mastery." onPress={() => {
+            // REQ-217 (FAIL-1052): ending early records nothing for mastery; one tap shouldn't do it.
+            Alert.alert("End the run?", "Nothing from this run is recorded for mastery.", [
+              { text: "Keep going", style: "cancel" },
+              { text: "End the run", style: "destructive", onPress: () => { sim.quit(); } },
+            ]);
+          }} /> : null}
           {/* REQ-199: the moment the learner saw (tick, state hash) goes with the report. */}
           <ReportProblem
             key={`report-${s.runId}`}

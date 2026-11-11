@@ -71,7 +71,8 @@ engine and the practice-lab acknowledgement).
 19. Decisions
 20. Sims for every subject family
 21. Review resolution
-22. Phase 1b as built (REQ-190)
+22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
+    CNA cases (REQ-223) and the client session (REQ-225)
 
 ---
 
@@ -619,6 +620,7 @@ interface ScenarioDoc {
   reasoning: Record<Id, ReasoningMoment>; // at least one per scenario
   outcome: OutcomeSpec;                 // class thresholds, section 9.2
   endings: Record<Id, Ending>;          // must include "time_up" (engine-defined, see Ending)
+  endingOrder?: Id[];                   // REQ-227, engine minor 2: the order endings are checked in (5.3); see Ending
   scoring: Scoring;                     // server-only, section 9
 }
 ```
@@ -821,6 +823,15 @@ interface Ending {
                                         // to; required when terminal is false (5.3 says a branch
                                         // point "applies its phase change" but gave it no field)
 }
+// `endingOrder` (REQ-227, engine minor 2) lists every ending that has a
+// `when` exactly once, never `time_up`, in the order they are checked: the
+// first true one wins. It is required from minor 2 whenever two or more
+// endings have a `when`, and refused below minor 2. It exists because a
+// scenario is stored in a jsonb column, which does not keep the order of an
+// object's keys (it returns shorter keys first, then bytewise): with no
+// list the engine checks endings in the key order of `endings`, so the
+// server and the app could end the same run differently. A module lists
+// its own endings in its fragment's `endingOrder`; they go after the host's.
 // `time_up` is the one engine-defined ending: it is terminal, carries an
 // authored class and narrative, has no `when`, is never named by an
 // `{ end }` effect, and is reached only by tick count (5.3, Advance step
@@ -1105,6 +1116,14 @@ they do for labs (`lib/lab-content.ts`).
   The engine refuses a document for another major or a higher minor than
   its own (5.8); the seed refuses a document whose minor is above the
   server's engine for that major. Apps are filtered by both (5.10).
+- **Engine minor 2 (REQ-227, FAIL-1222): `endingOrder`.** A minor adds only
+  what an existing document cannot use, so a document without `endingOrder`
+  is stepped exactly as under minor 0 and 1 (endings in key order); its
+  content hash, golden hashes, checkpoints and stored runs are unchanged,
+  and a run keeps replaying on the version it pinned. A document that
+  declares `endingOrder` declares minor 2 and is served only to an app
+  whose engine is 1.2 or later (5.10). Neither the content hash (keys
+  sorted) nor the state hash (keys sorted) depends on key order.
 - **Content versions**: each change to a scenario's content creates a new
   **version row** with an incrementing `version`. Runs pin the version they
   started on, so a learner mid-run is never moved onto changed rules, and
@@ -1418,7 +1437,8 @@ is never ambiguous.
    their writes; a trigger's own previous value is updated after its
    effects run.
 2. Evaluate `endings` that have a `when` (every ending except `time_up`),
-   in document order. The first
+   in `endingOrder` (engine minor 2, REQ-227) or, in a document without
+   one (minor 0 and 1), in the key order of `endings`. The first
    true one is reached: a terminal ending ends the run; a non-terminal
    ending fires once per run and applies its phase change.
 3. If an effect opened a prompt or reasoning moment, the clock is blocked
@@ -2266,7 +2286,15 @@ interface ScreenSpec {
     zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
     meters?: { id: Id; label: string; value: Template }[];
   };
-  // dashboard, trainer, session, security, terminal, data: later phases (20)
+  // REQ-225: the client session (the people layer, 20.2, 22.5).
+  session?: {
+    client: { name: string; presentation: Template };  // how the client presents now
+    gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number;
+              bands: number[]; words: string[] }[];     // a number read in words: one word more than bands
+    notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];  // what the clinician knows
+    record?: { label: string; items: { label: Template; when: Expr }[] };          // the documentation so far
+  };
+  // dashboard, trainer, security, terminal, data: later phases (20)
 }
 ```
 
@@ -2384,6 +2412,7 @@ direction):
 | Cloud | every stated requirement met: availability ≥ the stated SLA over the day by the error-budget method, RPO and RTO met, cost ≤ budget | one requirement missed by a small margin: availability ≥ 99.85% against 99.9%, or cost ≤ 110% of budget | data loss beyond RPO, an outage beyond RTO, payment data stored, or cost > 110% of budget |
 | Project | CPI ≥ 0.95 and SPI ≥ 0.95 at close, every compliance item met, every stakeholder ≥ 60/100 | CPI or SPI 0.85-0.95, or one stakeholder 40-59 | a compliance gate failed, CPI or SPI < 0.85, or team attrition ≥ 2 |
 | Fitness | no adverse event, screening done correctly, primary goal met (for example knee pain reduced ≥ 50%), adherence ≥ 80% | safe, goal partly met (pain reduced 25-49%) or adherence 60-79% | an adverse event, a required referral skipped, injury, or drop-out |
+| Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
 | Security, infrastructure, data | defined with their renderers (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
@@ -2621,7 +2650,8 @@ device while sims are off (5.9).
 
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
 (default `bedside,board` since REQ-190, because the first flagship is the
-TicketBurst board, 19.4 item 1). A renderer can be launched, or pulled after a bad
+TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
+testers see the client session). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3339,6 +3369,7 @@ cover the whole catalog (95 courses):
 | **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
 | **Security operations console** | Security: Security+, CySA+, PenTest+, SecurityX, SecAI+ | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
+| **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
 | **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
 
 Order (each renderer ships behind `SIMS_ENABLED` with its first 3-5
@@ -3715,3 +3746,228 @@ Design in 5.4a to 5.4f. What was built:
   client trainer is turns with a 1-day tick, so it needs nothing); the
   engine features apply to a new one by declaring them. A family
   interruption: no people layer.
+
+### 22.3 Three more CCRN Adult cases (REQ-222, batch S2a)
+
+Nick, 2026-11-10: "Sims seem to be vital to learning", quality over speed.
+Three scenarios on the existing bedside renderer and engine 1.1, with no
+engine, renderer or schema change and no migration. Each has a reasoning
+moment, every outcome class reachable, critical criteria inside its
+`target` condition, KPIs, an expert path, a debrief per ending, sourced
+teaching prompts (unscored) and chapters. All run in one `running` phase,
+so study pace (3x) and the skip offer apply as in 5.4a and 5.4c.
+
+| Scenario | Objective | Endings (class) | Critical criteria |
+|---|---|---|---|
+| `sepsis-to-septic-shock` | Early sepsis identification and sepsis management | arrest (harm), stabilized (target), stabilizedLate (recovered), time_up: still in shock at 2.5 h (harm) | antibiotic within 1 h; early SBAR |
+| `dka-first-six-hours` | Diabetic ketoacidosis (DKA) | arrhythmia, seizure (harm), resolving (target), time_up at 6 h (recovered) | K 3.5 or more before insulin; dextrose below 250 with insulin kept running |
+| `acute-ischemic-stroke-lvo` | Stroke, hemorrhagic and ischemic, and neuroendovascular interventions such as coiling and thrombectomy | bleed (harm), toThrombectomy (target), toThrombectomyLate (recovered), time_up: no thrombectomy at 3 h (harm) | glucose before thrombolysis; BP below 185/110 before it; thrombectomy call at the CTA read |
+
+- **Registration.** Documents are listed in `lib/sim/documents.ts`
+  (`ALL_DOCUMENTS`); section 12's `seed/sims/index.ts` does not exist. The
+  objectives already exist in `seed/tracks/ccrn.ts`; none was added.
+- **Golden paths** are driver scripts (`scripts/sim-golden/sepsis.steps.ts`,
+  `dka.steps.ts`, `stroke.steps.ts`; `npm run sim:golden -- steps <name>`),
+  five per case: the expert path (Good), a slow-but-safe path (Mediocre) and
+  failure paths covering Mediocre and Bad. Expectations are the engine's own
+  results; there is no prototype to compare with.
+- **No focused start.** In all three the patient needs action from the
+  first minute (falling MAP, a potassium trap, a stroke alert), so there is
+  no quiet stretch to skip; an evolved start would only remove the
+  learner's first decisions.
+- **Sources** carry `checkedAt` 2026-11-10 and say how each number was
+  read. Read in primary text: the 2024 hyperglycemic-crises consensus
+  (Diabetologia copy), parts of the 2026 AHA/ASA acute ischemic stroke
+  guideline, the JBDS 2023 pathway and the Target: Stroke Phase III goals.
+  Read through secondary summaries only: the 2026 Surviving Sepsis Campaign
+  guideline (the publisher refused the fetch) and the SSC 2021 and Hour-1
+  bundle details. Authored teaching-model numbers say so, and the ones that
+  stand in for a probability or a missing guideline number carry `FLAG`
+  (sepsis: fluid effect fading within the hour; DKA: the 100 mg/dL per hour
+  limit and the ketone fall rate; stroke: a bleed made certain by BP above
+  the thresholds, labetalol and nicardipine effect sizes).
+
+### 22.4 Batch S2b: post-op hemorrhage (CCRN Adult), choking and a fall (CNA) (REQ-223)
+
+Three new documents on the existing bedside renderer and engine 1.1; no
+engine, renderer or schema change. Each has sourced params with `checkedAt`
+2026-11-10 (or an older date where a number was relayed from the course seed
+and not re-read, said in its note), a reasoning moment, every outcome class
+reachable, critical criteria inside the `target` condition, KPIs, an expert
+path, debriefs, teaching prompts with sources (indirect evidence marked
+`FLAG` in the note), and goldens built by `npm run sim:golden -- steps
+<bleeding-whipple|resident-chokes|resident-floor>`.
+
+- **CCRNADULT/bleeding-after-whipple** (objective: tracing shock through its
+  stages). A slipped tie in the operative bed bleeds 40 mL/min, faster with
+  dilutional and hypothermic coagulopathy. Vital signs follow the ATLS class
+  anchors; the hemoglobin lags (whole-blood loss, then refill and dilution).
+  The learner checks the drains, pages the surgeon (SBAR), requests
+  emergency-release blood, activates the massive transfusion protocol
+  (blocked without the surgeon's order), keeps crystalloid to a short bridge,
+  gives plasma with red cells, warms him and replaces calcium. Blood products
+  and norepinephrine need the surgeon's order; crystalloid up to 1 L is a
+  standing order. Endings: arrest (harm), to the OR early (target), to the OR
+  by a slower route (recovered); `time_up` is harm. Focused start at 18:08;
+  chapters at the surgeon's arrival and the first cooler. The permissive
+  target is taught as a prompt, not scored: the 80-90 mmHg evidence is from
+  trauma.
+- **CNA/resident-chokes-at-lunch** (objective: the Heimlich maneuver). Aide
+  scope only, as a stand-alone scenario: a band (4.7) patches another
+  course's scenario, and no aide-scope base exists. Mild choking (let him
+  cough), then severe: call for help without leaving, cycles of 5 back blows
+  and 5 abdominal thrusts (AHA 2025), CPR from compressions and look before
+  breaths if he goes limp, blind sweeps and water penalized, objective report
+  and note. Endings: cleared while awake with help called (target),
+  breathing again by a harder route (recovered), too long without air (harm).
+- **CNA/resident-found-on-floor** (objective: safety and emergency
+  procedures). Don't move her, call the nurse without leaving, tell her to
+  stay still, blanket and gentle pressure on a skin tear, objective report
+  with the care plan's blood-thinner flag, vital signs when the nurse asks,
+  report a change in alertness at once, then an objective note and the
+  universal fall precautions at the huddle (a stopped `after` phase).
+  Endings: moved or got up (harm), safe handoff (target), handoff with gaps
+  (recovered).
+- **Pacing.** CNA sits under `nursing-licensure` in `healthcare-nursing`, so
+  `labFamilySql` gives `clinical` and both CNA sims get study pace (3x) by
+  default (checked on a seeded database). At 3x the choking crisis (about
+  100 s from a silent cough to collapse) plays in about 35 s of real time;
+  Exam realism (1x) and pause stay available.
+- **Seed fix (FAIL-1190).** `earliestRecheck` added months without clamping
+  the day, so a source checked on 2026-10-31 gave 2027-04-31 and Postgres
+  stopped the seed. `addMonths` in `lib/sim/content-hash.ts` now clamps to
+  the month's end. The engine's own copy in `validate.ts` (staleness warning
+  only, string comparison) has the same arithmetic and was left alone, since
+  engine changes were out of scope.
+
+### 22.5 The client session and the first EPPP cases (REQ-225)
+
+Nick approved the people layer on 2026-11-10 ("Sims seem to be vital to
+learning"; quality over speed). The client session is the eighth row of 20:
+mental-health courses (EPPP now; NCE, NCMHCE and ASWB later) where the
+learner conducts a session with a fictional client.
+
+**The renderer** (`screen.type: "session"`, `session@1`, behind
+`SIMS_RENDERERS`, on by default). `SessionPanel` (`mobile/src/sim/SimPanels.tsx`)
+shows the client's name and how they present now (a template over state),
+what they said last, each client state as a word with a bar (rapport:
+guarded, warming, engaged; distress: settled to overwhelmed; disclosure:
+saying little to speaking freely), "What you know so far" (notes; an alert
+note has a border and the word "Alert") and the record so far. Questions,
+responses, plan steps and documentation are the scenario's action groups
+(Open, Ask, Ask about risk, Respond, Plan, Close; after the session,
+Document). The view model is `sessionView`/`sessionNews`/`sessionAlarmTexts`
+in `src/sim/runtime/view.ts`. Accessibility as the bedside and board: every
+block is one accessible element with its state in words, 48 dp targets,
+"Read the client" speaks the whole panel, an alert note is announced at once
+like an alarm, a gauge moving into another word and a new note are announced
+politely (the announcer's `news`, at most one polite sentence per 10 s),
+keyboard order on web is the order on screen. JS only, so it can ship over
+the air; an app without `session@1` is told to update (5.10).
+
+**Pacing: learner-paced, not the clinical rule (5.4a).** The clinical rule
+(a running phase at 3x) exists because physiology moves whether or not the
+clinician acts. A client's state in a talk session moves with what the
+clinician says, and a real-time clock while the learner reads a client's
+answer would score reading speed and race screen-reader users. So the
+session phase is `turns`: each exchange shows the client's answer at once
+and schedules the conversation wait ("Let the conversation continue (about
+3 min)"), which moves the session clock by the minutes that kind of exchange
+takes; the next question waits for it. Time still matters: the hour ends at
+50 minutes (a trigger moves to the after-session phase and opens the written
+formulation), and high rapport settles distress per minute while low rapport
+frays it (processes). With no running phase, pace, the focused start, the
+skip offer, 5.4d teaching prompts and chapters do not apply.
+
+**Outcome profile `clinical-session`** (9.2): defaults `allianceTarget` 6,
+`allianceRecovered` 3, `safetyWindow` 1200 s; `noProgress` per case.
+
+**Cases** (`backend/supabase/seed/sims/EPPP/`, objective titles exactly as
+the EPPP course defines them; the seed resolves course code + title and
+says plainly when the course or an objective is missing):
+
+| Slug | Objective | Core of the case |
+|---|---|---|
+| `suicide-risk-safety-plan` | Assess suicide risk and plan safety in a clinical interview | A positive PHQ-9 item 9: ask directly (C-SSRS screen questions), method, intent, plan, behavior, means; a Stanley-Brown plan with the handgun moved out; moderate risk, outpatient, a 48-hour check |
+| `duty-to-protect-threat` | Apply duty-to-warn and duty-to-protect obligations | A vague remark that hides an actual threat (Washington): explore first, then warn the person and notify police with the threat only (RCW 71.05.120(3); Volk v. DeMeerleer; APA 4.04, 4.05) |
+| `diagnostic-intake-mood` | Conduct a diagnostic intake using DSM-5-TR criteria | A major depressive episode plus a past hypomanic episode found only by a behavior-based screen: bipolar II, current episode depressed; rule-outs, a suicide screen |
+
+Each has one written-reasoning moment, endings in all three classes,
+criteria with at least three critical, KPIs, an expert path, a debrief per
+ending, and five or six golden paths (Good, Mediocre, Bad; every ending but
+`time_up` and every criterion both met and missed), built by
+`npm run sim:golden -- steps eppp-suicide|eppp-duty|eppp-intake`. Each
+carries one unscored prediction as a decision card (below). Sources are on
+each document with `checkedAt` 2026-11-10.
+
+**Findings against this design** (20: recorded, not worked around):
+
+1. **The screen spec and the profile list are in the engine folder.** The
+   session needed `screen.session` and the `clinical-session` profile in
+   `engine/v1/types.ts` and the validator, as the board's bindings did in
+   REQ-190. Display and lint only: stepping, the corpus and every existing
+   hash are unchanged, and no engine minor was added (an older app is held
+   back by the renderer level instead).
+2. **Endings ran in jsonb key order on the server (FAIL-1221, FAIL-1222;
+   fixed in REQ-227, 22.6).** The engine evaluated endings in `Object.keys`
+   order, but `sim_versions.document` and `client_document` are jsonb, which
+   returns keys shortest first, then bytewise. A document whose endings rely
+   on first-match precedence ended differently in production than in its
+   goldens. The EPPP cases use mutually exclusive conditions;
+   `lib/sim/storage-order.test.ts` replays every golden path in jsonb order.
+   The tamponade case failed it (`code_rosc` ran before `code_epiHarm`);
+   22.6 gives endings an explicit order.
+3. **Teaching prompts (5.4d) exist only for running phases.** A turn-based
+   session cannot declare them, so each EPPP case carries its one
+   prediction as a decision card (`prompts`) opened once by a trigger,
+   with feedback and the source in the text and no criterion reading it.
+   The debrief lists it in "What you did", not under "Your predictions (not
+   scored)".
+4. **Safety family.** The seed derives it from the EPPP course's category
+   (`healthcare*` is clinical, otherwise general); the linter's
+   `safetyFamilyOf` reads the profile and treats `clinical-session` as
+   general. Pacing does not apply either way; the study-notice gate does
+   only if the course sits in a `healthcare*` category.
+5. **The "a wait is pending at every boundary" warning** fired for every
+   path that never entered a running phase (FAIL-1220); it now needs one.
+
+### 22.6 Explicit ending order, engine 1.2 (REQ-227, FAIL-1222)
+
+Nick approved the engine approach on 2026-11-10. What changed:
+
+- **`endingOrder`** (4.1, 4.5, 5.3): a list of the endings that have a `when`,
+  checked in that order, first true wins. The engine reads it, so no key
+  order can change a result. Engine minor 2 (`ENGINE_VERSION` 1.2). A
+  document without it is stepped as before, so every older version row,
+  golden hash, checkpoint and stored run replays unchanged; the v1 corpus
+  gained one case (`endings-explicit-order`) and no existing hash moved.
+- **Validator** (`validate.ts`, `endingOrderRules`): from minor 2 a document
+  with two or more endings that have a `when` must list every one exactly
+  once; `time_up`, unknown ids, duplicates and a list below minor 2 are errors.
+- **Lint rule** (`lib/sim/lint.ts`, `endingOrderProblems`): a document with no
+  `endingOrder` is replayed with its keys as written, reversed and in jsonb
+  order; a golden path that ends differently in any of the three is an error
+  ("an ending set whose result depends on key order"). It found a real case
+  in the code/ACLS module's fixture host. Only golden paths are searched, so
+  a new document declares `endingOrder` instead of relying on the rule.
+- **Modules**: `code-acls@1` lists `code_noRosc`, `code_epiHarm`, `code_rosc`
+  in its fragment; they are appended after the host's list, minus an ending
+  `$onlyIf` dropped, and only when the host declares an order.
+- **Migrated**: every seeded document (12, including the SAP band, which
+  inherits the base list) and the module fixture host declare minor 2 and the
+  order their author wrote the endings in, which is what the golden paths
+  were written against. Behavior changes: tamponade's full-dose epinephrine
+  path reaches `code_epiHarm` (harm) on the server and in the app. Nothing
+  else was observed to change (every golden path is unchanged, in the file,
+  jsonb and reversed key order).
+- **Compatibility.** A new document hash means a new version row, seeded as
+  `needs_expert_review`; the sims re-enter review. An app whose engine is
+  still 1.1 cannot run a minor-2 version and falls back only to an approved
+  version it can run (5.10); with none it is told "Update the app". A run
+  already open stays on the version it pinned, so an in-progress tamponade
+  run keeps its old (jsonb) order until it ends; new runs get the new version.
+- **Not fixed (FAIL-1250).** The same flaw exists in the `teaching` map
+  (`teachingDue` offers the first due prompt in key order). It is harmless
+  while the app and server read the same jsonb order, and the storage-order
+  test leaves that one map out of its reversal. A `teachingOrder` list would
+  be the same kind of minor.

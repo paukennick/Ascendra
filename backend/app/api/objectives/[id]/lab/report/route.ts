@@ -133,7 +133,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return await withGradingClaim(user.id, clientAttemptId, gradeAndRecord, replayStored);
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     if (err instanceof GradingInProgressError) return conflict(err.message);
     return serverError(err);
   }

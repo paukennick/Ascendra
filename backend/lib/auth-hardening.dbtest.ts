@@ -166,7 +166,7 @@ describe("finding 1: email change needs re-authentication and alerts the old add
     assert.equal(changed.status, 200);
     const late = await confirmEmailChangeToken(tokenIn(lastMail(second)!.html, "confirm-email-change"));
     assert.equal(late.ok, false);
-    assert.match(late.message, /sign-in details changed|cancelled/);
+    assert.match(late.message, /sign-in details changed|canceled/);
   });
 
   test("the audit's takeover chain now stops at the first step", async () => {

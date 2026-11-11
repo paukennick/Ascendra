@@ -24,10 +24,39 @@ export async function buildTotpProvisioning(email: string, secret: string): Prom
 // One period of tolerance each side (30s window x3) absorbs normal clock
 // drift between the phone and this server without meaningfully widening the
 // guessable window.
-export async function verifyTotpCode(secret: string, code: string): Promise<boolean> {
-  if (!/^\d{6}$/.test(code)) return false;
+//
+// REQ-219 (FAIL-1113): the 30-second step the code belongs to, or null when it
+// is not a valid code. Within the window the same code could be typed again by
+// anyone who saw it (RFC 6238 section 5.2), so callers that ACCEPT a code
+// record the step with spendTotpCode and refuse a step that is not newer.
+export async function verifyTotpStep(secret: string, code: string): Promise<number | null> {
+  if (!/^\d{6}$/.test(code)) return null;
   const result = await verify({ secret, token: code, epochTolerance: 30 });
-  return result.valid;
+  if (!result.valid) return null;
+  // The library's wrapper types leave timeStep out of the result, but it is
+  // there (RFC 6238's T); epoch is the start of that period in seconds.
+  const r = result as { timeStep?: number; epoch?: number };
+  const step = typeof r.timeStep === "number" ? r.timeStep : typeof r.epoch === "number" ? Math.floor(r.epoch / 30) : null;
+  return step;
+}
+
+export async function verifyTotpCode(secret: string, code: string): Promise<boolean> {
+  return (await verifyTotpStep(secret, code)) !== null;
+}
+
+// Checks the code and, if it is right, spends it: the guarded UPDATE only
+// succeeds for a step later than the last one accepted for this account, so a
+// code that has already been used (at sign-in, or to confirm it's you) is
+// refused, and of two requests presenting one fresh code exactly one wins.
+export async function spendTotpCode(userId: string, secret: string, code: string): Promise<boolean> {
+  const step = await verifyTotpStep(secret, code);
+  if (step === null) return false;
+  const row = await queryOne<{ id: string }>(
+    `update app_users set totp_last_step = $2
+      where id = $1 and (totp_last_step is null or totp_last_step < $2) returning id`,
+    [userId, step]
+  );
+  return row !== null;
 }
 
 function randomBackupCode(): string {

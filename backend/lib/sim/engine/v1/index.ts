@@ -14,6 +14,7 @@ export {
   clockBlocked,
   clockMode,
   compileDoc,
+  endingCheckOrder,
   createRun,
   insideSkip,
   isDurationLiteral,

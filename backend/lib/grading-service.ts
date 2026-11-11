@@ -423,6 +423,14 @@ export async function recordAttemptTx(tx: TxClient, input: AttemptInput) {
   // grade_lock_key(), so a recompute never overwrites a grade (FAIL-118).
   if (input.objectiveId) {
     await query(`select pg_advisory_xact_lock(hashtext($1))`, [gradeLockName(userId, input.objectiveId)]);
+  } else {
+    // REQ-218: a unit-wide answer (PBQ, unit check) has no objective to lock,
+    // so two first answers to one scenario both saw "nothing answered yet"
+    // and both counted as the first. The same learner's answers to one
+    // scenario or item take turns; the unit's objectives are locked later in
+    // id order, so the order is always scenario lock first.
+    const keys = [input.pbqScenarioId, input.unitCheckItemId].filter((k): k is string => !!k).map((k) => k.toLowerCase()).sort();
+    for (const k of keys) await query(`select pg_advisory_xact_lock(hashtext($1))`, [`grade-unit:${userId.toLowerCase()}:${k}`]);
   }
 
   // REQ-134: was this answer given with help? Decided here, under the lock

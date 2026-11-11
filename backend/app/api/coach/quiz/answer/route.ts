@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     return ok({ turn: result.turn, correct: result.correct, message: result.message, replayed: result.replayed });
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

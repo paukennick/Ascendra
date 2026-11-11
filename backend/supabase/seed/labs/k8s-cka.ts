@@ -120,7 +120,7 @@ export const CKA_LABS: SeedLabSet = {
             ),
             part(
               "Point the static pod at the restored data",
-              "Edits /etc/kubernetes/manifests/etcd.yaml so the etcd-data hostPath volume (and therefore the mount behind --data-dir) points at the new directory, then waits for the kubelet to recreate the static pod; recognises there is no kubectl apply for a static pod, and that the API server will be briefly unavailable while etcd restarts.",
+              "Edits /etc/kubernetes/manifests/etcd.yaml so the etcd-data hostPath volume (and therefore the mount behind --data-dir) points at the new directory, then waits for the kubelet to recreate the static pod; recognizes there is no kubectl apply for a static pod, and that the API server will be briefly unavailable while etcd restarts.",
               "In /etc/kubernetes/manifests/etcd.yaml change the volume\n  - hostPath:\n      path: /var/lib/etcd        ->   /var/lib/etcd-restored\n      type: DirectoryOrCreate\n    name: etcd-data\nand leave --data-dir=/var/lib/etcd alone (the container path), or change both consistently. Save; the kubelet notices the manifest change and restarts the static pod. kubectl will time out for a minute while etcd and then the API server come back. If the pod does not restart, moving the manifest out of the directory and back in forces it."
             ),
             part(
@@ -233,7 +233,7 @@ export const CKA_LABS: SeedLabSet = {
       kind: "build",
       title: "Lock down a namespace with NetworkPolicies without breaking DNS",
       brief:
-        "Fictional retailer Juniper Goods runs namespace storefront with three Deployments labelled tier=web, tier=api and tier=db (PostgreSQL on 5432). The web tier listens on 8080 and is reached only through the ingress controller, which runs in namespace ingress-nginx (the namespace carries the automatic label kubernetes.io/metadata.name=ingress-nginx). The api tier listens on 9000 and is called only by web. Only api may talk to db. All Pods must still resolve DNS through CoreDNS in kube-system, and api must reach the payment provider at 203.0.113.0/24 on 443. Everything else must be denied. The cluster's CNI plugin enforces NetworkPolicy.",
+        "Fictional retailer Juniper Goods runs namespace storefront with three Deployments labeled tier=web, tier=api and tier=db (PostgreSQL on 5432). The web tier listens on 8080 and is reached only through the ingress controller, which runs in namespace ingress-nginx (the namespace carries the automatic label kubernetes.io/metadata.name=ingress-nginx). The api tier listens on 9000 and is called only by web. Only api may talk to db. All Pods must still resolve DNS through CoreDNS in kube-system, and api must reach the payment provider at 203.0.113.0/24 on 443. Everything else must be denied. The cluster's CNI plugin enforces NetworkPolicy.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -285,12 +285,12 @@ export const CKA_LABS: SeedLabSet = {
           parts: [
             part(
               "Cause",
-              "Spots that the Service selector is app=order while the Pods are labelled app=orders, so the EndpointSlice has no endpoints and the Service has nothing to send traffic to.",
+              "Spots that the Service selector is app=order while the Pods are labeled app=orders, so the EndpointSlice has no endpoints and the Service has nothing to send traffic to.",
               "The Service's selector (app=order) does not match the Pods' label (app=orders) -- a one-letter typo from this morning's change. The EndpointSlice for the Service is empty (<unset>), which is why every connection to orders:80 fails although the Pods are healthy."
             ),
             part(
               "Fix",
-              "Patches the Service selector to app=orders (kubectl patch or kubectl edit), rather than relabelling the Pods or recreating the Service; confirms the EndpointSlice now lists the three Pod IPs.",
+              "Patches the Service selector to app=orders (kubectl patch or kubectl edit), rather than relabeling the Pods or recreating the Service; confirms the EndpointSlice now lists the three Pod IPs.",
               "kubectl -n market patch svc orders -p '{\"spec\":{\"selector\":{\"app\":\"orders\"}}}'\nkubectl -n market get endpointslices -l kubernetes.io/service-name=orders  -> ENDPOINTS 10.244.1.19,10.244.2.23,10.244.1.20\nChanging the Pod labels instead would also detach them from their Deployment's selector; the Service is the object that was changed, so fix the Service."
             ),
           ],

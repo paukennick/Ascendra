@@ -17,8 +17,7 @@ import { ALREADY_REVISED, partsToRevise, retryRefusal } from "@/lib/revision";
 import { validClientAttemptId } from "@/lib/lesson-progress";
 import { visibleScenario, isUuid, NotVisibleError } from "@/lib/visibility";
 import { servePbqScenario } from "@/lib/pbq-scenarios";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
-import { UserFacingError } from "@/lib/http";
+import { generateGated } from "@/lib/generation-gate";
 import { textField, TEXT_LIMITS } from "@/lib/text-input";
 import { isActive } from "@/lib/progress-sql";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
@@ -36,9 +35,6 @@ import { requireFeature, requireFeatureToFinish } from "@/lib/entitlements";
 export const maxDuration = 180;
 
 export const dynamic = "force-dynamic";
-
-const HELD_SCENARIO_MESSAGE =
-  "We couldn't write a scenario we're confident in just now. Please try again.";
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
@@ -102,24 +98,35 @@ export async function GET(req: Request) {
       // The model that generates is the model that gets recorded: this used to
       // store getModel() (Sonnet) although the fast model wrote the scenario.
       const generationModel = getFastModel();
-      const generated = await callClaudeStructured({
-        system,
-        messages: [{ role: "user", content: user }],
-        schema: pbqScenarioSchema,
-        maxTokens: 1200,
-        model: generationModel,
-        effort: "low",
-        thinking: "off",
-        purpose: "pbq_generate",
-        userId: authUser.id,
-      });
       // REQ-114 (Audit 3 H1): a scenario its writer was unsure of is never
-      // stored or shown; it is logged for review and the learner can retry.
-      const unsure = uncertaintyOf(generated);
-      if (unsure) {
-        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
-        throw new UserFacingError(HELD_SCENARIO_MESSAGE);
-      }
+      // stored or shown; it is logged for review. FAIL-1000: the first two
+      // live attempts were both held back, so a held-back scenario is
+      // written once more. FAIL-1005: a PBQ is an invented scenario graded
+      // holistically, with no answer key to get wrong, and the writer kept
+      // listing disclaimers ("this scenario is invented") as uncertain claims,
+      // so for PBQs only the writer's own low confidence holds a scenario back;
+      // listed claims are logged. REQ-216: the second attempt is steered with
+      // the first one's claims, and a scenario held twice is a 409 that says
+      // why (lib/generation-gate.ts).
+      const generated = await generateGated({
+        kind: "pbq",
+        unitId,
+        model: generationModel,
+        subject: "scenario",
+        generate: (steer) =>
+          callClaudeStructured({
+            system,
+            messages: [{ role: "user", content: steer ? `${user}\n\n${steer}` : user }],
+            schema: pbqScenarioSchema,
+            maxTokens: 1200,
+            model: generationModel,
+            effort: "low",
+            thinking: "off",
+            purpose: "pbq_generate",
+            userId: authUser.id,
+          }),
+        uncertainty: (g) => g,
+      });
       return { ...generated, model: generationModel };
     };
 
@@ -133,7 +140,7 @@ export async function GET(req: Request) {
     }
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }
@@ -298,7 +305,7 @@ export async function POST(req: Request) {
     if (isDuplicateRetry(err)) return conflict(ALREADY_REVISED);
     if (err instanceof AuthError) return unauthorized(err.message);
     if (err instanceof IdempotencyConflictError) return conflict(err.message);
-    if (err instanceof AcknowledgementError) return forbidden(err.message);
+    if (err instanceof AcknowledgementError) return forbidden(err.message, err.extra);
     return serverError(err);
   }
 }

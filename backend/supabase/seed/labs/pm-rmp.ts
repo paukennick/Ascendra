@@ -49,8 +49,8 @@ export const PMIRMP_LABS: SeedLabSet = {
             ),
             part(
               "Risk categories",
-              "Gives a set of categories suited to the project (for example a risk breakdown structure with technical, external, organisational and project-management branches with relevant sub-categories such as suppliers, regulation, site access).",
-              "RBS level 1: Technical (telemetry hardware, communications network, integration with SCADA); External (suppliers, regulator, weather, site access); Organisational (operations staff availability, funding); Project management (estimates, planning, communication)."
+              "Gives a set of categories suited to the project (for example a risk breakdown structure with technical, external, organizational and project-management branches with relevant sub-categories such as suppliers, regulation, site access).",
+              "RBS level 1: Technical (telemetry hardware, communications network, integration with SCADA); External (suppliers, regulator, weather, site access); Organizational (operations staff availability, funding); Project management (estimates, planning, communication)."
             ),
             part(
               "Process and metrics",
@@ -77,13 +77,13 @@ export const PMIRMP_LABS: SeedLabSet = {
           parts: [
             part(
               "RACI",
-              "Builds a RACI for at least three risk activities (for example identify, analyse, plan responses, approve reserve use, monitor) with exactly one Accountable per activity and sensible R/C/I assignments for the named roles.",
+              "Builds a RACI for at least three risk activities (for example identify, analyze, plan responses, approve reserve use, monitor) with exactly one Accountable per activity and sensible R/C/I assignments for the named roles.",
               "Identify risks: R project manager, risk analyst, supplier lead; A project manager; C safety manager; I sponsor. Quantitative analysis: R risk analyst; A project manager; C supplier lead. Approve contingency reserve use: R project manager; A sponsor; C risk review board. Report to airlines: R project manager; A sponsor; I airline operators' committee."
             ),
             part(
               "Risk breakdown structure",
               "Gives an RBS with at least three level-1 categories and two level-2 sub-categories under one of them, relevant to the project (for example Technical > software integration, data migration; External > airlines, regulator).",
-              "1 Technical: 1.1 software defects, 1.2 integration with conveyors and scanners, 1.3 data migration. 2 External: 2.1 airline schedules and peak season, 2.2 regulator and safety approvals, 2.3 supplier performance. 3 Organisational: 3.1 staff training, 3.2 operations availability for cutover. 4 Project management: 4.1 estimating, 4.2 planning."
+              "1 Technical: 1.1 software defects, 1.2 integration with conveyors and scanners, 1.3 data migration. 2 External: 2.1 airline schedules and peak season, 2.2 regulator and safety approvals, 2.3 supplier performance. 3 Organizational: 3.1 staff training, 3.2 operations availability for cutover. 4 Project management: 4.1 estimating, 4.2 planning."
             ),
             part(
               "Risk communication plan",
@@ -110,7 +110,7 @@ export const PMIRMP_LABS: SeedLabSet = {
             part(
               "Techniques and participants",
               "Chooses at least two complementary techniques matched to sources (for example SME interviews with lab managers and IT, a facilitated workshop or focus group with lab staff, document analysis of past moves/lessons learned and equipment manuals, checklists or a prompt list from the RBS).",
-              "Interview the lab manager, biomedical engineering and IT one-to-one (they hold specialist knowledge); run a facilitated workshop with senior scientists and logistics using an RBS prompt list; and analyse lessons learned from the trust's last department move and the analysers' relocation manuals."
+              "Interview the lab manager, biomedical engineering and IT one-to-one (they hold specialist knowledge); run a facilitated workshop with senior scientists and logistics using an RBS prompt list; and analyze lessons learned from the trust's last department move and the analysers' relocation manuals."
             ),
             part(
               "Well-formed risk statements",
@@ -149,11 +149,11 @@ export const PMIRMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the assumptions and constraints.",
+          ask: "Analyze the assumptions and constraints.",
           parts: [
             part(
               "Assumption validity",
-              "Tests each assumption for how likely it is to be false and how much it would matter, identifying A1 and A2 as weak given the facts (7-month certification elsewhere; 95% capacity) and A3 as needing a check (quality/legal labelling).",
+              "Tests each assumption for how likely it is to be false and how much it would matter, identifying A1 and A2 as weak given the facts (7-month certification elsewhere; 95% capacity) and A3 as needing a check (quality/legal labeling).",
               "A1: weak -- certification took 7 months next door, so month 3 is doubtful; high impact on launch. A2: weak -- picking is at 95% at peak, so 30% more volume won't fit; high impact. A3: plausible but unverified -- product safety text may need professional translation; medium impact."
             ),
             part(
@@ -217,14 +217,14 @@ export const PMIRMP_LABS: SeedLabSet = {
       slug: "rmp-qualitative-matrix-prioritise",
       objective: "Performing qualitative analysis: classifying risks in an RBS, applying risk matrices, and prioritizing by impact/urgency",
       kind: "build",
-      title: "Score and prioritise risks on a matrix",
+      title: "Score and prioritize risks on a matrix",
       brief:
         "Marlow Stadium's roof-replacement project uses 1-5 scales and Score = P x I, with High = 15-25, Medium = 8-14, Low = 1-7. Risks: R1 crane hire unavailable in the summer window (P 3, I 5; trigger point in 4 months); R2 minor rework of steel connections (P 4, I 2); R3 asbestos found in the old roof (P 2, I 4); R4 the local planning authority adds noise-hour restrictions (P 5, I 3; decision due in 2 weeks); R5 a total structural failure during lifting (P 1, I 5).",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Score, categorise and prioritise the risks.",
+          ask: "Score, categorize and prioritize the risks.",
           parts: [
             part(
               "Scores and bands",
@@ -257,7 +257,7 @@ export const PMIRMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the decision.",
+          ask: "Analyze the decision.",
           parts: [
             numericPart("Expected cost of A", "Expected cost of A = 400,000 + 0.3 x 150,000 = $445,000. Met within $1.", "Expected cost of A = 400,000 + (0.3 x 150,000) = 400,000 + 45,000 = $445,000.", { answer: 445000, tolerance: 1, unit: "USD" }),
             numericPart("Expected cost of B", "Expected cost of B = 450,000 + 0.1 x 80,000 - 0.2 x 50,000 = $448,000, the rebate being an opportunity that reduces cost. Met within $1.", "Expected cost of B = 450,000 + (0.1 x 80,000) - (0.2 x 50,000) = 450,000 + 8,000 - 10,000 = $448,000.", { answer: 448000, tolerance: 1, unit: "USD" }),
@@ -302,7 +302,7 @@ export const PMIRMP_LABS: SeedLabSet = {
             part(
               "Strategies, owners and dates",
               "Names the strategies (mitigate for T1, enhance for O1) and gives each action an owner and a due date, plus a trigger or contingency for the residual threat.",
-              "T1 mitigate: commission the independent pre-assessment; owner signalling design manager; complete by end of month 3. O1 enhance: appoint a coordinator to agree the shared possession; owner planning lead; agreement by week 6. Residual T1 (0.1): contingency of one extra assessment cycle, triggered if the pre-assessment raises more than five major findings."
+              "T1 mitigate: commission the independent pre-assessment; owner signaling design manager; complete by end of month 3. O1 enhance: appoint a coordinator to agree the shared possession; owner planning lead; agreement by week 6. Residual T1 (0.1): contingency of one extra assessment cycle, triggered if the pre-assessment raises more than five major findings."
             ),
           ],
         },
@@ -418,8 +418,8 @@ export const PMIRMP_LABS: SeedLabSet = {
             ),
             part(
               "Communication",
-              "Recommends keeping the promised date unchanged for now (or adopting the new P80 only after the new risks are modelled) and shows the trend to stakeholders, for example as a chart of P50/P80 over time.",
-              "Keep the 4 August commitment for now and report the improving trend with a simple chart of P50 and P80 by month. Once the vendor risks are modelled, the sponsor can decide whether to bring the date forward."
+              "Recommends keeping the promised date unchanged for now (or adopting the new P80 only after the new risks are modeled) and shows the trend to stakeholders, for example as a chart of P50/P80 over time.",
+              "Keep the 4 August commitment for now and report the improving trend with a simple chart of P50 and P80 by month. Once the vendor risks are modeled, the sponsor can decide whether to bring the date forward."
             ),
           ],
         },

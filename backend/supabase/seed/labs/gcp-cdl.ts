@@ -43,7 +43,7 @@ export const GCPCDL_LABS: SeedLabSet = {
       kind: "build",
       title: "Turn a retailer's pain points into specific cloud benefits",
       brief:
-        "Marlow & Finch is a fictional homewares retailer with 40 stores and an online shop hosted in its own small data centre. Its board has heard that \"the cloud is more agile\" and asked for a one-page case. The operations director lists three real problems. (1) Every November the web shop slows to a crawl for the two busiest weeks, and the fix in 2025 was buying 30 servers that now sit idle for 50 weeks a year. (2) Opening the first two stores in Ireland took IT nine months because the data centre is in Leeds and the point-of-sale system times out across the sea. (3) The marketing team wants to know which products sell together by region, but reports come out of a spreadsheet three weeks after month end. Write the case so that each problem is matched to the cloud benefit that actually fixes it, not to a slogan.",
+        "Marlow & Finch is a fictional homewares retailer with 40 stores and an online shop hosted in its own small data center. Its board has heard that \"the cloud is more agile\" and asked for a one-page case. The operations director lists three real problems. (1) Every November the web shop slows to a crawl for the two busiest weeks, and the fix in 2025 was buying 30 servers that now sit idle for 50 weeks a year. (2) Opening the first two stores in Ireland took IT nine months because the data center is in Leeds and the point-of-sale system times out across the sea. (3) The marketing team wants to know which products sell together by region, but reports come out of a spreadsheet three weeks after month end. Write the case so that each problem is matched to the cloud benefit that actually fixes it, not to a slogan.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -57,8 +57,8 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "Problem 2: the Irish stores",
-              "Names global reach (Google Cloud regions close to the stores) and speed or agility of provisioning (infrastructure in minutes rather than a data-centre build), and ties the fix to lower latency for point-of-sale and faster store openings.",
-              "Global reach and speed: run the point-of-sale back end in a Google Cloud region in Europe close to the stores (and keep the UK one for the UK), so the latency that caused the time-outs disappears, and provisioning that environment is a matter of hours rather than a nine-month data-centre project."
+              "Names global reach (Google Cloud regions close to the stores) and speed or agility of provisioning (infrastructure in minutes rather than a data-center build), and ties the fix to lower latency for point-of-sale and faster store openings.",
+              "Global reach and speed: run the point-of-sale back end in a Google Cloud region in Europe close to the stores (and keep the UK one for the UK), so the latency that caused the time-outs disappears, and provisioning that environment is a matter of hours rather than a nine-month data-center project."
             ),
             part(
               "Problem 3: the slow reports",
@@ -80,7 +80,7 @@ export const GCPCDL_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose a service model for three workloads",
       brief:
-        "Kestrel Logistics is a fictional freight company moving off its own servers. Three workloads are in scope. (1) A 15-year-old route-planning application written for a specific version of Linux with a licensed maths library; the vendor is gone, nobody can rebuild it, but it must keep running unchanged. (2) A new customer-tracking web API the in-house team is writing now; they want to write code and not manage servers, patching or scaling. (3) Company email and calendars, currently on an ageing mail server the IT team hates maintaining; there is nothing custom about how Kestrel uses email. For each workload choose IaaS, PaaS or SaaS and say what Kestrel keeps responsibility for under that model.",
+        "Kestrel Logistics is a fictional freight company moving off its own servers. Three workloads are in scope. (1) A 15-year-old route-planning application written for a specific version of Linux with a licensed maths library; the vendor is gone, nobody can rebuild it, but it must keep running unchanged. (2) A new customer-tracking web API the in-house team is writing now; they want to write code and not manage servers, patching or scaling. (3) Company email and calendars, currently on an aging mail server the IT team hates maintaining; there is nothing custom about how Kestrel uses email. For each workload choose IaaS, PaaS or SaaS and say what Kestrel keeps responsibility for under that model.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -88,7 +88,7 @@ export const GCPCDL_LABS: SeedLabSet = {
           ask: "Give the service model for each workload, the reason, and what Kestrel still has to manage.",
           parts: [
             matchPart("Service model for each workload", "(1) IaaS, (2) PaaS, (3) SaaS. All three right is met; two is partly there.", "(1) IaaS, for example Compute Engine VMs: the app needs its own OS and library and cannot change. (2) PaaS, for example Cloud Run: ship code without managing servers, patching or scaling. (3) SaaS, for example Google Workspace: nothing custom, nothing to run.", {"leftHeading": "Workload", "rightHeading": "Service model", "left": ["(1) 15-year-old route planner that must run unchanged", "(2) New customer-tracking API, code only", "(3) Standard company email and calendars"], "right": ["IaaS", "PaaS", "SaaS"], "pairs": [0, 1, 2]}),
-            part("What Kestrel still manages", "Gives the reason and what Kestrel still manages for each: Route-planning application: Chooses IaaS (virtual machines, for example Compute Engine) because the application cannot be changed and needs a specific OS and library, and states that Kestrel still manages the OS, patching, the application and its data while Google runs the physical hardware and virtualisation. New customer-tracking API: Chooses PaaS (a managed platform such as Cloud Run) because the team wants to ship code without managing servers, patching or scaling, and states that Kestrel still owns the code, its dependencies, data and access configuration. Email and calendars: Chooses SaaS (for example Google Workspace) because the need is standard and nothing is custom, and states that Kestrel still manages users, access and its own data and policies, while the provider runs the software.", "Route-planning application: IaaS: rehost it on a virtual machine (Compute Engine) with the OS and library it needs, unchanged. Kestrel keeps the OS, patches, the application and its data; Google provides and secures the physical servers, storage and network underneath. New customer-tracking API: PaaS: a managed platform such as Cloud Run runs the API and handles servers, patching and scaling. Kestrel owns the application code, its libraries, the data and who is allowed to call it. Email and calendars: SaaS: a hosted suite such as Google Workspace; nothing about Kestrel's email is custom, so there is no reason to run servers. Kestrel still manages user accounts, access, sharing policies and its data; the provider runs and updates the software."),
+            part("What Kestrel still manages", "Gives the reason and what Kestrel still manages for each: Route-planning application: Chooses IaaS (virtual machines, for example Compute Engine) because the application cannot be changed and needs a specific OS and library, and states that Kestrel still manages the OS, patching, the application and its data while Google runs the physical hardware and virtualization. New customer-tracking API: Chooses PaaS (a managed platform such as Cloud Run) because the team wants to ship code without managing servers, patching or scaling, and states that Kestrel still owns the code, its dependencies, data and access configuration. Email and calendars: Chooses SaaS (for example Google Workspace) because the need is standard and nothing is custom, and states that Kestrel still manages users, access and its own data and policies, while the provider runs the software.", "Route-planning application: IaaS: rehost it on a virtual machine (Compute Engine) with the OS and library it needs, unchanged. Kestrel keeps the OS, patches, the application and its data; Google provides and secures the physical servers, storage and network underneath. New customer-tracking API: PaaS: a managed platform such as Cloud Run runs the API and handles servers, patching and scaling. Kestrel owns the application code, its libraries, the data and who is allowed to call it. Email and calendars: SaaS: a hosted suite such as Google Workspace; nothing about Kestrel's email is custom, so there is no reason to run servers. Kestrel still manages user accounts, access, sharing policies and its data; the provider runs and updates the software."),
             part(
               "The trade-off in one line",
               "States the pattern: moving from IaaS to PaaS to SaaS lowers management burden and staffing needs but reduces control and flexibility, and total cost of ownership shifts from running infrastructure to subscription or usage.",
@@ -108,14 +108,14 @@ export const GCPCDL_LABS: SeedLabSet = {
       kind: "build",
       title: "Match a Google Cloud data product to each business need",
       brief:
-        "Ardent Mobility is a fictional e-scooter rental company. Its data team lists four needs. (1) Store 2 million photos riders take of parked scooters at the end of each ride; each photo is written once and read occasionally for disputes. (2) Analyse three years of ride history (hundreds of millions of rows) with SQL to answer questions like 'which districts lose money in winter' for the monthly board pack. (3) The payments ledger: relational tables, strong consistency, modest size, used by a web app in one region. (4) The scooter telemetry stream: each of 50,000 scooters sends location and battery readings every few seconds, written at very high rate and read back by time range per scooter. Choose one product for each need and give the deciding reason.",
+        "Ardent Mobility is a fictional e-scooter rental company. Its data team lists four needs. (1) Store 2 million photos riders take of parked scooters at the end of each ride; each photo is written once and read occasionally for disputes. (2) Analyze three years of ride history (hundreds of millions of rows) with SQL to answer questions like 'which districts lose money in winter' for the monthly board pack. (3) The payments ledger: relational tables, strong consistency, modest size, used by a web app in one region. (4) The scooter telemetry stream: each of 50,000 scooters sends location and battery readings every few seconds, written at very high rate and read back by time range per scooter. Choose one product for each need and give the deciding reason.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
           ask: "Name the product for each need and the one reason that decides it.",
           parts: [
-            matchPart("Product for each need", "(1) Cloud Storage, (2) BigQuery, (3) Cloud SQL, (4) Bigtable. Spanner's global scale is more than the modest one-region ledger needs, so it fits none. All four right is met; two or three is partly there.", "(1) Cloud Storage: object storage for files written once. (2) BigQuery: serverless SQL analytics over hundreds of millions of rows. (3) Cloud SQL: a managed relational database for a modest, single-region ledger (not Spanner). (4) Bigtable: very high write rate, read by scooter and time range.", {"leftHeading": "Need", "rightHeading": "Product", "left": ["(1) 2 million ride photos, written once", "(2) Three years of ride history analysed with SQL", "(3) Payments ledger, relational, one region", "(4) Telemetry from 50,000 scooters every few seconds"], "right": ["Cloud Storage", "BigQuery", "Cloud SQL", "Bigtable", "Spanner"], "pairs": [0, 1, 2, 3]}),
+            matchPart("Product for each need", "(1) Cloud Storage, (2) BigQuery, (3) Cloud SQL, (4) Bigtable. Spanner's global scale is more than the modest one-region ledger needs, so it fits none. All four right is met; two or three is partly there.", "(1) Cloud Storage: object storage for files written once. (2) BigQuery: serverless SQL analytics over hundreds of millions of rows. (3) Cloud SQL: a managed relational database for a modest, single-region ledger (not Spanner). (4) Bigtable: very high write rate, read by scooter and time range.", {"leftHeading": "Need", "rightHeading": "Product", "left": ["(1) 2 million ride photos, written once", "(2) Three years of ride history analyzed with SQL", "(3) Payments ledger, relational, one region", "(4) Telemetry from 50,000 scooters every few seconds"], "right": ["Cloud Storage", "BigQuery", "Cloud SQL", "Bigtable", "Spanner"], "pairs": [0, 1, 2, 3]}),
             part("The deciding reason", "Gives the deciding reason for each: Ride photos: Chooses Cloud Storage (object storage for unstructured files written once and read occasionally). Three years of ride analytics: Chooses BigQuery (serverless data warehouse for SQL analytics over very large datasets). Payments ledger: Chooses Cloud SQL (or AlloyDB) as a managed relational database for a modest, single-region transactional workload with strong consistency, and does not reach for Spanner or BigQuery. Scooter telemetry: Chooses Bigtable (wide-column NoSQL for very high write throughput and time-series reads keyed by device and time).", "Ride photos: Cloud Storage: photos are unstructured objects written once and read rarely; object storage is built for exactly that and costs far less than a database. Three years of ride analytics: BigQuery: a serverless data warehouse that runs SQL over hundreds of millions of rows for analytical questions, without servers to size. Payments ledger: Cloud SQL (PostgreSQL or MySQL): a managed relational database with transactions and strong consistency; the ledger is modest and single-region, so Spanner's global scale is not needed and BigQuery is for analytics, not transactions. Scooter telemetry: Bigtable: built for very high write rates and reads by key range, which suits time-series telemetry keyed by scooter and time."),
           ],
         },
@@ -150,7 +150,7 @@ export const GCPCDL_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose an AI approach for three business needs",
       brief:
-        "Ferncastle Bank, a fictional retail bank, has three AI requests and one small data-science team. (1) Customer service wants incoming support emails in six languages translated into English today, no data scientists available. (2) The fraud team wants a model that spots unusual card transactions using five years of the bank's own labelled fraud cases; this is where they believe they can beat competitors. (3) The HR team wants a quick internal assistant that answers staff questions from the policy handbook, built by one developer in a few weeks. For each, choose between a pre-trained API or foundation model used as-is, a custom model trained on the bank's own data, or a packaged agent-building platform, and weigh speed, effort, differentiation, expertise and flexibility.",
+        "Ferncastle Bank, a fictional retail bank, has three AI requests and one small data-science team. (1) Customer service wants incoming support emails in six languages translated into English today, no data scientists available. (2) The fraud team wants a model that spots unusual card transactions using five years of the bank's own labeled fraud cases; this is where they believe they can beat competitors. (3) The HR team wants a quick internal assistant that answers staff questions from the policy handbook, built by one developer in a few weeks. For each, choose between a pre-trained API or foundation model used as-is, a custom model trained on the bank's own data, or a packaged agent-building platform, and weigh speed, effort, differentiation, expertise and flexibility.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -164,8 +164,8 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "Fraud detection",
-              "Chooses a custom model trained on the bank's own labelled data because differentiation and flexibility matter most and the bank has unique data and a team to use it, accepting slower delivery and higher effort.",
-              "Custom model on the bank's own data (for example trained with the Agent Platform's tooling or BigQuery ML): the bank's five years of labelled fraud is the asset competitors lack, so this is where custom work pays. It costs the most time, effort and expertise, and the data-science team should be spent here."
+              "Chooses a custom model trained on the bank's own labeled data because differentiation and flexibility matter most and the bank has unique data and a team to use it, accepting slower delivery and higher effort.",
+              "Custom model on the bank's own data (for example trained with the Agent Platform's tooling or BigQuery ML): the bank's five years of labeled fraud is the asset competitors lack, so this is where custom work pays. It costs the most time, effort and expertise, and the data-science team should be spent here."
             ),
             part(
               "HR policy assistant",
@@ -174,7 +174,7 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "What the choices have in common",
-              "Explains the principle: spend scarce expertise where the organisation's own data creates differentiation, and buy or configure where the need is generic, noting data quality and responsible-AI review apply to all three.",
+              "Explains the principle: spend scarce expertise where the organization's own data creates differentiation, and buy or configure where the need is generic, noting data quality and responsible-AI review apply to all three.",
               "Use ready-made AI wherever the need is generic and speed matters; reserve custom work for where the bank's own data gives it an edge. All three still need good data, human review and a responsible-AI check before customers or staff rely on them."
             ),
           ],
@@ -192,7 +192,7 @@ export const GCPCDL_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "The data team's first review finds three things. (a) 30% of customer records have no value in the 'contract end date' field, which the model uses heavily. (b) The customer table has 1.3 million rows for 1.1 million customers: many people appear twice, once per handset. (c) The 'monthly spend' field in the training data was last refreshed eleven months ago, while the model is scoring customers on today's behaviour.",
+          text: "The data team's first review finds three things. (a) 30% of customer records have no value in the 'contract end date' field, which the model uses heavily. (b) The customer table has 1.3 million rows for 1.1 million customers: many people appear twice, once per handset. (c) The 'monthly spend' field in the training data was last refreshed eleven months ago, while the model is scoring customers on today's behavior.",
           ask: "Name the data-quality dimension each finding breaks and the business consequence for the model.",
           parts: [
             part(
@@ -207,8 +207,8 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "Finding (c)",
-              "Identifies timeliness (stale data) and explains that spend from eleven months ago does not describe current behaviour, so predictions drift from reality.",
-              "Timeliness: the model learned from spend as it was eleven months ago and is applied to customers whose behaviour has changed since, so its view of 'normal' is out of date."
+              "Identifies timeliness (stale data) and explains that spend from eleven months ago does not describe current behavior, so predictions drift from reality.",
+              "Timeliness: the model learned from spend as it was eleven months ago and is applied to customers whose behavior has changed since, so its view of 'normal' is out of date."
             ),
           ],
         },
@@ -240,7 +240,7 @@ export const GCPCDL_LABS: SeedLabSet = {
       kind: "build",
       title: "Assign a migration path to each workload in an inventory",
       brief:
-        "Greywell Council is a fictional local authority leaving a leased data centre in 14 months. Discovery and assessment found five workloads. (1) A payroll system on Windows Server that works fine, is heavily customised and must move with no changes because the finance year-end is during the move. (2) A booking website for leisure centres built on a commercial database whose licence is up for renewal; it could run on a managed database with small changes. (3) A permit-application system written as one large program that falls over every spring; the team wants to rebuild it as services that scale independently. (4) A staff intranet that was replaced by a newer system two years ago and has had no logins since. (5) A mainframe printing system tied to physical printers in the civic centre that cannot move for contractual reasons until 2029. Assign each a path: retire, retain, rehost, replatform, refactor or reimagine.",
+        "Greywell Council is a fictional local authority leaving a leased data center in 14 months. Discovery and assessment found five workloads. (1) A payroll system on Windows Server that works fine, is heavily customized and must move with no changes because the finance year-end is during the move. (2) A booking website for leisure centers built on a commercial database whose license is up for renewal; it could run on a managed database with small changes. (3) A permit-application system written as one large program that falls over every spring; the team wants to rebuild it as services that scale independently. (4) A staff intranet that was replaced by a newer system two years ago and has had no logins since. (5) A mainframe printing system tied to physical printers in the civic center that cannot move for contractual reasons until 2029. Assign each a path: retire, retain, rehost, replatform, refactor or reimagine.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -248,7 +248,7 @@ export const GCPCDL_LABS: SeedLabSet = {
           ask: "Give the migration path for each of the five workloads with a one-line reason.",
           parts: [
             part("Payroll (1) and intranet (4)", "Rehosts payroll (lift and shift to virtual machines, unchanged, because of the year-end constraint) and retires the intranet (no users, replaced).", "Payroll: rehost, lift it onto Compute Engine virtual machines unchanged; the year-end leaves no room for change. Intranet: retire; it has been replaced and has no logins, so it is decommissioned, not moved."),
-            part("Booking website (2)", "Replatforms it: moves to a managed database (for example Cloud SQL) with small changes to drop the expiring licence, without rewriting the application.", "Replatform: move the site onto a managed database such as Cloud SQL with minor changes, so the commercial licence is not renewed, but the application itself is not rewritten."),
+            part("Booking website (2)", "Replatforms it: moves to a managed database (for example Cloud SQL) with small changes to drop the expiring license, without rewriting the application.", "Replatform: move the site onto a managed database such as Cloud SQL with minor changes, so the commercial license is not renewed, but the application itself is not rewritten."),
             part("Permit system (3)", "Refactors (or reimagines) it: rebuilds the monolith as independently scalable services, for example containers on GKE or Cloud Run, accepting the larger effort because the current design is the problem.", "Refactor: redesign the monolith as services that scale independently (containers on GKE or Cloud Run). It is the most effort of the five, chosen because the architecture itself is what fails every spring."),
             part("Printing system (5)", "Retains it on-premises for now because of the contractual tie to physical equipment, with a review date, rather than forcing a move.", "Retain: it is tied to physical printers and a contract until 2029, so it stays where it is, with a review scheduled for when the contract allows."),
           ],
@@ -369,8 +369,8 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "Second threat and control",
-              "Identifies cryptomining (attacker-launched compute to mine currency at the victim's expense) and names controls such as least-privilege IAM, budget alerts and organisation policies restricting regions or resource types so a stolen account cannot do this.",
-              "Cryptomining: the attacker used the account to launch GPU machines to mine currency on Oakhurst's bill. Least privilege (the finance manager's account should not be able to create VMs), an organisation policy restricting usable regions, and budget alerts to catch the spend early."
+              "Identifies cryptomining (attacker-launched compute to mine currency at the victim's expense) and names controls such as least-privilege IAM, budget alerts and organization policies restricting regions or resource types so a stolen account cannot do this.",
+              "Cryptomining: the attacker used the account to launch GPU machines to mine currency on Oakhurst's bill. Least privilege (the finance manager's account should not be able to create VMs), an organization policy restricting usable regions, and budget alerts to catch the spend early."
             ),
           ],
         },
@@ -380,8 +380,8 @@ export const GCPCDL_LABS: SeedLabSet = {
           parts: [
             part(
               "Threat and control",
-              "Identifies misconfiguration (a human error exposing data, no attacker needed) with the business impact of a data breach and regulatory exposure, and names controls such as public access prevention and uniform bucket-level access on Cloud Storage, organisation policy to enforce them, and Security Command Center or posture checks to detect exposed buckets.",
-              "Misconfiguration: nobody attacked anything; the bucket was simply left public, which is still a personal-data breach with regulatory consequences. Prevent it with public access prevention and uniform bucket-level access enforced by organisation policy, and detect it with Security Command Center's misconfiguration findings."
+              "Identifies misconfiguration (a human error exposing data, no attacker needed) with the business impact of a data breach and regulatory exposure, and names controls such as public access prevention and uniform bucket-level access on Cloud Storage, organization policy to enforce them, and Security Command Center or posture checks to detect exposed buckets.",
+              "Misconfiguration: nobody attacked anything; the bucket was simply left public, which is still a personal-data breach with regulatory consequences. Prevent it with public access prevention and uniform bucket-level access enforced by organization policy, and detect it with Security Command Center's misconfiguration findings."
             ),
           ],
         },
@@ -444,8 +444,8 @@ export const GCPCDL_LABS: SeedLabSet = {
             ),
             part(
               "Which client caused the increase",
-              "Names Cloud Billing reports (and billing export to BigQuery) grouped by project and by labels, so each client's spend is visible and attributable, with a labelling convention as the practice.",
-              "Use Cloud Billing reports filtered by project and label, and export billing data to BigQuery for detailed questions. Adopt a labelling rule (client, environment, owner) so every resource's cost can be attributed to a client."
+              "Names Cloud Billing reports (and billing export to BigQuery) grouped by project and by labels, so each client's spend is visible and attributable, with a labeling convention as the practice.",
+              "Use Cloud Billing reports filtered by project and label, and export billing data to BigQuery for detailed questions. Adopt a labeling rule (client, environment, owner) so every resource's cost can be attributed to a client."
             ),
           ],
         },

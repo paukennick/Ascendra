@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { query, queryOne } from "./db";
 import { UserFacingError } from "./http";
+import { heldBackSince } from "./item-quality";
+import { HeldForAccuracyError } from "./generation-gate";
 import { NotVisibleError, visibleUnit } from "./visibility";
 import { CLAIM_LEASE_SECONDS } from "./lesson-store";
 
@@ -157,6 +159,9 @@ export async function servePbqScenario(opts: ServeOptions): Promise<{ scenario: 
   const deadline = Date.now() + (opts.waitMs ?? DEFAULT_WAIT_MS);
   const pollMs = opts.pollMs ?? DEFAULT_POLL_MS;
   const token = randomUUID();
+  // Database time at the start, so a holdback logged while this request waits
+  // is compared with the clock that stamped it.
+  const startedAt = (await queryOne<{ t: Date }>(`select clock_timestamp() as t`))?.t ?? new Date();
 
   for (;;) {
     if (await tryPbqClaim(userId, unitId, token)) {
@@ -186,13 +191,18 @@ export async function servePbqScenario(opts: ServeOptions): Promise<{ scenario: 
     // for `fresh`: a double tap of "Try another scenario" is one request).
     for (;;) {
       if (Date.now() >= deadline) {
-        throw new UserFacingError("Scenario generation is taking longer than expected. Please try again in a moment.");
+        throw new UserFacingError("Scenario generation is taking longer than expected. Please try again in a moment.", 409, { retryable: true });
       }
       await sleep(pollMs);
       if (!(await isPbqClaimLive(userId, unitId))) break;
     }
     const unseen = await findUnseenScenario(userId, unitId);
     if (unseen) return { scenario: unseen, cached: true };
+    // REQ-216: the other request's scenario was held back (low confidence,
+    // twice). A waiter used to take the lease and write again, so one tap that
+    // raced a second paid for four more model calls and often got the same
+    // refusal. It gets the holder's 409 and its words instead.
+    if (await heldBackSince("pbq", { unitId }, startedAt)) throw new HeldForAccuracyError("scenario", ["uncertain"]);
     // The other request failed (or its holder died and the lease expired)
     // without storing anything: take the lease and generate ourselves.
   }

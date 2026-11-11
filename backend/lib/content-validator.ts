@@ -119,9 +119,14 @@ const SELF_LABEL = /\((?:in)?correct\)|\b(?:distractor|trick option|the (?:right
 const POSITION_REF = /\b(?:[Oo]ption|[Aa]nswer|[Cc]hoice)\s*(?:\(?[A-D]\)?|[1-4])(?![\w-])|\b(?:[Ff]irst|[Ss]econd|[Tt]hird|[Ff]ourth|[Ll]ast) (?:option|answer|choice)\b/;
 
 const NUMBER_WORDS: Record<string, number> = { two: 2, three: 3, four: 4, five: 5, "2": 2, "3": 3, "4": 4, "5": 5 };
-const COUNT_ASK = /\b(?:which|what|name|list|choose|select|identify|pick|give)\s+(?:the\s+)?(two|three|four|five|2|3|4|5)\b/i;
+// REQ-216 (M6): "Which two-factor ...", "the three-way handshake" are not a
+// request for a count of items: the number must not start a hyphenated compound.
+const COUNT_ASK = /\b(?:which|what|name|list|choose|select|identify|pick|give)\s+(?:the\s+)?(two|three|four|five|2|3|4|5)\b(?!-)/i;
 
-const words = (s: string) => new Set((s.toLowerCase().match(/[a-z]+/g) ?? []));
+// REQ-216 (M6, FAIL-1012): a hyphenated compound is ONE word. "Read-only
+// access" used to be read as "read" + "only" and failed the absolute-word cue
+// ("only"), rejecting a correct answer.
+const words = (s: string) => new Set((s.toLowerCase().match(/[a-z]+(?:-[a-z]+)*/g) ?? []));
 
 // How many things an option lists: comma, semicolon, slash or "and" separated.
 export function listedCount(option: string): number {
@@ -153,7 +158,10 @@ export function distractorProblems(label: string, stem: unknown, choices: unknow
   const stemWords = words(stemText);
   opts.forEach((o, i) => {
     const w = words(o);
-    const abs = ABSOLUTE_WORDS.filter((a) => w.has(a) && !stemWords.has(a));
+    // REQ-216 (M6): a cue word gives a wrong answer away; the RIGHT answer may
+    // say "only" or "all" when the fact does ("Only the owner can ..."), so the
+    // key is not held to it.
+    const abs = i === correctIndex ? [] : ABSOLUTE_WORDS.filter((a) => w.has(a) && !stemWords.has(a));
     if (abs.length) out.push(`${label} option ${i + 1} uses the absolute word "${abs[0]}"; reword it without a cue word.`);
     if (ABOVE.test(o)) out.push(`${label} option ${i + 1} is an "all/none of the above" option.`);
     if (SELF_LABEL.test(o)) out.push(`${label} option ${i + 1} labels itself as right or wrong.`);
@@ -227,7 +235,24 @@ export function lessonIntroProblems(intro: Partial<LessonIntroContent>): string[
   return out;
 }
 
+// REQ-216 (M6): problems that make content unusable (empty, malformed, out of
+// range, not English, an option named by position) BLOCK; the distractor lint
+// (a style cue) is advice. The first draft with lint is regenerated once with
+// the lint as the steer; a second failure of the lint only is LOGGED and the
+// content is served (generateValid's `lintOf`). *Problems() below return both,
+// for the checks that want every finding (the fix-up, the eval, pregen).
+export function lessonPracticeLint(p: Partial<LessonPracticeContent>): string[] {
+  return [
+    ...distractorProblems("Guided question", p.fadeProblem, p.fadeChoices, p.fadeCorrectIndex),
+    ...distractorProblems("Solo question", p.soloCheck, p.soloChoices, p.soloCorrectIndex),
+  ];
+}
+
 export function lessonPracticeProblems(p: Partial<LessonPracticeContent>): string[] {
+  return [...lessonPracticeHardProblems(p), ...lessonPracticeLint(p)];
+}
+
+export function lessonPracticeHardProblems(p: Partial<LessonPracticeContent>): string[] {
   const out: string[] = [];
   text("Guided question", p.fadeProblem, CONTENT_LIMITS.question, out);
   options("Guided question", p.fadeChoices, p.fadeCorrectIndex, p.fadeOptionReasons, out);
@@ -235,8 +260,6 @@ export function lessonPracticeProblems(p: Partial<LessonPracticeContent>): strin
   text("Solo question", p.soloCheck, CONTENT_LIMITS.question, out);
   options("Solo question", p.soloChoices, p.soloCorrectIndex, p.soloOptionReasons, out);
   text("Solo explanation", p.soloWhy, CONTENT_LIMITS.why, out);
-  out.push(...distractorProblems("Guided question", p.fadeProblem, p.fadeChoices, p.fadeCorrectIndex));
-  out.push(...distractorProblems("Solo question", p.soloCheck, p.soloChoices, p.soloCorrectIndex));
   positionRefProblems("Guided question", [p.fadeWhy, ...(p.fadeOptionReasons ?? [])], out);
   positionRefProblems("Solo question", [p.soloWhy, ...(p.soloOptionReasons ?? [])], out);
   const lang = languageProblem([p.fadeProblem ?? "", p.soloCheck ?? "", ...(p.fadeChoices ?? []), ...(p.soloChoices ?? []), p.fadeWhy ?? "", p.soloWhy ?? ""]);
@@ -244,14 +267,21 @@ export function lessonPracticeProblems(p: Partial<LessonPracticeContent>): strin
   return out;
 }
 
+export function quizItemLint(q: Partial<CoachQuizItem>): string[] {
+  return distractorProblems("Quiz question", q.question, q.choices, q.correctIndex);
+}
+
 export function quizItemProblems(q: Partial<CoachQuizItem>): string[] {
+  return [...quizItemHardProblems(q), ...quizItemLint(q)];
+}
+
+export function quizItemHardProblems(q: Partial<CoachQuizItem>): string[] {
   const out: string[] = [];
   text("Quiz question", q.question, CONTENT_LIMITS.question, out);
   options("Quiz question", q.choices, q.correctIndex, undefined, out);
   if (!Array.isArray(q.hints) || !q.hints.length) out.push("Quiz hints are missing.");
   else q.hints.forEach((h, i) => text(`Quiz hint ${i + 1}`, h, CONTENT_LIMITS.hint, out));
   text("Quiz explanation", q.explanation, CONTENT_LIMITS.explanation, out);
-  out.push(...distractorProblems("Quiz question", q.question, q.choices, q.correctIndex));
   positionRefProblems("Quiz question", [q.explanation, ...(q.hints ?? [])], out);
   const lang = languageProblem([q.question ?? "", ...(q.choices ?? []), q.explanation ?? ""]);
   if (lang) out.push(lang);
@@ -260,7 +290,7 @@ export function quizItemProblems(q: Partial<CoachQuizItem>): string[] {
 
 export class InvalidContentError extends UserFacingError {
   constructor(readonly what: string, readonly problems: string[]) {
-    super(`We couldn't put together a good ${what} just now. Nothing was saved -- please try again in a moment.`, 503);
+    super(`We couldn't put together a good ${what} just now. Nothing was saved -- please try again in a moment.`, 409, { retryable: true });
     this.name = "InvalidContentError";
   }
 }
@@ -273,14 +303,23 @@ export async function generateValid<T>(
   what: string,
   generate: (attempt: number, previousProblems: string[]) => Promise<T>,
   problemsOf: (t: T) => string[],
-  log: (msg: string) => void = (m) => console.warn(m)
+  log: (msg: string) => void = (m) => console.warn(m),
+  // REQ-216 (M6): style findings. They steer the one retry like any problem,
+  // but a second failure of these ALONE is logged and the content is used.
+  lintOf?: (t: T) => string[]
 ): Promise<T> {
   let last: string[] = [];
   for (let attempt = 1; attempt <= 2; attempt++) {
     const out = await generate(attempt, last);
-    last = problemsOf(out);
+    const hard = problemsOf(out);
+    const lint = lintOf ? lintOf(out) : [];
+    last = [...hard, ...lint];
     if (!last.length) return out;
     log(`[content-validator] ${what} failed check (attempt ${attempt}): ${last.slice(0, 5).join(" ")}`);
+    if (attempt === 2 && !hard.length) {
+      log(`[content-validator] ${what} served with style findings after one retry: ${lint.slice(0, 5).join(" ")}`);
+      return out;
+    }
   }
   throw new InvalidContentError(what, last);
 }

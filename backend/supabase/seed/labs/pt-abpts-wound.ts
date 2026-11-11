@@ -63,7 +63,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
       kind: "build",
       title: "Decide which wounds get negative pressure, and set it up safely",
       brief:
-        "Three fictional inpatients are proposed for negative pressure wound therapy by the surgical team. Wound 1: a dehisced abdominal incision, 9 x 4 cm, 3 cm deep, 100% red granulation, moderate serous exudate, no odour, bowel not visible. Wound 2: a stage 4 sacral pressure injury, 7 x 6 cm, with 60% adherent yellow slough and 20% black eschar, foul odour, periwound erythema spreading 3 cm, temperature 38.4 degrees C this morning. Wound 3: a non-healing ulcer over the left shin in a 74-year-old, 4 x 3 cm, with raised, rolled, pearly borders and a 7-month history despite good care; a biopsy is pending.",
+        "Three fictional inpatients are proposed for negative pressure wound therapy by the surgical team. Wound 1: a dehisced abdominal incision, 9 x 4 cm, 3 cm deep, 100% red granulation, moderate serous exudate, no odor, bowel not visible. Wound 2: a stage 4 sacral pressure injury, 7 x 6 cm, with 60% adherent yellow slough and 20% black eschar, foul odor, periwound erythema spreading 3 cm, temperature 38.4 degrees C this morning. Wound 3: a non-healing ulcer over the left shin in a 74-year-old, 4 x 3 cm, with raised, rolled, pearly borders and a 7-month history despite good care; a biopsy is pending.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -73,12 +73,12 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             part(
               "Wound 1",
               "Accepts NPWT: a clean, granulating dehisced wound with moderate exudate and no exposed bowel; describes the set-up (porous foam cut to the wound without overlapping intact skin, sealed drape, suction at about 125 mm Hg or per order, periwound protection) and the mechanism (improved perfusion, removal of exudate and edema, altered wound fluid, drawing edges together).",
-              "Yes. Clean red granulation, moderate exudate, no exposed viscera -- the textbook candidate. Foam trimmed to the wound bed and not over intact skin, periwound protected, airtight drape, pressure about 125 mm Hg continuous or as ordered, canister checked for volume and colour. It works by improving local perfusion, pulling off exudate and edema, changing the wound fluid environment and contracting the wound."
+              "Yes. Clean red granulation, moderate exudate, no exposed viscera -- the textbook candidate. Foam trimmed to the wound bed and not over intact skin, periwound protected, airtight drape, pressure about 125 mm Hg continuous or as ordered, canister checked for volume and color. It works by improving local perfusion, pulling off exudate and edema, changing the wound fluid environment and contracting the wound."
             ),
             part(
               "Wound 2",
-              "Defers NPWT: necrotic tissue (slough and eschar) and clinical signs of infection (fever, spreading erythema, odour) must be addressed first -- debridement and treatment of infection -- before negative pressure is applied, and the team is informed of the infection signs today.",
-              "Not yet. Sixty percent slough, eschar, odour, spreading erythema and a fever mean infection and necrosis: the wound needs debridement and the infection treated before any negative pressure, and the medical team needs to know about the fever and cellulitis now. Re-evaluate for NPWT once the bed is clean and the infection is controlled."
+              "Defers NPWT: necrotic tissue (slough and eschar) and clinical signs of infection (fever, spreading erythema, odor) must be addressed first -- debridement and treatment of infection -- before negative pressure is applied, and the team is informed of the infection signs today.",
+              "Not yet. Sixty percent slough, eschar, odor, spreading erythema and a fever mean infection and necrosis: the wound needs debridement and the infection treated before any negative pressure, and the medical team needs to know about the fever and cellulitis now. Re-evaluate for NPWT once the bed is clean and the infection is controlled."
             ),
             part(
               "Wound 3",
@@ -105,7 +105,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           parts: [
             part(
               "Smoking",
-              "Explains the mechanism (carbon monoxide binds hemoglobin far more tightly than oxygen -- about 200 times -- cutting oxygen delivery to the wound, plus vasoconstriction) and acts: brief advice, referral to a cessation programme / pharmacotherapy via the physician, and a frank link between the cigarettes and the stalled wound.",
+              "Explains the mechanism (carbon monoxide binds hemoglobin far more tightly than oxygen -- about 200 times -- cutting oxygen delivery to the wound, plus vasoconstriction) and acts: brief advice, referral to a cessation program / pharmacotherapy via the physician, and a frank link between the cigarettes and the stalled wound.",
               "Twenty cigarettes a day starve the wound of oxygen: carbon monoxide binds hemoglobin about 200 times more tightly than oxygen and nicotine constricts the vessels feeding the ischium. I tell him plainly that this is one reason nothing has changed in four weeks, offer the cessation service and ask his physician about nicotine replacement or other medication."
             ),
             part(
@@ -213,17 +213,17 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           parts: [
             part(
               "During casting",
-              "Prescribes exercise that preserves cardiovascular and muscular fitness while minimising weight bearing on the ulcerated foot: seated or supine aerobic options (arm ergometry, seated cycling on the non-cast leg, chair-based circuits), resistance training for trunk, upper body and the uninvolved leg, and glucose monitoring around sessions; keeps plantar loading on the cast foot to essential walking only.",
+              "Prescribes exercise that preserves cardiovascular and muscular fitness while minimizing weight bearing on the ulcerated foot: seated or supine aerobic options (arm ergometry, seated cycling on the non-cast leg, chair-based circuits), resistance training for trunk, upper body and the uninvolved leg, and glucose monitoring around sessions; keeps plantar loading on the cast foot to essential walking only.",
               "He does not stop training -- he changes it. Aerobic work that does not load the cast foot: arm ergometer, seated circuits, single-leg cycling with the cast foot resting, 20-30 minutes most days at a moderate effort. Resistance work for upper body, trunk and the sound leg two or three times a week. He checks glucose before and after until we know his response. Walking in the cast is for getting to the bathroom and the car, not exercise."
             ),
             part(
               "Assistive device and balance",
               "Adds an assistive device (for example a walker or forearm crutches) because it helps balance and unloading given neuropathy and the cast, trains safe transfers and gait with it, and includes seated balance and strength work to reduce fall risk without loading the ulcer.",
-              "He gets a walker (or forearm crutches if he manages them well) for every step in the cast: it steadies a neuropathic man on an uneven cast and takes load off the forefoot. Practise transfers and short-distance gait with it, and add seated and supported balance work so he is safer, not weaker, when the cast comes off."
+              "He gets a walker (or forearm crutches if he manages them well) for every step in the cast: it steadies a neuropathic man on an uneven cast and takes load off the forefoot. Practice transfers and short-distance gait with it, and add seated and supported balance work so he is safer, not weaker, when the cast comes off."
             ),
             part(
               "After closure",
-              "Plans a graded return: keep offloading for about the first 3 months after closure with a staged return to shoe wear, then progressive moderate-to-vigorous aerobic and resistance training (the guideline's strong recommendation for adults with diabetes who can exercise safely), with daily foot checks, appropriate footwear, and consideration of activity-monitor-based counselling to rebuild his daily steps gradually.",
+              "Plans a graded return: keep offloading for about the first 3 months after closure with a staged return to shoe wear, then progressive moderate-to-vigorous aerobic and resistance training (the guideline's strong recommendation for adults with diabetes who can exercise safely), with daily foot checks, appropriate footwear, and consideration of activity-monitor-based counseling to rebuild his daily steps gradually.",
               "Closure is not the finish line: protective footwear and continued offloading for about three months, with a written schedule for how many hours a day he wears shoes before building up. Then progressive moderate-to-vigorous aerobic and resistance training -- the guideline's strongest recommendation for adults with diabetes who can exercise safely -- and a step counter to rebuild walking in small weekly increments, with daily foot inspection and the right shoes and insoles for life."
             ),
           ],
@@ -236,7 +236,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
       kind: "build",
       title: "Write a wound note that stands up, and the consult that follows",
       brief:
-        "You are the fictional wound management physical therapist consulted by a skilled nursing facility about a resident's sacral wound. The resident is an 84-year-old woman with dementia; her son holds health-care power of attorney and has consented to care and to photographs for the record. Your findings: sacral pressure injury, 6.2 x 4.5 cm by the clock method (12-to-6 by 3-to-9), 1.8 cm deep at 6 o'clock, 70% red granulation, 30% yellow adherent slough, 1.5 cm undermining from 3 to 5 o'clock, moderate serous exudate, no odour, periwound macerated 1 cm at the inferior edge, pain 4/10 at dressing change. The facility's last note says only \"sacral wound, dressing changed\".",
+        "You are the fictional wound management physical therapist consulted by a skilled nursing facility about a resident's sacral wound. The resident is an 84-year-old woman with dementia; her son holds health-care power of attorney and has consented to care and to photographs for the record. Your findings: sacral pressure injury, 6.2 x 4.5 cm by the clock method (12-to-6 by 3-to-9), 1.8 cm deep at 6 o'clock, 70% red granulation, 30% yellow adherent slough, 1.5 cm undermining from 3 to 5 o'clock, moderate serous exudate, no odor, periwound macerated 1 cm at the inferior edge, pain 4/10 at dressing change. The facility's last note says only \"sacral wound, dressing changed\".",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -245,13 +245,13 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           parts: [
             part(
               "Documentation entry",
-              "Writes a complete, reproducible entry: etiology and NPIAP stage (stage 3: full-thickness with slough but no exposed muscle/bone, undermining present), location, dimensions with method (clock face, length x width x depth), undermining with clock positions, tissue type percentages, exudate amount and type, odour, periwound condition, pain, dressing used, and a photograph reference with date, scale and consent.",
-              "Sacral pressure injury, stage 3 (full thickness, granulation and slough, no exposed muscle or bone). 6.2 cm (12-6) x 4.5 cm (3-9) x 1.8 cm deep at 6 o'clock, clock method, patient left side-lying. Undermining 1.5 cm from 3 to 5 o'clock. Bed 70% red granulation, 30% adherent yellow slough. Moderate serous exudate, no odour. Periwound macerated 1 cm at inferior edge, otherwise intact. Pain 4/10 at dressing change. Photograph taken with ruler and date label, consent by POA on file. Dressing: as per plan below."
+              "Writes a complete, reproducible entry: etiology and NPIAP stage (stage 3: full-thickness with slough but no exposed muscle/bone, undermining present), location, dimensions with method (clock face, length x width x depth), undermining with clock positions, tissue type percentages, exudate amount and type, odor, periwound condition, pain, dressing used, and a photograph reference with date, scale and consent.",
+              "Sacral pressure injury, stage 3 (full thickness, granulation and slough, no exposed muscle or bone). 6.2 cm (12-6) x 4.5 cm (3-9) x 1.8 cm deep at 6 o'clock, clock method, patient left side-lying. Undermining 1.5 cm from 3 to 5 o'clock. Bed 70% red granulation, 30% adherent yellow slough. Moderate serous exudate, no odor. Periwound macerated 1 cm at inferior edge, otherwise intact. Pain 4/10 at dressing change. Photograph taken with ruler and date label, consent by POA on file. Dressing: as per plan below."
             ),
             part(
               "Consult communication",
-              "Communicates the findings and recommendations in a structured form to the physician and nursing: stage and risk, the need for debridement of slough (method within scope and orders), moisture management for the macerated edge, a reassessment of the support surface and repositioning plan individualised to her risk factors, nutrition and continence review, pain management at dressing changes, and measurable follow-up with a date.",
-              "To the physician and charge nurse, SBAR style: stage 3 sacral pressure injury with undermining and 30% slough, not previously staged or measured. Recommend: selective debridement of slough (conservative sharp within my scope with your order, or autolytic/enzymatic if you prefer), an absorbent dressing to control moisture and protect the macerated edge, a review of the mattress and cushion and an individualised repositioning plan built on her mobility, continence, nutrition and cognition rather than a fixed clock, dietitian review, analgesia before dressing changes. I will re-measure in one week and report."
+              "Communicates the findings and recommendations in a structured form to the physician and nursing: stage and risk, the need for debridement of slough (method within scope and orders), moisture management for the macerated edge, a reassessment of the support surface and repositioning plan individualized to her risk factors, nutrition and continence review, pain management at dressing changes, and measurable follow-up with a date.",
+              "To the physician and charge nurse, SBAR style: stage 3 sacral pressure injury with undermining and 30% slough, not previously staged or measured. Recommend: selective debridement of slough (conservative sharp within my scope with your order, or autolytic/enzymatic if you prefer), an absorbent dressing to control moisture and protect the macerated edge, a review of the mattress and cushion and an individualized repositioning plan built on her mobility, continence, nutrition and cognition rather than a fixed clock, dietitian review, analgesia before dressing changes. I will re-measure in one week and report."
             ),
             part(
               "Regulatory and consent points",
@@ -288,7 +288,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             ),
             part(
               "Patient C",
-              "Calculates 198 / 130 = about 1.52 and recognises a falsely high, non-compressible result from calcified vessels in diabetes and chronic kidney disease, confirmed by monophasic waveforms suggesting disease; next step: toe-brachial index and toe pressures and waveform analysis (or TcPO2 / vascular lab), and treat the leg as possibly ischemic until proven otherwise.",
+              "Calculates 198 / 130 = about 1.52 and recognizes a falsely high, non-compressible result from calcified vessels in diabetes and chronic kidney disease, confirmed by monophasic waveforms suggesting disease; next step: toe-brachial index and toe pressures and waveform analysis (or TcPO2 / vascular lab), and treat the leg as possibly ischemic until proven otherwise.",
               "ABI = 198 / 130 = 1.52 -- the vessels are too calcified to compress, so the number is meaningless, and the monophasic waveforms say the flow is abnormal. Diabetes and kidney disease are exactly the setting for this. Measure toe pressures and a toe-brachial index, read the waveforms, and send to the vascular lab; until then assume the foot may be ischemic."
             ),
           ],
@@ -301,7 +301,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
       kind: "build",
       title: "Measure a venous ulcer, record it to standard, and compute the change",
       brief:
-        "A fictional 70-year-old woman's venous leg ulcer over the right medial gaiter area was first measured four weeks ago at 4.2 cm (head-to-toe) x 3.1 cm (side-to-side), with 60% granulation and 40% slough, heavy serous exudate and a macerated periwound. Today, with the same position and method, it measures 3.0 x 2.4 cm, 90% granulation and 10% slough, moderate exudate, periwound intact with mild hemosiderin staining, no odour, pain 2/10. She has been in compression since the ABI was confirmed adequate.",
+        "A fictional 70-year-old woman's venous leg ulcer over the right medial gaiter area was first measured four weeks ago at 4.2 cm (head-to-toe) x 3.1 cm (side-to-side), with 60% granulation and 40% slough, heavy serous exudate and a macerated periwound. Today, with the same position and method, it measures 3.0 x 2.4 cm, 90% granulation and 10% slough, moderate exudate, periwound intact with mild hemosiderin staining, no odor, pain 2/10. She has been in compression since the ABI was confirmed adequate.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -309,9 +309,9 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           ask: "Record today's findings to standard, calculate the area change since baseline, and state what the trajectory means for the plan.",
           parts: [
             part(
-              "Standardised record",
-              "Documents location and etiology, dimensions by the stated method (head-to-toe length x side-to-side width, same position), depth if any, tissue type percentages, exudate amount and type, periwound, odour, pain and the dressing/compression in use, plus a dated photograph with a ruler and the consistent method noted so follow-ups are comparable.",
-              "Right medial gaiter venous leg ulcer. 3.0 cm (head-to-toe) x 2.4 cm (side-to-side), measured supine with the same landmarks as baseline, superficial with no depth to record. Bed 90% red granulation, 10% yellow slough. Moderate serous exudate. Periwound intact, mild hemosiderin staining, no maceration. No odour. Pain 2/10. In multilayer high compression since ABI was confirmed adequate. Photograph with ruler and date, same angle as baseline."
+              "Standardized record",
+              "Documents location and etiology, dimensions by the stated method (head-to-toe length x side-to-side width, same position), depth if any, tissue type percentages, exudate amount and type, periwound, odor, pain and the dressing/compression in use, plus a dated photograph with a ruler and the consistent method noted so follow-ups are comparable.",
+              "Right medial gaiter venous leg ulcer. 3.0 cm (head-to-toe) x 2.4 cm (side-to-side), measured supine with the same landmarks as baseline, superficial with no depth to record. Bed 90% red granulation, 10% yellow slough. Moderate serous exudate. Periwound intact, mild hemosiderin staining, no maceration. No odor. Pain 2/10. In multilayer high compression since ABI was confirmed adequate. Photograph with ruler and date, same angle as baseline."
             ),
             part(
               "Area calculation",
@@ -320,8 +320,8 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             ),
             part(
               "Trajectory and plan",
-              "Interprets the trajectory as healing (area down, slough down, exudate down, periwound improved) and continues the current compression and dressing plan with a stepped-down absorbency as exudate falls, keeps measuring at fixed intervals, and names the triggers to re-evaluate (area not shrinking at the next 4-week check, rising exudate, pain, odour or new slough).",
-              "She is healing: smaller, cleaner, drier, periwound recovered. Continue compression; step the dressing down to a lighter absorbent as exudate falls; re-measure every visit and formally at the next four-week point. If the area stops shrinking, or exudate, pain, odour or slough increase, we re-examine for infection, the ABI, compression fit and her adherence rather than carry on."
+              "Interprets the trajectory as healing (area down, slough down, exudate down, periwound improved) and continues the current compression and dressing plan with a stepped-down absorbency as exudate falls, keeps measuring at fixed intervals, and names the triggers to re-evaluate (area not shrinking at the next 4-week check, rising exudate, pain, odor or new slough).",
+              "She is healing: smaller, cleaner, drier, periwound recovered. Continue compression; step the dressing down to a lighter absorbent as exudate falls; re-measure every visit and formally at the next four-week point. If the area stops shrinking, or exudate, pain, odor or slough increase, we re-examine for infection, the ABI, compression fit and her adherence rather than carry on."
             ),
           ],
         },
@@ -343,18 +343,18 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           parts: [
             part(
               "Prognosis and reasons",
-              "Gives a poor prognosis for healing without intervention: ankle pressure below 50 mm Hg and ABI below 0.5 are signs of poor healing potential and higher amputation risk, a positive probe-to-bone raises concern for osteomyelitis, the wound is deep and chronic in a neuropathic foot with ongoing loading, and CKD and long-standing diabetes add risk; frames this with the WIfI threatened-limb logic (wound, ischemia and foot infection each graded 0-3 into stages 1-4 to estimate one-year amputation risk and revascularisation benefit).",
-              "Honestly: this will not heal as it is. An ankle pressure of 44 mm Hg and an ABI of 0.34 mean the foot cannot deliver the oxygen a wound needs and put him at higher risk of amputation; probe-to-bone is positive, so osteomyelitis is likely; the ulcer is deep, ten weeks old and still being walked on in trainers; kidney disease and twenty years of diabetes make it worse. In WIfI terms the wound, ischemia and infection grades each score on 0-3 and combine into a stage that estimates his one-year amputation risk and how much revascularisation would help -- and here the ischemia alone pushes him into a high stage."
+              "Gives a poor prognosis for healing without intervention: ankle pressure below 50 mm Hg and ABI below 0.5 are signs of poor healing potential and higher amputation risk, a positive probe-to-bone raises concern for osteomyelitis, the wound is deep and chronic in a neuropathic foot with ongoing loading, and CKD and long-standing diabetes add risk; frames this with the WIfI threatened-limb logic (wound, ischemia and foot infection each graded 0-3 into stages 1-4 to estimate one-year amputation risk and revascularization benefit).",
+              "Honestly: this will not heal as it is. An ankle pressure of 44 mm Hg and an ABI of 0.34 mean the foot cannot deliver the oxygen a wound needs and put him at higher risk of amputation; probe-to-bone is positive, so osteomyelitis is likely; the ulcer is deep, ten weeks old and still being walked on in trainers; kidney disease and twenty years of diabetes make it worse. In WIfI terms the wound, ischemia and infection grades each score on 0-3 and combine into a stage that estimates his one-year amputation risk and how much revascularization would help -- and here the ischemia alone pushes him into a high stage."
             ),
             part(
               "What must happen first",
-              "Refers urgently to vascular surgery for revascularisation assessment and to the medical/podiatric team for osteomyelitis work-up (imaging, possible bone biopsy, antibiotics as they decide), and starts offloading now; defers sharp debridement and anything that depends on perfusion until the vascular team has decided.",
+              "Refers urgently to vascular surgery for revascularization assessment and to the medical/podiatric team for osteomyelitis work-up (imaging, possible bone biopsy, antibiotics as they decide), and starts offloading now; defers sharp debridement and anything that depends on perfusion until the vascular team has decided.",
               "Today: urgent vascular surgery referral -- perfusion decides everything else -- and a message to his physician about probable osteomyelitis for imaging and a bone sample. Offloading starts now, even before the vascular decision. No sharp debridement or adjuncts until vascular says what the foot can tolerate."
             ),
           ],
         },
         {
-          text: "He has a successful endovascular revascularisation; ankle pressure rises to 96 mm Hg. Bone biopsy confirms osteomyelitis and he starts a prolonged course of antibiotics. The team asks you to take over offloading and healing management.",
+          text: "He has a successful endovascular revascularization; ankle pressure rises to 96 mm Hg. Bone biopsy confirms osteomyelitis and he starts a prolonged course of antibiotics. The team asks you to take over offloading and healing management.",
           ask: "Set the plan and the revised prognosis, and what you will tell him about timelines.",
           parts: [
             part(
@@ -402,7 +402,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
           parts: [
             part(
               "Before surgery",
-              "Prepares the limb and the patient: optimises edema control and skin condition within the surgeon's instructions, teaches post-operative positioning and mobility expectations, screens function, falls risk and home support, and coordinates with the oncology team about staging and lymph node assessment that may change the plan.",
+              "Prepares the limb and the patient: optimizes edema control and skin condition within the surgeon's instructions, teaches post-operative positioning and mobility expectations, screens function, falls risk and home support, and coordinates with the oncology team about staging and lymph node assessment that may change the plan.",
               "Before surgery I get the leg as quiet as the surgeon allows -- edema down, skin intact around the lesion -- and prepare her: what the graft will need (elevation, protected mobility), how she will get around at home in the first weeks, and her falls risk and support at home. I check with the oncology team whether node assessment or staging changes anything about the plan."
             ),
             part(
@@ -452,7 +452,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             part(
               "Skin, activity and surveillance",
               "Adds skin care and early self-inspection, calf-muscle exercise and walking, leg elevation, weight and comorbidity management, a referral question about venous intervention to the vascular team where appropriate, and a clear instruction to return at the first sign of skin breakdown.",
-              "Daily moisturiser and a look at the gaiter skin every evening; walking and heel raises to keep the calf pump working; legs up when resting; weight and blood pressure under control. I ask the vascular team whether treating the underlying veins would reduce her risk. And any itch, redness or break in the skin is a same-week appointment, not a wait-and-see."
+              "Daily moisturizer and a look at the gaiter skin every evening; walking and heel raises to keep the calf pump working; legs up when resting; weight and blood pressure under control. I ask the vascular team whether treating the underlying veins would reduce her risk. And any itch, redness or break in the skin is a same-week appointment, not a wait-and-see."
             ),
           ],
         },
@@ -464,7 +464,7 @@ export const ABPTSWMS_LABS: SeedLabSet = {
       kind: "build",
       title: "Choose debridement and a dressing for three wounds",
       brief:
-        "Three fictional wounds need a plan today. Wound A: a stage 3 sacral pressure injury in a 79-year-old on anticoagulants, 4 x 3 cm, 50% loosely adherent yellow slough and 50% granulation, moderate exudate, no infection, no pain. Wound B: a venous leg ulcer with 80% thick adherent slough and malodour, heavy exudate, periwound macerated, no systemic signs, perfusion adequate, in a patient who is needle-phobic and declines anything sharp. Wound C: a clean, granulating stage 3 pressure injury over the trochanter, 2 x 2 cm, low exudate, in a patient whose dressing is changed by a family member every three days.",
+        "Three fictional wounds need a plan today. Wound A: a stage 3 sacral pressure injury in a 79-year-old on anticoagulants, 4 x 3 cm, 50% loosely adherent yellow slough and 50% granulation, moderate exudate, no infection, no pain. Wound B: a venous leg ulcer with 80% thick adherent slough and malodor, heavy exudate, periwound macerated, no systemic signs, perfusion adequate, in a patient who is needle-phobic and declines anything sharp. Wound C: a clean, granulating stage 3 pressure injury over the trochanter, 2 x 2 cm, low exudate, in a patient whose dressing is changed by a family member every three days.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -478,8 +478,8 @@ export const ABPTSWMS_LABS: SeedLabSet = {
             ),
             part(
               "Wound B",
-              "Chooses a non-sharp but faster-than-autolytic option for thick slough with odour and heavy exudate -- enzymatic debridement or larval (biological) therapy with sterile Lucilia sericata larvae -- respecting the patient's refusal of sharp debridement, while managing odour and the macerated periwound and watching for infection; dressing: an alginate or highly absorbent foam for heavy exudate with periwound protection, plus compression as the venous plan allows.",
-              "Thick adherent slough, odour, heavy exudate and a patient who refuses anything sharp: enzymatic debridement, or larval therapy with sterile Lucilia sericata larvae, both selective and both faster than waiting for autolysis. Culture or review if the odour and periwound erythema suggest infection. Dressing: an alginate or high-absorbency foam to cope with the exudate, a barrier film on the macerated skin, and the venous compression continues over it."
+              "Chooses a non-sharp but faster-than-autolytic option for thick slough with odor and heavy exudate -- enzymatic debridement or larval (biological) therapy with sterile Lucilia sericata larvae -- respecting the patient's refusal of sharp debridement, while managing odor and the macerated periwound and watching for infection; dressing: an alginate or highly absorbent foam for heavy exudate with periwound protection, plus compression as the venous plan allows.",
+              "Thick adherent slough, odor, heavy exudate and a patient who refuses anything sharp: enzymatic debridement, or larval therapy with sterile Lucilia sericata larvae, both selective and both faster than waiting for autolysis. Culture or review if the odor and periwound erythema suggest infection. Dressing: an alginate or high-absorbency foam to cope with the exudate, a barrier film on the macerated skin, and the venous compression continues over it."
             ),
             part(
               "Wound C",

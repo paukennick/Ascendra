@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { queryOne, withTransaction } from "@/lib/db";
 import { ok, badRequest, serverError, readJson } from "@/lib/http";
-import { hashPassword } from "@/lib/auth/passwords";
+import { hashPassword, MAX_PASSWORD_LENGTH } from "@/lib/auth/passwords";
 import { bumpTokenVersion } from "@/lib/auth/sessionControl";
 import { clearLoginPairs } from "@/lib/auth/lockout";
 
@@ -18,6 +18,8 @@ export async function POST(req: Request) {
     if (newPassword.length < 8) {
       return badRequest("newPassword must be at least 8 characters");
     }
+    // REQ-219 (FAIL-1111): the same ceiling register has.
+    if (newPassword.length > MAX_PASSWORD_LENGTH) return badRequest("password is too long");
 
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     // Cheap early check so an invalid link doesn't cost a bcrypt hash. It is

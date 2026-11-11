@@ -184,6 +184,23 @@ export function spliceModules(source: Record<string, unknown>, load: (ref: strin
       const target = (Array.isArray(doc[arr]) ? doc[arr] : (doc[arr] = [])) as unknown[];
       target.push(...add);
     }
+    // REQ-227 (FAIL-1222): the module's endings go after the host's in the
+    // explicit order, and only when the host declares one (a host below engine
+    // minor 2 keeps key order, as before). An id the module dropped through
+    // $onlyIf (code_epiHarm outside the CALS protocol) is left out.
+    const eo = frag.endingOrder;
+    if (eo !== undefined) {
+      const rawEndings = isObj(mod.fragment.endings) ? mod.fragment.endings : {};
+      if (!Array.isArray(eo) || eo.some((x) => typeof x !== "string")) problems.push({ level: "error", path: `${at}.endingOrder`, message: "a module's endingOrder is a list of its ending ids" });
+      else {
+        const spliced = isObj(frag.endings) ? frag.endings : {};
+        for (const id of eo as string[]) {
+          if (!(id in rawEndings)) problems.push({ level: "error", path: `${at}.endingOrder`, message: `${use.use} orders "${id}", which is not one of its endings` });
+          else if (id in spliced && Array.isArray(doc.endingOrder)) (doc.endingOrder as string[]).push(id);
+        }
+        for (const id of Object.keys(spliced)) if (!(eo as string[]).includes(id) && (spliced[id] as { when?: unknown }).when) problems.push({ level: "error", path: `${at}.endingOrder`, message: `${use.use} has an ending "${id}" with a when that its endingOrder does not list` });
+      }
+    }
     const fs = frag.scoring;
     if (isObj(fs)) {
       const ds = (isObj(doc.scoring) ? doc.scoring : (doc.scoring = {})) as Record<string, unknown>;

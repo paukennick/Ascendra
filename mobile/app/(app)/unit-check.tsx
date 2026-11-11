@@ -1,3 +1,4 @@
+import { LOCKED_TITLE, lockedMessage } from "@/lib/featureLock";
 import React, { useCallback, useEffect, useState } from "react";
 import { TextInput, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
@@ -50,6 +51,8 @@ export default function UnitCheckScreen() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // REQ-217 (FAIL-1064): the plan doesn't include unit checks; the server's own words.
+  const [locked, setLocked] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const draft = useAnswerDraft("unitcheck", check?.id ?? null);
 
@@ -62,6 +65,7 @@ export default function UnitCheckScreen() {
     api
       .get<{ status: UnitCheckStatus; check: UnitCheck | null }>(`/api/units/${unitId}/check`)
       .then((res) => {
+        setLocked(lockedMessage(res));
         setStatus(res.status);
         setCheck(res.check);
       })
@@ -110,7 +114,13 @@ export default function UnitCheckScreen() {
         </Card>
       ) : null}
 
-      {!loading && status && !status.eligible ? (
+      {!loading && locked ? (
+        <Card>
+          <EmptyState icon="lock" title={LOCKED_TITLE} message={locked} />
+        </Card>
+      ) : null}
+
+      {!loading && !locked && status && !status.eligible ? (
         <Card>
           <EmptyState
             icon="target"

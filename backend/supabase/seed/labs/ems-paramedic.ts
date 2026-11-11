@@ -37,7 +37,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Impression",
-              "Identifies acute cardiogenic pulmonary edema (sympathetic crashing pattern) from the history, frothy sputum, crackles, hypoxaemia and severe hypertension.",
+              "Identifies acute cardiogenic pulmonary edema (sympathetic crashing pattern) from the history, frothy sputum, crackles, hypoxemia and severe hypertension.",
               "Acute cardiogenic pulmonary edema with severe hypertension."
             ),
             part(
@@ -96,22 +96,22 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Patient 1",
-              "Recognises no exhaled CO2 after intubation as an esophageal tube (or no circulation), and removes the tube and reoxygenates with BVM.",
+              "Recognizes no exhaled CO2 after intubation as an esophageal tube (or no circulation), and removes the tube and reoxygenates with BVM.",
               "Flat line plus epigastric gurgling: the tube is in the esophagus. Pull it, ventilate with the BVM and reoxygenate."
             ),
             part(
               "Patient 2",
-              "Recognises hypoventilation with CO2 retention (high EtCO2, slow rate), and supports ventilation and looks for the cause.",
+              "Recognizes hypoventilation with CO2 retention (high EtCO2, slow rate), and supports ventilation and looks for the cause.",
               "Hypoventilation: EtCO2 62 at 6 breaths a minute. Assist ventilation with the BVM and look for why -- post-ictal, drugs given."
             ),
             part(
               "Patient 3",
-              "Recognises the shark-fin waveform as obstructed exhalation (bronchospasm) and a rising EtCO2 as tiring and CO2 retention, and escalates bronchodilator therapy and prepares for ventilatory support.",
+              "Recognizes the shark-fin waveform as obstructed exhalation (bronchospasm) and a rising EtCO2 as tiring and CO2 retention, and escalates bronchodilator therapy and prepares for ventilatory support.",
               "Shark fin is bronchospasm, and a rising EtCO2 means he's tiring. More bronchodilator, magnesium, and get ready to support his breathing."
             ),
             part(
               "Patient 4",
-              "Recognises an abrupt rise in EtCO2 during CPR as a likely return of spontaneous circulation and checks rhythm and pulse at the next opportunity.",
+              "Recognizes an abrupt rise in EtCO2 during CPR as a likely return of spontaneous circulation and checks rhythm and pulse at the next opportunity.",
               "A sudden jump from 14 to 42 during CPR suggests ROSC -- check rhythm and pulse at the next pause."
             ),
           ],
@@ -131,11 +131,11 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       steps: [
         {
           text: "Pads are on; the rhythm is VF.",
-          ask: "What do you do first, and how do you organise the team?",
+          ask: "What do you do first, and how do you organize the team?",
           parts: [
             part(
               "Defibrillate",
-              "Defibrillates promptly, with compressions continuing while the defibrillator charges and resuming immediately after the shock, minimising pre- and post-shock pauses.",
+              "Defibrillates promptly, with compressions continuing while the defibrillator charges and resuming immediately after the shock, minimizing pre- and post-shock pauses.",
               "Charge while compressions continue, clear, shock, and straight back on the chest."
             ),
             part(
@@ -178,7 +178,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       slug: "medic-symptomatic-bradycardia",
       objective: "Manage symptomatic bradycardia with atropine, vasopressors and transcutaneous pacing",
       kind: "case",
-      title: "Dizzy and grey at the bus stop",
+      title: "Dizzy and gray at the bus stop",
       brief:
         "Fictional call. A 74-year-old woman is sitting at a bus stop, pale, sweaty and dizzy, and nearly fainted. Pulse 34, BP 74/40, respirations 20, SpO2 95%. The monitor shows third-degree AV block with a wide ventricular escape. She is confused about the date.",
       safetyNote: CLINICAL_SAFETY,
@@ -231,11 +231,11 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       kind: "case",
       title: "Helmet cracked, GCS falling",
       brief:
-        "Fictional call. A 30-year-old motorcyclist hit a guardrail. His helmet is cracked. GCS is 7 (E2 V2 M3), pupils equal, snoring respirations 10/min, SpO2 86%, pulse 104, BP 106/70. The Level I trauma centre is 20 minutes away by ground.",
+        "Fictional call. A 30-year-old motorcyclist hit a guardrail. His helmet is cracked. GCS is 7 (E2 V2 M3), pupils equal, snoring respirations 10/min, SpO2 86%, pulse 104, BP 106/70. The Level I trauma center is 20 minutes away by ground.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "Manual cervical stabilisation is in place.",
+          text: "Manual cervical stabilization is in place.",
           ask: "What are your airway and breathing priorities, and what targets do you aim for?",
           parts: [
             part(
@@ -245,7 +245,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
             ),
             part(
               "Ventilation target",
-              "Targets EtCO2 35-45 mm Hg (about 40) and avoids hyperventilation, because low CO2 constricts cerebral vessels and worsens ischaemia.",
+              "Targets EtCO2 35-45 mm Hg (about 40) and avoids hyperventilation, because low CO2 constricts cerebral vessels and worsens ischemia.",
               "EtCO2 around 40, between 35 and 45 -- no hyperventilating him."
             ),
           ],
@@ -267,7 +267,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Herniation",
-              "Recognises signs of herniation and allows modest, brief hyperventilation to an EtCO2 no lower than 30 mm Hg per protocol, while keeping oxygenation and blood pressure targets.",
+              "Recognizes signs of herniation and allows modest, brief hyperventilation to an EtCO2 no lower than 30 mm Hg per protocol, while keeping oxygenation and blood pressure targets.",
               "Signs of herniation: brief, modest hyperventilation, EtCO2 not below 30, still guarding his oxygen and pressure."
             ),
             part(
@@ -291,7 +291,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "She is in generalised tonic-clonic activity; her jaw is clenched and SpO2 reads 88%.",
+          text: "She is in generalized tonic-clonic activity; her jaw is clenched and SpO2 reads 88%.",
           ask: "What do you give, by what route, and why that route?",
           parts: [
             part(
@@ -323,7 +323,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Second dose",
-              "Recognises she has now had two benzodiazepine doses, so a further dose carries high risk of airway compromise; weighs treating the recurrent seizure against that risk, prepares airway support, and consults medical direction per protocol.",
+              "Recognizes she has now had two benzodiazepine doses, so a further dose carries high risk of airway compromise; weighs treating the recurrent seizure against that risk, prepares airway support, and consults medical direction per protocol.",
               "She's had two doses already counting her partner's. Another dose risks her airway, so I get the BVM ready and call medical control before giving more."
             ),
           ],
@@ -350,13 +350,13 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
             ),
             part(
               "Actions",
-              "Positions her on her left side, establishes IV access, starts seizure prophylaxis with magnesium per protocol, minimises stimulation, and notifies an obstetric-capable hospital.",
+              "Positions her on her left side, establishes IV access, starts seizure prophylaxis with magnesium per protocol, minimizes stimulation, and notifies an obstetric-capable hospital.",
               "Left lateral, IV, magnesium for seizure prophylaxis per protocol, keep the lights and noise down, and pre-alert the obstetric unit."
             ),
           ],
         },
         {
-          text: "In the ambulance she has a generalised seizure.",
+          text: "In the ambulance she has a generalized seizure.",
           ask: "What is your first-line drug and dose?",
           parts: [
             part(
@@ -400,7 +400,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           ask: "What do you do about the CPR in progress?",
           parts: [
             part(
-              "Honour the order",
+              "Honor the order",
               "Verifies the POLST is a valid, signed, actionable medical order for this patient and, under protocol, stops resuscitation because it directs no CPR; a family member's verbal objection does not override a valid order the patient made.",
               "Check it's her form, signed and valid. It is a medical order for no CPR, so we stop. Her son's wish doesn't override her own valid order."
             ),
@@ -431,7 +431,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
     },
     {
       slug: "medic-medication-error-report",
-      objective: "Recognise and report a medication error, and protect the patient",
+      objective: "Recognize and report a medication error, and protect the patient",
       kind: "build",
       title: "The wrong concentration",
       brief:
@@ -465,7 +465,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
     // ---- Clinical Judgment (3) ----
     {
       slug: "medic-unstable-svt",
-      objective: "Generate and prioritise solutions, then take action and evaluate the response for an unstable tachycardia",
+      objective: "Generate and prioritize solutions, then take action and evaluate the response for an unstable tachycardia",
       kind: "case",
       title: "A racing heart and a falling pressure",
       brief:
@@ -474,7 +474,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       steps: [
         {
           text: "She is answering questions slowly.",
-          ask: "Recognise and analyse the cues: is she stable or unstable, and what is the rhythm?",
+          ask: "Recognize and analyze the cues: is she stable or unstable, and what is the rhythm?",
           parts: [
             part(
               "Cues",
@@ -489,8 +489,8 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Decision",
-              "Chooses synchronized cardioversion for the unstable patient (per manufacturer energy), with sedation or analgesia if she is responsive and it will not delay care; explains adenosine and vagal manoeuvres are for the stable patient.",
-              "Synchronized cardioversion -- she's unstable. Quick sedation if it won't delay the shock. Adenosine and vagal manoeuvres are for a stable patient."
+              "Chooses synchronized cardioversion for the unstable patient (per manufacturer energy), with sedation or analgesia if she is responsive and it will not delay care; explains adenosine and vagal maneuvers are for the stable patient.",
+              "Synchronized cardioversion -- she's unstable. Quick sedation if it won't delay the shock. Adenosine and vagal maneuvers are for a stable patient."
             ),
             part(
               "Safety",
@@ -518,7 +518,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       kind: "case",
       title: "A barking cough at midnight",
       brief:
-        "Fictional call. A 2-year-old boy (12 kg) has had a cold for two days and woke with a barking cough. He has stridor while sitting quietly on his mother's lap, suprasternal retractions, respirations 40, SpO2 94%, and is alert. Your agency carries nebulised epinephrine (1 mg/mL) and oral and IV dexamethasone.",
+        "Fictional call. A 2-year-old boy (12 kg) has had a cold for two days and woke with a barking cough. He has stridor while sitting quietly on his mother's lap, suprasternal retractions, respirations 40, SpO2 94%, and is alert. Your agency carries nebulized epinephrine (1 mg/mL) and oral and IV dexamethasone.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -538,8 +538,8 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Treatment",
-              "Gives nebulised epinephrine (5 mL of 1 mg/mL) for stridor at rest and dexamethasone 0.6 mg/kg orally (7.2 mg here, maximum 16 mg); notes humidified mist is not indicated.",
-              "Nebulised epinephrine, 5 mL of 1 mg/mL, and dexamethasone 0.6 mg/kg by mouth -- about 7 mg. Mist doesn't help."
+              "Gives nebulized epinephrine (5 mL of 1 mg/mL) for stridor at rest and dexamethasone 0.6 mg/kg orally (7.2 mg here, maximum 16 mg); notes humidified mist is not indicated.",
+              "Nebulized epinephrine, 5 mL of 1 mg/mL, and dexamethasone 0.6 mg/kg by mouth -- about 7 mg. Mist doesn't help."
             ),
             part(
               "Keep him calm",
@@ -567,7 +567,7 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
       kind: "case",
       title: "Found on the kitchen floor",
       brief:
-        "Fictional call. A neighbour found a 66-year-old man on his kitchen floor, last seen normal yesterday evening. He mumbles and does not follow commands, moves all limbs, and has an empty insulin pen, several beer cans and a bruise on his forehead nearby. Pulse 100, BP 162/90, respirations 14, SpO2 95%, temperature normal, pupils equal and reactive.",
+        "Fictional call. A neighbor found a 66-year-old man on his kitchen floor, last seen normal yesterday evening. He mumbles and does not follow commands, moves all limbs, and has an empty insulin pen, several beer cans and a bruise on his forehead nearby. Pulse 100, BP 162/90, respirations 14, SpO2 95%, temperature normal, pupils equal and reactive.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -603,8 +603,8 @@ export const NREMTPARAMEDIC_LABS: SeedLabSet = {
           parts: [
             part(
               "Re-evaluate",
-              "Recognises that a persisting deficit after correcting glucose means hypoglycemia was not the whole story; re-examines for stroke or intracranial bleeding (fall with head strike), fixes last known well as yesterday evening, and chooses a destination with stroke and neurosurgical capability with early notification.",
-              "Corrected sugar but still confused with new right-sided weakness: this could be a stroke or a bleed from the fall. Last known well is last evening, so a stroke centre with neurosurgery, called ahead."
+              "Recognizes that a persisting deficit after correcting glucose means hypoglycemia was not the whole story; re-examines for stroke or intracranial bleeding (fall with head strike), fixes last known well as yesterday evening, and chooses a destination with stroke and neurosurgical capability with early notification.",
+              "Corrected sugar but still confused with new right-sided weakness: this could be a stroke or a bleed from the fall. Last known well is last evening, so a stroke center with neurosurgery, called ahead."
             ),
             part(
               "Handoff",

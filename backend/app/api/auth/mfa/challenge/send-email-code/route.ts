@@ -1,10 +1,11 @@
 import crypto from "node:crypto";
 import { queryOne } from "@/lib/db";
-import { ok, badRequest, unauthorized, serverError, readJson } from "@/lib/http";
+import { ok, badRequest, unauthorized, tooManyRequests, serverError, readJson } from "@/lib/http";
 import { getLoginChallenge, setChallengeEmailCode, ChallengeError } from "@/lib/auth/mfaChallenge";
 import { generateEmailCode, hashEmailCode } from "@/lib/auth/mfa";
 import { sendMfaEmailCode } from "@/lib/email";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
+import { mayEmailSignInCode } from "@/lib/auth/mailLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,19 @@ export async function POST(req: Request) {
     );
     if (!user?.email_mfa_enabled) {
       return badRequest("Email verification codes are not enabled for this account.");
+    }
+
+    // REQ-219 (FAIL-1114): every other mail to an address counts against the
+    // per-address hourly limit (lib/auth/mailLimit.ts); this one only had the
+    // per-challenge cap, and each new sign-in starts a new challenge. REQ-226
+    // (FAIL-1240): sign-in codes have their own hourly budget, so reset and
+    // verification mails can't use it up (or it theirs). Here the caller
+    // already has the password, so the limit can say so plainly (a 429 the app
+    // shows) instead of skipping silently.
+    if (!(await mayEmailSignInCode(user.email))) {
+      return tooManyRequests(
+        "We've sent several codes to this address in the last hour. Wait a while, or use your authenticator app or a backup code."
+      );
     }
 
     const code = generateEmailCode();

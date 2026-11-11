@@ -9,8 +9,11 @@ import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { findClientAttempt, isDuplicateClientAttempt, recordAttemptTx } from "@/lib/grading-service";
 import { unitCheckPrompt, unitCheckSchema } from "@/lib/review-prompts";
 import { md5 } from "@/lib/review-plan";
-import { recordHoldback, uncertaintyOf } from "@/lib/item-quality";
-import { UserFacingError } from "@/lib/http";
+import { heldBackSince } from "@/lib/item-quality";
+import { generateGated, HeldForAccuracyError } from "@/lib/generation-gate";
+import { randomUUID } from "node:crypto";
+import { isPbqClaimLive, releasePbqClaim, renewPbqClaim, tryPbqClaim } from "@/lib/pbq-scenarios";
+import { CLAIM_LEASE_SECONDS } from "@/lib/lesson-store";
 import { ReviewError } from "@/lib/review-service";
 import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { withGradingClaim } from "@/lib/grading-claims";
@@ -127,12 +130,64 @@ export async function unseenUnitCheck(userId: string, unitId: string, gateHash: 
   );
 }
 
+export const UNIT_CHECK_SUBJECT = "unit check";
+const UNIT_CHECK_WAIT_MS = 90_000;
+const UNIT_CHECK_POLL_MS = 500;
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 // The check to show: a stored one this learner has not answered, or a new one.
-export async function getOrWriteUnitCheck(userId: string, status: UnitCheckStatus): Promise<UnitCheckItem> {
+//
+// REQ-216 (low): two requests at once for the same learner and unit used to
+// both find nothing unseen and each write (and pay for) a check. Writing now
+// takes the learner's lease for the unit (pbq_generation_claims, the one a PBQ
+// generation takes, lib/pbq-scenarios.ts): one request writes, the others wait
+// for its release and serve what it stored, or, when it was held back, say so
+// in the same words instead of writing again. Sharing the PBQ lease only
+// means a unit check and a PBQ for one learner and unit take turns.
+export async function getOrWriteUnitCheck(
+  userId: string,
+  status: UnitCheckStatus,
+  opts: { waitMs?: number; pollMs?: number; heartbeatMs?: number } = {}
+): Promise<UnitCheckItem> {
   const gate = status.gate!;
   const hash = md5(gate);
   const existing = await unseenUnitCheck(userId, status.unitId, hash);
   if (existing) return existing;
+  const deadline = Date.now() + (opts.waitMs ?? UNIT_CHECK_WAIT_MS);
+  const token = randomUUID();
+  const since = (await queryOne<{ t: Date }>(`select clock_timestamp() as t`))?.t ?? new Date();
+  for (;;) {
+    if (await tryPbqClaim(userId, status.unitId, token)) {
+      const heartbeat = setInterval(() => {
+        renewPbqClaim(userId, status.unitId, token).catch(() => {});
+      }, opts.heartbeatMs ?? (CLAIM_LEASE_SECONDS * 1000) / 4);
+      try {
+        // Another request may have stored one between our read and the claim.
+        const again = await unseenUnitCheck(userId, status.unitId, hash);
+        if (again) return again;
+        return await writeUnitCheck(userId, status, gate, hash);
+      } finally {
+        clearInterval(heartbeat);
+        await releasePbqClaim(userId, status.unitId, token).catch(() => {});
+      }
+    }
+    for (;;) {
+      if (Date.now() >= deadline) {
+        throw new ReviewError(409, "Preparing this check is taking longer than expected. Please try again in a moment.");
+      }
+      await sleep(opts.pollMs ?? UNIT_CHECK_POLL_MS);
+      if (!(await isPbqClaimLive(userId, status.unitId))) break;
+    }
+    const stored = await unseenUnitCheck(userId, status.unitId, hash);
+    if (stored) return stored;
+    if (await heldBackSince("unit_check", { unitId: status.unitId }, since)) {
+      throw new HeldForAccuracyError(UNIT_CHECK_SUBJECT, ["uncertain"]);
+    }
+    // The holder failed without storing anything: take the lease ourselves.
+  }
+}
+
+async function writeUnitCheck(userId: string, status: UnitCheckStatus, gate: string, hash: string): Promise<UnitCheckItem> {
   try {
     await consumeRateLimit("unitcheck_generate", userId, { max: 10, windowMinutes: 60 }, { userId });
   } catch (err) {
@@ -152,25 +207,33 @@ export async function getOrWriteUnitCheck(userId: string, status: UnitCheckStatu
     ctx: ctx ?? undefined,
   });
   const model = getFastModel();
-  const gen = await callClaudeStructured({
-    system,
-    messages: [{ role: "user", content: user }],
-    schema: unitCheckSchema,
-    maxTokens: 900,
+  // REQ-114 (Audit 3 H1), changed by REQ-216: a unit check is an invented
+  // scenario graded holistically with no key, like a PBQ, so only the writer's
+  // LOW confidence holds it back (listed claims are logged); written once
+  // more, steered with its claims; held twice -> a 409 that says why.
+  const gen = await generateGated({
+    kind: "unit_check",
+    unitId: status.unitId,
     model,
-    effort: "low",
-    thinking: "off",
-    purpose: "unitcheck_generate",
-    userId,
+    subject: UNIT_CHECK_SUBJECT,
+    generate: async (steer) => {
+      const g = await callClaudeStructured({
+        system,
+        messages: [{ role: "user", content: steer ? `${user}\n\n${steer}` : user }],
+        schema: unitCheckSchema,
+        maxTokens: 900,
+        model,
+        effort: "low",
+        thinking: "off",
+        purpose: "unitcheck_generate",
+        userId,
+      });
+      if (!g.scenario.trim() || g.subParts.map((s) => s.trim()).filter(Boolean).length < 1) throw new Error("unit check generation returned no scenario");
+      return g;
+    },
+    uncertainty: (g) => g,
   });
   const subParts = gen.subParts.map((s) => s.trim()).filter(Boolean);
-  if (!gen.scenario.trim() || subParts.length < 1) throw new Error("unit check generation returned no scenario");
-  // REQ-114 (Audit 3 H1): never store a scenario its writer was unsure of.
-  const unsure = uncertaintyOf(gen);
-  if (unsure) {
-    await recordHoldback({ kind: "unit_check", unitId: status.unitId, reason: "uncertain", claims: unsure, content: gen, model });
-    throw new UserFacingError("We couldn't write a check we're confident in just now. Please try again.");
-  }
   const row = await queryOne<UnitCheckItem & Record<string, unknown>>(
     `insert into unit_check_items (unit_id, gate_hash, title, scenario, sub_parts, model)
      values ($1, $2, $3, $4, $5, $6) returning id, unit_id, title, scenario, sub_parts`,

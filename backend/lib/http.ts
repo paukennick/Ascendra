@@ -28,8 +28,11 @@ export function unauthorized(message = "Unauthorized") {
 // Authenticated, but not allowed to do this yet -- currently a course whose
 // disclaimer the user hasn't accepted. Distinct from 401 so the client can
 // tell "sign in" apart from "accept the disclaimer first".
-export function forbidden(message = "Forbidden") {
-  return NextResponse.json({ error: message, acknowledgementRequired: true }, { status: 403 });
+// REQ-224: `extra` (an AcknowledgementError's) says which acknowledgement --
+// { code: "study_notice_required" } or { code: "mature_content_required",
+// category, noticeVersion, minAge } -- so the app can ask for the right one.
+export function forbidden(message = "Forbidden", extra?: Record<string, unknown>) {
+  return NextResponse.json({ ...(extra ?? {}), error: message, acknowledgementRequired: true }, { status: 403 });
 }
 
 // The request conflicts with what is already recorded: a second revision of
@@ -48,10 +51,26 @@ export function tooManyRequests(message = "Too many requests") {
 // other error is treated as internal: see serverError.
 // REQ-122: `extra` is merged into the JSON body (for example the plan a
 // feature needs, or when an allowance resets) so the app can act on it.
+//
+// REQ-216 (H3, FAIL-1010): the status is ALWAYS a 4xx. The app shows a 5xx as
+// "something went wrong on our side" and hides the message, so a sentence
+// written for the learner that went out as a 503 (the old default) was never
+// read. A caller that asks for a 5xx gets 409 ("not now; the words say why")
+// and a warning in the log so the throw site is fixed; lib/http.test.ts scans
+// every throw site.
+export const USER_FACING_DEFAULT_STATUS = 409;
 export class UserFacingError extends Error {
-  constructor(message: string, readonly status = 503, readonly extra?: Record<string, unknown>) {
+  readonly status: number;
+  constructor(message: string, status: number = USER_FACING_DEFAULT_STATUS, readonly extra?: Record<string, unknown>) {
     super(message);
     this.name = "UserFacingError";
+    if (!Number.isInteger(status) || status < 400 || status >= 500) {
+      // eslint-disable-next-line no-console
+      console.warn(`[http] UserFacingError asked for status ${status}; sent as ${USER_FACING_DEFAULT_STATUS} (a 5xx hides its message)`);
+      this.status = USER_FACING_DEFAULT_STATUS;
+    } else {
+      this.status = status;
+    }
   }
 }
 
@@ -77,7 +96,9 @@ export async function readJson(req: Request): Promise<any> {
 // are still logged, under the request id, in case one ever comes from our
 // own code.
 // 22001 is a value longer than its varchar column.
-const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001"]);
+// REQ-216: 22007 (invalid datetime format) and 22008 (datetime out of range) are
+// the same kind of thing -- a date the client typed.
+const CLIENT_INPUT_PG_CODES = new Set(["22P02", "22021", "22P05", "22003", "22001", "22007", "22008"]);
 
 // Audit 2 (REQ-135): this used to send err.message to the client. That is
 // Postgres text (constraint names, "invalid input syntax for type uuid",
@@ -89,6 +110,13 @@ export function serverError(err: unknown) {
   const requestId = randomUUID();
   if (err instanceof UserFacingError) {
     return NextResponse.json({ ...(err.extra ?? {}), error: err.message, requestId }, { status: err.status });
+  }
+  // REQ-224: an AcknowledgementError (study notice, 18+ mature content) that a
+  // route did not map itself is still the learner's to fix: 403, not 500.
+  // Duck-typed because lib/auth/requireAcknowledgement.ts imports this file.
+  const ack = err as { acknowledgementRequired?: unknown; extra?: unknown; message?: unknown } | null;
+  if (err instanceof Error && ack?.acknowledgementRequired === true && typeof ack.message === "string") {
+    return forbidden(ack.message, (ack.extra ?? undefined) as Record<string, unknown> | undefined);
   }
   const code = (err as { code?: unknown } | null)?.code;
   if (typeof code === "string" && CLIENT_INPUT_PG_CODES.has(code)) {

@@ -43,7 +43,7 @@ export const STUDY_NOTICE_SECTIONS: readonly NoticeSection[] = [
     heading: "Not professional, medical or clinical advice",
     lines: [
       "Nothing in Ascendra is medical, nursing, physical-therapy, fitness, nutrition, legal, financial or other professional advice.",
-      "Health courses are exam preparation only. The patients, clients and cases in them are fictional. Never use anything here to make decisions about a real patient or client: follow your program, your facility's policies, your licence and scope of practice, licensed supervisors and current guidelines. Check drug doses, lab values and procedures against a current authoritative source.",
+      "Health courses are exam preparation only. The patients, clients and cases in them are fictional. Never use anything here to make decisions about a real patient or client: follow your program, your facility's policies, your license and scope of practice, licensed supervisors and current guidelines. Check drug doses, lab values and procedures against a current authoritative source.",
       "In an emergency, call your local emergency services.",
     ],
   },
@@ -131,4 +131,15 @@ export function studyNoticeDecision(state: { notice?: { needed?: boolean } } | n
   if (acceptedThisSession) return "go";
   if (state?.notice && state.notice.needed === false) return "go";
   return "ask";
+}
+
+// REQ-217 (FAIL-1061): the server refuses a request with 403 and this code when
+// the learner has not accepted the current study notice (backend
+// requireStudyNotice). The app's own copy of the launch state said otherwise
+// (the first onboarding request failed, or the notice version moved on while the
+// app was open), so the learner got the error text and no way to the notice.
+// The client hands this to the onboarding provider, which reloads the state so
+// the launch gate opens the notice screen.
+export function isStudyNoticeRequired(status: number, data: unknown): boolean {
+  return status === 403 && !!data && typeof data === "object" && (data as { code?: unknown }).code === "study_notice_required";
 }

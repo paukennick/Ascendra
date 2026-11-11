@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { query, queryOne } from "@/lib/db";
 import { ok, badRequest, tooManyRequests, serverError, readJson } from "@/lib/http";
-import { hashPassword } from "@/lib/auth/passwords";
+import { hashPassword, MAX_PASSWORD_LENGTH } from "@/lib/auth/passwords";
 import { consumeRateLimit, RateLimitError } from "@/lib/auth/rateLimit";
 import { getClientIp } from "@/lib/auth/util";
 import { mayEmail } from "@/lib/auth/mailLimit";
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     if (password.length < 8) {
       return badRequest("password must be at least 8 characters");
     }
-    if (password.length > 1024) return badRequest("password is too long");
+    if (password.length > MAX_PASSWORD_LENGTH) return badRequest("password is too long");
     const normalizedEmail = email.toLowerCase().trim();
     if (normalizedEmail.length > 254 || !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(normalizedEmail)) {
       return badRequest("A valid email is required");

@@ -1,4 +1,5 @@
 import { isActive } from "@/lib/progress-sql";
+import { STUDY_EMPHASIS_WEIGHTS_SQL } from "@/lib/readiness";
 import { query, queryOne } from "@/lib/db";
 import { dueObjectives } from "@/lib/review-store";
 import { isDateOnly, type KeptState, type PlanInput, type PlanObjective, type PlanUnit } from "@/lib/study-plan";
@@ -169,7 +170,11 @@ export async function planObjectives(userId: string, trackId: string): Promise<P
 
 export async function loadPlanInput(userId: string, trackId: string, today: string, settings: PlanSettings): Promise<PlanInput> {
   const units = await query<{ id: string; title: string; weight: string | null; sort_order: number }>(
-    `select id, title, weight, sort_order from course_units where track_id = $1 order by sort_order`,
+    // REQ-220 (FAIL-1136): study-emphasis weights are not exam weights, so
+    // the plan never says "% of the exam" for them.
+    `select cu.id, cu.title, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as weight, cu.sort_order
+       from course_units cu join subject_tracks st on st.id = cu.track_id
+      where cu.track_id = $1 order by cu.sort_order`,
     [trackId]
   );
   const objectives = await planObjectives(userId, trackId);

@@ -17,7 +17,8 @@ import {
   type LabStepGradeOutput,
   type LabStepModel,
 } from "./lab-grading";
-import { judgeLabCheck, toLabContent } from "./lab-generation";
+import { describeSaveOutcome, isRetryableOutcome, judgeLabCheck, labCheckVerdict, labGenerationPrompt, toLabContent } from "./lab-generation";
+import { verdictHolds, verdictUnchecked } from "./fact-check";
 import { STUDY_NOTICE_VERSION, studyNoticeAcceptedSql } from "./study-notice";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -66,7 +67,7 @@ describe("lab content rules (REQ-123)", () => {
     assert.ok(labContentProblems({ ...CASE, steps: CASE.steps.slice(0, 1), rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("2-4 steps")));
     assert.ok(labContentProblems({ ...CASE, rubric: CASE.rubric.slice(0, 1) }).some((p) => p.includes("one entry per step")));
     const dup = { ...BUILD, rubric: [{ parts: [BUILD.rubric[0].parts[0], BUILD.rubric[0].parts[0]] }] };
-    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labelled")));
+    assert.ok(labContentProblems(dup).some((p) => p.includes("two parts labeled")));
     assert.ok(labContentProblems({ ...BUILD, title: "x\u0000y z" }).some((p) => p.includes("can't be stored")));
   });
   test("the hash moves with anything a learner sees or is graded against, and only then", () => {
@@ -200,6 +201,39 @@ describe("generated labs: the independent check fails closed", () => {
     assert.equal(judgeLabCheck({ referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: ["a quota"] }).publish, false);
     assert.equal(judgeLabCheck(null).publish, false);
     assert.equal(judgeLabCheck({}).publish, false);
+  });
+  // REQ-216 (FAIL-1026): the gate reads the checker for disagreement only.
+  test("the gate holds a lab only on a wrong answer, something unsafe or a listed problem", () => {
+    const ok = { referenceAnswersCorrect: true, safe: true, problems: [], unsupportedClaims: [] };
+    assert.equal(labCheckVerdict(ok).outcome, "agree");
+    const unconfirmed = labCheckVerdict({ ...ok, unsupportedClaims: ["a quota"] });
+    assert.equal(unconfirmed.outcome, "unsupported");
+    assert.equal(verdictHolds(unconfirmed), false, "a claim it could not support is logged, not held");
+    for (const bad of [{ ...ok, referenceAnswersCorrect: false }, { ...ok, safe: false }, { ...ok, problems: ["step 2 depends on step 1"] }]) {
+      const v = labCheckVerdict(bad);
+      assert.equal(verdictHolds(v), true);
+      assert.ok(v.unsupportedClaims.length > 0, "the reasons steer the retry");
+    }
+    assert.deepEqual(labCheckVerdict({ ...ok, problems: ["P"] }).unsupportedClaims, ["P"]);
+  });
+  test("no verdict at all is unchecked (retryable), not a disagreement", () => {
+    for (const none of [null, undefined, {}, { safe: true }, { referenceAnswersCorrect: true }]) {
+      const v = labCheckVerdict(none as never);
+      assert.equal(verdictUnchecked(v), true);
+      assert.equal(verdictHolds(v), false);
+    }
+  });
+  test("the operator is told why in plain words, and only a failed check call is retryable", () => {
+    assert.match(describeSaveOutcome("held_uncertain"), /confidence low/);
+    assert.match(describeSaveOutcome("held_check"), /wrong reference answer/);
+    assert.match(describeSaveOutcome("held_check_error"), /retryable/);
+    assert.equal(isRetryableOutcome("held_check_error"), true);
+    for (const o of ["saved", "exists", "held_uncertain", "held_invalid", "held_check"] as const) assert.equal(isRetryableOutcome(o), false, o);
+  });
+  test("the steered retry prompt carries what held the first draft back", () => {
+    const p = { trackTitle: "T", unitTitle: "U", objectiveTitle: "O", kind: "build" as const, family: "general" as const };
+    assert.ok(!labGenerationPrompt(p).user.includes("previous draft"));
+    assert.match(labGenerationPrompt({ ...p, steer: "A previous draft was not used: X" }).user, /previous draft was not used: X/);
   });
   test("toLabContent splits steps and rubric", () => {
     const c = toLabContent(
@@ -387,7 +421,7 @@ describe("content audit corrections (2026-11-09)", () => {
   test("objectives carry the corrected clinical facts (FAIL-598)", () => {
     const rn = objectives("NCLEXRN") + objectives("NCLEXPN") + objectives("LPNVN") + objectives("ADNRN") + objectives("BSNRN");
     assert.doesNotMatch(rn, /more than three in a row/);
-    assert.doesNotMatch(rn, /under an FDA REMS programme that requires|under a REMS programme"/);
+    assert.doesNotMatch(rn, /under an FDA REMS program that requires|under a REMS program"/);
     assert.doesNotMatch(rn, /graham crackers/);
     const pt = CATALOG_TRACKS.filter((t) => /^(ABPTS|NPTE|DPT$)/.test(t.code)).map((t) => t.units.flatMap((u) => u.objectives).join("\n")).join("\n");
     assert.doesNotMatch(pt, /ANC below 1500/);

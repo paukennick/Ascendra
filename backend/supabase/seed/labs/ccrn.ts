@@ -50,8 +50,8 @@ export const CCRNADULT_LABS: SeedLabSet = {
           parts: [
             part(
               "Problem",
-              "Identifies cardiac tamponade, citing the sudden stop in drainage with hypotension, tachycardia, narrowing pulse pressure, rising and equalising filling pressures and muffled heart sounds.",
-              "Cardiac tamponade: drainage suddenly stopped (blood is collecting around the heart), with hypotension, tachycardia, a narrowing pulse pressure, rising and equalising RA and PAOP pressures and muffled heart sounds."
+              "Identifies cardiac tamponade, citing the sudden stop in drainage with hypotension, tachycardia, narrowing pulse pressure, rising and equalizing filling pressures and muffled heart sounds.",
+              "Cardiac tamponade: drainage suddenly stopped (blood is collecting around the heart), with hypotension, tachycardia, a narrowing pulse pressure, rising and equalizing RA and PAOP pressures and muffled heart sounds."
             ),
             part(
               "Actions",
@@ -66,7 +66,7 @@ export const CCRNADULT_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises low cardiac output (cardiac index below about 2.2) with high filling pressure, i.e. a pump (contractility) problem rather than low volume.",
+              "Recognizes low cardiac output (cardiac index below about 2.2) with high filling pressure, i.e. a pump (contractility) problem rather than low volume.",
               "Cardiac index 1.8 is low and PAOP 20 is high with poor perfusion: low output from weak pumping, not hypovolemia."
             ),
             part(
@@ -80,7 +80,7 @@ export const CCRNADULT_LABS: SeedLabSet = {
     },
     {
       slug: "shock-hemodynamic-profiles",
-      objective: "Monitoring hemodynamic status, non-invasive and invasive, and recognising instability from the numbers and the patient",
+      objective: "Monitoring hemodynamic status, non-invasive and invasive, and recognizing instability from the numbers and the patient",
       kind: "build",
       title: "Read three hemodynamic profiles",
       brief:
@@ -145,7 +145,7 @@ export const CCRNADULT_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises a tension pneumothorax on the right.",
+              "Recognizes a tension pneumothorax on the right.",
               "A right tension pneumothorax: absent breath sounds on the right, trachea pushed away, falling SpO2 and blood pressure."
             ),
             part(
@@ -309,9 +309,9 @@ export const CCRNADULT_LABS: SeedLabSet = {
           text: "",
           ask: "Apply a delirium screen and plan the response.",
           parts: [
-            part("Screen result", "Applies CAM-ICU features: acute change or fluctuating course, plus inattention, plus altered level of consciousness (RASS not 0) or disorganised thinking -> CAM-ICU positive (delirium).", "Acute change from yesterday (feature 1), inattention (feature 2), and altered level of consciousness (RASS -1) with disorganised thinking -> CAM-ICU positive: delirium."),
+            part("Screen result", "Applies CAM-ICU features: acute change or fluctuating course, plus inattention, plus altered level of consciousness (RASS not 0) or disorganized thinking -> CAM-ICU positive (delirium).", "Acute change from yesterday (feature 1), inattention (feature 2), and altered level of consciousness (RASS -1) with disorganized thinking -> CAM-ICU positive: delirium."),
             part("Report and look for causes", "Reports to the provider and looks for causes (infection, hypoxia, pain, metabolic changes, medications such as benzodiazepines).", "Report the positive screen and look for causes -- infection, hypoxia, pain, electrolytes or glucose, urinary retention and the benzodiazepine."),
-            part("Non-drug prevention", "Uses a bundle approach: minimise deliriogenic sedatives (especially benzodiazepines), protect sleep (lights and noise down at night), reorientation, glasses/hearing aids, early mobility and family involvement.", "Ask to avoid benzodiazepines; dim lights and quiet alarms at night and cluster care; reorient often; glasses and hearing aids on; mobilise early; involve family."),
+            part("Non-drug prevention", "Uses a bundle approach: minimize deliriogenic sedatives (especially benzodiazepines), protect sleep (lights and noise down at night), reorientation, glasses/hearing aids, early mobility and family involvement.", "Ask to avoid benzodiazepines; dim lights and quiet alarms at night and cluster care; reorient often; glasses and hearing aids on; mobilize early; involve family."),
           ],
         },
       ],
@@ -320,7 +320,7 @@ export const CCRNADULT_LABS: SeedLabSet = {
       slug: "sepsis-escalation-case",
       objective: "Early sepsis identification and sepsis management",
       kind: "case",
-      title: "Recognise and escalate sepsis",
+      title: "Recognize and escalate sepsis",
       brief:
         "A fictional 58-year-old is on day 3 after bowel surgery in the step-down area of the ICU.",
       safetyNote: CLINICAL_SAFETY,
@@ -347,12 +347,12 @@ export const CCRNADULT_LABS: SeedLabSet = {
           parts: [
             part(
               "Septic shock",
-              "Recognises septic shock (needs vasopressors to keep MAP 65 or more despite fluids, with raised lactate) and anticipates norepinephrine as the first-line vasopressor, titrated to MAP 65 or more.",
+              "Recognizes septic shock (needs vasopressors to keep MAP 65 or more despite fluids, with raised lactate) and anticipates norepinephrine as the first-line vasopressor, titrated to MAP 65 or more.",
               "Septic shock: hypotension despite fluids with a high lactate. Expect norepinephrine first, titrated to a MAP of 65 mm Hg or more, ideally through a central line."
             ),
             part(
               "Source and reassessment",
-              "Anticipates source control (for example imaging and return to theatre for a possible anastomotic leak) and repeat lactate and frequent reassessment (MAP, urine output, mental status).",
+              "Anticipates source control (for example imaging and return to theater for a possible anastomotic leak) and repeat lactate and frequent reassessment (MAP, urine output, mental status).",
               "Ask about source control -- imaging and possible surgery for a leak -- repeat the lactate, and reassess MAP, urine output and mental status often."
             ),
           ],
@@ -361,9 +361,9 @@ export const CCRNADULT_LABS: SeedLabSet = {
     },
     {
       slug: "multi-patient-priorities",
-      objective: "Assessing, evaluating and prioritising data by the patient's immediate condition and anticipated needs",
+      objective: "Assessing, evaluating and prioritizing data by the patient's immediate condition and anticipated needs",
       kind: "build",
-      title: "Prioritise a three-patient ICU assignment",
+      title: "Prioritize a three-patient ICU assignment",
       brief:
         "At 07:30 you take three fictional ICU patients. (1) A patient on a norepinephrine infusion whose MAP has drifted from 68 to 61 mm Hg over the last hour. (2) A patient extubated yesterday, now on 2 L/min nasal cannula, SpO2 95%, asking for breakfast before the swallow evaluation scheduled for 10:00. (3) A patient with a GI bleed who received two units of blood overnight, hemoglobin stable, due for a repeat level at 08:00.",
       safetyNote: CLINICAL_SAFETY,
@@ -535,13 +535,13 @@ export const CCRNPEDS_LABS: SeedLabSet = {
             ),
             part(
               "First steps",
-              "Calls for help, gets a 12-lead ECG if it doesn't delay treatment, and tries a vagal manoeuvre suited to an infant (ice water to the face, without blocking the airway).",
-              "Call the provider and team, record a 12-lead if it can be done quickly, and try a vagal manoeuvre: a bag of ice water over the face for a few seconds, keeping the airway clear."
+              "Calls for help, gets a 12-lead ECG if it doesn't delay treatment, and tries a vagal maneuver suited to an infant (ice water to the face, without blocking the airway).",
+              "Call the provider and team, record a 12-lead if it can be done quickly, and try a vagal maneuver: a bag of ice water over the face for a few seconds, keeping the airway clear."
             ),
             part(
               "If it continues",
-              "Anticipates adenosine by rapid IV push followed at once by a rapid flush, per order (PALS first dose 0.1 mg/kg), with continuous ECG recording; and synchronised cardioversion (0.5-1 J/kg) with sedation if the infant becomes unstable or adenosine fails.",
-              "Prepare adenosine 0.1 mg/kg (0.5 mg here) as ordered, given as a rapid push close to the hub with an immediate rapid saline flush while recording the rhythm; if it fails or the infant becomes poorly perfused, prepare for synchronised cardioversion at 0.5-1 J/kg with sedation."
+              "Anticipates adenosine by rapid IV push followed at once by a rapid flush, per order (PALS first dose 0.1 mg/kg), with continuous ECG recording; and synchronized cardioversion (0.5-1 J/kg) with sedation if the infant becomes unstable or adenosine fails.",
+              "Prepare adenosine 0.1 mg/kg (0.5 mg here) as ordered, given as a rapid push close to the hub with an immediate rapid saline flush while recording the rhythm; if it fails or the infant becomes poorly perfused, prepare for synchronized cardioversion at 0.5-1 J/kg with sedation."
             ),
           ],
         },
@@ -554,7 +554,7 @@ export const CCRNPEDS_LABS: SeedLabSet = {
       kind: "case",
       title: "An asthma attack that is getting quieter",
       brief:
-        "A fictional 9-year-old with asthma is admitted to the pediatric ICU on continuous nebulised albuterol and IV corticosteroids. On arrival there are loud wheezes throughout, the child speaks in short phrases, and SpO2 is 92% on a face mask.",
+        "A fictional 9-year-old with asthma is admitted to the pediatric ICU on continuous nebulized albuterol and IV corticosteroids. On arrival there are loud wheezes throughout, the child speaks in short phrases, and SpO2 is 92% on a face mask.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -563,7 +563,7 @@ export const CCRNPEDS_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises deterioration toward respiratory failure: a quieter chest with less air movement (not improvement), drowsiness, and a PaCO2 that has risen to normal-to-high in a child who should be blowing it off are signs of fatigue.",
+              "Recognizes deterioration toward respiratory failure: a quieter chest with less air movement (not improvement), drowsiness, and a PaCO2 that has risen to normal-to-high in a child who should be blowing it off are signs of fatigue.",
               "Worse. A quiet chest means little air is moving, drowsiness and a rising PaCO2 (30 to 46) show the child is tiring -- a 'normal' CO2 in a breathless asthmatic is an ominous sign of impending respiratory failure."
             ),
             part(
@@ -731,13 +731,13 @@ export const CCRNPEDS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises signs of impending herniation: sustained high ICP, Cushing's triad (bradycardia, hypertension with a widening pulse pressure, irregular breathing) and a new unilateral dilated pupil.",
+              "Recognizes signs of impending herniation: sustained high ICP, Cushing's triad (bradycardia, hypertension with a widening pulse pressure, irregular breathing) and a new unilateral dilated pupil.",
               "Impending brain herniation: ICP high and sustained, Cushing's signs (slow heart rate, rising blood pressure with a wide pulse pressure) and a new sluggish, dilated left pupil."
             ),
             part(
               "Emergency response",
               "Calls the provider/neurosurgeon at once; anticipates hyperosmolar therapy (hypertonic saline or mannitol) and deeper sedation per order; brief hyperventilation only as a temporary bridge if ordered; prepares for urgent imaging or surgery.",
-              "Emergency call to the provider and neurosurgery; prepare hypertonic saline or mannitol and extra sedation as ordered; brief hyperventilation only if ordered, as a bridge to definitive treatment; get ready for urgent CT or theatre."
+              "Emergency call to the provider and neurosurgery; prepare hypertonic saline or mannitol and extra sedation as ordered; brief hyperventilation only if ordered, as a bridge to definitive treatment; get ready for urgent CT or theater."
             ),
           ],
         },
@@ -749,7 +749,7 @@ export const CCRNPEDS_LABS: SeedLabSet = {
       kind: "build",
       title: "An infant's injuries don't fit the story",
       brief:
-        "A fictional 4-month-old is admitted to the pediatric ICU with a skull fracture and a subdural hematoma. The caregiver says the infant rolled off a sofa. On assessment you also find bruises of different colours on the upper arms and a torn frenulum. This lab touches on child maltreatment; it's fine to skip it if the topic is hard for you.",
+        "A fictional 4-month-old is admitted to the pediatric ICU with a skull fracture and a subdural hematoma. The caregiver says the infant rolled off a sofa. On assessment you also find bruises of different colors on the upper arms and a torn frenulum. This lab touches on child maltreatment; it's fine to skip it if the topic is hard for you.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -759,7 +759,7 @@ export const CCRNPEDS_LABS: SeedLabSet = {
             part(
               "Red flags",
               "Names the warning signs: injuries that don't fit the child's development (a 4-month-old is not yet mobile enough for most such falls) or the story, bruising in a non-mobile infant, bruises of different ages, and a torn frenulum.",
-              "The injuries don't match the story or the baby's development; a 4-month-old who doesn't cruise shouldn't bruise; bruises of different colours suggest different times; a torn frenulum in an infant is a recognised sign of possible abuse."
+              "The injuries don't match the story or the baby's development; a 4-month-old who doesn't cruise shouldn't bruise; bruises of different colors suggest different times; a torn frenulum in an infant is a recognized sign of possible abuse."
             ),
             part(
               "Duty to report",
@@ -791,7 +791,7 @@ export const CCRNPEDS_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognition",
-              "Recognises compensated septic shock: tachycardia, delayed capillary refill, cool extremities and lethargy, and that hypotension is a late sign in children.",
+              "Recognizes compensated septic shock: tachycardia, delayed capillary refill, cool extremities and lethargy, and that hypotension is a late sign in children.",
               "This is compensated shock: fast heart rate, slow capillary refill, cool extremities and lethargy. Children keep their blood pressure until late, so a normal reading doesn't mean the child is safe."
             ),
             part(
@@ -976,7 +976,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
             ),
             part(
               "Nursing care",
-              "Minimises stimulation (clustered care, quiet, minimal handling, suction only when needed), supports oxygenation and ventilation per orders, avoids acidosis and hypothermia, supports blood pressure, and gives ordered sedation/analgesia.",
+              "Minimizes stimulation (clustered care, quiet, minimal handling, suction only when needed), supports oxygenation and ventilation per orders, avoids acidosis and hypothermia, supports blood pressure, and gives ordered sedation/analgesia.",
               "Minimal handling: cluster care, keep the room quiet and dim, suction only when needed; support oxygenation and ventilation as ordered; keep the baby warm and avoid acidosis; support blood pressure as ordered; give sedation and pain relief as prescribed."
             ),
           ],
@@ -1000,7 +1000,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
       kind: "build",
       title: "A newborn collapses on day three",
       brief:
-        "A fictional 3-day-old who went home well is brought back grey, breathing fast, with weak femoral pulses, cool legs and poor feeding. Right-arm blood pressure is 82/50 mm Hg and leg blood pressure 50/30 mm Hg.",
+        "A fictional 3-day-old who went home well is brought back gray, breathing fast, with weak femoral pulses, cool legs and poor feeding. Right-arm blood pressure is 82/50 mm Hg and leg blood pressure 50/30 mm Hg.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -1058,7 +1058,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
           parts: [
             part(
               "After surfactant",
-              "Recognises that lung compliance improves quickly after surfactant, so oxygen and pressures need weaning promptly (avoiding hyperoxia and overdistension, which can cause air leaks such as pneumothorax), avoids routine suctioning soon after the dose per protocol, and tells the team.",
+              "Recognizes that lung compliance improves quickly after surfactant, so oxygen and pressures need weaning promptly (avoiding hyperoxia and overdistension, which can cause air leaks such as pneumothorax), avoids routine suctioning soon after the dose per protocol, and tells the team.",
               "The lungs have opened up quickly: wean oxygen promptly to bring saturation back into the preterm target range and ask about pressures, to avoid too much oxygen and overinflation (which can cause a pneumothorax). Don't suction soon after the dose unless needed, per protocol, and keep the team informed."
             ),
           ],
@@ -1124,12 +1124,12 @@ export const CCRNNEO_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "A repeat X-ray six hours later shows free air in the abdomen, and the abdomen is now discoloured.",
+          text: "A repeat X-ray six hours later shows free air in the abdomen, and the abdomen is now discolored.",
           ask: "What does this mean and what follows?",
           parts: [
             part(
               "Perforation",
-              "Recognises bowel perforation needing urgent surgical review (laparotomy or a peritoneal drain), and keeps up resuscitation, pain relief and family updates.",
+              "Recognizes bowel perforation needing urgent surgical review (laparotomy or a peritoneal drain), and keeps up resuscitation, pain relief and family updates.",
               "Free air means the bowel has perforated: urgent surgical review for an operation or a peritoneal drain; keep supporting the circulation, give pain relief as ordered, and keep the family informed."
             ),
           ],
@@ -1156,8 +1156,8 @@ export const CCRNNEO_LABS: SeedLabSet = {
             ),
             part(
               "Phototherapy care",
-              "Gives phototherapy per order with maximum skin exposure (diaper only), eye protection, temperature and hydration monitoring, regular repositioning, and bilirubin measured by blood per protocol (skin colour is unreliable under the lights).",
-              "Phototherapy as ordered: as much skin exposed as possible, eyes shielded, temperature and feeding/hydration watched, regular turning, no lotions; follow bilirubin with blood tests per protocol because skin colour can't be trusted under the lights."
+              "Gives phototherapy per order with maximum skin exposure (diaper only), eye protection, temperature and hydration monitoring, regular repositioning, and bilirubin measured by blood per protocol (skin color is unreliable under the lights).",
+              "Phototherapy as ordered: as much skin exposed as possible, eyes shielded, temperature and feeding/hydration watched, regular turning, no lotions; follow bilirubin with blood tests per protocol because skin color can't be trusted under the lights."
             ),
             part(
               "Escalation",
@@ -1184,7 +1184,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
           parts: [
             part(
               "Fits the criteria",
-              "Recognises hypoxic-ischemic encephalopathy in a baby of 36 weeks or more with evidence of a perinatal hypoxic event (low Apgar, need for resuscitation, severe acidosis) and moderate to severe encephalopathy, which are the usual cooling criteria per protocol.",
+              "Recognizes hypoxic-ischemic encephalopathy in a baby of 36 weeks or more with evidence of a perinatal hypoxic event (low Apgar, need for resuscitation, severe acidosis) and moderate to severe encephalopathy, which are the usual cooling criteria per protocol.",
               "Yes, per the usual protocol: 36 weeks or more, a hypoxic event around birth (Apgar 3 at 10 minutes, resuscitation, cord pH 6.9) and moderate encephalopathy (lethargy, floppiness, weak suck)."
             ),
             part(
@@ -1205,7 +1205,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
             ),
             part(
               "Findings",
-              "Recognises sinus bradycardia as an expected effect of cooling (report if it falls further or perfusion worsens) and the jerking as a likely seizure needing EEG/aEEG confirmation and treatment per order.",
+              "Recognizes sinus bradycardia as an expected effect of cooling (report if it falls further or perfusion worsens) and the jerking as a likely seizure needing EEG/aEEG confirmation and treatment per order.",
               "A heart rate around 80-90 is expected while cooled; report it if it drops further or perfusion worsens. The rhythmic jerking is likely a seizure: tell the provider, confirm with EEG or aEEG, and give anticonvulsants as ordered."
             ),
           ],
@@ -1276,7 +1276,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
           parts: [
             part(
               "Treatment",
-              "Recognises symptomatic hypoglycemia and escalates for IV dextrose per protocol rather than relying on oral feeding alone, then rechecks glucose.",
+              "Recognizes symptomatic hypoglycemia and escalates for IV dextrose per protocol rather than relying on oral feeding alone, then rechecks glucose.",
               "Symptomatic hypoglycemia: notify the provider and give IV dextrose as ordered by protocol -- a symptomatic baby shouldn't rely on feeding alone -- then recheck the glucose soon after."
             ),
             part(
@@ -1303,7 +1303,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
           parts: [
             part(
               "Assessment",
-              "Recognises neonatal opioid withdrawal and assesses it with the unit's approach (for example the Eat, Sleep, Console function-based assessment: can the baby feed well, sleep at least an hour, and be consoled within about 10 minutes), or a scoring tool per protocol.",
+              "Recognizes neonatal opioid withdrawal and assesses it with the unit's approach (for example the Eat, Sleep, Console function-based assessment: can the baby feed well, sleep at least an hour, and be consoled within about 10 minutes), or a scoring tool per protocol.",
               "Neonatal opioid withdrawal. Assess with the unit's approach -- for example Eat, Sleep, Console: is the baby feeding well, sleeping an hour or more, and settling within about 10 minutes with help -- or the unit's scoring tool."
             ),
             part(
@@ -1384,7 +1384,7 @@ export const CCRNNEO_LABS: SeedLabSet = {
           parts: [
             part(
               "Respond and reassure",
-              "Assesses calmly (tube position, chest movement, positioning) before deciding to return the baby, intervenes if the dip persists, and explains to the father what is happening, recognising the experience as positive for him and the baby when stable.",
+              "Assesses calmly (tube position, chest movement, positioning) before deciding to return the baby, intervenes if the dip persists, and explains to the father what is happening, recognizing the experience as positive for him and the baby when stable.",
               "Check tube position, chest rise and her position on his chest calmly; if she recovers and stays stable, stay close and let the cuddle continue, returning her if the dip persists. Tell him what you're checking and that he's doing it right -- this time matters for both of them."
             ),
           ],

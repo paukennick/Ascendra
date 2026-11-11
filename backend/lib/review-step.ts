@@ -3,7 +3,7 @@
 // grader can use it for exam answers (lib/grading-service.ts) without an
 // import cycle; review-store re-uses it unchanged.
 import type { TxClient } from "@/lib/db";
-import { schedulerFor, utcDay, type ScheduleState } from "@/lib/review-scheduler";
+import { isDueAt, schedulerFor, type ScheduleState } from "@/lib/review-scheduler";
 
 export async function stepSchedule(
   tx: TxClient,
@@ -88,11 +88,14 @@ export async function advanceDueSchedule(
   now: Date,
   verdict: "correct" | "partial" | "incorrect" = "correct"
 ): Promise<boolean> {
-  const due = await tx.queryOne<{ ok: boolean }>(
-    `select due_on <= $3::date as ok from review_schedule where user_id = $1 and objective_id = $2`,
-    [userId, objectiveId, utcDay(now)]
+  // REQ-218 (H8): due means the date has come and the minimum gap since the
+  // last review has passed (lib/review-scheduler.ts isDueAt).
+  const due = await tx.queryOne<{ due_on: string; since: Date }>(
+    `select to_char(due_on, 'YYYY-MM-DD') as due_on, coalesce(last_reviewed_at, enrolled_at) as since
+       from review_schedule where user_id = $1 and objective_id = $2`,
+    [userId, objectiveId]
   );
-  if (!due?.ok) return false;
+  if (!due || !isDueAt(due.due_on, new Date(due.since), now)) return false;
   // REQ-117: a miss when due is logged and steps back like a review miss.
   const r = await stepSchedule(tx, userId, objectiveId, attemptId, verdict, false, now);
   return r.advanced;

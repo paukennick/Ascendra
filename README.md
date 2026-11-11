@@ -32,7 +32,7 @@ One Expo codebase ships to iOS, Android and the web. A Next.js API on Vercel hol
 
 ## Who it's for
 
-Learners preparing for a specific exam who want to know whether they're actually ready. The catalog shows **115 courses** (counted from `backend/supabase/seed/catalog.ts` on 2026-11-11; three more, the two Red Hat courses and Docker, are hidden for trademark reasons but not deleted):
+Learners preparing for a specific exam who want to know whether they're actually ready. The catalog shows **116 courses** (counted from `backend/supabase/seed/catalog.ts` on 2026-11-11; three more, the two Red Hat courses and Docker, are hidden for trademark reasons but not deleted):
 
 - **IT and cloud (65):** 18 CompTIA, 15 Kubernetes and CNCF, 11 AWS, 11 Google Cloud and 10 Microsoft Azure certifications
 - **Physical therapy (14):** NPTE-PT, NPTE-PTA, the DPT pathway, the ABPTS specialist certifications and a PT school prerequisites refresher
@@ -41,6 +41,7 @@ Learners preparing for a specific exam who want to know whether they're actually
 - **Fitness (6):** NASM, ACE, ACSM, NSCA (CPT and CSCS) and NCCPT personal trainer certifications
 - **Emergency medical services (4):** NREMT Emergency Medical Responder, EMT, Advanced EMT and Paramedic
 - **Software development (4):** Python, JavaScript, Computer Science Degree Foundations and MSCS foundations
+- **Mental health (1):** the EPPP (psychology licensure), behind a one-time 18+ confirmation
 
 Exam-prep courses are named "Prep for the <official exam name> Exam"; Ascendra is not the exam body.
 
@@ -61,7 +62,7 @@ Course objectives are written from published exam guides, standards and licensur
 
 **Honest mastery**
 
-- Each objective's level (Introduced, Guided, Independent, Transfer-ready) comes from **weighted accuracy across all assessment types**: guided steps, multiple choice, typed answers, unit checks, PBQs and labs. Harder formats count for more; answers given with help count for less; getting something right after a gap counts for more than repeating it in one sitting.
+- Each objective's level (Introduced, Guided, Independent, Transfer-ready) comes from **weighted accuracy across all assessment types**: guided steps, multiple choice, typed answers, unit checks, PBQs and labs. Harder formats count for more; answers given with help count for less; getting something right after a gap counts for more than repeating it in one sitting. Independent and Transfer-ready also need a second unassisted correct answer at least a day after the first.
 - Certification courses show readiness weighted by each exam domain, and say "Not enough evidence yet" until there is.
 
 **Hands-on labs**
@@ -80,7 +81,7 @@ Course objectives are written from published exam guides, standards and licensur
 **AI coach with guardrails**
 
 - "Ask the coach" chat per course. It won't give away the answer to a question you still owe, including through option letters, abbreviations or "I give up, just name it", and a second, cheaper model checks replies about open questions before they're sent.
-- AI-written questions must stay inside the exam version's scope and flag uncertainty; flagged content is held back. A shared question goes live only if a second model, answering without the key, agrees with it.
+- AI-written questions must stay inside the exam version's scope and flag uncertainty. A lesson or question is held back only when the writer reports low confidence or the fact-check disagrees with the key; it is rewritten once with the disputed claims steered out, and if still held the learner is told why. A shared question goes live only if a second model, answering without the key, agrees with it.
 - Learner text is fenced as data, never instructions.
 - **Spend limits on every AI call:** each learner has a daily coach pool and a separate grading pool, a worst-case cost is reserved before each call, and a global daily ceiling pauses chat and regeneration for everyone but owners when reached.
 - **AI access modes:** AI for everyone, only for owners and invited people (Settings > Access), or only for paid plans. Without full AI a learner keeps every course and non-AI feature, with three AI-graded written answers a day.
@@ -92,7 +93,7 @@ Course objectives are written from published exam guides, standards and licensur
 - The app **locks after time away** (Face or fingerprint unlock, the device passcode, or your password) instead of signing you out, and logging out ends the session on every device. On the web the long-lived sign-in is an httpOnly cookie.
 - Accounts are for people **16 or older**; sign-up asks you to confirm it. Terms and Privacy are one version (2026-11-10).
 - WCAG AA contrast enforced by a test (`mobile/src/lib/contrast.test.ts`), 48 dp minimum touch targets, screen-reader labels, large-text reflow and reduced-motion support. On the web: headings and landmarks, the lock traps focus, and keyboard Tab order is checked by a repeatable script (`mobile/e2e/tab-order.e2e.mjs`).
-- Real-consequence courses (nursing, for example) require a per-account disclaimer acknowledgement before the first lesson.
+- Clinical courses (nursing, PT, EMS, mental health) require a one-time study notice acknowledgement per account before the first lesson; mental health courses also need an 18+ confirmation.
 
 **Paid plans, built and switched off**
 

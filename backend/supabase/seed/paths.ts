@@ -39,7 +39,7 @@ export interface SeedStudyPath {
 export const STUDY_PATHS: readonly SeedStudyPath[] = [
   {
     slug: "dpt-student",
-    title: "Physical therapy school, start to licence",
+    title: "Physical therapy school, start to license",
     audience: "Starting PT school",
     steps: [
       {

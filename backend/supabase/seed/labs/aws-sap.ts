@@ -130,7 +130,7 @@ export const AWSSAP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Design the isolation model, the tenant-aware access path, the data-layer enforcement and the noisy-neighbour control.",
+          ask: "Design the isolation model, the tenant-aware access path, the data-layer enforcement and the noisy-neighbor control.",
           parts: [
             part(
               "Isolation model per tier",
@@ -148,7 +148,7 @@ export const AWSSAP_LABS: SeedLabSet = {
               "The Lambda function exchanges the verified tenant ID for short-lived credentials: STS AssumeRole with a session policy whose Condition is ForAllValues:StringLike dynamodb:LeadingKeys = ['TENANT#<tenant_id>*']. A query that forgets the tenant filter now fails with AccessDenied instead of leaking rows. In a relational store the equivalent is row-level security keyed on the session's tenant."
             ),
             part(
-              "Noisy neighbours",
+              "Noisy neighbors",
               "Throttles per tenant with API Gateway usage plans and API keys (or a tiered Lambda concurrency allocation), routes bulk imports to an asynchronous queue with per-tenant concurrency, and gives Premium tenants separate capacity so a Standard tenant's burst cannot slow them.",
               "Per-tenant API Gateway usage plans set a rate and burst for each Standard tenant and a higher one for Premium; bulk imports go to an SQS queue processed with a per-tenant concurrency cap instead of the synchronous API. Premium's silo stacks have their own API stage and function concurrency, so a Standard tenant's import cannot touch a bank."
             ),
@@ -162,7 +162,7 @@ export const AWSSAP_LABS: SeedLabSet = {
       kind: "build",
       title: "Connect 60 accounts, two of which overlap",
       brief:
-        "Cobalt Energy (fictional) has grown to 60 AWS accounts in one Organization, each with a VPC. Requirements: (1) every production VPC needs private connectivity to a shared-services VPC (directory, logging, artifact repositories) and, in future, to the on-premises data centre; (2) development VPCs must never route to production VPCs; (3) a newly acquired company's two VPCs use 10.0.0.0/16, the same range as Cobalt's shared-services VPC, and must consume an internal licensing API hosted there; (4) a partner outside the Organization must call one internal API without any network path into Cobalt's VPCs. The current state is 30 ad hoc VPC peering connections that nobody can draw.",
+        "Cobalt Energy (fictional) has grown to 60 AWS accounts in one Organization, each with a VPC. Requirements: (1) every production VPC needs private connectivity to a shared-services VPC (directory, logging, artifact repositories) and, in future, to the on-premises data center; (2) development VPCs must never route to production VPCs; (3) a newly acquired company's two VPCs use 10.0.0.0/16, the same range as Cobalt's shared-services VPC, and must consume an internal licensing API hosted there; (4) a partner outside the Organization must call one internal API without any network path into Cobalt's VPCs. The current state is 30 ad hoc VPC peering connections that nobody can draw.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -209,7 +209,7 @@ export const AWSSAP_LABS: SeedLabSet = {
             part(
               "Why duplicates are expected",
               "Explains that EventBridge retries delivery to a target (by default for up to 24 hours and up to 185 attempts) and SQS standard queues deliver at least once, so duplicates are a property of the pipeline, not a bug; the consumer must be idempotent.",
-              "Every hop here is at-least-once: EventBridge retries a target that returns an error or times out (by default up to 24 hours and 185 attempts), and a standard SQS queue can deliver a message more than once. A 0.3% duplicate rate under retries is normal behaviour; the ledger consumer was written as if delivery were exactly-once."
+              "Every hop here is at-least-once: EventBridge retries a target that returns an error or times out (by default up to 24 hours and 185 attempts), and a standard SQS queue can deliver a message more than once. A 0.3% duplicate rate under retries is normal behavior; the ledger consumer was written as if delivery were exactly-once."
             ),
             part(
               "Idempotent consumer",
@@ -291,7 +291,7 @@ export const AWSSAP_LABS: SeedLabSet = {
       kind: "build",
       title: "Build a data perimeter with SCPs and RCPs",
       brief:
-        "Ravensworth Bank (fictional) runs an Organization of 80 accounts. Three incidents this year: an engineer in a sandbox account launched instances in a Region the bank has not approved; a contractor's IAM user access key, used from a laptop at home, read objects from a production bucket whose bucket policy had been widened; and a team disabled GuardDuty in their account to 'reduce noise'. The CISO asks for organisation-wide controls that cannot be undone by account administrators, and wants to know exactly what each control does and does not cover.",
+        "Ravensworth Bank (fictional) runs an Organization of 80 accounts. Three incidents this year: an engineer in a sandbox account launched instances in a Region the bank has not approved; a contractor's IAM user access key, used from a laptop at home, read objects from a production bucket whose bucket policy had been widened; and a team disabled GuardDuty in their account to 'reduce noise'. The CISO asks for organization-wide controls that cannot be undone by account administrators, and wants to know exactly what each control does and does not cover.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -366,7 +366,7 @@ export const AWSSAP_LABS: SeedLabSet = {
       kind: "build",
       title: "Pick the database pricing model for four workloads",
       brief:
-        "Tremont Media (fictional) has four database workloads to cost-optimise. (1) A DynamoDB table behind a news app whose traffic is flat most of the day but spikes 20x unpredictably when a story breaks; it currently runs provisioned capacity set for the spike. (2) A second DynamoDB table for an internal catalogue with steady, predictable traffic 24/7. (3) An Aurora PostgreSQL cluster whose bill shows storage I/O charges at about 40% of the cluster's total cost. (4) Forty development Aurora clusters used in working hours and idle at night and weekends, on fixed-size instances. The finance team also asks whether a one-year commitment product could cover the steady relational usage without locking into instance families.",
+        "Tremont Media (fictional) has four database workloads to cost-optimize. (1) A DynamoDB table behind a news app whose traffic is flat most of the day but spikes 20x unpredictably when a story breaks; it currently runs provisioned capacity set for the spike. (2) A second DynamoDB table for an internal catalog with steady, predictable traffic 24/7. (3) An Aurora PostgreSQL cluster whose bill shows storage I/O charges at about 40% of the cluster's total cost. (4) Forty development Aurora clusters used in working hours and idle at night and weekends, on fixed-size instances. The finance team also asks whether a one-year commitment product could cover the steady relational usage without locking into instance families.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -375,12 +375,12 @@ export const AWSSAP_LABS: SeedLabSet = {
           parts: [
             part(
               "Spiky news table",
-              "Switches to DynamoDB on-demand capacity mode, because paying per request fits unpredictable 20x spikes better than provisioning for the peak; notes on-demand's higher unit price is worth it when average utilisation of provisioned capacity is low.",
-              "On-demand mode: the table pays per request and absorbs a 20x spike without throttling, instead of paying 24 hours a day for provisioned capacity sized for the rare peak. Per-request pricing is higher per unit than well-utilised provisioned capacity, which is exactly why it suits a table that is idle most of the day."
+              "Switches to DynamoDB on-demand capacity mode, because paying per request fits unpredictable 20x spikes better than provisioning for the peak; notes on-demand's higher unit price is worth it when average utilization of provisioned capacity is low.",
+              "On-demand mode: the table pays per request and absorbs a 20x spike without throttling, instead of paying 24 hours a day for provisioned capacity sized for the rare peak. Per-request pricing is higher per unit than well-utilized provisioned capacity, which is exactly why it suits a table that is idle most of the day."
             ),
             part(
-              "Steady catalogue table",
-              "Keeps provisioned capacity with auto scaling and buys reserved capacity (or covers it with a Database Savings Plan) for the predictable baseline, because steady utilisation makes provisioned cheaper than on-demand.",
+              "Steady catalog table",
+              "Keeps provisioned capacity with auto scaling and buys reserved capacity (or covers it with a Database Savings Plan) for the predictable baseline, because steady utilization makes provisioned cheaper than on-demand.",
               "Provisioned mode with auto scaling for the daily curve, and a commitment for the baseline: DynamoDB reserved capacity or a Database Savings Plan. Steady 24/7 traffic keeps provisioned units busy, so they cost less per request than on-demand, and the commitment discounts them further in exchange for a term."
             ),
             part(
@@ -477,12 +477,12 @@ export const AWSSAP_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Six months later a different kind of event: the primary Region is not down, but one Availability Zone has a grey failure. Matching latency triples and 8% of orders error. The automated regional failover would take the platform to the recovery Region, which the business considers too disruptive for a partial event.",
-          ask: "What do you add to the design and the test programme for this class of failure?",
+          text: "Six months later a different kind of event: the primary Region is not down, but one Availability Zone has a gray failure. Matching latency triples and 8% of orders error. The automated regional failover would take the platform to the recovery Region, which the business considers too disruptive for a partial event.",
+          ask: "What do you add to the design and the test program for this class of failure?",
           parts: [
             part(
               "Zonal response and testing",
-              "Adds zonal isolation: Application Recovery Controller zonal shift (or zonal autoshift) to move traffic away from the impaired AZ while staying in the Region, with the ALB and ECS deployed evenly across three AZs and AZ-independent dependencies; extends the test programme with AWS Fault Injection Service experiments that inject AZ impairment and measure latency and error rate against the SLOs, alongside the twice-yearly regional test.",
+              "Adds zonal isolation: Application Recovery Controller zonal shift (or zonal autoshift) to move traffic away from the impaired AZ while staying in the Region, with the ALB and ECS deployed evenly across three AZs and AZ-independent dependencies; extends the test program with AWS Fault Injection Service experiments that inject AZ impairment and measure latency and error rate against the SLOs, alongside the twice-yearly regional test.",
               "Handle the AZ first: use Application Recovery Controller zonal shift to pull the ALB's traffic out of the impaired AZ in minutes, with ECS tasks spread over three AZs and the Aurora writer failing over within the Region, so the platform recovers without leaving the Region. Then test for it: AWS Fault Injection Service experiments that degrade networking in one AZ, with steady-state hypotheses on p99 latency and error rate, run quarterly, in addition to the regulator's twice-yearly full regional failover."
             ),
           ],

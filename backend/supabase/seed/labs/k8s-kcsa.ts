@@ -34,7 +34,7 @@ export const KCSA_LABS: SeedLabSet = {
       kind: "build",
       title: "Place twelve proposed controls in the 4Cs",
       brief:
-        "The fictional online pharmacy Verity Rx is writing its first cloud native security plan for a managed Kubernetes cluster on a public cloud. Twelve controls have been proposed by different teams: (1) private API server endpoint, (2) dependency vulnerability scanning in CI, (3) Pod Security Admission restricted on app namespaces, (4) distroless base images, (5) cloud IAM roles for nodes with least privilege, (6) RBAC review, (7) input validation and parameterised queries in the app, (8) read-only root filesystems, (9) VPC network segmentation and security groups, (10) image signing and verification at admission, (11) NetworkPolicy default deny, (12) secrets taken from a cloud secret manager at runtime instead of baked into images. The CISO wants them organised by layer, with gaps identified.",
+        "The fictional online pharmacy Verity Rx is writing its first cloud native security plan for a managed Kubernetes cluster on a public cloud. Twelve controls have been proposed by different teams: (1) private API server endpoint, (2) dependency vulnerability scanning in CI, (3) Pod Security Admission restricted on app namespaces, (4) distroless base images, (5) cloud IAM roles for nodes with least privilege, (6) RBAC review, (7) input validation and parameterized queries in the app, (8) read-only root filesystems, (9) VPC network segmentation and security groups, (10) image signing and verification at admission, (11) NetworkPolicy default deny, (12) secrets taken from a cloud secret manager at runtime instead of baked into images. The CISO wants them organized by layer, with gaps identified.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -58,8 +58,8 @@ export const KCSA_LABS: SeedLabSet = {
             ),
             part(
               "Code layer and the dependency",
-              "Places 2 (dependency scanning) and 7 (input validation, parameterised queries) in Code; gives an example of dependency: a Code-layer flaw (SQL injection) is contained by Container and Cluster controls (non-root, read-only filesystem, NetworkPolicy) only if Cloud is sound -- an over-broad node IAM role turns a container escape into a cloud account compromise.",
-              "Code: (2) dependency scanning in CI, (7) input validation and parameterised queries. The layers nest: a bug in Code lets an attacker into a Container; the Container controls decide what they can do there; Cluster controls decide what else they can reach; Cloud decides what the node and account let them do if they get out. Example: SQL injection (Code) -> shell in the container (Container: read-only root and non-root limit it) -> tries other Pods (Cluster: NetworkPolicy blocks) -> escapes to the node (Cloud: a least-privilege node role means no S3 buckets to loot). Weakness in an outer layer undoes the inner ones."
+              "Places 2 (dependency scanning) and 7 (input validation, parameterized queries) in Code; gives an example of dependency: a Code-layer flaw (SQL injection) is contained by Container and Cluster controls (non-root, read-only filesystem, NetworkPolicy) only if Cloud is sound -- an over-broad node IAM role turns a container escape into a cloud account compromise.",
+              "Code: (2) dependency scanning in CI, (7) input validation and parameterized queries. The layers nest: a bug in Code lets an attacker into a Container; the Container controls decide what they can do there; Cluster controls decide what else they can reach; Cloud decides what the node and account let them do if they get out. Example: SQL injection (Code) -> shell in the container (Container: read-only root and non-root limit it) -> tries other Pods (Cluster: NetworkPolicy blocks) -> escapes to the node (Cloud: a least-privilege node role means no S3 buckets to loot). Weakness in an outer layer undoes the inner ones."
             ),
             part(
               "The thin layer",
@@ -77,7 +77,7 @@ export const KCSA_LABS: SeedLabSet = {
       kind: "case",
       title: "A production image changed without a deployment",
       brief:
-        "The fictional travel insurer Brackenridge noticed that the behaviour of its quote service changed on Thursday night although no deployment had happened for a week. The platform engineer collects evidence from the cluster and the registry.",
+        "The fictional travel insurer Brackenridge noticed that the behavior of its quote service changed on Thursday night although no deployment had happened for a week. The platform engineer collects evidence from the cluster and the registry.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -141,7 +141,7 @@ export const KCSA_LABS: SeedLabSet = {
           parts: [
             part(
               "Expected versus exposed on cp-1",
-              "Recognises 6443 (API server), 2379/2380 (etcd client and peer, both TLS with client certs), 10250 (kubelet) and 10257/10259 (controller manager and scheduler secure ports) as normal; notes the real question for cp-1 is who can reach 2379 and 6443 at the network level, since etcd should be reachable only by the API server.",
+              "Recognizes 6443 (API server), 2379/2380 (etcd client and peer, both TLS with client certs), 10250 (kubelet) and 10257/10259 (controller manager and scheduler secure ports) as normal; notes the real question for cp-1 is who can reach 2379 and 6443 at the network level, since etcd should be reachable only by the API server.",
               "cp-1 looks like a standard kubeadm control plane: API server on 6443, etcd client 2379 and peer 2380 with TLS and client certificate authentication, kubelet 10250, controller manager 10257 and scheduler 10259 on their secure ports. Nothing is misconfigured in the scan, but a Pod should not be able to open a TCP connection to etcd at all -- a host firewall or security group should limit 2379 to the control plane nodes themselves. 6443 reachable from Pods is normal (that is how workloads call the API)."
             ),
             part(
@@ -211,7 +211,7 @@ export const KCSA_LABS: SeedLabSet = {
             part(
               "Network access",
               "Restricts 2379 to the control plane nodes and 2380 to etcd members with host firewalls and cloud security groups, keeps etcd listening on the node's private address (not a public one), and keeps the control plane in a network segment Pods cannot route to except for 6443.",
-              "Network: etcd's --listen-client-urls should be the node's private IP and 127.0.0.1; firewall 2379 so only the three control plane nodes can connect, and 2380 so only etcd members can; no public exposure ever. Pods need 6443, not 2379 -- a NetworkPolicy or host rule should make that true. Risk: defence in depth -- if a client certificate leaks or a TLS flaw appears, an attacker still has to reach the port."
+              "Network: etcd's --listen-client-urls should be the node's private IP and 127.0.0.1; firewall 2379 so only the three control plane nodes can connect, and 2380 so only etcd members can; no public exposure ever. Pods need 6443, not 2379 -- a NetworkPolicy or host rule should make that true. Risk: defense in depth -- if a client certificate leaks or a TLS flaw appears, an attacker still has to reach the port."
             ),
           ],
         },
@@ -311,11 +311,11 @@ export const KCSA_LABS: SeedLabSet = {
       kind: "case",
       title: "Sort a week of findings into the Kubernetes threat model",
       brief:
-        "The fictional energy trader Castlemere ran a purple-team exercise for a week. The red team's report lists what they did; the blue team saw only some of it. You must classify each action into the threat model's categories and name the trust boundary it crossed, so the defenders can prioritise.",
+        "The fictional energy trader Castlemere ran a purple-team exercise for a week. The red team's report lists what they did; the blue team saw only some of it. You must classify each action into the threat model's categories and name the trust boundary it crossed, so the defenders can prioritize.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "Red team report (abridged):\n A. Found an Ingress with no auth exposing an internal Grafana; used default credentials to log in and read dashboards showing internal hostnames.\n B. Exploited a deserialisation bug in the pricing service and got a shell in its container (runs as root, writable filesystem).\n C. Read /var/run/secrets/kubernetes.io/serviceaccount/token in that container and used it from their laptop against the API server.\n D. With that token, created a CronJob in the namespace that runs every 10 minutes and re-establishes a reverse shell.\n E. Created a Pod with hostPath: / and privileged: true on a node (admission allowed it) and read /etc/kubernetes/kubelet.conf.\n F. From the node, listed Secrets in other namespaces using the kubelet credentials via the Node authorizer's allowed paths and other Pods' mounted tokens on disk.\n G. Launched 400 Pods without resource limits in a test namespace; two nodes became NotReady under memory pressure.\n H. ARP-spoofed on the Pod network to intercept unencrypted traffic between two services.\n\n$ kubectl get ns pricing --show-labels | tail -1\npricing   Active   400d   kubernetes.io/metadata.name=pricing",
+          text: "Red team report (abridged):\n A. Found an Ingress with no auth exposing an internal Grafana; used default credentials to log in and read dashboards showing internal hostnames.\n B. Exploited a deserialization bug in the pricing service and got a shell in its container (runs as root, writable filesystem).\n C. Read /var/run/secrets/kubernetes.io/serviceaccount/token in that container and used it from their laptop against the API server.\n D. With that token, created a CronJob in the namespace that runs every 10 minutes and re-establishes a reverse shell.\n E. Created a Pod with hostPath: / and privileged: true on a node (admission allowed it) and read /etc/kubernetes/kubelet.conf.\n F. From the node, listed Secrets in other namespaces using the kubelet credentials via the Node authorizer's allowed paths and other Pods' mounted tokens on disk.\n G. Launched 400 Pods without resource limits in a test namespace; two nodes became NotReady under memory pressure.\n H. ARP-spoofed on the Pod network to intercept unencrypted traffic between two services.\n\n$ kubectl get ns pricing --show-labels | tail -1\npricing   Active   400d   kubernetes.io/metadata.name=pricing",
           ask: "Classify A-H into the threat model categories (trust boundaries and data flow, persistence, denial of service, malicious code execution/compromised application, attacker on the network, access to sensitive data, privilege escalation) and name the boundary crossed in each.",
           parts: [
             part(
@@ -337,11 +337,11 @@ export const KCSA_LABS: SeedLabSet = {
         },
         {
           text: "The blue team detected only A (from the Ingress logs) and G (from node alerts). B through F and H were invisible to them.",
-          ask: "Prioritise the controls that would have blocked or revealed the most steps, explaining the chain you are breaking, and say which single detection would have exposed the most of the invisible steps.",
+          ask: "Prioritize the controls that would have blocked or revealed the most steps, explaining the chain you are breaking, and say which single detection would have exposed the most of the invisible steps.",
           parts: [
             part(
               "Break the chain early",
-              "Prioritises controls on the B -> C -> E -> F chain: restricted Pod Security Admission on every namespace (blocks E outright), automountServiceAccountToken false and least-privilege RBAC (C yields nothing usable, D cannot create CronJobs), non-root and read-only root filesystem with seccomp (B is contained), and ResourceQuota/LimitRange (G); explains each removes a link so later steps never happen.",
+              "Prioritizes controls on the B -> C -> E -> F chain: restricted Pod Security Admission on every namespace (blocks E outright), automountServiceAccountToken false and least-privilege RBAC (C yields nothing usable, D cannot create CronJobs), non-root and read-only root filesystem with seccomp (B is contained), and ResourceQuota/LimitRange (G); explains each removes a link so later steps never happen.",
               "1 Pod Security Admission enforce=restricted on pricing and every workload namespace: E (privileged + hostPath) is rejected at the API, which also ends F. 2 automountServiceAccountToken: false on Pods that do not call the API, and RBAC for those that do with no create on pods/cronjobs and no secrets: C steals nothing useful and D cannot persist. 3 runAsNonRoot, readOnlyRootFilesystem, drop ALL, RuntimeDefault seccomp: B's shell has little to work with. 4 ResourceQuota and LimitRange per namespace: G cannot exhaust the nodes. 5 Authentication on every Ingress and no default credentials: A. 6 mTLS or CNI encryption: H. Each control removes a link, and the attack needed every link."
             ),
             part(
@@ -375,7 +375,7 @@ export const KCSA_LABS: SeedLabSet = {
             part(
               "Control plane to nodes and Pods",
               "The API server to kubelets (TLS, kubelet serving certs, API server client cert; kubelet -> API with its node certificate under the Node authorizer); kubelets pull images with registry credentials and start containers; Pods receive projected ServiceAccount tokens scoped to themselves; the control plane is operated by the provider under the shared responsibility model.",
-              "Boundary 2, control plane -> nodes: the API server calls kubelets over TLS (10250) with its client certificate and verifies the kubelet's serving certificate; kubelets call the API with per-node certificates that the Node authorizer scopes to that node's Pods. The provider operates the control plane and etcd (encryption at rest is our setting to request). Boundary 3, node -> Pod: the kubelet pulls images with pull secrets, applies the Pod's SecurityContext, and mounts a projected, time-bound ServiceAccount token into Pods that have automount on -- that token is the credential a Pod uses to cross back into the control plane, so it is minimised with RBAC."
+              "Boundary 2, control plane -> nodes: the API server calls kubelets over TLS (10250) with its client certificate and verifies the kubelet's serving certificate; kubelets call the API with per-node certificates that the Node authorizer scopes to that node's Pods. The provider operates the control plane and etcd (encryption at rest is our setting to request). Boundary 3, node -> Pod: the kubelet pulls images with pull secrets, applies the Pod's SecurityContext, and mounts a projected, time-bound ServiceAccount token into Pods that have automount on -- that token is the credential a Pod uses to cross back into the control plane, so it is minimized with RBAC."
             ),
             part(
               "Pod to Pod and node pools",
@@ -432,8 +432,8 @@ export const KCSA_LABS: SeedLabSet = {
             ),
             part(
               "The verification chain",
-              "Summarises the chain as digest-based: signature over the digest ties the registry content to the build; the attestation ties the build to the source commit; admission checks both before any kubelet pulls; so the answer to the questionnaire is a verifiable chain rather than a promise.",
-              "Everything hangs on the digest. The signature proves the pipeline produced this digest; the provenance attestation proves which commit and builder produced it; admission refuses any image whose digest lacks a valid signature and matching attestation; manifests name digests, not tags. So 'how do you know' is answered with artefacts anyone can verify: cosign verify and cosign verify-attestation against the running digest, not a policy document."
+              "Summarizes the chain as digest-based: signature over the digest ties the registry content to the build; the attestation ties the build to the source commit; admission checks both before any kubelet pulls; so the answer to the questionnaire is a verifiable chain rather than a promise.",
+              "Everything hangs on the digest. The signature proves the pipeline produced this digest; the provenance attestation proves which commit and builder produced it; admission refuses any image whose digest lacks a valid signature and matching attestation; manifests name digests, not tags. So 'how do you know' is answered with artifacts anyone can verify: cosign verify and cosign verify-attestation against the running digest, not a policy document."
             ),
           ],
         },
@@ -480,7 +480,7 @@ export const KCSA_LABS: SeedLabSet = {
             ),
             part(
               "Three pages",
-              "Chooses high-signal alerts such as: a shell or unexpected process spawned in a production container (Falco); a ServiceAccount token used from a source IP that is not its Pod's (audit log); and a Pod created with privileged/hostPath or in a namespace by an identity that normally does not create Pods (audit or PSA audit annotation); optionally NetworkPolicy denies from a production Pod to many destinations (scan behaviour).",
+              "Chooses high-signal alerts such as: a shell or unexpected process spawned in a production container (Falco); a ServiceAccount token used from a source IP that is not its Pod's (audit log); and a Pod created with privileged/hostPath or in a namespace by an identity that normally does not create Pods (audit or PSA audit annotation); optionally NetworkPolicy denies from a production Pod to many destinations (scan behavior).",
               "Page 1 (Falco): shell or package-manager process spawned in any container in clinic -- almost never legitimate in production. Page 2 (audit log): a ServiceAccount token used from a sourceIP that is not the Pod it was issued to -- the signature of token theft. Page 3 (audit log / PSA audit annotation): a Pod created with privileged, hostPath or host namespaces, or any Pod/CronJob created by a workload ServiceAccount -- persistence and escalation attempts. A strong fourth: a production Pod generating NetworkPolicy denies to many distinct destinations within a minute -- a scan from a foothold. Everything else is a ticket, not a page, so the on-call trusts the pager."
             ),
           ],
@@ -523,8 +523,8 @@ export const KCSA_LABS: SeedLabSet = {
               "(4) Control: CIS Kubernetes Benchmark applied with kube-bench (control plane, etcd, nodes, policies sections) and the CIS OS benchmark for node images, exceptions documented with reasons. Evidence: kube-bench JSON reports with dates and the exception register. Automation: kube-bench as a CronJob on control plane nodes and a DaemonSet-style Job on workers, results pushed to the evidence store, trend graphed. (5) Control: registry scan-on-push and Trivy in CI failing on fixable HIGH/CRITICAL, plus admission (ValidatingAdmissionPolicy for the registry allowlist, Kyverno/Sigstore for signatures). Evidence: per-digest scan report and SBOM attestation, admission policy YAML and denial events. Automation: a weekly report joining every running Pod's imageID to its latest scan and signature verification result."
             ),
             part(
-              "Frameworks and threat modelling",
-              "Recognises the wording as PCI DSS (segmentation, individual admin accountability, encryption of stored data, hardening standards, vulnerability management), with CIS Benchmarks as the hardening standard and NIST SP 800-190 as container-specific guidance; explains a checklist proves known controls exist, while a threat model (STRIDE or the container ATT&CK matrix) finds the attacks the checklist did not anticipate, and the two feed each other.",
+              "Frameworks and threat modeling",
+              "Recognizes the wording as PCI DSS (segmentation, individual admin accountability, encryption of stored data, hardening standards, vulnerability management), with CIS Benchmarks as the hardening standard and NIST SP 800-190 as container-specific guidance; explains a checklist proves known controls exist, while a threat model (STRIDE or the container ATT&CK matrix) finds the attacks the checklist did not anticipate, and the two feed each other.",
               "The requests read as PCI DSS: network segmentation of the cardholder data environment, individually attributable administrative access with reviews, encryption of stored secrets with access logging, configuration to an industry standard (CIS Benchmarks are the accepted standard for Kubernetes), and vulnerability management with approved sources. NIST SP 800-190 is the container-specific guidance assessors also cite, and SOC 2 / ISO 27001 would ask similar questions in different words. A checklist verifies controls someone already thought of; a threat model (STRIDE per data flow, or the MITRE ATT&CK containers matrix per attack stage) asks how this specific platform could be attacked and turns each answer into a control or a detection -- and the gaps it finds become next year's checklist items."
             ),
           ],

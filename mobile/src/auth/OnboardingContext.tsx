@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api } from "@/api/client";
+import { api, registerStudyNoticeRequiredHook, registerTermsRequiredHook } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
-import { launchGate, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
+import { launchGate, shouldReloadForTerms, TERMS_VERSION, type LaunchGate, type OnboardingState } from "@/lib/legal";
 import { syncRemindersFor, watchAppForeground } from "@/lib/reminderScheduler";
 import { router } from "expo-router";
 import { STUDY_NOTICE_VERSION, registerStudyNoticeHandler, studyNoticeDecision } from "@/lib/studyNotice";
@@ -57,6 +57,43 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       .catch(() => undefined);
     return () => {
       live = false;
+    };
+  }, [userId]);
+
+  // REQ-217 (FAIL-1061): a request the server refused with "study notice
+  // required" means this copy of the state is out of date (or never loaded).
+  // Reload it; the launch gate then opens the notice screen. One reload at a
+  // time, so a burst of refused requests is one request.
+  // REQ-226 (FAIL-1241): the same for "terms required" (the Terms and Privacy
+  // Policy), which opens the Terms screen. When the state already says the
+  // Terms are waiting the gate is on its way there, so nothing is reloaded.
+  const reloading = useRef(false);
+  useEffect(() => {
+    if (!userId) {
+      registerStudyNoticeRequiredHook(null);
+      registerTermsRequiredHook(null);
+      return;
+    }
+    const reload = () => {
+      if (reloading.current) return;
+      reloading.current = true;
+      api
+        .get<OnboardingState>("/api/onboarding")
+        .then((s) => {
+          if (loadedFor.current === userId) setState(s);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          reloading.current = false;
+        });
+    };
+    registerStudyNoticeRequiredHook(reload);
+    registerTermsRequiredHook(() => {
+      if (shouldReloadForTerms(stateRef.current)) reload();
+    });
+    return () => {
+      registerStudyNoticeRequiredHook(null);
+      registerTermsRequiredHook(null);
     };
   }, [userId]);
 

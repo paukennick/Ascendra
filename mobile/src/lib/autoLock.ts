@@ -64,6 +64,16 @@ export function shouldLockWhenIdle(idleMs: number, setting: LockAfter): boolean 
 // A cold start that resumes a session: lock when a lock was open, when the
 // last-seen time is missing or unreadable, or when the learner was away long
 // enough. A clock that went backwards counts as unknown.
+//
+// REQ-217 (FAIL-1066, accepted): on the web the lock marker and the last-seen
+// time are in localStorage, so a person at the keyboard of an unlocked browser
+// can edit them. Clearing the marker alone does not unlock: the last-seen time
+// is not moved forward while the lock is up, so the elapsed time still locks
+// (a missing last-seen time locks too). Getting past it takes editing both,
+// and that person already has the signed-in page and its in-memory token in
+// the console, so a deeper check would only look stronger than it is. The
+// lock is a guard against someone walking up to an unattended screen, not
+// against someone who can run code in the page. (autoLock.test.ts pins this.)
 export function shouldLockOnColdStart(opts: {
   now: number;
   lastSeenAt: string | null;

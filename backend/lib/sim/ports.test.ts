@@ -46,6 +46,11 @@ const proto = JSON.parse(readFileSync(tamponade.golden.replace(/\.golden\.json$/
 //   module's criteria follow the host's and score "na" when no arrest
 //   happens, so the host's criteria are compared by position as before.
 //   Paths that go through the code (code*) have no prototype recording.
+// - REQ-220 (version 2): a bolus raises the CVP by 3 mmHg per 500 mL
+//   (Sagrista-Sauleda 2008, params.cvpPer500) instead of the prototype's
+//   0.6, so the model shows what the cvpAfterBolus teaching prompt teaches.
+//   After fluid the CVP may differ by up to 2.4 mmHg per 500 mL ordered so
+//   far (cvpExtra); the goldens hold the exact values.
 const ENDING_FOR_PATH: Record<string, string[]> = {
   early: ["early", "earlyUntreated"],
   bridge: ["bridge"],
@@ -63,6 +68,12 @@ const CODE_PATHS = golden.paths.filter((p) => p.id.startsWith("code") || p.comma
 // whole samples, so the 15-minute chest-tube figure differs for the few
 // seconds when the window's far edge crosses the moment the tubes were
 // cleared. Those snapshots skip that one tile.
+function cvpExtra(cmds: Command[], tick: number): number {
+  const ml = cmds
+    .filter((c) => c.type === "act" && c.action === "fluid" && c.tick <= tick)
+    .reduce((sum, c) => sum + Number((c as { params?: { ml?: string } }).params?.ml ?? 0), 0);
+  return ((3 - 0.6) * ml) / 500;
+}
 function nearGush(cmds: Command[], tick: number): boolean {
   return cmds.some((c) => c.type === "act" && c.action === "tubes" && Math.abs(c.tick + 900 - tick) <= 10);
 }
@@ -119,7 +130,7 @@ describe("tamponade port matches the revised prototype (critical-care.html)", ()
         assert.ok(ps, `prototype has no snapshot at tick ${s.tick}`);
         for (const k of Object.keys(ps.values)) {
           if (k === "ct15" && nearGush(gp.commands, s.tick)) continue;
-          const tol = k === "ci" || k === "lactate" ? 0.1 + 1e-9 : 1;
+          const tol = (k === "ci" || k === "lactate" ? 0.1 + 1e-9 : 1) + (k === "cvp" ? cvpExtra(gp.commands, s.tick) : 0);
           const got = s.values[k] as number;
           assert.ok(Math.abs(got - ps.values[k]) <= tol, `tick ${s.tick}: ${k} engine ${got}, prototype ${ps.values[k]}`);
         }

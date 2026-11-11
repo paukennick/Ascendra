@@ -52,12 +52,12 @@ export const SECURITYX_LABS: SeedLabSet = {
             part(
               "Map obligations to data types",
               "Maps each regime to the data it governs (US health data, EU personal data, global cardholder data) and identifies the strictest applicable control per dimension so one platform can satisfy all.",
-              "Map obligations: health records invoke HIPAA-style safeguards, EU-resident personal data invokes GDPR (lawful basis, data-subject rights, transfer rules), cardholder data invokes PCI DSS (segmentation, encryption, scope minimisation). For each control dimension, apply the strictest requirement across regimes so the single platform meets all rather than the weakest."
+              "Map obligations: health records invoke HIPAA-style safeguards, EU-resident personal data invokes GDPR (lawful basis, data-subject rights, transfer rules), cardholder data invokes PCI DSS (segmentation, encryption, scope minimization). For each control dimension, apply the strictest requirement across regimes so the single platform meets all rather than the weakest."
             ),
             part(
               "Reduce scope",
-              "Uses data minimisation, segmentation and tokenization to shrink what each regime touches (e.g. tokenize card data so most of the platform is out of PCI scope; isolate health data) rather than applying every control everywhere.",
-              "Shrink scope: tokenize cardholder data so the bulk of the analytics platform never holds live card numbers and falls out of PCI scope; segment and encrypt health records; minimise and pseudonymise EU personal data. Scope reduction lowers both risk and audit burden on one system."
+              "Uses data minimization, segmentation and tokenization to shrink what each regime touches (e.g. tokenize card data so most of the platform is out of PCI scope; isolate health data) rather than applying every control everywhere.",
+              "Shrink scope: tokenize cardholder data so the bulk of the analytics platform never holds live card numbers and falls out of PCI scope; segment and encrypt health records; minimize and pseudonymize EU personal data. Scope reduction lowers both risk and audit burden on one system."
             ),
             part(
               "Risk treatment choices",
@@ -79,7 +79,7 @@ export const SECURITYX_LABS: SeedLabSet = {
       kind: "build",
       title: "Tier an enterprise BC/DR plan by business impact",
       brief:
-        "Bancroft Manufacturing (fictional) runs 40 business applications across two data centres and a cloud region. Leadership wants resilience 'for everything', but the budget cannot fund hot standby for 40 systems. A business impact analysis (BIA) has rated each application's criticality. You must design an enterprise BC/DR approach that spends where it matters.",
+        "Bancroft Manufacturing (fictional) runs 40 business applications across two data centers and a cloud region. Leadership wants resilience 'for everything', but the budget cannot fund hot standby for 40 systems. A business impact analysis (BIA) has rated each application's criticality. You must design an enterprise BC/DR approach that spends where it matters.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -142,7 +142,7 @@ export const SECURITYX_LABS: SeedLabSet = {
             part(
               "SaaS and the trade-offs",
               "Extends Zero Trust to SaaS (via SSO/identity broker and conditional access, since there is no network perimeter to a SaaS app) and names the trade-offs (user experience, policy-engine as a critical dependency, phased rollout).",
-              "Bring SaaS under the same policy via SSO/identity brokering and conditional access, since there is no network path to wrap. Trade-offs to own: the policy engine becomes a critical, highly available dependency; overly strict policies hurt user experience and get bypassed; so roll out in phases, monitor, and keep a tested fallback. Zero Trust is a programme, not a product."
+              "Bring SaaS under the same policy via SSO/identity brokering and conditional access, since there is no network path to wrap. Trade-offs to own: the policy engine becomes a critical, highly available dependency; overly strict policies hurt user experience and get bypassed; so roll out in phases, monitor, and keep a tested fallback. Zero Trust is a program, not a product."
             ),
           ],
         },
@@ -216,7 +216,7 @@ export const SECURITYX_LABS: SeedLabSet = {
             part(
               "Lifecycle: retention and disposal",
               "Covers the full lifecycle including retention schedules and secure disposal, so data is not kept past need and is destroyed securely, with legal-hold handling.",
-              "Manage the whole lifecycle: retention schedules so data is kept only as long as needed (and required), secure disposal/cryptographic erasure at end of life, and legal-hold handling that suspends disposal when required. Data minimisation reduces both risk and cost -- what you do not keep cannot be breached."
+              "Manage the whole lifecycle: retention schedules so data is kept only as long as needed (and required), secure disposal/cryptographic erasure at end of life, and legal-hold handling that suspends disposal when required. Data minimization reduces both risk and cost -- what you do not keep cannot be breached."
             ),
           ],
         },
@@ -243,13 +243,13 @@ export const SECURITYX_LABS: SeedLabSet = {
             ),
             part(
               "Key management",
-              "Centres the design on key management: generation, storage (HSM/KMS), rotation, separation of duties and key escrow/recovery for long-lived data, noting crypto fails at key management, not the algorithm.",
+              "Centers the design on key management: generation, storage (HSM/KMS), rotation, separation of duties and key escrow/recovery for long-lived data, noting crypto fails at key management, not the algorithm.",
               "Key management is the crux: generate and store keys in an HSM or managed KMS, enforce rotation and separation of duties, and -- because this data outlives staff and systems -- plan key escrow/recovery and re-encryption so a 25-year-old record is still recoverable. Most cryptographic failures are key-management failures, not broken algorithms."
             ),
             part(
               "Harvest-now-decrypt-later and PQC",
               "Addresses the quantum risk for long-lived data: adversaries can capture ciphertext now and decrypt later, so plan migration to NIST post-quantum standards (ML-KEM / FIPS 203 for key establishment, ML-DSA / FIPS 204 for signatures), likely in hybrid mode.",
-              "For 25-year confidentiality the 'harvest now, decrypt later' threat is real: an adversary can store today's TLS/archived ciphertext and decrypt it once a quantum computer exists. Plan migration to NIST's post-quantum standards -- ML-KEM (FIPS 203) for key establishment and ML-DSA (FIPS 204) for signatures, both finalised 2024-08-13 -- deployed in hybrid (classical + PQC) mode during transition so long-lived secrets are protected now."
+              "For 25-year confidentiality the 'harvest now, decrypt later' threat is real: an adversary can store today's TLS/archived ciphertext and decrypt it once a quantum computer exists. Plan migration to NIST's post-quantum standards -- ML-KEM (FIPS 203) for key establishment and ML-DSA (FIPS 204) for signatures, both finalized 2024-08-13 -- deployed in hybrid (classical + PQC) mode during transition so long-lived secrets are protected now."
             ),
             part(
               "Crypto-agility",
@@ -276,7 +276,7 @@ export const SECURITYX_LABS: SeedLabSet = {
             part(
               "Shift-left code and dependency checks",
               "Places SAST and SCA/SBOM early in the pipeline (on commit/PR) so code flaws and vulnerable dependencies are caught before merge, not in an annual test.",
-              "Shift left: run static application security testing (SAST) on commits/pull requests to catch code flaws, and software composition analysis (SCA) with an SBOM to flag vulnerable and licence-risky dependencies before merge. Finding issues at the keyboard is far cheaper than finding them in a yearly pen test."
+              "Shift left: run static application security testing (SAST) on commits/pull requests to catch code flaws, and software composition analysis (SCA) with an SBOM to flag vulnerable and license-risky dependencies before merge. Finding issues at the keyboard is far cheaper than finding them in a yearly pen test."
             ),
             part(
               "Build and pre-deploy checks",
@@ -290,7 +290,7 @@ export const SECURITYX_LABS: SeedLabSet = {
             ),
             part(
               "Runtime and feedback loop",
-              "Closes the loop with runtime protection/monitoring and feeding production findings back into the backlog, plus periodic deeper testing -- defence in depth across the lifecycle.",
+              "Closes the loop with runtime protection/monitoring and feeding production findings back into the backlog, plus periodic deeper testing -- defense in depth across the lifecycle.",
               "Add runtime monitoring/protection and feed production vulnerability findings back into the development backlog, and keep periodic deeper manual testing for logic flaws the tools miss. The annual pen test becomes one layer in a continuous process, not the only check."
             ),
           ],
@@ -303,7 +303,7 @@ export const SECURITYX_LABS: SeedLabSet = {
       kind: "build",
       title: "Secure an integration across an enterprise boundary",
       brief:
-        "Cedarpoint Bank (fictional) must integrate with a third-party loan-origination partner: the partner's systems will call Cedarpoint's API to submit applications and retrieve decisions, exchanging customer financial data. You must design the secure integration across the organisational boundary -- authentication, data protection, authorization and monitoring.",
+        "Cedarpoint Bank (fictional) must integrate with a third-party loan-origination partner: the partner's systems will call Cedarpoint's API to submit applications and retrieve decisions, exchanging customer financial data. You must design the secure integration across the organizational boundary -- authentication, data protection, authorization and monitoring.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -313,12 +313,12 @@ export const SECURITYX_LABS: SeedLabSet = {
             part(
               "Strong mutual authentication",
               "Specifies strong service-to-service authentication (mutual TLS and/or signed tokens/OAuth client credentials), not a shared static API key, so each side proves its identity.",
-              "Authenticate both ends strongly: mutual TLS between the partner and the API and/or OAuth 2.0 client-credentials with short-lived signed tokens, rather than a single static shared API key. Each request must prove it comes from the authorised partner service."
+              "Authenticate both ends strongly: mutual TLS between the partner and the API and/or OAuth 2.0 client-credentials with short-lived signed tokens, rather than a single static shared API key. Each request must prove it comes from the authorized partner service."
             ),
             part(
-              "Data protection and minimisation",
-              "Protects the financial data in transit (TLS) and limits exposure (only the necessary fields, encryption, no sensitive data in URLs/logs), honouring data minimisation across the boundary.",
-              "Protect the data: TLS for everything crossing the boundary, send only the fields the partner needs (data minimisation), keep sensitive values out of URLs and logs, and define retention on both sides. The partner should never receive more customer data than the loan decision requires."
+              "Data protection and minimization",
+              "Protects the financial data in transit (TLS) and limits exposure (only the necessary fields, encryption, no sensitive data in URLs/logs), honoring data minimization across the boundary.",
+              "Protect the data: TLS for everything crossing the boundary, send only the fields the partner needs (data minimization), keep sensitive values out of URLs and logs, and define retention on both sides. The partner should never receive more customer data than the loan decision requires."
             ),
             part(
               "Authorization and scoping",
@@ -384,32 +384,32 @@ export const SECURITYX_LABS: SeedLabSet = {
       kind: "build",
       title: "Operate vulnerability management across a large estate",
       brief:
-        "Monarch Logistics (fictional) scans 20,000 assets weekly and drowns in findings -- hundreds of thousands of open items, no clear priority, and remediation teams ignoring the reports. You must design an enterprise vulnerability-management programme that turns scan data into effective, prioritised action.",
+        "Monarch Logistics (fictional) scans 20,000 assets weekly and drowns in findings -- hundreds of thousands of open items, no clear priority, and remediation teams ignoring the reports. You must design an enterprise vulnerability-management program that turns scan data into effective, prioritized action.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Design the enterprise vulnerability-management programme.",
+          ask: "Design the enterprise vulnerability-management program.",
           parts: [
             part(
-              "Risk-based prioritisation at scale",
-              "Replaces raw CVSS counts with risk-based prioritisation combining severity, exploitation signal (EPSS/KEV) and asset context (exposure, business criticality) so teams fix the few that matter.",
-              "Prioritise by risk, not volume: combine CVSS severity with exploitation signal (EPSS probability, CISA KEV active-exploitation) and asset context (internet-facing, business-critical, data sensitivity). Of hundreds of thousands of findings, this surfaces the few thousand that actually matter, which is what makes remediation teams engage."
+              "Risk-based prioritization at scale",
+              "Replaces raw CVSS counts with risk-based prioritization combining severity, exploitation signal (EPSS/KEV) and asset context (exposure, business criticality) so teams fix the few that matter.",
+              "Prioritize by risk, not volume: combine CVSS severity with exploitation signal (EPSS probability, CISA KEV active-exploitation) and asset context (internet-facing, business-critical, data sensitivity). Of hundreds of thousands of findings, this surfaces the few thousand that actually matter, which is what makes remediation teams engage."
             ),
             part(
               "Asset inventory and ownership",
-              "Grounds the programme in an accurate asset inventory with clear owners, so each finding routes to someone accountable rather than a report nobody owns.",
-              "Base it on an accurate, owned asset inventory: every asset has a remediation owner, so a prioritised finding becomes a ticket to an accountable team, not a line in a report nobody reads. Unknown and unowned assets are themselves a top finding."
+              "Grounds the program in an accurate asset inventory with clear owners, so each finding routes to someone accountable rather than a report nobody owns.",
+              "Base it on an accurate, owned asset inventory: every asset has a remediation owner, so a prioritized finding becomes a ticket to an accountable team, not a line in a report nobody reads. Unknown and unowned assets are themselves a top finding."
             ),
             part(
               "SLAs and governance",
-              "Sets remediation SLAs by risk tier, tracks against them, and reports metrics to leadership so the programme is governed and measurable.",
-              "Set remediation SLAs by risk tier (e.g. KEV/internet-facing criticals in days, lower risk in weeks/cycles), track compliance, and report trend metrics (open criticals, mean time to remediate, SLA adherence) to leadership. Governance and visibility drive the behaviour change raw scan output never achieved."
+              "Sets remediation SLAs by risk tier, tracks against them, and reports metrics to leadership so the program is governed and measurable.",
+              "Set remediation SLAs by risk tier (e.g. KEV/internet-facing criticals in days, lower risk in weeks/cycles), track compliance, and report trend metrics (open criticals, mean time to remediate, SLA adherence) to leadership. Governance and visibility drive the behavior change raw scan output never achieved."
             ),
             part(
               "Compensating controls and verification",
               "Handles what cannot be patched quickly (compensating controls, documented exceptions) and verifies fixes (re-scan), closing the loop at scale.",
-              "For what cannot be patched in SLA, apply compensating controls (segmentation, virtual patching, monitoring) under documented, time-boxed exceptions, and verify every remediation by re-scan. At enterprise scale the programme must prove risk is actually going down, not just that tickets closed."
+              "For what cannot be patched in SLA, apply compensating controls (segmentation, virtual patching, monitoring) under documented, time-boxed exceptions, and verify every remediation by re-scan. At enterprise scale the program must prove risk is actually going down, not just that tickets closed."
             ),
           ],
         },

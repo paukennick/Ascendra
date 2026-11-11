@@ -1,0 +1,64 @@
+# Builds ONE installable Android app (EAS "preview" profile: an APK with an
+# install link and QR code) whenever someone pushes to ops/build-android-preview.
+# It is the only way a native change (a new plugin, app.json, a native
+# dependency) reaches a phone without a store release, so it is not run by a
+# merge, a pull request or by hand: push the commit to that branch.
+#
+# Needs the EXPO_TOKEN repository secret (expo.dev -> Account settings ->
+# Access tokens). The build runs on Expo's servers; this job waits for it and
+# prints the install page (QR code) and the APK link in the job summary. It
+# never runs `eas submit`. The token is given only to the steps that need it,
+# not to the whole job (REQ-207), as in eas-update.yml.
+#
+# FAIL-1166: this file lived only on the ops/build-android-preview branch with
+# unpinned actions, Node 22 and no `permissions`, and its last step crashed on
+# `b.project.ownerAccount.name` after a SUCCESSFUL build when the shape of
+# `eas build --json` changed. The summary is now .github/scripts/
+# eas-build-summary.mjs (tested, never throws, falls back to the build id).
+name: Build Android preview
+on:
+  push:
+    branches: [ops/build-android-preview]
+concurrency:
+  group: build-android-preview
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Token present
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: test -n "$EXPO_TOKEN" || { echo "EXPO_TOKEN secret is not set"; exit 1; }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8.2.1
+        with:
+          eas-version: 27.4.1
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Summary script tests
+        working-directory: .
+        run: node --test .github/scripts/eas-build-summary.test.mjs
+      - name: Build (waits for Expo's build servers)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive --wait --json > build.json
+      - name: Install link
+        # The build has already succeeded here: a summary problem must not turn
+        # the run red and hide the install link (that was FAIL-1166). The
+        # script itself never throws; this is the second layer.
+        continue-on-error: true
+        run: |
+          node ../.github/scripts/eas-build-summary.mjs build.json | tee -a "$GITHUB_STEP_SUMMARY"

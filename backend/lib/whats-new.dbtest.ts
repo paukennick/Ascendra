@@ -14,6 +14,11 @@ import { signAccessToken } from "./auth/tokens";
 import { __setGoogleVerifierForTest } from "./auth/oauth";
 import { buildAccountExport } from "./account-export";
 import { LATEST_RELEASE_NOTE_ID, RELEASE_NOTES, visibleReleaseNotes } from "./release-notes";
+
+// The newest note this server shows. The newest written note can be gated off
+// (the sims note is, when SIMS_ENABLED is off as in CI), and "Got it" only
+// accepts a note the server shows (FAIL-1272).
+const SHOWN_NOTE_ID = visibleReleaseNotes()[0].id;
 import { UNKNOWN_NOTE_MESSAGE } from "./whats-new";
 import { GET as whatsNewGet } from "../app/api/whats-new/route";
 import { POST as seenPost } from "../app/api/whats-new/seen/route";
@@ -97,28 +102,28 @@ describe("GET /api/whats-new", () => {
 describe("POST /api/whats-new/seen", () => {
   test("Got it marks the note seen, and repeating it changes nothing", async () => {
     const u = await newUser(null);
-    const a = await json(await seen(u, { id: LATEST_RELEASE_NOTE_ID }));
+    const a = await json(await seen(u, { id: SHOWN_NOTE_ID }));
     assert.deepEqual(a.unseenIds, []);
-    assert.equal(a.seenId, LATEST_RELEASE_NOTE_ID);
-    const b = await json(await seen(u, { id: LATEST_RELEASE_NOTE_ID }));
+    assert.equal(a.seenId, SHOWN_NOTE_ID);
+    const b = await json(await seen(u, { id: SHOWN_NOTE_ID }));
     assert.deepEqual(b, a);
-    assert.equal(await marker(u), LATEST_RELEASE_NOTE_ID);
+    assert.equal(await marker(u), SHOWN_NOTE_ID);
     assert.deepEqual((await json(await get(u))).unseenIds, []);
   });
 
   test("never moves the marker backwards", async () => {
     const ahead = "2999-12-31";
     const u = await newUser(ahead);
-    const r = await json(await seen(u, { id: LATEST_RELEASE_NOTE_ID }));
+    const r = await json(await seen(u, { id: SHOWN_NOTE_ID }));
     assert.equal(r.seenId, ahead);
     assert.equal(await marker(u), ahead);
   });
 
   test("two devices dismissing at once end on the same marker", async () => {
     const u = await newUser(null);
-    const rs = await Promise.all([seen(u, { id: LATEST_RELEASE_NOTE_ID }), seen(u, { id: LATEST_RELEASE_NOTE_ID })]);
+    const rs = await Promise.all([seen(u, { id: SHOWN_NOTE_ID }), seen(u, { id: SHOWN_NOTE_ID })]);
     for (const r of rs) assert.equal(r.status, 200);
-    assert.equal(await marker(u), LATEST_RELEASE_NOTE_ID);
+    assert.equal(await marker(u), SHOWN_NOTE_ID);
   });
 
   test("unknown, missing or malformed ids are a clean 400 and change nothing", async () => {
@@ -143,7 +148,7 @@ describe("POST /api/whats-new/seen", () => {
   test("one learner's Got it doesn't touch another's", async () => {
     const a = await newUser(null);
     const b = await newUser(null);
-    await json(await seen(a, { id: LATEST_RELEASE_NOTE_ID }));
+    await json(await seen(a, { id: SHOWN_NOTE_ID }));
     assert.equal(await marker(b), null);
   });
 });

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 //   notice: { currentVersion, acceptedAt, needed } (REQ-165) }
 export async function GET(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     return ok(await onboardingState(user.id, legalContext(req)));
   } catch (err) {
     if (err instanceof AuthError) return unauthorized(err.message);

@@ -14,7 +14,7 @@ export async function GET() {
 // to text that changed mid-session is not recorded as agreeing to the new text.
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireUser(req, { termsOptional: true });
     const body = await req.json().catch(() => null);
     // REQ-175: a legacy client (no X-Ascendra-App) may echo the previous
     // versions; they are recorded exactly as sent.

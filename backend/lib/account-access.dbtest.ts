@@ -298,10 +298,10 @@ describe("unrestricted lifts the plan gates", () => {
     assert.equal((await chat(ownerId)).status, 200);
   });
 
-  test("not lifted: the course disclaimer acknowledgement and the chat rate limit", async () => {
+  test("not lifted: the course disclaimer acknowledgment and the chat rate limit", async () => {
     const u = await unrestrictedUser();
     await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
-    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgement still required");
+    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgment still required");
     await query(
       `insert into auth_events (event_type, identifier, user_id) select 'chat_message', $1, $2::uuid from generate_series(1, 30)`,
       [u, u]
@@ -512,5 +512,42 @@ describe("granting (owner only)", () => {
     const ev = await query<{ action: string; via: string; actor_id: string | null }>(`select action, via, actor_id from account_access_events where email = $1 order by id`, [email]);
     assert.deepEqual(ev.map((e) => [e.action, e.via, e.actor_id]), [["grant", "cli", null], ["claim", "system", null], ["revoke", "cli", null]]);
     await assert.rejects(runAccessCli(parseAccessArgs(["--email", OWNER])), /owner already/);
+  });
+});
+
+// REQ-211: Settings > Access "Send a test error" (owner only, five a day).
+describe("error-tracker test button (owner only)", () => {
+  test("anyone but the owner gets 403; the owner gets a result; the sixth call in a day is a 429", async () => {
+    const { POST: testPost } = await import("../app/api/access/error-tracker-test/route");
+    const { setErrorTransport } = await import("./error-tracker");
+    const dsn = process.env.ERROR_TRACKER_DSN;
+    let sent = 0;
+    setErrorTransport(async () => {
+      sent++;
+      return new Response("{}", { status: 200 });
+    });
+    try {
+      for (const who of [await unrestrictedUser(), await newUser()]) {
+        assert.equal((await call(testPost, "/api/access/error-tracker-test", who, "POST")).status, 403);
+      }
+      assert.equal(sent, 0, "nothing sent for a non-owner");
+      delete process.env.ERROR_TRACKER_DSN;
+      const off = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+      assert.equal(off.status, 200);
+      assert.deepEqual(await off.json(), { configured: false, delivered: false, status: null });
+      process.env.ERROR_TRACKER_DSN = "https://publickey@o1.ingest.example.test/42";
+      for (let i = 0; i < 4; i++) {
+        const r = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+        assert.deepEqual(await r.json(), { configured: true, delivered: true, status: 200 });
+      }
+      assert.equal(sent, 4);
+      assert.equal((await call(testPost, "/api/access/error-tracker-test", ownerId, "POST")).status, 429);
+      assert.equal(sent, 4, "the limited call sends nothing");
+    } finally {
+      setErrorTransport(null);
+      if (dsn === undefined) delete process.env.ERROR_TRACKER_DSN;
+      else process.env.ERROR_TRACKER_DSN = dsn;
+      await query(`delete from auth_events where event_type = 'error_tracker_test' and identifier = $1`, [ownerId]);
+    }
   });
 });
