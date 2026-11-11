@@ -7,7 +7,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ScenarioDoc } from "./engine/v1/types.ts";
-import { advance, createRun, endingCheckOrder, ENGINE_VERSION, lintScenario } from "./engine/v1/index.ts";
+import { advance, checkpoint, createRun, endingCheckOrder, ENGINE_VERSION, lintScenario, restoreRun } from "./engine/v1/index.ts";
+import type { Checkpoint } from "./engine/v1/index.ts";
 import { endingOrderProblems } from "./lint.ts";
 import { jsonbKeyOrder, reverseKeyOrder, withKeyOrder } from "./key-order.ts";
 import { ALL_DOCUMENTS, loadDocument } from "./documents.ts";
@@ -58,6 +59,17 @@ describe("endingOrder (engine minor 2)", () => {
   test("the order survives jsonb and reversed key order of the whole document", () => {
     const doc = toyDoc(2, ["branch", "never", "done"]);
     for (const order of [jsonbKeyOrder, reverseKeyOrder]) assert.equal(endedWith(withKeyOrder(doc, order)), "never");
+  });
+
+  test("a checkpoint recorded by engine 1.1 (before endingOrder) restores", () => {
+    const doc = withEndingKeys(toyDoc(1), ["branch", "done", "never", "time_up"]);
+    const run = createRun(doc, 1);
+    for (let i = 0; i < 2; i++) advance(run);
+    const cp = JSON.parse(JSON.stringify(checkpoint(run))) as Checkpoint;
+    cp.engine = "1.1";
+    const resumed = restoreRun(doc, 1, cp);
+    for (let i = 0; i < 8; i++) advance(resumed);
+    assert.equal(resumed.state.ended?.ending, "done");
   });
 
   test("an ending the list leaves out is checked after the listed ones, sorted by id", () => {

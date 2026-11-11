@@ -60,7 +60,7 @@ export function endingOrderProblems(doc: ScenarioDoc, golden: GoldenFile | null)
     const seen = copies.map((c) => {
       const r = replayGoldenPath(c.doc, structuredClone(p), (run) => stateHash(run.state));
       const d = r.debrief;
-      return { label: c.label, key: r.error ? `error ${r.error}` : `${d.ending} / ${d.outcomeClass} / ${d.rating} / ${d.processScore} / ${r.stateHash}`, ending: r.error ? "error" : d.ending };
+      return { label: c.label, key: r.error ? `error ${r.error}` : `${d.ending} / ${d.outcomeClass} / ${d.rating} / ${d.processScore} / ${r.stateHash}`, ending: r.error ? "error" : d.ending ?? "no ending" };
     });
     if (new Set(seen.map((x) => x.key)).size > 1) {
       problems.push({
