@@ -170,7 +170,7 @@ describe("FAIL-883: a failure to queue the exec check is retryable", () => {
     assert.equal((await queryOne<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1`, [o]))?.n, 0, "not logged as a holdback");
     assert.equal(await outcome(ensureGeneration(o, objRow(4), { scope: SHARED, generator: flaky, pending: fresh() }).fullPromise), "served");
     const res = serverError(new ExecQueueUnavailableError());
-    assert.equal(res.status, 503);
+    assert.equal(res.status, 409);
     assert.equal(((await res.json()) as { retryable: boolean }).retryable, true);
   });
 });

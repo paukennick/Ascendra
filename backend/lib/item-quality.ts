@@ -87,18 +87,46 @@ export interface UncertaintyFields {
   uncertainClaims?: unknown;
 }
 
-// The claims that hold an item back, or null when it may be published.
-// Absent fields (a local model, an older generator) hold nothing back: the
-// schema makes the API return them, and the fact-check still runs.
-export function uncertaintyOf(o: UncertaintyFields | null | undefined): string[] | null {
-  if (!o) return null;
-  const claims = (Array.isArray(o.uncertainClaims) ? o.uncertainClaims : [])
+// The uncertain claims a writer listed, trimmed; empty when it listed none.
+export function listedClaimsOf(o: UncertaintyFields | null | undefined): string[] {
+  if (!o) return [];
+  return (Array.isArray(o.uncertainClaims) ? o.uncertainClaims : [])
     .filter((c): c is string => typeof c === "string")
     .map((c) => c.trim())
     .filter(Boolean);
+}
+
+// Everything the writer flagged: listed claims, or its own low confidence.
+// Absent fields (a local model, an older generator) flag nothing: the schema
+// makes the API return them, and the fact-check still runs. This is the
+// RECORD of what a writer doubted; it is no longer what holds an item back
+// (see lowConfidenceOf).
+export function uncertaintyOf(o: UncertaintyFields | null | undefined): string[] | null {
+  const claims = listedClaimsOf(o);
   if (claims.length) return claims;
-  if (o.confidence === "low") return ["(the writer rated its own confidence low)"];
+  if (o && o.confidence === "low") return ["(the writer rated its own confidence low)"];
   return null;
+}
+
+// REQ-216 (H2, Nick's rule): the writer's own LOW confidence is what holds a
+// generated item back; claims it merely lists ("this scenario is invented",
+// "may differ by version") are logged (noteListedClaims) and the item goes on
+// to the fact-check. Returns the claims to log with the holdback (the listed
+// ones when it listed any, else a marker), or null when the item may proceed.
+// Before this, ANY listed claim blocked: production held 3 of 9 lesson intros,
+// 4 of 4 comparison cards and 4 of 4 PBQs for disclaimers.
+export function lowConfidenceOf(o: UncertaintyFields | null | undefined): string[] | null {
+  if (!o || o.confidence !== "low") return null;
+  const claims = listedClaimsOf(o);
+  return claims.length ? claims : ["(the writer rated its own confidence low)"];
+}
+
+// Logs the claims a writer listed on an item that is NOT held back. Never throws.
+export function noteListedClaims(label: string, o: UncertaintyFields | null | undefined): void {
+  const claims = listedClaimsOf(o);
+  if (!claims.length || (o && o.confidence === "low")) return;
+  // eslint-disable-next-line no-console
+  console.warn(`[item-quality] ${label} proceeds with listed claims: ${claims.join(" | ").slice(0, 500)}`);
 }
 
 export interface HoldbackInput {
@@ -114,6 +142,26 @@ export interface HoldbackInput {
   // regenerate, so its refusal cools down for that learner only. Absent for
   // a shared generation.
   scopeUserId?: string | null;
+}
+
+// REQ-216: whether a holdback of this kind was logged for the unit (or
+// objective) at or after `since` (database time). A request that waited for
+// another's generation uses it to tell "the other one was held back" (say so)
+// from "the other one failed" (try itself). Only the writer's own refusals
+// (reason 'uncertain') count: a staged job finding is reason 'fact_check' and
+// never serves or blocks (REQ-196, lib/sandbox.test.ts). Never throws; false on error.
+export async function heldBackSince(
+  kind: HoldbackInput["kind"],
+  where: { unitId?: string; objectiveId?: string },
+  since: Date
+): Promise<boolean> {
+  const r = await queryOne<{ n: number }>(
+    `select count(*)::int as n from item_holdbacks
+      where item_kind = $1 and created_at >= $2 and reason = 'uncertain'
+        and ($3::uuid is null or unit_id = $3::uuid) and ($4::uuid is null or objective_id = $4::uuid)`,
+    [kind, since, where.unitId ?? null, where.objectiveId ?? null]
+  ).catch(() => null);
+  return (r?.n ?? 0) > 0;
 }
 
 // Logs content that was not published. Never throws: a failed log must not

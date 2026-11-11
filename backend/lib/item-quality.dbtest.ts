@@ -29,7 +29,8 @@ import { bankItems, generateForObjective } from "./exam-items";
 import { unseenItems } from "./review-store";
 import { nextDiscriminationItem } from "./understanding-store";
 import { getLessonFor, saveLesson, SHARED } from "./lesson-store";
-import { gateQuizItem } from "./coach-quiz";
+import { writeCheckedQuizItem } from "./coach-quiz";
+import { FactCheckUnavailableError, HeldForAccuracyError } from "./generation-gate";
 import { checkedPractice, ContentHeldBackError, NOT_SERVED_MARK, type LessonGenerator, type ObjectiveRow } from "./lesson-generation";
 import { UserFacingError } from "./http";
 import { POST as gradePost } from "../app/api/grade/route";
@@ -459,19 +460,50 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     }
   });
 
-  test("Quiz me: an uncertain or disputed question is held back with a message; an agreed one passes", async () => {
+  test("Quiz me (REQ-216): low confidence or a disagreeing check holds a question back twice with a reason; listed claims and an agreed one pass", async () => {
     const u = await newUser();
     const o = objs[0];
     const item = { question: "Default HTTPS port?", choices: CHOICES, correctIndex: 1, hints: ["a", "b"], explanation: "e", confidence: "high" as const, uncertainClaims: [] as string[] };
-    await assert.rejects(gateQuizItem(o, "Objective 1", { ...item, uncertainClaims: ["x"] }, u), UserFacingError);
-    assert.equal(parsedCalls.length, 0, "no check for an uncertain item");
-    keys.set("Default HTTPS port?", [3]);
-    onParse = agreeAll;
-    await assert.rejects(gateQuizItem(o, "Objective 1", item, u), UserFacingError);
+    const steers: Array<string | null | undefined> = [];
+    const gen = (made: typeof item | (Omit<typeof item, "confidence"> & { confidence: "low" })) => async (_o: string, _u: string, steer?: string | null) => {
+      steers.push(steer);
+      return made as never;
+    };
+    const holds = async () => (await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'quiz' order by created_at, id`, [o])).map((r) => r.reason);
+    // Low confidence twice: held, the retry is steered, the checker never runs.
+    await assert.rejects(
+      writeCheckedQuizItem(o, "Objective 1", u, gen({ ...item, confidence: "low", uncertainClaims: ["x"] })),
+      (e: unknown) => e instanceof HeldForAccuracyError && e.status === 409 && /wasn't confident/.test(e.message)
+    );
+    assert.equal(parsedCalls.length, 0, "no check for a low-confidence item");
+    assert.equal(steers[0], null);
+    assert.match(String(steers[1]), /- x/, "the retry is steered with the first attempt's claims");
+    // Listed claims alone (confidence high) do not hold it back: it is checked and passes.
     keys.set("Default HTTPS port?", [1]);
-    await gateQuizItem(o, "Objective 1", item, u);
-    const reasons = await query<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 and item_kind = 'quiz' order by created_at`, [o]);
-    assert.deepEqual(reasons.map((r) => r.reason), ["uncertain", "fact_check"]);
+    onParse = agreeAll;
+    await writeCheckedQuizItem(o, "Objective 1", u, gen({ ...item, uncertainClaims: ["version may differ"] }));
+    // The independent answer disagrees with the key: held twice, says why.
+    keys.set("Default HTTPS port?", [3]);
+    await assert.rejects(writeCheckedQuizItem(o, "Objective 1", u, gen(item)), (e: unknown) => e instanceof HeldForAccuracyError && /different answer/.test((e as Error).message));
+    keys.set("Default HTTPS port?", [1]);
+    await writeCheckedQuizItem(o, "Objective 1", u, gen(item));
+    assert.deepEqual(await holds(), ["uncertain", "uncertain", "fact_check", "fact_check"]);
+  });
+
+  test("Quiz me (REQ-216): a failed fact-check CALL is a retryable 409, logs no holdback", async () => {
+    const u = await newUser();
+    const o = objs[1];
+    const item = { question: "Default SSH port?", choices: CHOICES, correctIndex: 1, hints: ["a", "b"], explanation: "e", confidence: "high" as const, uncertainClaims: [] as string[] };
+    onParse = () => {
+      throw new Error("provider down");
+    };
+    await assert.rejects(
+      writeCheckedQuizItem(o, "Objective 2", u, async () => item as never),
+      (e: unknown) => e instanceof FactCheckUnavailableError && e.status === 409
+    );
+    const n = (await query<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1 and item_kind = 'quiz'`, [o]))[0].n;
+    assert.equal(n, 0);
+    onParse = agreeAll;
   });
 
   // REQ-187 (audit 2026-11-09 R3/P1): a second failure is NOT served any

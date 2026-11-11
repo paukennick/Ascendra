@@ -24,6 +24,7 @@ import {
   answeredItem,
   assignItem,
   coveredTerms,
+  discardEmptySession,
   dropUnpreparedItems,
   dueObjectives,
   getReviewItem,
@@ -48,8 +49,9 @@ import { replayMatches, REPLAY_CONFLICT } from "@/lib/replay-binding";
 import { hasUnstorableText } from "@/lib/text-input";
 import { withGradingClaim } from "@/lib/grading-claims";
 import { requireAcknowledgementForObjective } from "@/lib/auth/requireAcknowledgement";
-import { factCheckGate, type CheckItem } from "@/lib/fact-check";
-import { flagItem, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
+import { factCheckGate, verdictClaims, verdictHolds, verdictUnchecked, type CheckItem } from "@/lib/fact-check";
+import { flagItem, lowConfidenceOf, noteListedClaims, recordHoldback, type ItemRef } from "@/lib/item-quality";
+import { GATE_ATTEMPTS, steerText } from "@/lib/generation-gate";
 import { KEY_SUSPECT } from "@/lib/prompts";
 import { inBackground } from "@/lib/understanding-ai";
 
@@ -159,18 +161,30 @@ export async function sessionView(userId: string, sessionId: string): Promise<Se
 // Starts (or resumes) today's session and makes sure every question in it is
 // ready. Returns null when nothing is due. `unavailable` counts objectives
 // that had no question and none could be written (they stay due).
+// REQ-216 (H2): when items were due but NONE could be prepared, the session
+// is `null` with `unavailable` > 0 -- "couldn't be prepared", not "nothing is
+// due" -- and the empty session row is removed instead of left behind.
+export const REVIEW_UNPREPARED_MESSAGE =
+  "Your review questions are due, but we couldn't prepare any just now. They're still due: please try again in a few minutes.";
+
 export async function startSession(
   userId: string,
   trackId: string | null,
   now: Date = new Date()
-): Promise<{ session: SessionView; unavailable: number } | null> {
+): Promise<{ session: SessionView | null; unavailable: number; message?: string } | null> {
   const started = await startOrResumeSession(userId, trackId, now);
   if (!started) return null;
   const allPrepared = await prepareItems(userId, started.id, started.planned);
   // REQ-118: nothing to drop when every open item got a question.
   const unavailable = allPrepared ? 0 : await dropUnpreparedItems(started.id);
   const session = await sessionView(userId, started.id);
-  if (!session || !session.total) return null;
+  if (!session || !session.total) {
+    if (unavailable > 0) {
+      await discardEmptySession(started.id).catch(() => undefined);
+      return { session: null, unavailable, message: REVIEW_UNPREPARED_MESSAGE };
+    }
+    return null;
+  }
   return { session, unavailable };
 }
 
@@ -233,12 +247,28 @@ async function prepareItems(userId: string, sessionId: string, planned?: Session
   return false; // let dropUnpreparedItems check what the model calls left open
 }
 
-async function writeQuestions(
+type WriteGroup = { item: SessionItemRow; teach: string; hash: string; known: string[] | null; target: string[] }[];
+
+async function writeQuestions(userId: string, sessionId: string, trackId: string, group: WriteGroup): Promise<void> {
+  // REQ-216 (H2): a question held back (the writer rated it low, or the
+  // independent check disagreed with its key) is written once more, steered
+  // with the claims; the rest of the batch is already stored by then.
+  let todo: { g: WriteGroup[number]; steer?: string }[] = group.map((g) => ({ g }));
+  for (let attempt = 1; attempt <= GATE_ATTEMPTS && todo.length; attempt++) {
+    todo = await writeQuestionRound(userId, sessionId, trackId, todo);
+  }
+}
+
+// One model call for `todo`, the fact-check, and the stores. Returns what was
+// held back (with the steer for its retry); items that could not be checked
+// are not retried here (the checker is failing) and are not held back.
+async function writeQuestionRound(
   userId: string,
   sessionId: string,
   trackId: string,
-  group: { item: SessionItemRow; teach: string; hash: string; known: string[] | null; target: string[] }[]
-): Promise<void> {
+  todo: { g: WriteGroup[number]; steer?: string }[]
+): Promise<{ g: WriteGroup[number]; steer?: string }[]> {
+  const group = todo.map((t) => t.g);
   const ctx = await coachContextForTrack(trackId);
   // REQ-112 (i): aim new questions at this learner's recorded mix-ups. No
   // extra model call: one indexed read per objective; a failure only drops
@@ -254,6 +284,7 @@ async function writeQuestions(
     knownTerms: g.known,
     targetTerms: g.target,
     mixups: mixups[i],
+    steer: todo[i].steer,
   }));
   const { system, user } = reviewBatchPrompt({
     trackTitle: group[0].item.track_title,
@@ -272,19 +303,23 @@ async function writeQuestions(
     purpose: "review_generate",
     userId,
   });
-  // REQ-114 (Audit 3 H1 + recommendation 1): uncertain items are held back;
-  // the rest are fact-checked in one fast-model call and only the ones an
-  // independent answer agrees with are cached for every learner.
+  const held: { g: WriteGroup[number]; steer?: string }[] = [];
+  // REQ-114 (Audit 3 H1 + recommendation 1), changed by REQ-216: a question
+  // the writer rated LOW is held back; the rest are fact-checked in one call
+  // and only a DISAGREEMENT with the key holds one back. Listed claims are
+  // logged. A check that did not run stores nothing and logs no holdback.
   const ready: { g: (typeof group)[number]; gen: (typeof out.items)[number] }[] = [];
   for (const [i, g] of group.entries()) {
     const key = objectives[i].key;
     const gen = out.items.find((it) => it.key === key);
     if (!gen || !validItem(gen)) continue;
-    const unsure = uncertaintyOf(gen);
+    const unsure = lowConfidenceOf(gen);
     if (unsure) {
       await recordHoldback({ kind: "review", objectiveId: g.item.objective_id, reason: "uncertain", claims: unsure, content: gen, model });
+      held.push({ g, steer: steerText(unsure) });
       continue;
     }
+    noteListedClaims(`review (${g.item.objective_id})`, gen);
     ready.push({ g, gen });
   }
   const checks: CheckItem[] = ready.map(({ g, gen }) => ({
@@ -296,18 +331,31 @@ async function writeQuestions(
     expected: [gen.correctIndex],
   }));
   const gate = await factCheckGate(checks, { ctx: ctx ?? undefined, userId, purpose: "fact_check" });
+  if (gate.error) {
+    // The check call failed: nothing in this batch is stored, nothing is
+    // logged as a holdback (it says nothing about the questions), and the
+    // session drops the unprepared items, which stay due.
+    console.warn(`[review] fact-check did not run for track ${trackId}: ${gate.error}`);
+    return held;
+  }
   for (const { g, gen } of ready) {
     const v = gate.verdicts.get(gen.key);
-    if (!v?.publish) {
+    if (verdictUnchecked(v)) continue;
+    if (verdictHolds(v)) {
+      const claims = verdictClaims(v);
       await recordHoldback({
         kind: "review",
         objectiveId: g.item.objective_id,
-        reason: gate.error ? "fact_check_error" : "fact_check",
-        claims: gate.error ? [gate.error] : v?.unsupportedClaims ?? [],
+        reason: "fact_check",
+        claims,
         content: { item: gen, checker: v ?? null },
         model,
       });
+      held.push({ g, steer: steerText(claims) });
       continue;
+    }
+    if (v?.unsupportedClaims.length) {
+      console.warn(`[item-quality] review (${g.item.objective_id}) agreed with the key; checker could not confirm: ${v.unsupportedClaims.join(" | ").slice(0, 500)}`);
     }
     let terms = g.known;
     if (terms === null) {
@@ -326,6 +374,7 @@ async function writeQuestions(
     });
     await assignItem(sessionId, g.item.position, id);
   }
+  return held;
 }
 
 function validItem(gen: { question: string; choices: string[]; correctIndex: number; why: string }): boolean {

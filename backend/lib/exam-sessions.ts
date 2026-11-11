@@ -73,6 +73,11 @@ import { calibrate } from "@/lib/exam-calibration";
 
 export type ExamMode = "sprint" | "mock";
 
+export const EXAM_ALL_HELD_MESSAGE =
+  "We wrote practice questions for this course, but our accuracy checks held every one back (the writer wasn't sure of the facts, or a second check picked a different answer), so none are ready. Nothing was counted against you. Please try again in a few minutes.";
+export const EXAM_CHECK_FAILED_MESSAGE =
+  "We wrote practice questions for this course but couldn't double-check them just now, so none are ready. Please try again in a few minutes.";
+
 export class ExamSessionError extends Error {
   constructor(
     message: string,
@@ -319,6 +324,11 @@ export async function createSession(opts: {
   // Generate for objectives that still have an empty slot (shared bank).
   let generatedCalls = 0;
   let generationFailed = false;
+  // REQ-216: every item generated for this session was held back by the
+  // accuracy checks / the check could not run for any of them.
+  let allHeld = false;
+  let checkFailed = false;
+  let generatedStored = 0;
   // Calls needed per objective: one per ITEMS_PER_CALL empty slots, made in
   // sequence for the same objective so each call sees (and avoids) what the
   // previous one wrote. Capped per session by MAX_GENERATIONS.
@@ -354,6 +364,10 @@ export async function createSession(opts: {
       budget -= extra;
     }
     let madeCalls = 0;
+    // REQ-216: items the accuracy checks held back, and items the check could
+    // not answer, across this session's generation calls.
+    let heldItems = 0;
+    let uncheckedItems = 0;
     const results = await runLimited(
       todo.map((t) => async () => {
         for (let c = 0; c < t.calls; c++) {
@@ -367,18 +381,23 @@ export async function createSession(opts: {
             throw err;
           }
           madeCalls++;
-          await generateForObjective({
+          const made = await generateForObjective({
             objectiveId: t.id,
             formats: generationFormats(profile.formats),
             exhibits: profile.exhibits,
             allowed: profile.formats,
             userId,
           });
+          heldItems += made.held;
+          uncheckedItems += made.unchecked;
+          generatedStored += made.stored.length;
         }
       }),
       GENERATION_CONCURRENCY
     );
     generatedCalls = madeCalls;
+    allHeld = heldItems > 0 && generatedStored === 0;
+    checkFailed = uncheckedItems > 0 && generatedStored === 0 && heldItems === 0;
     // A refusal from the spend gate mid-session is the budget (AiBudgetError) or the
     // global daily ceiling (AiAccessError, REQ-201) running out, not a failed
     // generation: the session is built from the bank (FAIL-965).
@@ -420,6 +439,10 @@ export async function createSession(opts: {
   if (!picked.length) {
     // Nothing in the bank to build from and no budget to write more: say so.
     if (budgetPaused && !generationFailed) throw ceilingRefusal ?? new AiBudgetError();
+    // REQ-216 (H2): say what happened. "There are no practice questions yet" /
+    // "couldn't be prepared" hid that questions were written and then held back.
+    if (allHeld && !generationFailed) throw new ExamSessionError(EXAM_ALL_HELD_MESSAGE, 409);
+    if (checkFailed && !generationFailed) throw new ExamSessionError(EXAM_CHECK_FAILED_MESSAGE, 409);
     throw new ExamSessionError(
       generationFailed
         ? "Practice questions for this course couldn't be prepared just now. Please try again in a few minutes."

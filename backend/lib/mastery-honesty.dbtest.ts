@@ -350,7 +350,7 @@ describe("REQ-117 readiness, plan and review tell one story", () => {
       );
     }
     const s = await startSession(u, track);
-    const items = s!.session.items;
+    const items = s!.session!.items;
     const hard = items.find((i) => i.objectiveId === objs[2])!;
     const easy = items.find((i) => i.objectiveId === objs[3])!;
     assert.equal(hard.easierEntry, true);

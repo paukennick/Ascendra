@@ -260,7 +260,7 @@ export function quizItemProblems(q: Partial<CoachQuizItem>): string[] {
 
 export class InvalidContentError extends UserFacingError {
   constructor(readonly what: string, readonly problems: string[]) {
-    super(`We couldn't put together a good ${what} just now. Nothing was saved -- please try again in a moment.`, 503);
+    super(`We couldn't put together a good ${what} just now. Nothing was saved -- please try again in a moment.`, 409, { retryable: true });
     this.name = "InvalidContentError";
   }
 }
