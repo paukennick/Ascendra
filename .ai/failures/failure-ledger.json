@@ -12070,6 +12070,190 @@
       ],
       "prevention_notes": "pbq-holdback.dbtest.ts serves a medium-confidence scenario with a listed claim on the first call",
       "recurrence_of": "FAIL-1000"
+    },
+    {
+      "id": "FAIL-1160",
+      "date": "2026-11-10",
+      "title": "A restore into a cluster without app_runtime and content_recheck failed, and the CI drill could not see it",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "pg_restore --schema=public into a fresh cluster ends with about 120 'role \"app_runtime\" does not exist' / 'role \"content_recheck\" does not exist' errors on every CREATE POLICY; a real restore would not complete",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Roles belong to the cluster and a dump holds none, but the dump's RLS policies are TO app_runtime / TO content_recheck (migrations 064, 071). The drill and runbook created neither role before pg_restore; the CI drill restored into the same cluster the source was migrated on, where both roles already existed. content_recheck's grants were also never re-applied (--no-privileges)",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/scripts/restore-drill.sh",
+        "backend/scripts/ci/backup-drill-test.sh",
+        "docs/operations-runbook.md",
+        ".github/workflows/ci.yml"
+      ],
+      "fix_summary": "scripts/restore/01 creates both roles NOLOGIN before pg_restore; after 071 the drill applies 02 (064's grant block); runbook and drill docs give the same order; CI restores on a second postgres service and refuses a restore cluster that is the same server or already has the roles",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/scripts/ci/backup-drill-test.sh",
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "The CI test shows a plain restore failing on the fresh cluster (canary), then the drill passing, and compares the restored roles' privileges with the source's (1625 facts)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1161",
+      "date": "2026-11-10",
+      "title": "CRON_SECRET unset was silent: every cron route answered 503 while /api/health stayed green",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Without CRON_SECRET the purge, content-signals and service-email crons 503 (lib/cron-auth.ts) and nothing turns red",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "lib/required-env.ts did not list CRON_SECRET, so the health check had no opinion",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/lib/required-env.ts"
+      ],
+      "fix_summary": "CRON_SECRET is required in production; /api/health answers misconfigured naming it",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/perf-audit3.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "requiredEnvProblems lists it; fixtures for a complete production env updated, not deleted",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1162",
+      "date": "2026-11-10",
+      "title": "apply-migration.ts said hand re-runs are safe; hand-applied SQL skips app_runtime_sync()",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Header claimed every migration is re-runnable and the ledger is only a convenience; a hand-applied new object or CREATE OR REPLACE FUNCTION leaves app_runtime without grants or search_path",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Comment written before migration 071 introduced the least-privilege role; never revisited",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/supabase/apply-migration.ts",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Header corrected; runbook section 'After SQL applied by hand': select app_runtime_sync(); then npm run migrate -- --status",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Text test fails if the claim returns or the runbook line goes",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1163",
+      "date": "2026-11-10",
+      "title": ".env.example and the runbook missed 17 settings the code reads",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "AI_ACCESS_MODE, AI_GLOBAL_DAILY_CEILING_USD, ERROR_TRACKER_DSN, MIN_APP_VERSION, IOS_APP_STORE_URL, DATABASE_CA_CERT, PGSSLROOTCERT, DB_STATEMENT_TIMEOUT_MS, MIGRATION_LOCK_TIMEOUT, PGSSLMODE, SIMS_*, LABS_SERVE_UNREVIEWED, ITEM_FACT_CHECK, CSP_REPORT_ONLY, APP_URL were undocumented in the example file",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Each feature branch added its setting in code and its own doc; nothing checked the example file",
+      "requirement": "REQ-221",
+      "affected": [
+        "backend/.env.example",
+        "docs/operations-runbook.md"
+      ],
+      "fix_summary": "Commented entries with defaults and one-line purposes; runbook 'Optional settings' section",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test checks each name is in the example (commented, with a comment above), read by code, and in the runbook; pre-completion checklist item added",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1164",
+      "date": "2026-11-10",
+      "title": "Data inventory named /api/cron/retention at 08:15 UTC; vercel.json schedules purge-auth-data at 09:30",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "A privacy-facing document named an unscheduled route and the wrong time",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Two branches built the purge under two paths (REQ-093, REQ-116); the merge kept one handler and the doc was not updated",
+      "requirement": "REQ-221",
+      "affected": [
+        "docs/legal/data-inventory.md"
+      ],
+      "fix_summary": "Doc names the scheduled route and time and says retention is an unscheduled alias",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test reads the cron path and time from vercel.json and checks the inventory",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1165",
+      "date": "2026-11-10",
+      "title": "db-backup.yml comment named the production-database environment; the job uses production-backup",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Header comment misdescribed which environment the backup job runs in (backup-housekeeping.yml the same)",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Comment copied from migrate-production.yml; the job was later moved to the reviewer-free environment",
+      "requirement": "REQ-221",
+      "affected": [
+        ".github/workflows/db-backup.yml",
+        ".github/workflows/backup-housekeeping.yml"
+      ],
+      "fix_summary": "Both comments name production-backup and why",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test fails if a backup workflow comment names production-database",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1166",
+      "date": "2026-11-10",
+      "title": "Android preview build workflow existed only on a branch, unpinned, and crashed after a successful build",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "build-android-preview.yml (branch only) used tag-pinned actions, Node 22, no permissions, interpolated the secret into a script, and its last step threw reading b.project.ownerAccount.name after the build finished",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Summary code assumed one shape of eas build --json and ran as an inline node -e with no tests; the workflow was never merged so the repo's hardening test never saw it",
+      "requirement": "REQ-221",
+      "affected": [
+        ".github/workflows/build-android-preview.yml",
+        ".github/scripts/eas-build-summary.mjs"
+      ],
+      "fix_summary": "Workflow on master: SHA-pinned actions, Node 24, contents: read, token only on steps that need it, push to ops/build-android-preview only; summary in a tested script that never throws and falls back to the build id",
+      "fix_commits": [],
+      "regression_tests": [
+        ".github/scripts/eas-build-summary.test.mjs",
+        "backend/lib/operations-g6.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "ci.yml runs the summary tests; workflow-hardening and operations-g6 tests cover pins, Node and token placement",
+      "recurrence_of": ""
     }
   ]
 }
