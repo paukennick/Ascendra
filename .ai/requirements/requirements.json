@@ -8305,6 +8305,45 @@
         "project status) are as reported by Nick on 2026-11-11 and were not re-read from Vercel",
         "@types/react-dom is not a direct backend dependency so its ignore rule is a no-op today"
       ]
+    },
+    {
+      "id": "REQ-232",
+      "category": "feature",
+      "title": "Sims: PT treatment-session screen type and the first three DPT cases",
+      "description": "A physical therapy treatment-session renderer (screen type treatment-session) behind SIMS_RENDERERS and on by default: the patient's presentation, vitals and response to activity, tests and measures with red flags, interventions with dosage, and stopping and escalation rules, with an outcome profile physical-therapy. Three DPT scenarios on DPT catalog objectives: early mobilization in the ICU, total knee arthroplasty progression with signs of DVT, and balance and fall risk after stroke. Sims take the clinical pace rule (study pace 3x) because vitals move on their own during exertion.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/sim",
+        "backend/supabase/seed/sims/DPT",
+        "backend/scripts/sim-golden",
+        "mobile/src/sim",
+        "mobile/app/(app)/course/[trackId]/sim",
+        "docs/sims.md"
+      ],
+      "acceptance_criteria": [
+        "treatment-session renderer behind SIMS_RENDERERS with treatment-session@1 capability",
+        "accessibility to the bedside board and session standard",
+        "three DPT scenarios with golden paths Good Mediocre Bad",
+        "clinical pace rule applies",
+        "no engine stepping change"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "npm run sims:lint",
+        "cross-runtime fixture and engine bundle",
+        "sims DB tests",
+        "mobile tsc and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.7",
+        "CHANGELOG"
+      ],
+      "risk_notes": [
+        "Several physiological sizes and timings are authored teaching-model values marked FLAG in the documents",
+        "The 2022 VTE CPG was read only through a summary"
+      ]
     }
   ]
 }
