@@ -18,8 +18,10 @@ import { AppState, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { api } from "@/api/client";
+import { createSerialQueue } from "@/lib/serialQueue";
 import {
   localDay,
+  REMINDER_KIND,
   parsePlan,
   parseReminderPrefs,
   reminderKey,
@@ -28,7 +30,9 @@ import {
   type ReminderPrefs,
 } from "@/lib/reminders";
 
-const KIND = "study-reminder";
+const KIND = REMINDER_KIND;
+// REQ-217 (FAIL-1058): every change to what is scheduled runs through this, one at a time.
+const serial = createSerialQueue();
 const CHANNEL = "study-reminders";
 const PLAN_DAYS = 7;
 const REFRESH_MS = 30 * 60 * 1000;
@@ -96,7 +100,7 @@ export async function notificationPermission(ask: boolean): Promise<"granted" | 
   return asked.granted ? "granted" : "denied";
 }
 
-export async function cancelStudyReminders(): Promise<void> {
+async function cancelAll(): Promise<void> {
   if (!remindersSupported) return;
   try {
     const all = await Notifications.getAllScheduledNotificationsAsync();
@@ -110,18 +114,26 @@ export async function cancelStudyReminders(): Promise<void> {
   }
 }
 
+export function cancelStudyReminders(): Promise<void> {
+  return serial(cancelAll);
+}
+
 // Replace whatever is scheduled with the plan for `prefs`. Returns how many
 // reminders are now scheduled (0 when off, on web, without permission, or
 // when nothing is due in the coming days).
-export async function applyReminders(userId: string, prefs: ReminderPrefs, opts: { refresh?: boolean } = {}): Promise<number> {
-  if (!remindersSupported) return 0;
+export function applyReminders(userId: string, prefs: ReminderPrefs, opts: { refresh?: boolean } = {}): Promise<number> {
+  if (!remindersSupported) return Promise.resolve(0);
+  return serial(() => applyNow(userId, prefs, opts));
+}
+
+async function applyNow(userId: string, prefs: ReminderPrefs, opts: { refresh?: boolean }): Promise<number> {
   if (!prefs.enabled) {
-    await cancelStudyReminders();
+    await cancelAll();
     return 0;
   }
   const fresh = opts.refresh === false ? null : await fetchPlan(userId);
   const plan = fresh ?? (await cachedPlan(userId));
-  await cancelStudyReminders();
+  await cancelAll();
   const slots = reminderSchedule(prefs, plan, new Date());
   if (!slots.length) return 0;
   if ((await notificationPermission(false)) !== "granted") return 0;

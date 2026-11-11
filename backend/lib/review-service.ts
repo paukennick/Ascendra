@@ -38,7 +38,6 @@ import {
   startOrResumeSession,
   strugglingObjectives,
   termsFor,
-  unseenItems,
   type SessionItemRow,
 } from "@/lib/review-store";
 import { utcDay } from "@/lib/review-scheduler";
@@ -78,7 +77,7 @@ export class ReviewError extends Error {
 
 export async function todaySummary(userId: string, trackId: string | null, now: Date = new Date()) {
   const today = utcDay(now);
-  const due = await dueObjectives(userId, today, trackId);
+  const due = await dueObjectives(userId, today, trackId, query, now);
   const last = await lastSessionStats(userId);
   const cap = wasRough(last) ? GENTLE_SESSION_CAP : SESSION_CAP;
   return {

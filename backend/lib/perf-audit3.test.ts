@@ -16,6 +16,7 @@ const GOOD_ENV = {
   RESEND_API_KEY: "r",
   AUTH_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
   CHOICE_ORDER_SECRET: "c",
+  CRON_SECRET: "cr",
   ANTHROPIC_FEDERATION_RULE_ID: "f",
   ANTHROPIC_ORGANIZATION_ID: "o",
   // REQ-207: production without a real sender is now a 503, so a "complete"
@@ -62,6 +63,18 @@ describe("health: required settings and jit (FAIL-386, FAIL-371)", () => {
     assert.deepEqual(requiredEnvProblems({ ...noAi, AI_PROVIDER: "local" }), []);
     // CHOICE_ORDER_SECRET is only required in production (lib/choice-order.ts).
     assert.deepEqual(requiredEnvProblems({ ...GOOD_ENV, NODE_ENV: "test", CHOICE_ORDER_SECRET: undefined }), []);
+  });
+
+  // FAIL-1161: CRON_SECRET unset made every /api/cron/* answer 503 while
+  // /api/health stayed green, so the daily jobs could stop unnoticed.
+  test("FAIL-1161: production without CRON_SECRET is misconfigured; other environments are not", async () => {
+    const { CRON_SECRET: _c, ...noCron } = GOOD_ENV;
+    assert.deepEqual(requiredEnvProblems(noCron), [{ name: "CRON_SECRET", problem: "missing" }]);
+    assert.deepEqual(requiredEnvProblems({ ...noCron, CRON_SECRET: "  " }), [{ name: "CRON_SECRET", problem: "missing" }]);
+    assert.deepEqual(requiredEnvProblems({ ...noCron, NODE_ENV: "development" }), []);
+    assert.deepEqual(requiredEnvProblems({ ...noCron, NODE_ENV: "test" }), []);
+    const r = await computeHealth(async () => [{ ok: true }], noCron);
+    assert.deepEqual(r, { kind: "misconfigured", env: ["CRON_SECRET is not set"] });
   });
 });
 

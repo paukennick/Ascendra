@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
-import { api, ApiError } from "@/api/client";
+import { api } from "@/api/client";
 import { clearMfaHandoff, getMfaHandoff } from "@/lib/handoff";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function MfaChallenge() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function MfaChallenge() {
       setEmailCodeState("sent");
     } catch (err) {
       setEmailCodeState("idle");
-      setError(err instanceof ApiError ? err.message : "Couldn't send the code. Try again.");
+      setError(messageOr(err, "Couldn't send the code. Try again."));
     }
   }
 
@@ -63,7 +64,7 @@ export default function MfaChallenge() {
       clearMfaHandoff();
       // Root layout's redirect effect handles navigation into the app once signed in.
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(messageOr(err, "Something went wrong. Try again."));
     } finally {
       setSubmitting(false);
     }

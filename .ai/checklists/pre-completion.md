@@ -39,7 +39,10 @@
   branch made required is satisfied by every call site the other added (FAIL-966); a
   migration that adds roles, grants or other things a database dump does not
   hold names the step that restores them, and the restore drill runs it
-  (FAIL-897); and a
+  (FAIL-897) on a cluster that has never had the role, because roles belong
+  to the cluster and the source's own cluster hides the gap (FAIL-1160;
+  backend/scripts/restore/); a setting the code reads is in
+  backend/.env.example and, if operational, in the runbook (FAIL-1163); and a
   field one branch reads as "who is charged" and another as "whose scope" is
   split, not shared (FAIL-967); and when one branch changes how a screen is
   entered (REQ-206: the MFA and verify-email handoffs), every caller another
@@ -217,6 +220,18 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
+- Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
+  writes the biometric-sealed key (Android prompts for every write); it is
+  written at sign-in, unlock and when the app goes to the background, and a
+  failed seal keeps the session on the plain key, never signs out. Only a 401
+  from `/api/auth/refresh` signs the device out; any other failure keeps the
+  token and shows a retry. Only signed-out `/api/auth/` routes are exempt from
+  refresh-and-retry (`isSignedOutAuthRoute`, src/lib/sessionStore.ts); a new
+  signed-out route is added there. A request that ends other sessions reports
+  success only on a 200. A client id sent for replay is kept in a ref until the
+  request succeeds (`pendingIdFor`). A screen a learner can leave with the back
+  gesture flushes its work through a `beforeRemove` guard. A button that throws
+  work away asks first. A catch on a load shows the error, never an empty state.
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

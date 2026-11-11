@@ -48,6 +48,16 @@ export const DEFAULT_REMINDERS: ReminderPrefs = {
   showTopic: true,
 };
 
+// Every reminder this app schedules carries data.kind = REMINDER_KIND.
+export const REMINDER_KIND = "study-reminder";
+
+// REQ-217 (FAIL-1059): where tapping a reminder goes. It named what is due for
+// review but opened wherever the app was last left; it now opens Review. Null
+// for any notification that is not ours.
+export function reminderTapTarget(data: unknown): "/review" | null {
+  return data && typeof data === "object" && (data as { kind?: unknown }).kind === REMINDER_KIND ? "/review" : null;
+}
+
 export const REMINDER_KEY_PREFIX = "ascendra.reminders.";
 export const reminderKey = (userId: string) => `${REMINDER_KEY_PREFIX}${userId}`;
 

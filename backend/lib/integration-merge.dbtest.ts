@@ -92,8 +92,8 @@ describe("FAIL-200 class: retired objectives stay out of listings on the merged 
     const u = await newUser();
     for (const o of [live, retired]) {
       await query(`insert into mastery (user_id, objective_id, status, score_0_4, evidence) values ($1, $2, 'Guided', 2, 'e')`, [u, o]);
-      await query(`insert into review_schedule (user_id, objective_id, due_on) values ($1, $2, current_date)
-                   on conflict (user_id, objective_id) do update set due_on = current_date`, [u, o]);
+      await query(`insert into review_schedule (user_id, objective_id, due_on, enrolled_at) values ($1, $2, current_date, now() - interval '2 days')
+                   on conflict (user_id, objective_id) do update set due_on = current_date, enrolled_at = now() - interval '2 days'`, [u, o]);
     }
     assert.deepEqual((await planObjectives(u, track)).map((p) => p.id), [live]);
     assert.deepEqual((await dueObjectives(u, utcDay(new Date()), track)).map((d) => d.objectiveId), [live]);

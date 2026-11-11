@@ -104,9 +104,12 @@ describe("reminder plan endpoint", () => {
       objs[2],
     ]);
     await query(
-      `insert into review_schedule (user_id, objective_id, due_on, step, lapses) values
-         ($1, $2, '2026-11-05', 1, 1), ($1, $3, '2026-11-09', 2, 0), ($1, $4, '2026-11-20', 3, 0)
-       on conflict (user_id, objective_id) do update set due_on = excluded.due_on, step = excluded.step, lapses = excluded.lapses`,
+      // REQ-218: enrolled long before the dates, so the 24 h floor has passed (a row enrolled
+      // just now is not announced until a day after it).
+      `insert into review_schedule (user_id, objective_id, due_on, step, lapses, enrolled_at) values
+         ($1, $2, '2026-11-05', 1, 1, '2026-10-01'), ($1, $3, '2026-11-09', 2, 0, '2026-10-01'), ($1, $4, '2026-11-20', 3, 0, '2026-10-01')
+       on conflict (user_id, objective_id) do update set due_on = excluded.due_on, step = excluded.step, lapses = excluded.lapses,
+         enrolled_at = excluded.enrolled_at, last_reviewed_at = null`,
       [u.id, objs[0], objs[1], objs[2]]
     );
     await query(`insert into study_plans (user_id, track_id, exam_date) values ($1, $2, '2026-11-20')`, [u.id, track]);

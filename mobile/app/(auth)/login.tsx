@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { BrandMark, Screen, Card, Divider, H1, Muted, TextField, Button, ErrorBanner } from "@/components/ui";
 import { useAuth } from "@/auth/AuthContext";
-import { ApiError } from "@/api/client";
 import { useGoogleAuthRequest } from "@/auth/googleSignIn";
 import { Text } from "react-native";
 import { ageCheckError, isAgeConfirmationRequired } from "@/lib/ageConfirmation";
 import { AgeCheckbox } from "@/components/AgeCheckbox";
 import { colors } from "@/lib/theme";
 import { mfaHandoffFrom, setMfaHandoff, setVerifyEmailHandoff } from "@/lib/handoff";
+import { messageOr } from "@/lib/errorMessage";
 
 export default function Login() {
   const router = useRouter();
@@ -57,7 +57,7 @@ export default function Login() {
       }
       // Otherwise the root layout's own redirect effect (driven by auth status) handles navigation.
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(messageOr(err, "Something went wrong. Try again."));
     } finally {
       setSubmitting(false);
     }
@@ -88,7 +88,7 @@ export default function Login() {
         setAgeOk(false);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
+      setError(messageOr(err, "Google sign-in failed. Try again."));
     } finally {
       setGoogleSubmitting(false);
     }
@@ -105,7 +105,7 @@ export default function Login() {
     try {
       await finishGoogle(googleToken, true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Google sign-in failed. Try again.");
+      setError(messageOr(err, "Google sign-in failed. Try again."));
     } finally {
       setGoogleSubmitting(false);
     }
