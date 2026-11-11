@@ -7,6 +7,10 @@ import { sessionView, submitSession } from "@/lib/exam-sessions";
 import { examError } from "@/lib/exam-route-errors";
 
 export const dynamic = "force-dynamic";
+// REQ-218: no model call here, but the submit grades and records every answer
+// in one transaction (a mock can hold a hundred), which the default function
+// time could cut off. At most 300, the Hobby plan ceiling with Fluid compute.
+export const maxDuration = 120;
 
 // REQ-109: POST /api/exam/sessions/:id/submit -- grades every saved answer on
 // the server, records each answered question as an attempt (mastery, review
