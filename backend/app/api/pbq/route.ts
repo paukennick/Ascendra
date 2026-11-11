@@ -119,9 +119,18 @@ export async function GET(req: Request) {
           purpose: "pbq_generate",
           userId: authUser.id,
         });
-        const unsure = uncertaintyOf(generated);
-        if (!unsure) return { ...generated, model: generationModel };
-        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
+        // FAIL-1005: a PBQ is an invented scenario graded holistically, with no
+        // answer key to get wrong, and the writer kept listing disclaimers
+        // ("this scenario is invented") as uncertain claims, so every
+        // scenario was held back. For PBQs only the writer's own low
+        // confidence holds a scenario back; listed claims are logged and the
+        // scenario is served (learners can still report a problem).
+        if (generated.confidence !== "low") {
+          const claims = uncertaintyOf(generated);
+          if (claims) console.warn(`[item-quality] pbq served with listed claims (unit ${unitId}): ${claims.join(" | ").slice(0, 500)}`);
+          return { ...generated, model: generationModel };
+        }
+        await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: uncertaintyOf(generated) ?? [], content: generated, model: generationModel });
       }
       // FAIL-1001: a 409, not the default 503, so the app shows these words
       // instead of "something went wrong on our side".
