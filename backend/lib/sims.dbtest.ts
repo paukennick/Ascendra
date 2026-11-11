@@ -73,6 +73,8 @@ const OLD_CAPS = "protocol=1;engine=1.0;renderers=bedside@3,board@3";
 let score: "met" | "partial" | "missed" = "met";
 let gradeCalls = 0;
 let failModel = false;
+// REQ-218: runs while the grader is "thinking" (between the request's checks and its insert).
+let whileGrading: (() => Promise<void>) | null = null;
 
 async function newUser(): Promise<string> {
   const u = randomUUID();
@@ -193,6 +195,7 @@ before(async () => {
         const text = JSON.stringify(body);
         if (!text.includes("Rubric parts:")) throw new Error("unexpected model call");
         gradeCalls++;
+        if (whileGrading) await whileGrading();
         if (failModel) throw new Error("model down");
         const labels = [...text.matchAll(/\\n(\d+)\. ([^\\]+)\\n   Criteria:/g)].map((m) => m[2]);
         const out = {
@@ -217,6 +220,7 @@ beforeEach(() => {
   score = "met";
   gradeCalls = 0;
   failModel = false;
+  whileGrading = null;
 });
 
 after(async () => {
@@ -476,6 +480,26 @@ describe("written reasoning (docs/sims.md 10)", () => {
     assert.equal(g.status, 200);
     assert.equal(g.body.status, "grader_failed");
     assert.equal(gradeCalls, 3);
+  });
+});
+
+describe("REQ-218 (FAIL-1083): a reasoning answer cannot be stored after the run ended", () => {
+  test("an answer graded while the run ends is refused (409 run_ended) and stores nothing", async () => {
+    const u = await newUser();
+    const path = pathOf(TB_GOLDEN, "reference");
+    const open = momentOpening(TB_DOC, path);
+    const s = await start(u, TB);
+    const runId = s.body.run.id as string;
+    await query(`update sim_runs set seed = $2 where id = $1`, [runId, path.seed]);
+    await sync(u, runId, { leaseEpoch: s.body.run.leaseEpoch, commands: path.commands.filter((c) => c.seq <= open.openedSeq) });
+    whileGrading = async () => {
+      await query(`update sim_runs set status = 'ended' where id = $1`, [runId]);
+    };
+    const g = await reason(u, runId, { momentId: open.moment, openedSeq: open.openedSeq, openedTick: open.openedTick, answer: "Two AZs behind an ALB, Multi-AZ RDS.", clientAttemptId: randomUUID() });
+    assert.equal(g.status, 409, JSON.stringify(g.body));
+    assert.equal(g.body.code, "run_ended");
+    assert.equal(gradeCalls, 1);
+    assert.equal((await query(`select 1 from sim_run_reasoning where run_id = $1`, [runId])).length, 0, "nothing stored against an ended run");
   });
 });
 
