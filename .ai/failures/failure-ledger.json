@@ -15318,6 +15318,107 @@
       ],
       "prevention_notes": "Ran the suite with SIMS_ENABLED off and on",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1340",
+      "date": "2026-11-11",
+      "title": "The sim capability header refused a hyphenated screen type",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "An app advertising treatment-session@1 parsed to no treatment-session renderer, so every DPT sim answered 409 app_update_required and listed as not runnable.",
+      "how_detected": "test (lib/sim/treatment.test.ts, before any app shipped it)",
+      "root_cause": "parseCaps matched renderer types with /^[a-z]{1,20}@/, written when every screen type was one lower-case word; the treatment-session type has a hyphen.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/lib/sim/server-run.ts"
+      ],
+      "fix_summary": "The type pattern is now /^[a-z][a-z-]{0,29}@/.",
+      "fix_commits": [
+        "64656fe"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/treatment.test.ts",
+        "mobile/src/sim/runtime.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A new screen type is tested end to end through parseCaps and runnable with the app's real header (simCaps).",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1341",
+      "date": "2026-11-11",
+      "title": "The sim DB tests' moment finder missed reasoning moments that open on the clock",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Golden paths played through the routes scored 8-12 points under their goldens: the written moment was never graded, so its criterion counted as missed.",
+      "how_detected": "test (lib/sims-treatment.dbtest.ts)",
+      "root_cause": "momentOpening (copied from sims-session.dbtest.ts) replays command prefixes only up to the last command's tick; a moment that opens by time between commands (the DPT plans open 30 s in) is first open at the tick of the command that answers it. The EPPP moments open from a command, so the original never hit this.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "fix_summary": "Replay each prefix with toTick set to the next command's tick.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sims-treatment.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The helper in lib/sims-session.dbtest.ts has the same limit; harmless for its documents, change it if reused.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1342",
+      "date": "2026-11-11",
+      "title": "TKA case credited a screen made at the same tick as the walk that revealed the calf",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Golden path peCaught (walking first, calf complaint while walking) scored screenFirst met.",
+      "how_detected": "golden review before writing the golden file",
+      "root_cause": "The calf cue trigger sets the history time at the tick the walk starts, and the criterion compared suspicion time <= first loading time.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.sim.json"
+      ],
+      "fix_summary": "Strict comparison in the criterion and the target ending.",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/supabase/seed/sims/DPT/tka-gait-dvt-red-flag.golden.json"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Order criteria compare a learner action with a trigger time strictly when the trigger is caused by the action.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1343",
+      "date": "2026-11-11",
+      "title": "Stroke case: the measured BP drop lagged the orthostatic model",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "20 s after standing the light-headed state (26 mmHg dip) was on, but a BP taken then showed about 12 mmHg of drop, under the 20 mmHg definition the case teaches.",
+      "how_detected": "test (lib/sim/treatment.test.ts)",
+      "root_cause": "Systolic pressure followed its target with a 30 s time constant while the presyncope rule read the dip directly.",
+      "requirement": "REQ-232",
+      "affected": [
+        "backend/supabase/seed/sims/DPT/stroke-balance-fall-risk.sim.json"
+      ],
+      "fix_summary": "An authored 10 s BP time constant (param tauBp).",
+      "fix_commits": [
+        "ca266d5"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/treatment.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "When a rule and a displayed measurement describe the same thing, test that they agree.",
+      "recurrence_of": ""
     }
   ]
 }
