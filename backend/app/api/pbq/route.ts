@@ -39,6 +39,7 @@ export const dynamic = "force-dynamic";
 
 const HELD_SCENARIO_MESSAGE =
   "We couldn't write a scenario we're confident in just now. Please try again.";
+const PBQ_GENERATION_ATTEMPTS = 2;
 
 // GET /api/pbq?scenarioId=... — one specific scenario (retry from Review).
 // GET /api/pbq?unitId=... — REQ-107: the newest scenario for the unit that the
@@ -102,25 +103,29 @@ export async function GET(req: Request) {
       // The model that generates is the model that gets recorded: this used to
       // store getModel() (Sonnet) although the fast model wrote the scenario.
       const generationModel = getFastModel();
-      const generated = await callClaudeStructured({
-        system,
-        messages: [{ role: "user", content: user }],
-        schema: pbqScenarioSchema,
-        maxTokens: 1200,
-        model: generationModel,
-        effort: "low",
-        thinking: "off",
-        purpose: "pbq_generate",
-        userId: authUser.id,
-      });
       // REQ-114 (Audit 3 H1): a scenario its writer was unsure of is never
-      // stored or shown; it is logged for review and the learner can retry.
-      const unsure = uncertaintyOf(generated);
-      if (unsure) {
+      // stored or shown; it is logged for review. FAIL-1000: the first two
+      // live attempts were both held back, so a held-back scenario is
+      // written once more before the learner is asked to try again.
+      for (let attempt = 1; attempt <= PBQ_GENERATION_ATTEMPTS; attempt++) {
+        const generated = await callClaudeStructured({
+          system,
+          messages: [{ role: "user", content: user }],
+          schema: pbqScenarioSchema,
+          maxTokens: 1200,
+          model: generationModel,
+          effort: "low",
+          thinking: "off",
+          purpose: "pbq_generate",
+          userId: authUser.id,
+        });
+        const unsure = uncertaintyOf(generated);
+        if (!unsure) return { ...generated, model: generationModel };
         await recordHoldback({ kind: "pbq", unitId, reason: "uncertain", claims: unsure, content: generated, model: generationModel });
-        throw new UserFacingError(HELD_SCENARIO_MESSAGE);
       }
-      return { ...generated, model: generationModel };
+      // FAIL-1001: a 409, not the default 503, so the app shows these words
+      // instead of "something went wrong on our side".
+      throw new UserFacingError(HELD_SCENARIO_MESSAGE, 409);
     };
 
     try {

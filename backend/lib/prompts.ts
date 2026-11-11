@@ -836,7 +836,11 @@ export function pbqGenerationPrompt(params: {
     `You are generating a performance-based-question (PBQ) style scenario: a realistic, multi-part
 scenario with 2-4 named sub-tasks in one prompt, the closest a text-based app gets to a real
 certification PBQ. It will be graded holistically against every sub-task, so each sub-task must be
-independently identifiable and answerable from the scenario as written.`,
+independently identifiable and answerable from the scenario as written.
+The organization, people and setting are invented, so they are not claims. In uncertainClaims list only
+a fact the scenario or its expected answer depends on that could be wrong (a port, a setting, a control
+type, a dosage, a step order). Do not list that a term or label is paraphrased from the exam outline or
+might be worded differently elsewhere; use the exam's standard terminology instead.`,
     params.ctx
   );
   const user = `Track: ${params.trackTitle}

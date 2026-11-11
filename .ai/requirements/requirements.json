@@ -7490,6 +7490,37 @@
         "begin evolves 780 ticks synchronously on the UI thread and is unmeasured on Hermes",
         "apply migration 073 before the backend that writes pace commands"
       ]
+    },
+    {
+      "id": "REQ-213",
+      "category": "bugfix",
+      "title": "PBQ scenarios generate: fewer false holdbacks, one retry, and the held-back message reaches the app",
+      "description": "Nick, 2026-11-10: generating PBQs failed every time. The PBQ prompt tells the writer that the invented setting and wording caveats are not uncertain claims; a held-back scenario is written once more; a second holdback answers 409 with the held-back message. Real uncertain facts are still held back and logged (REQ-114).",
+      "priority": "high",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/app/api/pbq/route.ts",
+        "backend/lib/prompts.ts",
+        "backend/lib/pbq-holdback.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a held-back first scenario is followed by one more attempt and the second is served",
+        "two held-back scenarios answer 409 with the held-back message; nothing stored; both logged",
+        "a confident scenario costs one call",
+        "the PBQ prompt excludes invented settings and wording caveats from uncertainClaims"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "a held-back attempt now costs up to two fast-model calls (about a cent)"
+      ]
     }
   ]
 }
