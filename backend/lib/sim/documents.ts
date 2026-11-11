@@ -33,9 +33,14 @@ function band(course: string, slug: string): DocumentEntry {
 // Phase 1a step 5: the prototype ports. Tamponade after CABG (now hosting the
 // code/ACLS module, REQ-190) and the TicketBurst launch day (AWSSAA), plus its
 // SAP band (AWSSAP). The Lakeshore clinic app (PMP) and Dana's knee valgus
-// (NASMCPT) are deferred.
+// (NASMCPT) are deferred. REQ-222 (batch S2a): three more CCRN Adult cases
+// on the bedside renderer, authored without a prototype (golden paths from
+// scripts/sim-golden/<slug>.steps.ts).
 export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CCRNADULT", "tamponade-after-cabg"),
+  entry("CCRNADULT", "sepsis-to-septic-shock"),
+  entry("CCRNADULT", "dka-first-six-hours"),
+  entry("CCRNADULT", "acute-ischemic-stroke-lvo"),
   entry("AWSSAA", "ticketburst-launch-day"),
   band("AWSSAP", "ticketburst-launch-day-sap"),
 ];

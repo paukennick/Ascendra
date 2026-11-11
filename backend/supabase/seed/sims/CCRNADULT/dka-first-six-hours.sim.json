@@ -1,0 +1,1943 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 1
+  },
+  "slug": "dka-first-six-hours",
+  "title": "Diabetic ketoacidosis: the first six hours",
+  "screen": {
+    "type": "bedside",
+    "level": 3,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 50,
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              110,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "nibp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "sub": "MAP {map}",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 30
+          },
+          "announce": {
+            "bands": [
+              24,
+              30
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "glu",
+          "label": "Glucose",
+          "spokenLabel": "Last glucose check",
+          "value": "gLast",
+          "unit": "mg/dL",
+          "announce": {
+            "bands": [
+              250,
+              150,
+              70
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "gLast > 0"
+        },
+        {
+          "id": "k",
+          "label": "pot",
+          "spokenLabel": "Last potassium",
+          "value": "kLast",
+          "unit": "mmol/L",
+          "announce": {
+            "bands": [
+              3.5,
+              3.0
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "kLast > 0"
+        },
+        {
+          "id": "ph",
+          "label": "pH",
+          "spokenLabel": "Last venous pH",
+          "value": "phLast",
+          "unit": "",
+          "announce": {
+            "bands": [
+              7.0,
+              7.3
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "phLast > 0"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Fluid {fluidRate} mL/h; insulin {insRate} units/kg/h; potassium {kInRate} mmol/h; dextrose 10% {dex ? 125 : 0} mL/h"
+    }
+  },
+  "objective": "Diabetic ketoacidosis (DKA)",
+  "secondaryObjectives": [
+    "Manage a hyperglycemic crisis in order: isotonic fluid resuscitation first, then a continuous IV regular insulin infusion, dextrose added as glucose falls, and overlapping subcutaneous insulin before the infusion stops",
+    "Monitor potassium closely during insulin therapy, because insulin and correction of acidosis shift potassium into cells and can cause dangerous hypokalemia"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN (Adult) Exam Handbook and Adult CCRN Test Plan, effective 2025-11-12",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.aacn.org/certification/preparation-tools-and-handbooks/~/media/aacn-website/certification/get-certified/handbooks/ccrnexamhandbook.pdf?la=en",
+      "note": "The objective and its secondary objectives are the course's own titles, built from this test plan (backend/supabase/seed/tracks/ccrn.ts, verified there 2026-10-31). Not re-fetched for this scenario."
+    },
+    {
+      "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+      "checkedAt": "2026-11-10",
+      "url": "https://doi.org/10.2337/dci24-0032",
+      "note": "Read 2026-11-10 in the Diabetologia copy. DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, venous pH below 7.3 and/or bicarbonate below 18. Isotonic saline or balanced crystalloid at 500-1000 mL/h for the first 2-4 h; fluids alone lower glucose about 50-70 mg/dL per hour. Fixed-rate IV insulin 0.1 U/kg/h. Potassium below 3.5: replace at 10 mmol/h and delay insulin until K is above 3.5; replace once K is below 5.0 to keep 4-5. Glucose below 250 mg/dL: add 5-10% dextrose and reduce insulin to 0.05 U/kg/h, holding glucose about 200 (150-200 per the CCJM summary) until resolution. Capillary glucose every 1-2 h; electrolytes, venous pH and beta-hydroxybutyrate every 4 h. Resolution: ketones below 0.6 mmol/L and venous pH 7.3 or more (or bicarbonate 18 or more). Bicarbonate only if pH is below 7.0 (CCJM summary). Hypoglycemia and hypokalemia are common complications of treatment; rapid osmolarity shifts are linked with cerebral edema (under 0.1% of adult events). For HHS, glucose should fall no faster than 90-120 mg/dL per hour."
+    },
+    {
+      "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: a look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158. doi:10.3949/ccjm.92a.24089",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.ccjm.org/content/92/3/152",
+      "note": "Secondary summary read 2026-11-10: glucose goal 150-200 mg/dL in DKA until resolution; bicarbonate considered only when pH is below 7.0; potassium 10-20 mmol/h below 3.5 with insulin postponed until K is above 3.5."
+    },
+    {
+      "cite": "Joint British Diabetes Societies for Inpatient Care. The management of diabetic ketoacidosis in adults: single page pathway, March 2023",
+      "checkedAt": "2026-11-10",
+      "url": "https://abcd.care/sites/abcd.care/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_Single_page_pathway_March_2023.pdf",
+      "note": "Read 2026-11-10: fixed-rate insulin 0.1 unit/kg/h; 10% glucose at 125 mL/h added when glucose falls below 14 mmol/L (about 250 mg/dL); hourly capillary glucose and ketones; venous bicarbonate and potassium at 60 min, 2 h, then 2-hourly. The pathway's potassium-per-liter table did not extract and was not checked."
+    }
+  ],
+  "brief": {
+    "situation": "Handover at 02:00. Bed 9, 24-year-old with type 1 diabetes, 70 kg, two days of vomiting after running out of insulin. Admitted from the ED with DKA. The ED gave 1,000 mL of 0.9% saline over the first hour; saline now runs at 150 mL/h. A DKA protocol is active and the insulin infusion bag is at the bedside, not started. No potassium has been given.",
+    "handover": [
+      "ED labs at 00:50, before any fluid: glucose 520 mg/dL, K 3.6, Na 131, bicarbonate 9, anion gap 26, venous pH 7.12, beta-hydroxybutyrate 6.1 mmol/L.",
+      "HR 118, BP 98/58, RR 28 and deep, SpO2 98% on room air, temperature 37.2.",
+      "Drowsy but oriented. Two peripheral IVs. Foley in, about 60 mL in the last hour."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Glucose checks come back at once; the gas and electrolytes take about 10 minutes. Insulin and potassium take time to act.",
+      "Most of the six hours is waiting for the next check: skip ahead, and the skip stops early at an alarm or a result.",
+      "Partway through you are asked to write what you think is happening. The case ends at the 08:00 handover, then a debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "02:00",
+    "tick": "1s",
+    "maxDuration": "6h",
+    "calendar": "clock"
+  },
+  "params": {
+    "weight": {
+      "value": 70,
+      "unit": "kg"
+    },
+    "fluidGluRate": {
+      "value": 35,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Fluid alone at 500 mL/h lowers glucose about 35 mg/dL per hour while glucose is high (dilution and urine loss); the consensus gives 50-70 mg/dL per hour for fluids alone at its full rates, so this case runs a little slower. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "insGluPerUnit": {
+      "value": 400,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Each 0.1 U/kg/h of insulin lowers glucose a further 40 mg/dL per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "dexGluRate": {
+      "value": 35,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Dextrose 10% at 125 mL/h (12.5 g/h) adds back about 35 mg/dL per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "insTau": {
+      "value": 20,
+      "unit": "min",
+      "source": {
+        "cite": "Regular insulin prescribing information (IV half-life a few minutes)",
+        "checkedAt": "2026-11-10",
+        "note": "Time for the infusion's effect to build: an authored 20 min time constant. Not re-opened this session."
+      }
+    },
+    "bhbFallPerUnit": {
+      "value": 10,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "At 0.1 U/kg/h ketones fall about 1 mmol/L per hour, 0.5 at 0.05 U/kg/h; FLAG: the often-taught JBDS target of a fall of at least 0.5 mmol/L per hour was not found in the 2023 single-page pathway read for this case, which gives no rate; the rate here is the author's. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "bhbRise": {
+      "value": 0.3,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Without insulin, ketones keep rising about 0.3 mmol/L per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kPerMmol": {
+      "value": 0.04,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Serum K rise per mmol of potassium given, compressed for teaching. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kShiftPerUnit": {
+      "value": 4,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "At 0.1 U/kg/h insulin moves potassium into cells at about 0.4 mmol/L per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kDil": {
+      "value": 0.06,
+      "unit": "mmol/L/h",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Potassium-free fluid at 500 mL/h dilutes K about 0.06 mmol/L per hour. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kHold": {
+      "value": 3.5,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Read 2026-11-10 in the Diabetologia copy. DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, venous pH below 7.3 and/or bicarbonate below 18. Isotonic saline or balanced crystalloid at 500-1000 mL/h for the first 2-4 h; fluids alone lower glucose about 50-70 mg/dL per hour. Fixed-rate IV insulin 0.1 U/kg/h. Potassium below 3.5: replace at 10 mmol/h and delay insulin until K is above 3.5; replace once K is below 5.0 to keep 4-5. Glucose below 250 mg/dL: add 5-10% dextrose and reduce insulin to 0.05 U/kg/h, holding glucose about 200 (150-200 per the CCJM summary) until resolution. Capillary glucose every 1-2 h; electrolytes, venous pH and beta-hydroxybutyrate every 4 h. Resolution: ketones below 0.6 mmol/L and venous pH 7.3 or more (or bicarbonate 18 or more). Bicarbonate only if pH is below 7.0 (CCJM summary). Hypoglycemia and hypokalemia are common complications of treatment; rapid osmolarity shifts are linked with cerebral edema (under 0.1% of adult events). For HHS, glucose should fall no faster than 90-120 mg/dL per hour."
+      }
+    },
+    "kHarm": {
+      "value": 2.5,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "K at which this patient develops a ventricular arrhythmia. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "kWarn": {
+      "value": 3.0,
+      "unit": "mmol/L",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "K at which U waves and ectopy appear on the monitor. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "gDex": {
+      "value": 250,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Read 2026-11-10 in the Diabetologia copy. DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, venous pH below 7.3 and/or bicarbonate below 18. Isotonic saline or balanced crystalloid at 500-1000 mL/h for the first 2-4 h; fluids alone lower glucose about 50-70 mg/dL per hour. Fixed-rate IV insulin 0.1 U/kg/h. Potassium below 3.5: replace at 10 mmol/h and delay insulin until K is above 3.5; replace once K is below 5.0 to keep 4-5. Glucose below 250 mg/dL: add 5-10% dextrose and reduce insulin to 0.05 U/kg/h, holding glucose about 200 (150-200 per the CCJM summary) until resolution. Capillary glucose every 1-2 h; electrolytes, venous pH and beta-hydroxybutyrate every 4 h. Resolution: ketones below 0.6 mmol/L and venous pH 7.3 or more (or bicarbonate 18 or more). Bicarbonate only if pH is below 7.0 (CCJM summary). Hypoglycemia and hypokalemia are common complications of treatment; rapid osmolarity shifts are linked with cerebral edema (under 0.1% of adult events). For HHS, glucose should fall no faster than 90-120 mg/dL per hour."
+      }
+    },
+    "gHypo": {
+      "value": 70,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "American Diabetes Association. Standards of Care in Diabetes: level 1 hypoglycemia is glucose below 70 mg/dL",
+        "checkedAt": "2026-11-10",
+        "note": "Stated from the standard definition; not re-opened this session."
+      }
+    },
+    "gHarm": {
+      "value": 40,
+      "unit": "mg/dL",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Glucose at which this patient seizes. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "fastDrop": {
+      "value": 100,
+      "unit": "mg/dL/h",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "FLAG: authored limit. The consensus gives a ceiling (90-120 mg/dL per hour) for HHS only and links rapid osmolarity shifts with cerebral edema; it sets no number for DKA. 100 mg/dL per hour is used here as the teaching limit."
+      }
+    },
+    "labTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Venous gas with electrolytes and a ketone meter on the unit: about 10 min."
+      }
+    },
+    "gluEvery": {
+      "value": 3600,
+      "unit": "s",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Read 2026-11-10 in the Diabetologia copy. DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, venous pH below 7.3 and/or bicarbonate below 18. Isotonic saline or balanced crystalloid at 500-1000 mL/h for the first 2-4 h; fluids alone lower glucose about 50-70 mg/dL per hour. Fixed-rate IV insulin 0.1 U/kg/h. Potassium below 3.5: replace at 10 mmol/h and delay insulin until K is above 3.5; replace once K is below 5.0 to keep 4-5. Glucose below 250 mg/dL: add 5-10% dextrose and reduce insulin to 0.05 U/kg/h, holding glucose about 200 (150-200 per the CCJM summary) until resolution. Capillary glucose every 1-2 h; electrolytes, venous pH and beta-hydroxybutyrate every 4 h. Resolution: ketones below 0.6 mmol/L and venous pH 7.3 or more (or bicarbonate 18 or more). Bicarbonate only if pH is below 7.0 (CCJM summary). Hypoglycemia and hypokalemia are common complications of treatment; rapid osmolarity shifts are linked with cerebral edema (under 0.1% of adult events). For HHS, glucose should fall no faster than 90-120 mg/dL per hour."
+      }
+    },
+    "labsEvery": {
+      "value": 7200,
+      "unit": "s",
+      "source": {
+        "cite": "Joint British Diabetes Societies for Inpatient Care. The management of diabetic ketoacidosis in adults: single page pathway, March 2023",
+        "checkedAt": "2026-11-10",
+        "url": "https://abcd.care/sites/abcd.care/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_Single_page_pathway_March_2023.pdf",
+        "note": "Read 2026-11-10: fixed-rate insulin 0.1 unit/kg/h; 10% glucose at 125 mL/h added when glucose falls below 14 mmol/L (about 250 mg/dL); hourly capillary glucose and ketones; venous bicarbonate and potassium at 60 min, 2 h, then 2-hourly. The pathway's potassium-per-liter table did not extract and was not checked."
+      }
+    },
+    "callback": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider callback about 3 min."
+      }
+    },
+    "endAt": {
+      "value": 21600,
+      "unit": "s",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The case ends at the 6-hour review (08:00 handover)."
+      }
+    },
+    "reasonAt": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The written question opens with the first lab result, or at 15 min. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "glu": {
+      "type": "number",
+      "init": 470,
+      "min": 10,
+      "max": 1500,
+      "unit": "mg/dL"
+    },
+    "pot": {
+      "type": "number",
+      "init": 3.2,
+      "min": 1,
+      "max": 9,
+      "unit": "mmol/L"
+    },
+    "bhb": {
+      "type": "number",
+      "init": 5.9,
+      "min": 0,
+      "max": 15,
+      "unit": "mmol/L"
+    },
+    "fluidRate": {
+      "type": "number",
+      "init": 150,
+      "min": 0,
+      "max": 2000,
+      "unit": "mL/h"
+    },
+    "fluidTotal": {
+      "type": "number",
+      "init": 1000,
+      "min": 0,
+      "max": 20000,
+      "unit": "mL"
+    },
+    "fluidUpAt": {
+      "type": "time",
+      "init": null
+    },
+    "insRate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.3
+    },
+    "insEff": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.3
+    },
+    "insStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "insFirstRate": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 0.3
+    },
+    "insStartKOk": {
+      "type": "bool",
+      "init": false
+    },
+    "insStoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "kMode": {
+      "type": "enum",
+      "values": [
+        "none",
+        "perL",
+        "perHour"
+      ],
+      "init": "none"
+    },
+    "kReplAt": {
+      "type": "time",
+      "init": null
+    },
+    "dex": {
+      "type": "bool",
+      "init": false
+    },
+    "dexAt": {
+      "type": "time",
+      "init": null
+    },
+    "bicarbAt": {
+      "type": "time",
+      "init": null
+    },
+    "gLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1500,
+      "unit": "mg/dL"
+    },
+    "gSince": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "gGapMax": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "kLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 9,
+      "unit": "mmol/L"
+    },
+    "kSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "kLowSeenAt": {
+      "type": "time",
+      "init": null
+    },
+    "phLast": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 8
+    },
+    "labPending": {
+      "type": "bool",
+      "init": false
+    },
+    "nLabs": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100
+    },
+    "gBelow250At": {
+      "type": "time",
+      "init": null
+    },
+    "fastAt": {
+      "type": "time",
+      "init": null
+    },
+    "minG": {
+      "type": "number",
+      "init": 470,
+      "min": 0,
+      "max": 1500,
+      "unit": "mg/dL"
+    },
+    "minK": {
+      "type": "number",
+      "init": 3.2,
+      "min": 0,
+      "max": 9,
+      "unit": "mmol/L"
+    },
+    "callKLowAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "pendingCall": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "history": {
+    "gH": {
+      "of": "glu",
+      "every": "60s",
+      "keep": "61min"
+    }
+  },
+  "derived": {
+    "ag": {
+      "expr": "round(12 + 2.3 * bhb)",
+      "unit": "mmol/L",
+      "precision": 0
+    },
+    "hco3": {
+      "expr": "clamp(36 - ag, 3, 28)",
+      "unit": "mmol/L",
+      "precision": 0
+    },
+    "ph": {
+      "expr": "round((7.4 - 0.0207 * (24 - hco3)) * 100) / 100",
+      "precision": 2
+    },
+    "hydration": {
+      "expr": "clamp((fluidTotal - 1000) / 3000, 0, 1)"
+    },
+    "hr": {
+      "expr": "round(clamp(116 - 24 * hydration + (pot < kWarn ? 6 : 0) + 1.5 * sin(t / 31), 60, 160))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(98 + 18 * hydration + 1.5 * sin(t / 47))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(58 + 10 * hydration)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "map": {
+      "expr": "round(dbp + (sbp - dbp) / 3)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(clamp(12 + 55 * (7.42 - ph), 12, 36))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "98",
+      "unit": "%",
+      "precision": 0
+    },
+    "kInRate": {
+      "expr": "kMode == \"perHour\" ? 10 : kMode == \"perL\" ? 20 * fluidRate / 1000 : 0",
+      "unit": "mmol/h"
+    },
+    "gluRate": {
+      "expr": "-fluidGluRate * clamp(fluidRate / 500, 0, 1.3) * clamp((glu - 100) / 150, 0, 1) - insGluPerUnit * insEff + (dex ? dexGluRate : 0)",
+      "unit": "mg/dL/h"
+    }
+  },
+  "processes": [
+    {
+      "id": "glucose",
+      "update": {
+        "glu": "glu + gluRate * dt / 3600"
+      }
+    },
+    {
+      "id": "ketones",
+      "update": {
+        "bhb": "bhb + (insEff < 0.03 ? bhbRise : -bhbFallPerUnit * insEff) * dt / 3600"
+      }
+    },
+    {
+      "id": "potassium",
+      "update": {
+        "pot": "pot + (kPerMmol * kInRate - kShiftPerUnit * insEff - kDil * (kMode == \"none\" ? fluidRate / 500 : 0)) * dt / 3600"
+      }
+    },
+    {
+      "id": "insulin",
+      "update": {
+        "insEff": "insEff + (insRate - insEff) * (1 - exp(-dt / (insTau * 60)))"
+      }
+    },
+    {
+      "id": "fluids",
+      "update": {
+        "fluidTotal": "fluidTotal + fluidRate * dt / 3600"
+      }
+    },
+    {
+      "id": "watch",
+      "update": {
+        "minG": "min(minG, glu)",
+        "minK": "min(minK, pot)",
+        "gSince": "insRate > 0 ? gSince + dt : gSince",
+        "gGapMax": "insRate > 0 ? max(gGapMax, gSince + dt) : gGapMax"
+      }
+    }
+  ],
+  "phases": {
+    "live": {
+      "label": "At the bedside",
+      "clock": "running",
+      "actions": [
+        "look",
+        "glucose",
+        "gas",
+        "ecg",
+        "fluids",
+        "potassium",
+        "insulin",
+        "dextrose",
+        "bicarb",
+        "call"
+      ]
+    }
+  },
+  "initialPhase": "live",
+  "actions": {
+    "look": {
+      "label": "Look at the patient",
+      "group": "Assess",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "ph < 7.2",
+              "then": [
+                {
+                  "log": "Deep, sighing breaths (Kussmaul). Fruity smell on the breath. Dry mouth, sunken eyes, slow skin turgor. Drowsy but oriented. Abdominal ache.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "ph < 7.3",
+              "then": [
+                {
+                  "log": "Breathing deep but slower. Mouth still dry. More alert, asking for water.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Breathing normally. Alert and talking. Mucous membranes moist.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose",
+      "group": "Assess",
+      "effects": [
+        {
+          "set": "gLast",
+          "to": "round(glu)"
+        },
+        {
+          "set": "gSince",
+          "to": "0"
+        },
+        {
+          "schedule": "nextGlucT",
+          "after": "gluEvery"
+        },
+        {
+          "cases": [
+            {
+              "when": "glu < gHypo",
+              "then": [
+                {
+                  "log": "Glucose {round(glu)} mg/dL: hypoglycemia.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Glucose {round(glu)} mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "gas": {
+      "label": "Venous gas, electrolytes and ketones",
+      "group": "Labs",
+      "available": "not labPending",
+      "why": "A sample is already running.",
+      "effects": [
+        {
+          "set": "labPending",
+          "to": "true"
+        },
+        {
+          "add": "nLabs",
+          "by": "1"
+        },
+        {
+          "schedule": "labT",
+          "after": "labTime",
+          "with": {
+            "k": "round(pot * 10) / 10",
+            "ph": "ph",
+            "hco3": "hco3",
+            "ag": "ag",
+            "bhb": "round(bhb * 10) / 10"
+          }
+        },
+        {
+          "schedule": "nextLabsT",
+          "after": "labsEvery"
+        },
+        {
+          "log": "Venous gas with electrolytes and a ketone check sent to the unit analyser (about 10 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "Look at the rhythm (12-lead)",
+      "group": "Assess",
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "pot < kWarn",
+              "then": [
+                {
+                  "log": "Flattened T waves, prominent U waves, runs of PVCs. Consistent with low potassium.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pot < kHold",
+              "then": [
+                {
+                  "log": "Sinus tachycardia. T waves a little flat; small U waves in V2-V3.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Sinus tachycardia, normal T waves.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fluids": {
+      "label": "IV fluid rate (balanced crystalloid)",
+      "group": "Orders",
+      "params": [
+        {
+          "id": "rate",
+          "kind": "choice",
+          "label": "Rate",
+          "options": [
+            {
+              "value": "1000",
+              "label": "1,000 mL/h"
+            },
+            {
+              "value": "500",
+              "label": "500 mL/h"
+            },
+            {
+              "value": "250",
+              "label": "250 mL/h"
+            },
+            {
+              "value": "150",
+              "label": "150 mL/h"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "fluidRate",
+          "to": "num(rate)"
+        },
+        {
+          "if": "num(rate) >= 500",
+          "then": [
+            {
+              "if": "isNull(fluidUpAt)",
+              "then": [
+                {
+                  "set": "fluidUpAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "IV fluid set to {num(rate)} mL/h."
+        }
+      ]
+    },
+    "potassium": {
+      "label": "Potassium replacement",
+      "group": "Orders",
+      "params": [
+        {
+          "id": "plan",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "perHour",
+              "label": "10 mmol/h (K below 3.5)"
+            },
+            {
+              "value": "perL",
+              "label": "20 mmol in each liter of IV fluid (K 3.5 to 5.0)"
+            },
+            {
+              "value": "none",
+              "label": "No potassium (K above 5.0)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "kMode",
+          "to": "plan"
+        },
+        {
+          "if": "plan != \"none\"",
+          "then": [
+            {
+              "if": "isNull(kReplAt)",
+              "then": [
+                {
+                  "set": "kReplAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cases": [
+            {
+              "when": "plan == \"perHour\"",
+              "then": [
+                {
+                  "log": "Potassium chloride 10 mmol/h on a pump, cardiac monitoring on."
+                }
+              ]
+            },
+            {
+              "when": "plan == \"perL\"",
+              "then": [
+                {
+                  "log": "Potassium 20 mmol added to each liter of IV fluid."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "log": "Potassium stopped."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "insulin": {
+      "label": "Insulin infusion (regular, IV)",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "dose",
+          "kind": "choice",
+          "label": "Rate",
+          "options": [
+            {
+              "value": "0.1",
+              "label": "0.1 units/kg/h (7 units/h)"
+            },
+            {
+              "value": "0.05",
+              "label": "0.05 units/kg/h (3.5 units/h)"
+            },
+            {
+              "value": "0.2",
+              "label": "0.2 units/kg/h (14 units/h)"
+            },
+            {
+              "value": "0",
+              "label": "Stop"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "num(dose) > 0 and isNull(insStartAt)",
+          "then": [
+            {
+              "set": "insStartAt",
+              "to": "t"
+            },
+            {
+              "set": "insFirstRate",
+              "to": "num(dose)"
+            },
+            {
+              "set": "insStartKOk",
+              "to": "not isNull(kSeenAt) and kLast >= kHold"
+            }
+          ]
+        },
+        {
+          "if": "num(dose) == 0 and insRate > 0",
+          "then": [
+            {
+              "if": "isNull(insStoppedAt)",
+              "then": [
+                {
+                  "set": "insStoppedAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "insRate",
+          "to": "num(dose)"
+        },
+        {
+          "if": "num(dose) == 0",
+          "then": [
+            {
+              "log": "Insulin infusion stopped."
+            }
+          ],
+          "else": [
+            {
+              "log": "Insulin infusion at {num(dose)} units/kg/h ({round(num(dose) * weight * 10) / 10} units/h)."
+            }
+          ]
+        }
+      ]
+    },
+    "dextrose": {
+      "label": "Dextrose 10% at 125 mL/h",
+      "group": "Drips",
+      "params": [
+        {
+          "id": "on",
+          "kind": "choice",
+          "label": "Dextrose",
+          "options": [
+            {
+              "value": "start",
+              "label": "Start"
+            },
+            {
+              "value": "stop",
+              "label": "Stop"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "dex",
+          "to": "on == \"start\""
+        },
+        {
+          "if": "on == \"start\"",
+          "then": [
+            {
+              "if": "isNull(dexAt)",
+              "then": [
+                {
+                  "set": "dexAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Dextrose 10% running at 125 mL/h alongside the saline."
+            }
+          ],
+          "else": [
+            {
+              "log": "Dextrose stopped."
+            }
+          ]
+        }
+      ]
+    },
+    "bicarb": {
+      "label": "Sodium bicarbonate 100 mmol IV",
+      "group": "Orders",
+      "available": "isNull(bicarbAt)",
+      "why": "Already given.",
+      "effects": [
+        {
+          "set": "bicarbAt",
+          "to": "t"
+        },
+        {
+          "add": "pot",
+          "by": "-0.4"
+        },
+        {
+          "log": "Sodium bicarbonate 100 mmol given over 1 hour. It pushes potassium into the cells as well."
+        }
+      ]
+    },
+    "call": {
+      "label": "Call the provider",
+      "group": "Escalate",
+      "available": "not pendingCall",
+      "why": "Paged; waiting for the callback.",
+      "params": [
+        {
+          "id": "why",
+          "kind": "choice",
+          "label": "Reason",
+          "options": [
+            {
+              "value": "kLow",
+              "label": "K below 3.5: insulin held, potassium running"
+            },
+            {
+              "value": "glucose",
+              "label": "Glucose under 250: dextrose added, insulin reduced"
+            },
+            {
+              "value": "routine",
+              "label": "Routine update"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "why == \"kLow\"",
+          "then": [
+            {
+              "if": "isNull(callKLowAt)",
+              "then": [
+                {
+                  "set": "callKLowAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingCall",
+          "to": "true"
+        },
+        {
+          "schedule": "callbackT",
+          "after": "callback",
+          "with": {
+            "kLow": "why == \"kLow\""
+          }
+        },
+        {
+          "log": "Paged the provider. Callback in about 3 min."
+        }
+      ]
+    }
+  },
+  "timers": {
+    "labT": {
+      "label": "the gas and electrolytes",
+      "wait": {
+        "skipLabel": "the gas and electrolyte result (about 10 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "k": {
+          "type": "number",
+          "unit": "mmol/L"
+        },
+        "ph": {
+          "type": "number"
+        },
+        "hco3": {
+          "type": "number",
+          "unit": "mmol/L"
+        },
+        "ag": {
+          "type": "number",
+          "unit": "mmol/L"
+        },
+        "bhb": {
+          "type": "number",
+          "unit": "mmol/L"
+        }
+      },
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Venous gas with electrolytes and a ketone meter on the unit: about 10 min."
+      },
+      "effects": [
+        {
+          "set": "labPending",
+          "to": "false"
+        },
+        {
+          "set": "kLast",
+          "to": "timer.with.k"
+        },
+        {
+          "set": "phLast",
+          "to": "timer.with.ph"
+        },
+        {
+          "if": "isNull(kSeenAt)",
+          "then": [
+            {
+              "set": "kSeenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "timer.with.k < kHold",
+          "then": [
+            {
+              "if": "isNull(kLowSeenAt)",
+              "then": [
+                {
+                  "set": "kLowSeenAt",
+                  "to": "t"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Gas: pH {timer.with.ph|2dp}, bicarbonate {timer.with.hco3}, anion gap {timer.with.ag}, beta-hydroxybutyrate {timer.with.bhb|1dp} mmol/L, K {timer.with.k|1dp} mmol/L.",
+          "kind": "find"
+        },
+        {
+          "if": "timer.with.k < kHold",
+          "then": [
+            {
+              "log": "K below 3.5.",
+              "kind": "find"
+            }
+          ]
+        }
+      ]
+    },
+    "nextGlucT": {
+      "label": "the hourly glucose check",
+      "wait": {
+        "skipLabel": "the hourly glucose check"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Read 2026-11-10 in the Diabetologia copy. DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, venous pH below 7.3 and/or bicarbonate below 18. Isotonic saline or balanced crystalloid at 500-1000 mL/h for the first 2-4 h; fluids alone lower glucose about 50-70 mg/dL per hour. Fixed-rate IV insulin 0.1 U/kg/h. Potassium below 3.5: replace at 10 mmol/h and delay insulin until K is above 3.5; replace once K is below 5.0 to keep 4-5. Glucose below 250 mg/dL: add 5-10% dextrose and reduce insulin to 0.05 U/kg/h, holding glucose about 200 (150-200 per the CCJM summary) until resolution. Capillary glucose every 1-2 h; electrolytes, venous pH and beta-hydroxybutyrate every 4 h. Resolution: ketones below 0.6 mmol/L and venous pH 7.3 or more (or bicarbonate 18 or more). Bicarbonate only if pH is below 7.0 (CCJM summary). Hypoglycemia and hypokalemia are common complications of treatment; rapid osmolarity shifts are linked with cerebral edema (under 0.1% of adult events). For HHS, glucose should fall no faster than 90-120 mg/dL per hour."
+      },
+      "effects": [
+        {
+          "log": "An hour since the last glucose check.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "nextLabsT": {
+      "label": "the 2-hourly labs",
+      "wait": {
+        "skipLabel": "the 2-hourly gas and electrolytes"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Joint British Diabetes Societies for Inpatient Care. The management of diabetic ketoacidosis in adults: single page pathway, March 2023",
+        "checkedAt": "2026-11-10",
+        "url": "https://abcd.care/sites/abcd.care/files/site_uploads/JBDS_Guidelines_Current/JBDS_02_Single_page_pathway_March_2023.pdf",
+        "note": "Read 2026-11-10: fixed-rate insulin 0.1 unit/kg/h; 10% glucose at 125 mL/h added when glucose falls below 14 mmol/L (about 250 mg/dL); hourly capillary glucose and ketones; venous bicarbonate and potassium at 60 min, 2 h, then 2-hourly. The pathway's potassium-per-liter table did not extract and was not checked."
+      },
+      "effects": [
+        {
+          "log": "2 hours since the last gas and electrolytes.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "callbackT": {
+      "label": "the provider's callback",
+      "wait": {
+        "skipLabel": "the provider's callback (about 3 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "with": {
+        "kLow": {
+          "type": "bool"
+        }
+      },
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "Provider callback about 3 min."
+      },
+      "effects": [
+        {
+          "set": "pendingCall",
+          "to": "false"
+        },
+        {
+          "if": "timer.with.kLow",
+          "then": [
+            {
+              "log": "Provider: \"Agree. Hold the insulin until K is above 3.5, keep the potassium going, recheck in an hour.\"",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "log": "Provider: \"Thanks. Follow the DKA protocol and call me with anything new.\"",
+              "kind": "sys"
+            }
+          ]
+        }
+      ]
+    },
+    "endT": {
+      "label": "the 6-hour review",
+      "wait": {
+        "skipLabel": "the 6-hour review (08:00)",
+        "routine": true
+      },
+      "instances": "one",
+      "source": {
+        "cite": "ICU unit practice (authored estimate)",
+        "checkedAt": "2026-11-10",
+        "note": "The case ends at the 6-hour review (08:00 handover)."
+      },
+      "effects": []
+    }
+  },
+  "triggers": [
+    {
+      "id": "start",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "endT",
+          "after": "endAt"
+        }
+      ]
+    },
+    {
+      "id": "below250",
+      "when": "glu < gDex",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "gBelow250At",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "fast",
+      "when": "delta(gH, 3600) <= -fastDrop",
+      "mode": "once",
+      "effects": [
+        {
+          "set": "fastAt",
+          "to": "t"
+        }
+      ]
+    },
+    {
+      "id": "ectopy",
+      "when": "pot < kWarn",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: frequent PVCs on the monitor.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "hypo",
+      "when": "glu < gHypo",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Alarm: the patient is sweaty and confused; the CGM reads low.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "orderOfCare": {
+      "trigger": "not isNull(kSeenAt) or t >= reasonAt",
+      "question": "What do these numbers tell you, and in what order will you treat this patient?",
+      "parts": [
+        {
+          "label": "What the numbers say",
+          "criteria": "Names moderate-to-severe DKA (high glucose, raised ketones, low pH and bicarbonate, raised anion gap) and notices that the potassium is below 3.5 despite total-body potassium depletion.",
+          "modelAnswer": "DKA: glucose about 470, beta-hydroxybutyrate about 6, pH 7.1, bicarbonate about 10, anion gap about 26. Potassium 3.2 is low, and insulin will drive it lower."
+        },
+        {
+          "label": "Order of care",
+          "criteria": "Fluids first (500-1,000 mL/h), potassium replaced and insulin held until K is above 3.5, then a fixed-rate infusion at 0.1 units/kg/h; hourly glucose; add dextrose and reduce insulin (not stop it) when glucose falls below 250; no bicarbonate at this pH.",
+          "modelAnswer": "Run fluids at 500-1,000 mL/h now. Give potassium at 10 mmol/h and hold insulin until K is above 3.5, then start insulin at 0.1 units/kg/h and add 20 mmol of potassium per liter. Check glucose hourly and labs every 2 hours. When glucose drops below 250, add dextrose and cut insulin to 0.05 units/kg/h; keep the insulin running until the ketoacidosis clears. Bicarbonate is not indicated at pH 7.1."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {
+      "dexWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+          "checkedAt": "2026-11-10",
+          "url": "https://doi.org/10.2337/dci24-0032",
+          "note": "Authored window: dextrose within 1 hour of glucose falling below 250 mg/dL, the interval between hourly glucose checks."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "t >= endAt and isNull(insStartAt)",
+      "class": "recovered",
+      "rationale": "Six hours of fluids and potassium with no insulin keeps the patient alive and the potassium safe, but the ketoacidosis has not been treated: delayed care rather than harm within this window.",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Insulin is what resolves ketoacidosis; fluids alone lower glucose but not ketones. The class choice is the author's, per docs/sims.md 9.2."
+      }
+    }
+  },
+  "endings": {
+    "arrhythmia": {
+      "label": "Ventricular arrhythmia from low potassium",
+      "class": "harm",
+      "when": "pot <= kHarm",
+      "terminal": true,
+      "narrative": "The PVCs run together into ventricular tachycardia. Potassium {round(pot * 10) / 10}: insulin drove it into the cells faster than it was replaced. The code team is called."
+    },
+    "seizure": {
+      "label": "Seizure from hypoglycemia",
+      "class": "harm",
+      "when": "glu <= gHarm",
+      "terminal": true,
+      "narrative": "Glucose {round(glu)} mg/dL: the patient seizes. Insulin ran too fast with no dextrose as the glucose fell."
+    },
+    "resolving": {
+      "label": "DKA resolving safely",
+      "class": "target",
+      "when": "t >= endAt and insStartKOk and not isNull(fluidUpAt) and timeAt(fluidUpAt) <= timeAt(insStartAt) and insFirstRate == 0.1 and minK >= kWarn and minG >= gHypo and isNull(fastAt) and isNull(insStoppedAt) and insRate > 0 and isNull(bicarbAt) and not isNull(gBelow250At) and not isNull(dexAt) and timeAt(dexAt) <= timeAt(gBelow250At) + dexWindow",
+      "terminal": true,
+      "narrative": "08:00. Glucose {round(glu)} on dextrose and insulin, potassium {round(pot * 10) / 10}, anion gap {ag} and closing. No hypoglycemia, no dangerous potassium. The day team takes over a patient on track."
+    },
+    "time_up": {
+      "label": "Safe at 6 hours, by a slower or rougher route",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "08:00 review. The patient is safe, but the treatment was slower or rougher than it needed to be: insulin late, at the wrong rate, or stopped; dextrose late; potassium low; checks missed; or bicarbonate given."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fluidsFirst",
+        "label": "Fluids first: 500 mL/h or more before insulin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(fluidUpAt)",
+            "score": "missed",
+            "why": "The fluid rate was never raised to 500 mL/h or more."
+          },
+          {
+            "when": "not isNull(insStartAt) and timeAt(fluidUpAt) > timeAt(insStartAt)",
+            "score": "partial",
+            "why": "Fluids went up at {timeAt(fluidUpAt)|clock}, after insulin started."
+          },
+          {
+            "when": "timeAt(fluidUpAt) <= 900",
+            "score": "met",
+            "why": "Fluids up at {timeAt(fluidUpAt)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Fluids up at {timeAt(fluidUpAt)|clock}, more than 15 minutes in."
+          }
+        ]
+      },
+      {
+        "id": "kCheck",
+        "label": "Potassium checked, and 3.5 or more, before insulin",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(insStartAt) and isNull(kSeenAt)",
+            "score": "missed",
+            "why": "Potassium was never checked."
+          },
+          {
+            "when": "isNull(insStartAt)",
+            "score": "partial",
+            "why": "Potassium was checked, but insulin never started."
+          },
+          {
+            "when": "insStartKOk",
+            "score": "met",
+            "why": "Insulin started at {timeAt(insStartAt)|clock} after a K of {kLast|1dp}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Insulin started at {timeAt(insStartAt)|clock} without a potassium of 3.5 or more in hand."
+          }
+        ]
+      },
+      {
+        "id": "kRepl",
+        "label": "Potassium replaced and kept safe",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(kReplAt)",
+            "score": "missed",
+            "why": "No potassium was given; lowest K {round(minK * 10) / 10}."
+          },
+          {
+            "when": "minK < kWarn",
+            "score": "partial",
+            "why": "Potassium given from {timeAt(kReplAt)|clock}, but K fell to {round(minK * 10) / 10}."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Potassium from {timeAt(kReplAt)|clock}; lowest K {round(minK * 10) / 10}."
+          }
+        ]
+      },
+      {
+        "id": "insulin",
+        "label": "Fixed-rate insulin at 0.1 units/kg/h",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(insStartAt)",
+            "score": "missed",
+            "why": "Insulin never started."
+          },
+          {
+            "when": "insFirstRate == 0.1",
+            "score": "met",
+            "why": "Started at 0.1 units/kg/h at {timeAt(insStartAt)|clock}."
+          },
+          {
+            "when": "insFirstRate == 0.05",
+            "score": "partial",
+            "why": "Started at 0.05 units/kg/h, the rate for HHS or once dextrose is running."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Started at {insFirstRate} units/kg/h, twice the DKA rate."
+          }
+        ]
+      },
+      {
+        "id": "dextrose",
+        "label": "Dextrose added when glucose fell below 250, insulin kept running",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(gBelow250At)",
+            "score": "na",
+            "why": "Glucose never fell below 250 in this run."
+          },
+          {
+            "when": "isNull(dexAt) and not isNull(insStoppedAt)",
+            "score": "missed",
+            "why": "The insulin was stopped instead of adding dextrose: the ketones climb again."
+          },
+          {
+            "when": "isNull(dexAt)",
+            "score": "missed",
+            "why": "No dextrose as the glucose fell below 250."
+          },
+          {
+            "when": "not isNull(insStoppedAt)",
+            "score": "partial",
+            "why": "Dextrose added, but the insulin was stopped too."
+          },
+          {
+            "when": "timeAt(dexAt) <= timeAt(gBelow250At) + dexWindow",
+            "score": "met",
+            "why": "Dextrose at {timeAt(dexAt)|clock}; glucose fell below 250 at {timeAt(gBelow250At)|clock}."
+          },
+          {
+            "when": "true",
+            "score": "partial",
+            "why": "Dextrose at {timeAt(dexAt)|clock}, more than an hour after glucose fell below 250."
+          }
+        ]
+      },
+      {
+        "id": "notTooFast",
+        "label": "Glucose brought down steadily, not too fast, no hypoglycemia",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(fastAt) or minG < gHypo",
+            "score": "missed",
+            "why": "Glucose fell more than 100 mg/dL in an hour or went below 70 (lowest {round(minG)})."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Lowest glucose {round(minG)} mg/dL; no hour with a fall over 100."
+          }
+        ]
+      },
+      {
+        "id": "noBicarb",
+        "label": "No bicarbonate at a pH above 7.0",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(bicarbAt)",
+            "score": "missed",
+            "why": "Bicarbonate given at {timeAt(bicarbAt)|clock}; it is reserved for pH below 7.0, and it lowers potassium."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No bicarbonate."
+          }
+        ]
+      },
+      {
+        "id": "hourlyGlucose",
+        "label": "Glucose checked every hour on insulin",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(insStartAt)",
+            "score": "na",
+            "why": "No insulin ran."
+          },
+          {
+            "when": "gGapMax <= 4500",
+            "score": "met",
+            "why": "Longest gap between checks on insulin: {round(gGapMax / 60)} min."
+          },
+          {
+            "when": "gGapMax <= 7200",
+            "score": "partial",
+            "why": "Longest gap between checks on insulin: {round(gGapMax / 60)} min (protocol: hourly)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Longest gap between checks on insulin: {round(gGapMax / 60)} min."
+          }
+        ]
+      },
+      {
+        "id": "escalate",
+        "label": "Told the provider about the low potassium and the insulin hold",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(kLowSeenAt)",
+            "score": "missed",
+            "why": "The low potassium was never found, so it was never reported."
+          },
+          {
+            "when": "not isNull(callKLowAt) and timeAt(callKLowAt) <= timeAt(kLowSeenAt) + 1800",
+            "score": "met",
+            "why": "Called at {timeAt(callKLowAt)|clock}."
+          },
+          {
+            "when": "not isNull(callKLowAt)",
+            "score": "partial",
+            "why": "Called at {timeAt(callKLowAt)|clock}, more than 30 minutes after the result."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The provider was not told about the low potassium."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "orderOfCare",
+        "label": "Written reasoning: read the labs and put the treatment in order",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toFluids",
+        "label": "Handover to fluids at 500 mL/h or more",
+        "value": "isNull(fluidUpAt) ? -1 : timeAt(fluidUpAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      },
+      {
+        "id": "toInsulin",
+        "label": "Handover to insulin",
+        "value": "isNull(insStartAt) ? -1 : timeAt(insStartAt)",
+        "format": "duration",
+        "expert": "about 80 min (after K reaches 3.5)"
+      },
+      {
+        "id": "lowestK",
+        "label": "Lowest potassium (mmol/L)",
+        "value": "round(minK * 10) / 10",
+        "format": "number",
+        "expert": "3.2 at the start, then 3.5 or more"
+      },
+      {
+        "id": "lowestG",
+        "label": "Lowest glucose (mg/dL)",
+        "value": "round(minG)",
+        "format": "number",
+        "expert": "about 200"
+      },
+      {
+        "id": "anionGap",
+        "label": "Anion gap at the end",
+        "value": "ag",
+        "format": "number",
+        "expert": "about 18 and closing"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "02:00",
+        "text": "Look at the patient, check a glucose, send a venous gas with electrolytes and ketones, and raise the fluid to 1,000 mL/h."
+      },
+      {
+        "at": "02:10",
+        "text": "K 3.2: start potassium at 10 mmol/h and hold the insulin. Tell the provider."
+      },
+      {
+        "at": "~03:10",
+        "text": "Recheck: K 3.5 or more. Start insulin at 0.1 units/kg/h and switch potassium to 20 mmol per liter."
+      },
+      {
+        "at": "04:00",
+        "text": "Fluid down to 500 mL/h after the first 2 hours. Glucose hourly; gas and electrolytes every 2 hours."
+      },
+      {
+        "at": "~05:30",
+        "text": "Glucose below 250: add dextrose 10% at 125 mL/h and cut insulin to 0.05 units/kg/h. Do not stop the insulin; the ketones still need it."
+      },
+      {
+        "at": "08:00",
+        "text": "Glucose about 200, K 4-ish, anion gap closing. Plan the overlap to subcutaneous insulin once the DKA has resolved."
+      }
+    ],
+    "debrief": {
+      "arrhythmia": {
+        "headline": "Ventricular arrhythmia from low potassium",
+        "body": "The most useful kind of run to learn from. Look at the order: was the potassium known, and 3.5 or more, before the insulin started? Insulin moves potassium into the cells within the hour."
+      },
+      "seizure": {
+        "headline": "Seizure from hypoglycemia",
+        "body": "The glucose fell too fast and too far. Look at the insulin rate and whether dextrose went in as the glucose passed 250."
+      },
+      "resolving": {
+        "headline": "DKA resolving safely",
+        "body": "Fluids first, potassium before insulin, a fixed-rate infusion, hourly checks, and dextrose with a lower insulin rate as the glucose fell. That is the expert path."
+      },
+      "time_up": {
+        "headline": "Safe at 6 hours, by a slower or rougher route",
+        "body": "No one was harmed, but something cost time or safety margin. Check the criteria marked partial or missed, especially the insulin rate, the dextrose time and the lowest potassium."
+      }
+    },
+    "modelReasoning": "Moderate-to-severe DKA: glucose about 470, ketones about 6, pH 7.1 with a bicarbonate near 10 and a wide anion gap. The potassium of 3.2 is the trap: total-body potassium is depleted, and insulin plus correcting acidosis will drive serum potassium lower, so insulin waits until K is above 3.5 while potassium runs at about 10 mmol/h. Fluids come first at 500-1,000 mL/h. Then fixed-rate insulin at 0.1 units/kg/h with potassium in each liter. Glucose is checked hourly. When it falls below 250, dextrose is added and the insulin reduced, not stopped, because the insulin is there to clear the ketones. Bicarbonate is reserved for pH below 7.0 and would lower potassium further."
+  },
+  "chapters": [
+    {
+      "id": "insulinRunning",
+      "label": "Insulin running",
+      "when": "insRate > 0"
+    },
+    {
+      "id": "below250",
+      "label": "Glucose below 250",
+      "when": "not isNull(gBelow250At)"
+    }
+  ],
+  "teaching": {
+    "kShift": {
+      "during": "labT",
+      "when": "isNull(insStartAt)",
+      "ask": "While the gas runs: if K comes back 3.2 and insulin starts now, what will the potassium do over the next hour?",
+      "choices": [
+        {
+          "id": "up",
+          "label": "Rise"
+        },
+        {
+          "id": "same",
+          "label": "Stay about the same"
+        },
+        {
+          "id": "down",
+          "label": "Fall"
+        }
+      ],
+      "expect": "down",
+      "explain": "Fall. Insulin moves potassium into the cells, and correcting the acidosis does too. That is why insulin waits until K is above 3.5 and potassium is replaced first.",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Hypokalemia is a common complication owing to intracellular shift of potassium after insulin; below 3.5, delay insulin until K is above 3.5 (read in the Diabetologia copy)."
+      }
+    },
+    "below250": {
+      "during": "nextGlucT",
+      "when": "glu < 320 and insRate > 0",
+      "ask": "Glucose is heading toward 250 on insulin. When it gets there, what is the plan?",
+      "choices": [
+        {
+          "id": "stop",
+          "label": "Stop the insulin"
+        },
+        {
+          "id": "dex",
+          "label": "Add dextrose and reduce the insulin"
+        },
+        {
+          "id": "same",
+          "label": "Keep everything the same"
+        }
+      ],
+      "expect": "dex",
+      "explain": "Add dextrose and reduce the insulin, to 0.05 units/kg/h in the consensus. The glucose comes down faster than the ketones clear; the insulin is still needed for the ketoacidosis, so the dextrose is there to let it keep running safely.",
+      "source": {
+        "cite": "Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report (ADA, EASD, JBDS, AACE, DTS). Diabetes Care 2024;47(8):1257-1275. doi:10.2337/dci24-0032; also Diabetologia 2024, doi:10.1007/s00125-024-06183-8",
+        "checkedAt": "2026-11-10",
+        "url": "https://doi.org/10.2337/dci24-0032",
+        "note": "Once glucose falls below 250 mg/dL, add 5-10% dextrose and reduce the insulin infusion to 0.05 U/kg/h until resolution (read in the Diabetologia copy)."
+      }
+    },
+    "bicarb": {
+      "during": "nextLabsT",
+      "when": "phLast > 7",
+      "ask": "The last pH was above 7.0 but still well below 7.3. Should bicarbonate be given?",
+      "choices": [
+        {
+          "id": "yes",
+          "label": "Yes, to correct the acidosis faster"
+        },
+        {
+          "id": "no",
+          "label": "No"
+        }
+      ],
+      "expect": "no",
+      "explain": "No. Fluids and insulin clear the ketoacidosis. Bicarbonate is considered only when the pH is below 7.0, and it pushes potassium into the cells.",
+      "source": {
+        "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: a look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158. doi:10.3949/ccjm.92a.24089",
+        "checkedAt": "2026-11-10",
+        "url": "https://www.ccjm.org/content/92/3/152",
+        "note": "Routine bicarbonate is not recommended; consider it only in severe acidosis (pH below 7.0)."
+      }
+    }
+  }
+}
