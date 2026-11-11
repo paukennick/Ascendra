@@ -112,6 +112,36 @@ describe("gates", () => {
   });
 });
 
+describe("REQ-228 gates", () => {
+  function withEnv(name: string, value: string | undefined, fn: () => void) {
+    const before = process.env[name];
+    try {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+      fn();
+    } finally {
+      if (before === undefined) delete process.env[name];
+      else process.env[name] = before;
+    }
+  }
+  test("the sims gate follows SIMS_ENABLED", () => {
+    withEnv("SIMS_ENABLED", undefined, () => assert.equal(RELEASE_NOTE_GATES.sims(), false));
+    withEnv("SIMS_ENABLED", "true", () => assert.equal(RELEASE_NOTE_GATES.sims(), true));
+  });
+  test("the aiCeiling gate is open only when a ceiling is set", () => {
+    withEnv("AI_GLOBAL_DAILY_CEILING_USD", undefined, () => assert.equal(RELEASE_NOTE_GATES.aiCeiling(), false));
+    withEnv("AI_GLOBAL_DAILY_CEILING_USD", "5", () => assert.equal(RELEASE_NOTE_GATES.aiCeiling(), true));
+  });
+  test("every note about sims is gated on sims", () => {
+    for (const n of RELEASE_NOTES) {
+      if (n.requires === "sims") continue;
+      for (const i of n.items) {
+        if (/\bsims?\b/i.test(`${i.headline} ${i.body}`)) assert.equal(i.requires, "sims", i.headline);
+      }
+    }
+  });
+});
+
 describe("unseen notes", () => {
   const e = (id: string): ReleaseNote => ({ id, date: id.slice(0, 10), title: id, items: [] });
   const entries = [e("2027-02-01"), e("2026-12-24-b"), e("2026-12-24"), e("2026-11-07")];
