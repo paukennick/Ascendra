@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# HISTORICAL (retired 2026-11-10, REQ-214): kept as the record of how the
+# 2026-11-07 release was rehearsed. It no longer runs in CI and is not valid
+# for later releases: it applies every migration but undoes only 11-07's.
+#
 # Release 2026-11-07: rehearse the production migration, and its rollback,
 # on local throwaway databases. Repeatable and CI-able (.github/workflows/ci.yml
 # job "rehearsal"). Never touches a remote database: it refuses any ADMIN_URL
