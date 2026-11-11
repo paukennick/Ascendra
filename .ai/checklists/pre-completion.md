@@ -227,7 +227,6 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
-<<<<<<< HEAD
 - Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
   generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
   a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
@@ -241,7 +240,6 @@
   A counted use is released with `releaseOnce` on every path that stores
   nothing. A route that calls the model for a replayable id takes a
   `withGradingClaim` first.
-=======
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
@@ -254,7 +252,6 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
->>>>>>> origin/master
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.
@@ -264,6 +261,14 @@
 - Any rule, playbook or checklist that should have prevented a failure was
   changed in this task.
 - Docs updated when behavior or workflow changed.
+- Ship notes (REQ-228): a change learners can see or feel updates "What's
+  new" (backend/lib/release-notes.ts) in the same PR, or its CHANGELOG entry
+  says why not ("No What's new: ..."); and every in-app text that describes
+  the changed behavior (FAQ and About in mobile/src/content/legal.ts, lesson
+  and course copy, notices, emails, the coach's prompt) and every doc that
+  describes it is updated too. Mark the CHANGELOG entry `(learner-facing)`;
+  lib/ship-notes.test.ts fails CI when a marked entry has no note. See
+  .ai/playbooks/release.md "Ship notes".
 - Changelog updated when public release notes are desired.
 - Local-only notes remain ignored.
 - Risks and follow-ups are stated.
