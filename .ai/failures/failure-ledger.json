@@ -12070,6 +12070,33 @@
       ],
       "prevention_notes": "pbq-holdback.dbtest.ts serves a medium-confidence scenario with a listed claim on the first call",
       "recurrence_of": "FAIL-1000"
+    },
+    {
+      "id": "FAIL-1167",
+      "date": "2026-11-10",
+      "title": "Android never offered saved web passwords in the app: the app declared no asset_statements",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "Passwords saved for ascendra-learn.com in Google Password Manager were not offered on the app's login screen",
+      "how_detected": "audit-2026-11-11",
+      "root_cause": "Digital Asset Links needs both halves. The website listed the app (assetlinks.json, get_login_creds) but mobile/app.json had no asset_statements meta-data, so nothing in the app named the website; Expo writes none by default",
+      "requirement": "REQ-221",
+      "affected": [
+        "mobile/app.json",
+        "mobile/plugins/withAssetStatements.js",
+        "backend/public/.well-known/README.md"
+      ],
+      "fix_summary": "Expo config plugin writes the asset_statements meta-data and the strings.xml statement list (get_login_creds, web, https://www.ascendra-learn.com); verified with expo prebuild in a scratch copy. assetlinks.json unchanged (its android_app statement is the site half). Needs a new build",
+      "fix_commits": [],
+      "regression_tests": [
+        "mobile/src/lib/assetStatements.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [
+        ".ai/checklists/pre-completion.md"
+      ],
+      "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
+      "recurrence_of": ""
     }
   ]
 }
