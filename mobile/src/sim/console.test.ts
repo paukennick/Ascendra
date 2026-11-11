@@ -41,7 +41,7 @@ function play(slug: string, steps: (string | [string, Record<string, string>])[]
 }
 
 describe("security console view model", () => {
-  test("at the start: open alerts, assets with a tone in words, the first log lines, and every element labelled", () => {
+  test("at the start: open alerts, assets with a tone in words, the first log lines, and every element labeled", () => {
     for (const slug of SLUGS) {
       const v = consoleView(createRun(doc(slug), 1))!;
       assert.ok(v, slug);
