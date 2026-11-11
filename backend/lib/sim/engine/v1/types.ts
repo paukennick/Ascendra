@@ -56,6 +56,13 @@ export interface ScenarioDoc {
   reasoning: Record<Id, ReasoningMoment>;
   outcome: OutcomeSpec;
   endings: Record<Id, Ending>; // must include "time_up"
+  // REQ-227 (FAIL-1222), engine minor 2: the order endings are checked in,
+  // first true wins. Without it the engine uses the key order of `endings`,
+  // which a jsonb column does not keep (shorter keys first), so on the server
+  // and in the app the same document could end differently. Lists every
+  // ending that has a `when` exactly once (never time_up); required from
+  // minor 2 whenever two or more endings have a `when`.
+  endingOrder?: Id[];
   scoring: Scoring;
   // REQ-209 (docs/sims.md 5.4a-5.4e). Optional, clinical and fitness scenarios
   // with a `running` phase only (lint), engine minor 1 (FEATURE_MINOR).

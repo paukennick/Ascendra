@@ -419,6 +419,7 @@ function structural(doc: ScenarioDoc, col: Collector): DocInfo | null {
     if (!doc.scoring.debrief[k] && e.terminal) col.warn(`scoring.debrief.${k}`, "no debrief headline and body for this ending");
   }
   if (terminals < 1) col.error("endings", "at least one terminal ending");
+  endingOrderRules(doc, col);
   for (const k of Object.keys(doc.scoring.debrief)) if (!doc.endings[k]) col.error(`scoring.debrief.${k}`, "no such ending");
 
   // reasoning
@@ -1239,6 +1240,36 @@ function usesFeature(doc: ScenarioDoc, feature: string): boolean {
     default:
       return JSON.stringify(doc).indexOf(feature) >= 0;
   }
+}
+
+// REQ-227 (FAIL-1222, engine minor 2): the order endings are checked in must
+// not depend on the key order of `endings`, which jsonb does not keep. From
+// minor 2 a document with two or more endings that have a `when` declares
+// `endingOrder`: every such ending exactly once, never time_up (it has no
+// `when`). A document below minor 2 may not use it (an older engine would
+// ignore it and check endings in key order); whether its key-order result
+// still happens to be the same is the content linter's job (sims lint).
+function endingOrderRules(doc: ScenarioDoc, col: Collector): void {
+  const withWhen = Object.keys(doc.endings).filter((k) => k !== "time_up" && doc.endings[k].when);
+  const order = doc.endingOrder;
+  if (order === undefined) {
+    if (doc.engine.minor >= 2 && withWhen.length >= 2) col.error("endingOrder", `engine minor ${doc.engine.minor} needs an explicit endingOrder when two or more endings have a when (the order must not depend on key order; list ${withWhen.join(", ")})`);
+    return;
+  }
+  if (doc.engine.minor < 2) col.error("engine.minor", "endingOrder needs engine minor 2");
+  if (!Array.isArray(order) || order.some((x) => typeof x !== "string")) {
+    col.error("endingOrder", "must be a list of ending ids");
+    return;
+  }
+  const seen = new Set<string>();
+  order.forEach((k, i) => {
+    if (seen.has(k)) col.error(`endingOrder[${i}]`, `"${k}" is listed twice`);
+    seen.add(k);
+    if (!Object.prototype.hasOwnProperty.call(doc.endings, k)) col.error(`endingOrder[${i}]`, `no ending "${k}"`);
+    else if (k === "time_up") col.error(`endingOrder[${i}]`, "time_up is reached by tick count and is not ordered");
+    else if (!doc.endings[k].when) col.error(`endingOrder[${i}]`, `"${k}" has no when, so it has no place in the order`);
+  });
+  for (const k of withWhen) if (!seen.has(k)) col.error("endingOrder", `ending "${k}" has a when but is not in endingOrder`);
 }
 
 // REQ-209 (docs/sims.md 5.4a-5.4e, layer 2): the shape of the optional

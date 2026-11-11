@@ -261,6 +261,7 @@ export const scenarioSchema = z.object({
   reasoning: z.record(id, reasoningMomentSchema),
   outcome: outcomeSpecSchema,
   endings: z.record(id, endingSchema).refine((e) => Object.keys(e).length <= 12, "at most 12 endings"),
+  endingOrder: z.array(id).max(12).optional(), // REQ-227, engine minor 2
   scoring: scoringSchema,
   focusedStart: focusedStartSchema.optional(),
   chapters: z.array(chapterSchema).max(6).optional(),
