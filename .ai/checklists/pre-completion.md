@@ -202,6 +202,21 @@
   SET, `pg_advisory_lock`, named prepared statements, temp tables, LISTEN):
   production connects through a transaction pooler
   (docs/ops/2026-11-10-transaction-pooler-session-state.md).
+<<<<<<< HEAD
+- Generated learner-facing content (REQ-216, FAIL-1010..1026): a new kind of
+  generated item goes through `lib/generation-gate.ts` (`generateGated`) or, in
+  a batch, the same helpers (`lowConfidenceOf`, `verdictHolds`,
+  `verdictUnchecked`, `steerText`): it is held back ONLY on the writer's low
+  confidence or a fact-check that disagrees with the key; claims it lists are
+  logged (`noteListedClaims`), never blocking; it is written once more steered
+  with the claims; held twice, the learner gets a 409 whose words name the
+  reason. A failed fact-check CALL is retryable and is never a holdback or a
+  cooldown. A `UserFacingError` is always a 4xx (lib/generation-gate.test.ts
+  scans every throw site), and the app keeps the server's words for 502/503.
+  A counted use is released with `releaseOnce` on every path that stores
+  nothing. A route that calls the model for a replayable id takes a
+  `withGradingClaim` first.
+=======
 - Phone sessions and screens (REQ-217, FAIL-1040..1066): a silent refresh never
   writes the biometric-sealed key (Android prompts for every write); it is
   written at sign-in, unlock and when the app goes to the background, and a
@@ -214,6 +229,7 @@
   request succeeds (`pendingIdFor`). A screen a learner can leave with the back
   gesture flushes its work through a `beforeRemove` guard. A button that throws
   work away asks first. A catch on a load shows the error, never an empty state.
+>>>>>>> origin/master
 - Tests or validation run, or skipped with reason.
 - New test frameworks, test directories or check scripts are registered as test
   suites (`omni test detect`); `omni test check` passes.

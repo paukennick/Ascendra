@@ -1,4 +1,4 @@
-import { consumeGradedAnswer } from "@/lib/ai-access";
+import { consumeGradedAnswer, releaseOnce } from "@/lib/ai-access";
 import { randomInt } from "node:crypto";
 import { NextResponse } from "next/server";
 import { query, queryOne, withTransaction, type TxClient } from "@/lib/db";
@@ -838,8 +838,11 @@ export async function gradeReasoning(
       if (err instanceof RateLimitError) throw new SimError(429, "rate_limited", err.message);
       throw err;
     }
-    const use = await consumeGradedAnswer(userId, () => consumeAllowance(userId, "graded_answer")); // REQ-201
+    const use = releaseOnce(await consumeGradedAnswer(userId, () => consumeAllowance(userId, "graded_answer"))); // REQ-201
     const ctx = (await coachContextForObjective(sim.objective_id)) ?? undefined;
+    // REQ-216 (low): the counted use is given back when the grader throws (it
+    // used to be given back only when the grader reported `failed`), when the
+    // write fails, and when another copy of this answer was stored first.
     const out = await gradeSimReasoning(
       {
         simTitle: sim.title,
@@ -853,7 +856,10 @@ export async function gradeReasoning(
         userId,
       },
       model
-    );
+    ).catch(async (err) => {
+      await use.release();
+      throw err;
+    });
     if (out.failed) await use.release();
     const g = out.graded;
     try {
@@ -895,12 +901,14 @@ export async function gradeReasoning(
           );
       });
       if (!row) {
+        await use.release();
         const again = await replay();
         if (again) return again;
         throw new SimError(409, "already_graded", "This reasoning moment was already answered.");
       }
       return reasoningShape(row, doc, false);
     } catch (err) {
+      await use.release();
       const e = err as { code?: string; constraint?: string };
       if (clientAttemptId && e?.code === "23505") {
         const again = await replay();

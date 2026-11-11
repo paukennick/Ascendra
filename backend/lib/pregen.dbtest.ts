@@ -410,7 +410,7 @@ describe("FAIL-970/971/975: the practice batch is built from the teaching text, 
 
   test("an intro the writer is unsure of is held back (logged), never continued, and costs nothing more", async () => {
     const { practiceBatch } = await runToPracticeBatch([codeB], {
-      intro: (id) => (id === ids.b2 ? { confidence: "medium", uncertainClaims: ["SECRETCLAIM a 2026 limit"] } : {}),
+      intro: (id) => (id === ids.b2 ? { confidence: "low", uncertainClaims: ["SECRETCLAIM a 2026 limit"] } : {}),
     });
     assert.deepEqual(practiceBatch.requests.map((r) => parseRequestId(r.custom_id)!.objectiveId), [ids.b1]);
     const held = await query<{ item_kind: string; reason: string }>(`select item_kind, reason from item_holdbacks where objective_id = $1`, [ids.b2]);
@@ -485,13 +485,17 @@ describe("FAIL-970..978: collect saves through the app's own gates", () => {
     });
     const callsBefore = parseBodies.length;
     const s = await collectPractice(introBatch.id, practiceBatch.id, [codeB, codeA]);
-    assert.equal(s.held, 3);
+    // REQ-216: b2's missing verdict is a check that did not run, not a verdict on the lesson:
+    // not held, not saved, reported as failed so the next run tries it again.
+    assert.equal(s.held, 2);
+    assert.equal(s.failed, 1);
+    assert.deepEqual(s.failedBy, { "fact-check did not run": 1 });
     assert.equal(s.saved, 2, "a1 and a6 pass");
     for (const id of [ids.b1, ids.b2, ids.a2]) assert.equal(await lessonRow(id), null, "held lessons are not saved");
     const reasons = await query<{ objective_id: string; reason: string }>(`select objective_id, reason from item_holdbacks where objective_id = any($1::uuid[])`, [[ids.b1, ids.b2, ids.a2]]);
     const by = new Map(reasons.map((r) => [r.objective_id, r.reason]));
     assert.equal(by.get(ids.b1), "fact_check");
-    assert.equal(by.get(ids.b2), "fact_check", "a missing verdict is a failed check, as in the app");
+    assert.equal(by.get(ids.b2), undefined, "a missing verdict is a check that did not run: no holdback (REQ-216)");
     assert.equal(by.get(ids.a2), "uncertain");
     // the unsure writer's lesson never reached the fact-check model
     assert.equal(parseBodies.length - callsBefore, 4, "4 fact-checks for 5 lessons");
@@ -570,7 +574,9 @@ describe("FAIL-970..978: collect saves through the app's own gates", () => {
   });
 
   test("collect prints counts only: no claim, no teaching text, no id of a held lesson's content", async () => {
-    policy = () => "unsupported";
+    // REQ-216: claims the checker could not confirm no longer hold a lesson back when its answer
+    // agrees; b2's answer disagrees, so it is held, and b1 (low confidence) never reaches the checker.
+    policy = (text) => (text.includes("Objective b2 ") ? "disagree" : "unsupported");
     const warned: string[] = [];
     const realWarn = console.warn;
     console.warn = (...a: unknown[]) => warned.push(a.map(String).join(" "));

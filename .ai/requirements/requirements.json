@@ -7628,44 +7628,62 @@
       ]
     },
     {
-      "id": "REQ-218",
+      "id": "REQ-216",
       "category": "bugfix",
-      "title": "Learning-data integrity (G3): quarantine in review prep, review spacing floor, Independent needs a later session, exam submit and other races",
-      "description": "Nick, 2026-11-10 (audit batch G3, audit of 2026-11-11, approved incl. low-priority). Review prep serves pulled items (H1); a review due on a UTC calendar day can be minutes after the last one and a correct answer jumps a rung (H8; an item is now due only 24 h after its last review (Nick, 2026-11-10 21:22: a full day)); Independent mastery needs a later-session confirmation (24 h after the first unassisted format win; migration 074 restates mastery_detail and recomputes stored levels); exam submit claims the session before reading, records no attempt for items now confirmed wrong or objectives retired mid-session, reuses a stored attempt, and an expired timed session is submitted before the next start abandons it (M1, M2, M5); a sim reasoning answer cannot be stored after the run ended (M3); confirming an item wrong resolves the error_log rows and deletes the misconceptions of the voided attempts (M4); lab restart cannot race a graded last step; the first PBQ or unit-check answer is decided under a per-scenario lock; explain-back replay is bound to the answer text; a re-check claim expires.",
+      "title": "Generation gate: block only on low confidence or a disagreeing check; learner errors are 4xx; plain reasons",
+      "description": "Audit of 2026-11-11, batch G1 (Nick approved 2026-11-10). Generated lessons, quiz questions, review questions, unit checks, comparison cards, exam items and PBQs are held back only on the writer's low confidence or a fact-check that disagrees with the key; listed disclaimers are logged. One retry steered with the first attempt's claims. When held, the learner is told the reason in plain words with a 409; a failed fact-check call is retryable, not a holdback. Review says 'couldn't be prepared' instead of 'nothing due'. Every UserFacingError is a 4xx and the app keeps the server's words for 502/503. The lesson intro handed out is kept when the practice half fails. Distractor lint narrowed. Labs (REQ-123 generation, scripts/generate-labs.ts) are on the same rule: held only on the writer's low confidence, a broken content rule or a checker that finds a wrong reference answer, something unsafe or a step that depends on an earlier answer; one steered retry; the operator is told why in plain words; a failed checker call is retryable with no holdback. Lows: PBQ and unit-check waiters, unit-check single flight, rate-limit message, bad course date, counted-use give-backs on labs and sims, grading-claim expiry, chat single flight, soft global ceiling documented.",
       "priority": "high",
-      "status": "pending",
+      "status": "completed",
       "minimum_access_scope": [
-        "backend/lib/review-store.ts",
-        "backend/lib/review-scheduler.ts",
-        "backend/lib/review-step.ts",
-        "backend/lib/reminder-plan-store.ts",
-        "backend/lib/exam-sessions.ts",
+        "backend/lib/generation-gate.ts",
         "backend/lib/item-quality.ts",
+        "backend/lib/fact-check.ts",
+        "backend/lib/http.ts",
+        "backend/lib/lesson-generation.ts",
+        "backend/lib/coach-quiz.ts",
+        "backend/lib/review-service.ts",
+        "backend/lib/unit-check.ts",
+        "backend/lib/understanding-ai.ts",
+        "backend/lib/exam-items.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/content-validator.ts",
+        "backend/lib/pbq-scenarios.ts",
+        "backend/app/api/pbq/route.ts",
+        "backend/app/api/chat/route.ts",
+        "backend/app/api/courses/route.ts",
+        "backend/lib/lab-routes.ts",
         "backend/lib/sims.ts",
-        "backend/lib/labs.ts",
-        "backend/lib/grading-service.ts",
-        "backend/lib/replay-binding.ts",
-        "backend/app/api/objectives/[id]/explain-back/route.ts",
-        "backend/app/api/exam/sessions/[id]/submit/route.ts",
-        "backend/supabase/migrations/074_*.sql",
-        "backend/lib/schema-status.ts",
-        "backend/lib/learning-data-g3.dbtest.ts",
-        "CHANGELOG.md"
+        "backend/lib/lab-generation.ts",
+        "backend/scripts/generate-labs.ts",
+        "mobile/src/lib/errorMessage.ts",
+        "mobile/src/lib/regenerateError.ts",
+        "CHANGELOG.md",
+        "docs/billing.md"
       ],
       "acceptance_criteria": [
-        "a pulled review item is never picked for a session; a review is not due until 18 h after the last one and an early correct answer does not climb a rung; Independent needs unassisted correct format wins 24 h apart; stored levels follow after recompute; submit claims then grades; no attempt for confirmed-wrong items or retired objectives; reasoning refused after the run ended; confirm-wrong clears error_log and misconceptions; lab restart cannot complete an abandoned run; two first PBQ answers give one unassisted and one repeat; explain-back replay with another answer is 409; an old re-check claim is taken over"
+        "a listed disclaimer at medium or high confidence never holds an item back",
+        "low confidence or a disagreeing check holds it and the retry is steered with the claims",
+        "a held item answers 409 with the reason",
+        "a failed fact-check call is a retryable 409 with no holdback",
+        "review with due items but nothing prepared returns unavailable and no empty session",
+        "no UserFacingError is a 5xx",
+        "the app shows the server's words for 502/503",
+        "the accepted lesson intro is reused when practice fails",
+        "read-only/two-factor/three-way handshake are not rejected by the lint",
+        "a lab is held only on low confidence, a content rule, or a checker disagreement; a listed or unconfirmed claim stores it; the retry is steered; a failed checker call is retryable with no holdback row"
       ],
       "validation_required": [
-        "build",
-        "test",
-        "typecheck",
-        "data_validation"
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile tsc and npm test",
+        "omni gate"
       ],
       "documentation_required": [
-        "changelog"
+        "CHANGELOG.md",
+        "docs/billing.md"
       ],
       "risk_notes": [
-        "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
+        "a held item can now cost up to two writer calls; the kept lesson intro is per server process; labs have no learner request path (written offline by scripts/generate-labs.ts), so the reason is the operator outcome line, not an HTTP 409; a lab held for something the checker called unsafe stays held (stricter than disagreeing with the key, deliberate for clinical and fitness labs)"
       ]
     },
     {
@@ -7765,6 +7783,47 @@
       ],
       "risk_notes": [
         "a runaway agent can now use more turns before it stops; the lead still caps work by instruction"
+      ]
+    },
+    {
+      "id": "REQ-218",
+      "category": "bugfix",
+      "title": "Learning-data integrity (G3): quarantine in review prep, review spacing floor, Independent needs a later session, exam submit and other races",
+      "description": "Nick, 2026-11-10 (audit batch G3, audit of 2026-11-11, approved incl. low-priority). Review prep serves pulled items (H1); a review due on a UTC calendar day can be minutes after the last one and a correct answer jumps a rung (H8; an item is now due only 24 h after its last review (Nick, 2026-11-10 21:22: a full day)); Independent mastery needs a later-session confirmation (24 h after the first unassisted format win; migration 074 restates mastery_detail and recomputes stored levels); exam submit claims the session before reading, records no attempt for items now confirmed wrong or objectives retired mid-session, reuses a stored attempt, and an expired timed session is submitted before the next start abandons it (M1, M2, M5); a sim reasoning answer cannot be stored after the run ended (M3); confirming an item wrong resolves the error_log rows and deletes the misconceptions of the voided attempts (M4); lab restart cannot race a graded last step; the first PBQ or unit-check answer is decided under a per-scenario lock; explain-back replay is bound to the answer text; a re-check claim expires.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/lib/review-store.ts",
+        "backend/lib/review-scheduler.ts",
+        "backend/lib/review-step.ts",
+        "backend/lib/reminder-plan-store.ts",
+        "backend/lib/exam-sessions.ts",
+        "backend/lib/item-quality.ts",
+        "backend/lib/sims.ts",
+        "backend/lib/labs.ts",
+        "backend/lib/grading-service.ts",
+        "backend/lib/replay-binding.ts",
+        "backend/app/api/objectives/[id]/explain-back/route.ts",
+        "backend/app/api/exam/sessions/[id]/submit/route.ts",
+        "backend/supabase/migrations/074_*.sql",
+        "backend/lib/schema-status.ts",
+        "backend/lib/learning-data-g3.dbtest.ts",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "a pulled review item is never picked for a session; a review is not due until 18 h after the last one and an early correct answer does not climb a rung; Independent needs unassisted correct format wins 24 h apart; stored levels follow after recompute; submit claims then grades; no attempt for confirmed-wrong items or retired objectives; reasoning refused after the run ended; confirm-wrong clears error_log and misconceptions; lab restart cannot complete an abandoned run; two first PBQ answers give one unassisted and one repeat; explain-back replay with another answer is 409; an old re-check claim is taken over"
+      ],
+      "validation_required": [
+        "build",
+        "test",
+        "typecheck",
+        "data_validation"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": [
+        "Independent is harder to reach (needs a second sitting): levels drop on recompute until learners return; reviews appear up to 18 h later than the date alone; the exam submit now runs in one transaction"
       ]
     }
   ]

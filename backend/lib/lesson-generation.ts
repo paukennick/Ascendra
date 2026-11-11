@@ -3,7 +3,7 @@ import { queryOne } from "@/lib/db";
 import { UserFacingError } from "@/lib/http";
 import { presentationOrder, presentationSeed, shuffleForPresentation } from "@/lib/choice-order";
 import { callClaudeStructured, getModel } from "@/lib/anthropic";
-import { fixFor, generateValid, lessonIntroProblems, lessonPracticeProblems, shufflePractice } from "@/lib/content-validator";
+import { fixFor, generateValid, lessonIntroProblems, lessonPracticeHardProblems, lessonPracticeLint, shufflePractice } from "@/lib/content-validator";
 import { coachContextForObjective, type CoachContext } from "@/lib/coach-context";
 import {
   lessonIntroPrompt,
@@ -32,8 +32,9 @@ import {
   type LessonRow,
   type LessonScope,
 } from "@/lib/lesson-store";
-import { factCheckGate, modelFactChecker, type CheckItem, type FactChecker } from "@/lib/fact-check";
-import { lessonItemId, recordHoldback, uncertaintyOf, type ItemRef } from "@/lib/item-quality";
+import { factCheckGate, modelFactChecker, verdictClaims, verdictHolds, verdictUnchecked, type CheckItem, type FactChecker } from "@/lib/fact-check";
+import { lessonItemId, lowConfidenceOf, noteListedClaims, recordHoldback, type ItemRef } from "@/lib/item-quality";
+import { FactCheckUnavailableError, reasonPhrase, type HoldReason } from "@/lib/generation-gate";
 import { AUTHORED_LESSON_MODEL, authoredLesson, authoredRefFor, type AuthoredRef } from "@/lib/authored-lessons";
 import { snippetProblems, wantsVerification, type VerifySnippet } from "@/lib/verify-execution";
 import { queueExecCheck } from "@/lib/exec-checks";
@@ -274,7 +275,7 @@ export const claudeGenerator: LessonGenerator = {
         purpose: "lesson_practice",
         userId: meta?.userId ?? null,
       });
-    }, lessonPracticeProblems);
+    }, lessonPracticeHardProblems, undefined, lessonPracticeLint);
     return shufflePractice(made);
   },
   model: getModel,
@@ -306,10 +307,21 @@ export function authoredGenerator(ref: AuthoredRef): LessonGenerator {
 // REQ-187 (R3/P1): what a learner is told when a lesson's content failed the
 // accuracy checks twice. Nothing is stored or served; the item is in
 // item_holdbacks for a person. The practice for the objective is still
-// there in the lab and in review.
+// there in the lab and in review. REQ-216: the words name the reason when it
+// is known (heldBackMessage); this is the form for a cooldown, where the
+// refusal was a moment ago and its reason is in the log.
 export const HELD_BACK_MESSAGE =
   "This lesson didn't pass our accuracy checks, so we're not showing it yet. It has been held for review. " +
-  "In the meantime, try this objective's lab or your review questions, and check back later.";
+  "In the meantime, try this objective's lab or your review questions, and check back in a few minutes.";
+
+export function heldBackMessage(reasons: Iterable<HoldReason>): string {
+  const set = new Set(reasons);
+  if (!set.size) return HELD_BACK_MESSAGE;
+  return (
+    `This lesson didn't pass our accuracy checks (${reasonPhrase(set)}), so we're not showing it yet. It has been held for review. ` +
+    "In the meantime, try this objective's lab or your review questions, and check back in a few minutes."
+  );
+}
 
 // REQ-195: asked to generate a lesson for a retired objective.
 export class RetiredObjectiveError extends Error {
@@ -325,8 +337,8 @@ export class RetiredObjectiveError extends Error {
 // checks (a person will look; trying again now will not help), `retryable`
 // that waiting a moment will not change the answer.
 export class ContentHeldBackError extends UserFacingError {
-  constructor() {
-    super(HELD_BACK_MESSAGE, 409, { held: true, retryable: false });
+  constructor(reasons: Iterable<HoldReason> = []) {
+    super(heldBackMessage(reasons), 409, { held: true, retryable: false });
     this.name = "ContentHeldBackError";
   }
 }
@@ -338,7 +350,8 @@ export const EXEC_QUEUE_UNAVAILABLE =
   "We couldn't finish preparing this lesson just now. Please try again in a moment.";
 export class ExecQueueUnavailableError extends UserFacingError {
   constructor() {
-    super(EXEC_QUEUE_UNAVAILABLE, 503, { retryable: true });
+    // REQ-216 (H3): a 409, not a 503 -- the app hides a 5xx's words.
+    super(EXEC_QUEUE_UNAVAILABLE, 409, { retryable: true });
     this.name = "ExecQueueUnavailableError";
   }
 }
@@ -350,8 +363,12 @@ export const NOT_SERVED_MARK = "[not served: failed again after one retry]";
 
 // After a lesson is held back twice, a new attempt waits this long, so a
 // learner reopening the objective does not spend another four model calls
-// on content the checks just refused.
-export const HELD_BACK_COOLDOWN_HOURS = 6;
+// on content the checks just refused. REQ-216 (M5): ten minutes, down from six
+// hours. Only a verdict on the content starts it (never our own failure,
+// FAIL-883), and with the gate narrowed to low confidence or a disagreeing
+// check (H2) a refusal is rare enough that a long lockout cost more than the
+// calls it saved.
+export const HELD_BACK_COOLDOWN_MINUTES = 10;
 
 // FAIL-882: the cooldown is per scope. It used to filter by objective only, so
 // one learner's failed regenerate locked the objective for every learner for
@@ -363,9 +380,9 @@ export async function recentlyHeldBack(objectiveId: string, scope: LessonScope =
   const r = await queryOne<{ n: number }>(
     `select count(*)::int as n from item_holdbacks
       where objective_id = $1 and item_kind in ('lesson', 'lesson_intro')
-        and claims ? $2 and created_at > now() - make_interval(hours => $3)
+        and claims ? $2 and created_at > now() - make_interval(mins => $3)
         and scope_user_id is not distinct from $4::uuid`,
-    [objectiveId, NOT_SERVED_MARK, HELD_BACK_COOLDOWN_HOURS, scope.kind === "user" ? scope.userId : null]
+    [objectiveId, NOT_SERVED_MARK, HELD_BACK_COOLDOWN_MINUTES, scope.kind === "user" ? scope.userId : null]
   ).catch(() => null);
   return (r?.n ?? 0) > 0;
 }
@@ -384,15 +401,24 @@ export async function checkedIntro(
   opts: { gen: LessonGenerator; avoid?: LessonAvoid; meta: GenerateMeta }
 ): Promise<LessonIntroContent> {
   const first = await opts.gen.intro(objRow, opts.avoid, opts.meta);
-  const unsure = uncertaintyOf(first);
-  if (!unsure) return first;
+  // REQ-216 (H2): only the writer's LOW confidence holds the teaching text
+  // back; claims it merely lists are logged (3 of 9 intros in production were
+  // held for disclaimers).
+  const unsure = lowConfidenceOf(first);
+  if (!unsure) {
+    noteListedClaims(`lesson_intro (${objectiveId})`, first);
+    return first;
+  }
   await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: unsure, content: first, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta) });
   const introSteer = `A previous draft of this teaching text was held back because the writer was not sure of these claims. Leave each out, or state plainly that it may differ for this version:\n${unsure.map((c) => `- ${c}`).join("\n")}`;
   const retry = await opts.gen.intro(objRow, opts.avoid, { ...opts.meta, introSteer });
-  const again = uncertaintyOf(retry);
-  if (!again) return retry;
+  const again = lowConfidenceOf(retry);
+  if (!again) {
+    noteListedClaims(`lesson_intro (${objectiveId})`, retry);
+    return retry;
+  }
   await recordHoldback({ kind: "lesson_intro", objectiveId, reason: "uncertain", claims: [NOT_SERVED_MARK, ...again], content: retry, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta) });
-  throw new ContentHeldBackError();
+  throw new ContentHeldBackError(["uncertain"]);
 }
 
 // REQ-114 (Audit 3 H1 + recommendation 1), changed by REQ-187 (audit
@@ -414,20 +440,37 @@ export async function checkedPractice(
   first: LessonPracticeContent,
   opts: { shared: boolean; gen: LessonGenerator; avoid?: LessonAvoid; meta: GenerateMeta }
 ): Promise<LessonPracticeContent> {
-  const problems = async (p: LessonPracticeContent): Promise<{ reason: "uncertain" | "fact_check" | "fact_check_error"; claims: string[] } | null> => {
-    const unsure = uncertaintyOf(p);
+  const problems = async (p: LessonPracticeContent): Promise<{ reason: "uncertain" | "fact_check"; claims: string[] } | null> => {
+    // REQ-216 (H2): the writer's LOW confidence, or a fact-check whose
+    // independent answer differs from a key, holds the half back. Listed
+    // claims, and claims the checker could not confirm while agreeing with the
+    // key, are logged. A fact-check that could not run is not a verdict on the
+    // content: it is a retryable refusal, logged as no holdback and starting no
+    // cooldown (FAIL-883's rule, applied to the checker).
+    const unsure = lowConfidenceOf(p);
     if (unsure) return { reason: "uncertain", claims: unsure };
+    noteListedClaims(`lesson (${objectiveId})`, p);
     if (!opts.gen.factCheck) return null;
     const items: CheckItem[] = [
       { key: "fade", objectiveTitle: objRow.title, question: p.fadeProblem, format: "single", options: p.fadeChoices, expected: [p.fadeCorrectIndex] },
       { key: "solo", objectiveTitle: objRow.title, question: p.soloCheck, format: "single", options: p.soloChoices, expected: [p.soloCorrectIndex] },
     ];
     const gate = await factCheckGate(items, { ctx: objRow.ctx ?? undefined, userId: opts.meta.userId }, opts.gen.factCheck);
-    if (gate.error) return { reason: "fact_check_error", claims: [gate.error] };
-    const failed = items.map((i) => gate.verdicts.get(i.key)).filter((v) => !v?.publish);
+    const verdicts = items.map((i) => gate.verdicts.get(i.key));
+    if (gate.error || verdicts.some((v) => verdictUnchecked(v))) {
+      // eslint-disable-next-line no-console
+      console.warn(`[lesson-generation] fact-check did not run for ${objectiveId}: ${gate.error ?? "no result"}`);
+      throw new FactCheckUnavailableError("lesson");
+    }
+    const failed = verdicts.filter((v) => verdictHolds(v));
+    for (const v of verdicts) {
+      if (!verdictHolds(v) && v?.unsupportedClaims.length) {
+        // eslint-disable-next-line no-console
+        console.warn(`[item-quality] lesson (${objectiveId}) ${v.key} agreed with the key; checker could not confirm: ${v.unsupportedClaims.join(" | ").slice(0, 500)}`);
+      }
+    }
     if (!failed.length) return null;
-    const claims = failed.flatMap((v) => (v?.unsupportedClaims.length ? v.unsupportedClaims : [`${v?.key}: independent answer disagreed with the key`]));
-    return { reason: "fact_check", claims };
+    return { reason: "fact_check", claims: failed.flatMap((v) => verdictClaims(v).map((c) => (v?.unsupportedClaims.length ? c : `${v?.key}: ${c}`))) };
   };
   // REQ-196: queue the solo check's program for the sandbox job. A
   // malformed program is not queued (there is nothing to run) and does not
@@ -457,7 +500,7 @@ export async function checkedPractice(
   const retryProblem = await problems(retry);
   if (retryProblem) {
     await recordHoldback({ kind: "lesson", objectiveId, reason: retryProblem.reason, claims: [NOT_SERVED_MARK, ...retryProblem.claims], content: retry, model: opts.gen.model(), scopeUserId: holdbackScopeUserId(opts.meta, opts.shared) });
-    throw new ContentHeldBackError();
+    throw new ContentHeldBackError([firstProblem, retryProblem].map((p): HoldReason => (p.reason === "fact_check" ? "disagree" : "uncertain")));
   }
   return queued(retry);
 }
@@ -483,6 +526,7 @@ export interface GenerationOptions {
   triggeredBy?: string;
   avoid?: LessonAvoid;
   // Test seams; production uses the defaults.
+  keptIntros?: typeof keptIntros;
   generator?: LessonGenerator;
   pending?: Map<string, GenerationHandle>;
   waitMs?: number;
@@ -524,6 +568,36 @@ export function pendingKey(objectiveId: string, scope: LessonScope): string {
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+// REQ-216 (M5): the teaching text a learner was handed, kept while the
+// practice half that follows it is not stored. The intro goes out with
+// `practicePending` the moment it passes its checks; if the practice half is
+// then refused or fails, the learner's next request used to write a NEW intro
+// (and pay for it, and show different words) before trying practice again.
+// Now a retry reuses the accepted intro and writes only the practice half.
+// Per process and short-lived on purpose (no table): another server instance,
+// or a restart, falls back to writing a new intro, as before. A stored lesson,
+// or a regenerate that ends, forgets it.
+const KEPT_INTRO_MS = 30 * 60 * 1000;
+const KEPT_INTRO_MAX = 200;
+export const keptIntros = new Map<string, { intro: LessonIntroContent; at: number }>();
+
+function keepIntro(key: string, intro: LessonIntroContent, store: typeof keptIntros): void {
+  const now = Date.now();
+  for (const [k, v] of store) if (now - v.at > KEPT_INTRO_MS) store.delete(k);
+  while (store.size >= KEPT_INTRO_MAX) store.delete(store.keys().next().value as string);
+  store.set(key, { intro, at: now });
+}
+
+function keptIntro(key: string, store: typeof keptIntros): LessonIntroContent | null {
+  const v = store.get(key);
+  if (!v) return null;
+  if (Date.now() - v.at > KEPT_INTRO_MS) {
+    store.delete(key);
+    return null;
+  }
+  return v.intro;
+}
 
 // Waits for another instance's generation to land, then returns its result;
 // null means the other instance released its lease without storing anything
@@ -603,7 +677,10 @@ async function runGeneration(
         const meta: GenerateMeta = scope.kind === "user" ? { userId: scope.userId } : { userId: opts.triggeredBy, sharedScope: true };
         // REQ-187 (P8): the teaching text is checked for the writer's own
         // doubt BEFORE the learner sees it (retried once, then held back).
-        const intro = await checkedIntro(objectiveId, objRow, { gen, avoid, meta });
+        const introKey = pendingKey(objectiveId, scope);
+        const store = opts.keptIntros ?? keptIntros;
+        const intro = keptIntro(introKey, store) ?? (await checkedIntro(objectiveId, objRow, { gen, avoid, meta }));
+        keepIntro(introKey, intro, store);
         settleIntro(intro);
         const practiceMeta: GenerateMeta = { ...meta, teach: intro.teach };
         const practice = await checkedPractice(objectiveId, objRow, await gen.practice(objRow, avoid, practiceMeta), {
@@ -619,7 +696,9 @@ async function runGeneration(
         if (scope.kind === "user" && (leaseLost || !(await renewClaim(objectiveId, scope, token)))) {
           throw new UserFacingError("The lesson regeneration did not complete. Please try again.");
         }
-        return await saveLesson(scope, objectiveId, { ...intro, ...practice }, gen.model());
+        const saved = await saveLesson(scope, objectiveId, { ...intro, ...practice }, gen.model());
+        store.delete(introKey);
+        return saved;
       } finally {
         clearInterval(heartbeat);
         // Success or failure: release so a waiter can proceed immediately

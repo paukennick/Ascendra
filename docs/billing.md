@@ -276,6 +276,16 @@ finite, so one check now sits inside the model-call layer
   (FAIL-964). It runs first for every call, with or without a learner, so the
   ceiling covers every path above that writes or checks content. Owners, the
   grading pool and `pregen*` purposes pass it (see the ceiling table below).
+  **The global daily ceiling is soft, with headroom (REQ-216, FAIL-1024).**
+  It reads the day's summed spend (reservations not yet settled included) and
+  refuses at the ceiling; it takes no lock across "read, then reserve", because
+  one global lock on every model call would serialize the whole app's AI use.
+  The sum is cached 60 s per server instance, except that once spend is within
+  20% of the ceiling (`CEILING_FRESH_FRACTION`) every check reads fresh. What is
+  left is calls that read before any of them has reserved: an overshoot of at
+  most the calls in flight times their reserved estimates. Set
+  `AI_GLOBAL_DAILY_CEILING_USD` with that headroom in mind; the per-learner
+  budgets below are the hard limits.
 
 Worst case per account, any rolling 24 hours: coach $0.50 plus grading $0.25
 = **$0.75** (settled spend can pass a pool's cap only by the amount a call's

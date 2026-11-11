@@ -50,11 +50,11 @@ export const ITEM_WRITING_RULES = `Item-writing rules for every question with op
 export const uncertaintySchemaFields = {
   confidence: z
     .enum(["high", "medium", "low"])
-    .describe("How sure you are that every fact and the answer key are accurate and current for this exam version."),
+    .describe("How sure you are that every fact and the answer key are accurate and current for this exam version. Rate \"low\" only when the answer key or a central fact is in doubt: low is held back for review rather than shown to learners."),
   uncertainClaims: z
     .array(z.string())
     .describe(
-      "Every specific claim in this output you are NOT sure is accurate and current for this exam version (a product name, limit, default, price, version detail). Empty when you are sure of all of them. Content listing any is held back for review rather than shown to learners."
+      "Every specific claim in this output you are NOT sure is accurate and current for this exam version (a product name, limit, default, price, version detail). Empty when you are sure of all of them. Listing a claim does not hold content back by itself (they are logged for review); rate confidence \"low\" if the answer key or a central fact is in doubt."
     ),
 };
 export const UNCERTAINTY_JSON = `"confidence": "high" | "medium" | "low",
