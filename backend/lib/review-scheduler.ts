@@ -25,8 +25,23 @@
 //     the 21- or 60-day rung drops to step 1 (3 days), so a forgotten item is
 //     rebuilt instead of being back on the 60-day gap three weeks later.
 //   Dates are UTC calendar days, as the database's due_on.
+//   REQ-218 (H8): a calendar day is not a day. A review answered at 23:50
+//   was "due" at 00:00 UTC, ten minutes later, and a correct answer then
+//   climbed a rung on no spacing at all. A review is due only when its date
+//   has come AND MIN_REVIEW_GAP_HOURS have passed since the previous review
+//   (or enrolment). Before that a correct answer is early and changes
+//   nothing; a miss still steps back. The queue (lib/review-store.ts) and
+//   the reminder plan apply the same floor in SQL.
 
 export const FIXED_INTERVALS_DAYS = [1, 3, 7, 21, 60] as const;
+
+// REQ-218 (H8): the least time between two reviews of an objective for the
+// later one to count as due. 18 h keeps "the next day" reachable from an
+// evening session to the next afternoon, without minutes counting as a day.
+// Not a learner-local-date rule on purpose: the date is sent by the app and
+// only checked to within a day (lib/study-plan-store.ts resolveToday), so a
+// floor in elapsed time is the one a client cannot move.
+export const MIN_REVIEW_GAP_HOURS = 18;
 
 // REQ-117: the highest step a correct answer given with help can reach.
 export const HELPED_MAX_STEP = 2;
@@ -76,6 +91,12 @@ export function addDays(day: string, n: number): string {
   return new Date(t).toISOString().slice(0, 10);
 }
 
+// Is a review due at `at`: its date has come and the floor has passed since
+// the last review (or enrolment).
+export function isDueAt(dueOn: string, since: Date, at: Date): boolean {
+  return dueOn <= utcDay(at) && at.getTime() - since.getTime() >= MIN_REVIEW_GAP_HOURS * 3_600_000;
+}
+
 function daysBetween(a: Date, b: Date): number {
   return Math.round(((b.getTime() - a.getTime()) / DAY_MS) * 100) / 100;
 }
@@ -91,8 +112,8 @@ export const fixedScheduler: Scheduler = {
   },
   next(state, outcome): ScheduleResult {
     const today = utcDay(outcome.reviewedAt);
-    const wasDue = state.dueOn <= today;
     const since = state.lastReviewedAt ?? state.enrolledAt;
+    const wasDue = isDueAt(state.dueOn, since, outcome.reviewedAt);
     // The interval this review was planned at: the gap from the previous
     // review (or enrolment) to the due day.
     const scheduledDays = Math.max(
