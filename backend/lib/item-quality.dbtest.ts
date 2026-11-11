@@ -414,7 +414,7 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     ...extra,
   });
 
-  test("exam bank: an uncertain item is held without a check; the rest are checked in ONE call and only agreements publish", async () => {
+  test("exam bank: a low-confidence item is held without a check; the rest are checked in ONE call and only agreements publish", async () => {
     const u = await newUser();
     const o = objs[3];
     keys.set("Agreed stem", [1]);
@@ -424,7 +424,7 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
         ? agreeAll(b)
         : {
             items: [
-              mcItem("Uncertain stem", 1, { confidence: "medium", uncertainClaims: ["the 2026 default port changed"] }),
+              mcItem("Uncertain stem", 1, { confidence: "low", uncertainClaims: ["the 2026 default port changed"] }),
               mcItem("Agreed stem", 1),
               mcItem("Disputed stem", 1),
             ],
@@ -441,6 +441,27 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     assert.deepEqual(held[0].claims, ["the 2026 default port changed"]);
   });
 
+  test("exam bank (REQ-216): listed claims alone do not hold an item back; a disagreeing check does, and an all-held batch is written once more with the claims", async () => {
+    const u = await newUser();
+    const o = objs[3];
+    keys.set("Listed stem", [1]);
+    keys.set("Wrong stem", [0]);
+    onParse = (b) => (isFactCheck(b) ? agreeAll(b) : { items: [mcItem("Listed stem", 1, { confidence: "medium", uncertainClaims: ["may differ by version"] })] });
+    const listed = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
+    assert.deepEqual(listed.stored.map((x) => x.stem), ["Listed stem"]);
+    assert.equal(listed.held, 0);
+    // Everything held: the writer is asked again, steered with the claims.
+    parsedCalls.length = 0;
+    let writer = 0;
+    onParse = (b) => (isFactCheck(b) ? agreeAll(b) : (writer++, { items: [mcItem("Wrong stem", 1)] }));
+    const held = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
+    assert.equal(held.stored.length, 0);
+    assert.equal(held.held, 2, "held on both attempts");
+    assert.equal(writer, 2, "one retry");
+    const writerCalls = parsedCalls.filter((c) => !isFactCheck(c));
+    assert.match(String(writerCalls[1].messages[0].content), /previous draft was not used because of these claims/);
+  });
+
   test("exam bank: when the check itself fails, nothing publishes (fails closed); with the gate off, all valid items do", async () => {
     const u = await newUser();
     const o = objs[3];
@@ -450,7 +471,11 @@ describe("fact-check gate and hold-back on generation (H1 + recommendation 1)", 
     };
     const closed = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });
     assert.equal(closed.stored.length, 0);
-    assert.equal((await queryOne<{ reason: string }>(`select reason from item_holdbacks where objective_id = $1 order by created_at desc limit 1`, [o]))!.reason, "fact_check_error");
+    // REQ-216: a failed check CALL says nothing about the item: nothing is
+    // logged as a holdback, and it is reported as unchecked (retryable).
+    assert.equal(closed.unchecked, 1);
+    assert.equal(closed.held, 0);
+    assert.equal((await query<{ n: number }>(`select count(*)::int as n from item_holdbacks where objective_id = $1 and reason = 'fact_check_error'`, [o]))[0].n, 0);
     process.env.ITEM_FACT_CHECK = "off";
     try {
       const open = await generateForObjective({ objectiveId: o, formats: ["multiple_choice"], exhibits: false, allowed: ["multiple_choice"], userId: u });

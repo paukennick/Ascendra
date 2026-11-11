@@ -152,7 +152,7 @@ describe("P8: teaching text is held back on the writer's doubt", () => {
     const gen: LessonGenerator = {
       intro: async (_r, _a, meta) => {
         intros++;
-        return { guessPrompt: "g", teach: `t${intros}`, confidence: "medium", uncertainClaims: [meta?.introSteer ? "still unsure" : "the 2026 limit"] };
+        return { guessPrompt: "g", teach: `t${intros}`, confidence: "low", uncertainClaims: [meta?.introSteer ? "still unsure" : "the 2026 limit"] };
       },
       practice: async () => practice("x"),
       model: () => "test",

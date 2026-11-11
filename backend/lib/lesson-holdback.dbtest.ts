@@ -46,7 +46,7 @@ const goodGen = (tag: string, counter = { n: 0 }): LessonGenerator => ({
 });
 const unsureGen = (): LessonGenerator => ({
   ...goodGen("bad"),
-  practice: async () => practice("bad", { uncertainClaims: ["the limit changed in 2026"] }),
+  practice: async () => practice("bad", { confidence: "low" as const, uncertainClaims: ["the limit changed in 2026"] }),
 });
 const fresh = () => new Map();
 async function newUser(): Promise<string> {
