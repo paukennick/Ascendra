@@ -138,7 +138,7 @@ export const reasoningMomentSchema = z.object({
 export const outcomeClassSchema = z.enum(["target", "recovered", "harm"]);
 
 export const outcomeSpecSchema = z.object({
-  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session"]),
+  profile: z.enum(["clinical", "cloud", "project", "fitness", "security", "infrastructure", "data", "clinical-session", "physical-therapy"]),
   thresholds: z.record(id, z.object({ value: z.number(), source: sourceSchema })),
   noProgress: z.object({ when: expr, class: outcomeClassSchema, rationale: z.string(), source: sourceSchema }),
 });
@@ -152,26 +152,27 @@ export const endingSchema = z.object({
   phase: id.optional(),
 });
 
+// One vital-sign tile (bedside, and the treatment session's vitals, REQ-232).
+const vitalTileSchema = z.object({
+  id,
+  label: z.string(),
+  spokenLabel: z.string(),
+  value: z.union([expr, z.tuple([expr, expr])]),
+  unit: z.string(),
+  sub: template.optional(),
+  alarm: z.object({ low: z.number().optional(), high: z.number().optional() }).optional(),
+  trend: z.object({ history: id, window: duration, threshold: z.number() }).optional(),
+  announce: z.object({ bands: z.array(z.number()) }),
+  colour: z.enum(["ecg", "art", "cvp", "pa", "spo2", "neutral"]),
+  hiddenUntil: expr.optional(),
+});
+
 export const screenSpecSchema = z.object({
-  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data"]),
+  type: z.enum(["bedside", "board", "dashboard", "trainer", "session", "security", "terminal", "data", "treatment-session"]),
   level: z.number().optional(),
   bedside: z
     .object({
-      tiles: z.array(
-        z.object({
-          id,
-          label: z.string(),
-          spokenLabel: z.string(),
-          value: z.union([expr, z.tuple([expr, expr])]),
-          unit: z.string(),
-          sub: template.optional(),
-          alarm: z.object({ low: z.number().optional(), high: z.number().optional() }).optional(),
-          trend: z.object({ history: id, window: duration, threshold: z.number() }).optional(),
-          announce: z.object({ bands: z.array(z.number()) }),
-          colour: z.enum(["ecg", "art", "cvp", "pa", "spo2", "neutral"]),
-          hiddenUntil: expr.optional(),
-        }),
-      ),
+      tiles: z.array(vitalTileSchema),
       waveforms: z.array(z.object({ kind: z.enum(["ecg", "art", "pleth"]), from: z.object({ hr: id, sys: id.optional(), dia: id.optional(), flat: expr.optional() }) })).optional(),
       infusions: template.optional(),
       banner: z.array(z.object({ when: expr, text: template })).optional(),
@@ -191,6 +192,17 @@ export const screenSpecSchema = z.object({
       ),
       notes: z.array(z.object({ id, label: z.string(), text: template, when: expr.optional(), alert: expr.optional() })).optional(),
       record: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
+    })
+    .optional(),
+  // REQ-232: the physical therapy treatment session.
+  treatment: z
+    .object({
+      patient: z.object({ name: z.string(), presentation: template }),
+      vitals: z.array(vitalTileSchema),
+      activity: template.optional(),
+      measures: z.array(z.object({ id, label: z.string(), result: template, when: expr, flag: expr.optional() })).optional(),
+      dosage: z.object({ label: z.string(), items: z.array(z.object({ label: template, when: expr })) }).optional(),
+      rules: z.array(z.object({ id, label: z.string(), text: template, met: expr })),
     })
     .optional(),
 });

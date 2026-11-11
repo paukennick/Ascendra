@@ -9,12 +9,12 @@ import { Badge, Body, Button, Card, ErrorBanner, H1, H2, Loading, Muted, Screen 
 import { colors, spacing } from "@/lib/theme";
 import { friendlyError } from "@/lib/errorMessage";
 import { capsHeaders } from "@/sim/runtime/caps.ts";
-import { alarmTexts, runView, sessionAlarmTexts, sessionNews, vitalsSentence, type SessionView } from "@/sim/runtime/view.ts";
+import { alarmTexts, runView, sessionAlarmTexts, sessionNews, treatmentAlarmTexts, treatmentNews, vitalsSentence, type SessionView, type TreatmentView } from "@/sim/runtime/view.ts";
 import { announce, newAnnouncer } from "@/sim/runtime/announcer.ts";
 import { useSimRun } from "@/sim/useSimRun";
 import { ReportProblem } from "@/components/ReportProblem";
 import { localHash } from "@/sim/runtime/session.ts";
-import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, VitalsPanel, WaitsRow, sessionSentence } from "@/sim/SimPanels";
+import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
 import { launchView, needsLaunchChoice, paceChangeable, paceOptions, simClock, teachFeedback, teachOffer, type LaunchChoice } from "@/sim/runtime/pacing.ts";
 import { useGoBack } from "@/lib/useGoBack";
 import { isNotFound } from "@/lib/notFound";
@@ -25,9 +25,10 @@ import { LoadError } from "@/components/LoadError";
 // skips while something is pending, the action groups, decision cards and
 // the written-reasoning box (both stop the clock), the event log; then the
 // server's debrief. REQ-225: a client session shows the client
-// (SessionPanel) where the vitals or the architecture would be. Content is
-// served under the one study notice (REQ-165): the server refuses a clinical
-// sim until it is accepted, and its message is shown as is.
+// (SessionPanel) where the vitals or the architecture would be. REQ-232: a
+// PT treatment session shows the patient (TreatmentPanel) above the vitals.
+// Content is served under the one study notice (REQ-165): the server refuses
+// a clinical sim until it is accepted, and its message is shown as is.
 
 interface SimInfo {
   sim: {
@@ -54,6 +55,8 @@ export default function SimScreen() {
   const announcer = useRef(newAnnouncer());
   // REQ-225: the client session as last announced, to speak what changed.
   const lastSession = useRef<SessionView | null>(null);
+  // REQ-232: the treatment session as last announced, likewise.
+  const lastTreatment = useRef<TreatmentView | null>(null);
   // REQ-209: the launch card's pick; the scenario's default pace until changed.
   const [pick, setPick] = useState<LaunchChoice | null>(null);
 
@@ -76,9 +79,10 @@ export default function SimScreen() {
   // Screen-reader announcements: alarms at once, news at most every 10 s.
   useEffect(() => {
     if (!view || !s) return;
-    const news = sessionNews(lastSession.current, view.session);
+    const news = [...sessionNews(lastSession.current, view.session), ...treatmentNews(lastTreatment.current, view.treatment)];
     lastSession.current = view.session;
-    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
+    lastTreatment.current = view.treatment;
+    const r = announce(announcer.current, { alarms: [...alarmTexts(view.tiles), ...sessionAlarmTexts(view.session), ...treatmentAlarmTexts(view.treatment)], log: s.run.log, nowMs: Date.now(), typing: !!view.reasoning, news });
     announcer.current = r.state;
     for (const a of r.out) AccessibilityInfo.announceForAccessibility(a.text);
   });
@@ -195,6 +199,7 @@ export default function SimScreen() {
           {sim.status === "lease_lost" ? <Button label="Continue on this device" icon="smartphone" onPress={() => sim.start(false)} /> : null}
           {view.banner ? <Card><View accessibilityLiveRegion="polite"><Body>{view.banner}</Body></View></Card> : null}
 
+          <TreatmentPanel v={view.treatment} onRead={() => view.treatment && AccessibilityInfo.announceForAccessibility(treatmentSentence(view.treatment, view.tiles))} />
           <VitalsPanel tiles={view.tiles} onRead={() => AccessibilityInfo.announceForAccessibility(vitalsSentence(view.tiles))} />
           <SessionPanel v={view.session} said={view.finding} onRead={() => view.session && AccessibilityInfo.announceForAccessibility(sessionSentence(view.session, view.finding))} />
           {view.infusions ? <Muted>{view.infusions}</Muted> : null}

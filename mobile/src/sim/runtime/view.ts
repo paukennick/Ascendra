@@ -7,10 +7,10 @@ import { clockBlocked, clockMode, renderTemplate, simTimeText, waits } from "../
 import type { Run } from "../engine/v1/engine.ts";
 import { evaluate } from "../engine/v1/eval.ts";
 import { parseCached } from "../engine/v1/parser.ts";
-import type { Action, ActionParam, ScreenSpec, WaitInfo } from "../engine/v1/types.ts";
+import type { Action, ActionParam, ScreenSpec, VitalTile, WaitInfo } from "../engine/v1/types.ts";
 import { isTapPadParam } from "./tapPad.ts";
 
-type Tile = NonNullable<ScreenSpec["bedside"]>["tiles"][number];
+type Tile = VitalTile;
 
 function value(run: Run, expr: string): unknown {
   try {
@@ -61,8 +61,10 @@ function fmtNum(v: unknown, precise: boolean): string {
   return precise ? (Math.round(v * 10) / 10).toFixed(1) : String(Math.round(v));
 }
 
+// The vitals tiles: the bedside monitor's, or a treatment session's vitals
+// (REQ-232), read the same way.
 export function tileViews(run: Run): TileView[] {
-  const tiles = run.c.doc.screen.bedside?.tiles ?? [];
+  const tiles = run.c.doc.screen.bedside?.tiles ?? run.c.doc.screen.treatment?.vitals ?? [];
   return tiles.map((t) => {
     const hidden = t.hiddenUntil ? value(run, t.hiddenUntil) !== true : false;
     const vals = (Array.isArray(t.value) ? t.value : [t.value]).map((e) => value(run, e));
@@ -222,6 +224,82 @@ export function sessionNews(prev: SessionView | null, next: SessionView | null):
   return out;
 }
 
+// REQ-232 (docs/sims.md 8.2, 13, 22.7): the physical therapy treatment
+// session. The vitals are the tiles above; this is the rest of the patient:
+// the presentation, what they are doing and how they move now, the tests and
+// measures taken (a flagged one is a red flag, spoken at once), the
+// interventions with their dosage, and the stopping and escalation rules
+// (each always shown; one that is met now is spoken at once, like an alarm).
+export interface MeasureView {
+  id: string;
+  label: string;
+  result: string;
+  flag: boolean;
+  a11y: string;
+}
+
+export interface RuleView {
+  id: string;
+  label: string;
+  text: string;
+  met: boolean;
+  a11y: string;
+}
+
+export interface TreatmentView {
+  name: string;
+  presentation: string;
+  activity: string | null;
+  measures: MeasureView[];
+  dosage: { label: string; items: string[] } | null;
+  rules: RuleView[];
+}
+
+export function treatmentView(run: Run): TreatmentView | null {
+  const tr = run.c.doc.screen.treatment;
+  if (!tr) return null;
+  const measures = (tr.measures ?? [])
+    .filter((m) => value(run, m.when) === true)
+    .map((m) => {
+      const result = text(run, m.result);
+      const flag = m.flag ? value(run, m.flag) === true : false;
+      return { id: m.id, label: m.label, result, flag, a11y: `${flag ? "Red flag. " : ""}${m.label}: ${result}` };
+    });
+  const rules = tr.rules.map((r) => {
+    const t = text(run, r.text);
+    const met = value(run, r.met) === true;
+    return { id: r.id, label: r.label, text: t, met, a11y: `${r.label}: ${met ? "met now" : "not met"}. ${t}` };
+  });
+  const dosage = tr.dosage ? { label: tr.dosage.label, items: tr.dosage.items.filter((it) => value(run, it.when) === true).map((it) => text(run, it.label)) } : null;
+  const activity = tr.activity ? text(run, tr.activity) : null;
+  return { name: tr.patient.name, presentation: text(run, tr.patient.presentation), activity: activity || null, measures, dosage, rules };
+}
+
+// Spoken at once on entering and leaving, with the tile alarms: a stopping
+// or escalation rule met now, and a red-flag finding.
+export function treatmentAlarmTexts(v: TreatmentView | null): string[] {
+  if (!v) return [];
+  return [...v.rules.filter((r) => r.met).map((r) => `Stop rule met: ${r.label}`), ...v.measures.filter((m) => m.flag).map((m) => `Red flag: ${m.label}`)];
+}
+
+// What changed since the last frame, for polite announcements (at most one
+// polite sentence per 10 s, the announcer's rule): a new or changed result
+// (red flags are spoken as alarms instead), a change in what the patient is
+// doing, a new line of dosage.
+export function treatmentNews(prev: TreatmentView | null, next: TreatmentView | null): string[] {
+  if (!prev || !next) return [];
+  const out: string[] = [];
+  for (const m of next.measures) {
+    if (m.flag) continue;
+    const p = prev.measures.find((x) => x.id === m.id);
+    if (!p || p.result !== m.result) out.push(`${m.label}: ${m.result}`);
+  }
+  if (next.activity && next.activity !== prev.activity) out.push(next.activity);
+  const before = new Set(prev.dosage?.items ?? []);
+  for (const it of next.dosage?.items ?? []) if (!before.has(it)) out.push(`Given: ${it}`);
+  return out;
+}
+
 export type ActionKind = "plain" | "params" | "tapPad";
 
 export interface ActionView {
@@ -288,6 +366,7 @@ export interface RunView {
   tiles: TileView[];
   board: ReturnType<typeof boardViews>;
   session: SessionView | null;
+  treatment: TreatmentView | null;
   groups: { group: string; actions: ActionView[] }[];
   waits: WaitInfo[];
   prompt: PromptView | null;
@@ -317,6 +396,7 @@ export function runView(run: Run, logLimit = 60): RunView {
     tiles: tileViews(run),
     board: boardViews(run),
     session: sessionView(run),
+    treatment: treatmentView(run),
     groups: groupActions(actionViews(run)),
     waits: waits(run),
     prompt: p && run.state.openPrompt ? { id: run.state.openPrompt, title: p.title, context: text(run, p.context), choices: p.choices.map((c) => ({ id: c.id, label: c.label })) } : null,
