@@ -623,6 +623,27 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
              and to_regclass('public.exam_session_items_attempt') is not null
              and to_regclass('public.placement_items_attempt') is not null as ok`,
   },
+  {
+    // REQ-207: the least-privilege runtime role and the hardened functions.
+    // The app still works while connected as the owner, but a database
+    // without this has no role to switch to and PUBLIC may still execute
+    // (and a mutable search_path may still apply to) its functions.
+    migration: "071_app_runtime_role.sql",
+    what: "app_runtime role and app_runtime_sync(); no PUBLIC execute and a fixed search_path on the project's functions; the 064 read policies limited to catalog tracks",
+    sql: `select exists(select 1 from pg_roles where rolname = 'app_runtime')
+             and to_regprocedure('public.app_runtime_sync()') is not null
+             and not exists(
+               select 1 from pg_proc p
+                where p.pronamespace = 'public'::regnamespace
+                  and p.prokind in ('f', 'p')
+                  and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
+                  and (exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                              where a.grantee = 0 and a.privilege_type = 'EXECUTE')
+                       or (p.prokind = 'f' and not coalesce(p.proconfig::text ~ 'search_path=', false))))
+             and exists(select 1 from pg_policies
+                         where schemaname = 'public' and tablename = 'objectives' and policyname = 'recheck_read'
+                           and qual like '%subject_tracks%') as ok`,
+  },
 ];
 
 export interface SchemaStatus {

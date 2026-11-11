@@ -7,13 +7,15 @@ on:
   # based on another PR's branch) are checked too.
   pull_request:
 
+permissions:
+  contents: read
 jobs:
   backend:
     name: Backend (typecheck, build, audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -55,8 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -67,7 +69,7 @@ jobs:
         working-directory: backend
         run: |
           docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
-          docker pull node:22-slim
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
       - run: npm run test:sandbox
         working-directory: backend
 
@@ -95,8 +97,8 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -117,6 +119,12 @@ jobs:
         working-directory: backend
       - name: Integration tests
         run: npm run test:db
+        working-directory: backend
+      # REQ-207 (FAIL-940): the same suite again, connected as the
+      # least-privilege app_runtime role migration 071 creates. Proves the
+      # app works with no owner rights, no BYPASSRLS and no PUBLIC execute.
+      - name: Integration tests as app_runtime (least privilege)
+        run: bash scripts/ci/db-tests-as-runtime.sh
         working-directory: backend
 
   # REQ-118 (Audit 3 LOW-11): the job above builds the schema on an EMPTY
@@ -145,8 +153,8 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/ascendra
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -200,10 +208,10 @@ jobs:
       ADMIN_URL: postgresql://postgres:postgres@localhost:5432/postgres
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # needs master @ c3e13ab and line B's branch
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -235,8 +243,8 @@ jobs:
       ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
       PGSSLMODE: disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -257,8 +265,8 @@ jobs:
     name: Mobile (typecheck, audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -271,18 +279,18 @@ jobs:
       # strips types natively, so no extra tooling).
       - run: npm test
         working-directory: mobile
-      # Report-only, not blocking: Expo's own CLI toolchain currently ships
-      # transitive advisories (uuid/bunyan/xcode, build-time only, not in the
-      # shipped app bundle) with no non-breaking fix available. Gating on
-      # this would make the check permanently red instead of meaningful --
-      # revisit turning this blocking once `npm audit fix` (or an Expo SDK
-      # bump) actually clears it.
-      #
-      # REQ-118: still report-only (re-checked 2026-11-07, Audit 3 LOW-11): the
-      # advisories are in Expo's CLI/build tooling, not the app bundle. Read
-      # this step's log when bumping the Expo SDK; make it blocking once it is
-      # clean.
-      - run: npm audit --audit-level=high || true
+      # REQ-207 (FAIL-951): blocking. After the non-breaking `npm audit fix`
+      # (lockfile only) three high advisories remain (expo-router and the
+      # query-string chain), and npm's only fix is expo-router 58, a breaking
+      # Expo SDK step. They are listed with reasons in mobile/audit-known.json;
+      # this fails on any OTHER high or critical advisory in the production
+      # dependencies, and on a listed one that has been fixed (so the list
+      # shrinks). Moderate and low are printed, not blocking.
+      - run: node --test .github/scripts/audit-gate.test.mjs .github/scripts/pin-lib.test.mjs
+      - name: npm audit (production dependencies, blocking)
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/mobile-audit.json" || true
+          node ../.github/scripts/audit-gate.mjs "$RUNNER_TEMP/mobile-audit.json" audit-known.json
         working-directory: mobile
       # REQ-118: Expo's project health checks (config, native module
       # versions, duplicate dependencies). Report-only for now: on 2026-11-07
@@ -306,8 +314,8 @@ jobs:
     name: Sim cross-runtime (Hermes)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -328,7 +336,7 @@ jobs:
           echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
           echo "react-native $(node -p "require('./mobile/node_modules/react-native/package.json').version"), Hermes $tag"
           mobile/node_modules/hermes-compiler/hermesc/linux64-bin/hermesc -version | grep -i 'release version'
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: cache
         with:
           path: ~/hermes-vm
@@ -408,8 +416,8 @@ jobs:
     env:
       PLAYWRIGHT_VERSION: 1.64.1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -432,8 +440,8 @@ jobs:
     name: OmniEngineering workspace freshness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       # Blocking: regenerates the same files `./omni sync` / `./omni map`

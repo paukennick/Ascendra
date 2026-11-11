@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { cacheControlFor, resolveInside } from "@/lib/static-assets";
 
 // Serves the web app (mobile/'s Expo Router app, exported for web and
 // copied into public/ by scripts/build-webapp.sh) for any request that
@@ -55,8 +56,9 @@ export async function GET(req: Request) {
   // Serve a real static file if the path (ignoring the query string) maps
   // to one under public/ -- must resolve to a path still inside PUBLIC_DIR,
   // since pathname comes from the request.
-  const candidatePath = path.normalize(path.join(PUBLIC_DIR, pathname));
-  if (candidatePath.startsWith(PUBLIC_DIR) && candidatePath !== INDEX_HTML_PATH) {
+  // FAIL-948: containment is checked with a path separator (lib/static-assets.ts).
+  const candidatePath = resolveInside(PUBLIC_DIR, pathname);
+  if (candidatePath && candidatePath !== INDEX_HTML_PATH) {
     try {
       const stat = fs.statSync(candidatePath);
       if (stat.isFile()) {
@@ -66,7 +68,8 @@ export async function GET(req: Request) {
           status: 200,
           headers: {
             "Content-Type": CONTENT_TYPES[ext] ?? "application/octet-stream",
-            "Cache-Control": "public, max-age=31536000, immutable",
+            // immutable only for content-hashed filenames (FAIL-948).
+            "Cache-Control": cacheControlFor(candidatePath),
           },
         });
       }

@@ -117,6 +117,18 @@ if [[ "${codes[1]}" != 0 ]]; then cat "$log" >&2; rm -f "$log"; fail "pg_restore
 rm -f "$log"
 echo "Restored in ${secs}s."
 
+# A database dump holds no roles and no grants (the dump is --no-acl and the
+# restore --no-privileges), so what migration 071 puts there is not in the
+# restored copy: the app_runtime role (roles belong to the cluster), PUBLIC's
+# revoked EXECUTE on the functions, the role's grants. Migration 071 is written
+# to be run twice; running its file again re-creates all of it. `migrate -- 071`
+# would skip it (the restored ledger says it is applied), so the file is run
+# directly. A real restore does the same (docs/operations-runbook.md, "Backups").
+step "Roles and privileges (not in a dump)"
+psql_q "$DB_URL" --single-transaction -f "$BACKEND/supabase/migrations/071_app_runtime_role.sql" >/dev/null \
+  || fail "migration 071 could not be re-applied to the restored copy."
+echo "Re-applied 071_app_runtime_role.sql (app_runtime and its privileges)."
+
 step "Counts match the manifest"
 q() { psql_q "$DB_URL" -A -t -c "$1"; }
 tables="$(q "select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind in ('r','p')")"

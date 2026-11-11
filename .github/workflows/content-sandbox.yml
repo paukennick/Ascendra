@@ -59,17 +59,17 @@ jobs:
         run: |
           test -n "$RECHECK_DATABASE_URL" || { echo "::error::Add the repository secret RECHECK_DATABASE_URL (docs/content-review.md, 'Re-check database user'). Nothing ran."; exit 1; }
         working-directory: .
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - name: Build the sandbox images (network is used here only, before any program runs)
         run: |
           docker build -t ascendra-sandbox-python:1 -f sandbox/python.Dockerfile sandbox
-          docker pull node:22-slim
+          docker pull node:22-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
       - name: Sandbox escape tests (network, env, filesystem, root, fork bomb, timeout, memory, output)
         run: npm run test:sandbox
       - name: Run the queue
@@ -78,3 +78,32 @@ jobs:
           LIMIT: ${{ inputs.limit || '200' }}
           MAX_MINUTES: ${{ inputs.max_minutes || '20' }}
         run: npm run items:exec -- --limit "$LIMIT" --max-minutes "$MAX_MINUTES"
+  # REQ-207 (FAIL-955): the hourly job failing used to be visible only to
+  # someone looking at the Actions tab, so queued programs could sit
+  # exec_unverified (the job fails closed) for days. When it fails, open ONE
+  # issue (GitHub e-mails the repository owner), and leave it open until a
+  # person closes it, so an hourly failure is one notification, not 24 a day.
+  # Only this job gets `issues: write`; the run URL is the only content.
+  alert:
+    name: Open an issue when the sandbox job fails
+    needs: exec
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue unless one is already open
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="Sandbox job is failing (verify by execution)"
+          open="$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq 'length')"
+          if [ "$open" = "0" ]; then
+            gh issue create --repo "$REPO" --title "$title" \
+              --body "The hourly sandbox job failed: $RUN_URL. It fails closed: queued programs stay exec_unverified until it passes. Close this issue once the job is green again."
+          else
+            echo "An issue is already open; not opening another."
+          fi

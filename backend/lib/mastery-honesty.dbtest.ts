@@ -10,6 +10,7 @@ import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { query, queryOne, closePool, withTransaction } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { signAccessToken } from "./auth/tokens";
 import { __setClientForTest } from "./anthropic";
 import { setAiCallSink } from "./ai-calls";
@@ -123,10 +124,11 @@ before(async () => {
 
 after(async () => {
   __setClientForTest(null);
-  await query(`delete from mastery_backup_045 where user_id = any($1::uuid[])`, [users]);
+  await ownerQuery(`delete from mastery_backup_045 where user_id = any($1::uuid[])`, [users]);
   await query(`delete from app_users where id = any($1::uuid[])`, [users]);
   await query(`delete from subject_tracks where id = $1`, [track]);
   await closePool();
+  await closeOwner();
 });
 
 const pbq = (u: string, body: Record<string, unknown>) =>

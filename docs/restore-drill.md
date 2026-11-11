@@ -44,7 +44,9 @@ sha256 and the manifest's against `checksums.json`, decrypts `manifest.json.age`
 with the same key (in memory, never to disk), creates a new database, loads
 `backend/scripts/ci/supabase-roles.sql` and Supabase's `extensions` schema
 (uuid-ossp), decrypts with age straight into `pg_restore --no-owner
---no-privileges --schema=public` (no plaintext file), checks the number of
+--no-privileges --schema=public` (no plaintext file), re-applies migration
+071 (a dump holds no roles or grants: it re-creates `app_runtime` and the
+privileges, as a real restore must), checks the number of
 tables in `public` and the row counts of `app_users`, `attempts` and
 `mastery` equal the manifest's, runs `npm run migrate -- --status` (must say
 "Schema is current"), and drops the database (`KEEP_DB=1` keeps it, for step 5
@@ -85,8 +87,10 @@ psql "$SCRATCH_URL/postgres" -c 'create database ascendra_restore'
 time pg_restore --no-owner --no-acl --jobs=4 \
   --dbname="$SCRATCH_URL/ascendra_restore" ascendra-$(date +%F).dump
 
-# 3. The schema is what this commit needs, and levels match the rule.
+# 3. The schema is what this commit needs, and levels match the rule. A dump
+#    holds no roles or grants, so re-apply 071 first (it is safe to run twice).
 cd backend
+psql "$SCRATCH_URL/ascendra_restore" --single-transaction -f supabase/migrations/071_app_runtime_role.sql
 DATABASE_URL="$SCRATCH_URL/ascendra_restore" PGSSLMODE=disable npm run migrate -- --status
 
 # 4. Row counts match production (run the same query on both).

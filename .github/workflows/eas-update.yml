@@ -21,7 +21,10 @@
 # not read eas.json build env (REQ-031, REQ-058), and checked to contain the
 # production API URL and no private-network URL before it is uploaded.
 #
-# Needs the EXPO_TOKEN repository secret. Nothing here prints it.
+# Needs the EXPO_TOKEN repository secret. Nothing here prints it. REQ-207:
+# the token is given only to the steps that run `eas` (and the action that
+# logs in), not to the whole job, so `npm ci`, expo-doctor and `expo export`
+# never see it.
 name: EAS update (OTA)
 on:
   workflow_dispatch:
@@ -53,16 +56,17 @@ jobs:
       run:
         working-directory: mobile
     env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       NO_COLOR: "1"
       FORCE_COLOR: "0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Full history so the summary can show what changed in the native
           # inputs since the commit a build was made from.
           fetch-depth: 0
       - name: Token present
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: test -n "$EXPO_TOKEN" || { echo "EXPO_TOKEN secret is not set"; exit 1; }
       - name: Resolve inputs
         id: inputs
@@ -105,12 +109,12 @@ jobs:
             echo "- Channel: \`$channel\`, dry run: \`$dry_run\`"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: mobile/package-lock.json
-      - uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8.2.1
         with:
           eas-version: 27.4.1
           packager: npm
@@ -137,6 +141,8 @@ jobs:
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Token check
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           if user="$(eas whoami 2>"$OUT/whoami.err")"; then
             echo "Expo token accepted: logged in as $(printf '%s' "$user" | head -n1)"
@@ -160,6 +166,8 @@ jobs:
             ' "$OUT/fingerprint-$p.json" "$OUT/runtime-$p.json" "$p"
           done
       - name: Builds and updates on EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build:list --platform all --status finished --limit 50 --json --non-interactive > "$OUT/builds.json"
           eas update:list --all --limit 10 --json --non-interactive > "$OUT/updates.json" || echo '{"currentPage":[]}' > "$OUT/updates.json"
@@ -177,6 +185,7 @@ jobs:
       - name: What changed since the newest build (no-match platforms)
         if: steps.report.outputs.android_compare_build != '' || steps.report.outputs.ios_compare_build != ''
         env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           ANDROID_BUILD: ${{ steps.report.outputs.android_compare_build }}
           ANDROID_COMMIT: ${{ steps.report.outputs.android_compare_commit }}
           IOS_BUILD: ${{ steps.report.outputs.ios_compare_build }}
@@ -209,6 +218,7 @@ jobs:
       - name: Publish
         if: steps.inputs.outputs.dry_run != 'true' && steps.report.outputs.publish_platforms != ''
         env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CHANNEL: ${{ steps.inputs.outputs.channel }}
           ON_MASTER_TIP: ${{ steps.inputs.outputs.on_master_tip }}
           PLATFORMS: ${{ steps.report.outputs.publish_platforms }}
@@ -249,7 +259,7 @@ jobs:
           done
       - name: Keep the fingerprints and reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: eas-ota-report
           path: |

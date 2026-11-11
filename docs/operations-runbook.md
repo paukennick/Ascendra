@@ -378,7 +378,14 @@ and treat every artifact from the last 30 days as exposed.
    `extensions` schema with uuid-ossp that the tables' defaults call):
    `age -d -i ascendra-backup.key <file>.dump.age | pg_restore --no-owner
    --no-privileges --schema=public --dbname="$TARGET_DIRECT_URL"`, then
-   `npm run migrate -- --status` against it and the checks in
+   re-apply migration 071, because a dump holds no roles or grants (the
+   `app_runtime` role, PUBLIC's revoked EXECUTE and the role's grants are
+   not in it): `psql "$TARGET_DIRECT_URL" --single-transaction -f
+   backend/supabase/migrations/071_app_runtime_role.sql` (safe to run twice;
+   `npm run migrate -- 071...` would skip it, the restored ledger says it is
+   applied). The role is new and cannot log in: set its password again if the
+   app is to connect as it (docs/ops/2026-11-10-lockdown-and-db-rotation.md,
+   step 5). Then `npm run migrate -- --status` against it and the checks in
    [restore-drill.md](restore-drill.md). Point Vercel's `DATABASE_URL` at it
    last.
 5. Delete the key file copy and the downloaded files when done.
