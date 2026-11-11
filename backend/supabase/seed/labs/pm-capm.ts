@@ -82,8 +82,8 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "Code value",
-              "Names fairness (avoiding conflicts of interest and favouritism, impartial decisions) and may also cite responsibility (following organisational policy) or honesty.",
-              "Fairness: I must make decisions impartially and disclose any real or potential conflict of interest. It also touches responsibility, since I must follow my organisation's policies."
+              "Names fairness (avoiding conflicts of interest and favouritism, impartial decisions) and may also cite responsibility (following organizational policy) or honesty.",
+              "Fairness: I must make decisions impartially and disclose any real or potential conflict of interest. It also touches responsibility, since I must follow my organization's policies."
             ),
           ],
         },
@@ -99,7 +99,7 @@ export const CAPM_LABS: SeedLabSet = {
             part(
               "Code value and why it matters",
               "Names honesty (truthful, accurate reporting, not deceiving stakeholders) and explains that hiding the defect would undermine the change the project exists to deliver (fewer mispicks).",
-              "Honesty: we provide accurate information in a timely way. The project's purpose is fewer mispicks; going live with a 5% wrong-order rate would make picking worse, so a false green would defeat the change the organisation is paying for."
+              "Honesty: we provide accurate information in a timely way. The project's purpose is fewer mispicks; going live with a 5% wrong-order rate would make picking worse, so a false green would defeat the change the organization is paying for."
             ),
           ],
         },
@@ -154,7 +154,7 @@ export const CAPM_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the network and the status.",
+          ask: "Analyze the network and the status.",
           parts: [
             part(
               "Critical path and duration",
@@ -229,7 +229,7 @@ export const CAPM_LABS: SeedLabSet = {
           parts: [
             part(
               "From WBS to backlog",
-              "Turns the WBS deliverables into a prioritised product backlog of user stories (or features/epics), ordered by value rather than by WBS number, with application and payment stories first.",
+              "Turns the WBS deliverables into a prioritized product backlog of user stories (or features/epics), ordered by value rather than by WBS number, with application and payment stories first.",
               "Each WBS deliverable becomes an epic and its work becomes user stories in one product backlog, ordered by value: the thinnest apply-and-pay path first (apply for a permit, pay by card), then the rest of application and payment, then renewals and reminders."
             ),
             part(
@@ -256,7 +256,7 @@ export const CAPM_LABS: SeedLabSet = {
       objective:
         "Preparing and executing task-management steps: interpreting success criteria and prioritizing tasks in an adaptive project",
       kind: "case",
-      title: "Interpret done and prioritise mid-iteration",
+      title: "Interpret done and prioritize mid-iteration",
       brief:
         "You support a Scrum team at Ottercreek Outdoor Gear building a store-locator feature. The team's definition of done: code reviewed, automated tests passing, deployed to the test environment. The story \"As a shopper, I want to find stores within 10 km so I can check stock nearby\" has acceptance criteria: shows stores within 10 km sorted by distance; shows each store's opening hours; works on mobile.",
       safetyNote: GENERAL_SAFETY,
@@ -272,7 +272,7 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "What happens to it",
-              "Says the story is not counted toward velocity or shown as complete; the remaining work returns to the product backlog for the product owner to prioritise.",
+              "Says the story is not counted toward velocity or shown as complete; the remaining work returns to the product backlog for the product owner to prioritize.",
               "It isn't demonstrated as complete or counted in velocity. The unfinished story goes back to the product backlog and the product owner decides when the opening-hours work is done."
             ),
           ],
@@ -288,7 +288,7 @@ export const CAPM_LABS: SeedLabSet = {
             ),
             part(
               "How the decision is made",
-              "Explains that the product owner prioritises the backlog by value (with input from stakeholders and the team on cost, risk and dependencies), and that technical work like refactoring is weighed on its value too, not ignored.",
+              "Explains that the product owner prioritizes the backlog by value (with input from stakeholders and the team on cost, risk and dependencies), and that technical work like refactoring is weighed on its value too, not ignored.",
               "The product owner orders the backlog by business value, informed by stakeholders and the team's estimates and risks. Refactoring (d) stays visible in the backlog; the team should explain its value so it can be scheduled soon."
             ),
           ],
@@ -378,8 +378,8 @@ export const CAPM_LABS: SeedLabSet = {
           ask: "Is the release ready? What do you recommend?",
           parts: [
             part(
-              "Readiness judgement",
-              "Calculates or notes that 36 of 40 (90%) passed and judges the release not ready while R12 (a serious functional defect) is unresolved and R7/R30 are untested; recognises that R19 is minor.",
+              "Readiness judgment",
+              "Calculates or notes that 36 of 40 (90%) passed and judges the release not ready while R12 (a serious functional defect) is unresolved and R7/R30 are untested; recognizes that R19 is minor.",
               "Not yet: 36 of 40 requirements (90%) are verified, but R12 allows double-booking, which breaks the core purpose, and R7 and R30 have not been tested. R19 (old logo) is cosmetic."
             ),
             part(

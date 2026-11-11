@@ -519,8 +519,13 @@ describe("Report a problem, quarantine and voiding", () => {
     const u = await newUser();
     classification = "key-suspect";
     await finishBuild(u);
-    await new Promise((r) => setTimeout(r, 200));
-    const f = await queryOne<{ source: string }>(`select source from item_flags where item_kind = 'lab' and item_id = $1 and user_id = $2`, [BUILD, u]);
+    // The flag is written after the response (fire-and-forget), so poll for
+    // it instead of sleeping a fixed time (FAIL-1145: a 200 ms sleep flaked on CI).
+    let f: { source: string } | null = null;
+    for (let i = 0; i < 50 && !f; i++) {
+      f = await queryOne<{ source: string }>(`select source from item_flags where item_kind = 'lab' and item_id = $1 and user_id = $2`, [BUILD, u]);
+      if (!f) await new Promise((r) => setTimeout(r, 100));
+    }
     assert.equal(f?.source, "key_suspect");
     await query(`delete from item_flags where item_kind = 'lab' and item_id = $1`, [BUILD]);
   });

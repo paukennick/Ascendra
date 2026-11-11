@@ -112,7 +112,7 @@ describe("FAIL-1163: .env.example lists every setting the code reads", () => {
     const section = t.slice(t.indexOf("## Optional settings"), t.indexOf("## Email sender"));
     for (const n of NAMES) assert.ok(section.includes(n), `${n} is not in the runbook's optional settings`);
   });
-  test("no new example line sets a value that changes behaviour when uncommented as written", () => {
+  test("no new example line sets a value that changes behavior when uncommented as written", () => {
     const tail = read("backend/.env.example").split("# --- Operations and feature switches")[1];
     for (const l of tail.split("\n")) assert.doesNotMatch(l, /^[A-Z_]+=/, `${l}: must stay commented`);
   });

@@ -36,11 +36,11 @@ export const ICA_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Give the installation commands (istioctl and the Helm equivalent), the per-namespace enrolment, and the checks that prove the install is healthy, explaining each choice.",
+          ask: "Give the installation commands (istioctl and the Helm equivalent), the per-namespace enrollment, and the checks that prove the install is healthy, explaining each choice.",
           parts: [
             part(
               "Profile and mode",
-              "Install with the ambient profile so both data plane modes are available: istioctl install --set profile=ambient (installs istiod, ztunnel DaemonSet and the CNI node agent) -- sidecar injection still works for namespaces labelled for it; explains the default profile would give sidecar-only, and that ambient adds ztunnel for L4 and optional waypoints for L7.",
+              "Install with the ambient profile so both data plane modes are available: istioctl install --set profile=ambient (installs istiod, ztunnel DaemonSet and the CNI node agent) -- sidecar injection still works for namespaces labeled for it; explains the default profile would give sidecar-only, and that ambient adds ztunnel for L4 and optional waypoints for L7.",
               "istioctl install --set profile=ambient -y\nThe ambient profile installs istiod, the istio-cni node agent and the ztunnel DaemonSet, and keeps sidecar injection available, so one control plane can serve both namespaces. default would give sidecar mode only. Helm equivalent:\nhelm install istio-base istio/base -n istio-system --create-namespace\nhelm install istiod istio/istiod -n istio-system --set profile=ambient\nhelm install istio-cni istio/cni -n istio-system --set profile=ambient\nhelm install ztunnel istio/ztunnel -n istio-system\nHelm values files in Git are the reproducible record; istioctl can also take an IstioOperator YAML (-f) for the same purpose."
             ),
             part(
@@ -78,7 +78,7 @@ export const ICA_LABS: SeedLabSet = {
             part(
               "In-place versus canary",
               "In-place (istioctl upgrade / helm upgrade of istiod) replaces the single istiod; every sidecar reconnects to the new version at once and the only rollback is another full control plane change; canary installs a second istiod with a revision label, lets namespaces opt in one at a time via istio.io/rev, and keeps the old control plane for instant rollback.",
-              "In-place upgrades swap the one istiod under all 41 proxies simultaneously; if the new version has a problem, every namespace feels it and rolling back means downgrading the control plane again while proxies churn. A canary (revision-based) upgrade installs istiod 1.26 alongside 1.25 under a revision name; namespaces move to it by relabelling and restarting, so the blast radius is one namespace and rollback is a label change. The prerequisite is that the current install be addressable: the existing istiod here is the un-revisioned 'default', which is fine as the old side."
+              "In-place upgrades swap the one istiod under all 41 proxies simultaneously; if the new version has a problem, every namespace feels it and rolling back means downgrading the control plane again while proxies churn. A canary (revision-based) upgrade installs istiod 1.26 alongside 1.25 under a revision name; namespaces move to it by relabeling and restarting, so the blast radius is one namespace and rollback is a label change. The prerequisite is that the current install be addressable: the existing istiod here is the un-revisioned 'default', which is fine as the old side."
             ),
             part(
               "Install the canary control plane",
@@ -104,7 +104,7 @@ export const ICA_LABS: SeedLabSet = {
             part(
               "Gateway and clean-up",
               "Upgrade the ingress gateway to the new revision (re-install the gateway with --set revision=1-26-1 or helm upgrade istio-ingress with the matching version and revision injection template), confirm traffic, then istioctl uninstall --revision default (the old un-revisioned control plane) and remove its webhook; finally verify istioctl proxy-status shows every proxy on 1-26-1 and run istioctl analyze.",
-              "Gateway: kubectl -n istio-ingress label ns istio-ingress istio.io/rev=1-26-1 --overwrite (if it is injected) and kubectl -n istio-ingress rollout restart deploy/istio-ingress, or helm upgrade istio-ingress istio/gateway --version 1.26.1 -n istio-ingress; watch kubectl -n istio-ingress get pods and run a request through it. Then remove the old control plane:\nistioctl uninstall --revision default -y     # removes istiod 1.25 and its webhook\nistioctl proxy-status                         # every proxy now served by istiod-1-26-1\nistioctl analyze -A\nOptionally make 1-26-1 the default tag (istioctl tag set default --revision 1-26-1) so namespaces labelled istio-injection=enabled map to it, which simplifies the next canary."
+              "Gateway: kubectl -n istio-ingress label ns istio-ingress istio.io/rev=1-26-1 --overwrite (if it is injected) and kubectl -n istio-ingress rollout restart deploy/istio-ingress, or helm upgrade istio-ingress istio/gateway --version 1.26.1 -n istio-ingress; watch kubectl -n istio-ingress get pods and run a request through it. Then remove the old control plane:\nistioctl uninstall --revision default -y     # removes istiod 1.25 and its webhook\nistioctl proxy-status                         # every proxy now served by istiod-1-26-1\nistioctl analyze -A\nOptionally make 1-26-1 the default tag (istioctl tag set default --revision 1-26-1) so namespaces labeled istio-injection=enabled map to it, which simplifies the next canary."
             ),
           ],
         },
@@ -216,7 +216,7 @@ export const ICA_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "The resources are applied. Before the next sale the team wants to prove the behaviour in staging without breaking a real Pod: 'Make one inventory instance slow on purpose and show checkout stays healthy.'",
+          text: "The resources are applied. Before the next sale the team wants to prove the behavior in staging without breaking a real Pod: 'Make one inventory instance slow on purpose and show checkout stays healthy.'",
           ask: "Design the test with Istio fault injection and the checks that show containment.",
           parts: [
             part(
@@ -349,8 +349,8 @@ export const ICA_LABS: SeedLabSet = {
               "  - port: {number: 443, name: tls-vault, protocol: TLS}\n    hosts: [vault.cresswell.example]\n    tls:\n      mode: PASSTHROUGH\n---\napiVersion: networking.istio.io/v1\nkind: VirtualService\nmetadata: {name: vault, namespace: secure}\nspec:\n  hosts: [vault.cresswell.example]\n  gateways: [istio-system/edge-gw]\n  tls:\n  - match:\n    - port: 443\n      sniHosts: [vault.cresswell.example]\n    route:\n    - destination: {host: vault.secure.svc.cluster.local, port: {number: 8443}}\nThe gateway inspects only the SNI in the TLS ClientHello and forwards the still-encrypted bytes to vault, which terminates TLS with its HSM-backed key. Because the gateway never decrypts, there is no path-based routing, no header injection and no gateway-side AuthorizationPolicy on HTTP attributes for this host -- only SNI and L4."
             ),
             part(
-              "One gateway, three behaviours, and verification",
-              "All three servers share port 443 on one Gateway resource and are distinguished by SNI (hosts), which is how Envoy selects the right TLS behaviour per connection; verify with openssl s_client -servername for each host (SIMPLE: server cert returned; MUTUAL: handshake fails without a client cert and succeeds with -cert/-key; PASSTHROUGH: the certificate shown is vault's own) and istioctl proxy-config listeners/secret on the gateway Pod.",
+              "One gateway, three behaviors, and verification",
+              "All three servers share port 443 on one Gateway resource and are distinguished by SNI (hosts), which is how Envoy selects the right TLS behavior per connection; verify with openssl s_client -servername for each host (SIMPLE: server cert returned; MUTUAL: handshake fails without a client cert and succeeds with -cert/-key; PASSTHROUGH: the certificate shown is vault's own) and istioctl proxy-config listeners/secret on the gateway Pod.",
               "Envoy multiplexes by SNI: the same 0.0.0.0:443 listener holds three filter chains, each matched on the server name the client sends, so www terminates with one certificate, partners demands a client certificate, and vault is passed through. Verify:\nopenssl s_client -connect <gw-ip>:443 -servername www.cresswell.example </dev/null | grep subject        # gateway's www cert\nopenssl s_client -connect <gw-ip>:443 -servername partners.cresswell.example </dev/null   # handshake failure: certificate required\nopenssl s_client -connect <gw-ip>:443 -servername partners.cresswell.example -cert p.crt -key p.key </dev/null   # succeeds\nopenssl s_client -connect <gw-ip>:443 -servername vault.cresswell.example </dev/null | grep subject       # vault's own certificate, not the gateway's\nistioctl proxy-config secret -n istio-system deploy/istio-ingressgateway   # www-cert and partners-cert (with ROOTCA) ACTIVE\nistioctl proxy-config listeners -n istio-system deploy/istio-ingressgateway --port 443 -o json | grep -A3 server_names"
             ),
           ],
@@ -389,7 +389,7 @@ export const ICA_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Fixed. A week later, a different team reports that their new namespace 'orders' has sidecars but no Istio behaviour at all: VirtualServices and PeerAuthentication are ignored.\n\n$ istioctl proxy-status | grep orders\norders-api-5c9d-x1.orders    Kubernetes   SYNCED   SYNCED   SYNCED   SYNCED   NOT SENT   istiod-7f8b9c6d5-k2lmn   1.26.1\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.spec.containers[*].name}'\norders-api istio-proxy\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.metadata.annotations}' | tr ',' '\\n' | grep -i -E 'sidecar|istio' | head -3\n\"sidecar.istio.io/inject\":\"true\"\n\"sidecar.istio.io/status\":\"{\\\"initContainers\\\":[\\\"istio-init\\\"],\\\"containers\\\":[\\\"istio-proxy\\\"]...\"\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.spec.initContainers[0].args}' | tr ',' '\\n' | grep -E 'x|b' | head -3\n\"-b\"\n\"\"\n\"-x\"\n\"\"",
+          text: "Fixed. A week later, a different team reports that their new namespace 'orders' has sidecars but no Istio behavior at all: VirtualServices and PeerAuthentication are ignored.\n\n$ istioctl proxy-status | grep orders\norders-api-5c9d-x1.orders    Kubernetes   SYNCED   SYNCED   SYNCED   SYNCED   NOT SENT   istiod-7f8b9c6d5-k2lmn   1.26.1\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.spec.containers[*].name}'\norders-api istio-proxy\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.metadata.annotations}' | tr ',' '\\n' | grep -i -E 'sidecar|istio' | head -3\n\"sidecar.istio.io/inject\":\"true\"\n\"sidecar.istio.io/status\":\"{\\\"initContainers\\\":[\\\"istio-init\\\"],\\\"containers\\\":[\\\"istio-proxy\\\"]...\"\n\n$ kubectl -n orders get pod orders-api-5c9d-x1 -o jsonpath='{.spec.initContainers[0].args}' | tr ',' '\\n' | grep -E 'x|b' | head -3\n\"-b\"\n\"\"\n\"-x\"\n\"\"",
           ask: "Interpret the proxy-status line and the Pod details and explain what the team configured wrong.",
           parts: [
             part(

@@ -61,7 +61,7 @@ export const AWSAIF_LABS: SeedLabSet = {
       kind: "build",
       title: "Pick the machine learning technique for four business questions",
       brief:
-        "Orchard & Vale, a fictional grocery delivery company, has four questions for its first data team. (1) 'How many crates of strawberries will each store sell next Saturday?' (2) 'Is this incoming customer email a complaint, a delivery question or a refund request?' (3) 'Our 400,000 customers all get the same marketing; are there natural groups among them we have never named?' (4) 'This card payment: is it fraudulent or not?' The team has two years of sales, email and payment history, with the sales figures and payment outcomes recorded, but no one has ever labelled customers into groups.",
+        "Orchard & Vale, a fictional grocery delivery company, has four questions for its first data team. (1) 'How many crates of strawberries will each store sell next Saturday?' (2) 'Is this incoming customer email a complaint, a delivery question or a refund request?' (3) 'Our 400,000 customers all get the same marketing; are there natural groups among them we have never named?' (4) 'This card payment: is it fraudulent or not?' The team has two years of sales, email and payment history, with the sales figures and payment outcomes recorded, but no one has ever labeled customers into groups.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -70,23 +70,23 @@ export const AWSAIF_LABS: SeedLabSet = {
           parts: [
             part(
               "Strawberry crates",
-              "Chooses regression (supervised): the answer is a continuous number predicted from labelled history.",
-              "Regression, supervised: the target is a quantity (crates), and past sales give labelled examples to learn from. A forecasting flavour of regression using the date and store as features."
+              "Chooses regression (supervised): the answer is a continuous number predicted from labeled history.",
+              "Regression, supervised: the target is a quantity (crates), and past sales give labeled examples to learn from. A forecasting flavor of regression using the date and store as features."
             ),
             part(
               "Email routing",
-              "Chooses classification (supervised, multi-class): assigning each email to one of a fixed set of categories using labelled past emails.",
-              "Classification, supervised: three known categories and a history of emails that can be labelled with the category they belonged to. Each new email is assigned one label."
+              "Chooses classification (supervised, multi-class): assigning each email to one of a fixed set of categories using labeled past emails.",
+              "Classification, supervised: three known categories and a history of emails that can be labeled with the category they belonged to. Each new email is assigned one label."
             ),
             part(
               "Customer groups",
               "Chooses clustering (unsupervised): discovering groups with no predefined labels.",
-              "Clustering, unsupervised: nobody has labelled the groups, so the algorithm finds customers who behave alike (for example by basket size, frequency and categories) and the marketing team names the clusters afterwards."
+              "Clustering, unsupervised: nobody has labeled the groups, so the algorithm finds customers who behave alike (for example by basket size, frequency and categories) and the marketing team names the clusters afterwards."
             ),
             part(
               "Fraud",
               "Chooses binary classification (supervised), noting the class imbalance (fraud is rare) and that recall of fraud matters, or alternatively anomaly detection if labels were missing.",
-              "Binary classification, supervised: past payments are labelled fraud or not. Fraud is rare, so accuracy alone is misleading and the team should watch recall and precision; with no labels at all, anomaly detection would be the fallback."
+              "Binary classification, supervised: past payments are labeled fraud or not. Fraud is rare, so accuracy alone is misleading and the team should watch recall and precision; with no labels at all, anomaly detection would be the fallback."
             ),
           ],
         },
@@ -96,9 +96,9 @@ export const AWSAIF_LABS: SeedLabSet = {
       slug: "call-centre-managed-ai-services",
       objective: "What the AWS managed AI services do: Amazon SageMaker AI, Amazon Transcribe, Amazon Translate, Amazon Comprehend, Amazon Lex, Amazon Polly",
       kind: "build",
-      title: "Assemble a call-centre pipeline from managed AI services",
+      title: "Assemble a call-center pipeline from managed AI services",
       brief:
-        "Lantern Telecom, a fictional phone company, records every support call and wants, without a data-science team: (1) the audio turned into text; (2) each transcript's overall sentiment and the key phrases it mentions; (3) transcripts from its French-speaking customers available to English-speaking supervisors; (4) a self-service phone and chat assistant that can understand 'I want to change my plan' and walk the caller through it; (5) that assistant's replies read aloud in a natural voice. Separately, (6) the fraud team wants to train and host its own custom model on Lantern's labelled call-pattern data.",
+        "Lantern Telecom, a fictional phone company, records every support call and wants, without a data-science team: (1) the audio turned into text; (2) each transcript's overall sentiment and the key phrases it mentions; (3) transcripts from its French-speaking customers available to English-speaking supervisors; (4) a self-service phone and chat assistant that can understand 'I want to change my plan' and walk the caller through it; (5) that assistant's replies read aloud in a natural voice. Separately, (6) the fraud team wants to train and host its own custom model on Lantern's labeled call-pattern data.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -118,7 +118,7 @@ export const AWSAIF_LABS: SeedLabSet = {
             part(
               "Needs 4 and 5: assistant and voice",
               "Chooses Amazon Lex for the conversational bot (intent recognition, slots, dialogue) and Amazon Polly for text-to-speech.",
-              "Amazon Lex builds the assistant: it recognises the intent 'change my plan', collects the details and manages the conversation. Amazon Polly turns the assistant's text replies into lifelike speech."
+              "Amazon Lex builds the assistant: it recognizes the intent 'change my plan', collects the details and manages the conversation. Amazon Polly turns the assistant's text replies into lifelike speech."
             ),
             part(
               "Need 6: a custom model",
@@ -222,14 +222,14 @@ export const AWSAIF_LABS: SeedLabSet = {
       slug: "choose-customisation-approach",
       objective: "Cost trade-offs across customization approaches: pre-training, fine-tuning, in-context learning, RAG, model distillation",
       kind: "build",
-      title: "Choose how to customise a foundation model for four needs",
+      title: "Choose how to customize a foundation model for four needs",
       brief:
-        "Harrow Legal Services, a fictional law firm, wants to use a foundation model for four things. (1) Answer staff questions about the firm's internal procedures, which change every few weeks. (2) Draft client letters in the firm's exact house style and structure, which the general model gets wrong even with examples. (3) Classify incoming documents into eight types; a dozen labelled examples per type exist. (4) Run the document classifier on 500,000 pages a month at the lowest possible cost and latency once it works. The firm has a small IT team and no data scientists.",
+        "Harrow Legal Services, a fictional law firm, wants to use a foundation model for four things. (1) Answer staff questions about the firm's internal procedures, which change every few weeks. (2) Draft client letters in the firm's exact house style and structure, which the general model gets wrong even with examples. (3) Classify incoming documents into eight types; a dozen labeled examples per type exist. (4) Run the document classifier on 500,000 pages a month at the lowest possible cost and latency once it works. The firm has a small IT team and no data scientists.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Pick the customisation approach for each need and say why the alternatives cost more or fit worse.",
+          ask: "Pick the customization approach for each need and say why the alternatives cost more or fit worse.",
           parts: [
             part(
               "Need 1: changing procedures",
@@ -238,13 +238,13 @@ export const AWSAIF_LABS: SeedLabSet = {
             ),
             part(
               "Need 2: house style",
-              "Chooses fine-tuning on examples of the firm's letters, because style and structure are behaviour the model must learn and in-context examples have already proved insufficient; notes the extra cost of training and hosting a custom model.",
-              "Fine-tuning: style and structure are learned behaviour, and few-shot examples in the prompt have already failed. It costs a training run and typically a custom-model hosting charge, so it is justified only because the general model cannot do it."
+              "Chooses fine-tuning on examples of the firm's letters, because style and structure are behavior the model must learn and in-context examples have already proved insufficient; notes the extra cost of training and hosting a custom model.",
+              "Fine-tuning: style and structure are learned behavior, and few-shot examples in the prompt have already failed. It costs a training run and typically a custom-model hosting charge, so it is justified only because the general model cannot do it."
             ),
             part(
               "Need 3: eight document types",
-              "Chooses in-context learning (few-shot prompting) with the labelled examples in the prompt, as the cheapest first step with no training.",
-              "In-context learning: put a few labelled examples of each type in the prompt and let the model classify. No training cost and it can be changed in minutes; only if accuracy is not enough would fine-tuning be considered."
+              "Chooses in-context learning (few-shot prompting) with the labeled examples in the prompt, as the cheapest first step with no training.",
+              "In-context learning: put a few labeled examples of each type in the prompt and let the model classify. No training cost and it can be changed in minutes; only if accuracy is not enough would fine-tuning be considered."
             ),
             part(
               "Need 4: scale cheaply",
@@ -275,8 +275,8 @@ export const AWSAIF_LABS: SeedLabSet = {
             ),
             part(
               "Examples",
-              "Uses few-shot prompting: includes several of the labelled past tickets as input/output pairs so the model copies the pattern; explains why zero-shot was not enough here.",
-              "Few-shot: include three or four of the eight labelled tickets as examples ('Ticket: ... -> {\"priority\":\"P1\",\"team\":\"Platform\"}'). The zero-shot attempt gave inconsistent answers; examples pin down the boundaries between labels."
+              "Uses few-shot prompting: includes several of the labeled past tickets as input/output pairs so the model copies the pattern; explains why zero-shot was not enough here.",
+              "Few-shot: include three or four of the eight labeled tickets as examples ('Ticket: ... -> {\"priority\":\"P1\",\"team\":\"Platform\"}'). The zero-shot attempt gave inconsistent answers; examples pin down the boundaries between labels."
             ),
             part(
               "Output format and template",
@@ -362,7 +362,7 @@ export const AWSAIF_LABS: SeedLabSet = {
             ),
             part(
               "Sensitive information",
-              "Uses sensitive information filters for the PII types (credit/debit card number, national identifier) set to mask (anonymise) or block, plus a custom regex for any format not built in.",
+              "Uses sensitive information filters for the PII types (credit/debit card number, national identifier) set to mask (anonymize) or block, plus a custom regex for any format not built in.",
               "Sensitive information filters: credit/debit card number and the national insurance number (a custom regex if the built-in types do not cover it), with action Mask so a reply shows a placeholder instead of the number; Block for anything that must never pass at all."
             ),
             part(
@@ -394,13 +394,13 @@ export const AWSAIF_LABS: SeedLabSet = {
           parts: [
             part(
               "Diagnosis",
-              "Identifies overfitting (high variance): the model has memorised the training data and does not generalise, shown by the gap between training and held-out accuracy.",
+              "Identifies overfitting (high variance): the model has memorized the training data and does not generalize, shown by the gap between training and held-out accuracy.",
               "Overfitting, a high-variance model: near-perfect training accuracy with a large drop on unseen data means it learned the quirks of the training set rather than the pattern. The gap, not the 99%, is the finding."
             ),
             part(
               "Fix",
-              "Proposes more or more varied training data, a simpler model or regularisation, and proper validation (cross-validation, a held-out set used only once) before trusting a number.",
-              "Use more and more varied data, simplify the model or add regularisation, and judge it only on data it has never seen, with cross-validation during development and a final held-out test set."
+              "Proposes more or more varied training data, a simpler model or regularization, and proper validation (cross-validation, a held-out set used only once) before trusting a number.",
+              "Use more and more varied data, simplify the model or add regularization, and judge it only on data it has never seen, with cross-validation during development and a final held-out test set."
             ),
           ],
         },

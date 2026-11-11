@@ -139,7 +139,7 @@ describe("the command journal", () => {
     assert.equal(server.stored.length, 3);
   });
 
-  test("duplicate replay is idempotent: a resend after a lost acknowledgement adds nothing", async () => {
+  test("duplicate replay is idempotent: a resend after a lost acknowledgment adds nothing", async () => {
     const doc = await ticketburst();
     const server = fakeServer(7);
     const disk = memoryBackend();
@@ -230,7 +230,7 @@ describe("the command journal", () => {
     const b = w.save(null);
     release();
     await Promise.all([a, b]);
-    assert.deepEqual(order, ["set 1", "remove"], "the acknowledgement's removal is never overtaken");
+    assert.deepEqual(order, ["set 1", "remove"], "the acknowledgment's removal is never overtaken");
 
     const broken: JournalBackend = {
       get: () => Promise.reject(new Error("blocked")),

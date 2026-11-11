@@ -129,7 +129,7 @@ describe("native flows are unchanged", () => {
     const u = await mkUser();
     const s = await signIn(u.email, NATIVE);
     const r = await call(refresh, { headers: withCookie(s.body.refreshToken, NATIVE) });
-    assert.equal(r.status, 403, "no web header: the cookie is never honoured");
+    assert.equal(r.status, 403, "no web header: the cookie is never honored");
     assert.equal((await call(refresh, { body: { refreshToken: s.body.refreshToken }, headers: NATIVE })).status, 200, "and the session was not spent");
   });
 });

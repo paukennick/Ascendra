@@ -27,7 +27,7 @@ const ALREADY_VERIFIED = "Your email is already verified. You can log in.";
 const INVALID_CHANGE = "This link is invalid or has expired. Request the email change again from the app.";
 const EMAIL_TAKEN = "That email is now in use by another account. Nothing was changed.";
 const CHANGED_SINCE =
-  "This change was cancelled, or your sign-in details changed after it was requested. Nothing was changed. Request it again from the app if you still want it.";
+  "This change was canceled, or your sign-in details changed after it was requested. Nothing was changed. Request it again from the app if you still want it.";
 
 export type VerifyCode = "missing" | "invalid" | "verified" | "set_password" | "already_verified";
 
@@ -276,7 +276,7 @@ export const CANCEL_MESSAGES: Record<CancelCode, string> = {
   missing: "Missing cancel token.",
   used: "This link has already been used or the change already went through. If you didn't make this change, contact support from the app.",
   cancelled:
-    "The email change was cancelled and every device was signed out. If you didn't ask for it, sign in and change your password now.",
+    "The email change was canceled and every device was signed out. If you didn't ask for it, sign in and change your password now.",
 };
 
 // REQ-191: what GET /cancel-email-change shows, without changing anything.

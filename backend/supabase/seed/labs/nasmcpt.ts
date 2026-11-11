@@ -84,7 +84,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           ask: "Write the goals and how you will track them.",
           parts: [
             part("Long-term goal", "Writes one long-term goal that is specific, measurable, attainable, relevant and time-bound, built from the assessment rather than an arbitrary weight number.", "By the wedding in 20 weeks, train three times a week and average 7,000 steps a day, and hold a 60-second plank with good form."),
-            part("Short-term goals", "Writes at least two short-term (for example 2-4 week) goals that step toward it, including at least one process (behaviour) goal.", "Weeks 1-4: complete 3 sessions a week and add a 10-minute walk after lunch on 5 days (about 4,500 steps a day). By week 4: plank 30 seconds with good form."),
+            part("Short-term goals", "Writes at least two short-term (for example 2-4 week) goals that step toward it, including at least one process (behavior) goal.", "Weeks 1-4: complete 3 sessions a week and add a 10-minute walk after lunch on 5 days (about 4,500 steps a day). By week 4: plank 30 seconds with good form."),
             part("Tracking and review", "Names how progress is measured (step counts, plank time, session attendance, energy rating) and when goals are reviewed and adjusted with the client.", "Track steps from the client's phone, sessions completed and a weekly 1-10 afternoon energy rating; reassess plank time every 4 weeks and adjust the goals together."),
           ],
         },
@@ -105,7 +105,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           parts: [
             part(
               "Stage of change",
-              "Recognises a lapse/relapse from the action stage (or maintenance) in the transtheoretical model, not a client who was never ready.",
+              "Recognizes a lapse/relapse from the action stage (or maintenance) in the transtheoretical model, not a client who was never ready.",
               "They were in the action stage for four months and have lapsed with the job change -- a normal part of change, not proof they're unsuited."
             ),
             part(
@@ -242,7 +242,7 @@ export const NASMCPT_LABS: SeedLabSet = {
           text: "",
           ask: "Write the key elements of the program.",
           parts: [
-            part("Emphasis", "Prioritises balance, functional strength and stabilization (Phase 1 of OPT) with progression at a pace the client tolerates.", "Stabilization-focused training (Phase 1) centred on balance, leg strength and everyday movements like getting up from a chair and turning."),
+            part("Emphasis", "Prioritizes balance, functional strength and stabilization (Phase 1 of OPT) with progression at a pace the client tolerates.", "Stabilization-focused training (Phase 1) centered on balance, leg strength and everyday movements like getting up from a chair and turning."),
             part("Balance work and progression", "Names at least two balance exercises with a safe progression (support -> less support -> unstable/dynamic) and a nearby support or spotter.", "Two-leg stance near a counter -> tandem stance -> single-leg stance with fingertip support -> single-leg reach; walking with head turns later. Always near something to hold and with me alongside."),
             part("Safety and monitoring", "Covers environment (clear floor, stable support, non-slip surface), monitoring with RPE/talk test, and watching for dizziness or new symptoms and referral if they occur.", "Clear, non-slip space with a sturdy chair or rail within reach; monitor effort with the talk test or RPE; stop and refer if dizziness, chest symptoms or new pain appear."),
           ],

@@ -77,8 +77,8 @@ export const CYSAPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Pivot indicators",
-              "Names the atomic IOCs to hunt across the fleet: the external IP 203.0.113.60, the a.exe file hash, and the certutil/encoded-PowerShell behaviour, and checks other hosts for the same.",
-              "Hunt the fleet for: connections to 203.0.113.60, the SHA-256 of a.exe, and the behavioural pattern of Office spawning encoded PowerShell or certutil downloading executables. The IP and hash are quick atomic checks; the behaviour catches variants that changed the file or server."
+              "Names the atomic IOCs to hunt across the fleet: the external IP 203.0.113.60, the a.exe file hash, and the certutil/encoded-PowerShell behavior, and checks other hosts for the same.",
+              "Hunt the fleet for: connections to 203.0.113.60, the SHA-256 of a.exe, and the behavioral pattern of Office spawning encoded PowerShell or certutil downloading executables. The IP and hash are quick atomic checks; the behavior catches variants that changed the file or server."
             ),
           ],
         },
@@ -91,7 +91,7 @@ export const CYSAPLUS_LABS: SeedLabSet = {
       kind: "build",
       title: "Rank detections by the Pyramid of Pain",
       brief:
-        "After the WS-114 incident (fictional), your team has a mix of indicators to turn into detections: (a) the file hash of the dropper, (b) the attacker's IP address 203.0.113.60, (c) the download domain used, (d) the behaviour of Office applications spawning encoded PowerShell and certutil downloading executables. Leadership asks which detections are most durable against a returning attacker, using David Bianco's Pyramid of Pain.",
+        "After the WS-114 incident (fictional), your team has a mix of indicators to turn into detections: (a) the file hash of the dropper, (b) the attacker's IP address 203.0.113.60, (c) the download domain used, (d) the behavior of Office applications spawning encoded PowerShell and certutil downloading executables. Leadership asks which detections are most durable against a returning attacker, using David Bianco's Pyramid of Pain.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -104,19 +104,19 @@ export const CYSAPLUS_LABS: SeedLabSet = {
               "Bottom (trivial to change): the file hash, then the IP address, then the domain. Top (hard to change): the TTP/behaviour -- Office spawning encoded PowerShell and certutil downloading executables. The Pyramid ranks how much pain a detection causes the attacker if you deny it."
             ),
             part(
-              "Why behaviour hurts most",
-              "Explains that a hash changes with one recompile, an IP or domain is cheap to rotate, but changing the underlying technique forces the attacker to re-tool -- so behavioural detections are the most durable.",
-              "A new build changes the hash instantly; IPs and domains are cheap to swap. To defeat a behavioural detection the attacker must change how they operate (stop using certutil/encoded PowerShell), which is expensive and may break their tooling. That is why TTP-level detections cause the most 'pain'."
+              "Why behavior hurts most",
+              "Explains that a hash changes with one recompile, an IP or domain is cheap to rotate, but changing the underlying technique forces the attacker to re-tool -- so behavioral detections are the most durable.",
+              "A new build changes the hash instantly; IPs and domains are cheap to swap. To defeat a behavioral detection the attacker must change how they operate (stop using certutil/encoded PowerShell), which is expensive and may break their tooling. That is why TTP-level detections cause the most 'pain'."
             ),
             part(
               "Balanced investment",
               "Recommends keeping the cheap atomic indicators (fast blocks now) while investing in behavioural/ATT&CK-based detections for durability -- not either/or.",
-              "Keep the hash, IP and domain as quick blocklist entries -- they stop this exact campaign today at near-zero cost. But invest the detection-engineering effort in the behaviour (an ATT&CK-mapped rule for Office-spawned encoded PowerShell and LOLBin downloads), because that still fires when the attacker rotates infrastructure."
+              "Keep the hash, IP and domain as quick blocklist entries -- they stop this exact campaign today at near-zero cost. But invest the detection-engineering effort in the behavior (an ATT&CK-mapped rule for Office-spawned encoded PowerShell and LOLBin downloads), because that still fires when the attacker rotates infrastructure."
             ),
             part(
               "Attribution caution",
               "Notes that indicators support but do not prove attribution, and that acting on detection does not require naming the actor.",
-              "Shared infrastructure or tooling can suggest an actor, but IPs and tools are reused and planted, so treat attribution as low-confidence unless corroborated. Detection and response do not need a confirmed actor name -- defend on the behaviour regardless."
+              "Shared infrastructure or tooling can suggest an actor, but IPs and tools are reused and planted, so treat attribution as low-confidence unless corroborated. Detection and response do not need a confirmed actor name -- defend on the behavior regardless."
             ),
           ],
         },
@@ -166,7 +166,7 @@ export const CYSAPLUS_LABS: SeedLabSet = {
       objective:
         "Scoring methods -- Common Vulnerability Scoring System (CVSS) metrics and FIRST's Exploit Prediction Scoring System (EPSS) -- and context awareness: internal, external, isolated",
       kind: "build",
-      title: "Prioritise remediation with CVSS, EPSS and context",
+      title: "Prioritize remediation with CVSS, EPSS and context",
       brief:
         "You own vulnerability management at Alder Grove Systems (fictional). This cycle has four findings; the window is tight. Use CVSS severity, EPSS, KEV and asset context -- not CVSS alone.\n\n(1) Internet-facing email gateway: pre-auth RCE. CVSS v4.0 9.3 Critical. EPSS 0.91 (99.8th pct). In CISA KEV.\n(2) Internal, isolated lab segment server (no route to production or internet): RCE. CVSS v4.0 9.3 Critical. EPSS 0.02. Not in KEV.\n(3) External customer portal: authenticated privilege escalation. CVSS v4.0 8.7 High. EPSS 0.15. Not in KEV.\n(4) Internet-facing marketing site: reflected XSS. CVSS v4.0 6.9 Medium. EPSS 0.55 (99.0th pct). Not in KEV.",
       safetyNote: GENERAL_SAFETY,
@@ -262,8 +262,8 @@ export const CYSAPLUS_LABS: SeedLabSet = {
             ),
             part(
               "Remediation and verification",
-              "Gives the response: update affected services to a fixed version (or apply the vendor mitigation), prioritise internet-facing ones, and verify the fix; compensating controls where immediate patching is blocked.",
-              "Upgrade the affected services to a patched library version, prioritising internet-facing and sensitive ones; where an immediate upgrade is blocked, apply the published mitigation or a compensating control (e.g. WAF/network restriction). Then verify each fix -- re-scan the SBOM to confirm the vulnerable version is gone."
+              "Gives the response: update affected services to a fixed version (or apply the vendor mitigation), prioritize internet-facing ones, and verify the fix; compensating controls where immediate patching is blocked.",
+              "Upgrade the affected services to a patched library version, prioritizing internet-facing and sensitive ones; where an immediate upgrade is blocked, apply the published mitigation or a compensating control (e.g. WAF/network restriction). Then verify each fix -- re-scan the SBOM to confirm the vulnerable version is gone."
             ),
             part(
               "Making it repeatable",

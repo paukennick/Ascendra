@@ -52,7 +52,7 @@ export const CSPP_LABS: SeedLabSet = {
             ),
             part(
               "Prosperity",
-              "Positive: 14% ROI and local economic activity; negative: risks such as road upkeep costs for the council or competition for local labour; improvement: local supplier and hiring commitments.",
+              "Positive: 14% ROI and local economic activity; negative: risks such as road upkeep costs for the council or competition for local labor; improvement: local supplier and hiring commitments.",
               "Positive: 14% return and local spending. Negative: road wear costs fall on the council and local employers may lose staff. Improvement: contribute to road maintenance and commit to local suppliers and training."
             ),
           ],
@@ -64,9 +64,9 @@ export const CSPP_LABS: SeedLabSet = {
       objective:
         "Defining sustainability, regeneration, and resilience in project environments: reducing negative environmental impact and designing projects to withstand or recover from extreme events",
       kind: "case",
-      title: "A riverside community centre",
+      title: "A riverside community center",
       brief:
-        "A fictional town council is designing a community centre on a riverside site that flooded twice in the last 20 years.",
+        "A fictional town council is designing a community center on a riverside site that flooded twice in the last 20 years.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -149,8 +149,8 @@ export const CSPP_LABS: SeedLabSet = {
           parts: [
             part(
               "Criteria",
-              "Includes life-cycle cost (durability, repairability), material sourcing (certified timber, recycled content), supplier labour practices, take-back at end of life, and delivery emissions, weighted alongside price.",
-              "Evaluate on whole-life cost (warranty, repairable parts), certified or recycled materials, the supplier's labour standards, a take-back scheme, and delivery distance -- with price as one weighted criterion, not the only one."
+              "Includes life-cycle cost (durability, repairability), material sourcing (certified timber, recycled content), supplier labor practices, take-back at end of life, and delivery emissions, weighted alongside price.",
+              "Evaluate on whole-life cost (warranty, repairable parts), certified or recycled materials, the supplier's labor standards, a take-back scheme, and delivery distance -- with price as one weighted criterion, not the only one."
             ),
           ],
         },
@@ -175,7 +175,7 @@ export const CSPP_LABS: SeedLabSet = {
       kind: "build",
       title: "Run Product and Process lenses on a software project",
       brief:
-        "Fernhill Health Trust (fictional) is building a patient-booking app. Choices under discussion: build it for the latest phones only (faster delivery) or support phones up to 6 years old; host on servers in a data centre that runs on grid power or on a cloud region with a high renewable share; the team works with daily stand-ups and long overtime near releases.",
+        "Fernhill Health Trust (fictional) is building a patient-booking app. Choices under discussion: build it for the latest phones only (faster delivery) or support phones up to 6 years old; host on servers in a data center that runs on grid power or on a cloud region with a high renewable share; the team works with daily stand-ups and long overtime near releases.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -212,13 +212,13 @@ export const CSPP_LABS: SeedLabSet = {
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "A news report says the lowest-cost panel supplier may use materials linked to forced labour. The supplier offers a 'local facilitation payment' to speed customs clearance.",
+          text: "A news report says the lowest-cost panel supplier may use materials linked to forced labor. The supplier offers a 'local facilitation payment' to speed customs clearance.",
           ask: "What People impacts are at stake, and what do you do?",
           parts: [
             part(
-              "Human rights and labour",
-              "Treats possible forced labour as a serious human rights risk: requests supply-chain traceability and independent audits, and is prepared to choose another supplier.",
-              "Possible forced labour in the supply chain is a human rights issue: ask for traceability to the raw material and independent audit evidence, and switch supplier if it can't be shown to be clean."
+              "Human rights and labor",
+              "Treats possible forced labor as a serious human rights risk: requests supply-chain traceability and independent audits, and is prepared to choose another supplier.",
+              "Possible forced labor in the supply chain is a human rights issue: ask for traceability to the raw material and independent audit evidence, and switch supplier if it can't be shown to be clean."
             ),
             part(
               "Anti-corruption",
@@ -234,7 +234,7 @@ export const CSPP_LABS: SeedLabSet = {
             part(
               "Greenwashing",
               "Identifies the claim as greenwashing (unsupported absolute claims; panels have embodied emissions; supply-chain issues unresolved) and proposes accurate, evidenced wording.",
-              "That's greenwashing: the panels have manufacturing emissions and the supply-chain question is open. Use accurate wording such as 'will generate about X MWh of renewable electricity a year; we are auditing our supply chain against forced-labour risks', with evidence."
+              "That's greenwashing: the panels have manufacturing emissions and the supply-chain question is open. Use accurate wording such as 'will generate about X MWh of renewable electricity a year; we are auditing our supply chain against forced-labor risks', with evidence."
             ),
           ],
         },
@@ -246,12 +246,12 @@ export const CSPP_LABS: SeedLabSet = {
       kind: "build",
       title: "Decide which sustainability topics are material",
       brief:
-        "Brightfield Energy (fictional) is preparing its first sustainability report. Candidate topics: greenhouse gas emissions, land use and biodiversity at solar sites, supply-chain labour practices, employee health and safety, office recycling, community benefit funds, and board diversity. Investors mainly ask about climate risk; local communities mainly ask about land and benefits.",
+        "Brightfield Energy (fictional) is preparing its first sustainability report. Candidate topics: greenhouse gas emissions, land use and biodiversity at solar sites, supply-chain labor practices, employee health and safety, office recycling, community benefit funds, and board diversity. Investors mainly ask about climate risk; local communities mainly ask about land and benefits.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Explain materiality and prioritise the topics.",
+          ask: "Explain materiality and prioritize the topics.",
           parts: [
             part(
               "Concept",
@@ -260,8 +260,8 @@ export const CSPP_LABS: SeedLabSet = {
             ),
             part(
               "Prioritisation",
-              "Ranks topics using both perspectives and stakeholder input (e.g. emissions/climate risk, land and biodiversity, supply-chain labour, health and safety high; community funds medium; office recycling low), with reasons.",
-              "High: emissions and climate risk (investor and financial impact), land use and biodiversity (main local impact), supply-chain labour (serious human rights risk), health and safety (construction sites). Medium: community benefit funds, board diversity. Low: office recycling (small impact)."
+              "Ranks topics using both perspectives and stakeholder input (e.g. emissions/climate risk, land and biodiversity, supply-chain labor, health and safety high; community funds medium; office recycling low), with reasons.",
+              "High: emissions and climate risk (investor and financial impact), land use and biodiversity (main local impact), supply-chain labor (serious human rights risk), health and safety (construction sites). Medium: community benefit funds, board diversity. Low: office recycling (small impact)."
             ),
             part(
               "Process",
@@ -308,7 +308,7 @@ export const CSPP_LABS: SeedLabSet = {
       kind: "build",
       title: "Set the escalation thresholds for sustainability impacts",
       brief:
-        "Greyling Logistics' (fictional) warehouse project has these organisational commitments: reduce operational emissions 40% by 2030; zero tolerance for modern slavery in suppliers; comply with local environmental permits. The project's design changes keep arriving, some of which affect emissions or suppliers.",
+        "Greyling Logistics' (fictional) warehouse project has these organizational commitments: reduce operational emissions 40% by 2030; zero tolerance for modern slavery in suppliers; comply with local environmental permits. The project's design changes keep arriving, some of which affect emissions or suppliers.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -316,7 +316,7 @@ export const CSPP_LABS: SeedLabSet = {
           ask: "Define thresholds that tell the project manager when a sustainability impact must be escalated.",
           parts: [
             part(
-              "Organisational thresholds",
+              "Organizational thresholds",
               "Links thresholds to the stated commitments, e.g. any design change increasing expected annual emissions by more than an agreed % goes to the sponsor.",
               "Any change that increases expected annual operational emissions by more than 5% of the design estimate goes to the sponsor; anything that would put the 40% target out of reach goes to the executive."
             ),
@@ -363,7 +363,7 @@ export const CSPP_LABS: SeedLabSet = {
           parts: [
             part(
               "Communication types",
-              "Lists appropriate types (regular internal progress reports, stakeholder updates, a project sustainability report feeding the organisation's ESG disclosures, public statements backed by evidence) with purposes and a rule that claims are specific and verifiable.",
+              "Lists appropriate types (regular internal progress reports, stakeholder updates, a project sustainability report feeding the organization's ESG disclosures, public statements backed by evidence) with purposes and a rule that claims are specific and verifiable.",
               "Monthly internal sustainability dashboard (steer the project); quarterly updates to community and staff (trust); a project sustainability report at closure that feeds the trust's annual ESG disclosures (transparency). Public claims must be specific, measured and backed by evidence."
             ),
           ],

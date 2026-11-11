@@ -11,6 +11,13 @@ import { isLegacyClient } from "@/lib/client-version";
 // the `version` fields there (lib/legal.test.ts checks). Bump a version when
 // the meaning changes, not for a typo: every account that accepted an older
 // version is asked once, on its next launch, with one tap.
+//
+// REQ-220 (Nick, 2026-11-10): the rest of the app moved to US spelling; the
+// Terms and Privacy text did not, so nobody is asked to re-accept for
+// spelling. At the NEXT version update, convert mobile/src/content/legal.ts
+// (and the app/(legal) screens) to US spelling with `toUsSpelling`
+// (lib/us-spelling.ts) and remove the legal entries from SPELLING_EXCLUDED
+// in lib/us-spelling-scope.ts, so lib/us-spelling.test.ts covers them.
 export const LEGAL_VERSIONS = {
   terms: "2026-11-10",
   privacy: "2026-11-10",

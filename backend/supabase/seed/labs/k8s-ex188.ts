@@ -122,18 +122,18 @@ export const EX188_LABS: SeedLabSet = {
           parts: [
             part(
               "SELinux label",
-              "On an Enforcing host, a container process runs as container_t and may not write to a directory labelled user_home_t; the mount needs the :Z (private) or :z (shared) suffix so Podman relabels it container_file_t; explains Z versus z.",
-              "The directory carries user_home_t, and SELinux confines container processes (container_t), which may only write files labelled container_file_t (with the container's category pair). The fix is to let Podman relabel the mount: -v ~/pgdata:/var/lib/postgresql/data:Z. Uppercase Z gives the directory a private label with this container's MCS categories; lowercase z labels it shared so several containers can use it. Never relabel system directories this way -- only directories dedicated to the container."
+              "On an Enforcing host, a container process runs as container_t and may not write to a directory labeled user_home_t; the mount needs the :Z (private) or :z (shared) suffix so Podman relabels it container_file_t; explains Z versus z.",
+              "The directory carries user_home_t, and SELinux confines container processes (container_t), which may only write files labeled container_file_t (with the container's category pair). The fix is to let Podman relabel the mount: -v ~/pgdata:/var/lib/postgresql/data:Z. Uppercase Z gives the directory a private label with this container's MCS categories; lowercase z labels it shared so several containers can use it. Never relabel system directories this way -- only directories dedicated to the container."
             ),
             part(
               "User namespace and ownership",
               "The postgres image switches to uid 999 at startup; in rootless Podman uid 999 inside maps to host uid 100000+998 = 100998, which does not own ~/pgdata (owned by the user, mapped to container uid 0), so even with the label fixed the directory is not writable by 999; fixes: podman unshare chown 999:999 ~/pgdata, or --userns=keep-id:uid=999,gid=999 so the directory owner maps to the container's postgres uid.",
-              "The uid_map shows the rootless mapping: container uid 0 is the user (1000), container uids 1-65536 map to host 100000-165535. Postgres drops to uid 999, which is host uid 100998 -- not the owner of ~/pgdata (host uid 1000, i.e. container root). Permission denied again, even after relabelling. Two clean fixes: chown from inside the user namespace, podman unshare chown 999:999 ~/pgdata (the host then shows owner 100998), or run with --userns=keep-id:uid=999,gid=999 so your own uid appears as 999 inside the container and the directory you own is writable by postgres."
+              "The uid_map shows the rootless mapping: container uid 0 is the user (1000), container uids 1-65536 map to host 100000-165535. Postgres drops to uid 999, which is host uid 100998 -- not the owner of ~/pgdata (host uid 1000, i.e. container root). Permission denied again, even after relabeling. Two clean fixes: chown from inside the user namespace, podman unshare chown 999:999 ~/pgdata (the host then shows owner 100998), or run with --userns=keep-id:uid=999,gid=999 so your own uid appears as 999 inside the container and the directory you own is writable by postgres."
             ),
             part(
               "Working command and verification",
               "A corrected podman run with :Z and the ownership fix, logs showing the database ready, and ls -Z on the host showing container_file_t and the mapped owner.",
-              "$ podman rm -f db\n$ podman unshare chown 999:999 ~/pgdata\n$ podman run -d --name db -e POSTGRES_PASSWORD=dev -v ~/pgdata:/var/lib/postgresql/data:Z docker.io/library/postgres:16\n$ podman logs db | tail -1\nLOG:  database system is ready to accept connections\n$ ls -ldZn ~/pgdata\ndrwx------. 19 100998 100998 system_u:object_r:container_file_t:s0:c214,c768 4096 Nov  9 10:10 /home/dev/pgdata\nThe host now shows the relabelled type with this container's categories and the mapped owner uid 100998 -- exactly what rootless isolation means: the database's files are owned by a uid that is not yours and not root."
+              "$ podman rm -f db\n$ podman unshare chown 999:999 ~/pgdata\n$ podman run -d --name db -e POSTGRES_PASSWORD=dev -v ~/pgdata:/var/lib/postgresql/data:Z docker.io/library/postgres:16\n$ podman logs db | tail -1\nLOG:  database system is ready to accept connections\n$ ls -ldZn ~/pgdata\ndrwx------. 19 100998 100998 system_u:object_r:container_file_t:s0:c214,c768 4096 Nov  9 10:10 /home/dev/pgdata\nThe host now shows the relabeled type with this container's categories and the mapped owner uid 100998 -- exactly what rootless isolation means: the database's files are owned by a uid that is not yours and not root."
             ),
           ],
         },
@@ -215,7 +215,7 @@ export const EX188_LABS: SeedLabSet = {
             part(
               "save/load keeps the image, not the container's changes",
               "podman save archives an image with all layers and its manifest/config; it knows nothing about changes made inside a running container's writable layer -- those live in the container, which was then deleted; the /etc/tool configuration was never in the image, so load restored the pristine image.",
-              "podman save serialises an image: every layer plus the manifest and config JSON, restorable with podman load on another host with CMD, ENV and ports intact. But the hand-made files under /etc/tool existed only in the container's writable layer, which is not part of the image; deleting the container deleted them. save/load was the right tool for (a) and the wrong tool for (b)."
+              "podman save serializes an image: every layer plus the manifest and config JSON, restorable with podman load on another host with CMD, ENV and ports intact. But the hand-made files under /etc/tool existed only in the container's writable layer, which is not part of the image; deleting the container deleted them. save/load was the right tool for (a) and the wrong tool for (b)."
             ),
           ],
         },
@@ -302,7 +302,7 @@ export const EX188_LABS: SeedLabSet = {
             part(
               "Corrected run and check",
               "The corrected command and verification with curl, ss and podman port; optional note on fixing the image's EXPOSE and default bind so the next developer does not repeat it.",
-              "$ podman rm -f web\n$ podman run -d --name web -p 8080:3000 -e HOST=0.0.0.0 redgrave/web:5.0\n$ podman port web\n3000/tcp -> 0.0.0.0:8080\n$ podman exec web ss -ltn | tail -1\nLISTEN 0      511          0.0.0.0:3000\n$ curl -s -o /dev/null -w '%{http_code}\\n' localhost:8080\n200\nThen fix the image: EXPOSE 3000 and ENV HOST=0.0.0.0 in the Containerfile so the metadata and default behaviour match what the application does."
+              "$ podman rm -f web\n$ podman run -d --name web -p 8080:3000 -e HOST=0.0.0.0 redgrave/web:5.0\n$ podman port web\n3000/tcp -> 0.0.0.0:8080\n$ podman exec web ss -ltn | tail -1\nLISTEN 0      511          0.0.0.0:3000\n$ curl -s -o /dev/null -w '%{http_code}\\n' localhost:8080\n200\nThen fix the image: EXPOSE 3000 and ENV HOST=0.0.0.0 in the Containerfile so the metadata and default behavior match what the application does."
             ),
           ],
         },
@@ -335,7 +335,7 @@ export const EX188_LABS: SeedLabSet = {
           parts: [
             part(
               "Secret and volume",
-              "podman secret create from a file or stdin (never on the command line in history), a named volume for the database, and the host config directory relabelled for SELinux; explains secrets are stored by Podman and injected as files or env at run time.",
+              "podman secret create from a file or stdin (never on the command line in history), a named volume for the database, and the host config directory relabeled for SELinux; explains secrets are stored by Podman and injected as files or env at run time.",
               "$ printf '%s' \"$(openssl rand -base64 24)\" | podman secret create wren-db-password -\n$ podman secret ls\nID                         NAME              DRIVER\n6f2a...                    wren-db-password  file\n$ podman volume create wren-pgdata\n$ ls -Z ./config/\nunconfined_u:object_r:user_home_t:s0 api.yaml\nThe secret lives in Podman's secret store, not in the image, not in a Compose file and not in shell history (stdin, not an argument). The volume outlives the pod. The config directory will be mounted with an SELinux relabel so the containers may read it."
             ),
             part(
@@ -344,7 +344,7 @@ export const EX188_LABS: SeedLabSet = {
               "apiVersion: v1\nkind: Pod\nmetadata:\n  name: wrenfield\n  labels: {app: wrenfield}\nspec:\n  containers:\n  - name: db\n    image: docker.io/library/postgres:16\n    env:\n    - name: POSTGRES_PASSWORD\n      valueFrom: {secretKeyRef: {name: wren-db-password, key: wren-db-password}}\n    volumeMounts:\n    - {name: pgdata, mountPath: /var/lib/postgresql/data}\n  - name: api\n    image: registry.wrenfield.example/api:1.8\n    env:\n    - {name: DATABASE_URL, value: postgres://postgres@localhost:5432/postgres}\n    - name: PGPASSWORD\n      valueFrom: {secretKeyRef: {name: wren-db-password, key: wren-db-password}}\n    ports:\n    - {containerPort: 8080, hostPort: 8080}\n    volumeMounts:\n    - {name: config, mountPath: /etc/api, readOnly: true}\n    readinessProbe:\n      httpGet: {path: /healthz, port: 8080}\n      periodSeconds: 5\n  volumes:\n  - name: pgdata\n    persistentVolumeClaim: {claimName: wren-pgdata}\n  - name: config\n    hostPath: {path: ./config, type: Directory}\nContainers in a pod share one network namespace, so the API reaches the database at localhost:5432 without a network or DNS. podman kube play maps the PVC name to the existing named volume and secretKeyRef to the Podman secret of that name."
             ),
             part(
-              "Play and dependency behaviour",
+              "Play and dependency behavior",
               "podman kube play with --replace, the SELinux relabel option for the hostPath (podman kube play supports :Z via the volume's hostPath type or --configmap; or pre-label with chcon/semanage), podman pod ps and podman ps --pod; start order within a pod is not guaranteed so the API must retry its database connection or use the readiness probe; explains podman kube down.",
               "$ podman kube play --replace wrenfield.yaml\nPod:\n9a1b...\nContainers:\n2c3d...\n4e5f...\n$ podman pod ps\nPOD ID        NAME        STATUS   CREATED         INFRA ID      # OF CONTAINERS\n9a1b...       wrenfield   Running  10 seconds ago  1f0e...       3\n$ podman ps --pod --format '{{.Names}} {{.Status}} {{.PodName}}'\nwrenfield-db   Up 10 seconds (healthy)  wrenfield\nwrenfield-api  Up 9 seconds (starting)  wrenfield\nContainers in a pod start together; there is no depends_on, so the API must retry until Postgres accepts connections (most clients do) -- the readiness probe keeps it 'starting' until /healthz passes. For the hostPath under SELinux, label the directory once (chcon -Rt container_file_t ./config) or use a ConfigMap passed with --configmap instead of a hostPath. podman kube down wrenfield.yaml stops and removes the pod but leaves the named volume."
             ),
@@ -422,7 +422,7 @@ export const EX188_LABS: SeedLabSet = {
             part(
               "report: exit 0, nothing in the logs",
               "nginx without -g 'daemon off;' forks to the background and the foreground process exits 0 immediately, so the container ends 'successfully'; a container lives as long as its PID 1; fix the CMD to run in the foreground.",
-              "Exit code 0 with no logs is the signature of a process that daemonised: nginx by default forks a master into the background and the launched process returns 0 -- so PID 1 exits and the container stops, cleanly. A container runs exactly as long as its PID 1 does. Fix: CMD [\"nginx\", \"-g\", \"daemon off;\"] (the official images do this). The same applies to anything run with & or a service-style start script."
+              "Exit code 0 with no logs is the signature of a process that daemonized: nginx by default forks a master into the background and the launched process returns 0 -- so PID 1 exits and the container stops, cleanly. A container runs exactly as long as its PID 1 does. Fix: CMD [\"nginx\", \"-g\", \"daemon off;\"] (the official images do this). The same applies to anything run with & or a service-style start script."
             ),
             part(
               "api: exit 1, EACCES on port 80",

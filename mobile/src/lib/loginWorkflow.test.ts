@@ -26,7 +26,7 @@ function between(src: string, start: string, end: string): string {
 // The TextField whose label is `label`, as written in a screen.
 function field(src: string, label: string): string {
   const a = src.indexOf(`label="${label}"`);
-  assert.ok(a >= 0, `no field labelled ${label}`);
+  assert.ok(a >= 0, `no field labeled ${label}`);
   return src.slice(a, src.indexOf("/>", a));
 }
 

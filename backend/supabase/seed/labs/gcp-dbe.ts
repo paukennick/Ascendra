@@ -79,8 +79,8 @@ export const GCPDBE_LABS: SeedLabSet = {
             ),
             part(
               "Support search",
-              "Recognises a vector (embedding) similarity requirement alongside structured data and chooses a database with built-in vector search (AlloyDB AI with pgvector, or Spanner vector search), not plain keyword LIKE queries.",
-              "AlloyDB for PostgreSQL with AlloyDB AI: store an embedding of each case description in a vector column and run a nearest-neighbour search joined to the structured case row in one SQL statement. Spanner's vector search would also fit; a LIKE query matches words, not meaning."
+              "Recognizes a vector (embedding) similarity requirement alongside structured data and chooses a database with built-in vector search (AlloyDB AI with pgvector, or Spanner vector search), not plain keyword LIKE queries.",
+              "AlloyDB for PostgreSQL with AlloyDB AI: store an embedding of each case description in a vector column and run a nearest-neighbor search joined to the structured case row in one SQL statement. Spanner's vector search would also fit; a LIKE query matches words, not meaning."
             ),
           ],
         },
@@ -168,7 +168,7 @@ export const GCPDBE_LABS: SeedLabSet = {
       kind: "case",
       title: "Diagnose a slow checkout query on Cloud SQL",
       brief:
-        "Kestrel Outdoor's web store runs on Cloud SQL for PostgreSQL (Enterprise Plus, 8 vCPU). Since a catalogue import last week, checkout takes 6-9 seconds. The orders table has 40 million rows, order_items 200 million. Query insights is enabled. You are the database engineer on call.",
+        "Kestrel Outdoor's web store runs on Cloud SQL for PostgreSQL (Enterprise Plus, 8 vCPU). Since a catalog import last week, checkout takes 6-9 seconds. The orders table has 40 million rows, order_items 200 million. Query insights is enabled. You are the database engineer on call.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -209,7 +209,7 @@ export const GCPDBE_LABS: SeedLabSet = {
           parts: [
             part(
               "Ongoing monitoring",
-              "Sets up Cloud Monitoring alerts on the instance (CPU utilisation, active connections, lock waits / query latency from Query insights) and a routine review of Query insights top queries and plans, plus checking for unused or missing indexes after schema or data changes.",
+              "Sets up Cloud Monitoring alerts on the instance (CPU utilization, active connections, lock waits / query latency from Query insights) and a routine review of Query insights top queries and plans, plus checking for unused or missing indexes after schema or data changes.",
               "Alert on CPU above a sustained threshold, on connections approaching the limit, and on Query insights query latency and lock-wait time for the top queries. Review the Query insights dashboard after every release or import, and run EXPLAIN on new queries before they ship, so a missing index is found in staging rather than at checkout."
             ),
           ],
@@ -259,7 +259,7 @@ export const GCPDBE_LABS: SeedLabSet = {
       kind: "build",
       title: "Decide scale-up or scale-out for three growing databases",
       brief:
-        "Bramblewick Media's platform team has three scaling problems. (1) A Cloud SQL for MySQL instance for the content catalogue: 90% of traffic is reads from the public site, the primary is at 85% CPU, and writes are a small, steady trickle from the editorial team. (2) A Cloud SQL for PostgreSQL instance behind the ad-auction service: writes have tripled, the 16 vCPU instance is saturated, and the forecast says writes will grow ten-fold over two years with strong consistency required worldwide. (3) An AlloyDB cluster for analytics dashboards whose queries are heavy aggregate scans on the same operational data; the primary slows whenever analysts run reports. Recommend scale-up or scale-out for each and say what you would not do.",
+        "Bramblewick Media's platform team has three scaling problems. (1) A Cloud SQL for MySQL instance for the content catalog: 90% of traffic is reads from the public site, the primary is at 85% CPU, and writes are a small, steady trickle from the editorial team. (2) A Cloud SQL for PostgreSQL instance behind the ad-auction service: writes have tripled, the 16 vCPU instance is saturated, and the forecast says writes will grow ten-fold over two years with strong consistency required worldwide. (3) An AlloyDB cluster for analytics dashboards whose queries are heavy aggregate scans on the same operational data; the primary slows whenever analysts run reports. Recommend scale-up or scale-out for each and say what you would not do.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -267,13 +267,13 @@ export const GCPDBE_LABS: SeedLabSet = {
           ask: "For each database, choose scale-up or scale-out, name the mechanism, and give the reason.",
           parts: [
             part(
-              "Content catalogue",
+              "Content catalog",
               "Chooses scale-out of reads with Cloud SQL read replicas (and a cache such as Memorystore for hot items), keeping writes on the primary; notes replicas are asynchronous so slightly stale reads must be acceptable for the public site.",
-              "Scale out reads: add Cloud SQL read replicas and point the public site's read traffic at them (optionally cache the hottest catalogue items in Memorystore). Writes stay on the primary, which is lightly loaded by them. Replication is asynchronous, so a reader may be a moment behind, which is fine for a public catalogue. Scaling up the primary would be a short-term fix for a read-only problem."
+              "Scale out reads: add Cloud SQL read replicas and point the public site's read traffic at them (optionally cache the hottest catalog items in Memorystore). Writes stay on the primary, which is lightly loaded by them. Replication is asynchronous, so a reader may be a moment behind, which is fine for a public catalog. Scaling up the primary would be a short-term fix for a read-only problem."
             ),
             part(
               "Ad auction",
-              "Recognises that write throughput with ten-fold growth and global strong consistency outgrows a single-node relational instance (scale-up has a ceiling) and recommends horizontal scale-out on Spanner, with the migration planned rather than another machine-type bump.",
+              "Recognizes that write throughput with ten-fold growth and global strong consistency outgrows a single-node relational instance (scale-up has a ceiling) and recommends horizontal scale-out on Spanner, with the migration planned rather than another machine-type bump.",
               "Scale up buys months, not years: a Cloud SQL instance has a largest machine type and a single writable node, and read replicas do not help writes. For ten-fold write growth with strong consistency, move the auction data to Spanner, which scales writes horizontally by adding compute and keeps strong consistency. Plan the migration now while a bigger machine type carries the next few months."
             ),
             part(
@@ -293,7 +293,7 @@ export const GCPDBE_LABS: SeedLabSet = {
       kind: "case",
       title: "Run a near-zero-downtime MySQL migration with a fallback",
       brief:
-        "Linden Grocers runs its 1.2 TB order database on self-managed MySQL 8.0 in a co-location data centre with a Cloud Interconnect to Google Cloud. The business allows a 15-minute maintenance window for cutover, no longer, and insists on a tested way back to the old database for 48 hours after cutover. You are leading the move to Cloud SQL for MySQL.",
+        "Linden Grocers runs its 1.2 TB order database on self-managed MySQL 8.0 in a co-location data center with a Cloud Interconnect to Google Cloud. The business allows a 15-minute maintenance window for cutover, no longer, and insists on a tested way back to the old database for 48 hours after cutover. You are leading the move to Cloud SQL for MySQL.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -371,7 +371,7 @@ export const GCPDBE_LABS: SeedLabSet = {
             ),
             part(
               "D: On-prem PostgreSQL into BigQuery",
-              "Recognises this is replication for analytics, not a migration, and chooses Datastream (change data capture from PostgreSQL into BigQuery) rather than DMS or nightly exports.",
+              "Recognizes this is replication for analytics, not a migration, and chooses Datastream (change data capture from PostgreSQL into BigQuery) rather than DMS or nightly exports.",
               "Datastream: a serverless change data capture service that reads PostgreSQL's logical replication stream and writes changes into BigQuery within minutes, while the source database stays on-premises. Database Migration Service is for moving the database itself; a nightly export would miss the minutes-level requirement."
             ),
           ],
@@ -406,7 +406,7 @@ export const GCPDBE_LABS: SeedLabSet = {
             part(
               "Maintenance and alerting",
               "Sets a maintenance window outside billing peaks and relies on Enterprise Plus near-zero (sub-second) maintenance downtime; configures Cloud Monitoring alerts on failover events, replication lag, CPU, storage and connection count, routed to the on-call channel.",
-              "Set the maintenance window to the quietest hours and the Enterprise Plus edition keeps maintenance downtime sub-second. In Cloud Monitoring, alert on the replica's replication lag, instance CPU and storage utilisation, connection count near the limit, and on failover and instance state log events, delivered to the on-call notification channel."
+              "Set the maintenance window to the quietest hours and the Enterprise Plus edition keeps maintenance downtime sub-second. In Cloud Monitoring, alert on the replica's replication lag, instance CPU and storage utilization, connection count near the limit, and on failover and instance state log events, delivered to the on-call notification channel."
             ),
             part(
               "Evidence for the auditor",

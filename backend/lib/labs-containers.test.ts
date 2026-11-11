@@ -346,11 +346,11 @@ describe("container and Kubernetes lab wave (REQ-164)", () => {
     assert.match(text, /legacy devicemapper/);
   });
 
-  test("every lab carries the general safety note, a fictional organisation, and the right shape for its kind", () => {
+  test("every lab carries the general safety note, a fictional organization, and the right shape for its kind", () => {
     for (const code of CODES) {
       for (const lab of setFor(code).labs) {
         assert.equal(lab.safetyNote, GENERAL_SAFETY, `${code}/${lab.slug}`);
-        assert.match(lab.brief, /fictional/i, `${code}/${lab.slug}: the brief says the organisation is fictional`);
+        assert.match(lab.brief, /fictional/i, `${code}/${lab.slug}: the brief says the organization is fictional`);
         if (lab.kind === "build") {
           assert.equal(lab.steps.length, 1, `${code}/${lab.slug}`);
           assert.equal(lab.steps[0].text, "", `${code}/${lab.slug}: a build lab's step has no text`);

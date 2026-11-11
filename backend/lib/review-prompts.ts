@@ -62,6 +62,9 @@ export interface ReviewBatchObjective {
   // can be served (the system text forbids addressing a learner); it just
   // aims at telling the mixed-up ideas apart.
   mixups?: string;
+  // REQ-220 (FAIL-1141): the unit's dated references and key values
+  // (lib/current-facts.ts); the batch spans units, so they go per objective.
+  references?: string[];
   // REQ-216: set on the one retry of a question that was held back -- the
   // claims to leave out or state as uncertain (lib/generation-gate.ts steerText).
   steer?: string;
@@ -96,7 +99,7 @@ Unit: ${o.unitTitle}
 Objective: ${o.title}
 ${terms}
 ${target}
-Teaching text:
+${o.references?.length ? `References (dated; use these values over older ones you remember):\n${o.references.join("\n")}\n` : ""}Teaching text:
 ${o.teach.slice(0, TEACH_CHARS)}${o.mixups ? o.mixups : ""}${o.steer ? `\n${o.steer}` : ""}
 </objective>`;
   });

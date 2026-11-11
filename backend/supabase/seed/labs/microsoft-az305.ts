@@ -78,7 +78,7 @@ export const AZ305_LABS: SeedLabSet = {
       kind: "build",
       title: "Design the management-group hierarchy and tagging for a multinational",
       brief:
-        "Aldergate Foods, a fictional food manufacturer, is adopting Azure across three business units (Bakery, Beverages, Logistics) in Europe and North America. Requirements: central IT runs shared identity, connectivity (hub networks, firewalls) and monitoring, and nobody else may change them; each business unit must be able to run production and non-production workloads with its own cost visibility; a small sandbox area must exist where engineers can experiment with few restrictions; data residency rules (EU data stays in EU regions) must be enforced centrally and must not be removable by a subscription owner; finance needs to report cost by business unit, environment, cost centre and application owner. Recommend the hierarchy and the tagging strategy, and justify the two decisions an alternative design would get wrong.",
+        "Aldergate Foods, a fictional food manufacturer, is adopting Azure across three business units (Bakery, Beverages, Logistics) in Europe and North America. Requirements: central IT runs shared identity, connectivity (hub networks, firewalls) and monitoring, and nobody else may change them; each business unit must be able to run production and non-production workloads with its own cost visibility; a small sandbox area must exist where engineers can experiment with few restrictions; data residency rules (EU data stays in EU regions) must be enforced centrally and must not be removable by a subscription owner; finance needs to report cost by business unit, environment, cost center and application owner. Recommend the hierarchy and the tagging strategy, and justify the two decisions an alternative design would get wrong.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -87,7 +87,7 @@ export const AZ305_LABS: SeedLabSet = {
           parts: [
             part(
               "Management-group tree",
-              "Recommends a tree under the tenant root modelled on the Azure landing zone pattern: a top-level company group; a Platform group with child groups (or subscriptions) for Identity, Management and Connectivity; a Landing Zones group with children per business unit (or per archetype such as Corp/Online) and Prod/Non-prod beneath; a Sandbox group; and optionally a Decommissioned group. Notes the depth limit of six levels excluding root and subscription, one parent per group.",
+              "Recommends a tree under the tenant root modeled on the Azure landing zone pattern: a top-level company group; a Platform group with child groups (or subscriptions) for Identity, Management and Connectivity; a Landing Zones group with children per business unit (or per archetype such as Corp/Online) and Prod/Non-prod beneath; a Sandbox group; and optionally a Decommissioned group. Notes the depth limit of six levels excluding root and subscription, one parent per group.",
               "Tenant root -> Aldergate (company) -> Platform (children: Identity, Management, Connectivity), Landing Zones (children: Bakery, Beverages, Logistics, each with Prod and Non-prod), Sandbox, Decommissioned. That is four levels below the root, inside the six-level limit (root and subscription not counted), and each group has exactly one parent. Platform holds the shared services central IT owns; business units live only under Landing Zones."
             ),
             part(
@@ -129,7 +129,7 @@ export const AZ305_LABS: SeedLabSet = {
           parts: [
             part(
               "Application secrets",
-              "Recommends Azure Key Vault for secrets, accessed by applications through managed identities (no credentials in code), with Azure RBAC as the authorisation model (data-plane roles such as Key Vault Secrets User) and versioned secrets referenced by URI so rotation does not require redeployment; may mention Key Vault references from App Service / Functions.",
+              "Recommends Azure Key Vault for secrets, accessed by applications through managed identities (no credentials in code), with Azure RBAC as the authorization model (data-plane roles such as Key Vault Secrets User) and versioned secrets referenced by URI so rotation does not require redeployment; may mention Key Vault references from App Service / Functions.",
               "Azure Key Vault holds the connection strings and API keys. Each app authenticates with its managed identity -- Microsoft Entra authentication, nothing stored in code -- and is granted a data-plane role such as Key Vault Secrets User using Azure RBAC (preferred over the legacy access-policy model because one model covers management and data access). Apps read secrets by URI, so a new secret version is picked up on the next read or by a Key Vault reference in App Service settings; rotation is a vault operation, not a deployment."
             ),
             part(
@@ -139,13 +139,13 @@ export const AZ305_LABS: SeedLabSet = {
             ),
             part(
               "Public TLS certificates",
-              "Recommends Key Vault certificates with an integrated public certificate authority so enrolment and renewal are automated, bound to the front end (App Service, Application Gateway or Front Door) from the vault; notes App Service managed certificates or Front Door managed certificates as alternatives where they cover the need.",
-              "Key Vault certificates with an integrated public CA: Key Vault handles enrolment and automatic renewal of the 30 certificates, and the front end (Application Gateway, Front Door or App Service) binds the certificate from the vault so a renewed version is picked up without a manual re-import. Where a front end offers its own managed certificate (Front Door or App Service managed certificates) that is acceptable for simple domains, but a single vault keeps all 30 under one renewal policy and one audit log."
+              "Recommends Key Vault certificates with an integrated public certificate authority so enrollment and renewal are automated, bound to the front end (App Service, Application Gateway or Front Door) from the vault; notes App Service managed certificates or Front Door managed certificates as alternatives where they cover the need.",
+              "Key Vault certificates with an integrated public CA: Key Vault handles enrollment and automatic renewal of the 30 certificates, and the front end (Application Gateway, Front Door or App Service) binds the certificate from the vault so a renewed version is picked up without a manual re-import. Where a front end offers its own managed certificate (Front Door or App Service managed certificates) that is acceptable for simple domains, but a single vault keeps all 30 under one renewal policy and one audit log."
             ),
             part(
               "Non-secret configuration",
               "Recommends Azure App Configuration for feature flags and settings, with Key Vault references for anything secret, rather than putting non-secret settings in Key Vault.",
-              "Azure App Configuration for feature switches and endpoint URLs: it is built for hierarchical, labelled configuration and feature management with change notification, and it can hold Key Vault references so an app gets secrets and settings through one client. Key Vault is the wrong tool for high-volume non-secret settings; App Configuration is the wrong tool for secrets."
+              "Azure App Configuration for feature switches and endpoint URLs: it is built for hierarchical, labeled configuration and feature management with change notification, and it can hold Key Vault references so an app gets secrets and settings through one client. Key Vault is the wrong tool for high-volume non-secret settings; App Configuration is the wrong tool for secrets."
             ),
             part(
               "Recovery and anti-purge",
@@ -162,7 +162,7 @@ export const AZ305_LABS: SeedLabSet = {
       kind: "case",
       title: "Recommend an authentication design for a hybrid enterprise",
       brief:
-        "Stonebridge Engineering, a fictional firm with 9,000 staff, runs on-premises Active Directory Domain Services and is moving collaboration and several line-of-business apps to Microsoft 365 and Azure. The security team's rules: account disablements and password policy changes made on-premises must take effect in the cloud immediately; users must not get a second password; the company must stay able to sign in to cloud apps if the on-premises datacentre is offline; and the board wants phishing-resistant sign-in for administrators within a year.",
+        "Stonebridge Engineering, a fictional firm with 9,000 staff, runs on-premises Active Directory Domain Services and is moving collaboration and several line-of-business apps to Microsoft 365 and Azure. The security team's rules: account disablements and password policy changes made on-premises must take effect in the cloud immediately; users must not get a second password; the company must stay able to sign in to cloud apps if the on-premises datacenter is offline; and the board wants phishing-resistant sign-in for administrators within a year.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -171,19 +171,19 @@ export const AZ305_LABS: SeedLabSet = {
           parts: [
             part(
               "Primary method",
-              "Recommends pass-through authentication (PTA) with agents on several on-premises servers, because PTA validates the password against on-premises AD at sign-in time and therefore enforces on-premises account state, password policy and sign-in hours immediately, whereas password hash synchronisation (PHS) applies such changes only after the next sync; rules out federation (AD FS) as unnecessary infrastructure when there is no requirement Entra ID cannot meet natively.",
-              "Pass-through authentication, with at least three PTA agents on-premises for resilience. PTA checks the password against on-premises AD at the moment of sign-in, so a disabled account or a changed password policy is enforced immediately -- the security team's rule. Password hash synchronisation would be simpler but does not immediately enforce on-premises account states; it relies on the sync cycle. Federation with AD FS would also enforce on-premises policy but means running and securing a federation farm, and nothing here (no third-party MFA provider, no sAMAccountName-only sign-in) requires it. Users keep one password either way, which satisfies the no-second-password rule."
+              "Recommends pass-through authentication (PTA) with agents on several on-premises servers, because PTA validates the password against on-premises AD at sign-in time and therefore enforces on-premises account state, password policy and sign-in hours immediately, whereas password hash synchronization (PHS) applies such changes only after the next sync; rules out federation (AD FS) as unnecessary infrastructure when there is no requirement Entra ID cannot meet natively.",
+              "Pass-through authentication, with at least three PTA agents on-premises for resilience. PTA checks the password against on-premises AD at the moment of sign-in, so a disabled account or a changed password policy is enforced immediately -- the security team's rule. Password hash synchronization would be simpler but does not immediately enforce on-premises account states; it relies on the sync cycle. Federation with AD FS would also enforce on-premises policy but means running and securing a federation farm, and nothing here (no third-party MFA provider, no sAMAccountName-only sign-in) requires it. Users keep one password either way, which satisfies the no-second-password rule."
             ),
           ],
         },
         {
-          text: "During a review, the operations director asks what happens to cloud sign-in if the datacentre loses power, as it did for six hours last winter.",
+          text: "During a review, the operations director asks what happens to cloud sign-in if the datacenter loses power, as it did for six hours last winter.",
           ask: "What do you add to the design, and how does the switch happen?",
           parts: [
             part(
               "Resilience",
-              "Enables password hash synchronisation alongside PTA as a backup authentication method, explaining that failover to PHS is not automatic and must be switched in Microsoft Entra Connect, and that PHS also enables leaked-credential detection in Entra ID Protection; may mention Staged Rollout for testing.",
-              "Enable password hash synchronisation as well -- Microsoft's guidance is to use or enable PHS whichever primary method you choose. If the datacentre and its PTA agents go dark, the identity team switches the sign-in method to PHS in Microsoft Entra Connect; the switch is a manual step, not automatic, so it belongs in the runbook. PHS running in parallel also feeds Entra ID Protection's leaked-credentials detection, which PTA alone does not."
+              "Enables password hash synchronization alongside PTA as a backup authentication method, explaining that failover to PHS is not automatic and must be switched in Microsoft Entra Connect, and that PHS also enables leaked-credential detection in Entra ID Protection; may mention Staged Rollout for testing.",
+              "Enable password hash synchronization as well -- Microsoft's guidance is to use or enable PHS whichever primary method you choose. If the datacenter and its PTA agents go dark, the identity team switches the sign-in method to PHS in Microsoft Entra Connect; the switch is a manual step, not automatic, so it belongs in the runbook. PHS running in parallel also feeds Entra ID Protection's leaked-credentials detection, which PTA alone does not."
             ),
           ],
         },
@@ -209,7 +209,7 @@ export const AZ305_LABS: SeedLabSet = {
       kind: "build",
       title: "Recommend a relational platform and tier for three applications",
       brief:
-        "Halvorsen Retail, a fictional chain, is moving three SQL Server databases to Azure. (1) The point-of-sale ledger: 1.8 TB, heavy OLTP from 600 stores, must tolerate a datacentre failure with no data loss and keep latency low; reports run against it during the day and slow down sales. (2) A legacy warehouse application that uses SQL Agent jobs, cross-database queries, CLR assemblies and Service Broker, and whose vendor will not change the code. (3) An internal HR reporting database, 40 GB, used a few hours a day on weekdays; the team wants to stop paying for an idle server at night and weekends. Recommend a deployment option and service/compute tier for each, and name the alternative you rejected.",
+        "Halvorsen Retail, a fictional chain, is moving three SQL Server databases to Azure. (1) The point-of-sale ledger: 1.8 TB, heavy OLTP from 600 stores, must tolerate a datacenter failure with no data loss and keep latency low; reports run against it during the day and slow down sales. (2) A legacy warehouse application that uses SQL Agent jobs, cross-database queries, CLR assemblies and Service Broker, and whose vendor will not change the code. (3) An internal HR reporting database, 40 GB, used a few hours a day on weekdays; the team wants to stop paying for an idle server at night and weekends. Recommend a deployment option and service/compute tier for each, and name the alternative you rejected.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -218,8 +218,8 @@ export const AZ305_LABS: SeedLabSet = {
           parts: [
             part(
               "Point-of-sale ledger",
-              "Recommends Azure SQL Database (single database) in the Business Critical tier with zone redundancy, citing local SSD storage and low latency for high-rate OLTP, three replicas with one free read-only replica to offload the daytime reports (read scale-out), and zone-redundant HA for datacentre failure with RPO 0; may mention Hyperscale as the alternative if growth beyond 4 TB is expected.",
-              "Azure SQL Database, vCore, Business Critical, zone-redundant. Business Critical is built for OLTP with high transaction rates and low I/O latency (local SSD), keeps three replicas, and includes one read scale-out replica at no extra charge -- point the daytime reports at the read-only replica so they stop slowing sales. Zone-redundant configuration survives a datacentre (zone) failure with zero data loss. At 1.8 TB it fits the 4 TB Business Critical limit; if the ledger were heading past 4 TB, Hyperscale (up to 128 TB, zero to four high-availability replicas that also serve reads, plus up to 30 named replicas for read scale-out) would be the choice instead. General Purpose was rejected: remote storage, one replica, no read scale-out."
+              "Recommends Azure SQL Database (single database) in the Business Critical tier with zone redundancy, citing local SSD storage and low latency for high-rate OLTP, three replicas with one free read-only replica to offload the daytime reports (read scale-out), and zone-redundant HA for datacenter failure with RPO 0; may mention Hyperscale as the alternative if growth beyond 4 TB is expected.",
+              "Azure SQL Database, vCore, Business Critical, zone-redundant. Business Critical is built for OLTP with high transaction rates and low I/O latency (local SSD), keeps three replicas, and includes one read scale-out replica at no extra charge -- point the daytime reports at the read-only replica so they stop slowing sales. Zone-redundant configuration survives a datacenter (zone) failure with zero data loss. At 1.8 TB it fits the 4 TB Business Critical limit; if the ledger were heading past 4 TB, Hyperscale (up to 128 TB, zero to four high-availability replicas that also serve reads, plus up to 30 named replicas for read scale-out) would be the choice instead. General Purpose was rejected: remote storage, one replica, no read scale-out."
             ),
             part(
               "Legacy warehouse application",
@@ -241,7 +241,7 @@ export const AZ305_LABS: SeedLabSet = {
       kind: "build",
       title: "Recommend storage for four unstructured datasets",
       brief:
-        "Pelican Imaging, a fictional medical-imaging provider, needs storage for four datasets. (1) 600 TB of historical scans that must be retained for 10 years, are retrieved perhaps twice a month, and a retrieval wait of a day is acceptable. (2) 40 TB of scans from the last 90 days that radiologists open constantly from a web viewer. (3) A data-science platform that runs analytics over petabytes of files organised in deep folder hierarchies and needs POSIX-like directory operations and fine-grained ACLs. (4) A legacy Windows application cluster that must mount a shared file system over SMB from several VMs, with low latency. Finance wants the lowest cost that meets each requirement and asks what each choice costs them in other ways.",
+        "Pelican Imaging, a fictional medical-imaging provider, needs storage for four datasets. (1) 600 TB of historical scans that must be retained for 10 years, are retrieved perhaps twice a month, and a retrieval wait of a day is acceptable. (2) 40 TB of scans from the last 90 days that radiologists open constantly from a web viewer. (3) A data-science platform that runs analytics over petabytes of files organized in deep folder hierarchies and needs POSIX-like directory operations and fine-grained ACLs. (4) A legacy Windows application cluster that must mount a shared file system over SMB from several VMs, with low latency. Finance wants the lowest cost that meets each requirement and asks what each choice costs them in other ways.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -323,12 +323,12 @@ export const AZ305_LABS: SeedLabSet = {
             part(
               "On-premises VMware server",
               "Recommends Azure Site Recovery (VMware to Azure) replicating the server to Azure with app-consistent snapshots at an hourly frequency for the one-hour RPO, failover into Azure within the eight-hour RTO, and a test failover to prove it; distinguishes this from Azure Backup (MARS/MABS), which protects data but does not bring the server up in Azure quickly.",
-              "Azure Site Recovery for VMware: replicate the warehouse-management server to Azure (replication appliance on-premises), app-consistent snapshots hourly for the one-hour RPO, and a recovery plan that fails it over into an Azure VNet -- far inside eight hours -- then fail back when the datacentre returns. Azure Backup for the server (MABS or the MARS agent) would protect its data but restoring a server from backup into Azure is a rebuild, not a failover, so it is the complement, not the recovery mechanism."
+              "Azure Site Recovery for VMware: replicate the warehouse-management server to Azure (replication appliance on-premises), app-consistent snapshots hourly for the one-hour RPO, and a recovery plan that fails it over into an Azure VNet -- far inside eight hours -- then fail back when the datacenter returns. Azure Backup for the server (MABS or the MARS agent) would protect its data but restoring a server from backup into Azure is a rebuild, not a failover, so it is the complement, not the recovery mechanism."
             ),
             part(
               "Backup protection",
-              "Recommends Azure Backup with soft delete (14 days by default, extendable to 180) so deleted backup data stays recoverable, plus immutable vaults (WORM, locked) and multi-user authorisation (Resource Guard) for critical operations, and geo-redundant vault storage with cross-region restore.",
-              "Back everything up to Recovery Services / Backup vaults with soft delete on: deleted backup items stay recoverable for 14 days by default (extendable to 180), at no extra cost for the default period, and in regions where it is always-on it cannot be disabled. Add vault immutability (locked, so retention cannot be shortened or recovery points deleted early) and multi-user authorisation with Resource Guard so a single compromised administrator cannot perform destructive vault operations alone. Use geo-redundant vault storage with cross-region restore so the backups themselves survive the regional disaster."
+              "Recommends Azure Backup with soft delete (14 days by default, extendable to 180) so deleted backup data stays recoverable, plus immutable vaults (WORM, locked) and multi-user authorization (Resource Guard) for critical operations, and geo-redundant vault storage with cross-region restore.",
+              "Back everything up to Recovery Services / Backup vaults with soft delete on: deleted backup items stay recoverable for 14 days by default (extendable to 180), at no extra cost for the default period, and in regions where it is always-on it cannot be disabled. Add vault immutability (locked, so retention cannot be shortened or recovery points deleted early) and multi-user authorization with Resource Guard so a single compromised administrator cannot perform destructive vault operations alone. Use geo-redundant vault storage with cross-region restore so the backups themselves survive the regional disaster."
             ),
           ],
         },
@@ -343,7 +343,7 @@ export const AZ305_LABS: SeedLabSet = {
       kind: "build",
       title: "Specify compute for four workloads",
       brief:
-        "Tamarind Software, a fictional company, is designing compute for four workloads. (1) A customer web portal (.NET) the team wants to deploy from Git with built-in autoscale, staging slots and managed TLS, and no servers to patch. (2) A set of 40 containerised microservices that need service discovery, scale-to-zero for idle services, and event-driven scaling from queue length, without the team operating Kubernetes. (3) An overnight risk simulation that runs 5,000 independent tasks on hundreds of cores for three hours and then needs nothing until the next night. (4) A legacy Windows service that requires a specific GPU driver, registry changes and a third-party agent installed on the OS, and must stay up through a single-host failure. For each, specify the compute service, the key component choices, and the alternative you rejected.",
+        "Tamarind Software, a fictional company, is designing compute for four workloads. (1) A customer web portal (.NET) the team wants to deploy from Git with built-in autoscale, staging slots and managed TLS, and no servers to patch. (2) A set of 40 containerized microservices that need service discovery, scale-to-zero for idle services, and event-driven scaling from queue length, without the team operating Kubernetes. (3) An overnight risk simulation that runs 5,000 independent tasks on hundreds of cores for three hours and then needs nothing until the next night. (4) A legacy Windows service that requires a specific GPU driver, registry changes and a third-party agent installed on the OS, and must stay up through a single-host failure. For each, specify the compute service, the key component choices, and the alternative you rejected.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -356,7 +356,7 @@ export const AZ305_LABS: SeedLabSet = {
               "Azure App Service on a Premium (or Standard) plan: Git-based deployment, autoscale rules, deployment slots for staged releases and managed TLS certificates come with the platform, and Microsoft patches the OS. VMs would hand the team the operating system to maintain; AKS would be a whole platform to run for a single web application."
             ),
             part(
-              "Containerised microservices",
+              "Containerized microservices",
               "Specifies Azure Container Apps -- serverless containers with built-in service discovery, scale-to-zero and KEDA-based event-driven scaling (for example from queue length) on managed infrastructure -- rejecting AKS because the team does not want to operate Kubernetes and Container Instances because it has no orchestration or autoscale.",
               "Azure Container Apps: it runs the 40 containers with built-in service discovery and ingress, scales each app on HTTP traffic or KEDA event sources such as queue length, and scales idle services to zero so they cost nothing, all without a Kubernetes cluster to manage. AKS gives full Kubernetes control the team explicitly does not want to operate; Azure Container Instances runs single container groups with no built-in autoscale or discovery."
             ),
@@ -390,7 +390,7 @@ export const AZ305_LABS: SeedLabSet = {
             part(
               "Patient portal, global entry",
               "Recommends Azure Front Door (global, HTTP(S), Layer 7) with TLS termination, WAF policy and latency-based routing with health probes across the two regions; explains Traffic Manager is DNS-only (slower failover because of DNS caching, no TLS termination or WAF) and Application Gateway and Load Balancer are regional.",
-              "Azure Front Door (Premium if managed WAF rules or Private Link to the App Service origins are wanted): a global Layer-7 entry point that terminates TLS at the edge, applies a WAF policy, and routes each patient to the nearest healthy region using health probes. Traffic Manager is DNS-based, so it cannot terminate TLS or run a WAF and fails over only as fast as clients honour DNS TTLs; Application Gateway and Load Balancer live in one region each."
+              "Azure Front Door (Premium if managed WAF rules or Private Link to the App Service origins are wanted): a global Layer-7 entry point that terminates TLS at the edge, applies a WAF policy, and routes each patient to the nearest healthy region using health probes. Traffic Manager is DNS-based, so it cannot terminate TLS or run a WAF and fails over only as fast as clients honor DNS TTLs; Application Gateway and Load Balancer live in one region each."
             ),
             part(
               "Microservices inside each region",
@@ -415,13 +415,13 @@ export const AZ305_LABS: SeedLabSet = {
       slug: "migration-assessment-case",
       objective: "Evaluating on-premises servers, data, and applications for migration",
       kind: "case",
-      title: "Assess a datacentre for migration to Azure",
+      title: "Assess a datacenter for migration to Azure",
       brief:
-        "Fennimore Insurance, a fictional firm, must leave its leased datacentre in 14 months. It runs about 380 VMware virtual machines, 45 SQL Server instances, a dozen .NET web applications on IIS, and a 90 TB file archive. Nobody has an accurate inventory, and the board wants a cost comparison and a plan before approving budget.",
+        "Fennimore Insurance, a fictional firm, must leave its leased datacenter in 14 months. It runs about 380 VMware virtual machines, 45 SQL Server instances, a dozen .NET web applications on IIS, and a 90 TB file archive. Nobody has an accurate inventory, and the board wants a cost comparison and a plan before approving budget.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
-          text: "The programme lead asks how to get an accurate picture of what exists and what it depends on, without installing agents on 380 servers.",
+          text: "The program lead asks how to get an accurate picture of what exists and what it depends on, without installing agents on 380 servers.",
           ask: "Recommend the discovery approach and what it should capture.",
           parts: [
             part(
@@ -438,7 +438,7 @@ export const AZ305_LABS: SeedLabSet = {
             part(
               "Business case and assessments",
               "Uses Azure Migrate's business case (on-premises TCO versus Azure, year-over-year cash flow, CapEx to OpEx) for the board, and assessments per workload type: Azure VM assessment (readiness, right-sized SKU from performance data, cost), Azure SQL assessment (readiness for SQL Database / Managed Instance / SQL on VM and recommended configuration), and web-app assessment for App Service; recommends performance-based sizing over as-is sizing.",
-              "Run the Azure Migrate business case: it compares the datacentre's total cost of ownership with Azure, shows year-over-year cash flows and the CapEx-to-OpEx shift the board asked for. Then assessments: an Azure VM assessment over the 380 servers using performance-based sizing (so idle servers get smaller SKUs), an Azure SQL assessment over the 45 instances to see which are ready for Azure SQL Database or Managed Instance and which need SQL Server on a VM, and a web-app assessment to see which IIS apps can land on App Service."
+              "Run the Azure Migrate business case: it compares the datacenter's total cost of ownership with Azure, shows year-over-year cash flows and the CapEx-to-OpEx shift the board asked for. Then assessments: an Azure VM assessment over the 380 servers using performance-based sizing (so idle servers get smaller SKUs), an Azure SQL assessment over the 45 instances to see which are ready for Azure SQL Database or Managed Instance and which need SQL Server on a VM, and a web-app assessment to see which IIS apps can land on App Service."
             ),
             part(
               "Classifying the estate",

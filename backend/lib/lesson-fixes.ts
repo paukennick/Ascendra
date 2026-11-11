@@ -1,4 +1,5 @@
 import { query, queryOne, withTransaction } from "@/lib/db";
+import { toUsSpelling } from "@/lib/us-spelling";
 import { lessonIntroProblems, lessonPracticeProblems } from "@/lib/content-validator";
 import { confirmItemWrong, lessonItemId, recordHoldback, type ItemRef } from "@/lib/item-quality";
 import { AUTHORED_LESSONS, AUTHORED_LESSON_MODEL, authoredLesson, authoredRefFor } from "@/lib/authored-lessons";
@@ -97,7 +98,9 @@ export async function lookupFix(fix: Pick<LessonFix, "track" | "objective" | "in
        from objectives o join course_units cu on cu.id = o.unit_id join subject_tracks st on st.id = cu.track_id
       where st.user_id is null and upper(st.code) = upper($1) and o.title = any($2::text[])
         and ($3::boolean or (o.retired_at is null or o.retired_at > now()))`,
-    [fix.track, Array.isArray(fix.objective) ? fix.objective : [fix.objective], fix.includeRetired === true]
+    // REQ-220: a fix written before the US-spelling sweep names the title in
+    // British spelling; the same objective now has the US title.
+    [fix.track, [...new Set((Array.isArray(fix.objective) ? fix.objective : [fix.objective]).flatMap((t) => [t, toUsSpelling(t)]))], fix.includeRetired === true]
   );
   const out: FixTarget[] = [];
   for (const r of rows) {

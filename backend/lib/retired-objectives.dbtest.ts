@@ -208,7 +208,7 @@ describe("FAIL-890: retired content stays out of review", () => {
     }
   });
 
-  test("the enrolment trigger does not enrol a retired objective (migration 069)", async () => {
+  test("the enrollment trigger does not enrol a retired objective (migration 069)", async () => {
     const u = randomUUID();
     await query(`insert into app_users (id, email) values ($1, $2)`, [u, `${u}@example.test`]);
     try {

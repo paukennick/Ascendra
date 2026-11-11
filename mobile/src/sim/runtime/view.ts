@@ -30,11 +30,11 @@ function text(run: Run, tpl: string): string {
 
 const UNIT_WORDS: Record<string, string> = {
   "/min": "per minute",
-  mmHg: "millimetres of mercury",
+  mmHg: "millimeters of mercury",
   "%": "percent",
-  "mL/h": "millilitres per hour",
-  "L/min/m2": "litres per minute per square metre",
-  "mL/15min": "millilitres in 15 minutes",
+  "mL/h": "milliliters per hour",
+  "L/min/m2": "liters per minute per square meter",
+  "mL/15min": "milliliters in 15 minutes",
   mL: "millilitres",
   $: "dollars",
 };

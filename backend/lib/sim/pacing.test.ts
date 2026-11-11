@@ -184,12 +184,36 @@ describe("focused start", () => {
     const focused = createRun(doc, 1);
     put(focused, { type: "begin", start: "focused" });
     const plain = createRun(doc, 1);
-    to(plain, 780);
-    assert.equal(focused.state.tick, 780);
-    assert.equal(focused.focusedAt, 780);
+    to(plain, 720);
+    assert.equal(focused.state.tick, 720);
+    assert.equal(focused.focusedAt, 720);
     assert.equal(stateHash(focused.state), stateHash(plain.state));
     assert.equal(focused.realtimeTicks, 0, "the evolved ticks are not real time");
     assert.equal(minWallSeconds(focused), 0);
+  });
+
+  test("REQ-220 (FAIL-1142): a focused start leaves at least 2 sim minutes before the first written question, and its summary does not name the cue", () => {
+    const run = createRun(doc, 1);
+    put(run, { type: "begin", start: "focused" });
+    const start = run.state.tick;
+    assert.equal(run.state.openReasoning, null, "no question at the moment of joining");
+    while (run.state.openReasoning === null) assert.ok(advance(run));
+    assert.ok(run.state.tick - start >= 120, `question opened ${run.state.tick - start} s after the focused start`);
+    assert.doesNotMatch(doc.focusedStart!.summary ?? "", /drain|tube|stopp/i);
+  });
+
+  test("REQ-220 (FAIL-1143): the brief says the default pace is 3x, not real time", () => {
+    const how = (doc.brief.howItWorks ?? []).join(" ");
+    assert.doesNotMatch(how, /runs in real time: one minute on the monitor is one minute/);
+    assert.match(how, /study pace \(3x\)/);
+  });
+
+  test("REQ-220 (FAIL-1144): the CVP model rises by the teaching prompt's figure per 500 mL bolus", () => {
+    const p = (doc.params as Record<string, { value: number }>).cvpPer500;
+    assert.equal(p.value, 3);
+    const t = (doc as unknown as { teaching: Record<string, { expect: string; explain: string }> }).teaching.cvpAfterBolus;
+    assert.equal(t.expect, "rise");
+    assert.match(t.explain, /about 3 mmHg/);
   });
 
   test("it can only be the first command", () => {
@@ -211,14 +235,14 @@ describe("focused start", () => {
     const cmds = gp("focused3x").commands;
     const full = replayRun({ doc, seed: 1, from: null, commands: cmds, every: 300 });
     assert.equal(full.rejected, null);
-    assert.equal(full.run.focusedAt, 780);
-    assert.ok(full.checkpoint && full.checkpoint.tick >= 780);
+    assert.equal(full.run.focusedAt, 720);
+    assert.ok(full.checkpoint && full.checkpoint.tick >= 720);
     const cp = JSON.parse(JSON.stringify(full.checkpoint)) as Checkpoint;
-    assert.equal(cp.focusedAt, 780);
+    assert.equal(cp.focusedAt, 720);
     const resumed = replayRun({ doc, seed: 1, from: cp, commands: cmds.filter((c) => c.seq > cp.lastSeq) });
     assert.equal(resumed.rejected, null);
     assert.equal(stateHash(resumed.run.state), stateHash(full.run.state));
-    assert.equal(resumed.run.focusedAt, 780);
+    assert.equal(resumed.run.focusedAt, 720);
   });
 });
 
@@ -232,7 +256,7 @@ describe("scoring a focused start (docs/sims.md 5.4b)", () => {
     for (const k of ["callEarly", "sbar", "confirm", "bridge", "prep", "labs", "phase2"]) assert.equal(by[k], "met", k);
     assert.equal(d.processScore, 100);
     assert.equal(d.rating, "good");
-    assert.equal(d.focusedStart?.time, "14:13:00");
+    assert.equal(d.focusedStart?.time, "14:12:00");
     // paged 700 s after onset: the 20-minute (1200 s) target measured from onset applies unchanged
     assert.equal(d.kpis.find((k) => k.id === "page")?.raw, 700);
     assert.equal(d.kpis.find((k) => k.id === "recognition")?.raw, 662);

@@ -737,10 +737,10 @@ describe("pacing (REQ-209)", () => {
 
   test("focused start: begin evolves the run to the scenario's start point, as the engine's own replay does", async () => {
     const r = await fresh(TAMP_C, 5);
-    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], tick: 780 });
+    const a = await sync(clin, r.runId, { leaseEpoch: r.lease, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 720, type: "pace", pace: 3 }], tick: 720 });
     assert.equal(a.status, 200, JSON.stringify(a.body));
-    assert.equal(a.body.tick, 780, "the 780 ticks before it cost no wall time");
-    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 780, type: "pace", pace: 3 }], budget: 1e12 });
+    assert.equal(a.body.tick, 720, "the 720 ticks before it cost no wall time");
+    const ref = replayRun({ doc: TAMP_DOC, seed: 1, from: null, commands: [{ seq: 1, tick: 0, type: "begin", start: "focused" }, { seq: 2, tick: 720, type: "pace", pace: 3 }], budget: 1e12 });
     assert.equal(a.body.serverHash, stateHash(ref.run.state));
     assert.equal((await queryOne<{ realtime_ticks: number }>(`select realtime_ticks from sim_runs where id = $1`, [r.runId]))?.realtime_ticks, 0);
     // begin is first-command-only.
@@ -811,7 +811,7 @@ describe("pacing (REQ-209)", () => {
     const path = pathOf(TAMP_GOLDEN, "focused3x");
     const { debrief: d } = await playPath(clin, TAMP_C, TAMP_DOC, path);
     assert.equal(d.rating, "good");
-    assert.equal(d.focusedStart.tick, 780);
+    assert.equal(d.focusedStart.tick, 720);
   });
 
   test("a run begun before REQ-209: runs to Good, and the old app can resume it mid-run from a checkpoint that has no pace fields", async () => {

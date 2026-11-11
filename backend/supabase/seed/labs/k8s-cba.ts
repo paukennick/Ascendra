@@ -226,7 +226,7 @@ export const CBA_LABS: SeedLabSet = {
             part(
               "Scaffolder tasks",
               "Scaffolder task state is in the database (fine), but task logs and the working directory are local to the Pod that runs the task; with four replicas a refresh may hit a Pod that did not run the task; fix by ensuring task events are stored in the database (the default with Postgres) and by consistent routing or a shared workspace, and check the scaffolder's backend.workingDirectory is writable; or run the scaffolder with sticky sessions / a single dedicated instance.",
-              "Scaffolder task metadata and events go to the database once Postgres is configured, so 'task not found' points at a replica still on a different store or a stale deployment -- verify every replica loads the same config (kubectl rollout status, and check the backend database tables backstage_plugin_scaffolder.tasks are filling from all Pods). Task execution itself happens on one Pod using a local working directory (backend.workingDirectory); that is fine as long as the task's status and logs are read from the shared database. If the organisation runs an old scaffolder setup that logs to disk, upgrade it, or use session affinity on the Service as a stopgap."
+              "Scaffolder task metadata and events go to the database once Postgres is configured, so 'task not found' points at a replica still on a different store or a stale deployment -- verify every replica loads the same config (kubectl rollout status, and check the backend database tables backstage_plugin_scaffolder.tasks are filling from all Pods). Task execution itself happens on one Pod using a local working directory (backend.workingDirectory); that is fine as long as the task's status and logs are read from the shared database. If the organization runs an old scaffolder setup that logs to disk, upgrade it, or use session affinity on the Service as a stopgap."
             ),
             part(
               "TechDocs",
@@ -275,7 +275,7 @@ export const CBA_LABS: SeedLabSet = {
             part(
               "Automated discovery",
               "Replace per-repo manual registration with an entity provider -- GitHub discovery (catalog.providers.github with organization, filters and a schedule) -- so renamed or new repos with catalog-info.yaml are found automatically and removed when gone; manual registration stays for one-offs; explains providers versus processors.",
-              "catalog:\n  providers:\n    github:\n      danbury:\n        organization: danbury-mutual\n        catalogPath: /catalog-info.yaml\n        filters:\n          branch: main\n          repository: '.*'\n        schedule:\n          frequency: {minutes: 30}\n          timeout: {minutes: 3}\nAn entity provider scans the GitHub organisation on a schedule and emits a Location for every repository that has a catalog-info.yaml at the path, adding new repos, following renames (the provider sees billing-engine and drops billing-worker's old URL) and removing locations for deleted repos. Providers are the source of locations; processors transform entities after they are read. Manual Register remains available for repositories outside the organisation."
+              "catalog:\n  providers:\n    github:\n      danbury:\n        organization: danbury-mutual\n        catalogPath: /catalog-info.yaml\n        filters:\n          branch: main\n          repository: '.*'\n        schedule:\n          frequency: {minutes: 30}\n          timeout: {minutes: 3}\nAn entity provider scans the GitHub organization on a schedule and emits a Location for every repository that has a catalog-info.yaml at the path, adding new repos, following renames (the provider sees billing-engine and drops billing-worker's old URL) and removing locations for deleted repos. Providers are the source of locations; processors transform entities after they are read. Manual Register remains available for repositories outside the organization."
             ),
           ],
         },
@@ -405,7 +405,7 @@ export const CBA_LABS: SeedLabSet = {
       kind: "build",
       title: "Scaffold a plugin pair and give the portal the company look",
       brief:
-        "The fictional airline Wardell Air wants a 'Flight Status' plugin: a page listing today's operational incidents from an internal API (needs a service token), plus the portal restyled in the company's colours with their logo. The platform team wants to use the CLI scaffolding rather than hand-writing boilerplate.",
+        "The fictional airline Wardell Air wants a 'Flight Status' plugin: a page listing today's operational incidents from an internal API (needs a service token), plus the portal restyled in the company's colors with their logo. The platform team wants to use the CLI scaffolding rather than hand-writing boilerplate.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -429,7 +429,7 @@ export const CBA_LABS: SeedLabSet = {
             ),
             part(
               "Theme and logo",
-              "A theme created with createUnifiedTheme (and themes.light as a base) setting palette primary/secondary and navigation colours, passed to createApp's themes array with a UnifiedThemeProvider; the logo by replacing LogoFull and LogoIcon in packages/app/src/components/Root; explains that Backstage components read the theme, so Material UI components across plugins follow it.",
+              "A theme created with createUnifiedTheme (and themes.light as a base) setting palette primary/secondary and navigation colors, passed to createApp's themes array with a UnifiedThemeProvider; the logo by replacing LogoFull and LogoIcon in packages/app/src/components/Root; explains that Backstage components read the theme, so Material UI components across plugins follow it.",
               "// packages/app/src/theme/wardell.ts\nexport const wardellTheme = createUnifiedTheme({\n  ...themes.light,\n  palette: {\n    ...themes.light.getTheme('v5')?.palette,\n    primary: { main: '#0B3D91' },\n    secondary: { main: '#E8B130' },\n    navigation: { background: '#0B3D91', indicator: '#E8B130', color: '#ffffff', selectedColor: '#E8B130' },\n  },\n  fontFamily: 'Inter, Roboto, sans-serif',\n});\n// App.tsx\ncreateApp({\n  apis,\n  themes: [{ id: 'wardell', title: 'Wardell Air', variant: 'light', Provider: ({ children }) => <UnifiedThemeProvider theme={wardellTheme} children={children} /> }],\n  ...\n});\nLogo: edit packages/app/src/components/Root/LogoFull.tsx and LogoIcon.tsx to render the company SVG. Because Backstage core components and Material UI read from the theme provider, every plugin's cards, tables and buttons pick up the palette without per-plugin changes."
             ),
           ],

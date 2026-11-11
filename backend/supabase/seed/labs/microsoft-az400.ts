@@ -110,7 +110,7 @@ export const AZ400_LABS: SeedLabSet = {
             part(
               "What not to conclude",
               "Warns against reading the metrics as individual performance measures or targets (Goodhart's law), against comparing teams with different state mappings, and against treating a moving average with few items as a trend.",
-              "Do not use these to rate individuals -- they are team flow measures, and turning them into targets changes behaviour (items get split or closed early) without improving delivery. Do not compare Beacon's numbers with another team whose columns map differently to state categories. With a handful of items a week, the moving average swings on one outlier; look at the scatter and the band, not a single number."
+              "Do not use these to rate individuals -- they are team flow measures, and turning them into targets changes behavior (items get split or closed early) without improving delivery. Do not compare Beacon's numbers with another team whose columns map differently to state categories. With a handful of items a week, the moving average swings on one outlier; look at the scatter and the band, not a single number."
             ),
           ],
         },
@@ -122,7 +122,7 @@ export const AZ400_LABS: SeedLabSet = {
       kind: "build",
       title: "Connect Azure Boards to a GitHub repository and define the linking rules",
       brief:
-        "Larkspur Software tracks work in Azure Boards (project Beacon) but its code lives in a GitHub organisation, larkspur-dev, repository beacon-api. Product owners complain they cannot see which pull request delivered a story, and developers complain they have to update work-item states by hand. The team uses GitHub Flow with pull requests into main. Design the integration: how the connection is made, how developers link commits, pull requests and issues to work items, which words move a work item's state and to what, where the links appear, and two pitfalls that will make the links silently not work.",
+        "Larkspur Software tracks work in Azure Boards (project Beacon) but its code lives in a GitHub organization, larkspur-dev, repository beacon-api. Product owners complain they cannot see which pull request delivered a story, and developers complain they have to update work-item states by hand. The team uses GitHub Flow with pull requests into main. Design the integration: how the connection is made, how developers link commits, pull requests and issues to work items, which words move a work item's state and to what, where the links appear, and two pitfalls that will make the links silently not work.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -131,8 +131,8 @@ export const AZ400_LABS: SeedLabSet = {
           parts: [
             part(
               "Connection",
-              "Installs the Azure Boards app for GitHub on the larkspur-dev organisation (or the repository) and connects the Beacon project to the beacon-api repository from Project settings > GitHub connections, authenticating with the GitHub app rather than a personal access token where possible.",
-              "In the Beacon project, Project settings > GitHub connections > Connect your GitHub account, choose the larkspur-dev organisation and select beacon-api; this installs the Azure Boards app for GitHub on the repository, which is what delivers commit and pull-request events to Boards. Prefer the app installation over a PAT-based connection so nothing expires with a person."
+              "Installs the Azure Boards app for GitHub on the larkspur-dev organization (or the repository) and connects the Beacon project to the beacon-api repository from Project settings > GitHub connections, authenticating with the GitHub app rather than a personal access token where possible.",
+              "In the Beacon project, Project settings > GitHub connections > Connect your GitHub account, choose the larkspur-dev organization and select beacon-api; this installs the Azure Boards app for GitHub on the repository, which is what delivers commit and pull-request events to Boards. Prefer the app installation over a PAT-based connection so nothing expires with a person."
             ),
             part(
               "Linking syntax",
@@ -187,7 +187,7 @@ export const AZ400_LABS: SeedLabSet = {
             part(
               "Keeping branches short",
               "States measures that keep feature branches short-lived: small changes behind feature flags, daily rebase/merge from main, a policy or report flagging branches older than a few days, and automatic deletion of the source branch on PR completion.",
-              "Keep features small and hide incomplete behaviour behind flags so a half-finished feature can still merge; developers update from main daily; turn on 'delete source branch after merge' on completion; and surface branches older than three days in the team's stand-up so they are split or finished, not left to drift."
+              "Keep features small and hide incomplete behavior behind flags so a half-finished feature can still merge; developers update from main daily; turn on 'delete source branch after merge' on completion; and surface branches older than three days in the team's stand-up so they are split or finished, not left to drift."
             ),
           ],
         },
@@ -224,7 +224,7 @@ export const AZ400_LABS: SeedLabSet = {
             ),
             part(
               "Collaborators, pull requests and the fork",
-              "Tells every collaborator to rebase their local work onto the rewritten history (not merge, which would reintroduce the old commits), recreates or rebases the two open pull requests, contacts GitHub Support to purge cached views and PR references, and recognises the contractor's fork still contains the commit and must be handled separately (ask them to delete/rewrite it); states that other people's clones cannot be cleaned by you.",
+              "Tells every collaborator to rebase their local work onto the rewritten history (not merge, which would reintroduce the old commits), recreates or rebases the two open pull requests, contacts GitHub Support to purge cached views and PR references, and recognizes the contractor's fork still contains the commit and must be handled separately (ask them to delete/rewrite it); states that other people's clones cannot be cleaned by you.",
               "Every collaborator deletes or rebases their local branches onto the new history -- rebase, not merge, because a merge brings the purged commits straight back. The two open pull requests are rebased or reopened. Ask GitHub Support to remove the cached views and the pull-request references that still show the old commit. The contractor's fork still has the commit and GitHub cannot purge it for you; the contractor must rewrite or delete the fork. Anyone's existing clone keeps the old history until they re-clone, which is why rotation came first."
             ),
           ],
@@ -235,8 +235,8 @@ export const AZ400_LABS: SeedLabSet = {
           parts: [
             part(
               "Prevention",
-              "Enables secret scanning with push protection on the organisation (blocks pushes containing detected secrets), moves all secrets to a secret store with secretless or managed-identity authentication where possible, adds a pre-commit hook or local scanner, and keeps config templates (.gitignore for local config) so credentials never sit in tracked files.",
-              "Turn on secret scanning with push protection for the whole organisation so a push containing a recognised secret is blocked before it lands; keep the existing secret scanning alerts for anything that slips through. Move every credential to Key Vault or GitHub secrets and prefer secretless auth (OIDC / managed identities) so there is less to leak. Add a pre-commit secret scanner to the developer setup, and keep real config files out of the repository with .gitignore plus committed example templates."
+              "Enables secret scanning with push protection on the organization (blocks pushes containing detected secrets), moves all secrets to a secret store with secretless or managed-identity authentication where possible, adds a pre-commit hook or local scanner, and keeps config templates (.gitignore for local config) so credentials never sit in tracked files.",
+              "Turn on secret scanning with push protection for the whole organization so a push containing a recognized secret is blocked before it lands; keep the existing secret scanning alerts for anything that slips through. Move every credential to Key Vault or GitHub secrets and prefer secretless auth (OIDC / managed identities) so there is less to leak. Add a pre-commit secret scanner to the developer setup, and keep real config files out of the repository with .gitignore plus committed example templates."
             ),
           ],
         },
@@ -422,9 +422,9 @@ export const AZ400_LABS: SeedLabSet = {
           ask: "Write the scanning strategy.",
           parts: [
             part(
-              "Dependency and licence scanning",
-              "Uses Dependabot alerts and security updates for known-vulnerable dependencies across the npm, pip, Terraform provider and Docker base-image ecosystems, and the dependency review action on pull requests to fail the PR when a new dependency has a vulnerability above a chosen severity or a disallowed licence (deny-list of copyleft licences); notes GitHub Code Security provides the premium Dependabot features and dependency review.",
-              "Dependabot alerts on for the repository with security updates enabled, so vulnerable npm, pip and Docker base-image dependencies get automatic fix PRs. On every pull request run the dependency review action configured with fail-on-severity high and a deny-licenses list (GPL-2.0, GPL-3.0, AGPL-3.0 and the other copyleft licences the lawyers name): a PR that adds a vulnerable or copyleft dependency fails the check and cannot merge. Dependency review and the premium Dependabot features come with GitHub Code Security."
+              "Dependency and license scanning",
+              "Uses Dependabot alerts and security updates for known-vulnerable dependencies across the npm, pip, Terraform provider and Docker base-image ecosystems, and the dependency review action on pull requests to fail the PR when a new dependency has a vulnerability above a chosen severity or a disallowed license (deny-list of copyleft licenses); notes GitHub Code Security provides the premium Dependabot features and dependency review.",
+              "Dependabot alerts on for the repository with security updates enabled, so vulnerable npm, pip and Docker base-image dependencies get automatic fix PRs. On every pull request run the dependency review action configured with fail-on-severity high and a deny-licenses list (GPL-2.0, GPL-3.0, AGPL-3.0 and the other copyleft licenses the lawyers name): a PR that adds a vulnerable or copyleft dependency fails the check and cannot merge. Dependency review and the premium Dependabot features come with GitHub Code Security."
             ),
             part(
               "Code scanning",
@@ -433,8 +433,8 @@ export const AZ400_LABS: SeedLabSet = {
             ),
             part(
               "Secret scanning",
-              "Enables secret scanning with push protection at the organisation level (blocks pushes containing detected secrets, with a documented bypass that is logged) and keeps alerting for existing or custom patterns; notes this is GitHub Secret Protection.",
-              "Secret scanning with push protection enabled for the whole organisation, so a push containing a recognised credential is rejected at the Git push and the developer fixes it locally; bypasses are possible but recorded and reviewed. Alerts stay on for patterns that were already present and for custom patterns (internal token formats). This is the GitHub Secret Protection product."
+              "Enables secret scanning with push protection at the organization level (blocks pushes containing detected secrets, with a documented bypass that is logged) and keeps alerting for existing or custom patterns; notes this is GitHub Secret Protection.",
+              "Secret scanning with push protection enabled for the whole organization, so a push containing a recognized credential is rejected at the Git push and the developer fixes it locally; bypasses are possible but recorded and reviewed. Alerts stay on for patterns that were already present and for custom patterns (internal token formats). This is the GitHub Secret Protection product."
             ),
             part(
               "Container scanning",
@@ -443,8 +443,8 @@ export const AZ400_LABS: SeedLabSet = {
             ),
             part(
               "Single view and what blocks",
-              "Uses the GitHub security overview at organisation level (and Microsoft Defender for Cloud DevOps security to bring GitHub findings alongside Azure posture) for the security team's view; states the policy: PR-blocking for vulnerable/copyleft dependencies, high/critical code findings, secrets and high/critical image findings; alert-only for low/medium code and dependency findings and for runtime container findings, with SLAs.",
-              "The security overview at the organisation level is the single view of code, secret and dependency alerts across all repositories; connecting GitHub to Microsoft Defender for Cloud (DevOps security) shows those same findings next to the Azure resource posture. Blocking: new vulnerable or copyleft dependencies, high/critical CodeQL alerts, any detected secret, high/critical image findings before push. Alert-only with a fix SLA: medium and low findings, existing Dependabot alerts, and runtime container findings from Defender."
+              "Uses the GitHub security overview at organization level (and Microsoft Defender for Cloud DevOps security to bring GitHub findings alongside Azure posture) for the security team's view; states the policy: PR-blocking for vulnerable/copyleft dependencies, high/critical code findings, secrets and high/critical image findings; alert-only for low/medium code and dependency findings and for runtime container findings, with SLAs.",
+              "The security overview at the organization level is the single view of code, secret and dependency alerts across all repositories; connecting GitHub to Microsoft Defender for Cloud (DevOps security) shows those same findings next to the Azure resource posture. Blocking: new vulnerable or copyleft dependencies, high/critical CodeQL alerts, any detected secret, high/critical image findings before push. Alert-only with a fix SLA: medium and low findings, existing Dependabot alerts, and runtime container findings from Defender."
             ),
           ],
         },
@@ -468,7 +468,7 @@ export const AZ400_LABS: SeedLabSet = {
           parts: [
             part(
               "Failed-request rate over time",
-              "Queries AppRequests with TimeGenerated > ago(4h), summarises total and failed counts (Success == false, weighted by ItemCount or count()) by bin(TimeGenerated, 5m), computes a failure percentage, and renders a timechart.",
+              "Queries AppRequests with TimeGenerated > ago(4h), summarizes total and failed counts (Success == false, weighted by ItemCount or count()) by bin(TimeGenerated, 5m), computes a failure percentage, and renders a timechart.",
               "AppRequests\n| where TimeGenerated > ago(4h)\n| summarize total = sum(ItemCount), failed = sumif(ItemCount, Success == false) by bin(TimeGenerated, 5m)\n| extend failedPct = round(100.0 * failed / total, 2)\n| project TimeGenerated, failedPct, total\n| render timechart\n\nItemCount accounts for sampled telemetry; Success is the request's success flag; bin() groups into five-minute buckets."
             ),
             part(
@@ -483,7 +483,7 @@ export const AZ400_LABS: SeedLabSet = {
             ),
             part(
               "Dependency latency before versus during",
-              "Queries AppDependencies filtered to the SQL dependency type, labels rows as before or during the window with a case()/iff() on TimeGenerated, and summarises percentiles(DurationMs, 50, 95) by that label (and Target), so the two periods can be compared.",
+              "Queries AppDependencies filtered to the SQL dependency type, labels rows as before or during the window with a case()/iff() on TimeGenerated, and summarizes percentiles(DurationMs, 50, 95) by that label (and Target), so the two periods can be compared.",
               "AppDependencies\n| where TimeGenerated > ago(4h)\n| where DependencyType == 'SQL'\n| extend period = iff(TimeGenerated between (datetime(2026-11-07 14:05) .. datetime(2026-11-07 14:45)), 'during', 'before')\n| summarize p50 = percentile(DurationMs, 50), p95 = percentile(DurationMs, 95), calls = sum(ItemCount) by period, Target\n| order by Target asc, period asc\n\nDurationMs is the dependency call time, Target the database server; comparing p95 during against before shows whether the database slowed down or the failures came from elsewhere."
             ),
           ],

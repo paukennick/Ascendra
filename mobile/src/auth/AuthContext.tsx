@@ -740,7 +740,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!(await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null))) {
         await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current).catch(() => undefined);
       }
-      return { ok: false, error: "Couldn't turn this on. If you cancelled the fingerprint prompt, try again and confirm it." };
+      return { ok: false, error: "Couldn't turn this on. If you canceled the fingerprint prompt, try again and confirm it." };
     }
     sealDirtyRef.current = false;
     sealSuspendedRef.current = false;

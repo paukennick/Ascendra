@@ -33,7 +33,7 @@ const SAFETY: Record<LabSafetyFamily, string> = {
   fitness:
     "Every client is fictional. Write it as exam practice, never as exercise, nutrition or medical advice for a real person, and never ask the learner to program for their own clients. Put screening, referral and scope of practice first; no diagnosis, treatment or diet prescription.",
   general:
-    "Every organisation and person is fictional. Never ask for real credentials, account numbers or company data.",
+    "Every organization and person is fictional. Never ask for real credentials, account numbers or company data.",
 };
 
 export const labGenerationSchema = z.object({
@@ -78,7 +78,7 @@ export function labGenerationPrompt(params: {
 "ask" names the artifact. 2-4 rubric parts, each one field of the artifact.`
       : `a CASE lab: an unfolding case in 2-4 steps. Each step's "text" reveals new information that follows the
 story whatever the learner answered before (fixed branching: never "if you chose X"). Each step asks for a
-decision (prioritise, act, re-assess, escalate), with 1-3 rubric parts.`;
+decision (prioritize, act, re-assess, escalate), with 1-3 rubric parts.`;
   const system = systemWithRules(
     `You write one hands-on lab for a certification exam's objective: ${shape}
 Test the skill the exam actually tests by doing, at the exam's level. The criteria must be specific enough

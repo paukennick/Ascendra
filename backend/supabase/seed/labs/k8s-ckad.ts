@@ -71,7 +71,7 @@ export const CKAD_LABS: SeedLabSet = {
       kind: "build",
       title: "Schedule a nightly export that never overlaps itself",
       brief:
-        "Fictional museum network Alder Trust needs a nightly job in namespace collections that exports the day's catalogue changes using image registry.alder.example/exporter:1.9 with the command exporter --since=24h. It must run at 02:30 every night in the cluster's time zone (Europe/London), must never run two copies at once (a late run should simply be skipped), must give up after 3 retries, must be killed if a single run exceeds 45 minutes, and the team wants to be able to see the last 5 successful and last 3 failed runs with kubectl. They also want a one-off backfill of the last 30 days run by hand tonight without waiting for the schedule.",
+        "Fictional museum network Alder Trust needs a nightly job in namespace collections that exports the day's catalog changes using image registry.alder.example/exporter:1.9 with the command exporter --since=24h. It must run at 02:30 every night in the cluster's time zone (Europe/London), must never run two copies at once (a late run should simply be skipped), must give up after 3 retries, must be killed if a single run exceeds 45 minutes, and the team wants to be able to see the last 5 successful and last 3 failed runs with kubectl. They also want a one-off backfill of the last 30 days run by hand tonight without waiting for the schedule.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -430,7 +430,7 @@ export const CKAD_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Write the Ingress (and the Secret it needs) and explain the routing and TLS behaviour.",
+          ask: "Write the Ingress (and the Secret it needs) and explain the routing and TLS behavior.",
           parts: [
             part(
               "TLS Secret",
@@ -449,7 +449,7 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Plain HTTP",
-              "States that with a tls section most controllers redirect HTTP to HTTPS by default for that host (nginx does), and names the controller annotation that makes it explicit (nginx.ingress.kubernetes.io/ssl-redirect: \"true\") while noting redirect behaviour is controller-specific, not part of the Ingress API.",
+              "States that with a tls section most controllers redirect HTTP to HTTPS by default for that host (nginx does), and names the controller annotation that makes it explicit (nginx.ingress.kubernetes.io/ssl-redirect: \"true\") while noting redirect behavior is controller-specific, not part of the Ingress API.",
               "The Ingress API itself only says 'terminate TLS for this host'; whether port 80 redirects is up to the controller. ingress-nginx redirects to HTTPS automatically when a host has TLS configured; adding the annotation nginx.ingress.kubernetes.io/ssl-redirect: \"true\" makes the intent explicit. Verify with curl -I http://online.harrowgate.example/ (expect 308) and curl -k https://.../api/health. (The community ingress-nginx controller was retired in March 2026 -- no further releases or security fixes -- so a new cluster would pick a maintained Ingress controller or Gateway API; the Ingress resource itself is unchanged.)"
             ),
           ],
@@ -462,7 +462,7 @@ export const CKAD_LABS: SeedLabSet = {
       kind: "case",
       title: "Find out why the frontend lost its backend overnight",
       brief:
-        "The fictional ticketing cooperative Northfield runs Pods labelled app=frontend and app=backend (port 9090) in namespace box-office. The security team applied a NetworkPolicy last night and this morning the frontend shows 'backend unavailable'. The cluster's network plugin enforces NetworkPolicy.",
+        "The fictional ticketing cooperative Northfield runs Pods labeled app=frontend and app=backend (port 9090) in namespace box-office. The security team applied a NetworkPolicy last night and this morning the frontend shows 'backend unavailable'. The cluster's network plugin enforces NetworkPolicy.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -471,7 +471,7 @@ export const CKAD_LABS: SeedLabSet = {
           parts: [
             part(
               "Why it is blocked",
-              "Explains that once any NetworkPolicy selects the backend Pods they are isolated for ingress and only listed sources may connect; the rule allows Pods labelled role=frontend, but the frontend Pod carries app=frontend and no role label, so it matches nothing and is denied; the timeout (not a refusal) is typical of a dropped packet.",
+              "Explains that once any NetworkPolicy selects the backend Pods they are isolated for ingress and only listed sources may connect; the rule allows Pods labeled role=frontend, but the frontend Pod carries app=frontend and no role label, so it matches nothing and is denied; the timeout (not a refusal) is typical of a dropped packet.",
               "backend-ingress selects app=backend, so backend is now isolated for ingress: everything not matched by a from rule is dropped. The from rule asks for label role=frontend; the frontend Pod only has app=frontend, so it is not matched. A policy's intent does not matter -- only label matches do. A timeout rather than 'connection refused' is the signature of a policy drop."
             ),
             part(
@@ -481,7 +481,7 @@ export const CKAD_LABS: SeedLabSet = {
             ),
             part(
               "Fix option 2: change the policy, and the choice",
-              "Changes the policy's from podSelector to app: frontend; explains the choice: follow whichever labelling convention the organisation standardises on, and prefer the fix that does not widen access; rejects deleting the policy or adding an empty from (which would allow all Pods in the namespace).",
+              "Changes the policy's from podSelector to app: frontend; explains the choice: follow whichever labeling convention the organization standardizes on, and prefer the fix that does not widen access; rejects deleting the policy or adding an empty from (which would allow all Pods in the namespace).",
               "kubectl -n box-office edit networkpolicy backend-ingress  -> from: - podSelector: {matchLabels: {app: frontend}}\nEither fix restores only frontend -> backend:9090. Choose based on convention: if the security team's policies all key on role, label the Deployment; if app is the house label, fix the policy. Never 'fix' it by deleting the policy or by using from: [{podSelector: {}}], which opens backend to every Pod in the namespace."
             ),
           ],
@@ -492,7 +492,7 @@ export const CKAD_LABS: SeedLabSet = {
           parts: [
             part(
               "Why DNS broke",
-              "Recognises 'bad address' as a DNS failure: the egress policy isolates the frontend for egress and allows only TCP 9090 to backend Pods, so UDP/TCP 53 to CoreDNS in kube-system is now dropped and the Service name cannot resolve, even though the backend path itself is allowed.",
+              "Recognizes 'bad address' as a DNS failure: the egress policy isolates the frontend for egress and allows only TCP 9090 to backend Pods, so UDP/TCP 53 to CoreDNS in kube-system is now dropped and the Service name cannot resolve, even though the backend path itself is allowed.",
               "Once a policy with policyTypes Egress selects frontend, every outbound connection not listed is dropped -- including DNS to CoreDNS (kube-dns Service in kube-system on port 53). The name 'backend' no longer resolves, so wget fails before it ever tries port 9090. The allowed path to backend is fine; the lookup that precedes it is not."
             ),
             part(

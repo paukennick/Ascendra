@@ -65,7 +65,7 @@ export const AZ120_LABS: SeedLabSet = {
           parts: [
             part(
               "Sizing unit and inputs",
-              "Uses SAPS (SAP Application Performance Standard) as the sizing unit, derived from the existing servers' SAPS ratings scaled by measured peak utilisation (and the EarlyWatch data), rather than mapping physical cores one to one.",
+              "Uses SAPS (SAP Application Performance Standard) as the sizing unit, derived from the existing servers' SAPS ratings scaled by measured peak utilization (and the EarlyWatch data), rather than mapping physical cores one to one.",
               "Size in SAPS, not cores. Take each server's rated SAPS and scale by its measured peak: the database server needs roughly 35% of its rated SAPS, the application servers about 55% each, plus headroom for growth and for the measurement period not capturing year-end peaks. The EarlyWatch reports give the sustained and peak load to confirm the figures."
             ),
             part(
@@ -117,8 +117,8 @@ export const AZ120_LABS: SeedLabSet = {
             ),
             part(
               "Trade-off: one step or two",
-              "Explains that a two-step route (lift and shift first, DMO to HANA later) needs two downtimes and two test cycles, while one-step DMO is a single larger event, and that downtime is reduced with a trial run and DMO's downtime-optimised options.",
-              "Two steps (move first, DMO later) means two downtimes and two full test cycles, which is why system 3 goes straight to DMO. The cost is one longer event, so the team sizes the target for the import, runs at least one trial DMO to measure downtime, and uses the downtime-optimised DMO options if the weekend is not enough."
+              "Explains that a two-step route (lift and shift first, DMO to HANA later) needs two downtimes and two test cycles, while one-step DMO is a single larger event, and that downtime is reduced with a trial run and DMO's downtime-optimized options.",
+              "Two steps (move first, DMO later) means two downtimes and two full test cycles, which is why system 3 goes straight to DMO. The cost is one longer event, so the team sizes the target for the import, runs at least one trial DMO to measure downtime, and uses the downtime-optimized DMO options if the weekend is not enough."
             ),
           ],
         },
@@ -130,7 +130,7 @@ export const AZ120_LABS: SeedLabSet = {
       kind: "build",
       title: "Connect a RISE with SAP landscape to the company's Azure network",
       brief:
-        "Tessaly Logistics has signed RISE with SAP. SAP will run S/4HANA in SAP's own Azure subscription and tenant in the West Europe region. Tessaly already has a hub-and-spoke network in West Europe with an ExpressRoute gateway in the hub connecting to its data centres, and it runs its own integration VMs and an Azure Firewall in the hub. Users and interfaces on-premises and in Tessaly's spokes must reach the SAP systems by private IP. Tessaly's DNS runs on Windows DNS servers in the hub, and the company does not want SAP traffic to transit the public internet.",
+        "Tessaly Logistics has signed RISE with SAP. SAP will run S/4HANA in SAP's own Azure subscription and tenant in the West Europe region. Tessaly already has a hub-and-spoke network in West Europe with an ExpressRoute gateway in the hub connecting to its data centers, and it runs its own integration VMs and an Azure Firewall in the hub. Users and interfaces on-premises and in Tessaly's spokes must reach the SAP systems by private IP. Tessaly's DNS runs on Windows DNS servers in the hub, and the company does not want SAP traffic to transit the public internet.",
       safetyNote: GENERAL_SAFETY,
       steps: [
         {
@@ -324,9 +324,9 @@ export const AZ120_LABS: SeedLabSet = {
           ask: "Explain the difference and give the long-term recommendation.",
           parts: [
             part(
-              "Behaviour difference",
-              "Explains that the Azure fence agent uses the Azure API to power the VM off (and can start it, which is why the role includes start), while SBD writes a poison pill to the shared device and the node's watchdog reboots it, and that the fence agent's monitoring and fencing are deserialised so a long monitor does not delay failover.",
-              "The fence agent fences by calling Azure to power the VM off, so the node stays off until started (the role includes the start action for that); SBD fences by writing to the shared disk and the watchdog reboots the node, so it typically comes back on its own. With the fence agent, monitoring and fencing are deserialised, so a slow monitor operation does not delay the failover itself."
+              "Behavior difference",
+              "Explains that the Azure fence agent uses the Azure API to power the VM off (and can start it, which is why the role includes start), while SBD writes a poison pill to the shared device and the node's watchdog reboots it, and that the fence agent's monitoring and fencing are deserialized so a long monitor does not delay failover.",
+              "The fence agent fences by calling Azure to power the VM off, so the node stays off until started (the role includes the start action for that); SBD fences by writing to the shared disk and the watchdog reboots the node, so it typically comes back on its own. With the fence agent, monitoring and fencing are deserialized, so a slow monitor operation does not delay the failover itself."
             ),
             part(
               "Long-term choice",
@@ -357,7 +357,7 @@ export const AZ120_LABS: SeedLabSet = {
             ),
             part(
               "Health probe",
-              "Uses a TCP probe on a dedicated port in the 625<instance number> convention (62503 here), answered by a cluster resource on the primary only, with probe threshold 2 (set via CLI/PowerShell, since the portal's unhealthy threshold is not honoured), rather than probing the SQL port.",
+              "Uses a TCP probe on a dedicated port in the 625<instance number> convention (62503 here), answered by a cluster resource on the primary only, with probe threshold 2 (set via CLI/PowerShell, since the portal's unhealthy threshold is not honored), rather than probing the SQL port.",
               "Probe TCP port 62503 (625 + instance number 03), interval 5 seconds, probeThreshold 2 (set with Azure CLI or PowerShell; the portal's 'unhealthy threshold' value is not respected). The port is answered by a cluster-managed probe responder that runs only with the primary, so the probe follows the HANA primary rather than a port that is open on both nodes."
             ),
             part(
@@ -407,8 +407,8 @@ export const AZ120_LABS: SeedLabSet = {
             ),
             part(
               "Order of work",
-              "Right-sizes and removes idle resources before buying any commitment, then buys reservations for the stable workload and a savings plan sized to the optimised baseline, and reviews utilisation of both regularly.",
-              "First right-size: discounts reduce rates, not waste. Then buy reservations for the stable production VMs, then a savings plan sized to the clean baseline of the variable systems. Review utilisation of both each month and adjust at renewal."
+              "Right-sizes and removes idle resources before buying any commitment, then buys reservations for the stable workload and a savings plan sized to the optimized baseline, and reviews utilization of both regularly.",
+              "First right-size: discounts reduce rates, not waste. Then buy reservations for the stable production VMs, then a savings plan sized to the clean baseline of the variable systems. Review utilization of both each month and adjust at renewal."
             ),
           ],
         },
@@ -440,12 +440,12 @@ export const AZ120_LABS: SeedLabSet = {
             part(
               "NetWeaver provider inputs",
               "Lists what the NetWeaver provider needs: the FQDN of the application server or Web Dispatcher, SID and instance number, hosts-file entries for every application server returned by SAPControl's GetSystemInstanceList, and for RFC-based collection a client, HTTP port and an SAP user.",
-              "For each SID: the application server or Web Dispatcher FQDN, the SID and instance number, and host-file entries for every server SAPControl GetSystemInstanceList returns. To collect the RFC-based data (SM37, ST22, SM21, queues) also give the client, HTTP port and an SAP user with the needed authorisations."
+              "For each SID: the application server or Web Dispatcher FQDN, the SID and instance number, and host-file entries for every server SAPControl GetSystemInstanceList returns. To collect the RFC-based data (SM37, ST22, SM21, queues) also give the client, HTTP port and an SAP user with the needed authorizations."
             ),
             part(
-              "Alerts, visualisation and cost",
-              "Uses Azure Monitor alert rules on the Log Analytics data (log alerts) for HANA backup failures and cluster node loss, views data in the built-in workbooks or KQL, and explains the pricing model: no licence fee, pay for the managed components and the Log Analytics data ingested and retained.",
-              "Create log alert rules on the workspace for a failed HANA backup and for a cluster node or resource going down; the workbooks show replication, cluster and SQL health, and KQL runs on the raw tables. There is no licence fee for Azure Monitor for SAP solutions; the bill is the managed resource group (Functions, Key Vault, storage) plus Log Analytics ingestion, retention and alerts."
+              "Alerts, visualization and cost",
+              "Uses Azure Monitor alert rules on the Log Analytics data (log alerts) for HANA backup failures and cluster node loss, views data in the built-in workbooks or KQL, and explains the pricing model: no license fee, pay for the managed components and the Log Analytics data ingested and retained.",
+              "Create log alert rules on the workspace for a failed HANA backup and for a cluster node or resource going down; the workbooks show replication, cluster and SQL health, and KQL runs on the raw tables. There is no license fee for Azure Monitor for SAP solutions; the bill is the managed resource group (Functions, Key Vault, storage) plus Log Analytics ingestion, retention and alerts."
             ),
           ],
         },

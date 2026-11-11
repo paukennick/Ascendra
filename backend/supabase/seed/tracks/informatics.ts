@@ -311,14 +311,14 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
       title: "Information Science and Technology (F2)",
       gate: "Explain, in plain terms, which information science concepts and tools a given health data problem calls for and why.",
       objectives: [
-        "The life cycle of data, information and knowledge: acquiring, storing, representing, organising, processing, transferring and merging",
-        "Analysing, reporting and visualising data so it supports a decision",
+        "The life cycle of data, information and knowledge: acquiring, storing, representing, organizing, processing, transferring and merging",
+        "Analyzing, reporting and visualizing data so it supports a decision",
         "Information retrieval: how systems find relevant information and how well they do it",
         "Ontologies and knowledge representation: structuring meaning so machines can use it",
         "Business intelligence and analytics concepts",
         "Basic computer science and information systems terminology, including what programming involves",
         "User interface design concepts",
-        "Information security principles: protecting data and knowledge from unauthorised access",
+        "Information security principles: protecting data and knowledge from unauthorized access",
         "Assessing users' information needs before choosing a tool",
         "Structured versus unstructured clinical data, and why free-text notes are harder to search, count and reuse", // T4 ch6; T2 ch1; C7
         "Relational databases, data modelling and SQL: tables linked by primary and foreign keys, and queries that join them to pull data on many patients", // T5 ch11; C2 HIN 680; C3 IS 7031
@@ -328,15 +328,15 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
     },
     {
       title: "Social and Behavioral Science (F3)",
-      gate: "Explain how a named social, behavioural, economic or legal theory predicts the way individuals, groups or organisations will respond to a health information system.",
+      gate: "Explain how a named social, behavioral, economic or legal theory predicts the way individuals, groups or organizations will respond to a health information system.",
       objectives: [
-        "Social and behavioural theories that describe human action and interaction, and what they predict",
+        "Social and behavioral theories that describe human action and interaction, and what they predict",
         "Psychological and cognitive science models of how people take in and act on information",
-        "Management and organisational theory as it applies to health organisations",
+        "Management and organizational theory as it applies to health organizations",
         "Economic theories and models relevant to health and health information",
-        "Legal and regulatory frameworks as forces that shape health information behaviour",
-        "Analysing effects at three levels: the individual, the social group and society",
-        "Using these theories to reduce health-damaging behaviour and promote health and psychosocial well-being",
+        "Legal and regulatory frameworks as forces that shape health information behavior",
+        "Analyzing effects at three levels: the individual, the social group and society",
+        "Using these theories to reduce health-damaging behavior and promote health and psychosocial well-being",
         "The HIPAA Privacy Rule: who it covers (covered entities and business associates), what protected health information is, and which uses and disclosures it allows", // P4 Part 164 Subpart E; T4 ch7; C2 HIN 660
         "The HIPAA breach notification rule as strengthened by HITECH: what counts as a breach, how risk is assessed and who must be notified", // P4 Part 164 Subpart D; T4 ch7
         "The 21st Century Cures Act's information-blocking rules: which actors they apply to, what counts as interference with access to electronic health information, and why exceptions exist", // P5; P6
@@ -346,7 +346,7 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
       title: "Health Information Science and Technology (F4)",
       gate: "Design a solution to a specific health information problem -- choosing the methods, tools and standards -- and state its limitations and which stakeholders it serves least well.",
       objectives: [
-        "Methods and tools for collecting, organising, representing and sharing biomedical and health data",
+        "Methods and tools for collecting, organizing, representing and sharing biomedical and health data",
         "Integrating, governing and learning from health data and knowledge across informatics domains",
         "Health data standards and why they matter to a system design",
         "Integration and interoperability: getting separate systems to exchange and use information",
@@ -359,14 +359,14 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
         "Clinical Document Architecture: exchanging whole clinical documents such as discharge summaries, and the properties that make something a document", // P3; C6
         "FHIR resources: small, reusable building blocks that reference each other and can be written as JSON or XML", // P1 overview, summary; C5
         "FHIR exchange patterns: the RESTful API for reading, searching, creating and updating resources, and when documents, messages, subscriptions or operations fit better", // P1 http, exchanging
-        "Profiles, extensions and implementation guides: tailoring a base standard to a country, a programme or a use case", // P1 overview, summary
-        "SMART on FHIR: how apps launched from an EHR, or running as back-end services, are authorised with OAuth 2.0 scopes", // P2; C5; C7
+        "Profiles, extensions and implementation guides: tailoring a base standard to a country, a program or a use case", // P1 overview, summary
+        "SMART on FHIR: how apps launched from an EHR, or running as back-end services, are authorized with OAuth 2.0 scopes", // P2; C5; C7
         "CDS Hooks: calling an outside decision-support service at set points in the clinician's workflow and showing its advice as cards", // P2; P1 exchanging
-        "Health information exchange: organisations and networks that move records between providers, including nationwide trust frameworks such as TEFCA", // T4 ch6; P6
+        "Health information exchange: organizations and networks that move records between providers, including nationwide trust frameworks such as TEFCA", // T4 ch6; P6
         "Core data sets for exchange: what the US Core Data for Interoperability defines and why it is versioned", // P6
         "SNOMED CT: the clinical terminology designated for detailed clinical documentation and exchange in US systems, and how NLM distributes it", // P7; C6
         "LOINC: identifying laboratory tests and other clinical observations so results mean the same thing everywhere", // P7; C6
-        "RxNorm: normalised drug names and identifiers that let pharmacy and drug terminologies talk to each other", // P7; C6
+        "RxNorm: normalized drug names and identifiers that let pharmacy and drug terminologies talk to each other", // P7; C6
         "ICD-10-CM and ICD-10-PCS as classifications for diagnoses and inpatient procedures, and how a classification differs from a clinical terminology", // P8; C6; C7
         "The UMLS and terminology mapping: linking equivalent concepts across different vocabularies", // P7; T3 ch5
         "Common data models such as OMOP: reshaping data from many sources into one structure and vocabulary so the same analysis runs everywhere", // P11; T3 ch4-5; C5; C7
@@ -383,11 +383,11 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
       title: "Human Factors and Socio-technical Systems (F5)",
       gate: "Evaluate a health IT system or design against its users' workflow and cognition, identify where it will fail them, and propose a design change grounded in a named human factors or socio-technical principle.",
       objectives: [
-        "The socio-technical view: people and organisations as the ultimate users of health information technology",
-        "How physical, social, cognitive and psychological behaviour interacts with information technology",
+        "The socio-technical view: people and organizations as the ultimate users of health information technology",
+        "How physical, social, cognitive and psychological behavior interacts with information technology",
         "Human factors engineering principles applied to health information systems",
-        "Understanding users' needs, workflows and practices in their organisational, social and physical context",
-        "Applying social and behavioural theory and human factors to system design and implementation",
+        "Understanding users' needs, workflows and practices in their organizational, social and physical context",
+        "Applying social and behavioral theory and human factors to system design and implementation",
         "Evaluating a system's design with users, not just for them",
         "Respecting the user's role throughout design and deployment",
         "Usability defined: how effectively, efficiently and satisfyingly specified users can reach their goals in a given context, and how learnable the system is", // T1 ch19; T4 ch6
@@ -401,38 +401,38 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
     },
     {
       title: "Social and Behavioral Aspects of Health (F6)",
-      gate: "Choose a behaviour-change theory or model for a defined patient or population health problem, apply it to design or critique an intervention, and say what data would show it working.",
+      gate: "Choose a behavior-change theory or model for a defined patient or population health problem, apply it to design or critique an intervention, and say what data would show it working.",
       objectives: [
-        "Theories and models that explain and change individual and population health behaviour",
+        "Theories and models that explain and change individual and population health behavior",
         "Social determinants of health and how they shape health problems and outcomes",
         "Patient-generated data: what it is and how it informs analysis of health problems",
         "How a health problem affects daily activities, and practical approaches to managing it",
         "Health literacy and informed decision making",
         "Patient engagement and patient activation",
-        "Self-management of health and healthcare, and patterns of healthcare utilisation",
-        "Behavioural factors such as nutrition, physical activity and substance use, and how genotype and phenotype can influence behaviour",
-        "Organisational network analysis and precision, individualised care as topics within this domain",
+        "Self-management of health and healthcare, and patterns of healthcare utilization",
+        "Behavioral factors such as nutrition, physical activity and substance use, and how genotype and phenotype can influence behavior",
+        "Organizational network analysis and precision, individualized care as topics within this domain",
         "Mobile health, wearables and remote patient monitoring for self-management, and how to judge an app's quality, privacy and safety", // T4 ch2, ch5, ch7; C2 HIN 630
         "Patient portals and personal health records: what patients can see and do, and what limits their use", // T4 ch5, ch7
         "Consumer health informatics: how the internet, social media and apps change how patients seek and use health information, and how to guide them to reliable sources", // T4 ch5; C1 BHIS 528; C2 HIN 690
-        "Health-information-behaviour models: examining how needs, people, tasks, sources, channels and context shape the iterative process of seeking, accessing and evaluating health information", // P13
+        "Health-information-behavior models: examining how needs, people, tasks, sources, channels and context shape the iterative process of seeking, accessing and evaluating health information", // P13
       ],
     },
     {
       title: "Social, Behavioral, and Information Science and Technology Applied to Health (F7)",
-      gate: "Plan the design, implementation and evaluation of a health informatics solution end to end, drawing on social, business, human factors, behavioural and information science together, and justify each choice.",
+      gate: "Plan the design, implementation and evaluation of a health informatics solution end to end, drawing on social, business, human factors, behavioral and information science together, and justify each choice.",
       objectives: [
-        "Integrating social, business, human factors, behavioural and information sciences in one approach",
+        "Integrating social, business, human factors, behavioral and information sciences in one approach",
         "Designing health informatics solutions with theories, models and tools from these fields combined",
         "Implementing health informatics solutions alongside clinical and business processes",
         "Evaluating health informatics solutions and their impact",
-        "How technology and process change affect outcomes at every level: molecular and biological, healthcare and organisational, social and population",
-        "Recognising how these disciplines interrelate rather than treating any one in isolation",
+        "How technology and process change affect outcomes at every level: molecular and biological, healthcare and organizational, social and population",
+        "Recognizing how these disciplines interrelate rather than treating any one in isolation",
         "The EHR implementation life cycle: selecting a vendor, building a project plan, training staff, going live and sustaining the change", // P6 change-management primer
         "Health IT project management: the project team, scope document, schedule tools such as Gantt charts and the critical path, issue tracking, testing and contingency planning", // P12; P6 change-management primer; C3 HI 7050; C1 BHIS 543; C4 course 2
-        "Systems analysis and design for a health IT project: gathering user requirements, modelling, building and validating against those requirements", // C1 BHIS 520; T2 ch11
+        "Systems analysis and design for a health IT project: gathering user requirements, modeling, building and validating against those requirements", // C1 BHIS 520; T2 ch11
         "Evaluation frameworks for eHealth: system, information and service quality, use, user satisfaction and net benefits", // T1 ch2
-        "Clinical adoption at the micro, meso and macro levels: how people, organisations and wider policy and funding shape whether a system is used", // T1 ch3
+        "Clinical adoption at the micro, meso and macro levels: how people, organizations and wider policy and funding shape whether a system is used", // T1 ch3
         "Choosing an evaluation design: formative versus summative, and comparative, descriptive, correlational, survey or qualitative studies", // T1 ch8, ch10-13; C1 BHIS 504
         "Economic evaluation of eHealth: cost-benefit, cost-effectiveness, cost-utility and return-on-investment analyses", // T1 ch5, ch14; T2 ch14
         "Process improvement with Lean, Six Sigma and process mining of system event logs", // T2 ch13
@@ -467,7 +467,7 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
         "Team dynamics in solving complex health and health information problems",
         "Mutual respect, shared values and understanding one's own role within the team",
         "TeamSTEPPS as an evidence-based framework for team communication, role clarity and safety", // T4 ch12
-        "Structured communication and handoff tools such as SBAR, and why a handoff needs acknowledgement and a chance to ask questions", // T4 ch12
+        "Structured communication and handoff tools such as SBAR, and why a handoff needs acknowledgment and a chance to ask questions", // T4 ch12
       ],
     },
     {
@@ -481,8 +481,8 @@ export const MS_HEALTH_INFORMATICS_TRACK: SeedTrack = {
         "Stewardship and developing followers and future leaders",
         "Followership: the capacity to actively follow a leader",
         "Using leadership and followership methods and tools to motivate others toward a health informatics vision",
-        "Kotter's change model applied to health IT: creating a climate for change, engaging the organisation, and implementing and sustaining the change", // P6 change-management primer
-        "Strategic planning for health IT and digital health: setting a future-state vision and priorities, SWOT analysis, and choosing a vendor that fits the organisation's goals", // P12; P6 change-management primer; C3 HI 7060; C1 BHIS 538; C4 course 2
+        "Kotter's change model applied to health IT: creating a climate for change, engaging the organization, and implementing and sustaining the change", // P6 change-management primer
+        "Strategic planning for health IT and digital health: setting a future-state vision and priorities, SWOT analysis, and choosing a vendor that fits the organization's goals", // P12; P6 change-management primer; C3 HI 7060; C1 BHIS 538; C4 course 2
       ],
     },
   ],

@@ -130,7 +130,7 @@ describe("the view model", () => {
     assert.match(hr.a11y, /^Heart rate, \d+ per minute/);
     const abp = tiles.find((t) => t.id === "abp")!;
     assert.match(abp.text, /^\d+\/\d+$/);
-    assert.match(abp.a11y, /\d+ over \d+ millimetres of mercury/);
+    assert.match(abp.a11y, /\d+ over \d+ millimeters of mercury/);
     const paop = tiles.find((t) => t.id === "paop")!;
     assert.equal(paop.text, "--");
     assert.match(paop.a11y, /not measured yet/);
@@ -142,7 +142,7 @@ describe("the view model", () => {
     assert.ok(v.groups.length >= 3, "Assess, Orders, Drips, Call");
   });
 
-  test("bedside: an untreated tamponade's alarms show as words, not colour", async () => {
+  test("bedside: an untreated tamponade's alarms show as words, not color", async () => {
     const doc = await compile("CCRNADULT", "tamponade-after-cabg");
     const run = createRun(doc, 1);
     const { advance, applyCommand } = await import("./engine/v1/engine.ts");

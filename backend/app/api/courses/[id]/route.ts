@@ -2,7 +2,7 @@ import { query } from "@/lib/db";
 import { ok, notFound, unauthorized, serverError } from "@/lib/http";
 import { requireUser, AuthError } from "@/lib/auth/requireUser";
 import { isActive, isFavoriteSelect, ownedOrCatalog, trackProgressLateral, unitMasteryLateral } from "@/lib/progress-sql";
-import { courseReadiness } from "@/lib/readiness";
+import { courseReadiness, STUDY_EMPHASIS_WEIGHTS_SQL } from "@/lib/readiness";
 import { cachedExamBlueprint, courseReadinessCache, stampOf } from "@/lib/readiness-cache";
 import { featureLock } from "@/lib/entitlements";
 import { READINESS_LOCKED_TEXT } from "@/lib/billing-config";
@@ -42,9 +42,14 @@ export async function GET(
     );
     if (!tracks[0]) return notFound("Track not found");
 
+    // REQ-220 (FAIL-1136): a course whose weights are only our study
+    // emphasis (the CNA course) sends no weight, so no app build -- old or
+    // new -- labels a unit "% of exam".
     const units = await query(
-      `select cu.*, vm.total_objectives, vm.mastered_objectives, vm.needs_review_objectives, vm.avg_score_0_4
+      `select cu.*, case when ${STUDY_EMPHASIS_WEIGHTS_SQL} then null else cu.weight end as weight,
+              vm.total_objectives, vm.mastered_objectives, vm.needs_review_objectives, vm.avg_score_0_4
        from course_units cu
+       join subject_tracks st on st.id = cu.track_id
        ${unitMasteryLateral("$2")}
        where cu.track_id = $1 and ${isActive("cu")}
        order by cu.sort_order asc`,

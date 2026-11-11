@@ -59,7 +59,7 @@ describe("Today's review helpers (REQ-108)", () => {
     assert.equal(coverageSummary([{ term: "x", covered: true }]).notYet, "");
   });
 
-  test("session summary counts without judgement", () => {
+  test("session summary counts without judgment", () => {
     assert.match(sessionDoneLabel([]), /will keep/);
     assert.match(sessionDoneLabel([{ verdict: "correct", answered: true }, { verdict: "incorrect", answered: true }]), /^2 reviewed, 1 right/);
   });

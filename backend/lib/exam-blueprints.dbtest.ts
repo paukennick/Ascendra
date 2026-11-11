@@ -69,7 +69,9 @@ describe("seeded catalog blueprints", () => {
           order by d.sort_order`,
         [t.code]
       );
-      const want = activeUnits(t).map((u) => ({ name: u.title, weight_percent: u.weight ?? null }));
+      // REQ-220: study-emphasis weights are not recorded as a vendor blueprint.
+      const emphasis = t.credential?.domainWeights === "study_emphasis";
+      const want = activeUnits(t).map((u) => ({ name: u.title, weight_percent: emphasis ? null : u.weight ?? null }));
       try {
         assert.deepEqual(rows, want);
       } catch {

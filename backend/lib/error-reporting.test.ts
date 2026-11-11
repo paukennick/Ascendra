@@ -28,7 +28,7 @@ describe("FAIL-946: what gets logged", () => {
     assert.equal(maskEmails('invalid input syntax for type uuid: "a.b+c@mail.example.org"'), 'invalid input syntax for type uuid: "[email]"');
     assert.doesNotMatch(describeError(new Error("bad value ann@example.com here")), /ann@example\.com/);
   });
-  test("non-Error throws are summarised too", () => {
+  test("non-Error throws are summarized too", () => {
     assert.match(describeError("plain string with b@c.io"), /^string: plain string with \[email\]$/);
     assert.equal(summarizeError(null).code, null);
   });
@@ -140,7 +140,7 @@ describe("REQ-211: sendTestErrorReport", () => {
     assert.deepEqual(await sendTestErrorReport(), { configured: false, delivered: false, status: null });
     assert.equal(sent, 0);
   });
-  test("sends one labelled event to the store URL and reports Sentry's status", async () => {
+  test("sends one labeled event to the store URL and reports Sentry's status", async () => {
     process.env.ERROR_TRACKER_DSN = "https://pk@o1.ingest.example.test/42";
     const calls: Array<{ url: string; body: string }> = [];
     setErrorTransport(async (url, init) => {

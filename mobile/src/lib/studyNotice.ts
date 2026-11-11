@@ -43,7 +43,7 @@ export const STUDY_NOTICE_SECTIONS: readonly NoticeSection[] = [
     heading: "Not professional, medical or clinical advice",
     lines: [
       "Nothing in Ascendra is medical, nursing, physical-therapy, fitness, nutrition, legal, financial or other professional advice.",
-      "Health courses are exam preparation only. The patients, clients and cases in them are fictional. Never use anything here to make decisions about a real patient or client: follow your program, your facility's policies, your licence and scope of practice, licensed supervisors and current guidelines. Check drug doses, lab values and procedures against a current authoritative source.",
+      "Health courses are exam preparation only. The patients, clients and cases in them are fictional. Never use anything here to make decisions about a real patient or client: follow your program, your facility's policies, your license and scope of practice, licensed supervisors and current guidelines. Check drug doses, lab values and procedures against a current authoritative source.",
       "In an emergency, call your local emergency services.",
     ],
   },

@@ -33,7 +33,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
     // ---- Coordinated Care (2) ----
     {
       slug: "pn-who-needs-the-rn-now",
-      objective: "Recognising the client whose condition requires immediate RN or provider involvement",
+      objective: "Recognizing the client whose condition requires immediate RN or provider involvement",
       kind: "case",
       title: "Four clients, one RN down the hall",
       brief:
@@ -67,8 +67,8 @@ export const NCLEXPN_LABS: SeedLabSet = {
             ),
             part(
               "Report to the RN",
-              "Reports to the RN immediately (not at end of round) in an organised format such as SBAR, with the trend from 06:00, and asks the RN to come and assess; the RN then contacts the provider.",
-              "Call the charge RN now: 'Client 1 with pneumonia: SpO2 has dropped from 95 to 88% on 2 litres, respiratory rate 28, temperature 38.6, new confusion and right basal crackles. I'm concerned their breathing is getting worse. Can you come and assess now?'"
+              "Reports to the RN immediately (not at end of round) in an organized format such as SBAR, with the trend from 06:00, and asks the RN to come and assess; the RN then contacts the provider.",
+              "Call the charge RN now: 'Client 1 with pneumonia: SpO2 has dropped from 95 to 88% on 2 liters, respiratory rate 28, temperature 38.6, new confusion and right basal crackles. I'm concerned their breathing is getting worse. Can you come and assess now?'"
             ),
           ],
         },
@@ -116,7 +116,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Tasks for the AP",
-              "Assigns the routine, standardised tasks on stable residents to the AP: vital signs on the stable resident (b), toileting help (e) and the weight (g).",
+              "Assigns the routine, standardized tasks on stable residents to the AP: vital signs on the stable resident (b), toileting help (e) and the weight (g).",
               "AP: vital signs at 14:00 and 18:00 on the stable resident, toileting help every 2 hours for the resident with dementia, and the morning weight."
             ),
             part(
@@ -131,7 +131,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
             ),
             part(
               "Directions and follow-up",
-              "Gives the AP specific directions (times, what values or changes to report and how fast) and follows up on completion, recognising the delegating/assigning nurse stays accountable and cannot pass on nursing judgment.",
+              "Gives the AP specific directions (times, what values or changes to report and how fast) and follows up on completion, recognizing the delegating/assigning nurse stays accountable and cannot pass on nursing judgment.",
               "Tell the AP exactly when, and to report at once a blood pressure or pulse outside the ranges I give, a resident who seems different, pain, or a weight change of more than the amount on the care plan. I check back after each task -- I stay accountable for the care I assign."
             ),
           ],
@@ -196,7 +196,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
             ),
             part(
               "Why the head matters here",
-              "Recognises that a head strike in a client on an anticoagulant raises the risk of intracranial bleeding, so it must be reported to the RN and provider even if the client seems well.",
+              "Recognizes that a head strike in a client on an anticoagulant raises the risk of intracranial bleeding, so it must be reported to the RN and provider even if the client seems well.",
               "They hit their head and take an anticoagulant, so a bleed inside the skull is possible even if they look fine now. The RN and provider need to know straight away."
             ),
           ],
@@ -237,7 +237,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
       kind: "case",
       title: "Two hours after a vaginal birth",
       brief:
-        "On a fictional postpartum unit you care for a 31-year-old client who gave birth vaginally 2 hours ago to her third baby; labour was long. The RN has asked you to do the postpartum checks on this stable client and report.",
+        "On a fictional postpartum unit you care for a 31-year-old client who gave birth vaginally 2 hours ago to her third baby; labor was long. The RN has asked you to do the postpartum checks on this stable client and report.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -246,7 +246,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises a boggy, displaced fundus with heavy bleeding as uterine atony, likely made worse by a full bladder, and a risk of postpartum hemorrhage (multiparity and long labour add to the risk).",
+              "Recognizes a boggy, displaced fundus with heavy bleeding as uterine atony, likely made worse by a full bladder, and a risk of postpartum hemorrhage (multiparity and long labor add to the risk).",
               "A soft fundus above the umbilicus and off to the right with a pad soaked in 30 minutes points to a uterus that isn't contracting -- probably made worse by a full bladder -- and the start of a possible hemorrhage."
             ),
             part(
@@ -261,8 +261,8 @@ export const NCLEXPN_LABS: SeedLabSet = {
           ask: "What now?",
           parts: [
             part(
-              "Recognise and escalate",
-              "Recognises ongoing bleeding with rising heart rate and falling blood pressure as possible hemorrhage and early shock, calls the RN to the bedside immediately (or activates the emergency response per policy), and stays with the client.",
+              "Recognize and escalate",
+              "Recognizes ongoing bleeding with rising heart rate and falling blood pressure as possible hemorrhage and early shock, calls the RN to the bedside immediately (or activates the emergency response per policy), and stays with the client.",
               "Bleeding hasn't stopped and her pulse is up and pressure down -- she may be hemorrhaging and going into shock. I call the RN to come now (or pull the emergency call) and stay with her."
             ),
             part(
@@ -277,7 +277,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
     // ---- Psychosocial Integrity (2) ----
     {
       slug: "pn-alcohol-withdrawal",
-      objective: "Recognising signs of withdrawal or toxicity and reporting them",
+      objective: "Recognizing signs of withdrawal or toxicity and reporting them",
       kind: "case",
       title: "Day two after admission",
       brief:
@@ -290,7 +290,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Interpretation",
-              "Recognises signs of alcohol withdrawal (tremor, sweating, anxiety, nausea, tachycardia, hypertension, visual hallucinations) at the expected time after the last drink.",
+              "Recognizes signs of alcohol withdrawal (tremor, sweating, anxiety, nausea, tachycardia, hypertension, visual hallucinations) at the expected time after the last drink.",
               "Tremor, sweating, anxiety, nausea, a fast pulse, high blood pressure and seeing bugs that aren't there are signs of alcohol withdrawal, which fits the timing since admission."
             ),
             part(
@@ -301,7 +301,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "At 11:30 the client has a generalised tonic-clonic seizure in bed.",
+          text: "At 11:30 the client has a generalized tonic-clonic seizure in bed.",
           ask: "What do you do during and after the seizure?",
           parts: [
             part(
@@ -339,7 +339,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
             part(
               "Response 2",
               "Identifies asking 'why' (which can sound judgmental and put the client on the defensive) and disagreeing/minimising the concern.",
-              "Asking 'why' makes the client justify the feeling, and 'lots of people survive' disagrees with and minimises it."
+              "Asking 'why' makes the client justify the feeling, and 'lots of people survive' disagrees with and minimizes it."
             ),
             part(
               "Response 3",
@@ -371,17 +371,17 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Choosing a tool",
-              "Uses a behavioural pain scale validated for people with advanced dementia (for example PAINAD) rather than a numeric scale, and uses the same tool each time so scores can be compared.",
-              "Use a behavioural tool built for advanced dementia, such as PAINAD -- breathing, vocalisation, facial expression, body language, consolability -- and use the same tool every time."
+              "Uses a behavioral pain scale validated for people with advanced dementia (for example PAINAD) rather than a numeric scale, and uses the same tool each time so scores can be compared.",
+              "Use a behavioral tool built for advanced dementia, such as PAINAD -- breathing, vocalization, facial expression, body language, consolability -- and use the same tool every time."
             ),
             part(
               "Data to collect",
-              "Collects the behaviours seen (grimace, moaning, guarding the right arm, striking out, refusing food), when they occur (with movement), vital signs, and looks at the right arm for swelling, bruising or deformity; asks family or regular staff what is usual for the resident.",
+              "Collects the behaviors seen (grimace, moaning, guarding the right arm, striking out, refusing food), when they occur (with movement), vital signs, and looks at the right arm for swelling, bruising or deformity; asks family or regular staff what is usual for the resident.",
               "Note grimacing and moaning on turning, guarding of the right arm, new striking out and refusing lunch; check vital signs; look at the arm for swelling, bruising or deformity; ask the regular aides and family how this compares with usual."
             ),
             part(
               "Act and report",
-              "Gives the ordered as-needed analgesic if the parameters are met, uses comfort measures, re-scores after the expected onset time, and reports to the RN that pain is new after a fall and is centred on the right arm, so the RN can assess and contact the provider.",
+              "Gives the ordered as-needed analgesic if the parameters are met, uses comfort measures, re-scores after the expected onset time, and reports to the RN that pain is new after a fall and is centered on the right arm, so the RN can assess and contact the provider.",
               "Give the acetaminophen as ordered and reposition gently with the arm supported, re-score after it should have worked, and tell the RN this is new pain after a fall, focused on the right arm -- it may need imaging, which the RN and provider decide."
             ),
           ],
@@ -403,7 +403,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Hypothesis",
-              "Recognises the signs of a possible deep vein thrombosis (unilateral swelling, warmth, tenderness) linked to immobility and the device being off.",
+              "Recognizes the signs of a possible deep vein thrombosis (unilateral swelling, warmth, tenderness) linked to immobility and the device being off.",
               "One-sided calf swelling, warmth and tenderness after days of bed rest -- with the compression device off -- could be a deep vein thrombosis."
             ),
             part(
@@ -419,7 +419,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises a possible pulmonary embolism (sudden dyspnea, pleuritic chest pain, tachycardia, low SpO2) as a medical emergency.",
+              "Recognizes a possible pulmonary embolism (sudden dyspnea, pleuritic chest pain, tachycardia, low SpO2) as a medical emergency.",
               "Sudden breathlessness, sharp chest pain on breathing, a fast pulse and low oxygen after a possible DVT could be a pulmonary embolism -- an emergency."
             ),
             part(
@@ -477,13 +477,13 @@ export const NCLEXPN_LABS: SeedLabSet = {
             ),
             part(
               "Allergy conflict",
-              "Recognises that the new order may be a formulation of the drug the client is allergic to, holds it, and reports to the RN and prescriber before any dose.",
+              "Recognizes that the new order may be a formulation of the drug the client is allergic to, holds it, and reports to the RN and prescriber before any dose.",
               "Medication P-XR looks like an extended-release form of Medication P, which the client is allergic to. I hold it and tell the RN and the prescriber before any dose is given."
             ),
           ],
         },
         {
-          text: "The orders are corrected and the allergy order is cancelled. As you hand over Medication R the client says, 'That's not my usual white pill -- this one's yellow.'",
+          text: "The orders are corrected and the allergy order is canceled. As you hand over Medication R the client says, 'That's not my usual white pill -- this one's yellow.'",
           ask: "What do you do?",
           parts: [
             part(
@@ -571,17 +571,17 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Client A",
-              "Recognises the values as at the client's own baseline (stable), so no urgent report, while continuing routine monitoring.",
+              "Recognizes the values as at the client's own baseline (stable), so no urgent report, while continuing routine monitoring.",
               "SpO2 89% and respiratory rate 20 are this client's usual with COPD, and they are speaking in full sentences -- stable, keep monitoring."
             ),
             part(
               "Client B",
-              "Recognises a large fall from baseline blood pressure with tachycardia and dizziness after a new diuretic as possible hypotension from fluid loss, a fall risk, and a change to report promptly; keeps the client safe (sit or lie down, help with mobility).",
+              "Recognizes a large fall from baseline blood pressure with tachycardia and dizziness after a new diuretic as possible hypotension from fluid loss, a fall risk, and a change to report promptly; keeps the client safe (sit or lie down, help with mobility).",
               "A drop from 148/88 to 96/60 with a pulse of 104 and dizziness, a day after starting a diuretic, may be fluid loss or a drug effect -- a real change. Keep the client in bed or seated with help to stand, and report it now."
             ),
             part(
               "Client C",
-              "Recognises urine output well below the client's baseline (and below an expected minimum) after surgery as a change to report promptly (possible fluid deficit, retention or kidney problem), and checks for a full bladder and catheter kinks if present; notes the small temperature rise to report but not as the main concern.",
+              "Recognizes urine output well below the client's baseline (and below an expected minimum) after surgery as a change to report promptly (possible fluid deficit, retention or kidney problem), and checks for a full bladder and catheter kinks if present; notes the small temperature rise to report but not as the main concern.",
               "15 mL/h for 2 hours is far below this client's 50-60 mL/h after surgery -- report it now. I'll check for a full bladder or a kinked catheter first. The temperature of 37.4 is a small rise worth mentioning."
             ),
             part(
@@ -609,7 +609,7 @@ export const NCLEXPN_LABS: SeedLabSet = {
           parts: [
             part(
               "Recognise",
-              "Recognises anaphylaxis (skin signs plus airway swelling, wheeze and hypotension soon after a new drug) as a life-threatening emergency.",
+              "Recognizes anaphylaxis (skin signs plus airway swelling, wheeze and hypotension soon after a new drug) as a life-threatening emergency.",
               "Hives, lip swelling, a tight throat, wheeze and low blood pressure minutes after a new drug is anaphylaxis -- life threatening."
             ),
             part(

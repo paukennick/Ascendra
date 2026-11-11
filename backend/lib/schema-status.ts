@@ -347,7 +347,7 @@ export const SCHEMA_PROBES: SchemaProbe[] = [
     // REQ-125: starting or grading a clinical or fitness lab, the lab view
     // and the export read it.
     migration: "051_lab_disclaimer_ack.sql",
-    what: "lab_disclaimer_acknowledgements (the one-time clinical / fitness lab disclaimer acknowledgement)",
+    what: "lab_disclaimer_acknowledgments (the one-time clinical / fitness lab disclaimer acknowledgment)",
     sql: `select to_regclass('public.lab_disclaimer_acknowledgements') is not null
              and exists(select 1 from pg_constraint where conname = 'lab_disclaimer_ack_family_051') as ok`,
   },

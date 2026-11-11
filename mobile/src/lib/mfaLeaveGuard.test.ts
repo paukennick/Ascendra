@@ -31,7 +31,7 @@ describe("MFA screen leave guard", () => {
 });
 
 describe("share sheet dismissal (FAIL-069)", () => {
-  test("a cancelled web share (AbortError) is not an error", () => {
+  test("a canceled web share (AbortError) is not an error", () => {
     const abort = new Error("Share canceled");
     abort.name = "AbortError";
     assert.equal(isShareDismissal(abort), true);

@@ -49,14 +49,14 @@ export const BSNRN_LABS: SeedLabSet = {
               "Relationship: family cooking with lots of salt. Action: invite his wife to a visit and plan lower-salt versions of their usual dishes together."
             ),
             part(
-              "Community and organisational",
-              "Places food access and the work schedule at the community/organisational level and proposes a community or workplace action (for example linking to a food programme or mobile market, working with the employer on breaks or a workplace blood-pressure programme).",
-              "Community and organisation: no nearby fresh food, fast food at the depot, split shifts. Action: connect him to a mobile market or food programme and contact the transit employer about a workplace blood-pressure check and healthy options."
+              "Community and organizational",
+              "Places food access and the work schedule at the community/organisational level and proposes a community or workplace action (for example linking to a food program or mobile market, working with the employer on breaks or a workplace blood-pressure program).",
+              "Community and organization: no nearby fresh food, fast food at the depot, split shifts. Action: connect him to a mobile market or food program and contact the transit employer about a workplace blood-pressure check and healthy options."
             ),
             part(
               "Policy",
-              "Places insurance design and medication cost at the policy level and proposes a policy-level action (for example referral to a medication assistance programme now, and advocacy for lower cost-sharing for chronic disease medications).",
-              "Policy: high deductible for medication. Action: refer to a pharmacy or manufacturer assistance programme now, and support advocacy for lower cost-sharing on blood-pressure medication."
+              "Places insurance design and medication cost at the policy level and proposes a policy-level action (for example referral to a medication assistance program now, and advocacy for lower cost-sharing for chronic disease medications).",
+              "Policy: high deductible for medication. Action: refer to a pharmacy or manufacturer assistance program now, and support advocacy for lower cost-sharing on blood-pressure medication."
             ),
           ],
         },
@@ -73,7 +73,7 @@ export const BSNRN_LABS: SeedLabSet = {
       steps: [
         {
           text: "Your data: temperature 38.2 degrees C, heart rate 104, respiratory rate 22, blood pressure 118/70 mm Hg, SpO2 90% on room air (was 96%), fine crackles at the right base, has not used the incentive spirometer, urine output 30 mL/h, has had the as-needed opioid three times overnight, last bowel movement 3 days ago.",
-          ask: "Recognise and analyse the cues: which data matter, and what could explain them?",
+          ask: "Recognize and analyze the cues: which data matter, and what could explain them?",
           parts: [
             part(
               "Relevant cues",
@@ -89,7 +89,7 @@ export const BSNRN_LABS: SeedLabSet = {
         },
         {
           text: "There is no calf swelling or chest pain, and heart rate settles to 98 when the client sits up and takes deep breaths. Sedation scale shows the client is awake and rousable.",
-          ask: "Prioritise your hypotheses and generate solutions.",
+          ask: "Prioritize your hypotheses and generate solutions.",
           parts: [
             part(
               "Priority hypothesis",
@@ -119,11 +119,11 @@ export const BSNRN_LABS: SeedLabSet = {
     // ---- Patient- and Family-Centered Care (2) ----
     {
       slug: "bsn-nanda-problem-list",
-      objective: "Turn assessment data into a prioritised problem list, writing each problem as a NANDA-I diagnosis -- problem-focused, risk, health promotion or syndrome -- with the person's preferences in view",
+      objective: "Turn assessment data into a prioritized problem list, writing each problem as a NANDA-I diagnosis -- problem-focused, risk, health promotion or syndrome -- with the person's preferences in view",
       kind: "build",
-      title: "From assessment to a prioritised problem list",
+      title: "From assessment to a prioritized problem list",
       brief:
-        "A fictional 71-year-old with heart failure is being discharged home in two days. Assessment: dyspnea on walking 10 metres, 2+ ankle edema, weight up 3 kg from her dry weight, crackles in both bases, SpO2 93% on room air; she says she is 'tired of all the pills' and sometimes skips her diuretic before church so she won't need the toilet; she lives alone and her son visits weekly; she says what matters most is being able to sing in the church choir again. She asks how she can 'stay out of hospital this time'.",
+        "A fictional 71-year-old with heart failure is being discharged home in two days. Assessment: dyspnea on walking 10 meters, 2+ ankle edema, weight up 3 kg from her dry weight, crackles in both bases, SpO2 93% on room air; she says she is 'tired of all the pills' and sometimes skips her diuretic before church so she won't need the toilet; she lives alone and her son visits weekly; she says what matters most is being able to sing in the church choir again. She asks how she can 'stay out of hospital this time'.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -133,7 +133,7 @@ export const BSNRN_LABS: SeedLabSet = {
             part(
               "First priority",
               "Writes a problem-focused diagnosis about fluid/gas exchange as the top priority, in a correct format (label related to/as evidenced by), for example Excessive fluid volume (the current NANDA-I label; older texts say Excess fluid volume) or Impaired gas exchange, related to compromised regulatory mechanisms as evidenced by edema, weight gain, crackles and dyspnea, with a measurable time-bound outcome.",
-              "Excessive fluid volume related to compromised regulatory mechanisms (heart failure) as evidenced by 2+ ankle edema, 3 kg weight gain, bilateral crackles and dyspnea on exertion. Outcome: within 48 hours, weight down at least 1.5 kg and she walks 30 metres without stopping to rest."
+              "Excessive fluid volume related to compromised regulatory mechanisms (heart failure) as evidenced by 2+ ankle edema, 3 kg weight gain, bilateral crackles and dyspnea on exertion. Outcome: within 48 hours, weight down at least 1.5 kg and she walks 30 meters without stopping to rest."
             ),
             part(
               "Second priority",
@@ -156,7 +156,7 @@ export const BSNRN_LABS: SeedLabSet = {
     },
     {
       slug: "bsn-reassess-modify-plan",
-      objective: "Reassess and modify the plan of care when outcomes fall short, and recognise when standard practice needs to change for an individual",
+      objective: "Reassess and modify the plan of care when outcomes fall short, and recognize when standard practice needs to change for an individual",
       kind: "case",
       title: "When the plan isn't working",
       brief:
@@ -169,12 +169,12 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Evaluate",
-              "States that the outcome is not met (8/10 versus a goal of 4 or less), believes the client's report of pain, and recognises bias in the 'drug-seeking' notes as a barrier to care.",
+              "States that the outcome is not met (8/10 versus a goal of 4 or less), believes the client's report of pain, and recognizes bias in the 'drug-seeking' notes as a barrier to care.",
               "Not met: pain is 8/10 against a goal of 4 or below. Pain is what the client says it is; the 'drug-seeking?' notes are bias, and they're getting in the way of care."
             ),
             part(
               "Modify",
-              "Reassesses (pain characteristics, functional impact, sedation and respiratory status, hydration), advocates with the provider using SBAR for a revised, individualised plan consistent with current sickle cell pain guidance (for example scheduled rather than as-needed analgesia, IV route, multimodal and non-drug measures, hydration), and involves the client in setting the plan.",
+              "Reassesses (pain characteristics, functional impact, sedation and respiratory status, hydration), advocates with the provider using SBAR for a revised, individualized plan consistent with current sickle cell pain guidance (for example scheduled rather than as-needed analgesia, IV route, multimodal and non-drug measures, hydration), and involves the client in setting the plan.",
               "Reassess the pain, how it limits movement, sedation, breathing and fluids. SBAR to the provider asking for an individual plan: scheduled analgesia (IV if needed) instead of waiting for as-needed doses, multimodal and non-drug comfort, and IV fluids if intake stays poor -- and ask the client what has worked before."
             ),
           ],
@@ -209,12 +209,12 @@ export const BSNRN_LABS: SeedLabSet = {
             part(
               "Primordial",
               "Proposes an intervention that prevents risk factors from emerging, aimed at social and environmental conditions (for example safe walking routes, healthy food access, school food policy).",
-              "Primordial: work with the city on safe walking routes and a healthy-food corner-store programme, and with schools on healthier meals -- stopping the risk factors from developing in the first place."
+              "Primordial: work with the city on safe walking routes and a healthy-food corner-store program, and with schools on healthier meals -- stopping the risk factors from developing in the first place."
             ),
             part(
               "Primary",
-              "Proposes an intervention that prevents disease in people with risk factors (for example a lifestyle-change programme for adults with prediabetes or obesity).",
-              "Primary: a structured lifestyle-change programme for adults with prediabetes or overweight, to prevent diabetes developing."
+              "Proposes an intervention that prevents disease in people with risk factors (for example a lifestyle-change program for adults with prediabetes or obesity).",
+              "Primary: a structured lifestyle-change program for adults with prediabetes or overweight, to prevent diabetes developing."
             ),
             part(
               "Secondary",
@@ -223,7 +223,7 @@ export const BSNRN_LABS: SeedLabSet = {
             ),
             part(
               "Tertiary and quaternary",
-              "Proposes a tertiary intervention that limits complications in people who have diabetes (for example foot-care programmes and podiatry access to prevent amputations), and a quaternary intervention that protects people from overmedicalisation or unnecessary intervention (for example working with the clinic to stop low-value imaging in asymptomatic people with prediabetes).",
+              "Proposes a tertiary intervention that limits complications in people who have diabetes (for example foot-care programs and podiatry access to prevent amputations), and a quaternary intervention that protects people from overmedicalization or unnecessary intervention (for example working with the clinic to stop low-value imaging in asymptomatic people with prediabetes).",
               "Tertiary: diabetic foot checks, footwear and podiatry access to prevent more amputations. Quaternary: work with the clinic to stop unneeded imaging in people with prediabetes and no symptoms -- protecting them from harm from too much care."
             ),
           ],
@@ -256,7 +256,7 @@ export const BSNRN_LABS: SeedLabSet = {
           ],
         },
         {
-          text: "Day 4. Since last night 18 residents have had sudden vomiting and diarrhoea; two volunteers who serve food are also ill.",
+          text: "Day 4. Since last night 18 residents have had sudden vomiting and diarrhea; two volunteers who serve food are also ill.",
           ask: "What do you do?",
           parts: [
             part(
@@ -277,8 +277,8 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Recovery",
-              "Addresses recovery-phase needs: safe return (flood-related hazards such as mould, contaminated water, carbon monoxide from generators), continuity of medications and care, mental health follow-up, and an after-action review to improve preparedness.",
-              "Teach about mould, unsafe well water and never running generators indoors; make sure everyone has medications and follow-up appointments; link people to mental health support; and join the after-action review to improve the next response."
+              "Addresses recovery-phase needs: safe return (flood-related hazards such as mold, contaminated water, carbon monoxide from generators), continuity of medications and care, mental health follow-up, and an after-action review to improve preparedness.",
+              "Teach about mold, unsafe well water and never running generators indoors; make sure everyone has medications and follow-up appointments; link people to mental health support; and join the after-action review to improve the next response."
             ),
           ],
         },
@@ -291,7 +291,7 @@ export const BSNRN_LABS: SeedLabSet = {
       kind: "build",
       title: "A question about chlorhexidine bathing",
       brief:
-        "On a fictional adult ICU, nurses wonder whether daily chlorhexidine gluconate (CHG) bathing, compared with soap-and-water bathing, reduces central line-associated bloodstream infections over a 12-month period. You find four sources: (1) a 2024 systematic review and meta-analysis of randomised controlled trials; (2) a single-centre before-and-after study from 2019; (3) a hospital blog post by a nurse manager; (4) a 2022 cluster-randomised controlled trial in 40 ICUs.",
+        "On a fictional adult ICU, nurses wonder whether daily chlorhexidine gluconate (CHG) bathing, compared with soap-and-water bathing, reduces central line-associated bloodstream infections over a 12-month period. You find four sources: (1) a 2024 systematic review and meta-analysis of randomized controlled trials; (2) a single-center before-and-after study from 2019; (3) a hospital blog post by a nurse manager; (4) a 2022 cluster-randomized controlled trial in 40 ICUs.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -310,8 +310,8 @@ export const BSNRN_LABS: SeedLabSet = {
             ),
             part(
               "Why",
-              "Explains the ranking by design (synthesised randomised evidence controls bias best; a quasi-experimental study has no randomisation and is open to confounding; opinion is lowest) and notes that quality (not only level) and fit to their own population still need appraisal.",
-              "A synthesis of randomised trials controls bias best; one large RCT is next; a before-and-after study can't separate the effect from other changes at the time; a blog is opinion. Each still needs appraising for quality and for whether its patients look like ours."
+              "Explains the ranking by design (synthesized randomized evidence controls bias best; a quasi-experimental study has no randomization and is open to confounding; opinion is lowest) and notes that quality (not only level) and fit to their own population still need appraisal.",
+              "A synthesis of randomized trials controls bias best; one large RCT is next; a before-and-after study can't separate the effect from other changes at the time; a blog is opinion. Each still needs appraising for quality and for whether its patients look like ours."
             ),
           ],
         },
@@ -327,13 +327,13 @@ export const BSNRN_LABS: SeedLabSet = {
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
-          text: "The study: one hospital; two units chose the bundle and two did not (not randomised); 410 patients; follow-up 3 months; the bundle units also got new low beds during the study.",
+          text: "The study: one hospital; two units chose the bundle and two did not (not randomized); 410 patients; follow-up 3 months; the bundle units also got new low beds during the study.",
           ask: "What level and quality of evidence is this?",
           parts: [
             part(
               "Level and threats",
-              "Identifies it as a quasi-experimental (non-randomised controlled) study, a lower level than an RCT, and names the main threats: units self-selected (selection bias), the new beds as a co-intervention/confounder, a single site and short follow-up limiting generalisability.",
-              "Quasi-experimental -- a comparison without randomisation, below an RCT. Units chose themselves (selection bias), the new low beds arrived at the same time (a confounder), and one site over 3 months limits how far it applies elsewhere."
+              "Identifies it as a quasi-experimental (non-randomized controlled) study, a lower level than an RCT, and names the main threats: units self-selected (selection bias), the new beds as a co-intervention/confounder, a single site and short follow-up limiting generalisability.",
+              "Quasi-experimental -- a comparison without randomization, below an RCT. Units chose themselves (selection bias), the new low beds arrived at the same time (a confounder), and one site over 3 months limits how far it applies elsewhere."
             ),
           ],
         },
@@ -364,11 +364,11 @@ export const BSNRN_LABS: SeedLabSet = {
     // ---- Patient Safety and Quality Improvement (2) ----
     {
       slug: "bsn-rca-heparin-vials",
-      objective: "Recognise a sentinel event and use root cause analysis to find the system factors behind an error, such as similar-looking drug labels or vague orders",
+      objective: "Recognize a sentinel event and use root cause analysis to find the system factors behind an error, such as similar-looking drug labels or vague orders",
       kind: "case",
       title: "Two vials that look alike",
       brief:
-        "On a fictional medical unit, a 76-year-old client was given a heparin flush from a vial containing 10,000 units/mL instead of the 10 units/mL flush vial. The client developed a major bleed and is in the ICU with permanent harm. The two vials are the same size with similar blue labels and are stored in neighbouring bins in the automated dispensing cabinet. The nurse was covering two extra clients because of a sick call.",
+        "On a fictional medical unit, a 76-year-old client was given a heparin flush from a vial containing 10,000 units/mL instead of the 10 units/mL flush vial. The client developed a major bleed and is in the ICU with permanent harm. The two vials are the same size with similar blue labels and are stored in neighboring bins in the automated dispensing cabinet. The nurse was covering two extra clients because of a sick call.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -470,8 +470,8 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Two-challenge and chain of command",
-              "Voices the concern a second time (two-challenge rule), and if it is still not acknowledged, escalates via the chain of command (charge nurse, anaesthesia, OR manager) and does not hand over instruments for the incision until the discrepancy is resolved; recognises any team member may stop the line for a safety breach.",
-              "Say it again clearly: 'I need us to stop -- the consent doesn't match the site.' If it's still ignored, call the OR charge nurse and ask the anaesthetist to support the pause. I don't pass the scalpel until it's resolved; anyone on the team can stop for a safety breach."
+              "Voices the concern a second time (two-challenge rule), and if it is still not acknowledged, escalates via the chain of command (charge nurse, anesthesia, OR manager) and does not hand over instruments for the incision until the discrepancy is resolved; recognizes any team member may stop the line for a safety breach.",
+              "Say it again clearly: 'I need us to stop -- the consent doesn't match the site.' If it's still ignored, call the OR charge nurse and ask the anesthetist to support the pause. I don't pass the scalpel until it's resolved; anyone on the team can stop for a safety breach."
             ),
           ],
         },
@@ -520,7 +520,7 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Respond",
-              "Recognises a likely duplication causing fluid and electrolyte loss and fall risk; tells her to stop the old furosemide now, arranges same-day assessment (provider visit or advice to seek urgent care if severe symptoms) and labs, and reports to the provider; documents and reports the transition failure for system review.",
+              "Recognizes a likely duplication causing fluid and electrolyte loss and fall risk; tells her to stop the old furosemide now, arranges same-day assessment (provider visit or advice to seek urgent care if severe symptoms) and labs, and reports to the provider; documents and reports the transition failure for system review.",
               "This sounds like over-diuresis from taking both pills: stop the furosemide now, keep him sitting and safe from falls, and get him seen today with blood tests -- urgent care or 911 if he faints or is confused. Tell the provider, document the call, and report the auto-refill gap so the discharge process gets fixed."
             ),
           ],
@@ -543,7 +543,7 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Clinical judgment over the tool",
-              "Acts on the assessment rather than the score (the cues suggest deterioration), escalates per protocol (rapid response/provider), and recognises that the score cannot reflect data not yet charted.",
+              "Acts on the assessment rather than the score (the cues suggest deterioration), escalates per protocol (rapid response/provider), and recognizes that the score cannot reflect data not yet charted.",
               "My assessment shows a client deteriorating, whatever the score says. Call rapid response now. The score is low partly because it hasn't seen the new vital signs -- a tool can't use data that isn't in the record."
             ),
             part(
@@ -603,7 +603,7 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Act and support",
-              "Honours his stated wishes (full disclosure with the daughter present), supports the daughter compassionately (explaining his choice and offering support), plans the conversation with the provider, and arranges follow-up (palliative care, spiritual care) and documentation.",
+              "Honors his stated wishes (full disclosure with the daughter present), supports the daughter compassionately (explaining his choice and offering support), plans the conversation with the provider, and arranges follow-up (palliative care, spiritual care) and documentation.",
               "Follow his wishes: the provider tells him everything with his daughter there. Before that, explain kindly to the daughter that he has asked to know, and offer her support. Plan the conversation with the provider, offer palliative and spiritual care, and document his wishes."
             ),
           ],
@@ -626,7 +626,7 @@ export const BSNRN_LABS: SeedLabSet = {
           parts: [
             part(
               "Description and feelings",
-              "Describes what happened factually and names their own feelings at the time and after (for example defensive, embarrassed, angry), using a recognised structure such as Gibbs' cycle.",
+              "Describes what happened factually and names their own feelings at the time and after (for example defensive, embarrassed, angry), using a recognized structure such as Gibbs' cycle.",
               "Using Gibbs' cycle -- description: she raised her voice about another delay; I said it wasn't my fault and turned away. Feelings: defensive and rushed then; embarrassed and a bit angry at the feedback."
             ),
             part(
@@ -636,8 +636,8 @@ export const BSNRN_LABS: SeedLabSet = {
             ),
             part(
               "Action plan",
-              "Writes a specific plan: a better response next time (acknowledge feelings, give information or find someone who can, follow up), a way to practise it, and a way to get further feedback.",
-              "Next time: 'I can see how worrying another delay is. Let me find out what's happening and come back to you in 15 minutes' -- and then do it. I'll practise with my preceptor and ask her to watch my next difficult conversation and tell me how it went."
+              "Writes a specific plan: a better response next time (acknowledge feelings, give information or find someone who can, follow up), a way to practice it, and a way to get further feedback.",
+              "Next time: 'I can see how worrying another delay is. Let me find out what's happening and come back to you in 15 minutes' -- and then do it. I'll practice with my preceptor and ask her to watch my next difficult conversation and tell me how it went."
             ),
           ],
         },

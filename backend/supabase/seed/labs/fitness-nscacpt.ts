@@ -99,7 +99,7 @@ export const NSCACPT_LABS: SeedLabSet = {
       slug: "nsca-cpt-reds-wellness-case",
       objective: "Basic wellness review within scope: nutrition, sleep, stress and mental health, and recognizing RED-S and disordered eating",
       kind: "case",
-      title: "A runner who is under-fuelling",
+      title: "A runner who is under-fueling",
       brief:
         "A fictional 26-year-old client, Mia, is training for a half marathon, running five days a week and lifting with you twice. She has lost 6 kg in three months without trying to, says she is \"always tired\", and her pace has slowed.",
       safetyNote: FITNESS_SAFETY,
@@ -116,7 +116,7 @@ export const NSCACPT_LABS: SeedLabSet = {
             part(
               "Refer",
               "Refers to a physician promptly and suggests a registered dietitian (and a mental health professional if disordered eating is a concern), as a team, with her consent.",
-              "Encourage Mia to see her physician soon, and suggest a registered dietitian experienced with athletes -- and a counsellor if she wants support around food -- working together."
+              "Encourage Mia to see her physician soon, and suggest a registered dietitian experienced with athletes -- and a counselor if she wants support around food -- working together."
             ),
           ],
         },
@@ -319,7 +319,7 @@ export const NSCACPT_LABS: SeedLabSet = {
             part(
               "Regression and progression",
               "Regresses to lower boxes or jump-and-stick drills until landings are consistent, then progresses from low- to higher-intensity drills (box height, then countermovement jumps, then more complex or reactive jumps) with low, quality-focused volume and full rest.",
-              "Lower to a 30 cm box and practise squat jumps that stick the landing; when every landing is clean, raise the box, then add countermovement and single-leg jumps. Keep reps low with full rest."
+              "Lower to a 30 cm box and practice squat jumps that stick the landing; when every landing is clean, raise the box, then add countermovement and single-leg jumps. Keep reps low with full rest."
             ),
           ],
         },
@@ -422,8 +422,8 @@ export const NSCACPT_LABS: SeedLabSet = {
             ),
             part(
               "Start CPR",
-              "Starts high-quality chest compressions immediately: hard and fast in the centre of the chest at 100-120 a minute, at least 2 inches deep, full recoil, minimal interruptions (with breaths at 30:2 if trained and willing).",
-              "Start compressions now: centre of the chest, at least 2 inches deep, 100-120 a minute, letting the chest fully recoil and keeping pauses under 10 seconds; 30 compressions to 2 breaths since I'm trained."
+              "Starts high-quality chest compressions immediately: hard and fast in the center of the chest at 100-120 a minute, at least 2 inches deep, full recoil, minimal interruptions (with breaths at 30:2 if trained and willing).",
+              "Start compressions now: center of the chest, at least 2 inches deep, 100-120 a minute, letting the chest fully recoil and keeping pauses under 10 seconds; 30 compressions to 2 breaths since I'm trained."
             ),
           ],
         },

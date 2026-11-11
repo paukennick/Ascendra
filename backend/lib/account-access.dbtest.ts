@@ -298,10 +298,10 @@ describe("unrestricted lifts the plan gates", () => {
     assert.equal((await chat(ownerId)).status, 200);
   });
 
-  test("not lifted: the course disclaimer acknowledgement and the chat rate limit", async () => {
+  test("not lifted: the course disclaimer acknowledgment and the chat rate limit", async () => {
     const u = await unrestrictedUser();
     await query(`delete from legal_acceptances where user_id = $1 and document = 'study_notice'`, [u]); // this test is about not having accepted it
-    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgement still required");
+    assert.equal((await chat(u, ackTrack)).status, 403, "acknowledgment still required");
     await query(
       `insert into auth_events (event_type, identifier, user_id) select 'chat_message', $1, $2::uuid from generate_series(1, 30)`,
       [u, u]

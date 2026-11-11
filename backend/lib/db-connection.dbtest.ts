@@ -14,12 +14,12 @@ test("the pool's connections carry the statement_timeout", async () => {
   assert.equal(r.statement_timeout, "700ms");
 });
 
-test("a slow plain query is cancelled on the server and its backend is idle again", async () => {
+test("a slow plain query is canceled on the server and its backend is idle again", async () => {
   const marker = `f943_${Date.now()}`;
   await assert.rejects(query(`select pg_sleep(5), '${marker}'`), /statement timeout/);
   const rows = await query<{ n: number }>(
     `select count(*)::int as n from pg_stat_activity where query like $1 and state = 'active' and pid <> pg_backend_pid()`,
     [`%${marker}%`]
   );
-  assert.equal(rows[0].n, 0, "nothing is still running the cancelled statement");
+  assert.equal(rows[0].n, 0, "nothing is still running the canceled statement");
 });

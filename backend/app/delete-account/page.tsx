@@ -39,7 +39,7 @@ export default function DeleteAccountPage() {
       <ul>
         <li>Your profile: email address, display name, photo and password.</li>
         <li>Sign-in data: sessions, two-factor settings and backup codes, linked Google sign-in, and the sign-in log.</li>
-        <li>Study data: courses you added, favourites, answers, mastery scores, review schedule and study sessions.</li>
+        <li>Study data: courses you added, favorites, answers, mastery scores, review schedule and study sessions.</li>
         <li>AI coach conversations, support requests and lesson reports.</li>
         <li>The note you wrote on any question you reported.</li>
         <li>Records of which terms, policies and course disclaimers you accepted, and that you confirmed your age.</li>

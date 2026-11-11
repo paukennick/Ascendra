@@ -35,12 +35,12 @@ export const PMP_LABS: SeedLabSet = {
             part(
               "First action",
               "Meets the two developers (privately, promptly) to understand the source and context of the conflict before choosing a resolution, rather than deciding for them, escalating to the sponsor, or ignoring it.",
-              "Talk with Amara and Tomas together, privately and soon, to understand what each is optimising for (time, maintainability, risk) and what the disagreement is really about before choosing how to resolve it."
+              "Talk with Amara and Tomas together, privately and soon, to understand what each is optimizing for (time, maintainability, risk) and what the disagreement is really about before choosing how to resolve it."
             ),
             part(
               "Resolution approach",
               "Aims for collaborating/problem-solving: agree on objective decision criteria (for example cost, schedule impact, quality, maintainability) and evaluate both options against them.",
-              "Collaborate: agree on the criteria that matter for the project (delivery date, licence cost, accessibility, long-term maintenance), compare both options against them and let the evidence decide."
+              "Collaborate: agree on the criteria that matter for the project (delivery date, license cost, accessibility, long-term maintenance), compare both options against them and let the evidence decide."
             ),
           ],
         },
@@ -67,7 +67,7 @@ export const PMP_LABS: SeedLabSet = {
       objective:
         "Engaging stakeholders: identifying and analyzing them, tailoring communication to their needs, and executing a stakeholder engagement plan",
       kind: "build",
-      title: "Analyse stakeholders and plan their engagement",
+      title: "Analyze stakeholders and plan their engagement",
       brief:
         "Your project replaces a regional hospital group's staff rostering system. Stakeholders: (1) the chief operating officer, who funds it and has final say but rarely asks about it; (2) ward managers, who will use it daily and fear losing their spreadsheets; (3) the payroll team, who need its data but have little influence over its design; (4) the IT security lead, who can block go-live and is currently unaware of the project.",
       safetyNote: GENERAL_SAFETY,
@@ -177,7 +177,7 @@ export const PMP_LABS: SeedLabSet = {
       steps: [
         {
           text: "",
-          ask: "Analyse the network.",
+          ask: "Analyze the network.",
           parts: [
             part("Critical path and duration", "Identifies A-B-D-F as the critical path with a project duration of 14 days (the other path A-C-E-F is 10 days).", "Paths: A-B-D-F = 3+4+5+2 = 14 days; A-C-E-F = 3+2+3+2 = 10 days. Critical path A-B-D-F, project duration 14 days."),
             numericPart("Float on C (days)", "Total float of 4 days for activity C (early start 3, late start 7). Met at exactly 4.", "C: early start 3, early finish 5; late finish 9 (E must finish by 12 for F), late start 7. Total float = 7 - 3 = 4 days.", { answer: 4, tolerance: 0, unit: "days" }),
@@ -291,7 +291,7 @@ export const PMP_LABS: SeedLabSet = {
           parts: [
             part(
               "Risk to issue",
-              "Recognises the risk has occurred and is now an issue: logs it in the issue log with an owner and updates the risk register.",
+              "Recognizes the risk has occurred and is now an issue: logs it in the issue log with an owner and updates the risk register.",
               "The risk has happened, so it is now an issue: record it in the issue log with an owner and due date, and update the risk register entry (risk occurred, response triggered)."
             ),
             part(

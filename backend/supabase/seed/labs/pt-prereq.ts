@@ -74,7 +74,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
             part(
               "Beaker C",
               "Calls distilled water hypotonic; water enters the cell by osmosis; the cell swells and can burst (lyse/haemolyse) because a red cell has no wall to resist it.",
-              "Hypotonic: there is almost no solute outside, so water moves into the cells by osmosis. They swell and may burst (haemolysis), because an animal cell has no cell wall to stop it."
+              "Hypotonic: there is almost no solute outside, so water moves into the cells by osmosis. They swell and may burst (hemolysis), because an animal cell has no cell wall to stop it."
             ),
           ],
         },
@@ -128,7 +128,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
           parts: [
             part(
               "Why slower",
-              "Links slow healing to a poor blood supply in dense regular connective tissue such as ligament and tendon (fewer vessels to bring cells and nutrients), and contrasts it with epithelium and well-vascularised tissue that renews quickly.",
+              "Links slow healing to a poor blood supply in dense regular connective tissue such as ligament and tendon (fewer vessels to bring cells and nutrients), and contrasts it with epithelium and well-vascularized tissue that renews quickly.",
               "Ligament, like tendon, is dense regular connective tissue with a poor blood supply, so fewer cells and nutrients reach the repair. The skin's surface layer is epithelium that renews itself quickly, with a richly vascular dermis under it."
             ),
           ],
@@ -140,7 +140,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
     {
       slug: "ptprereq-squat-muscle-roles",
       objective:
-        "Analyse a movement to name the agonist (prime mover), antagonist and synergist, and whether each working muscle contracts concentrically, eccentrically or isometrically",
+        "Analyze a movement to name the agonist (prime mover), antagonist and synergist, and whether each working muscle contracts concentrically, eccentrically or isometrically",
       kind: "case",
       title: "What the thigh muscles do in a squat",
       brief:
@@ -263,11 +263,11 @@ export const PTPREREQ_LABS: SeedLabSet = {
     {
       slug: "ptprereq-motor-unit-size",
       objective:
-        "Interpret a description of motor unit size (a few fibres per neuron in the eye muscles, many in a large postural muscle) and decide which arrangement allows finer control of force",
+        "Interpret a description of motor unit size (a few fibers per neuron in the eye muscles, many in a large postural muscle) and decide which arrangement allows finer control of force",
       kind: "case",
       title: "Threading a needle versus standing up",
       brief:
-        "A fictional physiology quiz compares two muscles. Muscle X moves the eye, and each of its motor neurons supplies only a handful of muscle fibres. Muscle Y is a large lower-limb muscle used for standing and walking, and each of its motor neurons can supply hundreds or more fibres.",
+        "A fictional physiology quiz compares two muscles. Muscle X moves the eye, and each of its motor neurons supplies only a handful of muscle fibers. Muscle Y is a large lower-limb muscle used for standing and walking, and each of its motor neurons can supply hundreds or more fibers.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -276,8 +276,8 @@ export const PTPREREQ_LABS: SeedLabSet = {
           parts: [
             part(
               "Finer control",
-              "Picks muscle X (small motor units): recruiting one more motor unit adds only a few fibres' worth of force, so force rises in small steps; in muscle Y each added unit is a large jump.",
-              "Muscle X. A motor unit is one neuron and all the fibres it supplies. With only a few fibres per unit, recruiting one more unit adds a tiny amount of force, so the eye muscle can adjust force in small steps. In muscle Y, each extra unit adds hundreds of fibres at once."
+              "Picks muscle X (small motor units): recruiting one more motor unit adds only a few fibers' worth of force, so force rises in small steps; in muscle Y each added unit is a large jump.",
+              "Muscle X. A motor unit is one neuron and all the fibers it supplies. With only a few fibers per unit, recruiting one more unit adds a tiny amount of force, so the eye muscle can adjust force in small steps. In muscle Y, each extra unit adds hundreds of fibers at once."
             ),
           ],
         },
@@ -308,7 +308,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
       kind: "case",
       title: "How hard the biceps works to hold a dumbbell",
       brief:
-        "A fictional student holds a 5.0 kg dumbbell with the elbow at 90 degrees and the forearm horizontal. Treat the forearm as a lever pivoting at the elbow. The forearm and hand have a mass of 2.0 kg with their centre of mass 0.15 m from the elbow. The dumbbell is 0.33 m from the elbow. The biceps pulls straight up, 0.040 m from the elbow. Use g = 9.8 m/s^2 and ignore every other muscle.",
+        "A fictional student holds a 5.0 kg dumbbell with the elbow at 90 degrees and the forearm horizontal. Treat the forearm as a lever pivoting at the elbow. The forearm and hand have a mass of 2.0 kg with their center of mass 0.15 m from the elbow. The dumbbell is 0.33 m from the elbow. The biceps pulls straight up, 0.040 m from the elbow. Use g = 9.8 m/s^2 and ignore every other muscle.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -363,7 +363,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
       kind: "build",
       title: "Make a straight-leg raise easier and harder with torque",
       brief:
-        "In a fictional practice lab, a classmate lies on her back and lifts one straight leg. Model the leg as an 8.0 kg segment whose centre of mass is 0.40 m from the hip when the knee is straight. Use g = 9.8 m/s^2 and take the moment when the leg is just off the table and horizontal. Show the torque the hip flexors must match, then change the exercise using lever arms only, not more mass.",
+        "In a fictional practice lab, a classmate lies on her back and lifts one straight leg. Model the leg as an 8.0 kg segment whose center of mass is 0.40 m from the hip when the knee is straight. Use g = 9.8 m/s^2 and take the moment when the leg is just off the table and horizontal. Show the torque the hip flexors must match, then change the exercise using lever arms only, not more mass.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -377,8 +377,8 @@ export const PTPREREQ_LABS: SeedLabSet = {
             ),
             part(
               "Easier",
-              "Shortens the load's lever arm, e.g. bending the knee so the segment's centre of mass moves closer to the hip; shows the torque falls in proportion (e.g. at 0.25 m: 8.0 x 9.8 x 0.25 = 19.6 N m), or lifts from a more upright start where the horizontal distance is shorter.",
-              "Bend the knee so the leg's mass sits closer to the hip. If the centre of mass moves to 0.25 m, the torque is 8.0 x 9.8 x 0.25 = 19.6 N m, nearly 40 percent less, with the same mass."
+              "Shortens the load's lever arm, e.g. bending the knee so the segment's center of mass moves closer to the hip; shows the torque falls in proportion (e.g. at 0.25 m: 8.0 x 9.8 x 0.25 = 19.6 N m), or lifts from a more upright start where the horizontal distance is shorter.",
+              "Bend the knee so the leg's mass sits closer to the hip. If the center of mass moves to 0.25 m, the torque is 8.0 x 9.8 x 0.25 = 19.6 N m, nearly 40 percent less, with the same mass."
             ),
             part(
               "Harder",
@@ -407,8 +407,8 @@ export const PTPREREQ_LABS: SeedLabSet = {
           parts: [
             part(
               "Weakness",
-              "Right side: the corticospinal fibres from the left cortex cross at the pyramidal decussation, so the left hemisphere controls the right body.",
-              "The right side. The left motor cortex's corticospinal fibres cross to the other side in the lower medulla, so the left hemisphere moves the right side of the body."
+              "Right side: the corticospinal fibers from the left cortex cross at the pyramidal decussation, so the left hemisphere controls the right body.",
+              "The right side. The left motor cortex's corticospinal fibers cross to the other side in the lower medulla, so the left hemisphere moves the right side of the body."
             ),
             part(
               "Sensation",
@@ -423,18 +423,18 @@ export const PTPREREQ_LABS: SeedLabSet = {
           parts: [
             part(
               "Motor",
-              "Left side: the corticospinal tract has already crossed in the medulla, so at the cord it is carrying fibres for the same side.",
-              "Left-side weakness. The corticospinal fibres crossed in the medulla, high above, so in the left side of the cord they serve the left side of the body."
+              "Left side: the corticospinal tract has already crossed in the medulla, so at the cord it is carrying fibers for the same side.",
+              "Left-side weakness. The corticospinal fibers crossed in the medulla, high above, so in the left side of the cord they serve the left side of the body."
             ),
             part(
               "Dorsal column",
               "Left side: the dorsal column pathway ascends on the same side and does not cross until the medulla.",
-              "Left-side loss of fine touch, vibration and position sense. Those fibres travel up the same side of the cord and only cross in the medulla."
+              "Left-side loss of fine touch, vibration and position sense. Those fibers travel up the same side of the cord and only cross in the medulla."
             ),
             part(
               "Spinothalamic",
-              "Right side: pain and temperature fibres cross in the cord near their entry level, so the left cord carries the right body's pain and temperature.",
-              "Right-side loss of pain and temperature. Those fibres cross within the spinal cord near where they enter, so the left half of the cord carries them for the right side of the body."
+              "Right side: pain and temperature fibers cross in the cord near their entry level, so the left cord carries the right body's pain and temperature.",
+              "Right-side loss of pain and temperature. Those fibers cross within the spinal cord near where they enter, so the left half of the cord carries them for the right side of the body."
             ),
           ],
         },
@@ -443,7 +443,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
     {
       slug: "ptprereq-umn-lmn",
       objective:
-        "Recognise upper motor neuron signs (spasticity, increased reflexes) and lower motor neuron signs (weakness with atrophy, fasciculations, reduced reflexes) in a described finding",
+        "Recognize upper motor neuron signs (spasticity, increased reflexes) and lower motor neuron signs (weakness with atrophy, fasciculations, reduced reflexes) in a described finding",
       kind: "build",
       title: "Upper or lower motor neuron?",
       brief:
@@ -482,7 +482,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
       kind: "case",
       title: "Cardiac output at rest and on a bike",
       brief:
-        "A fictional 25-year-old volunteer in a physiology class has a resting heart rate of 70 beats per minute and a stroke volume of 70 mL. Use CO = HR x SV and give answers in litres per minute.",
+        "A fictional 25-year-old volunteer in a physiology class has a resting heart rate of 70 beats per minute and a stroke volume of 70 mL. Use CO = HR x SV and give answers in liters per minute.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -590,7 +590,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
       kind: "build",
       title: "The power of one flight of stairs",
       brief:
-        "A fictional 70 kg student climbs a flight of stairs with a vertical rise of 3.0 m in 6.0 s at a steady speed. Use g = 9.8 m/s^2. Treat the climb as raising the body's centre of mass by 3.0 m.",
+        "A fictional 70 kg student climbs a flight of stairs with a vertical rise of 3.0 m in 6.0 s at a steady speed. Use g = 9.8 m/s^2. Treat the climb as raising the body's center of mass by 3.0 m.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -624,7 +624,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
       kind: "build",
       title: "What 0.9 percent saline means in moles",
       brief:
-        "A fictional chemistry review asks about 0.9 percent saline, which contains 9.0 g of sodium chloride (NaCl) in every litre of solution. The molar mass of NaCl is 58.44 g/mol. NaCl dissociates completely in water into Na+ and Cl- ions.",
+        "A fictional chemistry review asks about 0.9 percent saline, which contains 9.0 g of sodium chloride (NaCl) in every liter of solution. The molar mass of NaCl is 58.44 g/mol. NaCl dissociates completely in water into Na+ and Cl- ions.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
@@ -632,9 +632,9 @@ export const PTPREREQ_LABS: SeedLabSet = {
           ask: "Find the molarity in mol/L and mmol/L, and the concentration of dissolved particles.",
           parts: [
             part(
-              "Moles per litre",
-              "9.0 / 58.44 = 0.154 mol in one litre, so 0.154 M (mol/L).",
-              "Moles = mass / molar mass = 9.0 g / 58.44 g/mol = 0.154 mol in each litre, so the solution is 0.154 M."
+              "Moles per liter",
+              "9.0 / 58.44 = 0.154 mol in one liter, so 0.154 M (mol/L).",
+              "Moles = mass / molar mass = 9.0 g / 58.44 g/mol = 0.154 mol in each liter, so the solution is 0.154 M."
             ),
             part(
               "Millimoles",
@@ -643,8 +643,8 @@ export const PTPREREQ_LABS: SeedLabSet = {
             ),
             part(
               "Particles",
-              "Each NaCl gives two ions, so about 308 mmol of dissolved particles per litre (2 x 154), and explains why particle count, not formula units, is what matters for osmosis.",
-              "Each NaCl separates into one Na+ and one Cl-, so there are about 2 x 154 = 308 mmol of dissolved particles per litre. For osmosis what counts is the number of particles in solution, not the number of NaCl formula units."
+              "Each NaCl gives two ions, so about 308 mmol of dissolved particles per liter (2 x 154), and explains why particle count, not formula units, is what matters for osmosis.",
+              "Each NaCl separates into one Na+ and one Cl-, so there are about 2 x 154 = 308 mmol of dissolved particles per liter. For osmosis what counts is the number of particles in solution, not the number of NaCl formula units."
             ),
           ],
         },
@@ -699,16 +699,16 @@ export const PTPREREQ_LABS: SeedLabSet = {
     {
       slug: "ptprereq-grip-strength-summary",
       objective:
-        "Calculate the mean, median, range and sample standard deviation of a small data set, and decide which centre to report when the data are skewed",
+        "Calculate the mean, median, range and sample standard deviation of a small data set, and decide which center to report when the data are skewed",
       kind: "build",
-      title: "Summarise eight grip-strength readings",
+      title: "Summarize eight grip-strength readings",
       brief:
-        "A fictional class measures right-hand grip strength in eight volunteers, in kilograms: 28, 31, 33, 30, 35, 29, 32, 46. Summarise the data and decide what centre to report.",
+        "A fictional class measures right-hand grip strength in eight volunteers, in kilograms: 28, 31, 33, 30, 35, 29, 32, 46. Summarize the data and decide what center to report.",
       safetyNote: CLINICAL_SAFETY,
       steps: [
         {
           text: "",
-          ask: "Give the mean, median, range and sample standard deviation, then choose the centre to report.",
+          ask: "Give the mean, median, range and sample standard deviation, then choose the center to report.",
           parts: [
             part(
               "Mean and median",
@@ -721,7 +721,7 @@ export const PTPREREQ_LABS: SeedLabSet = {
               "Range = 46 - 28 = 18 kg. Sample standard deviation, dividing the summed squared deviations by n - 1 = 7, is about 5.7 kg."
             ),
             part(
-              "Which centre",
+              "Which center",
               "Identifies 46 as an outlier that skews the data to the right and pulls the mean above the median; recommends reporting the median (with the range or IQR) as more typical.",
               "The 46 kg reading is far above the rest, so the data are skewed right and the mean (33.0) is pulled above most values. Report the median, 31.5 kg, as the typical value, with the range or interquartile range."
             ),
