@@ -100,6 +100,40 @@ export function sendErrorReport(err: unknown, ctx: ErrorContext = {}): Promise<v
   }
 }
 
+// REQ-211: the owner's "Send a test error" button. Sends one labelled event
+// and waits for Sentry's answer, so the owner learns whether reports arrive
+// (reportError() never says). Never throws.
+export const TEST_ERROR_MESSAGE = "Ascendra error-tracker test (sent by the owner from Settings > Access). Safe to resolve.";
+
+export class ErrorTrackerTestError extends Error {
+  constructor() {
+    super(TEST_ERROR_MESSAGE);
+    this.name = "ErrorTrackerTest";
+  }
+}
+
+export async function sendTestErrorReport(
+  ctx: ErrorContext = {}
+): Promise<{ configured: boolean; delivered: boolean; status: number | null }> {
+  const dsn = parseDsn(process.env.ERROR_TRACKER_DSN);
+  if (!dsn) return { configured: false, delivered: false, status: null };
+  try {
+    const res = await transport(dsn.storeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Sentry-Auth": `Sentry sentry_version=7, sentry_client=ascendra/1, sentry_key=${dsn.publicKey}`,
+      },
+      body: JSON.stringify(errorEvent(new ErrorTrackerTestError(), ctx)),
+      signal: AbortSignal.timeout(5_000),
+    });
+    const status = typeof (res as Response | undefined)?.status === "number" ? (res as Response).status : null;
+    return { configured: true, delivered: status !== null && status >= 200 && status < 300, status };
+  } catch {
+    return { configured: true, delivered: false, status: null };
+  }
+}
+
 // Never throws and never delays the response.
 export function reportError(err: unknown, ctx: ErrorContext = {}): void {
   if (!parseDsn(process.env.ERROR_TRACKER_DSN)) return;

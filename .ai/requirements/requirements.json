@@ -7521,6 +7521,43 @@
       "risk_notes": [
         "a held-back attempt now costs up to two fast-model calls (about a cent)"
       ]
+    },
+    {
+      "id": "REQ-211",
+      "category": "feature",
+      "title": "Owner-only 'Send a test error' button to confirm Sentry receives server errors",
+      "description": "Nick, 2026-11-10: after setting ERROR_TRACKER_DSN there was no safe way to confirm reports arrive. Settings > Access (owner only) gains 'Send a test error', which posts to POST /api/access/error-tracker-test. The route requires the owner, allows five a day (auth_events 'error_tracker_test'), sends one labelled event through the same store endpoint as reportError, waits for Sentry's answer (5 s timeout) and returns { configured, delivered, status }. No migration.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "backend/lib/error-tracker.ts",
+        "backend/app/api/access/error-tracker-test/route.ts",
+        "backend/lib/error-reporting.test.ts",
+        "backend/lib/account-access.dbtest.ts",
+        "mobile/src/lib/access.ts",
+        "mobile/src/lib/access.test.ts",
+        "mobile/app/(app)/settings/access.tsx",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "non-owners get 403 and nothing is sent",
+        "no DSN reports configured false and sends nothing",
+        "a 2xx from Sentry reports delivered; a refusal or network failure is reported, never thrown",
+        "the sixth call in a day is a 429 and sends nothing",
+        "the owner sees a plain-language result on the Access screen"
+      ],
+      "validation_required": [
+        "backend npm test",
+        "backend test:db (owner and app_runtime)",
+        "mobile typecheck and npm test",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "the test event appears as a real error in Sentry and should be resolved there"
+      ]
     }
   ]
 }

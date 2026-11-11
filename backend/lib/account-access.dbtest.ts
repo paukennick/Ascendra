@@ -514,3 +514,40 @@ describe("granting (owner only)", () => {
     await assert.rejects(runAccessCli(parseAccessArgs(["--email", OWNER])), /owner already/);
   });
 });
+
+// REQ-211: Settings > Access "Send a test error" (owner only, five a day).
+describe("error-tracker test button (owner only)", () => {
+  test("anyone but the owner gets 403; the owner gets a result; the sixth call in a day is a 429", async () => {
+    const { POST: testPost } = await import("../app/api/access/error-tracker-test/route");
+    const { setErrorTransport } = await import("./error-tracker");
+    const dsn = process.env.ERROR_TRACKER_DSN;
+    let sent = 0;
+    setErrorTransport(async () => {
+      sent++;
+      return new Response("{}", { status: 200 });
+    });
+    try {
+      for (const who of [await unrestrictedUser(), await newUser()]) {
+        assert.equal((await call(testPost, "/api/access/error-tracker-test", who, "POST")).status, 403);
+      }
+      assert.equal(sent, 0, "nothing sent for a non-owner");
+      delete process.env.ERROR_TRACKER_DSN;
+      const off = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+      assert.equal(off.status, 200);
+      assert.deepEqual(await off.json(), { configured: false, delivered: false, status: null });
+      process.env.ERROR_TRACKER_DSN = "https://publickey@o1.ingest.example.test/42";
+      for (let i = 0; i < 4; i++) {
+        const r = await call(testPost, "/api/access/error-tracker-test", ownerId, "POST");
+        assert.deepEqual(await r.json(), { configured: true, delivered: true, status: 200 });
+      }
+      assert.equal(sent, 4);
+      assert.equal((await call(testPost, "/api/access/error-tracker-test", ownerId, "POST")).status, 429);
+      assert.equal(sent, 4, "the limited call sends nothing");
+    } finally {
+      setErrorTransport(null);
+      if (dsn === undefined) delete process.env.ERROR_TRACKER_DSN;
+      else process.env.ERROR_TRACKER_DSN = dsn;
+      await query(`delete from auth_events where event_type = 'error_tracker_test' and identifier = $1`, [ownerId]);
+    }
+  });
+});
