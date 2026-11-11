@@ -15,6 +15,7 @@ import { randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
 import { generate as totpGenerate } from "otplib";
 import { query, queryOne, closePool } from "./db";
+import { ownerQuery, closeOwner } from "./test-owner";
 import { hashPassword } from "./auth/passwords";
 import { encrypt } from "./auth/crypto";
 import { signAccessToken, createRefreshToken, rotateRefreshToken, RefreshTokenError } from "./auth/tokens";
@@ -66,10 +67,11 @@ after(async () => {
   globalThis.fetch = realFetch;
   console.error = origErr;
   __setGoogleVerifierForTest(null);
-  for (const f of functions) await query(`drop function if exists ${f}() cascade`).catch(() => undefined);
+  for (const f of functions) await ownerQuery(`drop function if exists ${f}() cascade`).catch(() => undefined);
   await query(`delete from app_users where id = any($1::uuid[])`, [created]);
   await query(`delete from auth_events where identifier like $1 or identifier = any($2::text[])`, [`%${run}%`, created]);
   await closePool();
+  await closeOwner();
 });
 
 interface Res {
@@ -145,12 +147,14 @@ function stubGoogle(sub: string, email: string, issuedAgoSeconds = 5) {
 async function failOnceFor(userId: string, table: string, when: "insert" | "update", condition: string) {
   const fn = `req203_fail_${run}_${functions.length}`;
   functions.push(fn);
-  await query(`create or replace function ${fn}() returns trigger language plpgsql as $$ begin raise exception 'req203 injected failure'; end $$`);
-  await query(
+  // Creating the trigger is DDL, an owner job: the suite also runs as the
+  // least-privilege app_runtime role (scripts/ci/db-tests-as-runtime.sh).
+  await ownerQuery(`create or replace function ${fn}() returns trigger language plpgsql as $$ begin raise exception 'req203 injected failure'; end $$`);
+  await ownerQuery(
     `create trigger ${fn} before ${when} on ${table} for each row when (${condition.replace("$USER", `'${userId}'`)}) execute function ${fn}()`
   );
   return async () => {
-    await query(`drop trigger if exists ${fn} on ${table}`);
+    await ownerQuery(`drop trigger if exists ${fn} on ${table}`);
   };
 }
 

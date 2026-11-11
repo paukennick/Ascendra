@@ -128,7 +128,9 @@ describe("interactive lab parts through the routes (REQ-189)", () => {
     assert.equal(s0.inputs[0].type, "order");
     assert.notDeepEqual(s0.inputs[0].items.map((c: any) => c.id), orderIds(), "served shuffled");
     assert.deepEqual(s0.inputs[1], { type: "numeric", unit: "days" });
-    const text = JSON.stringify(v.body);
+    // Random UUIDs in the body can contain "4321" by chance (CI, Nov 11), so
+    // they are removed before looking for the numeric key.
+    const text = JSON.stringify(v.body).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>");
     for (const secret of ["4321", "ORDER-CRITERIA", "ORDER-MODEL", "NUMERIC-MODEL", "STEP-TWO-SECRET", "BAD LINE", "SELECT-CRITERIA"]) {
       assert.ok(!text.includes(secret), `${secret} must not be sent before grading`);
     }
