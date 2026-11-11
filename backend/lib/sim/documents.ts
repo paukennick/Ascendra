@@ -42,6 +42,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // fall (CNA, nurse-aide scope). Keep these entries together. ----
   entry("CCRNADULT", "bleeding-after-whipple"),
   entry("CNA", "resident-chokes-at-lunch"),
+  entry("CNA", "resident-found-on-floor"),
   // ---- end REQ-223 (S2b) ----
 ];
 
