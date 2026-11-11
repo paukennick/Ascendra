@@ -118,6 +118,17 @@ export const PROFILE_THRESHOLDS: Record<OutcomeProfile, Record<string, { value: 
   security: {},
   infrastructure: {},
   data: {},
+  // REQ-225 (docs/sims.md 9.2, 20.2): a session with a client. Target: the
+  // session's safety or diagnostic task done within its window with the
+  // alliance intact; recovered: done late, partly, or at a cost to the
+  // alliance or the client's autonomy; harm: a client left at foreseeable
+  // risk, a required protective step not taken, or confidentiality broken
+  // without a legal basis. Times are sim seconds from the session's start.
+  "clinical-session": {
+    allianceTarget: { value: 6, tighter: "higher", note: "rapport >= 6/10 at the close of the session" },
+    allianceRecovered: { value: 3, tighter: "higher", note: "rapport below this at the close is a rupture" },
+    safetyWindow: { value: 1200, tighter: "lower", note: "the critical safety question asked <= 20 min after the cue" },
+  },
 };
 
 export type SafetyFamily = "clinical" | "fitness" | "general";
@@ -1381,6 +1392,37 @@ function screenCheck(doc: ScenarioDoc, root: Scope, info: DocInfo, col: Collecto
       checkTemplate(m.value, root, WHERE_TICK, `screen.board.meters[${i}].value`, info, col);
     });
   }
+  // REQ-225: the client session's bindings, checked like tile bindings.
+  if (s.type === "session" && !s.session) col.error("screen.session", "a session screen needs its client bindings");
+  if (s.session) {
+    const se = s.session;
+    if (!se.client || !se.client.name) col.error("screen.session.client", "needs the client's name");
+    else checkTemplate(se.client.presentation, root, WHERE_TICK, "screen.session.client.presentation", info, col);
+    if (!se.gauges.length) col.error("screen.session.gauges", "needs at least one gauge (rapport, distress, ...)");
+    const ids = new Set<string>();
+    se.gauges.forEach((g, i) => {
+      const path = `screen.session.gauges[${i}]`;
+      if (ids.has(g.id)) col.error(path, `duplicate gauge id ${g.id}`);
+      ids.add(g.id);
+      if (!g.spokenLabel) col.error(path, "needs a spokenLabel");
+      checkOne(g.value, root, WHERE_TICK, `${path}.value`, info, col, T_NUM);
+      if (!(g.max > 0)) col.error(`${path}.max`, "must be positive");
+      if (g.bands.some((b, j) => j > 0 && b <= g.bands[j - 1])) col.error(`${path}.bands`, "must rise strictly");
+      if (g.words.length !== g.bands.length + 1) col.error(`${path}.words`, "needs one word more than bands (the state in words, 13.1)");
+    });
+    (se.notes ?? []).forEach((n, i) => {
+      const path = `screen.session.notes[${i}]`;
+      if (ids.has(n.id)) col.error(path, `duplicate id ${n.id}`);
+      ids.add(n.id);
+      checkTemplate(n.text, root, WHERE_TICK, `${path}.text`, info, col);
+      if (n.when) checkOne(n.when, root, WHERE_TICK, `${path}.when`, info, col, "bool");
+      if (n.alert) checkOne(n.alert, root, WHERE_TICK, `${path}.alert`, info, col, "bool");
+    });
+    (se.record?.items ?? []).forEach((it, j) => {
+      checkOne(it.when, root, WHERE_TICK, `screen.session.record.items[${j}].when`, info, col, "bool");
+      checkTemplate(it.label, root, WHERE_TICK, `screen.session.record.items[${j}].label`, info, col);
+    });
+  }
 }
 
 // ---- interval arithmetic for the longest-skip bound (4.3) ----
@@ -1602,7 +1644,7 @@ function addMonths(iso: string, months: number): string {
 
 function sourceStaleness(doc: ScenarioDoc, col: Collector, now: string | undefined): void {
   if (!now) return;
-  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "cloud" ? 6 : 12;
+  const defaultMonths = doc.outcome.profile === "clinical" || doc.outcome.profile === "clinical-session" || doc.outcome.profile === "cloud" ? 6 : 12;
   const check = (path: string, s: Source | undefined): void => {
     if (!s || !isIsoDate(s.checkedAt)) return;
     const due = s.recheckBy && isIsoDate(s.recheckBy) ? s.recheckBy : addMonths(s.checkedAt, defaultMonths);
@@ -1758,6 +1800,9 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const teachingSeen = new Set<string>();
   const availableActions = new Set<string>();
   let waitAlways = true;
+  // REQ-225 (FAIL-1220): the warning is about a running phase; a path that
+  // never boundaries in one (turn-based, stopped) used to keep it true.
+  let runningBoundaries = 0;
   let boundaries = 0;
   const run = createRun(doc, path.seed);
   const snapshots = path.expect.snapshots ?? [];
@@ -1774,6 +1819,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   const noteBoundary = (): void => {
     boundaries++;
     // a routine wait (the q15 check) is a recurring check, not a reason to skip
+    if (clockMode(run) === "running" && !run.state.ended) runningBoundaries++;
     if (clockMode(run) === "running" && !clockBlocked(run) && !run.state.ended && !waits(run).some((w) => !w.routine)) waitAlways = false;
     for (const ch of run.c.doc.chapters ?? []) if (chapterHolds(run, ch)) chaptersSeen.add(ch.id);
     for (const t of teachingAvailable(run)) teachingSeen.add(t.id);
@@ -1838,7 +1884,7 @@ export function replayGoldenPath(doc: ScenarioDoc, path: GoldenPath, stateHashFn
   }
   const hash = stateHashFn ? stateHashFn(run) : "";
   if (!error && path.expect.stateHash && hash && hash !== path.expect.stateHash) mismatches.push(`state hash ${hash}, expected ${path.expect.stateHash}`);
-  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
+  return { path, error, debrief, mismatches, availableActions, waitAlways: waitAlways && boundaries > 2 && runningBoundaries > 0, stateHash: hash, finalTick: run.state.tick, chaptersSeen, teachingSeen, minWallSeconds: minWallSeconds(run), focusedAt: run.focusedAt };
 }
 
 // Read a state or derived value by name (and, for the lint, an action's availability).

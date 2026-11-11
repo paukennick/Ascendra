@@ -41,7 +41,8 @@ engine and the practice-lab acknowledgement).
 19. Decisions
 20. Sims for every subject family
 21. Review resolution
-22. Phase 1b as built (REQ-190), pacing (REQ-209) and more CCRN cases (REQ-222)
+22. Phase 1b as built (REQ-190), pacing (REQ-209), more CCRN cases (REQ-222),
+    CNA cases (REQ-223) and the client session (REQ-225)
 
 ---
 
@@ -2236,7 +2237,15 @@ interface ScreenSpec {
     zones: { id: Id; label: string; spokenLabel: string; items: { label: Template; when: Expr }[] }[];
     meters?: { id: Id; label: string; value: Template }[];
   };
-  // dashboard, trainer, session, security, terminal, data: later phases (20)
+  // REQ-225: the client session (the people layer, 20.2, 22.5).
+  session?: {
+    client: { name: string; presentation: Template };  // how the client presents now
+    gauges: { id: Id; label: string; spokenLabel: string; value: Expr; max: number;
+              bands: number[]; words: string[] }[];     // a number read in words: one word more than bands
+    notes?: { id: Id; label: string; text: Template; when?: Expr; alert?: Expr }[];  // what the clinician knows
+    record?: { label: string; items: { label: Template; when: Expr }[] };          // the documentation so far
+  };
+  // dashboard, trainer, security, terminal, data: later phases (20)
 }
 ```
 
@@ -2354,6 +2363,7 @@ direction):
 | Cloud | every stated requirement met: availability ≥ the stated SLA over the day by the error-budget method, RPO and RTO met, cost ≤ budget | one requirement missed by a small margin: availability ≥ 99.85% against 99.9%, or cost ≤ 110% of budget | data loss beyond RPO, an outage beyond RTO, payment data stored, or cost > 110% of budget |
 | Project | CPI ≥ 0.95 and SPI ≥ 0.95 at close, every compliance item met, every stakeholder ≥ 60/100 | CPI or SPI 0.85-0.95, or one stakeholder 40-59 | a compliance gate failed, CPI or SPI < 0.85, or team attrition ≥ 2 |
 | Fitness | no adverse event, screening done correctly, primary goal met (for example knee pain reduced ≥ 50%), adherence ≥ 80% | safe, goal partly met (pain reduced 25-49%) or adherence 60-79% | an adverse event, a required referral skipped, injury, or drop-out |
+| Clinical session (REQ-225) | the session's safety or diagnostic task done within its window (`safetyWindow`, default 20 min from the cue), rapport >= 6/10 at the close (`allianceTarget`) | done late, partly, or at a cost to the alliance or the client's autonomy (an over-restrictive referral, a disclosure made on a guess) | a client left at foreseeable risk, a required protective step not taken, confidentiality broken beyond what the law allows, a diagnosis that misses a required rule-out, or a walk-out after a rupture |
 | Security, infrastructure, data | defined with their renderers (20) | | |
 
 Two readings are written down so they are not re-decided per scenario.
@@ -2591,7 +2601,8 @@ device while sims are off (5.9).
 
 `SIMS_RENDERERS`: a comma-separated allowlist of screen types that are on
 (default `bedside,board` since REQ-190, because the first flagship is the
-TicketBurst board, 19.4 item 1). A renderer can be launched, or pulled after a bad
+TicketBurst board, 19.4 item 1; `bedside,board,session` since REQ-225, so
+testers see the client session). A renderer can be launched, or pulled after a bad
 scenario, without touching the others. A sim whose screen type is not
 listed behaves as if `SIMS_ENABLED` were off for that sim.
 
@@ -3309,6 +3320,7 @@ cover the whole catalog (95 courses):
 | **Treatment session** | Physical therapy: NPTE-PT, NPTE-PTA, DPT, the ten ABPTS specialties | Examine, choose tests and measures, treat and progress a patient across visits; vitals and red flags during exercise |
 | **Security operations console** | Security: Security+, CySA+, PenTest+, SecurityX, SecAI+ | Triage alerts and logs during a live incident, contain, eradicate, recover, report; the attacker progresses on a clock |
 | **Terminal and network** | Infrastructure: Tech+, Network+, Linux+, Server+, AutoOps+ | Diagnose and fix a broken network or server through a simulated shell (an authored fault tree, not an emulator) and topology; outages spread while you work |
+| **Client session** (REQ-225, 22.5) | Mental health: EPPP, then NCE, NCMHCE and ASWB | Conduct a session with a client: ask, respond, intervene and document; rapport, distress, disclosure and risk move with each choice and with time |
 | **Data and code console** | Data, AI and development: Data+, DataAI, AI-901, DP-300, DP-900, Python, JavaScript, MS Health Informatics (data quality and EHR rollout cases), MSCS | Guided: pick the query or fix, inspect authored result tables, reason in writing about a dataset or a failing program under a deadline; no learner code or SQL is ever run |
 
 Order (each renderer ships behind `SIMS_ENABLED` with its first 3-5
@@ -3778,3 +3790,99 @@ path, debriefs, teaching prompts with sources (indirect evidence marked
   the month's end. The engine's own copy in `validate.ts` (staleness warning
   only, string comparison) has the same arithmetic and was left alone, since
   engine changes were out of scope.
+
+### 22.5 The client session and the first EPPP cases (REQ-225)
+
+Nick approved the people layer on 2026-11-10 ("Sims seem to be vital to
+learning"; quality over speed). The client session is the eighth row of 20:
+mental-health courses (EPPP now; NCE, NCMHCE and ASWB later) where the
+learner conducts a session with a fictional client.
+
+**The renderer** (`screen.type: "session"`, `session@1`, behind
+`SIMS_RENDERERS`, on by default). `SessionPanel` (`mobile/src/sim/SimPanels.tsx`)
+shows the client's name and how they present now (a template over state),
+what they said last, each client state as a word with a bar (rapport:
+guarded, warming, engaged; distress: settled to overwhelmed; disclosure:
+saying little to speaking freely), "What you know so far" (notes; an alert
+note has a border and the word "Alert") and the record so far. Questions,
+responses, plan steps and documentation are the scenario's action groups
+(Open, Ask, Ask about risk, Respond, Plan, Close; after the session,
+Document). The view model is `sessionView`/`sessionNews`/`sessionAlarmTexts`
+in `src/sim/runtime/view.ts`. Accessibility as the bedside and board: every
+block is one accessible element with its state in words, 48 dp targets,
+"Read the client" speaks the whole panel, an alert note is announced at once
+like an alarm, a gauge moving into another word and a new note are announced
+politely (the announcer's `news`, at most one polite sentence per 10 s),
+keyboard order on web is the order on screen. JS only, so it can ship over
+the air; an app without `session@1` is told to update (5.10).
+
+**Pacing: learner-paced, not the clinical rule (5.4a).** The clinical rule
+(a running phase at 3x) exists because physiology moves whether or not the
+clinician acts. A client's state in a talk session moves with what the
+clinician says, and a real-time clock while the learner reads a client's
+answer would score reading speed and race screen-reader users. So the
+session phase is `turns`: each exchange shows the client's answer at once
+and schedules the conversation wait ("Let the conversation continue (about
+3 min)"), which moves the session clock by the minutes that kind of exchange
+takes; the next question waits for it. Time still matters: the hour ends at
+50 minutes (a trigger moves to the after-session phase and opens the written
+formulation), and high rapport settles distress per minute while low rapport
+frays it (processes). With no running phase, pace, the focused start, the
+skip offer, 5.4d teaching prompts and chapters do not apply.
+
+**Outcome profile `clinical-session`** (9.2): defaults `allianceTarget` 6,
+`allianceRecovered` 3, `safetyWindow` 1200 s; `noProgress` per case.
+
+**Cases** (`backend/supabase/seed/sims/EPPP/`, objective titles exactly as
+the EPPP course defines them; the seed resolves course code + title and
+says plainly when the course or an objective is missing):
+
+| Slug | Objective | Core of the case |
+|---|---|---|
+| `suicide-risk-safety-plan` | Assess suicide risk and plan safety in a clinical interview | A positive PHQ-9 item 9: ask directly (C-SSRS screen questions), method, intent, plan, behavior, means; a Stanley-Brown plan with the handgun moved out; moderate risk, outpatient, a 48-hour check |
+| `duty-to-protect-threat` | Apply duty-to-warn and duty-to-protect obligations | A vague remark that hides an actual threat (Washington): explore first, then warn the person and notify police with the threat only (RCW 71.05.120(3); Volk v. DeMeerleer; APA 4.04, 4.05) |
+| `diagnostic-intake-mood` | Conduct a diagnostic intake using DSM-5-TR criteria | A major depressive episode plus a past hypomanic episode found only by a behavior-based screen: bipolar II, current episode depressed; rule-outs, a suicide screen |
+
+Each has one written-reasoning moment, endings in all three classes,
+criteria with at least three critical, KPIs, an expert path, a debrief per
+ending, and five or six golden paths (Good, Mediocre, Bad; every ending but
+`time_up` and every criterion both met and missed), built by
+`npm run sim:golden -- steps eppp-suicide|eppp-duty|eppp-intake`. Each
+carries one unscored prediction as a decision card (below). Sources are on
+each document with `checkedAt` 2026-11-10.
+
+**Findings against this design** (20: recorded, not worked around):
+
+1. **The screen spec and the profile list are in the engine folder.** The
+   session needed `screen.session` and the `clinical-session` profile in
+   `engine/v1/types.ts` and the validator, as the board's bindings did in
+   REQ-190. Display and lint only: stepping, the corpus and every existing
+   hash are unchanged, and no engine minor was added (an older app is held
+   back by the renderer level instead).
+2. **Endings run in jsonb key order on the server (FAIL-1221, FAIL-1222).**
+   The engine evaluates endings in `Object.keys` order (5.3, "document
+   order"), but `sim_versions.document` and `client_document` are jsonb,
+   which returns keys shortest first, then bytewise. A document whose endings
+   rely on first-match precedence ends differently in production than in
+   its goldens. The EPPP cases now use mutually exclusive conditions, and
+   `lib/sim/storage-order.test.ts` replays every golden path in jsonb order.
+   The tamponade case fails it: `code_rosc` runs before `code_epiHarm`, so
+   on the server full-dose epinephrine reaches ROSC instead of the harm
+   ending (FAIL-1222, open). The engine-level fix (an explicit ending order,
+   or storing the document as `json`) is a decision for Nick; it can change
+   stepping output for existing documents, so it is a new engine major or a
+   content change in each affected document.
+3. **Teaching prompts (5.4d) exist only for running phases.** A turn-based
+   session cannot declare them, so each EPPP case carries its one
+   prediction as a decision card (`prompts`) opened once by a trigger,
+   with feedback and the source in the text and no criterion reading it.
+   The debrief lists it in "What you did", not under "Your predictions (not
+   scored)".
+4. **Safety family.** The seed derives it from the EPPP course's category
+   (`healthcare*` is clinical, otherwise general); the linter's
+   `safetyFamilyOf` reads the profile and treats `clinical-session` as
+   general. Pacing does not apply either way; the study-notice gate does
+   only if the course sits in a `healthcare*` category.
+5. **The "a wait is pending at every boundary" warning** fired for every
+   path that never entered a running phase (FAIL-1220); it now needs one.
+

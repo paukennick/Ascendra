@@ -49,7 +49,25 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("CNA", "resident-chokes-at-lunch"),
   entry("CNA", "resident-found-on-floor"),
   // ---- end REQ-223 (S2b) ----
+  // ---- REQ-225 (EPPP-B): client-session scenarios, course EPPP ----------
+  // The EPPP course and these objective titles come from the EPPP course
+  // work (feature/eppp-course); the seed resolves each by course code and
+  // exact objective title and stops with a clear error until it is seeded.
+  // EPPP_SESSION_DOCUMENTS (below) lists the same entries for the tests.
+  entry("EPPP", "suicide-risk-safety-plan"),
+  entry("EPPP", "duty-to-protect-threat"),
+  entry("EPPP", "diagnostic-intake-mood"),
+  // ---- end REQ-225 (EPPP-B) -------------------------------------------
 ];
+
+// REQ-225: the EPPP client-session documents and the objective titles they
+// are registered to (each must be an active objective of course EPPP).
+export const EPPP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "EPPP");
+export const EPPP_OBJECTIVES = [
+  "Assess suicide risk and plan safety in a clinical interview",
+  "Apply duty-to-warn and duty-to-protect obligations",
+  "Conduct a diagnostic intake using DSM-5-TR criteria",
+] as const;
 
 export interface Compiled {
   doc: ScenarioDoc | null; // null when the source, the band or a module failed

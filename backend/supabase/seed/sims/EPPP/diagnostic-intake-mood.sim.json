@@ -1,0 +1,1465 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 0
+  },
+  "slug": "diagnostic-intake-mood",
+  "title": "Session: a diagnostic intake for low mood",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Jamie Ortiz",
+        "presentation": "{distress >= 6 ? \"Tearful, voice low, hands clenched\" : distress >= 3 ? \"Quiet and slumped, answering in short sentences\" : \"Calmer now, sitting back in the chair\"}; {rapport >= 6 ? \"Jamie meets your eyes\" : rapport >= 3 ? \"Jamie looks up now and then\" : \"Jamie stares at the floor\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "moodN",
+          "label": "Mood and interest",
+          "text": "Low most of the day, nearly every day; nothing feels enjoyable, even cooking.",
+          "when": "moodAsked"
+        },
+        {
+          "id": "neuroN",
+          "label": "Sleep, appetite, energy",
+          "text": "Wakes at 3 or 4 nightly; eating little, about 4 kg lost; exhausted; moving slowly.",
+          "when": "neuroAsked"
+        },
+        {
+          "id": "cogN",
+          "label": "Thinking and self-worth",
+          "text": "Can't concentrate on tickets at work; feels worthless, 'a burden'.",
+          "when": "cogAsked"
+        },
+        {
+          "id": "siN",
+          "label": "Suicide screen",
+          "text": "Some days wishes not to wake up; no thoughts of killing themself, no intent, no plan, no past attempt.",
+          "when": "siAsked"
+        },
+        {
+          "id": "courseN",
+          "label": "Onset and course",
+          "text": "About five weeks, starting after the breakup; one similar low spell at 22.",
+          "when": "courseAsked"
+        },
+        {
+          "id": "funcN",
+          "label": "Functioning",
+          "text": "Called in sick six times this month; stopped seeing friends.",
+          "when": "funcAsked"
+        },
+        {
+          "id": "labelN",
+          "label": "'Ever been manic?'",
+          "text": "'No, I don't think so.'",
+          "when": "labelAsked and not hypoKnown"
+        },
+        {
+          "id": "hypoN",
+          "label": "A past high",
+          "text": "Two years ago: slept 3 hours a night without tiredness, talked fast, three business plans, spent $4,000 on equipment.",
+          "when": "hypoKnown"
+        },
+        {
+          "id": "hypoDetailN",
+          "label": "That high, in detail",
+          "text": "Lasted five or six days; kept working full shifts; no hospital; friends said Jamie was 'on fire'; no drugs then.",
+          "when": "hypoDetail"
+        },
+        {
+          "id": "subN",
+          "label": "Substances",
+          "text": "Cannabis twice a month; two drinks a week; no stimulants, ever.",
+          "when": "substanceAsked"
+        },
+        {
+          "id": "medN",
+          "label": "Medical",
+          "text": "No physical in three years; no medications; feels cold a lot lately.",
+          "when": "medicalAsked"
+        },
+        {
+          "id": "famN",
+          "label": "Family",
+          "text": "Mother 'had big ups and downs' and was hospitalized once.",
+          "when": "familyAsked"
+        }
+      ],
+      "record": {
+        "label": "Intake so far",
+        "items": [
+          {
+            "label": "Limits of confidentiality and the purpose of the intake explained",
+            "when": "not isNull(limitsAt)"
+          },
+          {
+            "label": "Depressive symptom groups covered: {(moodAsked ? 1 : 0) + (neuroAsked ? 1 : 0) + (cogAsked ? 1 : 0) + (courseAsked ? 1 : 0)} of 4",
+            "when": "moodAsked or neuroAsked or cogAsked or courseAsked"
+          },
+          {
+            "label": "Recorded: {dx}; next step {next}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Conduct a diagnostic intake using DSM-5-TR criteria",
+  "sources": [
+    {
+      "cite": "ASPPB, EPPP (Part 1-Knowledge) content areas: Assessment and diagnosis 16%, Treatment, intervention, prevention and supervision 15%, Ethical, legal and professional issues 16%; Part 2-Skills: Assessment and intervention 33%, Ethical practice 17%",
+      "checkedAt": "2026-11-10",
+      "url": "https://asppb.net/?p=235"
+    },
+    {
+      "cite": "APA, Ethical Principles of Psychologists and Code of Conduct (2002, amended 2010 and 2016, effective 2017): 4.01, 4.02, 4.04, 4.05, 10.01",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.apa.org/ethics/code",
+      "note": "The current code. APA's Ethics Code Task Force has a revised draft under comment review (expected late 2026 or early 2027) and nothing new has been adopted (apa.org/ethics/task-force, updated July 2026)."
+    },
+    {
+      "cite": "American Psychiatric Association. DSM-5-TR (2022), major depressive episode and major depressive disorder, criteria A-E (reprinted by UpToDate): five of nine symptoms in the same 2 weeks, one being depressed mood or loss of interest; distress or impairment; not due to a substance or another medical condition; not better explained by a psychotic disorder; never a manic or hypomanic episode",
+      "checkedAt": "2026-11-10",
+      "url": "https://abolitionistfeminisms.sites.grinnell.edu/wp-content/uploads/2024/07/DSM-5-TR-criteria-for-a-major-depressive-episode-UpToDate-1.pdf",
+      "note": "Read through a reprint, not the manual itself."
+    },
+    {
+      "cite": "DSM-5(-TR) bipolar II disorder and hypomanic episode (PsychDB summary): at least one hypomanic and one major depressive episode, never a manic episode; hypomania lasts at least 4 consecutive days with 3 or more symptoms (4 if the mood is only irritable), with no marked impairment, no hospitalization and no psychotic features; mania lasts at least 1 week",
+      "checkedAt": "2026-11-10",
+      "url": "https://www.psychdb.com/bipolar/bipolar-ii",
+      "note": "The page labels its criteria DSM-5; DSM-5-TR (2022) did not change these criteria sets (the UpToDate reprint above says the same of the depressive episode). Not read in the manual itself."
+    }
+  ],
+  "brief": {
+    "situation": "Jamie Ortiz, 27 (a fictional client), a line cook, self-referred for 'depression' after a breakup two months ago. You are a licensed psychologist doing a first-session diagnostic intake at an outpatient clinic. Jamie wants to know 'what is wrong' and whether to ask a doctor for an antidepressant. You have 50 minutes.",
+    "handover": [
+      "Intake form: 'feeling low for over a month, can't enjoy anything, can't sleep'. No prior treatment. Last physical exam three years ago."
+    ],
+    "howItWorks": [
+      "Choose what to ask and how to respond. Jamie answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Jamie's rapport, distress and how much Jamie discloses change with what you say. The hour is not long enough to ask everything: choose what the diagnosis depends on.",
+      "After the session you write a diagnostic formulation, then record a DSM-5-TR diagnosis and the next step."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "70min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-10",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-10",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-10",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "limitsAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "moodAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "neuroAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "cogAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "courseAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "funcAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "labelAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "hypoKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "hypoDetail": {
+      "type": "bool",
+      "init": false
+    },
+    "substanceAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "medicalAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "familyAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "dx": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mdd",
+        "bp2",
+        "bp1",
+        "adj",
+        "defer"
+      ],
+      "init": "none"
+    },
+    "next": {
+      "type": "enum",
+      "values": [
+        "none",
+        "workup",
+        "antidep",
+        "therapy"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "limits",
+        "reflect",
+        "askMood",
+        "askNeuro",
+        "askCog",
+        "askSI",
+        "askCourse",
+        "askFunction",
+        "askManicLabel",
+        "askHypo",
+        "askHypoDetail",
+        "askSubstance",
+        "askMedical",
+        "askFamily",
+        "rushDx",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "limits": {
+      "label": "Explain confidentiality and its limits",
+      "group": "Open",
+      "available": "not talking and (isNull(limitsAt))",
+      "why": "Already explained this session.",
+      "effects": [
+        {
+          "log": "You explain what stays private and when the law requires you to act: a risk of serious harm to self or others, and abuse of a child or vulnerable adult.",
+          "kind": "act"
+        },
+        {
+          "set": "limitsAt",
+          "to": "t"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "finding": "Jamie nods. \"Okay. Good to know where the lines are.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Jamie is quiet for a moment. \"Yeah. That's it exactly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "End the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "askMood": {
+      "label": "Ask about depressed mood and loss of interest",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not moodAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about mood and whether anything still brings pleasure.",
+          "kind": "act"
+        },
+        {
+          "set": "moodAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Low. All day, pretty much every day. I used to love cooking. Now it's just noise.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askNeuro": {
+      "label": "Ask about sleep, appetite and weight, energy, slowing or restlessness",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not neuroAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You go through sleep, appetite, energy and how fast Jamie is moving.",
+          "kind": "act"
+        },
+        {
+          "set": "neuroAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I wake at three, four, and that's it. I'm not hungry; my pants are loose, four kilos maybe. Tired all the time. My boss says I'm slow on the line.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "askCog": {
+      "label": "Ask about concentration and feelings of worthlessness or guilt",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not cogAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about concentration and how Jamie sees themself lately.",
+          "kind": "act"
+        },
+        {
+          "set": "cogAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"I read a ticket three times. And I feel like a burden. Worthless, honestly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askSI": {
+      "label": "Screen for thoughts of death and suicide",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not siAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of death and of suicide.",
+          "kind": "act"
+        },
+        {
+          "set": "siAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"Some days I wish I wouldn't wake up. But kill myself, no. Never tried, no plan.\" Jamie seems relieved to have been asked."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askCourse": {
+      "label": "Ask how long it has lasted, how it started, and earlier episodes",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not courseAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask when this began, what was happening, and whether it has happened before.",
+          "kind": "act"
+        },
+        {
+          "set": "courseAsked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Five weeks? It started after we broke up. I had a low patch like this at 22, too.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askFunction": {
+      "label": "Ask about work, relationships and daily functioning",
+      "group": "Depressive symptoms",
+      "available": "not talking and (not funcAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask how this is affecting work and life.",
+          "kind": "act"
+        },
+        {
+          "set": "funcAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"I've called in sick six times this month. I don't answer my friends.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askManicLabel": {
+      "label": "Ask: 'Have you ever been manic?'",
+      "group": "Rule out",
+      "available": "not talking and (not labelAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask whether Jamie has ever been manic.",
+          "kind": "act"
+        },
+        {
+          "set": "labelAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"Manic? No, I don't think so.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "askHypo": {
+      "label": "Screen for past highs by behavior: less sleep without tiredness, unusual energy, spending, racing thoughts",
+      "group": "Rule out",
+      "available": "not talking and (not hypoKnown)",
+      "why": "Jamie has told you.",
+      "effects": [
+        {
+          "log": "You ask about any time Jamie needed much less sleep but had lots of energy, talked or spent more, or had racing ideas.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "hypoKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "finding": "Jamie laughs, surprised. \"Oh, that week two years ago? I slept like three hours a night and wasn't tired. Talked nonstop, wrote three business plans, spent four grand on equipment. It was great.\""
+                },
+                {
+                  "log": "A possible past hypomanic episode: decreased need for sleep, talkativeness, goal-directed activity, spending.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"Not really. I don't know.\" (Not yet enough trust to remember out loud.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askHypoDetail": {
+      "label": "Ask how long that high lasted, whether it caused problems or a hospital stay, and any drugs at the time",
+      "group": "Rule out",
+      "available": "not talking and (hypoKnown and not hypoDetail)",
+      "why": "Ask about past highs first (or asked).",
+      "effects": [
+        {
+          "log": "You ask how many days it lasted, whether work or relationships suffered, any hospital visit, and any substances then.",
+          "kind": "act"
+        },
+        {
+          "set": "hypoDetail",
+          "to": "true"
+        },
+        {
+          "finding": "\"Five days, maybe six. I worked every shift. No hospital. My friends said I was 'on fire'. No drugs, just coffee.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "askSubstance": {
+      "label": "Ask about alcohol, cannabis, stimulants and other drugs",
+      "group": "Rule out",
+      "available": "not talking and (not substanceAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about alcohol and drugs, now and in the past.",
+          "kind": "act"
+        },
+        {
+          "set": "substanceAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"Weed maybe twice a month. A couple of beers a week. Never anything else.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askMedical": {
+      "label": "Ask about medical conditions, medications and the last physical",
+      "group": "Rule out",
+      "available": "not talking and (not medicalAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about health, medications and the last checkup.",
+          "kind": "act"
+        },
+        {
+          "set": "medicalAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"No meds. Haven't seen a doctor in three years. I'm cold all the time lately, if that matters.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askFamily": {
+      "label": "Ask about mood problems in the family",
+      "group": "Rule out",
+      "available": "not talking and (not familyAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask about mood problems in the family.",
+          "kind": "act"
+        },
+        {
+          "set": "familyAsked",
+          "to": "true"
+        },
+        {
+          "finding": "\"My mom had big ups and downs. She was in the hospital once, when I was little.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "rushDx": {
+      "label": "Tell Jamie: 'This sounds like classic depression.'",
+      "group": "Respond",
+      "available": "not talking",
+      "why": "Let the conversation continue first (the button above the actions).",
+      "effects": [
+        {
+          "log": "You tell Jamie it sounds like classic depression.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "finding": "\"Okay. So... pills?\" Jamie stops volunteering much."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the diagnosis and the next step",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Recorded.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Diagnostic record",
+          "fields": [
+            {
+              "id": "diagnosis",
+              "label": "DSM-5-TR diagnosis",
+              "options": [
+                {
+                  "value": "mdd",
+                  "label": "Major depressive disorder, recurrent, moderate"
+                },
+                {
+                  "value": "bp2",
+                  "label": "Bipolar II disorder, current episode depressed"
+                },
+                {
+                  "value": "bp1",
+                  "label": "Bipolar I disorder, current episode depressed"
+                },
+                {
+                  "value": "adj",
+                  "label": "Adjustment disorder with depressed mood"
+                },
+                {
+                  "value": "defer",
+                  "label": "Deferred: more information needed"
+                }
+              ]
+            },
+            {
+              "id": "plan",
+              "label": "Next step",
+              "options": [
+                {
+                  "value": "workup",
+                  "label": "Medical exam and labs, a psychiatric medication evaluation, and psychotherapy"
+                },
+                {
+                  "value": "antidep",
+                  "label": "Ask the primary care doctor for an antidepressant"
+                },
+                {
+                  "value": "therapy",
+                  "label": "Psychotherapy only"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "dx",
+          "to": "diagnosis"
+        },
+        {
+          "set": "next",
+          "to": "plan"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Recorded: {diagnosis}, next step {plan}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-10",
+        "note": "A 50-minute outpatient session; each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "The client stands, says this is not helping, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predictDx",
+      "when": "moodAsked and neuroAsked and cogAsked",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "switchDx"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "switchDx": {
+      "title": "Predict (not scored)",
+      "context": "Jamie has described a major depressive episode. Which one finding would rule out major depressive disorder under DSM-5-TR?",
+      "choices": [
+        {
+          "id": "hypo",
+          "label": "Any past hypomanic or manic episode not caused by a substance or medical condition",
+          "effects": [
+            {
+              "log": "Prediction: a past hypomanic or manic episode.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. MDD criterion E: there has never been a manic or hypomanic episode (unless all were substance-induced or due to a medical condition). A past hypomanic episode with this depressive episode points to bipolar II."
+        },
+        {
+          "id": "stressor",
+          "label": "A clear stressor before the episode (the breakup)",
+          "effects": [
+            {
+              "log": "Prediction: a stressor.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No. A stressor does not exclude a major depressive episode; when full MDE criteria are met, adjustment disorder does not apply. What excludes MDD is a past manic or hypomanic episode (criterion E)."
+        },
+        {
+          "id": "family",
+          "label": "A parent with a mood disorder",
+          "effects": [
+            {
+              "log": "Prediction: family history.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No. Family history raises suspicion and should prompt screening, but it is not a criterion. What excludes MDD is a past manic or hypomanic episode (criterion E)."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your diagnostic formulation for Jamie: the DSM-5-TR diagnosis, which criteria are met, what you ruled out and how, and the next step.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Diagnosis and criteria",
+          "criteria": "Bipolar II disorder, current episode depressed: a current major depressive episode (five or more of nine symptoms for at least two weeks with impairment) and a past hypomanic episode (at least 4 days, 3 or more symptoms, no marked impairment, no hospitalization), never a manic episode.",
+          "modelAnswer": "Bipolar II disorder, current episode depressed. Current major depressive episode for five weeks: depressed mood, loss of interest, insomnia, weight loss, fatigue, psychomotor slowing, poor concentration and worthlessness, with missed work. Two years ago, five to six days of decreased need for sleep, talkativeness, increased goal-directed activity and spending, noticed by others, without marked impairment or hospitalization and without substances: a hypomanic episode. No manic episode, so not bipolar I; MDD is excluded by the hypomanic episode."
+        },
+        {
+          "label": "Rule-outs and next step",
+          "criteria": "Substance use and medical causes asked about (and a medical workup arranged, e.g. thyroid given feeling cold and no recent physical); suicide risk screened; the family history noted; avoids an antidepressant alone and refers for a psychiatric medication evaluation.",
+          "modelAnswer": "No stimulants or substances explain either episode; with no physical in three years and feeling cold, a medical exam and labs (including thyroid) come first. Passive death wishes without intent or plan; safety reviewed. Mother likely had a bipolar disorder. Refer for a psychiatric evaluation rather than an antidepressant from primary care alone, and start psychotherapy."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-10",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-10"
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and siAsked and dx == \"defer\"",
+      "class": "recovered",
+      "rationale": "Deferring the diagnosis after one session is safe when the information is incomplete; it delays treatment but harms no one, so it is recovered, not harm.",
+      "source": {
+        "cite": "American Psychiatric Association. DSM-5-TR (2022), major depressive episode and major depressive disorder, criteria A-E (reprinted by UpToDate): five of nine symptoms in the same 2 weeks, one being depressed mood or loss of interest; distress or impairment; not due to a substance or another medical condition; not better explained by a psychotic disorder; never a manic or hypomanic episode",
+        "checkedAt": "2026-11-10",
+        "url": "https://abolitionistfeminisms.sites.grinnell.edu/wp-content/uploads/2024/07/DSM-5-TR-criteria-for-a-major-depressive-episode-UpToDate-1.pdf",
+        "note": "Read through a reprint, not the manual itself."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "Jamie walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Jamie left mid-session, saying this was a waste of time, with no diagnosis, no safety screen and no next step."
+    },
+    "unipolar": {
+      "label": "Bipolar disorder missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and (dx == \"mdd\" or dx == \"adj\")",
+      "narrative": "Jamie's record says {dx == \"mdd\" ? \"major depressive disorder\" : \"adjustment disorder\"}. {next == \"antidep\" ? \"The primary care doctor starts an antidepressant on its own.\" : \"Nobody asks about the past high again.\"} The hypomanic episode two years ago never enters the record."
+    },
+    "noScreen": {
+      "label": "No suicide screen",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not siAsked and not (dx == \"mdd\" or dx == \"adj\")",
+      "narrative": "Jamie left a depression intake without anyone asking about thoughts of death or suicide."
+    },
+    "accurate": {
+      "label": "An accurate diagnosis, a safe next step",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and dx == \"bp2\" and next == \"workup\" and hypoDetail and moodAsked and neuroAsked and cogAsked and courseAsked and substanceAsked and medicalAsked and siAsked and rapport >= allianceTarget",
+      "narrative": "Jamie leaves with a diagnosis that fits the whole history, a medical workup booked, a psychiatric referral and a first therapy appointment."
+    },
+    "deferred": {
+      "label": "Diagnosis deferred",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and siAsked and dx == \"defer\"",
+      "narrative": "You deferred the diagnosis pending more information. Safe, but Jamie leaves without an answer, and treatment waits."
+    },
+    "gaps": {
+      "label": "A diagnosis, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and siAsked and (dx == \"bp2\" or dx == \"bp1\") and not (documented and not walkedOut and dx == \"bp2\" and next == \"workup\" and hypoDetail and moodAsked and neuroAsked and cogAsked and courseAsked and substanceAsked and medicalAsked and siAsked and rapport >= allianceTarget)",
+      "narrative": "The diagnosis or the next step is not wrong in a way that hurts Jamie now, but the criteria below show what is missing."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "scoring": {
+    "criteria": [
+      {
+        "id": "maniaScreen",
+        "label": "Screened for past mania or hypomania by behavior",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hypoKnown",
+            "score": "met",
+            "why": "Asked about the behaviors, and found the past high."
+          },
+          {
+            "when": "labelAsked",
+            "score": "partial",
+            "why": "Asked only 'ever been manic?', which clients rarely recognize."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never screened for mania or hypomania."
+          }
+        ]
+      },
+      {
+        "id": "episode",
+        "label": "Established the major depressive episode (symptoms and duration)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "(moodAsked ? 1 : 0) + (neuroAsked ? 1 : 0) + (cogAsked ? 1 : 0) + (courseAsked ? 1 : 0) == 4",
+            "score": "met",
+            "why": "Mood and interest, neurovegetative and cognitive symptoms, and duration all covered."
+          },
+          {
+            "when": "(moodAsked ? 1 : 0) + (neuroAsked ? 1 : 0) + (cogAsked ? 1 : 0) + (courseAsked ? 1 : 0) >= 2",
+            "score": "partial",
+            "why": "{(moodAsked ? 1 : 0) + (neuroAsked ? 1 : 0) + (cogAsked ? 1 : 0) + (courseAsked ? 1 : 0)} of 4 symptom groups covered."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The episode was not established."
+          }
+        ]
+      },
+      {
+        "id": "ruleOuts",
+        "label": "Ruled out substances and medical causes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "substanceAsked and medicalAsked",
+            "score": "met",
+            "why": "Asked about substances and medical causes."
+          },
+          {
+            "when": "substanceAsked or medicalAsked",
+            "score": "partial",
+            "why": "Asked about {substanceAsked ? \"substances\" : \"medical causes\"} only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither substances nor medical causes asked about."
+          }
+        ]
+      },
+      {
+        "id": "siScreen",
+        "label": "Screened for suicide risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "siAsked",
+            "score": "met",
+            "why": "Asked directly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not asked."
+          }
+        ]
+      },
+      {
+        "id": "hypoDefined",
+        "label": "Characterized the high: duration, impairment, substances",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "hypoDetail",
+            "score": "met",
+            "why": "Five to six days, no marked impairment, no hospital, no drugs: hypomania, not mania."
+          },
+          {
+            "when": "hypoKnown",
+            "score": "partial",
+            "why": "Found the high but did not establish how long or how severe it was."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explored."
+          }
+        ]
+      },
+      {
+        "id": "diagnosis",
+        "label": "Recorded diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dx == \"bp2\"",
+            "score": "met",
+            "why": "Bipolar II disorder, current episode depressed."
+          },
+          {
+            "when": "dx == \"defer\"",
+            "score": "partial",
+            "why": "Deferred."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Recorded {dx}."
+          }
+        ]
+      },
+      {
+        "id": "nextStep",
+        "label": "Next step fits the diagnosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "next == \"workup\"",
+            "score": "met",
+            "why": "Medical workup, psychiatric evaluation and psychotherapy."
+          },
+          {
+            "when": "next == \"therapy\"",
+            "score": "partial",
+            "why": "Psychotherapy without a medical workup or medication evaluation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "An antidepressant from primary care on its own, without a psychiatric evaluation, does not fit a likely bipolar disorder."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      },
+      {
+        "id": "consent",
+        "label": "Explained confidentiality and the intake at the outset (APA 4.02, 10.01)",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(limitsAt) and timeAt(limitsAt) <= 300",
+            "score": "met",
+            "why": "Explained in the first five minutes."
+          },
+          {
+            "when": "not isNull(limitsAt)",
+            "score": "partial",
+            "why": "Explained later in the session."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written diagnostic formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "groups",
+        "label": "Depressive symptom groups covered",
+        "value": "(moodAsked ? 1 : 0) + (neuroAsked ? 1 : 0) + (cogAsked ? 1 : 0) + (courseAsked ? 1 : 0)",
+        "format": "number",
+        "expert": "4"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-5 min",
+        "text": "Explain confidentiality and the intake; reflect."
+      },
+      {
+        "at": "5-20 min",
+        "text": "Mood and interest, sleep, appetite, energy and pace, concentration and worth, suicide screen, onset and course."
+      },
+      {
+        "at": "20-35 min",
+        "text": "Screen for past highs by behavior, not by the word 'manic'; establish duration and severity; substances, medical causes, family history."
+      },
+      {
+        "at": "After",
+        "text": "Record bipolar II disorder, current episode depressed; a medical workup, a psychiatric medication evaluation and psychotherapy."
+      }
+    ],
+    "debrief": {
+      "accurate": {
+        "headline": "Good: the whole history, the right diagnosis",
+        "body": "You established the episode, found the past hypomania by asking about behavior, ruled out substances and medical causes, and screened for suicide."
+      },
+      "gaps": {
+        "headline": "A diagnosis, with gaps",
+        "body": "The criteria below show what the record rests on and what it is missing."
+      },
+      "deferred": {
+        "headline": "Deferred",
+        "body": "Deferring is safe when information is missing. Here the key questions fit in the hour."
+      },
+      "unipolar": {
+        "headline": "Bipolar disorder missed",
+        "body": "MDD requires that there has never been a manic or hypomanic episode. Clients rarely call a high 'mania'; asking about less sleep without tiredness, energy, spending and racing thoughts finds it."
+      },
+      "noScreen": {
+        "headline": "No suicide screen",
+        "body": "Every intake for depression asks directly about thoughts of death and suicide."
+      },
+      "walkout": {
+        "headline": "The alliance broke",
+        "body": "Jumping to a label before listening closed the conversation down."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Jamie meets criteria for a current major depressive episode. Before calling it MDD, DSM-5-TR criterion E requires that there has never been a manic or hypomanic episode; a behavior-based screen finds five to six days of decreased need for sleep, talkativeness, goal-directed activity and spending two years ago, without marked impairment or hospitalization or substances: hypomania. That makes the diagnosis bipolar II disorder, current episode depressed, and changes the next step: a medical workup and a psychiatric evaluation rather than an antidepressant alone."
+  }
+}

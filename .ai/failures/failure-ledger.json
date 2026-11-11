@@ -14791,6 +14791,80 @@
       "prevention_rules": [],
       "prevention_notes": "The leak test runs on every seeded document under npm test.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1220",
+      "date": "2026-11-10",
+      "title": "Sim lint warned 'a wait is pending at every boundary' for turn-based paths",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sims:lint warned that the learner could skip at almost every moment of a running phase on every golden path of the EPPP sessions, which have no running phase",
+      "how_detected": "lint while authoring the EPPP sessions",
+      "root_cause": "replayGoldenPath started waitAlways true and only ever cleared it at a running-phase boundary, so a path that never visited a running phase kept it true",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/lib/sim/engine/v1/validate.ts"
+      ],
+      "fix_summary": "count running-phase boundaries and warn only when there was at least one",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "the warning text names a running phase; its condition now requires one",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1221",
+      "date": "2026-11-10",
+      "title": "EPPP session endings depended on key order the jsonb document column does not keep",
+      "status": "fixed",
+      "severity": "high",
+      "symptom": "golden paths through the routes ended differently on the server (state hash mismatch): the catch-all 'with gaps' ending fired before the intended one",
+      "how_detected": "lib/sims-session.dbtest.ts (server hash vs golden hash)",
+      "root_cause": "the engine evaluates endings in Object.keys order, and sim_versions.document/client_document are jsonb, which return keys shortest first then bytewise; the documents relied on first-match precedence with a catch-all",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/supabase/seed/sims/EPPP/suicide-risk-safety-plan.sim.json",
+        "backend/supabase/seed/sims/EPPP/duty-to-protect-threat.sim.json",
+        "backend/supabase/seed/sims/EPPP/diagnostic-intake-mood.sim.json"
+      ],
+      "fix_summary": "each ending's condition excludes the others, so order does not matter",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts",
+        "backend/lib/sims-session.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "storage-order.test.ts replays every seeded golden path with its maps in jsonb order; docs/sims.md 22.3 finding 2",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-1222",
+      "date": "2026-11-10",
+      "title": "Tamponade full-dose epinephrine harm ending is unreachable on the server (jsonb key order)",
+      "status": "open",
+      "severity": "high",
+      "symptom": "with the document in jsonb key order, golden path codeFullEpi reaches ROSC and phase 2 instead of code_epiHarm (harm)",
+      "how_detected": "backend/lib/sim/storage-order.test.ts (REQ-225)",
+      "root_cause": "the code/ACLS module's non-terminal code_rosc and terminal code_epiHarm both hold at ROSC after 1 mg epinephrine; jsonb puts code_rosc first, and the engine takes the first true ending in key order",
+      "requirement": "REQ-225",
+      "affected": [
+        "backend/supabase/seed/sims/modules/code-acls@1.module.json",
+        "backend/supabase/seed/sims/CCRNADULT/tamponade-after-cabg.sim.json",
+        "backend/lib/sim/engine/v1/engine.ts"
+      ],
+      "fix_summary": "",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/storage-order.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "not fixed in REQ-225: the tamponade files are under other open work (fix/g5-content); fix either in content (exclusive conditions) or in the engine (explicit ending order or json storage), Nick's decision",
+      "recurrence_of": ""
     }
   ]
 }
