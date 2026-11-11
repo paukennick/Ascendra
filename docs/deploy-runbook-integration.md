@@ -468,16 +468,56 @@ new. Three steps, all from GitHub, no laptop and no database password:
    recompute_mastery_batched()` and `--status`. The seed takes 15+
    minutes from GitHub (network round trips); it is safe to re-run.
 
-Both branches only trigger the workflow; nothing merges them. The workflow
-reads the repository secret **`PROD_DATABASE_URL`** (Settings -> Secrets and
-variables -> Actions -> Secrets tab -> Repository secrets): the Session
-pooler URI from Supabase -> Connect -> Direct -> Session pooler, with the
-database password in place of `[YOUR-PASSWORD]` (no brackets). Vercel's
-`DATABASE_URL` holds the same string. When the password changes, update
-both, then redeploy the current production deployment in Vercel so it picks
-the new value up -- the live app is down from the reset until that redeploy
-is Ready. Vercel's Sensitive variables cannot be read back, so Supabase is
-the only place to get the string again.
+Both branches only trigger the workflow; nothing merges them.
+
+### Per batch, as run for releases 2026-11-10 and 2026-11-11
+
+A release is cut into batches, one pull request each, shipped in order.
+For every batch:
+
+1. **Release branch.** The batch's work is merged into the release branch
+   (for example `release/2026-11-11`); CI must be green on its head.
+2. **`ops/migrate-production`** (only if the batch adds a migration): push
+   the release branch head, approve the run once the reviewer gate exists,
+   and wait for "Schema is current".
+3. **Merge the PR** into `master` with a merge commit (not squash), so the
+   release head stays an ancestor of `master`. Vercel deploys; check
+   `/api/health` answers `"status":"ok","schema":"current"` and the new
+   `commit`.
+4. **`ops/post-deploy-production`** (only if the seed or the mastery rule
+   changed): push the merge commit on `master`. It re-runs migrate (a
+   no-op), then the seed and the mastery recompute.
+
+The release notes list which batches needed steps 2 and 4
+([release-2026-11-10.md](release-2026-11-10.md),
+[release-2026-11-11.md](release-2026-11-11.md)).
+
+**Pushing the ops branches.** Until the `protect-ops` ruleset exists the
+`--force` form above works. Once it exists (lockdown guide step 1.4), force
+pushes are blocked: push without `--force`,
+`git push origin <commit>:refs/heads/ops/migrate-production`. That is a
+fast-forward whenever `<commit>` descends from the branch's last commit,
+which holds when you deploy forward from `master` with merge commits (on
+2026-11-11 both ops branches pointed at ancestors of `master`). If a push is
+refused as non-fast-forward, push a newer commit that contains the old one;
+don't disable the ruleset.
+
+### Where the database secret lives
+
+The workflows read **`PROD_DATABASE_URL`** from the GitHub environment
+`production-database` (migrate, seed, lesson fixes, pre-generation) or
+`production-backup` (nightly backup, weekly clean-up), since the
+2026-11-10 lockdown ([ops/2026-11-10-lockdown-and-db-rotation.md](ops/2026-11-10-lockdown-and-db-rotation.md)).
+Both hold the Session pooler URI (port 5432). Vercel's `DATABASE_URL` holds
+the Transaction pooler URI (port 6543) with the same password. The old
+repository-level `PROD_DATABASE_URL` still exists until lockdown step 4
+deletes it.
+
+When the password changes, update all three, then redeploy the current
+production deployment in Vercel so it picks the new value up -- the live
+app is down from the reset until that redeploy is Ready. Vercel's Sensitive
+variables cannot be read back, so Supabase and the password manager are the
+only places to get the string again.
 
 Rollback stays as in step 7 above: Vercel Instant Rollback for code,
 migrations are additive so the database can stay.
